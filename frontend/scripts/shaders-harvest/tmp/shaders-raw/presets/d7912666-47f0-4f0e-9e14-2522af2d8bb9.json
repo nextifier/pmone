@@ -1,0 +1,30 @@
+{
+  "id": "d7912666-47f0-4f0e-9e14-2522af2d8bb9",
+  "title": "Synthesis 3",
+  "collection_id": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth gradient shader effect transitioning vertically from cyan at the top to deep black at the bottom, with intermediate purple and orange tones creating a sunset-like atmosphere. The composition features two sine wave components: a cyan wave positioned in the upper-left area with moderate amplitude and softness creating a subtle undulating pattern, and an orange wave in the center-right area with lower amplitude adding warm tonal variation. A wave distortion effect with 176-degree angle and sine wave pattern creates subtle horizontal rippling across the entire composition, giving the gradient a fluid, breathing quality. The overall effect is enhanced by film grain noise at 0.07 strength, adding subtle texture and photographic quality to the smooth color transitions. The blend modes use normal-oklch for the sine waves, preserving color relationships while creating smooth, natural-looking color mixing. The dark navy base color (#08071a) anchors the composition, while the gradient flows through purple and magenta midtones before reaching warm orange and golden tones in the middle section, finally fading to cyan in the upper atmosphere. The effect creates a serene, twilight-like mood with gentle motion suggested by the wave distortion.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/4049cd19-46fa-4d60-92e1-af5b7c7f079e.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQwNDljZDE5LTQ2ZmEtNGQ2MC05MmUxLWFmNWI3YzdmMDc5ZS5qcGciLCJpYXQiOjE3NjM0NDA0NTksImV4cCI6MTc5NDk3NjQ1OX0.wsnoyBaYyo9ohnOzOAY0V9V-vjnWDM0EYG3FzqtLYHU",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#08071a\"/>\n    <SineWave\n      :amplitude=\"0.36\"\n      blend-mode=\"normal-oklch\"\n      color=\"#05e8e8\"\n      :frequency=\"0.2\"\n      :position=\"{\n        x: 0.22,\n        y: 0.27\n      }\"\n      :softness=\"0.55\"\n      :speed=\"0.3\"\n      :thickness=\"0.72\"/>\n    <SineWave\n      :amplitude=\"0.17\"\n      blend-mode=\"normal-oklch\"\n      color=\"#f0960e\"\n      :frequency=\"0.2\"\n      :position=\"{\n        x: 0.6,\n        y: 0.51\n      }\"\n      :softness=\"0.54\"\n      :speed=\"0.5\"\n      :thickness=\"0.35\"/>\n    <WaveDistortion\n      :angle=\"176\"\n      :frequency=\"0.3\"\n      :speed=\"0.2\"\n      :strength=\"1\"/>\n    <FilmGrain\n      :strength=\"0.07\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

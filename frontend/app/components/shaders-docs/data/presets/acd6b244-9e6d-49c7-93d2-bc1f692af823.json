@@ -1,0 +1,45 @@
+{
+  "id": "acd6b244-9e6d-49c7-93d2-bc1f692af823",
+  "title": "Rounded Panels 3",
+  "collectionId": "0a33095f-dfca-48af-94a5-5f15acc313ab",
+  "category": "background",
+  "description": "A dynamic diagonal stripe pattern shader effect featuring alternating bands of coral-red (#f4412f) and bright blue (#0a11e2) colors running at a 54-degree angle across the composition. The stripes have a consistent density of 12 bands with smooth, parallel edges. The most distinctive feature is a radial gradient mask applied to the stripe pattern, creating a circular gradient effect centered at approximately 42.6% horizontally and 75.6% vertically. This circular mask has a radius of 1.45 units with soft edges (0.1 softness), causing the stripe pattern to fade and modulate in intensity as it moves away from the circle's center. The effect creates a wave-like or undulating appearance where the stripes appear more prominent and saturated near the circular focal point and gradually become more transparent and less defined toward the edges. The overall mood is energetic and modern, with high contrast between the warm red and cool blue tones creating visual tension. The composition uses linear color space for accurate color rendering, and the entire effect maintains full opacity at 1.0.",
+  "thumbnail": "/shaders/thumbnails/acd6b244-9e6d-49c7-93d2-bc1f692af823.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "angle": 54,
+          "balance": {
+            "type": "map",
+            "source": "idmlsathgg7fl4tmxmi",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.1
+          },
+          "colorA": "#f4412f",
+          "colorB": "#0a11e2",
+          "density": 12
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmlsathgg7fl4tmxmi",
+          "center": {
+            "x": 0.43,
+            "y": 0.76
+          },
+          "radius": 1.45,
+          "softness": 0.1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

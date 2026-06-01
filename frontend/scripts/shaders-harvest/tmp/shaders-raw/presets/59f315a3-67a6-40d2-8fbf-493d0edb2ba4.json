@@ -1,0 +1,18 @@
+{
+  "id": "59f315a3-67a6-40d2-8fbf-493d0edb2ba4",
+  "title": "Pixel Beams 6",
+  "collection_id": "ef3cb88e-1e3e-4371-8816-4821e67b554f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect displaying a deep crimson red background (#a20628) with an intricate dithering pattern overlay. The dither effect uses a Bayer8 pattern with 7-pixel size, creating a grainy, stippled texture across the entire canvas. Overlaid on this base is a plasma effect that generates organic, flowing patterns with white (#ffffff) and black (#000000) elements, creating areas of varying density and contrast. The plasma has a low density (0.3) and high contrast (0.9), producing subtle, wispy cloud-like formations that drift across the surface. A wave distortion effect with square waveform (frequency 1.8, angle 224 degrees) adds a subtle undulating ripple pattern, creating a sense of movement and depth. The combination creates a textured, granular appearance with organic flowing patterns that suggest motion and energy. The overall mood is intense and dynamic, with the dithering giving it a retro or digital aesthetic while the plasma adds fluidity and the wave distortion provides subtle directional movement.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bca5560d-5735-4d68-8e0c-5dd8280405fd.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JjYTU1NjBkLTU3MzUtNGQ2OC04ZTBjLTVkZDgyODA0MDVmZC5qcGciLCJpYXQiOjE3NzI4MzUwNjcsImV4cCI6MTgwNDM3MTA2N30.1YrarIwqCiDnJRlmeTi_HjipClIqs4zu_vWhMPUDS08",
+  "import": "import {\n  Shader,\n  Dither,\n  Plasma,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  Plasma,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Dither\n      color-a=\"#a20628\"\n      color-b=\"#f2527a\"\n      pattern=\"bayer8\"\n      :pixel-size=\"7\"\n      :threshold=\"0.41\">\n      <Plasma\n        color-a=\"#ffffff\"\n        :contrast=\"0.9\"\n        :density=\"0.3\"\n        :intensity=\"1.3\"\n        :speed=\"1\"/>\n      <WaveDistortion\n        :angle=\"224\"\n        edges=\"mirror\"\n        :frequency=\"1.8\"\n        :strength=\"1\"\n        :visible=\"true\"\n        wave-type=\"square\"/>\n    </Dither>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ]
+}

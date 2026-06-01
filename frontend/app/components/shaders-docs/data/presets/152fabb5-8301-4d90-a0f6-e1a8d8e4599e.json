@@ -1,0 +1,50 @@
+{
+  "id": "152fabb5-8301-4d90-a0f6-e1a8d8e4599e",
+  "title": "Swirling Gradient 14",
+  "collectionId": "5b4580ec-38eb-4986-9867-4a5ae2965a1b",
+  "category": "background",
+  "description": "A dynamic shader effect featuring flowing, curved ribbons of coral-red (#ff3b1f) and cyan (#1fd4ff) colors against a bright sky-blue background. The composition shows multiple overlapping curved strokes that appear to swirl and undulate with a sense of motion. The red/coral tones dominate the foreground with semi-transparent, blurred edges that create a soft, feathered appearance. The cyan color is subtly blended throughout, visible in the gradient transitions and color space interpolation. The effect has a paper-like texture overlay that adds subtle grain and displacement, creating a tactile, organic quality. Concentric spinning rings create a subtle radial distortion pattern that warps the flowing ribbons, giving them a three-dimensional, vortex-like quality. The overall mood is energetic and fluid, with smooth momentum-based animation that responds to mouse input on the x-axis. The blur and transparency create depth, with the ribbons appearing to flow toward and away from the viewer. The color transitions use oklab color space for smooth, perceptually uniform gradients between the warm and cool tones.",
+  "thumbnail": "/shaders/thumbnails/152fabb5-8301-4d90-a0f6-e1a8d8e4599e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": {
+            "axis": "x",
+            "type": "mouse",
+            "momentum": 0.2,
+            "outputMax": 60,
+            "outputMin": 40,
+            "smoothing": 0.6
+          },
+          "colorA": "#ff3b1f",
+          "colorB": "#1fd4ff",
+          "colorSpace": "oklab",
+          "detail": 1.2
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "rings": 9,
+          "smoothness": 0.76,
+          "speed": -1.2,
+          "speedRandomness": 0.14
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "roughness": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

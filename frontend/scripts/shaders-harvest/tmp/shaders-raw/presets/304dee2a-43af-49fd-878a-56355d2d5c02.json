@@ -1,0 +1,42 @@
+{
+  "id": "304dee2a-43af-49fd-878a-56355d2d5c02",
+  "title": "Mercury 3",
+  "collection_id": "8cefc8df-84a3-4d51-b006-c90065d0b8bf",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A striking neon green glowing logo featuring a stylized 'G' shape with geometric cutouts, set against a pure black background. The letter is constructed with a thick, rounded form that creates a modern, tech-forward aesthetic. The interior displays a dynamic, swirling liquid effect with bright lime green (#12d32f, #61f533) flowing patterns that appear to move and shift. The glass material creates a glossy, refractive surface with visible light refraction and chromatic aberration effects, particularly noticeable at the edges where the green transitions to subtle cyan highlights. A bright yellow-white highlight (#ffe11a) appears as a specular reflection, suggesting a light source from the upper left. The swirl pattern inside the cutout creates organic, flowing motion with darker green undertones (#0a140e) providing depth and contrast. Wave distortions ripple across the surface at a frequency of 5.1, creating subtle undulating movement. The overall effect is highly polished and luminescent, with the neon green appearing to glow against the black void. Cursor ripples with chromatic split effects add interactive responsiveness. A subtle film grain overlay (0.075 strength) adds texture and prevents the image from appearing too sterile. The composition is perfectly centered with the logo occupying the frame's focal point, creating a professional, modern branding presentation with a cyberpunk aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/304dee2a-43af-49fd-878a-56355d2d5c02.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzMwNGRlZTJhLTQzYWYtNDlmZC04NzhhLTU2MzU1ZDJkNWMwMi5qcGciLCJpYXQiOjE3NzgxNzk2MDUsImV4cCI6MTgwOTcxNTYwNX0.cToe225dKLaxq1Nyzyhl5pz3jNuv1DmancGKj70QXdE",
+  "import": "import {\n  Shader,\n  Blob,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  SolidColor,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  SolidColor,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0f0f0f\"/>\n    <Glass\n      :cutout=\"true\"\n      :fresnel=\"0.04\"\n      fresnel-color=\"#82ffc6\"\n      :fresnel-softness=\"0.48\"\n      :highlight=\"0.1\"\n      highlight-color=\"#dbe6ff\"\n      :highlight-softness=\"0.27\"\n      :light-angle=\"289\"\n      :refraction=\"0.82\"\n      :scale=\"1.1\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin\"\n      :thickness=\"0.37\"\n      :visible=\"true\">\n      <Swirl\n        :blend=\"45\"\n        color-a=\"#0a140e\"\n        color-b=\"#12d32f\"\n        color-space=\"oklab\"\n        :detail=\"3.5\"\n        :speed=\"0.6\"/>\n      <Blob\n        blend-mode=\"linearDodge\"\n        :center=\"{\n          type: 'mouse-position',\n          reach: 0.55,\n          originX: 0.5,\n          originY: 0.5,\n          momentum: 0.3,\n          smoothing: 0.3\n        }\"\n        color-a=\"#61f533\"\n        color-b=\"#46eb65\"\n        :deformation=\"0.9\"\n        :size=\"0.15\"\n        :softness=\"0.7\"/>\n      <WaveDistortion\n        :angle=\"23\"\n        edges=\"mirror\"\n        :frequency=\"5.1\"\n        :speed=\"2.5\"\n        :strength=\"0.15\"\n        :visible=\"true\"/>\n      <CursorRipples\n        :chromatic-split=\"2\"\n        :decay=\"5\"\n        :intensity=\"20\"\n        :radius=\"0.7\"\n        :visible=\"true\"/>\n    </Glass>\n    <FilmGrain\n      :strength=\"0.075\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

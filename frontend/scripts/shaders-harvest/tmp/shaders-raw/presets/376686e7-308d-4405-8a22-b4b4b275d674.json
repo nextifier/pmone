@@ -1,0 +1,30 @@
+{
+  "id": "376686e7-308d-4405-8a22-b4b4b275d674",
+  "title": "Radial Overlap 11",
+  "collection_id": "8bf4f5c0-a1d9-4f4a-ba81-191a560112d2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "An abstract shader effect featuring organic, flowing forms with a dominant lime-green (#8bd035) color palette contrasted against deep burgundy-maroon (#581122) shadows. The composition displays layered, curved surfaces that create a three-dimensional paper-folding or fabric-draping effect. Sharp, angular creases and ridges run diagonally across the image, creating strong directional movement from upper-left to lower-right. The effect combines a swirl distortion pattern that creates fluid, wave-like undulations throughout the composition. A pixelation effect is applied with variable scale intensity, creating a subtle blocky texture that varies in density across the image - more pronounced in darker areas and less visible in brighter regions. The lighting creates dramatic depth with bright lime-green highlights on raised surfaces and deep burgundy shadows in recessed areas. The overall mood is dynamic and organic, resembling folded leaves, abstract fabric, or flowing liquid forms. The color space uses oklab for smooth color transitions, and the blend mode creates seamless integration between the swirl effect and underlying geometry. The effect has a modern, digital aesthetic with strong contrast and dimensional depth.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/376686e7-308d-4405-8a22-b4b4b275d674.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzM3NjY4NmU3LTMwOGQtNDQwNS04YTIyLWI0YjRiMjc1ZDY3NC5qcGciLCJpYXQiOjE3Nzk1NTUxMzcsImV4cCI6MTgxMTA5MTEzN30.j7xyCZx_QY422WDQvI5Dim98-kvYhOuoaLdbgl1wIII",
+  "import": "import {\n  Shader,\n  ConicGradient,\n  Pixelate,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ConicGradient,\n  Pixelate,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ConicGradient\n      id=\"idmpiichpr7x5ibv89b\"\n      :center=\"{\n        x: 1,\n        y: 0\n      }\"\n      color-a=\"#ffffff\"\n      color-b=\"#ffffff00\"\n      :repeat=\"3\"\n      :rotation=\"{\n        mode: 'loop',\n        type: 'auto-animate',\n        speed: 0.1,\n        outputMax: 360,\n        outputMin: 0\n      }\"\n      :visible=\"false\"/>\n    <Swirl\n      color-a=\"#8bd035\"\n      color-b=\"#581122\"\n      color-space=\"oklab\"\n      :detail=\"1.7\"\n      :visible=\"true\"/>\n    <Pixelate\n      :scale=\"{\n        type: 'map',\n        curve: -0.65,\n        source: 'idmpiichpr7x5ibv89b',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 93,\n        outputMin: 1\n      }\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

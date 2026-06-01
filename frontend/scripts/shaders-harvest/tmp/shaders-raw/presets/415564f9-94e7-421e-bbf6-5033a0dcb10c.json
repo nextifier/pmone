@@ -1,0 +1,30 @@
+{
+  "id": "415564f9-94e7-421e-bbf6-5033a0dcb10c",
+  "title": "Nightlight 2",
+  "collection_id": "d06a972d-10f9-4e0b-838d-3d7523dddb1b",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A deep, atmospheric gradient shader effect transitioning from vibrant blue-purple tones on the left side to nearly black on the right side. The composition features a swirling, organic distortion pattern created by the Swirl component that blends two colors (#6057fa bright purple-blue and #3d06b8 deep dark blue) using oklch color space blending at 50% intensity. The swirl effect creates fluid, wave-like patterns that flow across the canvas with fine detail variations (fineX: 13, fineY: 50) generating intricate texture throughout. A dark navy base color (#120524) anchors the composition underneath. The overall effect is enhanced by subtle film grain (0.04 strength) that adds a cinematic texture and reduces banding. The masked circle element (currently invisible but structurally present) would normally constrain the swirl effect to a specific region. The lighting is moody and atmospheric, with no harsh edges or defined shapes—purely abstract color and texture manipulation. The blend mode uses normal-oklch for the swirl, preserving color relationships in perceptual color space. The result evokes a cosmic, nebula-like atmosphere with smooth color transitions and organic flowing distortions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/11433b32-e5cd-44a7-875f-84e59786f49c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzExNDMzYjMyLWU1Y2QtNDRhNy04NzVmLTg0ZTU5Nzg2ZjQ5Yy5qcGciLCJpYXQiOjE3NjM0MzkxMDQsImV4cCI6MTc5NDk3NTEwNH0.wJbKgOwx8ZC-ej4gLncqJrV4qPBA3fMNy70UYOcQ4Fw",
+  "import": "import {\n  Shader,\n  Circle,\n  FilmGrain,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  FilmGrain,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#120524\"/>\n    <Circle\n      id=\"idmi41ycmwlpbvzemcm\"\n      blend-mode=\"normal-oklch\"\n      :center=\"{\n        x: 0,\n        y: 0.5\n      }\"\n      :radius=\"2\"\n      :softness=\"2\"\n      :visible=\"false\"/>\n    <Swirl\n      :coarse-x=\"50\"\n      :coarse-y=\"50\"\n      color-a=\"#6057fa\"\n      color-b=\"#3d06b8\"\n      color-space=\"oklch\"\n      :fine-x=\"13\"\n      :fine-y=\"50\"\n      mask-source=\"idmi41ycmwlpbvzemcm\"\n      :medium-x=\"50\"\n      :medium-y=\"50\"/>\n    <FilmGrain\n      :strength=\"0.04\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

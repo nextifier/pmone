@@ -1,0 +1,55 @@
+{
+  "id": "c25ebcac-1079-446a-82f4-9c4d8ba92d0a",
+  "title": "Polynesian Waves 5",
+  "collectionId": "48d6b02f-3242-4a90-aac7-f42bea26036a",
+  "category": "background",
+  "description": "A mesmerizing abstract shader effect featuring concentric diamond and square shapes that create a hypnotic tunnel-like perspective. The primary visual structure consists of nested rectangular frames that appear to recede into depth, with alternating layers of darker and lighter purple tones creating strong contrast and visual rhythm. The color palette transitions from deep dark purple (#1a0044) in the shadows to vibrant magenta (#6b0048) and bright neon purple (#9b30ff) in the highlights. A subtle wave distortion effect (sine wave at 195 degrees, 1.8 frequency) creates a gentle undulating motion across the geometric patterns, causing the rigid rectangular forms to appear slightly fluid and organic. The dither effect with a threshold of 0.72 adds a grainy, stippled texture using bright magenta (#9b30ff) in linear dodge blend mode, creating a luminous, almost electric quality to the surface. The overall composition has a 131-degree rotational transformation applied to the gradient base, which shifts the directional flow of the color transitions. The effect creates a strong sense of depth and movement, with the nested squares appearing to pulse or breathe outward from the center. The atmosphere is distinctly cyberpunk and digital, with high saturation and contrast giving it an intense, energetic quality. The spatial relationships emphasize symmetry and mathematical precision, while the wave and dither effects introduce subtle organic irregularities that prevent the image from feeling sterile.",
+  "thumbnail": "/shaders/thumbnails/c25ebcac-1079-446a-82f4-9c4d8ba92d0a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 285,
+          "colorA": "#1a0044",
+          "colorB": "#6b0048",
+          "colorSpace": "oklch",
+          "edges": "wrap",
+          "end": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "start": {
+            "x": 0.59,
+            "y": 0.52
+          },
+          "transform": {
+            "edges": "mirror",
+            "rotation": 131,
+            "scale": 0.25
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 195,
+          "edges": "mirror",
+          "frequency": 1.8,
+          "strength": 0.07
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorB": "#9b30ff",
+          "pixelSize": 1,
+          "threshold": 0.72
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

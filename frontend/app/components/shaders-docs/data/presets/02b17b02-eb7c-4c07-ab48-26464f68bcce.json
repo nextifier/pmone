@@ -1,0 +1,78 @@
+{
+  "id": "02b17b02-eb7c-4c07-ab48-26464f68bcce",
+  "title": "Sunrise 3",
+  "collectionId": "a76070e7-82d4-4d00-99ff-5e464fdaf463",
+  "category": "background",
+  "description": "A smooth, seamless gradient shader effect that transitions diagonally from the upper left to the lower right. The gradient begins with a rich blue (#4e7fd9) in the top-left corner, smoothly transitioning through purple and magenta tones in the center, then flowing into warm pink and coral hues before culminating in a golden-orange (#fad041) and burnt orange (#fa722a) in the bottom-right corner. The effect demonstrates a progressive blur applied at 90 degrees with a falloff of 0.47, creating a soft, diffused appearance throughout. Subtle wave distortion with a sine waveform (frequency 4.2, speed 3.4) adds gentle undulation to the color transitions without creating obvious ripples. A swirl effect with low blend intensity (5) and slow speed (0.3) contributes to the organic, flowing nature of the color transitions. The blob component centered at coordinates (1, 1) adds warmth and luminosity to the orange-yellow region with a highlight intensity of 0.35, creating a subtle glow effect. Film grain with 0.3 strength is applied as the outermost layer, adding fine texture and reducing banding artifacts. The overall mood is warm, energetic, and visually smooth, with no harsh edges or defined shapes-purely atmospheric and gradient-based.",
+  "thumbnail": "/shaders/thumbnails/02b17b02-eb7c-4c07-ab48-26464f68bcce.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        },
+        "children": [
+          {
+            "type": "ProgressiveBlur",
+            "props": {
+              "angle": 90,
+              "center": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "falloff": 0.47,
+              "intensity": 1000
+            },
+            "children": [
+              {
+                "type": "Swirl",
+                "props": {
+                  "blend": 5,
+                  "colorA": "#4e7fd9",
+                  "colorB": "#121bc9",
+                  "colorSpace": "oklch",
+                  "detail": 0.5,
+                  "speed": 0.3
+                }
+              },
+              {
+                "type": "Blob",
+                "props": {
+                  "blendMode": "normal-oklch",
+                  "center": {
+                    "x": 1,
+                    "y": 1
+                  },
+                  "colorA": "#fad041",
+                  "colorB": "#fa722a",
+                  "colorSpace": "oklab",
+                  "deformation": 0,
+                  "highlightColor": "#ffe01a",
+                  "highlightIntensity": 0.35,
+                  "highlightX": 0.11,
+                  "highlightY": -0.01,
+                  "highlightZ": 0.13,
+                  "size": 1.2,
+                  "softness": 1
+                }
+              },
+              {
+                "type": "WaveDistortion",
+                "props": {
+                  "angle": 360,
+                  "edges": "mirror",
+                  "frequency": 4.2,
+                  "speed": 3.4,
+                  "strength": 0.05
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "cd252a04-03e4-4ef1-b33d-8c8bde09de12",
+  "title": "Gradient Grid 8",
+  "collectionId": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "category": "background",
+  "description": "A flowing gradient shader effect featuring smooth, organic color transitions across the entire canvas. The composition displays a warm color palette transitioning from deep dark purple (#0a0015) in the lower-left and upper-right corners through rich magenta (#8b2252) in the center, to dusty rose (#c4446e) in the middle regions, and warm coral-orange (#e8785a) in the upper-left and right edges. The gradient exhibits soft, blurred transitions with a subtle flowing distortion (0.2 intensity) that creates an undulating, liquid-like quality. A barely visible grid overlay (0.01 opacity) with white lines and linear dodge blending adds minimal texture without disrupting the smooth gradient. Fine film grain (0.1 strength) is applied uniformly across the surface, providing subtle noise texture that enhances the cinematic quality. The overall effect is soft-focused and atmospheric, with no hard edges or defined shapes-purely abstract color flow. The color space uses OKLCH for perceptually uniform transitions, creating natural-looking gradations between warm and cool tones.",
+  "thumbnail": "/shaders/thumbnails/cd252a04-03e4-4ef1-b33d-8c8bde09de12.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorB": "#8b2252",
+          "colorC": "#c4446e",
+          "colorD": "#e8785a",
+          "distortion": 0.2,
+          "seed": 21,
+          "visible": true
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "blendMode": "linearDodge",
+          "cells": 30,
+          "opacity": 0.01,
+          "thickness": 0.4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "951168aa-26b8-4dfb-9473-ecb60d48dc53",
+  "title": "Ice Spheres",
+  "collection_id": "c76dd378-6b7c-4501-9373-35d78062bef3",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect featuring a perforated or dotted surface pattern that creates a three-dimensional mesh appearance. The composition shows a gradient transition from nearly pure black on the left side to a lighter blue-tinted area on the right, where small circular perforations become increasingly visible and luminous. The dots appear to have a subtle glow or highlight, creating a sense of depth and dimensionality. The overall effect resembles a metallic mesh or speaker grille with backlighting, where light gradually illuminates the perforations from behind. The color palette is predominantly cool-toned, with deep navy and dark blue hues dominating, while subtle blue highlights (#4a81ff) accent the perforated areas. The surface has a smooth, reflective quality with gentle curvature, and the lighting creates a subtle volumetric effect that makes the mesh appear to recede into darkness on the left while emerging into illuminated visibility on the right. The atmosphere is technological and sleek, with a professional, modern aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/459610e0-9e4b-49b8-88ae-37a85a5d3a1a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ1OTYxMGUwLTllNGItNDliOC04OGFlLTM3YTg1YTVkM2ExYS5qcGciLCJpYXQiOjE3NjcwNDE0MjcsImV4cCI6MTc5ODU3NzQyN30.qxj7fZHJM0l2wkBX8F_19HWWdiKcMbRT51cPMzpWX6s",
+  "import": "import {\n  Shader,\n  Blob,\n  GlassTiles,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  GlassTiles,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"10\"\n      color-a=\"#0c0c1c\"\n      color-b=\"#080e24\"\n      :detail=\"2.8\"\n      :speed=\"0.8\"/>\n    <GlassTiles\n      :intensity=\"40\"\n      mask-source=\"idmjrma2hqerhhnv380\"\n      :roundness=\"1\"\n      :tile-count=\"25\">\n      <Swirl\n        :blend=\"20\"\n        color-a=\"#0c0c1c\"\n        color-b=\"#4a81ff\"\n        :detail=\"2.8\"\n        :speed=\"0.8\"/>\n    </GlassTiles>\n    <Blob\n      id=\"idmjrma2hqerhhnv380\"\n      :center=\"{\n        x: 0.9,\n        y: 0.95\n      }\"\n      :deformation=\"2\"\n      :highlight-intensity=\"0\"\n      :highlight-x=\"-1\"\n      :highlight-y=\"-1\"\n      :highlight-z=\"-1\"\n      :size=\"0.82\"\n      :softness=\"1.5\"\n      :speed=\"0.6\"\n      :visible=\"false\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

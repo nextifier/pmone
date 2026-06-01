@@ -1,0 +1,76 @@
+{
+  "id": "13de63f2-1c72-42bf-b21c-417aa54d83e7",
+  "title": "Watercolor on Paper 2",
+  "collectionId": "da9f2a2e-c4fb-411e-bbc4-21dca8017cf5",
+  "category": "background",
+  "description": "A soft, organic gradient shader effect dominated by vibrant green and yellow tones. The composition features a multi-point gradient with five color nodes creating a smooth, flowing transition across the canvas. The primary bright green (#47e647) anchors the left side, transitioning through pale yellow (#fff94d) in the upper right, with darker forest green (#7bbc1a) positioned at the bottom center, complemented by soft lime green (#c2fa93) on the right and deep green (#19b019) in the lower left. The gradient is overlaid with subtle wave distortion at 148 degrees with triangular wave patterns, creating gentle undulating ripples across the surface. A liquify effect with high intensity (10) and stiffness (15) adds organic, fluid warping that softens edges and creates a breathing, living quality. The paper texture with minimal roughness (0.1) provides fine surface detail, while film grain at 0.4 strength adds a subtle cinematic quality. The overall effect is smooth and dreamy with soft focus areas, particularly a prominent blur in the lower right quadrant. The edges fade to transparency, creating a vignette-like effect. The mood is peaceful, natural, and slightly ethereal with a liquid, flowing aesthetic.",
+  "thumbnail": "/shaders/thumbnails/13de63f2-1c72-42bf-b21c-417aa54d83e7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "MultiPointGradient",
+        "props": {
+          "colorA": "#47e647",
+          "colorB": "#fff94d",
+          "colorC": "#7bbc1a",
+          "colorD": "#c2fa93",
+          "colorE": "#19b019",
+          "positionA": {
+            "x": 0.24,
+            "y": 0.08
+          },
+          "positionB": {
+            "x": 0.83,
+            "y": 0.04
+          },
+          "positionC": {
+            "x": 0.6,
+            "y": 1
+          },
+          "positionD": {
+            "x": 0.78,
+            "y": 0.48
+          },
+          "positionE": {
+            "x": 0.07,
+            "y": 0.87
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 148,
+          "frequency": 1.6,
+          "strength": 0.25,
+          "waveType": "triangle"
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "damping": 0.7,
+          "radius": 1.5,
+          "stiffness": 15
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 1,
+          "grainScale": 0.1,
+          "roughness": 0.1,
+          "seed": 26
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "022b77d2-fbea-4dbe-a8a6-587c647c5d66",
+  "title": "Silver Plated 2",
+  "collection_id": "e2f5d80e-5d63-40ea-aaba-45607718ab2b",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A modern, minimalist logo design featuring four stacked horizontal bars arranged in a stylized 'F' formation against a dark background. The bars have a sophisticated 3D appearance with smooth, rounded edges and subtle beveled surfaces that catch light. The primary material appears to be frosted glass or brushed metal with a cool, bluish-white tone that creates a luminous quality. Each bar is slightly offset, creating visual rhythm and depth. The lighting is carefully controlled, with highlights concentrated on the upper surfaces of each bar, creating a subtle gradient from bright white at the peaks to darker gray-blue in the recessed areas. The background is nearly pure black with minimal ambient light, making the glowing bars stand out dramatically. A thin layer of film grain adds subtle texture without compromising the clean, premium aesthetic. The overall effect conveys sophistication, modernity, and technological advancement through the interplay of light, shadow, and carefully crafted geometry.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/022b77d2-fbea-4dbe-a8a6-587c647c5d66.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzAyMmI3N2QyLWZiZWEtNGRiZS1hOGE2LTU4N2M2NDdjNWQ2Ni5qcGciLCJpYXQiOjE3NzI3MjQ5MzcsImV4cCI6MTgwNDI2MDkzN30.WiBjsA3zN28n16g3P8YJ4z63w4mj-UZcs3dKYZnrjkM",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  FilmGrain,\n  Glass,\n  Godrays,\n  Plasma,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  FilmGrain,\n  Glass,\n  Godrays,\n  Plasma,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Plasma\n      color-a=\"#2c2c42\"\n      :density=\"0.8\"/>\n    <Glass\n      :aberration=\"1\"\n      :blur=\"20\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0.01\"\n      :fresnel-softness=\"0.73\"\n      :highlight=\"1.75\"\n      highlight-color=\"#8dacd9\"\n      :highlight-softness=\"0.55\"\n      :light-angle=\"234\"\n      :refraction=\"1.13\"\n      :scale=\"0.8\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/PqaAxy0OWZeW_sdf.bin\"\n      :thickness=\"1\"\n      :tint-preserve-luminosity=\"false\">\n      <Godrays\n        background-color=\"#141405\"\n        :center=\"{\n          x: 0,\n          y: 1\n        }\"\n        :density=\"0.2\"\n        ray-color=\"#b5b5eb\"\n        :speed=\"0.7\"/>\n      <WaveDistortion\n        :angle=\"341\"\n        :frequency=\"2.7\"\n        :speed=\"0.8\"\n        :strength=\"0.55\"/>\n      <ChromaticAberration\n        :angle=\"154\"\n        :strength=\"0.1\"/>\n    </Glass>\n    <FilmGrain\n      :strength=\"0.04\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

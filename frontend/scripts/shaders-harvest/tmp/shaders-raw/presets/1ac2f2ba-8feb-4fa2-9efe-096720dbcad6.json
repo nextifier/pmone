@@ -1,0 +1,30 @@
+{
+  "id": "1ac2f2ba-8feb-4fa2-9efe-096720dbcad6",
+  "title": "Geogrid 4",
+  "collection_id": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A three-dimensional wireframe grid structure rendered in neon pink/red (#e6154b) against a deep purple background (#1a0a3d to #36055e gradient). The grid consists of approximately 22x22 cells with 2.8-pixel thick lines forming a rectangular mesh. The entire structure exhibits a subtle wave distortion effect applied at a 337-degree angle with triangle waveform, creating a gentle undulating deformation across the grid surface. The grid appears to be scaled to 75% and positioned in perspective view, creating a trapezoid-like appearance suggesting depth and three-dimensional space. A GridDistortion effect with high intensity (5) and moderate radius (1.75) adds additional warping and bending to the grid lines, particularly visible in the center and edges where the mesh appears to bulge and compress. The overall composition has a cyberpunk aesthetic with the neon pink grid lines creating strong contrast against the dark purple background. The blend mode is set to hardLight, giving the grid lines a luminous quality. The wave distortion creates subtle ripples across the surface while maintaining the geometric structure of the grid.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/1ac2f2ba-8feb-4fa2-9efe-096720dbcad6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzFhYzJmMmJhLThmZWItNGZhMi05ZWZlLTA5NjcyMGRiY2FkNi5qcGciLCJpYXQiOjE3NzMwODM3OTcsImV4cCI6MTgwNDYxOTc5N30.A5lMEYapRvzNaWn0pP4PWBEzO8M1_RUBVY4JgRT7fic",
+  "import": "import {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"18\"\n      color-a=\"#1a0a3d\"\n      color-b=\"#36055e\"\n      color-space=\"oklab\"\n      :detail=\"0.9\"\n      :speed=\"1.5\"/>\n    <WaveDistortion\n      :angle=\"337\"\n      edges=\"mirror\"\n      :frequency=\"0.9\"\n      :strength=\"0.15\"\n      wave-type=\"triangle\">\n      <Grid\n        blend-mode=\"hardLight\"\n        :cells=\"22\"\n        color=\"#e6154b\"\n        :thickness=\"2.8\"\n        :transform=\"{ scale: 0.75 }\"/>\n    </WaveDistortion>\n    <GridDistortion\n      :decay=\"1.8\"\n      edges=\"wrap\"\n      :grid-size=\"8\"\n      :intensity=\"5\"\n      :radius=\"1.75\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

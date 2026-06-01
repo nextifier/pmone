@@ -1,0 +1,56 @@
+{
+  "id": "dfb6da95-386e-41e8-b413-d359df3b32fa",
+  "title": "Converging Panels 6",
+  "collectionId": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "category": "background",
+  "description": "A deep, rich purple gradient background with dynamic lighting effects. The primary color is a vibrant #6200ff purple that dominates the composition. The image features soft, glowing light spots with a luminous quality, creating an ethereal atmosphere. There are subtle variations in brightness across the canvas, with brighter purple-blue tones in the upper left and left-center areas, gradually transitioning to darker, more saturated purple tones toward the right and bottom edges. The effect appears to have a gentle blur or soft-focus quality with smooth color transitions. A subtle film grain texture overlays the entire image, adding a cinematic quality without being obtrusive. The overall mood is moody, atmospheric, and slightly mystical, with the lighting suggesting ambient illumination from an off-screen source. The composition has a vignette-like quality with the edges appearing slightly darker than the center, creating depth and focus toward the middle of the frame.",
+  "thumbnail": "/shaders/thumbnails/dfb6da95-386e-41e8-b413-d359df3b32fa.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 96,
+          "ambientSpeed": 3,
+          "backIntensity": 0,
+          "backSoftness": 0,
+          "blendMode": "luminosity",
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.7,
+            "originX": 0.713903743315508,
+            "originY": 0.7781299524564184,
+            "momentum": 0.3,
+            "smoothing": 0.4
+          },
+          "color": "#6200ff",
+          "fillAngle": 72,
+          "fillIntensity": 9,
+          "keyIntensity": 38,
+          "wallCurvature": 35
+        }
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 0.26024955436720143,
+            "originY": 0.6196513470681458,
+            "momentum": 0.5,
+            "smoothing": 0.5
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

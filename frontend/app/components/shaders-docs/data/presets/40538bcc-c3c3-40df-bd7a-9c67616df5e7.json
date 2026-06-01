@@ -1,0 +1,92 @@
+{
+  "id": "40538bcc-c3c3-40df-bd7a-9c67616df5e7",
+  "title": "Floating Glass 4",
+  "collectionId": "e185c166-60c9-4120-8394-d33f664d3f63",
+  "category": "background",
+  "description": "A sophisticated 3D shader effect featuring a glossy, translucent spherical or orbital form rendered against a deep dark background. The primary visual element is a crescent-shaped glass object with a highly reflective surface, positioned centrally and exhibiting strong light refraction properties. The object displays a vibrant color gradient transitioning from deep magenta/pink (#eb316c) on the outer edges to warm golden-yellow (#e8d058) on the illuminated highlights, with dark navy-blue undertones (#1a1c38) in the shadowed regions. The glass material demonstrates pronounced Fresnel effects along its edges, creating bright white highlights that suggest light reflection and refraction. The surface exhibits subtle internal distortion and a soft, diffused glow emanating from within. A flowing gradient base layer provides organic color variation beneath the glass effect. The overall composition uses a tritone color mapping system that creates rich, saturated tones with smooth transitions between the dark, magenta, and yellow color channels. The background remains pure black, allowing the luminous object to command full visual attention. Fine dithering patterns are subtly applied, adding texture and preventing color banding. The lighting angle appears to come from approximately 276 degrees, creating dramatic side-lighting that emphasizes the three-dimensional form and glass-like material properties.",
+  "thumbnail": "/shaders/thumbnails/40538bcc-c3c3-40df-bd7a-9c67616df5e7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmnayde0qhf56tj00g",
+          "center": {
+            "x": 0.5,
+            "y": 0
+          },
+          "radius": 2.2,
+          "softness": 0.53,
+          "visible": false
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#000000"
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorB": "#9c9c9c",
+          "colorC": "#a1a1a1",
+          "colorD": "#d4d4d4",
+          "colorSpace": "linear",
+          "maskSource": "idmnayde0qhf56tj00g",
+          "seed": 49
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "center": {
+            "y": 0.5,
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 0.5,
+            "originY": 0.5,
+            "momentum": 0.1,
+            "smoothing": 0.7
+          },
+          "edgeSoftness": 0.15,
+          "fresnel": 0.15,
+          "fresnelSoftness": 1,
+          "highlight": 0.25,
+          "highlightSoftness": 0.52,
+          "lightAngle": 276,
+          "refraction": 0.86,
+          "shape": {
+            "type": "crescentSDF",
+            "radius": 0.77,
+            "innerRatio": 0.43,
+            "offset": 0.36,
+            "rotation": 0
+          },
+          "thickness": 1
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "colorA": "#1a1c38",
+          "colorB": "#eb316c",
+          "colorC": "#e8d058",
+          "visible": true
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorMode": "source",
+          "pattern": "blueNoise",
+          "pixelSize": 2,
+          "threshold": 0.62
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

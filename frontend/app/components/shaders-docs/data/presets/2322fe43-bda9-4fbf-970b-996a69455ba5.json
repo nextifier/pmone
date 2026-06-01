@@ -1,0 +1,44 @@
+{
+  "id": "2322fe43-bda9-4fbf-970b-996a69455ba5",
+  "title": "Liquid Stripes 7",
+  "collectionId": "1b1c9029-4fe7-48f3-83ad-eff1105b51e2",
+  "category": "logo",
+  "description": "A sophisticated shader effect featuring a diagonal striped background at 45-degree angle with alternating tan (#ab9763) and dark teal (#36685a) lines creating a rhythmic pattern. Overlaid in the center is a radial glass morphism effect with a circular hub and 12 rectangular petals arranged in a sunburst pattern, appearing semi-transparent with frosted glass properties. The glass element exhibits chromatic aberration with subtle color fringing at the edges, creating an iridescent quality. The glass shape has a blur intensity of 11.3 pixels with refraction distortion that warps the striped background visible through it. A subtle fresnel effect creates edge highlights with a soft glow around the perimeter of the glass shape. Cursor ripples create concentric circular distortions emanating from interaction points with a decay rate of 10, adding dynamic fluid-like waves across the entire composition. Fine film grain texture overlays the entire image at 0.3 strength, adding subtle noise and tactile quality. The overall mood is modern, elegant, and interactive with a cool color palette dominated by teals and warm tan accents.",
+  "thumbnail": "/shaders/thumbnails/2322fe43-bda9-4fbf-970b-996a69455ba5.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "balance": 0.1,
+          "colorA": "#ab9763",
+          "colorB": "#36685a",
+          "density": 9
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {}
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "blur": 11.3,
+          "fresnel": 0.11,
+          "fresnelSoftness": 0.38,
+          "refraction": 0.51,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/DODKZwnr2rPw_sdf.bin",
+          "thickness": 0.13
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

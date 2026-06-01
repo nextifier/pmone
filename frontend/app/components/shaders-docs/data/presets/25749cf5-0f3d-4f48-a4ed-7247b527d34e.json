@@ -1,0 +1,50 @@
+{
+  "id": "25749cf5-0f3d-4f48-a4ed-7247b527d34e",
+  "title": "Swirling Gradient 4",
+  "collectionId": "5b4580ec-38eb-4986-9867-4a5ae2965a1b",
+  "category": "background",
+  "description": "A dynamic shader effect featuring concentric swirling patterns with smooth, flowing curved lines radiating from the center. The composition displays alternating bands of cyan/turquoise (#3ce9bc) and deep purple (#5823df) that create a mesmerizing spiral motion. The lines are soft and blurred with a gradient transition between colors, creating a sense of depth and movement. The effect has a subtle paper texture overlay that adds fine grain detail throughout. The swirl pattern appears to rotate and pulse with momentum-based animation, creating a hypnotic, fluid appearance. The edges fade to transparency, and the overall mood is modern, energetic, and ethereal with a smooth, organic quality. The concentric rings create a tunnel-like perspective that draws the eye toward the center, while the color gradient transitions smoothly across the spectrum from cool cyan on the left to vibrant purple on the right.",
+  "thumbnail": "/shaders/thumbnails/25749cf5-0f3d-4f48-a4ed-7247b527d34e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": {
+            "axis": "x",
+            "type": "mouse",
+            "momentum": 0.2,
+            "outputMax": 60,
+            "outputMin": 40,
+            "smoothing": 0.6
+          },
+          "colorA": "#3ce9bc",
+          "colorB": "#5823df",
+          "colorSpace": "oklab",
+          "detail": 1.2
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "rings": 9,
+          "smoothness": 0.76,
+          "speed": -1.2,
+          "speedRandomness": 0.14
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "roughness": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

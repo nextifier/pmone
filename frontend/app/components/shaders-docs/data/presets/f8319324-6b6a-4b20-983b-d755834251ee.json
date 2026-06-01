@@ -1,0 +1,74 @@
+{
+  "id": "f8319324-6b6a-4b20-983b-d755834251ee",
+  "title": "Dither Wave 2",
+  "collectionId": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "category": "background",
+  "description": "A vibrant gradient shader effect displaying a smooth color transition across the canvas. The composition features a diagonal gradient flowing from the upper-left to lower-right, transitioning through multiple color zones. The upper-left corner begins with bright orange-yellow tones that gradually shift through coral and salmon pink hues in the upper-center area. The right side and center display rich magenta and hot pink colors that deepen into purple tones. The lower-left corner features a concentrated area of deep blue and dark-blue, creating a sharp color boundary. The entire effect is rendered with a halftone dot pattern overlay that becomes increasingly sparse and subtle from left to right, creating a pixelated texture that gradually dissolves into smooth gradients. The dots are most visible in the blue corner region and fade progressively toward the magenta and purple areas. The overall mood is energetic and modern, with a digital aesthetic enhanced by the dotted texture pattern. The gradient uses mirror edge behavior on the primary layer, creating smooth color transitions without harsh cutoffs.",
+  "thumbnail": "/shaders/thumbnails/f8319324-6b6a-4b20-983b-d755834251ee.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 180,
+          "center": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "colorA": "#ff00f6",
+          "colorSpace": "oklab",
+          "edges": "mirror",
+          "end": {
+            "x": 0.76,
+            "y": 0.27
+          },
+          "endColor": "#0000ff",
+          "start": {
+            "x": 0.27,
+            "y": 0.64
+          },
+          "startColor": "#1aff00"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "id": "idmgijmh7s6y9u9f0ao",
+          "opacity": 0,
+          "pixelSize": 5,
+          "threshold": 0.24,
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.32,
+              "angle": 138,
+              "frequency": 0.6,
+              "softness": 0.79,
+              "thickness": 1.51
+            }
+          }
+        ]
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "colorA": "#ffb300",
+          "colorB": "#3700ff",
+          "colorSpace": "oklch",
+          "endColor": "#0000ff",
+          "maskSource": "idmgijmh7s6y9u9f0ao",
+          "startColor": "#1aff00"
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

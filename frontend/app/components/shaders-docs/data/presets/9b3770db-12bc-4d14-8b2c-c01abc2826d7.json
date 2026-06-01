@@ -1,0 +1,77 @@
+{
+  "id": "9b3770db-12bc-4d14-8b2c-c01abc2826d7",
+  "title": "Silver Plated",
+  "collectionId": "e2f5d80e-5d63-40ea-aaba-45607718ab2b",
+  "category": "logo",
+  "description": "A stylized letter 'F' composed of four stacked horizontal bars with curved left edges, rendered with a sophisticated glass morphism effect on a dark background. The shape features a glossy, translucent appearance with iridescent rainbow-colored refractions visible within the glass material, particularly noticeable as blue, purple, and orange streaks. The glass has a subtle frosted quality with high specular highlights along the top edges of each bar, creating a bright white rim light effect. The interior of the shape contains animated plasma distortion with swirling patterns in dark purples and blues that shift and flow dynamically. Godrays emanate from the upper left corner, creating volumetric light rays with a soft lavender tint that penetrate through the glass geometry. Wave distortions subtly ripple across the surface at a sine wave frequency, creating a liquid-like undulation effect. Chromatic aberration introduces fine color separation along the edges, with red and blue channel offsets creating a subtle 3D anaglyph quality. The overall composition has a premium, futuristic aesthetic with a cool color temperature dominated by deep purples, dark blues, and whites, set against a nearly black background with slight noise texture. The lighting angle is positioned at approximately 271 degrees, creating directional highlights that emphasize the glass thickness and refraction properties.",
+  "thumbnail": "/shaders/thumbnails/9b3770db-12bc-4d14-8b2c-c01abc2826d7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Plasma",
+        "props": {
+          "colorA": "#2c2c42",
+          "density": 0.8
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 1,
+          "cutout": true,
+          "edgeSoftness": 0.15,
+          "fresnel": 0.17,
+          "fresnelSoftness": 0.46,
+          "highlight": 0.85,
+          "highlightColor": "#8dacd9",
+          "highlightSoftness": 0.77,
+          "lightAngle": 271,
+          "refraction": 1.74,
+          "scale": 0.8,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/PqaAxy0OWZeW_sdf.bin",
+          "thickness": 0.22,
+          "tintPreserveLuminosity": false
+        },
+        "children": [
+          {
+            "type": "Godrays",
+            "props": {
+              "backgroundColor": "#141405",
+              "center": {
+                "x": 0,
+                "y": 1
+              },
+              "density": 0.2,
+              "rayColor": "#b5b5eb",
+              "speed": 0.7
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 204,
+              "frequency": 2.7,
+              "speed": 0.8,
+              "strength": 0.55
+            }
+          },
+          {
+            "type": "ChromaticAberration",
+            "props": {
+              "angle": 190,
+              "strength": 0.1
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.04
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "2d977a08-1a23-442f-b117-e0980ca2288c",
+  "title": "Oil Slick",
+  "collection_id": "842e102f-f88a-4b2d-a259-06c66e824b2a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, ethereal gradient shader effect that transitions from turquoise/cyan in the upper left corner to warm peachy-orange tones in the upper right, then flows downward through pink and mauve hues toward the bottom right, with subtle purple and blue undertones in the lower portion. The effect features a soft, blurred progressive gradient with a focal point of intense color saturation in the upper right quadrant (around 75% horizontal, 25% vertical) that gradually diffuses outward. The film grain overlay adds subtle texture throughout, creating a slightly grainy, analog quality. There are soft, organic blob-like color shifts with gentle wave distortions that create a fluid, liquid-like appearance. The overall mood is dreamy and atmospheric, with smooth color transitions that suggest movement and flow. The swirl component creates subtle color mixing in the OKLCH color space, blending blue, amber, and teal hues. A secondary blob element with pink-to-teal gradient adds depth and dimension, with a cyan highlight creating a three-dimensional quality. Wave distortions at 134 degrees add gentle undulation without harsh disruption, maintaining the serene, meditative aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/f88e52fe-9c10-451e-b84e-ea05dcb3bd58.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Y4OGU1MmZlLTljMTAtNDUxZS1iODRlLWVhMDVkY2IzYmQ1OC5qcGciLCJpYXQiOjE3NjM1MjY1MTgsImV4cCI6MTc5NTA2MjUxOH0.OAVdqyQju-KVNjEv3dyXXmYs6iuBIstfSEleyEIkjF0",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  ProgressiveBlur,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  ProgressiveBlur,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FilmGrain\n      :animated=\"0\"\n      :strength=\"0.75\">\n      <ProgressiveBlur\n        :angle=\"135\"\n        :center=\"{\n          x: 0.75,\n          y: 0.25\n        }\"\n        :falloff=\"0.45\"\n        :intensity=\"2250\">\n        <Swirl\n          :blend=\"65\"\n          :coarse-x=\"50\"\n          :coarse-y=\"50\"\n          color-a=\"#2563eb\"\n          color-b=\"#f59e0b\"\n          color-c=\"#10b981\"\n          color-space=\"oklch\"\n          :complexity=\"5.5\"\n          :detail=\"1.2\"\n          :fine-x=\"50\"\n          :fine-y=\"50\"\n          :medium-x=\"50\"\n          :medium-y=\"50\"\n          :scale=\"3.2\"\n          :speed=\"0.8\"/>\n        <Blob\n          blend-mode=\"normal-oklch\"\n          :center=\"{\n            x: 0.37,\n            y: 0.7\n          }\"\n          color-a=\"#ec4899\"\n          color-b=\"#14b8a6\"\n          color-space=\"oklab\"\n          :deformation=\"0.6\"\n          highlight-color=\"#06b6d4\"\n          :highlight-intensity=\"0.8\"\n          :highlight-y=\"-0.25\"\n          :seed=\"42\"\n          :size=\"1\"\n          :softness=\"0.45\"\n          :speed=\"1.2\"/>\n        <WaveDistortion\n          :angle=\"134\"\n          edges=\"mirror\"\n          :frequency=\"4\"\n          :speed=\"2.7\"\n          :strength=\"0.25\"/>\n      </ProgressiveBlur>\n    </FilmGrain>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "name": "BrickPattern",
+  "category": "Textures",
+  "description": "Classic brick wall pattern with alternating rows and mortar gaps",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "colorBrick": {
+      "default": "#000000",
+      "description": "Brick color",
+      "ui": {
+        "type": "color",
+        "label": "Brick Color",
+        "group": "Colors"
+      }
+    },
+    "colorMortar": {
+      "default": "#ffffff",
+      "description": "Mortar / gap color",
+      "ui": {
+        "type": "color",
+        "label": "Mortar Color",
+        "group": "Colors"
+      }
+    },
+    "cellsX": {
+      "default": 8,
+      "description": "Number of bricks per row",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "label": "Bricks per Row",
+        "group": "Effect"
+      }
+    },
+    "cellsY": {
+      "default": 10,
+      "description": "Number of brick rows",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "label": "Rows",
+        "group": "Effect"
+      }
+    },
+    "mortar": {
+      "default": 0.05,
+      "description": "Width of mortar gaps - equal pixel thickness in both directions",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Mortar Gap",
+        "group": "Effect"
+      }
+    },
+    "angle": {
+      "default": 0,
+      "description": "Rotation angle in degrees",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": -180,
+        "max": 180,
+        "step": 1,
+        "label": "Angle",
+        "group": "Effect"
+      }
+    },
+    "speed": {
+      "default": 0,
+      "description": "Animation speed",
+      "ui": {
+        "type": "range",
+        "min": -2,
+        "max": 2,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Animation"
+      }
+    },
+    "offset": {
+      "default": 0,
+      "description": "Static horizontal offset - shifts the brick pattern without animating",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Offset",
+        "group": "Animation"
+      }
+    },
+    "speedVariance": {
+      "default": 0,
+      "description": "How much each row's speed varies - at high values rows move at different speeds and directions",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Speed Variance",
+        "group": "Animation"
+      }
+    },
+    "seed": {
+      "default": 0,
+      "description": "Random seed for per-row speed variation",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Seed",
+        "group": "Animation"
+      }
+    },
+    "colorSpace": {
+      "default": "linear",
+      "compileTime": true,
+      "description": "Color space for interpolation",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Linear RGB",
+            "value": "linear"
+          },
+          {
+            "label": "OKLCh",
+            "value": "oklch"
+          },
+          {
+            "label": "OKLAB",
+            "value": "oklab"
+          },
+          {
+            "label": "HSL",
+            "value": "hsl"
+          },
+          {
+            "label": "HSV",
+            "value": "hsv"
+          },
+          {
+            "label": "LCH",
+            "value": "lch"
+          }
+        ],
+        "label": "Color Space",
+        "group": "Colors"
+      }
+    }
+  }
+}

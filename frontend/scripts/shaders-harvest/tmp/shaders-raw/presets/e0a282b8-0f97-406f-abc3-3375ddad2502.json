@@ -1,0 +1,30 @@
+{
+  "id": "e0a282b8-0f97-406f-abc3-3375ddad2502",
+  "title": "Dot Panels 2",
+  "collection_id": "56d190bc-7072-4acf-b177-bda1a98e6b6c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect featuring a deep forest-green to near-black gradient background. The composition uses a radial gradient centered slightly right of center, transitioning from a very dark teal-green (#011c0d) at the edges to an even darker forest-green (#07120a) toward the center. Overlaid on this gradient is a subtle dot grid pattern with small bright lime-green dots (#7ff59b) scattered across the entire canvas at moderate density (60 dots), creating a twinkling starfield or digital rain effect. The dots have a size of 0.06 units and feature a twinkle animation that gives them a flickering, alive quality. A progressive blur effect is applied with an angle of 211 degrees, centered toward the right side of the composition, creating a directional motion blur that softens the right portion of the image with a falloff of 0.68 and intensity of 76. The perspective component applies a 3D camera effect with a wide field of view (96 degrees), pan, and tilt transformations that create subtle depth. A fine film grain texture with 0.02 strength is applied across the entire image, adding subtle noise and texture. The overall mood is dark, mysterious, and technological - reminiscent of a night sky, digital matrix, or deep space environment. The color palette is dominated by very dark greens and blacks with bright accent dots, creating high contrast in localized areas.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e0a282b8-0f97-406f-abc3-3375ddad2502.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2UwYTI4MmI4LTBmOTctNDA2Zi1hYmMzLTMzNzVkZGFkMjUwMi5qcGciLCJpYXQiOjE3NzI1MDczMTgsImV4cCI6MTgwNDA0MzMxOH0.1DQjwnDPFCp50O-4NvjXEOXExnylPgCygn7ejuPSShc",
+  "import": "import {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Grid,\n  Perspective,\n  ProgressiveBlur,\n  RadialGradient\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Grid,\n  Perspective,\n  ProgressiveBlur,\n  RadialGradient\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Perspective\n      :center=\"{\n        x: 0.48,\n        y: 1\n      }\"\n      edges=\"mirror\"\n      :fov=\"96\"\n      :offset=\"{\n        x: 0.58,\n        y: 0.57\n      }\"\n      :pan=\"29.2\"\n      :tilt=\"15\"\n      :zoom=\"2.28\">\n      <RadialGradient\n        :center=\"{\n          x: 0.55,\n          y: 0.6\n        }\"\n        color-a=\"#011c0d\"\n        color-b=\"#07120a\"\n        color-space=\"oklab\"\n        :radius=\"0.7\"/>\n      <Grid\n        :cells=\"6\"\n        color=\"#041b33\"\n        :thickness=\"0\"/>\n      <DotGrid\n        color=\"#7ff59b\"\n        :density=\"60\"\n        :dot-size=\"0.06\"\n        :twinkle=\"1\"/>\n    </Perspective>\n    <ProgressiveBlur\n      :angle=\"211\"\n      :center=\"{\n        x: 0.77,\n        y: 0.58\n      }\"\n      :falloff=\"0.68\"\n      :intensity=\"76\"/>\n    <FilmGrain\n      :strength=\"0.02\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

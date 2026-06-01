@@ -1,0 +1,82 @@
+{
+  "id": "7aafc856-d3a1-40f2-834f-31e02ae1483d",
+  "title": "Digital Activation 2",
+  "collectionId": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "category": "background",
+  "description": "A sophisticated digital shader effect featuring a dark, almost black background (#0e0f14) with a subtle dot grid pattern in dark gray (#292936). The dominant visual element is a bright neon lime-green (#55ff0a) pixelated or square-based pattern that forms a cylindrical 3D structure, creating the illusion of a curved, tubular form wrapping around the composition. The green pattern transitions from dense, tightly-packed squares at the top and sides to sparse individual dots toward the center and edges, creating a depth-of-field effect that suggests the viewer is looking through or into a digital tunnel. A glass refraction effect with chromatic aberration (0.8 intensity) distorts the underlying ASCII character pattern, creating a lens-like optical distortion centered at coordinates (0.89, 0.75). The spiral gradient animates from dark blue (#0a131f) to bright lime-green (#55ff0a), adding dynamic movement and visual interest. The overall aesthetic is cyberpunk/digital with a strong sense of three-dimensional perspective, suggesting data visualization or a digital portal. The lighting angle is set to 274 degrees, creating subtle highlights and edge definition that enhance the glass-like quality of the central distortion effect.",
+  "thumbnail": "/shaders/thumbnails/7aafc856-d3a1-40f2-834f-31e02ae1483d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0e0f14"
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "color": "#292936",
+          "density": 49,
+          "dotSize": 0.1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.8,
+          "center": {
+            "x": 1,
+            "y": 0
+          },
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0,
+          "fresnelSoftness": 0.23,
+          "highlight": 0,
+          "highlightSoftness": 0.16,
+          "lightAngle": 274,
+          "refraction": 2,
+          "scale": 1.45,
+          "shape": {
+            "type": "ringSDF",
+            "radius": 0.8,
+            "thickness": 0.185
+          }
+        },
+        "children": [
+          {
+            "type": "SolidColor",
+            "props": {
+              "color": "#0e0f14"
+            }
+          },
+          {
+            "type": "Ascii",
+            "props": {
+              "characters": "◘•",
+              "gamma": 0.8,
+              "spacing": 0.8
+            },
+            "children": [
+              {
+                "type": "Spiral",
+                "props": {
+                  "center": {
+                    "x": 0.89,
+                    "y": 0.75
+                  },
+                  "colorA": "#0a131f",
+                  "colorB": "#55ff0a",
+                  "softness": 0.4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,81 @@
+{
+  "id": "dce2e213-9bca-4554-be5f-80a9809153fa",
+  "title": "Retro Bitrate 7",
+  "collectionId": "7f578c56-f249-4876-87b2-e1b6a1512e95",
+  "category": "background",
+  "description": "A pixelated shader effect displaying a diagonal gradient transition from purple-blue tones in the lower-left to cyan-green tones in the upper-right. The image features a blocky, mosaic-like appearance with pixel blocks of varying sizes creating a retro digital aesthetic. The gradient is dynamically mapped through simplex noise, creating organic color variation within the pixelated structure. A dither pattern with screen blend mode adds subtle texture and noise throughout, creating a grainy, analog quality that contrasts with the digital pixelation. The background is a solid bright blue, while the foreground elements use a bayer4 dither pattern at 3-pixel size with approximately 50% threshold. The overall effect suggests a low-resolution digital landscape or abstract computational visualization, with the pixelation scale of 41 creating distinct blocky regions that emphasize the retro computer graphics aesthetic. The color space uses HSL interpolation for smooth hue transitions across the gradient.",
+  "thumbnail": "/shaders/thumbnails/dce2e213-9bca-4554-be5f-80a9809153fa.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm4025i3rr2toqt6j",
+          "center": {
+            "x": 0,
+            "y": 1
+          },
+          "radius": 2,
+          "visible": false
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "id": "idmm5kajmj4uwhjdgmm",
+          "scale": 4.3,
+          "speed": 0.1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": 41
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "angle": {
+                "type": "map",
+                "curve": 0,
+                "source": "idmm5kajmj4uwhjdgmm",
+                "channel": "luminance",
+                "inputMax": 1,
+                "inputMin": 0,
+                "outputMax": 360,
+                "outputMin": 0
+              },
+              "colorA": "#4c1f7b",
+              "colorB": "#72ce46",
+              "colorSpace": "hsl",
+              "edges": "mirror",
+              "end": {
+                "x": 0.89,
+                "y": 0.39
+              },
+              "maskSource": "idmm4025i3rr2toqt6j",
+              "start": {
+                "x": 0.67,
+                "y": 0.48
+              },
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "screen",
+          "colorA": "#167bef",
+          "colorB": "#b12519",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

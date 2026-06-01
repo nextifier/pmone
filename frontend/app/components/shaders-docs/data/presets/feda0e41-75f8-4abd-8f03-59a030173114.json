@@ -1,0 +1,86 @@
+{
+  "id": "feda0e41-75f8-4abd-8f03-59a030173114",
+  "title": "Digital Activation 7",
+  "collectionId": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "category": "background",
+  "description": "A dark, cyberpunk-themed shader effect featuring a deep black background (#0e0f14) with a subtle dot grid pattern in dark gray (#292936) creating a subtle texture across the entire canvas. The dominant visual element is a magenta/pink glowing rectangular shape with rounded corners positioned in the upper portion of the image. This shape appears to be constructed from a grid of small square blocks arranged in a pixelated pattern, creating a retro digital aesthetic. The magenta color (#ff29ff) is vibrant and luminous, contrasting sharply against the dark background. The shape has a glass-like quality with subtle refraction and chromatic aberration effects, giving it depth and a slightly warped appearance. Below the main shape, vertical bar-chart-like elements in magenta extend downward, resembling an audio equalizer or data visualization. The overall composition suggests a futuristic, tech-forward aesthetic with ASCII art influences. The lighting appears to come from the upper left (274 degrees), creating subtle highlights and depth perception. The entire effect has a neon-like quality with the magenta glowing against the darkness, creating a moody, atmospheric cyberpunk environment.",
+  "thumbnail": "/shaders/thumbnails/feda0e41-75f8-4abd-8f03-59a030173114.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0e0f14"
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "color": "#292936",
+          "density": 49,
+          "dotSize": 0.1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.8,
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0,
+          "fresnelSoftness": 0.23,
+          "highlight": 0,
+          "highlightSoftness": 0.16,
+          "lightAngle": 274,
+          "refraction": 2,
+          "scale": 1.45,
+          "shape": {
+            "type": "roundedRectSDF",
+            "radius": 1,
+            "height": 0.4,
+            "rounding": 0.05,
+            "rotation": 0
+          },
+          "shapeSdfUrl": "",
+          "shapeType": "circleSDF"
+        },
+        "children": [
+          {
+            "type": "SolidColor",
+            "props": {
+              "color": "#0e0f14"
+            }
+          },
+          {
+            "type": "Ascii",
+            "props": {
+              "characters": "◘•",
+              "gamma": 0.55,
+              "spacing": 0.8
+            },
+            "children": [
+              {
+                "type": "Spiral",
+                "props": {
+                  "center": {
+                    "x": 0,
+                    "y": 0.8
+                  },
+                  "colorA": "#0a131f",
+                  "colorB": "#ff29ff",
+                  "softness": 0.4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

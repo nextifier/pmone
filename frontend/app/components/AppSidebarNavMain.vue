@@ -488,7 +488,12 @@ const navMainGroups = computed(() => {
     {
       label: "UI Components",
       path: "/ui",
-      iconName: "hugeicons:material-and-texture",
+      iconName: "hugeicons:layer",
+    },
+    {
+      label: "Shaders",
+      path: "/shaders",
+      iconName: "hugeicons:pathfinder-unite",
     },
     {
       label: "Colors",

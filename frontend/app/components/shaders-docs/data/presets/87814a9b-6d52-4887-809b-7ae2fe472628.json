@@ -1,0 +1,62 @@
+{
+  "id": "87814a9b-6d52-4887-809b-7ae2fe472628",
+  "title": "Popping Bubbles 2",
+  "collectionId": "7b719554-fbef-46b9-a0a6-017384aa799a",
+  "category": "background",
+  "description": "A halftone dot matrix visualization displaying a smooth color gradient transition from yellow-green on the left to deep red-orange on the right. The image uses variable-sized circular dots arranged in a regular grid pattern, where dot sizes are modulated by an underlying luminance map to create tonal depth and visual interest. The left third features predominantly yellow and light-green dots with larger diameters, gradually transitioning through orange and coral tones in the middle section, culminating in dense red and dark-orange dots on the right side. The smallest dots appear as sparse, barely visible points in the lightest areas, while the densest, largest dots concentrate in the darker regions, creating a sophisticated halftone printing effect. The overall composition has a smooth, flowing quality with no harsh edges, suggesting the dots are being controlled by a flowing gradient shader with subtle distortion applied. The background remains white, allowing the colored dots to stand out with high contrast. The effect creates a sense of heat or intensity increasing from left to right, with a technical, digital aesthetic reminiscent of color separation printing or thermal imaging visualization.",
+  "thumbnail": "/shaders/thumbnails/87814a9b-6d52-4887-809b-7ae2fe472628.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Marble",
+        "props": {
+          "id": "idmpa1zdwjasui1k6tk",
+          "colorB": "#000000",
+          "scale": 0.6,
+          "seed": 50,
+          "speed": 0.09,
+          "turbulence": 25,
+          "visible": false
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "id": "idmpa1xx4hdhp247w9r",
+          "density": 35,
+          "dotSize": {
+            "type": "map",
+            "source": "idmpa1zdwjasui1k6tk",
+            "channel": "luminance",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.35
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#ffffff"
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#f5ff38",
+          "colorB": "#ffc100",
+          "colorC": "#ff564d",
+          "colorD": "#ff9735",
+          "colorSpace": "oklab",
+          "distortion": 0.1,
+          "maskSource": "idmpa1xx4hdhp247w9r",
+          "speed": 4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

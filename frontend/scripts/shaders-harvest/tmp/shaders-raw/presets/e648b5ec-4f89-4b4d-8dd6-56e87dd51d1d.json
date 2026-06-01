@@ -1,0 +1,30 @@
+{
+  "id": "e648b5ec-4f89-4b4d-8dd6-56e87dd51d1d",
+  "title": "Galaxy Swirl",
+  "collection_id": "87662b85-6bd2-4cd4-823a-f2fcd8a77fe9",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic, ethereal gradient shader effect featuring a smooth transition between deep blue and vibrant purple hues. The composition centers on a luminous blue-white glow positioned in the lower-left quadrant, creating a soft radiant light source that bleeds outward. The background transitions from dark navy blue at the top through rich purple tones on the left and right edges, with the central area dominated by bright cyan-blue light. A subtle fog effect creates atmospheric depth and soft color blending throughout, with the turbulent noise pattern giving the gradient an organic, cloud-like quality. Floating white particles with subtle twinkling effects are scattered across the composition, appearing as small stars or dust motes. A gentle vignette darkens the outer edges, particularly noticeable at the corners and periphery, creating depth and drawing focus toward the luminous center. Fine film grain texture adds subtle noise throughout, enhancing the cinematic quality. The overall mood is cosmic and serene, with a dreamlike quality enhanced by the soft edges and smooth color transitions. The lighting suggests a glowing orb or light source beneath the surface, creating an otherworldly, space-like atmosphere.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e648b5ec-4f89-4b4d-8dd6-56e87dd51d1d.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2U2NDhiNWVjLTRmODktNGI0ZC04ZGQ2LTU2ZTg3ZGQ1MWQxZC5qcGciLCJpYXQiOjE3Nzg2MzIyMDUsImV4cCI6MTgxMDE2ODIwNX0.CojUOOIYqHgzftb8GXiMxI9kepiTovZTc-nPMTZdqRI",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  FloatingParticles,\n  Fog,\n  SolidColor,\n  Vignette\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  FloatingParticles,\n  Fog,\n  SolidColor,\n  Vignette\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#050418\"/>\n    <Fog\n      color-a=\"#0243cc\"\n      color-b=\"#7c1fff\"\n      :detail=\"6\"\n      :seed=\"270\"\n      :turbulence=\"2.05\"\n      :visible=\"true\"/>\n    <Blob\n      blend-mode=\"screen\"\n      :center=\"{\n        x: 0.25,\n        y: 0.62\n      }\"\n      color-a=\"#3b5aff\"\n      color-b=\"#4a82ff\"\n      :deformation=\"0.95\"\n      highlight-color=\"#8fb8ff\"\n      :highlight-intensity=\"0.3\"\n      :highlight-x=\"-0.3\"\n      :highlight-y=\"-0.4\"\n      :highlight-z=\"0.6\"\n      :opacity=\"0.7\"\n      :seed=\"42\"\n      :size=\"0.6\"\n      :softness=\"2.5\"\n      :speed=\"1.5\"\n      :visible=\"true\"/>\n    <FloatingParticles\n      :angle-variance=\"53\"\n      blend-mode=\"screen\"\n      :count=\"3\"\n      :opacity=\"0.7\"\n      :particle-density=\"1.9\"\n      :particle-size=\"0.8\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.2\"\n      :twinkle=\"0.8\"\n      :visible=\"true\"/>\n    <Vignette\n      :intensity=\"0.55\"\n      :visible=\"true\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": "03832c66-fb27-4d5c-a828-f28d17d6d428",
+  "title": "Retro Pop 2",
+  "collectionId": "ec625475-7334-406b-a343-b43545a5579c",
+  "category": "background",
+  "description": "A dynamic shader effect featuring diagonal curved stripes that flow from upper-left to lower-right at approximately 24 degrees. The stripes alternate between vibrant magenta/purple (#9d00b5) and soft mint green (#75e8b0) with smooth gradient transitions between them. The effect uses a dithering pattern with Bayer4 algorithm at 4-pixel size, creating a subtle pixelated texture overlay that adds visual complexity and depth. A stretch distortion is applied with a center point slightly left of center, creating a subtle warping effect that makes the stripes appear to bend and flow organically. The softness value of 0.57 creates feathered edges on the stripes, blending them smoothly into the background. The overall composition has a modern, vaporwave aesthetic with the complementary color pairing creating strong visual contrast. The dithering pattern is visible throughout, particularly noticeable in the transition zones between colors, giving the effect a slightly grainy, textured appearance reminiscent of retro digital art. The stripes maintain consistent spacing with a density of 4, creating a rhythmic, wave-like pattern across the entire composition.",
+  "thumbnail": "/shaders/thumbnails/03832c66-fb27-4d5c-a828-f28d17d6d428.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "angle": 24,
+          "balance": 0.77,
+          "density": 4,
+          "softness": 0.57
+        }
+      },
+      {
+        "type": "Stretch",
+        "props": {
+          "angle": 251,
+          "center": {
+            "x": 0.45,
+            "y": 0.58
+          },
+          "falloff": 0.49
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#75e8b0",
+          "colorB": "#9d00b5",
+          "threshold": 0.66
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

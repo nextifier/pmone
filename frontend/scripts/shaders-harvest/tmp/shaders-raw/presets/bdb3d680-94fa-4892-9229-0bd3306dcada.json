@@ -1,0 +1,30 @@
+{
+  "id": "bdb3d680-94fa-4892-9229-0bd3306dcada",
+  "title": "Swirls",
+  "collection_id": "ea4f5ff4-5a57-4f61-b0e3-8fa79cf85205",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, flowing gradient shader effect featuring soft, organic swirls and color transitions. The composition displays two primary swirl layers creating a fluid, wave-like pattern that moves diagonally across the canvas from upper-left to lower-right. The first swirl layer blends magenta (#e7149c) with light-green (#7ec55a) at 50% blend intensity, creating a smooth transition zone. A secondary swirl layer with higher detail (1.6) overlays the first, blending yellow-green (#b3ce53) with cyan (#97d6cb) using oklch color space and normal-oklab blend mode for enhanced color harmony. The overall effect is soft and diffused with no hard edges, creating an ethereal, atmospheric quality. A subtle film grain texture (0.4 strength) adds fine noise throughout, providing subtle texture without disrupting the smooth gradient flow. The blob mask underneath (invisible but used as a source) creates a soft vignette-like falloff toward the edges. The color transitions are smooth and natural, with the magenta-to-green gradient dominating the upper portion and the yellow-green-to-cyan gradient creating a cooler tone in the middle-lower section. The entire composition has a dreamy, pastel quality with soft focus and gentle color bleeding.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/0343c0fe-1c20-4df3-9f20-82bfd51ac6c7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzAzNDNjMGZlLTFjMjAtNGRmMy05ZjIwLTgyYmZkNTFhYzZjNy5qcGciLCJpYXQiOjE3NzA1MjQ4NjUsImV4cCI6MTgwMjA2MDg2NX0.uudH0mbppJV2V52HwRTW2dIrfwI0JItD3_zMhX6_V10",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#e7149c\"\n      color-b=\"#7ec55a\"/>\n    <Swirl\n      blend-mode=\"normal-oklab\"\n      color-a=\"#b3ce53\"\n      color-b=\"#97d6cb\"\n      color-space=\"oklch\"\n      :detail=\"1.6\"\n      mask-source=\"idmld8md3zu0rcr8lsf\"\n      :speed=\"0.3\"/>\n    <FilmGrain\n      :strength=\"0.4\"/>\n    <Blob\n      id=\"idmld8md3zu0rcr8lsf\"\n      :size=\"0.9\"\n      :softness=\"2\"\n      :visible=\"false\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

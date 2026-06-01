@@ -1,0 +1,87 @@
+{
+  "id": "b11c2f74-09e3-4b08-b3de-c012a6da6eb8",
+  "title": "Collapsing Grid 9",
+  "collectionId": "c64aa228-91ce-47b8-b2e3-ebb22cc2ad80",
+  "category": "background",
+  "description": "A gradient-based shader effect displaying a smooth tonal transition from black at the bottom to white at the top, rendered through a pixelated circular dot pattern. The composition features approximately 16x8 grid of rounded circles with varying opacity levels, creating a halftone-like appearance. The circles transition from solid black on the left and bottom edges, through medium gray tones in the middle sections, to pure white in the upper-right quadrant. The pixelation scale of 18 with 0.03 gap spacing creates distinct circular cells with rounded corners (roundness mapped from 0.13 to 1.0). The overall effect produces a smooth luminosity gradient despite the discrete pixel structure, with a dark background (#121212) providing contrast. The swirl component beneath adds subtle color blending between white and black in oklab color space, creating smooth tonal transitions. The effect has a technical, data-visualization quality with precise geometric spacing and mathematical gradient progression.",
+  "thumbnail": "/shaders/thumbnails/b11c2f74-09e3-4b08-b3de-c012a6da6eb8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Group",
+        "props": {
+          "id": "idmpijta5dnhqxghigt",
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.2,
+              "frequency": 0.6,
+              "position": {
+                "x": 0.49,
+                "y": 1
+              },
+              "softness": 0.8,
+              "thickness": 1,
+              "visible": true
+            }
+          },
+          {
+            "type": "ChromaFlow",
+            "props": {
+              "baseColor": "#ffffff",
+              "downColor": "#ffffff",
+              "intensity": 1.5,
+              "leftColor": "#ffffff",
+              "momentum": 15,
+              "opacity": 0.4,
+              "radius": 4.3,
+              "rightColor": "#ffffff",
+              "upColor": "#ffffff",
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#121212"
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "gap": 0.03,
+          "roundness": {
+            "type": "map",
+            "source": "idmpijta5dnhqxghigt",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.13
+          },
+          "scale": 18
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#ffffff",
+              "colorB": "#000000",
+              "colorSpace": "oklab",
+              "detail": 1.5,
+              "speed": 0.9,
+              "visible": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

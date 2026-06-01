@@ -1,0 +1,98 @@
+{
+  "id": "01ce2390-fe6e-40ff-827d-f697a91526db",
+  "title": "Mercury",
+  "collectionId": "8cefc8df-84a3-4d51-b006-c90065d0b8bf",
+  "category": "logo",
+  "description": "A modern, glossy geometric logo featuring a stylized 'G' shape composed of a thick curved ring with a rectangular cutout in the center. The design uses a glass morphism effect with significant refraction and chromatic aberration, creating a translucent, luminous appearance. The glass material exhibits a blue-to-white gradient with warm orange-brown tones visible through the transparent sections, suggesting a blurred background environment. The inner surface shows iridescent highlights with cyan and light-blue reflections along the curved edges, while the center rectangular cutout reveals an orange-peach solid color block. A dynamic swirl animation in deep blue and cyan tones flows within the glass material, creating organic movement. An orange-to-coral blob with warm highlights (yellow-orange) responds to cursor position, adding interactivity and depth. Wave distortions ripple across the surface at a sine wave frequency, creating subtle undulation effects. Cursor ripples with chromatic separation add interactive feedback with color splitting. The entire composition sits against a pure black background (#0f0f0f), making the luminous glass effect stand out dramatically. Fine film grain texture overlays the entire image, adding subtle noise and tactile quality. The lighting angle at 289 degrees creates directional highlights and fresnel effects, with soft edge transitions and a thickness parameter that gives the glass ring dimensional depth.",
+  "thumbnail": "/shaders/thumbnails/01ce2390-fe6e-40ff-827d-f697a91526db.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0f0f0f"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "cutout": true,
+          "fresnel": 0.13,
+          "fresnelColor": "#91b2ff",
+          "fresnelSoftness": 0.48,
+          "highlight": 0.1,
+          "highlightColor": "#dbe6ff",
+          "highlightSoftness": 0.27,
+          "lightAngle": 289,
+          "refraction": 0.82,
+          "scale": 1.1,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin",
+          "thickness": 0.37,
+          "visible": true
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 45,
+              "colorA": "#30c9ff",
+              "colorB": "#040733",
+              "colorSpace": "oklab",
+              "detail": 3.5,
+              "speed": 0.6
+            }
+          },
+          {
+            "type": "Blob",
+            "props": {
+              "blendMode": "linearDodge",
+              "center": {
+                "type": "mouse-position",
+                "reach": 0.55,
+                "originX": 0.5,
+                "originY": 0.5,
+                "momentum": 0.3,
+                "smoothing": 0.3
+              },
+              "colorA": "#ff8373",
+              "colorB": "#ffa042",
+              "deformation": 0.9,
+              "size": 0.15,
+              "softness": 0.7
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 23,
+              "edges": "mirror",
+              "frequency": 5.1,
+              "speed": 2.5,
+              "strength": 0.15,
+              "visible": true
+            }
+          },
+          {
+            "type": "CursorRipples",
+            "props": {
+              "chromaticSplit": 2,
+              "decay": 5,
+              "intensity": 20,
+              "radius": 0.7,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

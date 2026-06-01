@@ -1,0 +1,52 @@
+{
+  "id": "3d4b2fd0-f4d8-45b8-abe9-5f13c54da445",
+  "title": "Lost Rays 8",
+  "collectionId": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "category": "background",
+  "description": "A dynamic shader effect featuring radial god rays emanating from the upper-right quadrant, creating luminous streaks of light that converge toward a focal point. The composition uses a dark, deep color palette dominated by dark teal and dark green tones, with bright neon green (#00ff33) accents that create high contrast. The god rays effect produces glowing, semi-transparent beams with soft edges that fade into the dark background. A zoom blur effect originates from the left-center area, creating a sense of rapid motion and depth, pulling the viewer's eye toward the center-left. The tritone color grading applies a three-tone color mapping with dark teal shadows, bright neon green midtones, and magenta highlights, creating a cyberpunk aesthetic. Fine film grain texture is overlaid throughout, adding a subtle noise pattern that enhances the digital, technical feel. The overall atmosphere is intense and energetic, with a strong sense of directional movement and depth. The lighting creates dramatic contrast between the illuminated ray areas and the deep shadow regions, producing a moody, high-tech visual experience.",
+  "thumbnail": "/shaders/thumbnails/3d4b2fd0-f4d8-45b8-abe9-5f13c54da445.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Godrays",
+        "props": {
+          "backgroundColor": "#1829b5",
+          "center": {
+            "x": 0.67,
+            "y": 0.41
+          },
+          "intensity": 0.58,
+          "rayColor": "#ccdaed",
+          "speed": 0.7
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.09
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "colorA": "#051713",
+          "colorB": "#00ff33",
+          "colorC": "#ff3df2",
+          "colorSpace": "hsl"
+        }
+      },
+      {
+        "type": "ZoomBlur",
+        "props": {
+          "center": {
+            "x": 0.37,
+            "y": 0.35
+          },
+          "intensity": 100
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

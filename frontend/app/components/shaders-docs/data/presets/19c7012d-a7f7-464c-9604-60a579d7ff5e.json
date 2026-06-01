@@ -1,0 +1,50 @@
+{
+  "id": "19c7012d-a7f7-464c-9604-60a579d7ff5e",
+  "title": "Swirling Gradient 15",
+  "collectionId": "5b4580ec-38eb-4986-9867-4a5ae2965a1b",
+  "category": "background",
+  "description": "A fluid, organic shader effect dominated by soft, flowing swirl patterns in cool blue tones. The composition features layered, wave-like structures that appear to ripple and undulate across the canvas with smooth, blurred transitions. The primary visual elements consist of concentric circular patterns emanating from the lower portion of the frame, creating a sense of depth and movement. The color palette transitions from deep navy blue (#1a3a5c) in the darker regions to lighter periwinkle and sky blue (#7ba8d9) in the highlighted areas. A subtle paper texture overlay adds fine grain and micro-displacement throughout, creating a tactile, slightly rough surface quality. The effect has a dreamlike, ethereal quality with soft focus and gentle gradations between tones. The swirl component creates diagonal flowing lines with momentum-based mouse interaction, while the concentric spin layer adds rhythmic circular motion with 9 rings of varying intensity. The overall mood is serene and meditative, with a cool, calming atmosphere enhanced by the smooth blending and transparent edge treatment.",
+  "thumbnail": "/shaders/thumbnails/19c7012d-a7f7-464c-9604-60a579d7ff5e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": {
+            "axis": "x",
+            "type": "mouse",
+            "momentum": 0.2,
+            "outputMax": 60,
+            "outputMin": 40,
+            "smoothing": 0.6
+          },
+          "colorA": "#1a3a5c",
+          "colorB": "#7ba8d9",
+          "colorSpace": "oklab",
+          "detail": 1.2
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 1
+          },
+          "rings": 9,
+          "smoothness": 0.76,
+          "speed": -1.2,
+          "speedRandomness": 0.14
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "roughness": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

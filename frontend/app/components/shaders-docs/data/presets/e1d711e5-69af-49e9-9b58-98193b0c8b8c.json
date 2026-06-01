@@ -1,0 +1,82 @@
+{
+  "id": "e1d711e5-69af-49e9-9b58-98193b0c8b8c",
+  "title": "Retro Bitrate 3",
+  "collectionId": "7f578c56-f249-4876-87b2-e1b6a1512e95",
+  "category": "background",
+  "description": "A pixelated shader effect displaying a soft, rounded rectangular shape with a gradient that transitions from teal/cyan on the left side to pink/magenta on the right side. The gradient angle is dynamically controlled by simplex noise, creating subtle color variations throughout. The entire composition is heavily pixelated with a scale of 41 pixels, giving it a blocky, mosaic-like appearance. A dither pattern with bayer4 algorithm is applied in screen blend mode, adding a subtle textured noise using colors #95c6c2 (light cyan-green) and #475c80 (dark blue-gray), creating a grainy, halftone-like quality. The background is a light cyan dotted pattern. The overall effect creates a soft, pastel aesthetic with a retro digital or low-resolution video game appearance. A circular mask with softness is applied but set to invisible, subtly constraining the gradient's influence. The color space uses HSL interpolation, allowing smooth transitions between the teal (#21ac8e) and pink (#df0052) endpoints.",
+  "thumbnail": "/shaders/thumbnails/e1d711e5-69af-49e9-9b58-98193b0c8b8c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm4025i3rr2toqt6j",
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "radius": 1.65,
+          "softness": 0.25,
+          "visible": false
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "id": "idmm5kajmj4uwhjdgmm",
+          "scale": 4.3,
+          "speed": 0.1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": 41
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "angle": {
+                "type": "map",
+                "curve": 0,
+                "source": "idmm5kajmj4uwhjdgmm",
+                "channel": "luminance",
+                "inputMax": 1,
+                "inputMin": 0,
+                "outputMax": 360,
+                "outputMin": 0
+              },
+              "colorA": "#21ac8e",
+              "colorB": "#df0052",
+              "colorSpace": "hsl",
+              "edges": "mirror",
+              "end": {
+                "x": 0.89,
+                "y": 0.39
+              },
+              "maskSource": "idmm4025i3rr2toqt6j",
+              "start": {
+                "x": 0.67,
+                "y": 0.48
+              },
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "screen",
+          "colorA": "#95c6c2",
+          "colorB": "#475c80",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

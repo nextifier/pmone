@@ -1,0 +1,30 @@
+{
+  "id": "d93381d7-20d2-4837-807b-4a8fe299f81f",
+  "title": "Radial Overlap 3",
+  "collection_id": "8bf4f5c0-a1d9-4f4a-ba81-191a560112d2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A fluid, organic gradient shader effect featuring a smooth transition between vibrant lime-green (#80c40e) on the left side and turquoise-cyan (#05bb9f) on the right side. The composition uses a swirl distortion effect that creates flowing, wave-like patterns with soft, blended edges. The gradient flows diagonally from upper-left to lower-right with subtle undulating curves that suggest liquid or smoke-like movement. The effect has a modern, contemporary aesthetic with smooth color blending in the oklab color space, creating natural-looking transitions. There are no hard edges or pixelation visible in the final render, indicating the pixelate effect is either disabled or heavily blended. The overall mood is energetic and dynamic, with a sense of motion and fluidity. The lighting appears even and diffuse, creating a seamless, three-dimensional appearance without harsh shadows or highlights.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/d93381d7-20d2-4837-807b-4a8fe299f81f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Q5MzM4MWQ3LTIwZDItNDgzNy04MDdiLTRhOGZlMjk5ZjgxZi5qcGciLCJpYXQiOjE3Nzk1NTQ5NTEsImV4cCI6MTgxMTA5MDk1MX0.TAa2cj9mBbFF5WLtKuXxfD2Buum_fJhM18VgWTVXKH0",
+  "import": "import {\n  Shader,\n  ConicGradient,\n  Pixelate,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ConicGradient,\n  Pixelate,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ConicGradient\n      id=\"idmpiichpr7x5ibv89b\"\n      :center=\"{\n        x: 0,\n        y: 0\n      }\"\n      color-a=\"#ffffff\"\n      color-b=\"#ffffff00\"\n      :repeat=\"3\"\n      :rotation=\"{\n        mode: 'loop',\n        type: 'auto-animate',\n        speed: 0.1,\n        outputMax: 360,\n        outputMin: 0\n      }\"\n      :visible=\"false\"/>\n    <Swirl\n      color-a=\"#80c40e\"\n      color-b=\"#05bb9f\"\n      color-space=\"oklab\"\n      :detail=\"1.7\"\n      :visible=\"true\"/>\n    <Pixelate\n      :scale=\"{\n        type: 'map',\n        curve: -0.65,\n        source: 'idmpiichpr7x5ibv89b',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 93,\n        outputMin: 1\n      }\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

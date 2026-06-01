@@ -1,0 +1,150 @@
+{
+  "name": "FloatingParticles",
+  "category": "Textures",
+  "description": "Animated floating particles with twinkle effects",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "randomness": {
+      "default": 0.25,
+      "description": "Randomness of particle animation",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.1,
+        "label": "Randomness",
+        "group": "Effect"
+      }
+    },
+    "speed": {
+      "default": 0.25,
+      "description": "Speed of particle movement",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 1,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Animation"
+      }
+    },
+    "angle": {
+      "default": 90,
+      "description": "Movement angle in degrees (0=right, 90=down, 180=left, 270=up)",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "label": "Angle",
+        "group": "Animation"
+      }
+    },
+    "particleSize": {
+      "default": 2,
+      "description": "Size of particles",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.1,
+        "max": 20,
+        "step": 0.1,
+        "label": "Particle Size",
+        "group": "Effect"
+      }
+    },
+    "particleSoftness": {
+      "default": 0,
+      "description": "Edge softness of particles (0 = sharp, 1 = very soft)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 5,
+        "step": 0.1,
+        "label": "Particle Softness",
+        "group": "Effect"
+      }
+    },
+    "twinkle": {
+      "default": 0.5,
+      "description": "Intensity of the twinkle effect (0 = off, 1 = full twinkle)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.1,
+        "label": "Twinkle",
+        "group": "Animation"
+      }
+    },
+    "count": {
+      "default": 5,
+      "description": "Number of particle layers",
+      "ui": {
+        "type": "range",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "label": "Count",
+        "group": "Effect"
+      }
+    },
+    "particleColor": {
+      "default": "#ffffff",
+      "description": "Color of the particles",
+      "ui": {
+        "type": "color",
+        "label": "Particle Color",
+        "group": "Colors"
+      }
+    },
+    "speedVariance": {
+      "default": 0.3,
+      "description": "Per-layer speed variance (0 = all layers same speed, 1 = high variance)",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 1,
+        "step": 0.1,
+        "label": "Speed Variance",
+        "group": "Animation"
+      }
+    },
+    "angleVariance": {
+      "default": 30,
+      "description": "Per-layer angle variance in degrees (0 = all layers same angle, 180 = full variance)",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 180,
+        "step": 1,
+        "label": "Angle Variance",
+        "group": "Animation"
+      }
+    },
+    "particleDensity": {
+      "default": 3,
+      "description": "Particle density (lower = more spread out, higher = more dense)",
+      "ui": {
+        "type": "range",
+        "min": 0.5,
+        "max": 3,
+        "step": 0.1,
+        "label": "Particle Density",
+        "group": "Effect"
+      }
+    }
+  }
+}

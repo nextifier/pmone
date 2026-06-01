@@ -1,0 +1,55 @@
+{
+  "id": "32fbaee8-b9a6-4fd5-9615-ff2f19874a34",
+  "title": "Nightlight 3",
+  "collectionId": "d06a972d-10f9-4e0b-838d-3d7523dddb1b",
+  "category": "background",
+  "description": "A deep, atmospheric gradient shader effect transitioning from nearly black dark purple in the upper left (#120524) to a richer blue-purple tone in the lower right. The composition features a subtle swirling pattern with two primary color bands: a vibrant electric blue-purple (#6057fa) and a deeper indigo (#3d06b8) that blend together using oklch color space, creating smooth chromatic transitions. The swirl effect has fine horizontal detail (fineX: 13) combined with medium vertical smoothness, producing an organic, flowing distortion pattern that moves across the canvas. A delicate film grain texture with 0.04 strength is overlaid throughout, adding subtle noise and texture to break up the smoothness and create visual depth. The overall mood is cosmic and ethereal, with a sense of movement and depth despite the static nature of the image. The blend mode interactions create soft, seamless color transitions without harsh edges. The effect suggests a nebula or aurora-like phenomenon with a professional, polished appearance.",
+  "thumbnail": "/shaders/thumbnails/32fbaee8-b9a6-4fd5-9615-ff2f19874a34.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#120524"
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmi41ycmwlpbvzemcm",
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 1,
+            "y": 0.5
+          },
+          "radius": 2,
+          "softness": 2,
+          "visible": false
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "coarseX": 50,
+          "coarseY": 50,
+          "colorA": "#6057fa",
+          "colorB": "#3d06b8",
+          "colorSpace": "oklch",
+          "fineX": 13,
+          "fineY": 50,
+          "maskSource": "idmi41ycmwlpbvzemcm",
+          "mediumX": 50,
+          "mediumY": 50
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.04
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

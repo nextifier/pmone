@@ -1,0 +1,70 @@
+{
+  "id": "f348a24b-96d3-4783-9c27-e011c1be15e6",
+  "title": "Solar Silk 2",
+  "collectionId": "680a814f-9b89-4419-8201-182726e05a92",
+  "category": "logo",
+  "description": "A soft, ethereal gradient background transitioning from purple and pink on the left side to warm orange and coral tones on the right side. The gradient flows horizontally with smooth color transitions. Overlaid on this gradient is a large, soft-edged circular shape with a pale pink/mauve color (#e49ede) positioned slightly off-center toward the lower-left area. The circle has significant softness (0.59 blur) creating a diffused, glowing halo effect that blends seamlessly with the background gradient. The overall composition has a dreamy, atmospheric quality enhanced by subtle wave distortion creating gentle undulations across the entire surface. A fine film grain texture (0.2 strength) adds subtle noise throughout, preventing the image from appearing too smooth and artificial. The glass effect with SVG shape overlay adds a subtle refractive quality with minimal chromatic aberration (0.93), creating a delicate glossy appearance. The lighting appears soft and diffused with no harsh shadows, creating a warm, inviting mood. The color space uses linear and oklab color spaces for smooth, natural blending.",
+  "thumbnail": "/shaders/thumbnails/f348a24b-96d3-4783-9c27-e011c1be15e6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#ca9afa",
+          "colorB": "#d95222",
+          "visible": true
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.36,
+            "y": 0.85
+          },
+          "color": "#e49ede",
+          "colorSpace": "oklab",
+          "radius": 1.8,
+          "softness": 0.59,
+          "strokeColor": "#dacf8a",
+          "strokeThickness": 0.2
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 122,
+          "speed": 3.7
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "decay": 20,
+          "intensity": 20,
+          "radius": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.93,
+          "edgeSoftness": 0.4,
+          "innerZoom": 2,
+          "refraction": 0.54,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EFaVkr2x3OsR_sdf.bin",
+          "thickness": 0.14
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

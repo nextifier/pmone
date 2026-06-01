@@ -1,0 +1,30 @@
+{
+  "id": "22377d5b-b74d-4489-b205-48ed63a4e906",
+  "title": "Swirled Lenses 4",
+  "collection_id": "9b4c6e1e-df9a-4b5f-a2b9-227f96acac3a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect featuring diagonal parallel ridges or fluted glass patterns that create a sense of depth and movement. The composition uses two primary colors that transition smoothly across the canvas: a vibrant magenta-purple (#9629c3) and a bright cyan (#4aebf4). The swirl component creates organic color blending with a detail level of 1.8, producing soft, flowing transitions between the two hues. Overlaid on top is a fluted glass effect with 11 frequency waves at a 157-degree angle, creating parallel diagonal lines that run from upper-left to lower-right. These ridges have a mirror edge treatment and produce subtle light refraction with a 0.3 aberration value, giving the surface a glossy, three-dimensional appearance. The highlight intensity is set to 0.97 with white highlights (#ffffff) and soft edges (0.11 softness), creating bright reflective streaks along the ridge peaks. The wave amplitude of 0.1 and frequency of 0.5 produce gentle undulations that enhance the glass-like quality. The overall effect is smooth and polished, with no animation (speed: 0), creating a static but visually rich surface that appears to have depth, luminosity, and tactile quality reminiscent of frosted or fluted glass.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/22377d5b-b74d-4489-b205-48ed63a4e906.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzIyMzc3ZDViLWI3NGQtNDQ4OS1iMjA1LTQ4ZWQ2M2E0ZTkwNi5qcGciLCJpYXQiOjE3Nzc4MTk2NjMsImV4cCI6MTgwOTM1NTY2M30.PoP7f3a_i8OBg7tjheQ_h_fBuAMf1Y7Cc6_wC836xLk",
+  "import": "import {\n  Shader,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, FlutedGlass, Swirl } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#9629c3\"\n      color-b=\"#4aebf4\"\n      color-space=\"oklab\"\n      :detail=\"1.8\"/>\n    <FlutedGlass\n      :aberration=\"0.3\"\n      :angle=\"157\"\n      :frequency=\"11\"\n      :highlight=\"0.97\"\n      :highlight-softness=\"0.11\"\n      :light-angle=\"-90\"\n      :refraction=\"4\"\n      shape=\"waves\"\n      :softness=\"1\"\n      :wave-amplitude=\"0.1\"\n      :wave-frequency=\"0.5\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

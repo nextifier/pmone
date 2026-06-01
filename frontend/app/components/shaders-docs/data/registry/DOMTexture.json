@@ -1,0 +1,8 @@
+{
+  "name": "DOMTexture",
+  "category": "Textures",
+  "description": "Render live HTML/DOM content as a WebGPU texture layer via the html-in-canvas API. Requires Chrome Canary with chrome://flags/#canvas-draw-element enabled.",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {}
+}

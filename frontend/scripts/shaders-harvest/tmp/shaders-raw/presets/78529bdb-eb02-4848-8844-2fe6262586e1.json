@@ -1,0 +1,42 @@
+{
+  "id": "78529bdb-eb02-4848-8844-2fe6262586e1",
+  "title": "Mercury 5",
+  "collection_id": "8cefc8df-84a3-4d51-b006-c90065d0b8bf",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A sophisticated glass morphism shader effect featuring a geometric 'G' logo shape with a cutout design. The composition uses a deep black background (#0f0f0f) that provides stark contrast. The central glass element displays a thick-walled geometric form with an orange gradient interior (#ff7a1a to #170308). The glass surface exhibits strong refraction (0.82) and chromatic aberration (0.5), creating a luminous, translucent quality with warm orange tones (#ffb380) concentrated at the fresnel edges. A dynamic swirl effect animates within the glass, blending orange and dark brown colors with high detail (3.5). An interactive blob element with yellow-gold highlights (#ffd633, #ffb614, #ffe11a) responds to mouse position, creating soft, deformable light spots that add dimensionality. Wave distortion at 23 degrees with sine waves (frequency 5.1, speed 2.5) creates subtle undulating surface movement. Cursor ripples with chromatic split (intensity 20) add interactive responsiveness. The overall effect conveys a premium, modern aesthetic with warm ambient lighting, glossy reflective surfaces, and fluid organic motion within a rigid geometric structure. Film grain (0.075 strength) adds subtle texture and cinematic quality.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/78529bdb-eb02-4848-8844-2fe6262586e1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzc4NTI5YmRiLWViMDItNDg0OC04ODQ0LTJmZTYyNjI1ODZlMS5qcGciLCJpYXQiOjE3NzgxNzk3NjksImV4cCI6MTgwOTcxNTc2OX0.wDiQt2TkcO7hXoGqmHBOpBPtb-L_Xh7h1_iAzQxtgjk",
+  "import": "import {\n  Shader,\n  Blob,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  SolidColor,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  SolidColor,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0f0f0f\"/>\n    <Glass\n      :cutout=\"true\"\n      :fresnel=\"0.04\"\n      fresnel-color=\"#ffb380\"\n      :fresnel-softness=\"0.48\"\n      :highlight=\"0.1\"\n      highlight-color=\"#dbe6ff\"\n      :highlight-softness=\"0.27\"\n      :light-angle=\"305\"\n      :refraction=\"0.82\"\n      :scale=\"1.1\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin\"\n      :thickness=\"0.23\"\n      :visible=\"true\">\n      <Swirl\n        :blend=\"45\"\n        color-a=\"#ff7a1a\"\n        color-b=\"#170308\"\n        color-space=\"oklab\"\n        :detail=\"3.5\"\n        :speed=\"0.7\"/>\n      <Blob\n        blend-mode=\"linearDodge\"\n        :center=\"{\n          type: 'mouse-position',\n          reach: 0.55,\n          originX: 0.5,\n          originY: 0.5,\n          momentum: 0.3,\n          smoothing: 0.3\n        }\"\n        color-a=\"#ffd633\"\n        color-b=\"#ffb614\"\n        :deformation=\"0.9\"\n        :size=\"0.15\"\n        :softness=\"0.7\"/>\n      <WaveDistortion\n        :angle=\"23\"\n        edges=\"mirror\"\n        :frequency=\"5.1\"\n        :speed=\"2.5\"\n        :strength=\"0.15\"\n        :visible=\"true\"/>\n      <CursorRipples\n        :chromatic-split=\"2\"\n        :decay=\"5\"\n        :intensity=\"20\"\n        :radius=\"0.7\"\n        :visible=\"true\"/>\n    </Glass>\n    <FilmGrain\n      :strength=\"0.075\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

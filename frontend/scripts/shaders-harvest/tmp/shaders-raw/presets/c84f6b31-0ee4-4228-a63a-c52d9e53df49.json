@@ -1,0 +1,30 @@
+{
+  "id": "c84f6b31-0ee4-4228-a63a-c52d9e53df49",
+  "title": "Holographic Waves 8",
+  "collection_id": "e02b22a4-a103-4920-9eef-1e543daa3eb2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect featuring diagonal parallel lines that sweep across the canvas at approximately 165 degrees, creating a sense of motion and flow. The composition uses a sophisticated color transition system that shifts from warm tones (red, orange, yellow) in the lower-left quadrant through cyan and light-blue in the center, transitioning to purple and magenta in the upper-right corner. The swirl component with blend value 59 creates a subtle rotational disturbance in the color field, while the blob element centered at coordinates (0.62, 0.32) introduces a localized cyan-to-purple gradient with a bright yellow highlight that adds dimensionality. The wave distortion effect with high frequency (30) and triangle waveform creates fine linear striations throughout, giving the impression of vibrating energy lines. A chromatic aberration effect with red offset -1 and blue offset +1 adds subtle color fringing along edges, enhancing the sense of depth and optical complexity. The sharpness filter set to 2 ensures crisp definition of the line patterns, while film grain at 0.15 strength adds subtle texture and analog warmth. The overall effect is vibrant, energetic, and suggests flowing light or energy with a modern, digital aesthetic. The color space uses oklch for perceptually uniform transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/c84f6b31-0ee4-4228-a63a-c52d9e53df49.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2M4NGY2YjMxLTBlZTQtNDIyOC1hNjNhLWM1MmQ5ZTUzZGY0OS5qcGciLCJpYXQiOjE3NzMxMTEyNTUsImV4cCI6MTgwNDY0NzI1NX0.t7sFOqN20LekhrWQwSjjvg4qq-cXJ86i_A7ujt4Yq1U",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Sharpness,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Sharpness,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"59\"\n      color-a=\"#ff2d6a\"\n      color-b=\"#ffe014\"\n      color-space=\"oklch\"\n      :detail=\"4.1\"/>\n    <Blob\n      :center=\"{\n        x: 0.62,\n        y: 0.32\n      }\"\n      color-a=\"#00e5ff\"\n      color-b=\"#b83dff\"\n      color-space=\"oklch\"\n      :deformation=\"1\"\n      :highlight-intensity=\"0.8\"\n      :highlight-z=\"0.8\"\n      :size=\"0.75\"\n      :softness=\"1\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"165\"\n      edges=\"mirror\"\n      :frequency=\"30\"\n      :speed=\"4.9\"\n      :strength=\"0.7\"\n      :visible=\"true\"\n      wave-type=\"triangle\"/>\n    <ChromaticAberration\n      :strength=\"0.02\"\n      :visible=\"true\"/>\n    <Sharpness\n      :sharpness=\"2\"/>\n    <FilmGrain\n      :strength=\"0.15\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

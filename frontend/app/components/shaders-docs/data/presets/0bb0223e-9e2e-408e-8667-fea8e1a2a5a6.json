@@ -1,0 +1,75 @@
+{
+  "id": "0bb0223e-9e2e-408e-8667-fea8e1a2a5a6",
+  "title": "Dither Wave 3",
+  "collectionId": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "category": "background",
+  "description": "A smooth, radial gradient shader effect transitioning from bright yellow-lime at the top-left corner to vibrant green at the bottom-right. The gradient uses a diagonal flow with the primary axis running from upper-left to lower-right, creating a sense of depth and movement. The color transition is extremely smooth and continuous, with no visible banding or harsh edges. The effect employs a halftone dot pattern overlay that becomes progressively denser toward the center, creating a subtle texture that adds visual interest without overwhelming the gradient. The dots are microscopic and create a soft, organic quality to the otherwise smooth gradient. The overall atmosphere is bright, energetic, and modern, with a fresh, natural feel reminiscent of spring growth or digital vitality. The blend mode appears to be normal with full opacity, allowing the gradient to display at maximum saturation. The color space used is oklab/oklch, which provides perceptually uniform color transitions that feel natural to the human eye.",
+  "thumbnail": "/shaders/thumbnails/0bb0223e-9e2e-408e-8667-fea8e1a2a5a6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 180,
+          "center": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "colorA": "#14d91e",
+          "colorB": "#fbff00",
+          "colorSpace": "oklab",
+          "edges": "mirror",
+          "end": {
+            "x": 0.9,
+            "y": 0.82
+          },
+          "endColor": "#0000ff",
+          "start": {
+            "x": 0.24,
+            "y": 0.03
+          },
+          "startColor": "#1aff00"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "id": "idmgijmh7s6y9u9f0ao",
+          "opacity": 0,
+          "pixelSize": 5,
+          "threshold": 0.24,
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.21,
+              "angle": 95,
+              "frequency": 0.6,
+              "softness": 1,
+              "thickness": 0.81
+            }
+          }
+        ]
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "colorA": "#42cf59",
+          "colorB": "#13eb4d",
+          "colorSpace": "oklch",
+          "endColor": "#0000ff",
+          "maskSource": "idmgijmh7s6y9u9f0ao",
+          "startColor": "#1aff00"
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

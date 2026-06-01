@@ -1,0 +1,30 @@
+{
+  "id": "adfa5af4-3363-49e1-a930-9d1018cc3e9c",
+  "title": "Bad Signal",
+  "collection_id": "3cee27ba-7e1d-4272-8940-233ddc176e7c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A retro digital matrix effect with a layered composition. The background features a dense grid of small colored dots in cyan, magenta, yellow, and green arranged in a regular pattern, creating a pixelated texture reminiscent of old CRT monitors. Overlaid on this is a swirling gradient effect that transitions between bright lime green (#25f55c) and golden yellow (#f0bc22), creating organic flowing patterns with soft blending. The middle section contains horizontal scan lines that add a CRT screen authenticity with reduced opacity. ASCII characters (@, %, #, *, +, =, -, :, .) are scattered throughout in a monospace font, creating a hacker/terminal aesthetic. A bright cyan and magenta cursor trail effect is visible in the center-right area, forming a glowing path with gradient coloration. The overall effect is enhanced by a hard light blend mode that creates contrast and luminosity variations. The image has a strong retro-futuristic, cyberpunk atmosphere with high contrast between the bright neon colors and the dark background. Scan line artifacts and pixel distortion reinforce the vintage computer monitor aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/abebcdde-5ecd-4785-bc9b-97ac075b58ff.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2FiZWJjZGRlLTVlY2QtNDc4NS1iYzliLTk3YWMwNzViNThmZi5qcGciLCJpYXQiOjE3NjM0NDExMDYsImV4cCI6MTc5NDk3NzEwNn0.jFsZ_R4hk2vVo6Vc71zDNA5qxaxQodnOz5La8Ylkyto",
+  "import": "import {\n  Shader,\n  Ascii,\n  CRTScreen,\n  Checkerboard,\n  CursorTrail,\n  SineWave,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  CRTScreen,\n  Checkerboard,\n  CursorTrail,\n  SineWave,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :coarse-x=\"50\"\n      :coarse-y=\"50\"\n      color-a=\"#25f55c\"\n      color-b=\"#f0bc22\"\n      :fine-x=\"50\"\n      :fine-y=\"50\"\n      :medium-x=\"50\"\n      :medium-y=\"50\"/>\n    <CRTScreen\n      blend-mode=\"hardLight\"\n      :brightness=\"1.1\"\n      :color-shift=\"3.6\"\n      :contrast=\"1.2\">\n      <Checkerboard/>\n      <SineWave\n        :amplitude=\"0.01\"\n        :frequency=\"0.9\"\n        :softness=\"0.27\"\n        :thickness=\"0.78\"/>\n      <CursorTrail\n        :radius=\"1\"/>\n      <Ascii/>\n    </CRTScreen>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

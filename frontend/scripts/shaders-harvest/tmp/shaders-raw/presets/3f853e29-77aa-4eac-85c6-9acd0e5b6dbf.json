@@ -1,0 +1,42 @@
+{
+  "id": "3f853e29-77aa-4eac-85c6-9acd0e5b6dbf",
+  "title": "Photocopied",
+  "collection_id": "bccc97a3-20d2-46f7-a3c1-c2011429c32f",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "Three vertically stacked rounded rectangular pill-shaped objects with a glossy glass effect against a pure black background. Each pill contains a pixelated pattern with cyan (#6eaff5) and bright yellow (#c1ff59) colors creating a dotted/checkered texture. The pills have a translucent glass material with subtle refraction and edge highlights in white/light tones. A ripple effect emanates from the bottom of each pill, creating concentric wave patterns in cyan and yellow. The overall composition has a retro digital aesthetic enhanced by dithering effects that add a grainy, halftone quality. A subtle VHS wobble and scanline noise overlay gives the entire image a vintage analog distortion feel. The lighting appears to come from the upper right, creating subtle highlights on the glass surfaces. The pixelation scale is moderate, creating visible square blocks of color that contribute to the retro-digital appearance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/06d2167e-87f0-4203-a556-53da41b1272f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzA2ZDIxNjdlLTg3ZjAtNDIwMy1hNTU2LTUzZGE0MWIxMjcyZi5qcGciLCJpYXQiOjE3Nzc4NDMzNzIsImV4cCI6MTgwOTM3OTM3Mn0.lmw2rlrfq5W6pFPZznRcD-JVSlOvWqUBNMrkFN1orXI",
+  "import": "import {\n  Shader,\n  Dither,\n  Glass,\n  Pixelate,\n  Ripples,\n  SolidColor,\n  VHS\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  Glass,\n  Pixelate,\n  Ripples,\n  SolidColor,\n  VHS\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <Glass\n      :aberration=\"0\"\n      :cutout=\"true\"\n      :fresnel=\"0\"\n      :fresnel-softness=\"0\"\n      :highlight=\"0\"\n      :light-angle=\"232\"\n      :refraction=\"0.64\"\n      :scale=\"0.8\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/ihHF7QcQ1qcY_sdf.bin\"\n      :thickness=\"0.1\">\n      <Ripples\n        :center=\"{\n          x: 0.5,\n          y: 1\n        }\"\n        color-a=\"#6eaff5\"\n        color-b=\"#c1ff59\"\n        :frequency=\"80\"/>\n      <Pixelate\n        :scale=\"47\"\n        :visible=\"true\"/>\n      <Dither\n        blend-mode=\"colorDodge\"\n        color-mode=\"source\"\n        :pixel-size=\"6\"\n        :threshold=\"0.8\"/>\n    </Glass>\n    <VHS\n      :scanline-noise=\"0.09\"\n      :smear=\"0.3\"\n      :wobble=\"0.61\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

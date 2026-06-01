@@ -1,0 +1,24 @@
+{
+  "name": "Blur",
+  "category": "Blurs",
+  "description": "A simple Gaussian blur effect",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "intensity": {
+      "default": 50,
+      "description": "Intensity of the blur effect",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 200,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Effect"
+      }
+    }
+  }
+}

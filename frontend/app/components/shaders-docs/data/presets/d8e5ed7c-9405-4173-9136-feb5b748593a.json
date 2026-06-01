@@ -1,0 +1,70 @@
+{
+  "id": "d8e5ed7c-9405-4173-9136-feb5b748593a",
+  "title": "Subtle Liquid",
+  "collectionId": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "category": "background",
+  "description": "A vibrant gradient shader effect dominated by purple and blue hues with a soft, luminous quality. The composition features a primary linear gradient transitioning from magenta (#be04cf) in the lower-left area to deep blue (#0000f7) in the upper-right, creating a diagonal flow across the canvas. Overlaid on this base is an organic blob shape with purple (#7835ff) and magenta (#cd0ced) coloring, positioned centrally with soft, feathered edges that create a glowing, three-dimensional appearance. A subtle highlight with yellowish tone (#ffe11a) is visible in the upper-right quadrant of the blob, adding depth and luminosity. The entire composition is enhanced with a fine film grain texture at low opacity (0.09) that adds subtle noise and texture without overwhelming the smooth gradients. A barely perceptible dot grid with white dots at 15% opacity and linear dodge blending creates a starfield-like effect across the surface. The liquify effect with moderate intensity (2) and mirror edge handling creates subtle wave distortions throughout, giving the gradients a fluid, organic quality. The overall mood is ethereal and cosmic, with soft transitions between colors and a glowing, dreamlike atmosphere. The color space uses OKLCH for perceptually uniform color transitions.",
+  "thumbnail": "/shaders/thumbnails/d8e5ed7c-9405-4173-9136-feb5b748593a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#be04cf",
+          "colorB": "#0000f7",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.67,
+            "y": 0.28
+          },
+          "start": {
+            "x": 0.23,
+            "y": 0.7
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklch",
+          "colorA": "#7835ff",
+          "colorB": "#cd0ced",
+          "colorSpace": "oklch",
+          "deformation": 0.9,
+          "size": 1,
+          "softness": 2,
+          "speed": 1
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "density": 40,
+          "dotSize": 0.05,
+          "opacity": 0.15
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 1,
+          "edges": "mirror",
+          "intensity": 2,
+          "radius": 2,
+          "swirl": 0
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.09
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

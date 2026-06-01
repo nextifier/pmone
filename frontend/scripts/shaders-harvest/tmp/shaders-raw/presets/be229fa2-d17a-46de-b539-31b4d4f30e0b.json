@@ -1,0 +1,34 @@
+{
+  "id": "be229fa2-d17a-46de-b539-31b4d4f30e0b",
+  "title": "Digital Activation 3",
+  "collection_id": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated digital shader effect featuring a dark, near-black background (#0e0f14) with a subtle dot grid pattern in dark purple-gray (#292936). The dominant visual element is a large ring-shaped glass structure with chromatic aberration and refraction effects, creating a glowing neon aesthetic. A bright lime-green spiral (#55ff0a) emanates from the lower-left portion of the ring, flowing upward and curving around the glass shape with a soft, feathered edge. The spiral creates a luminous trail effect against the dark background. ASCII characters (◘•) are distributed across the composition in a grid pattern, with the characters becoming more densely packed and brighter green where the spiral passes through them, creating a sense of data flow or digital energy. The glass component has a subtle white highlight and fresnel effect along its edges, with a thickness of 0.2 and an aberration value of 0.8 creating color separation. The overall composition has a cyberpunk aesthetic with strong contrast between the deep blacks and the vibrant lime-green accents. The lighting angle is set to 274 degrees, creating directional illumination across the glass surface. The effect conveys motion and energy flowing through a digital matrix or network structure.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/be229fa2-d17a-46de-b539-31b4d4f30e0b.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JlMjI5ZmEyLWQxN2EtNDZkZS1iNTM5LTMxYjRkNGYzMGUwYi5qcGciLCJpYXQiOjE3NzMxNzI3NDksImV4cCI6MTgwNDcwODc0OX0.uiH7DiuyvwYppJ44gowzhppCq4d__dYfZUvWo2T9sxA",
+  "import": "import {\n  Shader,\n  Ascii,\n  DotGrid,\n  Glass,\n  SolidColor,\n  Spiral\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  DotGrid,\n  Glass,\n  SolidColor,\n  Spiral\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0e0f14\"/>\n    <DotGrid\n      color=\"#292936\"\n      :density=\"49\"\n      :dot-size=\"0.1\"/>\n    <Glass\n      :aberration=\"0.8\"\n      :center=\"{\n        x: 0,\n        y: 0\n      }\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0\"\n      :fresnel-softness=\"0.23\"\n      :highlight=\"0\"\n      :highlight-softness=\"0.16\"\n      :light-angle=\"274\"\n      :refraction=\"2\"\n      :scale=\"1.45\"\n      :shape=\"{\n        type: 'ringSDF',\n        radius: 0.8,\n        thickness: 0.185\n      }\">\n      <SolidColor\n        color=\"#0e0f14\"/>\n      <Ascii\n        characters=\"◘•\"\n        :gamma=\"0.8\"\n        :spacing=\"0.8\">\n        <Spiral\n          :center=\"{\n            x: 0.07,\n            y: 0.66\n          }\"\n          color-a=\"#0a131f\"\n          color-b=\"#55ff0a\"\n          :softness=\"0.4\"/>\n      </Ascii>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

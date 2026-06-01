@@ -1,0 +1,97 @@
+{
+  "id": "ab688bd8-e3ce-4628-9bfc-f1398108d6d8",
+  "title": "Deep Signal",
+  "collectionId": "f3869e23-1062-48b0-8077-5e5274774dfd",
+  "category": "background",
+  "description": "A mesmerizing abstract shader effect featuring a three-dimensional tunnel or vortex composed of tightly spaced parallel blue lines that create a strong sense of depth and motion. The lines curve and converge toward the center, forming a hypnotic swirling pattern that suggests movement into the distance. The color palette is dominated by deep navy and dark blue tones (#080f1a, #0b0b29) with bright electric blue accents (#0051ff, #3535ff) that create luminous highlights along the line patterns. The effect has a subtle wave distortion applied at multiple angles (344° and 208°), causing the parallel lines to undulate with a sine and triangle wave pattern, creating a breathing, organic quality to the geometric structure. A high-frequency triangular wave distortion (frequency 80) adds fine detail and texture to the line work. The overall atmosphere is dark, technological, and immersive, with a subtle film grain overlay (0.05 strength) adding a cinematic quality. A soft blob element with blue-to-purple gradient and a highlight color of bright yellow (#ffe11a) adds a subtle glow effect in the mid-left area. A twirl distortion with negative intensity (-1.7) creates a counter-clockwise rotation effect that enhances the vortex sensation. The composition maintains perfect symmetry around the center point, creating a hypnotic, tunnel-like visual that appears to pull the viewer inward.",
+  "thumbnail": "/shaders/thumbnails/ab688bd8-e3ce-4628-9bfc-f1398108d6d8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#080f1a",
+          "colorB": "#0b0b29",
+          "colorSpace": "oklch"
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 344,
+          "blendMode": "linearDodge",
+          "edges": "wrap",
+          "frequency": 2.9,
+          "strength": 0.1,
+          "transform": {
+            "scale": 1.3
+          }
+        },
+        "children": [
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 208,
+              "edges": "mirror",
+              "frequency": 80,
+              "speed": 0.3,
+              "strength": 1,
+              "waveType": "triangle"
+            },
+            "children": [
+              {
+                "type": "Blob",
+                "props": {
+                  "center": {
+                    "x": 0.5,
+                    "y": 1
+                  },
+                  "colorA": "#020117",
+                  "colorB": "#0b0a2e",
+                  "deformation": 0.7,
+                  "highlightColor": "#0051ff",
+                  "highlightIntensity": 0.6,
+                  "highlightX": 0.1,
+                  "highlightY": -0.2,
+                  "highlightZ": 0.1,
+                  "size": 0.8,
+                  "softness": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "colorDodge",
+          "center": {
+            "x": 0.35,
+            "y": 0.63
+          },
+          "colorA": "#3535ff",
+          "colorB": "#1e47e9",
+          "deformation": 2,
+          "opacity": 0.08,
+          "softness": 2
+        }
+      },
+      {
+        "type": "Twirl",
+        "props": {
+          "edges": "mirror",
+          "intensity": -1.7
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

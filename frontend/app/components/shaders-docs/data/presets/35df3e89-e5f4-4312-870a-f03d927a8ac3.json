@@ -1,0 +1,43 @@
+{
+  "id": "35df3e89-e5f4-4312-870a-f03d927a8ac3",
+  "title": "Drifting Lights 3",
+  "collectionId": "510560b6-b9da-43ed-8275-561f71268e84",
+  "category": "background",
+  "description": "A smooth, horizontally-oriented linear gradient shader that transitions from a vibrant lime green (#28f572) on the left and right edges to a teal cyan (#1db0a6) in the center. The gradient creates a symmetrical color flow moving from the outer edges toward the middle of the composition. The effect is enhanced by a subtle rectangular coordinate grid pattern that adds depth and structure to the gradient, creating a gentle wave-like visual rhythm. A fine film grain texture is overlaid at 30% strength, providing a subtle noise pattern that adds organic texture and prevents the gradient from appearing too smooth or artificial. The overall mood is fresh, modern, and calming, with the cool tones dominating the visual experience. The gradient animates smoothly with auto-rotation in loop mode, creating a continuous, mesmerizing effect. The color space uses OKLAB for smooth perceptual transitions between the green and cyan hues.",
+  "thumbnail": "/shaders/thumbnails/35df3e89-e5f4-4312-870a-f03d927a8ac3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 1,
+            "easing": "linear",
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "colorA": "#28f572",
+          "colorB": "#1db0a6",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "RectangularCoordinates",
+        "props": {
+          "edges": "stretch",
+          "scale": 3
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

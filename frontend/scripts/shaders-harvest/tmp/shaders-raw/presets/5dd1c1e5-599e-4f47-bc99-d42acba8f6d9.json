@@ -1,0 +1,30 @@
+{
+  "id": "5dd1c1e5-599e-4f47-bc99-d42acba8f6d9",
+  "title": "Quantum 3",
+  "collection_id": "b3c3c82d-d12f-404f-9f61-e43d9f4f85e0",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, fluid abstract shader effect featuring swirling organic forms with soft, blurred transitions between colors. The composition displays a dynamic interplay of lime-green and deep magenta/burgundy tones that create a sense of movement and energy. The left side features cooler cyan and light-blue gradients that transition smoothly into warmer yellow and orange hues in the center-right area. Multiple blob-like shapes with soft edges overlap and blend together, creating a three-dimensional appearance enhanced by subtle highlights and depth. The effect incorporates wave distortion that creates undulating, rippling patterns across the surface, while chromatic aberration introduces subtle color fringing at the edges of forms, adding visual complexity. A fine film grain texture overlays the entire composition, providing subtle noise and tactile quality. The overall atmosphere is ethereal and dreamlike, with soft focus and smooth color gradients creating a sense of flowing, morphing liquid or gas. The blending modes create areas of color saturation variation, with some regions appearing more vivid while others fade into softer, more muted tones.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/5dd1c1e5-599e-4f47-bc99-d42acba8f6d9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzVkZDFjMWU1LTU5OWUtNGY0Ny1iYzk5LWQ0MmFjYmE4ZjZkOS5qcGciLCJpYXQiOjE3NzIzMjg0MTMsImV4cCI6MTgwMzg2NDQxM30.nXr-Ag-ofYv-kIdM0nWesclURxVY80uuMag16-ALHNw",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  FlowField,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  FlowField,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"35\"\n      color-a=\"#67f154\"\n      color-b=\"#7a0d28\"\n      color-space=\"oklch\"\n      :detail=\"2.4\"\n      :speed=\"0.4\"/>\n    <Blob\n      :center=\"{\n        x: 0.23,\n        y: 0.46\n      }\"\n      color-a=\"#c4af12\"\n      color-b=\"#6ad2ce\"\n      color-space=\"oklch\"\n      :deformation=\"1\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.4\"\n      :highlight-z=\"0.5\"\n      :size=\"0.95\"\n      :softness=\"1.2\"\n      :speed=\"0.3\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"15\"\n      edges=\"mirror\"\n      :frequency=\"2.2\"\n      :speed=\"0.8\"\n      :strength=\"0.25\"\n      :visible=\"true\"/>\n    <FlowField\n      :detail=\"1.1\"\n      :speed=\"0.6\"\n      :strength=\"0.1\"/>\n    <ChromaticAberration\n      :angle=\"212\"\n      :blue-offset=\"0.8\"\n      :green-offset=\"-2\"\n      :red-offset=\"1.9\"\n      :strength=\"0.25\"/>\n    <FilmGrain/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

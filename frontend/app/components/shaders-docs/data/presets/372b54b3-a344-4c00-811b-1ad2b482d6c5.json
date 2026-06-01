@@ -1,0 +1,44 @@
+{
+  "id": "372b54b3-a344-4c00-811b-1ad2b482d6c5",
+  "title": "Faded Dither 5",
+  "collectionId": "cc49576b-748c-4194-a9d2-234d5b628ea6",
+  "category": "background",
+  "description": "A soft, gradient shader effect transitioning from a lighter mint green at the top to a slightly deeper sage green at the bottom. The base is a solid color layer (#8ede8e) that provides the foundational green tone. Overlaid on top is a dither pattern using a Bayer 8x8 matrix that creates a subtle speckled texture throughout the image, with the dither effect using transparent and a lighter green (#aef0ad) to add depth and visual interest. Beneath the dither layer, a sine wave animation moves horizontally across the lower portion of the composition at an angle of 154 degrees, creating subtle undulating white lines with soft edges and low amplitude (0.15). The sine wave has a thickness of 0.8 and moves at a moderate speed of 0.4, creating a gentle, flowing motion effect. The overall atmosphere is calm and serene, with a soft, organic quality enhanced by the combination of the dithering pattern and the animated wave. The pixelated dither effect (4-pixel size) gives the shader a slightly grainy, textured appearance while maintaining smooth color transitions. All elements blend together using normal blend mode, creating a cohesive, unified visual effect with no harsh edges or stark contrasts.",
+  "thumbnail": "/shaders/thumbnails/372b54b3-a344-4c00-811b-1ad2b482d6c5.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#8ede8e"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorB": "#aef0ad",
+          "pattern": "bayer8",
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "angle": 154,
+              "frequency": 0.5,
+              "position": {
+                "x": 0.5,
+                "y": 1
+              },
+              "softness": 1,
+              "speed": 0.4,
+              "thickness": 0.8
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

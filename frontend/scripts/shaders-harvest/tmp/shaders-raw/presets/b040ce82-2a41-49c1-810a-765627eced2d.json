@@ -1,0 +1,30 @@
+{
+  "id": "b040ce82-2a41-49c1-810a-765627eced2d",
+  "title": "Cascading Lines 5",
+  "collection_id": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring vertical falling lines that cascade downward from the top of the composition. The background is a deep burgundy-red (#913030) that provides a warm, rich foundation. Overlaid on this base are numerous thin vertical strands in golden-yellow (#f4a01d) and cream (#ddc593) tones that fall at varying speeds and lengths, creating a rain-like or curtain effect. The lines have varying opacity and trail lengths, with some appearing more prominent and others fading into the background. A subtle swirl effect is applied, creating gentle undulation and movement within the falling lines pattern. The composition uses a dither pattern with a bayer4 algorithm applied with linear dodge blending, adding a subtle grainy texture and luminosity enhancement throughout. The overall effect creates a sense of motion and depth, with the golden lines appearing to cascade like liquid gold or light particles falling through a warm, dark space. The density of lines is moderate (60), allowing the background to show through while maintaining visual interest. The effect has a luxurious, elegant quality with warm autumn tones dominating the palette.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/b040ce82-2a41-49c1-810a-765627eced2d.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2IwNDBjZTgyLTJhNDEtNDljMS04MTBhLTc2NTYyN2VjZWQyZC5qcGciLCJpYXQiOjE3NzQwNTI1NzgsImV4cCI6MTgwNTU4ODU3OH0.5-s7_zs4D06KEzzR85Tvo8rU29GFfAeyKIDti5nlBWU",
+  "import": "import {\n  Shader,\n  Dither,\n  FallingLines,\n  SineWave,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  FallingLines,\n  SineWave,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#913030\"/>\n    <Swirl\n      :blend=\"35\"\n      color-a=\"#f4a01d\"\n      color-b=\"#ddc593\"\n      :detail=\"2\"\n      mask-source=\"idmmzanabwzt8f61fke\"/>\n    <FallingLines\n      id=\"idmmzanabwzt8f61fke\"\n      :density=\"60\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.7\"\n      :stroke-width=\"0.66\"\n      :trail-length=\"{\n        type: 'map',\n        curve: -0.15,\n        source: 'idmmzaokw5nk6ntmihd',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      :visible=\"false\"/>\n    <SineWave\n      id=\"idmmzaokw5nk6ntmihd\"\n      :amplitude=\"0.4\"\n      :angle=\"26\"\n      :frequency=\"0.5\"\n      :softness=\"1\"\n      :speed=\"0.4\"\n      :thickness=\"1\"\n      :visible=\"false\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-mode=\"source\"\n      :pixel-size=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

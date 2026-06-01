@@ -1,0 +1,65 @@
+{
+  "id": "d075d78d-2f1b-4166-9d90-59589a936468",
+  "title": "Chroma Chrome 5",
+  "collectionId": "e101c7d3-2313-42e9-a40f-7ddc609df98c",
+  "category": "logo",
+  "description": "A sophisticated dark theme logo composition featuring the word 'Galileo' in elegant, outlined typography with a metallic silver-gray appearance. To the left of the text is a stylized spherical icon with a glossy, three-dimensional glass effect showing internal swirling patterns in dark grays and blacks. The sphere demonstrates strong Fresnel reflections with bright white highlights along its curved edges, creating a polished, refractive appearance. The background is a very dark navy-black (#130f1a) that provides maximum contrast. The glass sphere contains animated swirl patterns with colors ranging from dark charcoal (#26262b) to deep navy (#0d111a), creating an internal fluid-like motion effect. Subtle chromatic aberration effects with warm color shifts (yellows, oranges, reds) are visible within the glass element, suggesting light refraction. A fine film grain texture overlays the entire composition at low opacity (0.1), adding subtle noise and a cinematic quality. The overall aesthetic is premium, modern, and technological, with emphasis on depth, refraction, and luminous surface qualities. The lighting angle appears to come from approximately 237 degrees, creating dramatic edge highlights on the glass sphere.",
+  "thumbnail": "/shaders/thumbnails/d075d78d-2f1b-4166-9d90-59589a936468.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#130f1a",
+          "visible": true
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "cutout": true,
+          "fresnel": 0.04,
+          "fresnelSoftness": 0.05,
+          "highlight": 0.5,
+          "highlightSoftness": 0.21,
+          "innerZoom": 1.5,
+          "lightAngle": 237,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/Fo7ahNLZwqrY_sdf.bin",
+          "thickness": 1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#26262b",
+              "colorB": "#0d111a",
+              "detail": 5,
+              "speed": 0.2
+            }
+          },
+          {
+            "type": "ChromaFlow",
+            "props": {
+              "baseColor": "#ff002b",
+              "downColor": "#ffaa00",
+              "leftColor": "#ff6600",
+              "momentum": 10,
+              "radius": 2,
+              "rightColor": "#ffb300",
+              "upColor": "#ffdd00"
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "opacity": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

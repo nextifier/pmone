@@ -1,0 +1,30 @@
+{
+  "id": "9598b3e0-f0be-40a5-abcd-d709363297ca",
+  "title": "Converging Panels",
+  "collection_id": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A warm, glowing abstract shader effect dominated by golden and orange tones. The image features a soft, blurred bokeh-like quality with multiple overlapping light sources creating a dreamy, out-of-focus appearance. The primary illumination originates from the upper-center area, creating a bright yellow-gold core that gradually transitions to deeper orange and brown tones toward the edges. The StudioBackground component generates ambient lighting with a luminosity blend mode, producing soft halos and diffused light rays. A subtle kaleidoscopic pattern with 6 segments is layered underneath, creating gentle geometric distortions that are barely visible due to the low reach setting (0.05) and the dominant background. The overall effect is atmospheric and warm, with a vignette-like darkening at the corners transitioning from bright center to darker brown edges. A fine film grain texture (0.2 strength) adds subtle noise throughout, enhancing the cinematic quality. The composition suggests studio lighting with high ambient intensity (96) and moderate fill softness (70), creating a professional, polished glow effect with soft shadows and highlights blending seamlessly.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9598b3e0-f0be-40a5-abcd-d709363297ca.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzk1OThiM2UwLWYwYmUtNDBhNS1hYmNkLWQ3MDkzNjMyOTdjYS5qcGciLCJpYXQiOjE3NzI5Mjc1ODYsImV4cCI6MTgwNDQ2MzU4Nn0.g-pvIf--bxpITzclyLKdswX2A-LB7cPFxWVv3_hWEx4",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Kaleidoscope,\n  StudioBackground\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Kaleidoscope,\n  StudioBackground\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader color-space=\"srgb\">\n    <StudioBackground\n      :ambient-intensity=\"96\"\n      :ambient-speed=\"3\"\n      :back-intensity=\"0\"\n      :back-softness=\"0\"\n      blend-mode=\"luminosity\"\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.7,\n        originX: 0.713903743315508,\n        originY: 0.7781299524564184,\n        momentum: 0.3,\n        smoothing: 0.4\n      }\"\n      color=\"#ff9d0a\"\n      :fill-angle=\"72\"\n      :fill-intensity=\"24\"\n      :key-intensity=\"38\"\n      :wall-curvature=\"35\"/>\n    <Kaleidoscope\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.05,\n        originX: 0.551693404634581,\n        originY: 0.26465927099841524,\n        momentum: 0.5,\n        smoothing: 0.5\n      }\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

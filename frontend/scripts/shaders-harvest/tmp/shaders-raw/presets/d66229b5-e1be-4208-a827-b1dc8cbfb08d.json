@@ -1,0 +1,30 @@
+{
+  "id": "d66229b5-e1be-4208-a827-b1dc8cbfb08d",
+  "title": "Synthesis 7",
+  "collection_id": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect dominated by a deep navy-black background (#08071a) with vibrant purple glowing elements. The primary visual feature is a soft, diffused purple glow that emanates from the center-right area of the composition, creating a luminous focal point. The purple light (#9000ff) has a very soft, feathered edge with high softness (0.57), producing a dreamy, ethereal quality. The glow appears to pulse and wave subtly due to the sine wave animation at 0.3 speed and the wave distortion effect applied at 177 degrees. The effect creates diagonal streaks of purple light that fade smoothly into the black background, suggesting motion or energy flowing across the frame. A subtle wave distortion with sine wave pattern adds organic, fluid movement to the light, making it appear to ripple and undulate. The overall atmosphere is moody and cinematic, with a cool color temperature dominated by purples against near-black darkness. Fine film grain texture (0.07 strength) adds a subtle grittiness and analog quality to the otherwise smooth gradients. The composition has a sense of depth and dimensionality created by the soft falloff of the glowing purple light.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/ad428500-20a7-4f55-8313-e6186aaceb86.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2FkNDI4NTAwLTIwYTctNGY1NS04MzEzLWU2MTg2YWFjZWI4Ni5qcGciLCJpYXQiOjE3NzA3NTAwNjcsImV4cCI6MTgwMjI4NjA2N30.iv2fagtYRJrjy90cgWU-OJRfY30K228ZxNeuThuQJe0",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#08071a\"/>\n    <SineWave\n      :amplitude=\"0.9\"\n      blend-mode=\"normal-oklch\"\n      color=\"#9000ff\"\n      :frequency=\"0.2\"\n      :position=\"{\n        x: 0.6,\n        y: 0.51\n      }\"\n      :softness=\"0.57\"\n      :speed=\"0.3\"\n      :thickness=\"0.58\"/>\n    <WaveDistortion\n      :angle=\"177\"\n      edges=\"mirror\"\n      :speed=\"0.3\"\n      :strength=\"0.61\"/>\n    <FilmGrain\n      :strength=\"0.07\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

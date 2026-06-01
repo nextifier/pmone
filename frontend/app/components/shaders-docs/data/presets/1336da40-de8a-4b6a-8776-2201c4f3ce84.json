@@ -1,0 +1,55 @@
+{
+  "id": "1336da40-de8a-4b6a-8776-2201c4f3ce84",
+  "title": "Polynesian Waves 3",
+  "collectionId": "48d6b02f-3242-4a90-aac7-f42bea26036a",
+  "category": "background",
+  "description": "A dynamic abstract shader effect featuring diagonal wavy stripes in warm orange and red tones. The composition consists of parallel diagonal bands that flow from upper-left to lower-right at approximately 45-degree angles, creating a sense of movement and depth. The stripes alternate between brighter orange (#d14d00) and deeper red (#cc0000) with subtle gradations between them. The wave distortion effect creates organic, undulating edges along each stripe, giving them a fluid, ribbon-like appearance rather than rigid geometric lines. Small diamond-shaped voids or negative spaces appear periodically within the pattern, adding visual complexity. The overall effect has a subtle texture with minimal dithering applied through a linear dodge blend mode, creating slight luminous highlights in pale yellow-green tones (#dbde1f) that accent the darker areas. The edges use mirror wrapping, creating a seamless, continuous pattern. The atmosphere is energetic and warm, with a sense of flowing motion. The 3D depth is achieved through the wave distortion and the layered gradient application with a 131-degree rotation, making the flat surface appear to have subtle topographical undulation.",
+  "thumbnail": "/shaders/thumbnails/1336da40-de8a-4b6a-8776-2201c4f3ce84.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 233,
+          "colorA": "#cc0000",
+          "colorB": "#d14d00",
+          "colorSpace": "oklch",
+          "edges": "wrap",
+          "end": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "start": {
+            "x": 0.4,
+            "y": 0.72
+          },
+          "transform": {
+            "edges": "mirror",
+            "rotation": 131,
+            "scale": 0.25
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 211,
+          "edges": "mirror",
+          "frequency": 1.3,
+          "strength": 0.05
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorB": "#dbde1f",
+          "pixelSize": 1,
+          "threshold": 0.38
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

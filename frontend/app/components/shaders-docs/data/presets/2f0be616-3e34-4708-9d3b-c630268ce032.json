@@ -1,0 +1,72 @@
+{
+  "id": "2f0be616-3e34-4708-9d3b-c630268ce032",
+  "title": "Cascading Lines 4",
+  "collectionId": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "category": "background",
+  "description": "A digital shader effect featuring vertical falling lines that create a rain-like or matrix-inspired aesthetic. The composition uses a dark navy-black background (#0f191c) as the base layer. Overlaid are numerous thin vertical lines in varying heights, predominantly in bright lime-green (#ade79a) and cyan (#13bca9) tones that fade from opaque at the top to transparent at the bottom, creating a sense of depth and motion. The lines have a subtle glow quality and appear to be falling downward with variable speeds and trail lengths. A dithering pattern with a bayer4 algorithm adds fine texture and noise throughout, applied with a linear dodge blend mode to create subtle white highlights and grain. The overall effect suggests digital rain or cascading data streams, with the swirl component adding subtle color transitions between the green and cyan hues. The density of lines is moderate to high (60 density), creating a visually rich but not overwhelming pattern. The effect has a cool, technological atmosphere with a slight sense of motion and fluidity despite the static nature of the vertical orientation.",
+  "thumbnail": "/shaders/thumbnails/2f0be616-3e34-4708-9d3b-c630268ce032.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0f191c"
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#ade79a",
+          "colorB": "#13bca9",
+          "detail": 2,
+          "maskSource": "idmmzanabwzt8f61fke"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmzanabwzt8f61fke",
+          "density": 60,
+          "speed": 0.1,
+          "speedVariance": 0.7,
+          "strokeWidth": 0.66,
+          "trailLength": {
+            "type": "map",
+            "curve": -0.15,
+            "source": "idmmzaokw5nk6ntmihd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmzaokw5nk6ntmihd",
+          "amplitude": 0.4,
+          "angle": 26,
+          "frequency": 0.5,
+          "softness": 1,
+          "speed": 0.4,
+          "thickness": 1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

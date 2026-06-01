@@ -1,0 +1,54 @@
+{
+  "id": "2054551e-3ba5-49cf-a0a3-1298534821e4",
+  "title": "Pixel Haze 8",
+  "collectionId": "0f5e322c-918d-445e-ae74-e65f001e8b98",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring smooth, flowing transitions between warm and cool color zones. The composition displays diagonal swirling patterns that create a sense of motion and fluidity across the canvas. The primary color transition moves from deep purple in the upper-left and center areas to bright orange-red tones in the lower-right and left corners, with magenta and pink acting as transitional hues throughout. The swirl effect creates organic, wave-like distortions that bend the color gradients into curved paths. A subtle dithering pattern with a bayer4 grid overlay adds fine texture and grain throughout, creating a slightly stippled appearance that prevents the gradients from appearing too smooth. The grid distortion component introduces subtle warping and undulation to the overall composition, with a radius of 2 and intensity of 5 creating gentle wave-like deformations. A fine film grain layer (0.05 strength) adds additional texture and visual interest. The overall effect is smooth yet textured, with a modern, digital aesthetic that suggests movement and energy. The edges maintain transparency, allowing the effect to blend seamlessly. The color space uses LCH for perceptually uniform transitions.",
+  "thumbnail": "/shaders/thumbnails/2054551e-3ba5-49cf-a0a3-1298534821e4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 43,
+          "colorA": "#e0390b",
+          "colorB": "#6b23a1",
+          "colorSpace": "lch",
+          "detail": 2,
+          "speed": 0.6
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "overlay",
+          "pixelSize": 5,
+          "threshold": 0.34
+        }
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "edges": "mirror",
+          "gridSize": 75,
+          "intensity": 5,
+          "radius": 2
+        }
+      },
+      {
+        "type": "Sharpness",
+        "props": {
+          "sharpness": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

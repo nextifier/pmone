@@ -1,0 +1,30 @@
+{
+  "id": "81be88bd-ffa2-4c7c-b31b-a1118491ab0b",
+  "title": "Dot Panels",
+  "collection_id": "56d190bc-7072-4acf-b177-bda1a98e6b6c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A deep space-themed shader effect featuring a starfield that gradually fades from left to right. The left side displays bright, scattered blue-white dots representing stars against a dark navy background, while the right side progressively darkens into near-complete black, creating a depth gradient effect. The background uses a radial gradient transitioning from a dark teal-blue (#001e2e) to an almost pure black (#05051a), centered slightly off-center toward the lower-left. A subtle grid structure underlies the composition with minimal visibility. The stars exhibit a twinkling animation effect with varying opacity, creating a sense of atmospheric depth and cosmic movement. A progressive blur filter is applied with center-weighted falloff, causing the stars to become increasingly diffuse and out-of-focus toward the right edge of the frame. The entire composition is overlaid with fine film grain at low intensity (0.02), adding subtle texture and a cinematic quality. The perspective is tilted slightly (15 degrees) with a wide field of view (96 degrees), creating a sense of immersion into the starfield. The overall mood is serene, mysterious, and contemplative, evoking the vastness of space.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9a981624-e163-4a6c-bc1e-0354b9170386.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzlhOTgxNjI0LWUxNjMtNGE2Yy1iYzFlLTAzNTRiOTE3MDM4Ni5qcGciLCJpYXQiOjE3Njc5MDQwMzIsImV4cCI6MTc5OTQ0MDAzMn0.0aVi8gLDG0eKfmNdzO-NG8RI3dRtmY5ePvZXl2_t7EE",
+  "import": "import {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Grid,\n  Perspective,\n  ProgressiveBlur,\n  RadialGradient\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Grid,\n  Perspective,\n  ProgressiveBlur,\n  RadialGradient\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Perspective\n      :center=\"{\n        x: 0.48,\n        y: 1\n      }\"\n      edges=\"mirror\"\n      :fov=\"96\"\n      :offset=\"{\n        x: 0.58,\n        y: 0.57\n      }\"\n      :pan=\"-38\"\n      :tilt=\"15\"\n      :zoom=\"2.28\">\n      <RadialGradient\n        :center=\"{\n          x: 0.2,\n          y: 1\n        }\"\n        color-a=\"#001e2e\"\n        color-b=\"#05051a\"\n        color-space=\"oklab\"\n        :radius=\"0.66\"/>\n      <Grid\n        :cells=\"6\"\n        color=\"#041b33\"\n        :thickness=\"0\"/>\n      <DotGrid\n        color=\"#80a8ff\"\n        :density=\"60\"\n        :dot-size=\"0.06\"\n        :twinkle=\"1\"/>\n    </Perspective>\n    <ProgressiveBlur\n      :center=\"{\n        x: 0.25,\n        y: 0.5\n      }\"\n      :falloff=\"0.68\"\n      :intensity=\"76\"/>\n    <FilmGrain\n      :strength=\"0.02\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

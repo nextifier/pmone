@@ -1,0 +1,48 @@
+{
+  "id": "bdb3d680-94fa-4892-9229-0bd3306dcada",
+  "title": "Swirls",
+  "collectionId": "ea4f5ff4-5a57-4f61-b0e3-8fa79cf85205",
+  "category": "background",
+  "description": "A smooth, flowing gradient shader effect featuring soft, organic swirls and color transitions. The composition displays two primary swirl layers creating a fluid, wave-like pattern that moves diagonally across the canvas from upper-left to lower-right. The first swirl layer blends magenta (#e7149c) with light-green (#7ec55a) at 50% blend intensity, creating a smooth transition zone. A secondary swirl layer with higher detail (1.6) overlays the first, blending yellow-green (#b3ce53) with cyan (#97d6cb) using oklch color space and normal-oklab blend mode for enhanced color harmony. The overall effect is soft and diffused with no hard edges, creating an ethereal, atmospheric quality. A subtle film grain texture (0.4 strength) adds fine noise throughout, providing subtle texture without disrupting the smooth gradient flow. The blob mask underneath (invisible but used as a source) creates a soft vignette-like falloff toward the edges. The color transitions are smooth and natural, with the magenta-to-green gradient dominating the upper portion and the yellow-green-to-cyan gradient creating a cooler tone in the middle-lower section. The entire composition has a dreamy, pastel quality with soft focus and gentle color bleeding.",
+  "thumbnail": "/shaders/thumbnails/bdb3d680-94fa-4892-9229-0bd3306dcada.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#e7149c",
+          "colorB": "#7ec55a"
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blendMode": "normal-oklab",
+          "colorA": "#b3ce53",
+          "colorB": "#97d6cb",
+          "colorSpace": "oklch",
+          "detail": 1.6,
+          "maskSource": "idmld8md3zu0rcr8lsf",
+          "speed": 0.3
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.4
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "id": "idmld8md3zu0rcr8lsf",
+          "size": 0.9,
+          "softness": 2,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

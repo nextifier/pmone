@@ -1,0 +1,30 @@
+{
+  "id": "13de63f2-1c72-42bf-b21c-417aa54d83e7",
+  "title": "Watercolor on Paper 2",
+  "collection_id": "da9f2a2e-c4fb-411e-bbc4-21dca8017cf5",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, organic gradient shader effect dominated by vibrant green and yellow tones. The composition features a multi-point gradient with five color nodes creating a smooth, flowing transition across the canvas. The primary bright green (#47e647) anchors the left side, transitioning through pale yellow (#fff94d) in the upper right, with darker forest green (#7bbc1a) positioned at the bottom center, complemented by soft lime green (#c2fa93) on the right and deep green (#19b019) in the lower left. The gradient is overlaid with subtle wave distortion at 148 degrees with triangular wave patterns, creating gentle undulating ripples across the surface. A liquify effect with high intensity (10) and stiffness (15) adds organic, fluid warping that softens edges and creates a breathing, living quality. The paper texture with minimal roughness (0.1) provides fine surface detail, while film grain at 0.4 strength adds a subtle cinematic quality. The overall effect is smooth and dreamy with soft focus areas, particularly a prominent blur in the lower right quadrant. The edges fade to transparency, creating a vignette-like effect. The mood is peaceful, natural, and slightly ethereal with a liquid, flowing aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/13de63f2-1c72-42bf-b21c-417aa54d83e7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzEzZGU2M2YyLTFjNzItNDJiZi1iMjFjLTQxN2FhNTRkODNlNy5qcGciLCJpYXQiOjE3NzU3NTc4NjEsImV4cCI6MTgwNzI5Mzg2MX0.ND52EU_W29gcwUZOgbgl0bALZ9DyRRhHungyME4EKi8",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Liquify,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Liquify,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <MultiPointGradient\n      color-a=\"#47e647\"\n      color-b=\"#fff94d\"\n      color-c=\"#7bbc1a\"\n      color-d=\"#c2fa93\"\n      color-e=\"#19b019\"\n      :position-a=\"{\n        x: 0.24,\n        y: 0.08\n      }\"\n      :position-b=\"{\n        x: 0.83,\n        y: 0.04\n      }\"\n      :position-c=\"{\n        x: 0.6,\n        y: 1\n      }\"\n      :position-d=\"{\n        x: 0.78,\n        y: 0.48\n      }\"\n      :position-e=\"{\n        x: 0.07,\n        y: 0.87\n      }\"/>\n    <WaveDistortion\n      :angle=\"148\"\n      :frequency=\"1.6\"\n      :strength=\"0.25\"\n      wave-type=\"triangle\"/>\n    <Liquify\n      :damping=\"0.7\"\n      :radius=\"1.5\"\n      :stiffness=\"15\"/>\n    <Paper\n      :displacement=\"1\"\n      :grain-scale=\"0.1\"\n      :roughness=\"0.1\"\n      :seed=\"26\"/>\n    <FilmGrain\n      :strength=\"0.4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

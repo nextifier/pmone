@@ -1,0 +1,30 @@
+{
+  "id": "93d5d668-eea1-43e5-9a5f-5e0484ac8f9a",
+  "title": "Spray Paint 8",
+  "collection_id": "c461387d-b3ec-4cfe-96df-a6e4aed001c5",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated gradient shader effect featuring three animated blob shapes layered over a dark navy background (#0d0a1f). The composition creates a dynamic, fluid aesthetic with organic morphing forms. The top-right blob displays a vibrant red-to-magenta gradient (#8b0a3a to #ff1744) with high deformation (0.9) and prominent highlight intensity (0.7), creating a glowing hot spot effect. The bottom-left blob features deep purple tones (#1a0533 to #6c1d9e) with maximum deformation (1.0), adding dimensional depth. The center blob is the largest (1.1 scale) and blends dark blue (#0d1b2a) with a warm rose-pink (#e94560), creating a transitional color bridge between the cool and warm regions. All blobs utilize OKLCH color space for smooth perceptual transitions and feature soft edges with 2-3 unit softness values, creating a diffuse, atmospheric quality. A DiffuseBlur filter with 100% intensity is applied across the entire composition, softening all edges and creating a dreamy, out-of-focus aesthetic. The overall mood is moody and contemporary, with smooth color gradations flowing from dark navy through purple, magenta, and pink tones, creating a sense of depth and movement despite the static image.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/93d5d668-eea1-43e5-9a5f-5e0484ac8f9a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzkzZDVkNjY4LWVlYTEtNDNlNS05YTVmLTVlMDQ4NGFjOGY5YS5qcGciLCJpYXQiOjE3NzMxMTA2NDMsImV4cCI6MTgwNDY0NjY0M30.QE6BeaIL7APST8vx3-7POcYeweQdjHkizkPDVXUDSDA",
+  "import": "import {\n  Shader,\n  Blob,\n  DiffuseBlur,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  DiffuseBlur,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0d0a1f\"/>\n    <Blob\n      :center=\"{\n        x: 0.82,\n        y: 0.18\n      }\"\n      color-a=\"#8b0a3a\"\n      color-b=\"#ff1744\"\n      color-space=\"oklch\"\n      :deformation=\"0.9\"\n      highlight-color=\"#ff6b6b\"\n      :highlight-intensity=\"0.7\"\n      :highlight-x=\"0.2\"\n      :highlight-y=\"0.3\"\n      :highlight-z=\"0.7\"\n      :seed=\"55\"\n      :size=\"0.95\"\n      :softness=\"2.5\"\n      :speed=\"0.28\"/>\n    <Blob\n      :center=\"{\n        x: 0.15,\n        y: 0.85\n      }\"\n      color-a=\"#1a0533\"\n      color-b=\"#6c1d9e\"\n      color-space=\"oklch\"\n      :deformation=\"1\"\n      highlight-color=\"#9b59b6\"\n      :highlight-x=\"0.4\"\n      :highlight-z=\"0.6\"\n      :seed=\"37\"\n      :size=\"0.75\"\n      :softness=\"2\"\n      :speed=\"0.3\"/>\n    <Blob\n      :center=\"{\n        x: 0.48,\n        y: 0.52\n      }\"\n      color-a=\"#0d1b2a\"\n      color-b=\"#e94560\"\n      color-space=\"oklch\"\n      :deformation=\"0.7\"\n      highlight-color=\"#c44569\"\n      :highlight-intensity=\"0.6\"\n      :highlight-x=\"-0.3\"\n      :highlight-y=\"-0.4\"\n      :highlight-z=\"0.5\"\n      :seed=\"14\"\n      :size=\"1.1\"\n      :softness=\"3\"\n      :speed=\"0.25\"/>\n    <DiffuseBlur\n      edges=\"mirror\"\n      :intensity=\"100\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

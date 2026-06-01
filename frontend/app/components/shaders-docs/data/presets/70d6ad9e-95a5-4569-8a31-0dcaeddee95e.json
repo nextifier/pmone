@@ -1,0 +1,53 @@
+{
+  "id": "70d6ad9e-95a5-4569-8a31-0dcaeddee95e",
+  "title": "Pistons",
+  "collectionId": "e711302e-35b1-4b30-a736-21de5f52c44e",
+  "category": "background",
+  "description": "A dynamic ASCII art shader effect displaying a vertical bar chart or waveform visualization composed of three distinct character types: solid blocks (█), lower half blocks (▄), and vertical lines (║). The composition creates a columnar pattern that resembles financial data, audio frequencies, or digital readouts. The base layer features a deep purple background (#2b1d59) providing a dark, tech-forward foundation. Overlaid on this are bright cyan-green godray effects (#13b648) that emanate from the right side of the composition, creating luminous vertical streaks that intersect with the ASCII characters. These rays produce a glowing, neon-like quality with high intensity (0.9) and moderate density (0.2), giving the effect a sense of depth and movement. The ASCII characters themselves vary in brightness from light cyan to deep blue, creating a gradient effect that suggests data intensity or amplitude variation. The overall composition has a subtle paper texture overlay with high roughness (0.85) and a grain scale of 3, adding a subtle organic quality to the otherwise digital aesthetic. The spacing between character columns is uniform at 1 unit, with each cell sized at 54 pixels, creating a crisp, readable grid structure. The gamma correction at 0.6 enhances contrast and makes the brighter elements pop against the dark background. The blend mode is set to normal throughout, maintaining color fidelity without additive or subtractive blending effects. The atmosphere is distinctly cyberpunk or tech-noir, evoking themes of data visualization, digital surveillance, or retro-futuristic computing interfaces.",
+  "thumbnail": "/shaders/thumbnails/70d6ad9e-95a5-4569-8a31-0dcaeddee95e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#2b1d59"
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "cellSize": 54,
+          "characters": "▄║█",
+          "fontFamily": "Geist Mono",
+          "gamma": 0.6
+        },
+        "children": [
+          {
+            "type": "Godrays",
+            "props": {
+              "backgroundColor": "#3513b9",
+              "center": {
+                "x": 1,
+                "y": 0
+              },
+              "density": 0.2,
+              "intensity": 0.9,
+              "rayColor": "#13b648",
+              "spotty": 0
+            }
+          }
+        ]
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 0,
+          "grainScale": 3,
+          "roughness": 0.85
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

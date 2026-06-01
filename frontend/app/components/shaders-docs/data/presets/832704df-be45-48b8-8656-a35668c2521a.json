@@ -1,0 +1,71 @@
+{
+  "id": "832704df-be45-48b8-8656-a35668c2521a",
+  "title": "Blueprint 2",
+  "collectionId": "4b7eb6ac-7e0f-42c5-af5c-893a2b735110",
+  "category": "background",
+  "description": "A sophisticated gradient shader effect transitioning from deep purple-blue on the left to bright cyan-blue on the right. The primary visual element is a radial gradient centered at approximately 77% horizontally and 43% vertically, creating a focal point of bright cyan (#0088ff) that gradually transitions to deep purple (#2f04e0). Overlaid on this gradient is a geometric grid pattern with 31 cells, rendered in white with 0.2 thickness, creating a perspective-distorted mesh that appears to stretch diagonally at 261 degrees from a point near the bottom-left. The grid lines are subtle but visible, creating a technical, digital aesthetic. A linear dodge blend mode on the stretch effect causes the grid to appear luminous and slightly glowing against the gradient background. The entire composition is softened by a diffuse blur with intensity of 2, creating a smooth, atmospheric quality that reduces the harshness of the geometric elements. Fine film grain with 0.2 strength is applied across the entire image, adding subtle texture and a cinematic quality. The overall mood is cool, technical, and ethereal, with a sense of depth created by the perspective distortion of the grid pattern. The lighting appears to emanate from the bright cyan focal point, creating a subtle glow effect throughout the composition.",
+  "thumbnail": "/shaders/thumbnails/832704df-be45-48b8-8656-a35668c2521a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0.77,
+            "y": 0.43
+          },
+          "colorA": "#0088ff",
+          "colorB": "#2f04e0"
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "id": "idmjrn7fogx30o8e3em",
+          "balance": -0.53,
+          "contrast": 3.7,
+          "scale": 0.9,
+          "visible": false
+        }
+      },
+      {
+        "type": "Stretch",
+        "props": {
+          "angle": 261,
+          "blendMode": "linearDodge",
+          "center": {
+            "x": 0.36,
+            "y": 1
+          },
+          "edges": "mirror",
+          "falloff": 1
+        },
+        "children": [
+          {
+            "type": "Grid",
+            "props": {
+              "cells": 31,
+              "maskSource": "idmjrn7fogx30o8e3em",
+              "maskType": "luminance",
+              "thickness": 0.2
+            }
+          }
+        ]
+      },
+      {
+        "type": "DiffuseBlur",
+        "props": {
+          "intensity": 2
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

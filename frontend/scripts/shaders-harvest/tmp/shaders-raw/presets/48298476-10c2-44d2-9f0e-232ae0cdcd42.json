@@ -1,0 +1,30 @@
+{
+  "id": "48298476-10c2-44d2-9f0e-232ae0cdcd42",
+  "title": "Paint Flow",
+  "collection_id": "7c78be7c-6e84-4238-affd-c17c0f91caa2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, fluid abstract shader effect featuring smooth, organic wave-like patterns flowing diagonally across the composition. The image displays a dynamic gradient transitioning between hot pink (#ff006e), electric blue (#0066ff), and cyan (#00d9ff) colors with warm orange and yellow tones emerging on the right side. The swirling patterns create a sense of motion and fluidity, with soft, blurred edges that suggest a glow effect applied throughout. A luminous blob-like form with yellow-to-magenta coloring is positioned in the upper-right quadrant, adding dimensional depth. The overall aesthetic is smooth and dreamlike with subtle wave distortions creating rippling effects across the surface. Fine film grain texture is subtly visible, adding a slight grittiness to the otherwise smooth gradients. Chromatic aberration creates minimal color fringing at high-contrast edges. The composition has a modern, neon-inspired aesthetic with a soft, ethereal quality enhanced by the screen blend mode glow effect. The spatial arrangement suggests flowing liquid or energy moving from lower-left to upper-right with organic, undulating motion.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/be4c22a3-43ea-47de-a38e-91e08c14583b.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JlNGMyMmEzLTQzZWEtNDdkZS1hMzhlLTkxZTA4YzE0NTgzYi5qcGciLCJpYXQiOjE3NjU0ODE4MTcsImV4cCI6MTc5NzAxNzgxN30.PXpM3Md-wCvkIxf2sW1l3trdcV0mOYAIoZ06SUQkkGU",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Glow,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Glow,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FilmGrain\n      :animated=\"0\"\n      :strength=\"0.15\">\n      <Glow\n        blend-mode=\"screen\"\n        :intensity=\"0.14\"\n        :size=\"15\"\n        :threshold=\"0.35\">\n        <Swirl\n          :coarse-x=\"40\"\n          :coarse-y=\"40\"\n          color-a=\"#ff006e\"\n          color-b=\"#0066ff\"\n          color-c=\"#00d9ff\"\n          color-space=\"oklch\"\n          :complexity=\"5.5\"\n          :detail=\"2.5\"\n          :fine-x=\"65\"\n          :fine-y=\"65\"\n          :medium-x=\"60\"\n          :medium-y=\"60\"\n          :scale=\"1\"\n          :speed=\"0.8\"/>\n        <Blob\n          :center=\"{\n            x: 0.85,\n            y: 0.55\n          }\"\n          color-a=\"#ffff00\"\n          color-b=\"#ff0080\"\n          color-space=\"oklch\"\n          :deformation=\"1\"\n          highlight-color=\"#ffffff\"\n          :highlight-intensity=\"0.8\"\n          :highlight-x=\"0.5\"\n          :highlight-y=\"-0.5\"\n          :highlight-z=\"0.8\"\n          :opacity=\"0.9\"\n          :seed=\"42\"\n          :size=\"0.54\"\n          :softness=\"1\"\n          :speed=\"1.2\"\n          :visible=\"true\"/>\n        <WaveDistortion\n          :angle=\"45\"\n          edges=\"mirror\"\n          :frequency=\"6\"\n          :speed=\"2.5\"\n          :strength=\"0.15\"\n          :visible=\"true\"/>\n        <ChromaticAberration\n          :blue-offset=\"1.5\"\n          :red-offset=\"-1.5\"\n          :strength=\"0.02\"\n          :visible=\"true\"/>\n      </Glow>\n    </FilmGrain>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "f2d7592f-85c6-4409-8256-93f7dbf838a5",
+  "title": "Swirling Gradient 3",
+  "collectionId": "5b4580ec-38eb-4986-9867-4a5ae2965a1b",
+  "category": "background",
+  "description": "A fluid, organic shader effect featuring smooth, flowing wave-like patterns that sweep diagonally across the composition. The primary visual elements consist of alternating vertical and curved bands of warm peachy-tan tones (#e6af59) and cool cyan-turquoise tones (#4edada) that interweave and blend seamlessly. The Swirl component creates smooth, undulating curves with a detail level of 1.2, producing graceful wave formations that flow from upper left to lower right. The ConcentricSpin component adds subtle concentric circular distortions centered off-axis (at coordinates 1, 0), creating a gentle rotational warping effect with 9 rings that modulates the wave patterns with a negative speed of -1.2, producing a counter-rotating visual rhythm. The Paper texture overlay adds fine-grained surface detail with 0.15 displacement and 0.2 roughness, creating a subtle tactile quality that prevents the effect from appearing too smooth or synthetic. The overall atmosphere is serene and meditative, with warm and cool tones creating visual balance and harmony. The blending uses OKLab color space for smooth interpolation between the two primary colors, resulting in natural-looking gradient transitions. The effect has a liquid, almost fabric-like quality with gentle undulations that suggest movement and flow without being chaotic.",
+  "thumbnail": "/shaders/thumbnails/f2d7592f-85c6-4409-8256-93f7dbf838a5.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": {
+            "axis": "x",
+            "type": "mouse",
+            "momentum": 0.2,
+            "outputMax": 60,
+            "outputMin": 40,
+            "smoothing": 0.6
+          },
+          "colorA": "#e6af59",
+          "colorB": "#4edada",
+          "colorSpace": "oklab",
+          "detail": 1.2
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 1,
+            "y": 0
+          },
+          "rings": 9,
+          "smoothness": 0.76,
+          "speed": -1.2,
+          "speedRandomness": 0.14
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "roughness": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

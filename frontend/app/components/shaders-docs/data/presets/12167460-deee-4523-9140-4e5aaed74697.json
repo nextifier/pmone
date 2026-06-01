@@ -1,0 +1,64 @@
+{
+  "id": "12167460-deee-4523-9140-4e5aaed74697",
+  "title": "City Grid 6",
+  "collectionId": "f1e3b27c-d2ba-498c-a1e0-29065f9295c9",
+  "category": "background",
+  "description": "A pixelated digital effect displaying an animated plasma pattern with a gradient fade. The left side features dense, bright lime-green pixels (#36b500) arranged in a pixelated grid pattern with a scale of 74 pixels. The pixels gradually transition from solid, tightly-packed squares on the left to increasingly sparse, smaller dots moving toward the right side of the image. The effect creates a sense of dispersal or dissolution. The background is a very dark near-black color (#09060f). The plasma animation underneath generates organic, flowing patterns with high contrast (1.6x) and intensity (1.8x), creating a dynamic, turbulent appearance. The pixelation gap is modulated by an invisible sine wave mapped to the alphaInverted channel, creating the progressive fade effect from dense to sparse pixels. The overall mood is technological, digital, and somewhat ethereal, with a strong sense of motion and energy flowing from left to right. The roundness value of 0.2 gives the pixels slightly softened edges rather than hard squares.",
+  "thumbnail": "/shaders/thumbnails/12167460-deee-4523-9140-4e5aaed74697.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#09060f"
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "gap": {
+            "type": "map",
+            "curve": 0.35,
+            "source": "idmmbhthud5inxgebqc",
+            "channel": "alphaInverted",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.16
+          },
+          "roundness": 0.2,
+          "scale": 74
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "balance": 57,
+              "colorA": "#36b500",
+              "contrast": 1.6,
+              "density": 3.3,
+              "intensity": 1.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmbhthud5inxgebqc",
+          "amplitude": 0.1,
+          "angle": 122,
+          "position": {
+            "x": 0.33,
+            "y": 0.63
+          },
+          "softness": 1,
+          "thickness": 0.9,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

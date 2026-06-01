@@ -1,0 +1,82 @@
+{
+  "id": "5ed6ab72-95e3-43cd-a068-1683b5e1efc7",
+  "title": "Kiwi 2",
+  "collectionId": "65ff265d-8d5e-475d-a404-5adc13e93fab",
+  "category": "background",
+  "description": "A soft, organic gradient shader effect dominated by yellow and green hues with smooth, flowing transitions. The composition features a central blob-like form with warm yellow tones (#fce656, #e9ac1e) positioned slightly left of center, surrounded by vibrant green swirling patterns (#3dd812, #2bf03b) that create a sense of fluid motion. The effect exhibits multiple layers of distortion: wave patterns create subtle undulating ripples across the surface with varying frequencies, while a kaleidoscopic mirror effect adds geometric complexity to the right side of the composition. The overall atmosphere is ethereal and dreamlike, with soft edges that blend seamlessly into the background. Film grain texture adds a subtle grittiness that prevents the effect from appearing too smooth or artificial. The color transitions are smooth and organic, suggesting natural fluid dynamics or organic growth patterns. The lighting appears to come from the upper left, creating subtle depth variations. The entire composition has a warm, inviting quality with the yellow-green color palette evoking spring growth or natural luminescence.",
+  "thumbnail": "/shaders/thumbnails/5ed6ab72-95e3-43cd-a068-1683b5e1efc7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#3dd812",
+          "colorB": "#2bf03b",
+          "colorSpace": "oklch"
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 257,
+          "edges": "wrap",
+          "frequency": 1.6,
+          "strength": 0.1,
+          "transform": {
+            "scale": 1.3
+          }
+        },
+        "children": [
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 73,
+              "edges": "mirror",
+              "frequency": 8.1,
+              "speed": 0.3,
+              "waveType": "sawtooth"
+            },
+            "children": [
+              {
+                "type": "Blob",
+                "props": {
+                  "center": {
+                    "x": 0.46,
+                    "y": 0.53
+                  },
+                  "colorA": "#fce656",
+                  "colorB": "#e9ac1e",
+                  "deformation": 0.7,
+                  "highlightColor": "#03b2ff",
+                  "highlightX": -0.5,
+                  "highlightY": -0.9,
+                  "highlightZ": -0.1,
+                  "size": 0.8,
+                  "softness": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "x": 0.7,
+            "y": 0.35
+          },
+          "segments": 17
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

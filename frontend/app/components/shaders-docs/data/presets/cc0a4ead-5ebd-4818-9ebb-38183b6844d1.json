@@ -1,0 +1,52 @@
+{
+  "id": "cc0a4ead-5ebd-4818-9ebb-38183b6844d1",
+  "title": "Lost Rays 11",
+  "collectionId": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by deep purple and black tones. The composition features diagonal streaks of lighter purple light rays emanating from the upper right quadrant, creating a sense of motion and energy. The godrays effect is centered at coordinates (0.85, 0.15) with a ray color of #d4a0e8 (light lavender), producing luminous beams that cut through the darkness with moderate density (0.3) and high intensity (0.78). A zoom blur effect originates from the lower left area (0.18, 0.82) with high intensity (55), creating radial distortion that adds depth and dynamism. The tritone color grading applies a three-tone palette ranging from very dark purple (#0a0011) through mid-tone purple (#5c1a8e) to light lavender (#e8b8ff), with the blend midpoint at 0.35 creating a smooth tonal transition. A subtle film grain texture (strength 0.13) overlays the entire composition, adding a cinematic quality and slight noise. The background is a very dark purple (#1a0529), almost black. The overall mood is mysterious, ethereal, and energetic, with a strong sense of directional light and motion. The effect suggests cosmic or supernatural energy with a modern, stylized aesthetic.",
+  "thumbnail": "/shaders/thumbnails/cc0a4ead-5ebd-4818-9ebb-38183b6844d1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Godrays",
+        "props": {
+          "backgroundColor": "#1a0529",
+          "center": {
+            "x": 0.85,
+            "y": 0.15
+          },
+          "intensity": 0.78,
+          "rayColor": "#d4a0e8",
+          "speed": 1.4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.13
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "blendMid": 0.35,
+          "colorA": "#0a0011",
+          "colorB": "#5c1a8e",
+          "colorC": "#e8b8ff"
+        }
+      },
+      {
+        "type": "ZoomBlur",
+        "props": {
+          "center": {
+            "x": 0.18,
+            "y": 0.82
+          },
+          "intensity": 55
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

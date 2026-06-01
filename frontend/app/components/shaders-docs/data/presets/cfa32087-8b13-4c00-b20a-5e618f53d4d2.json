@@ -1,0 +1,44 @@
+{
+  "id": "cfa32087-8b13-4c00-b20a-5e618f53d4d2",
+  "title": "Liquid Stripes 2",
+  "collectionId": "1b1c9029-4fe7-48f3-83ad-eff1105b51e2",
+  "category": "logo",
+  "description": "A serene, minimalist shader effect featuring diagonal stripes at 45-degree angle running across the entire composition. The stripes alternate between a vibrant turquoise (#14d7c6) and a soft mint green (#9decc1), creating a rhythmic linear pattern with 9 stripes of consistent density. Overlaid on this striped base is a central glass morphism effect depicting a translucent, frosted-glass flower or starburst shape with multiple radiating petals. The glass element exhibits subtle refraction (0.51 intensity) and chromatic aberration (0.5), creating a delicate prismatic quality with soft edges (0.1 softness). The glass shape has a slight fresnel effect (0.11 intensity) that catches light at the edges, enhanced by white highlight accents. A cursor ripple effect with high intensity (10) creates interactive distortion waves that emanate from user interaction points, with a decay rate of 10 frames. Fine film grain (0.3 strength) is subtly applied across the entire composition, adding texture and reducing the clinical feel. The overall atmosphere is cool, calming, and ethereal, with a modern, minimalist aesthetic. The color palette maintains high saturation in the greens and cyans while the glass element remains largely transparent with white tinting.",
+  "thumbnail": "/shaders/thumbnails/cfa32087-8b13-4c00-b20a-5e618f53d4d2.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "balance": 0.1,
+          "colorA": "#14d7c6",
+          "colorB": "#9decc1",
+          "density": 9
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {}
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "blur": 11.3,
+          "fresnel": 0.11,
+          "fresnelSoftness": 0.38,
+          "refraction": 0.51,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/DODKZwnr2rPw_sdf.bin",
+          "thickness": 0.13
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "27ce9923-6a8e-4ec2-84c6-9af4d2dfdacc",
+  "title": "Fluid Chrome 10",
+  "collection_id": "11295f25-f0a2-4670-859e-9a8e2ed62ca6",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A 3D isometric composition featuring two interconnected hollow hexagonal cubes rendered with a translucent glass material against a pure black background. The primary structure consists of a larger hexagon positioned above and to the left, connected to a slightly smaller hexagon below and to the right. The glass material exhibits a vibrant purple gradient that transitions from deep violet (#7d19d5) on the outer edges to lighter lavender (#a7a3ea) toward the interior surfaces. The effect creates a luminous, neon-like appearance with strong internal glow and refraction properties. The glass surfaces show pronounced fresnel effects along the edges, creating bright white highlights that enhance the three-dimensional depth perception. Within the glass structure, animated swirl patterns in purple and lavender tones flow dynamically, creating organic movement within the geometric forms. A subtle flow field effect adds additional turbulence and visual complexity to the interior. The overall lighting suggests a light source positioned at approximately 300 degrees, creating dramatic highlights on the upper and right-facing surfaces while leaving other edges in subtle shadow. The cutout design allows the black background to show through the hollow centers of both hexagons, emphasizing the transparent nature of the material. The composition has a modern, tech-forward aesthetic with a glossy, premium appearance reminiscent of contemporary 3D UI design or digital art.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/27ce9923-6a8e-4ec2-84c6-9af4d2dfdacc.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzI3Y2U5OTIzLTZhOGUtNGVjMi04NGM2LTlhZjRkMmRmZGFjYy5qcGciLCJpYXQiOjE3Nzc3ODEzMDcsImV4cCI6MTgwOTMxNzMwN30.7z6zo_Zx-aeSuhWa5cxvdhlQ1EzE4F9WnmJZR24a970",
+  "import": "import {\n  Shader,\n  FlowField,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FlowField,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <Glass\n      :aberration=\"0.89\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0.01\"\n      :fresnel-softness=\"0.14\"\n      :refraction=\"1.09\"\n      :scale=\"0.7\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin\"\n      :thickness=\"0.27\">\n      <Swirl\n        :blend=\"56\"\n        color-a=\"#7d19d5\"\n        color-b=\"#a7a3ea\"\n        color-space=\"oklab\"\n        :detail=\"4.2\"\n        :speed=\"0.1\"/>\n      <FlowField\n        :detail=\"1\"\n        :evolution-speed=\"1.5\"\n        :speed=\"1.8\"\n        :strength=\"0.5\"/>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [ "shaders://docs/guide/shape-effects" ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "AngularBlur",
+  "category": "Blurs",
+  "description": "Radial motion blur rotating around a center point",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "intensity": {
+      "default": 20,
+      "description": "Intensity of the angular blur effect",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Blur Intensity",
+        "group": "Effect"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "The center point of the rotation",
+      "ui": {
+        "type": "position",
+        "label": "Center Position",
+        "group": "Position"
+      }
+    }
+  }
+}

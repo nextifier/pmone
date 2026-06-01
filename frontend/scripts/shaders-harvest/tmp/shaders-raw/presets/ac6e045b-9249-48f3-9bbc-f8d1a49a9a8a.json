@@ -1,0 +1,30 @@
+{
+  "id": "ac6e045b-9249-48f3-9bbc-f8d1a49a9a8a",
+  "title": "Deep Signal 3",
+  "collection_id": "f3869e23-1062-48b0-8077-5e5274774dfd",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A deep, dark abstract shader effect dominated by flowing wave distortions creating organic, undulating patterns across the entire canvas. The primary visual element consists of fine, parallel vertical lines that ripple and curve in a fluid motion, creating a sense of movement and depth. The lines are rendered in bright electric blue (#0b0b29 to #080f1a base with blue highlights) against an almost black background, producing a high-contrast, neon-like appearance. The wave distortion creates a swirling, hypnotic pattern with the lines bending and warping as if responding to invisible forces. In the upper left and right corners, the lines form tighter, more concentrated wave patterns that appear to be pulling inward, while the center remains relatively calm. A subtle blob element with blue coloring (#3535ff, #1e47e9) adds soft, glowing accents with very low opacity (0.08), creating barely perceptible luminous areas. The twirl effect centered in the lower right creates a subtle vortex-like distortion. A fine film grain texture overlays the entire composition at minimal strength (0.05), adding subtle noise and texture. The overall mood is technological, mysterious, and deeply atmospheric, evoking digital landscapes or abstract data visualization. The effect suggests motion and energy contained within a dark, void-like space.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/ac6e045b-9249-48f3-9bbc-f8d1a49a9a8a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2FjNmUwNDViLTkyNDktNDhmMy05YmJjLWY4ZDFhNDlhOWE4YS5qcGciLCJpYXQiOjE3NzIzMjkxMjgsImV4cCI6MTgwMzg2NTEyOH0.3Yr2tCy-8uLM8wwypocj6AOQXCJXrWYZmIoPdTz2wT0",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  Swirl,\n  Twirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  Swirl,\n  Twirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#080f1a\"\n      color-b=\"#0b0b29\"\n      color-space=\"oklch\"/>\n    <WaveDistortion\n      :angle=\"344\"\n      blend-mode=\"linearDodge\"\n      edges=\"wrap\"\n      :frequency=\"2.9\"\n      :strength=\"0.1\"\n      :transform=\"{ scale: 1.3 }\">\n      <WaveDistortion\n        :angle=\"185\"\n        edges=\"mirror\"\n        :frequency=\"80\"\n        :speed=\"0.3\"\n        :strength=\"1\">\n        <Blob\n          :center=\"{\n            x: 0.55,\n            y: 0.81\n          }\"\n          color-a=\"#020117\"\n          color-b=\"#0b0a2e\"\n          :deformation=\"0.7\"\n          highlight-color=\"#0051ff\"\n          :highlight-intensity=\"0.6\"\n          :highlight-x=\"0.1\"\n          :highlight-y=\"-0.2\"\n          :highlight-z=\"0.1\"\n          :size=\"0.8\"\n          :softness=\"1\"/>\n      </WaveDistortion>\n    </WaveDistortion>\n    <FilmGrain\n      :strength=\"0.05\"/>\n    <Blob\n      blend-mode=\"colorDodge\"\n      :center=\"{\n        x: 0.35,\n        y: 0.63\n      }\"\n      color-a=\"#3535ff\"\n      color-b=\"#1e47e9\"\n      :deformation=\"2\"\n      :opacity=\"0.08\"\n      :softness=\"2\"/>\n    <Twirl\n      :center=\"{\n        x: 0.82,\n        y: 0.81\n      }\"\n      edges=\"mirror\"\n      :intensity=\"-1.7\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

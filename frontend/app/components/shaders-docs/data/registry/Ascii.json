@@ -1,0 +1,168 @@
+{
+  "name": "Ascii",
+  "category": "Stylize",
+  "description": "Convert imagery to ASCII character art",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "characters": {
+      "default": "@%#*+=-:.",
+      "description": "Characters ordered from dense to sparse. First character is used for bright areas, last for dark areas.",
+      "ui": {
+        "type": "text",
+        "label": "Characters",
+        "group": "Effect"
+      }
+    },
+    "cellSize": {
+      "default": 30,
+      "description": "Size of each ASCII character cell (normalized to 1080p reference, scales proportionally at other resolutions)",
+      "ui": {
+        "type": "range",
+        "min": 8,
+        "max": 100,
+        "step": 1,
+        "label": "Cell Size",
+        "group": "Effect"
+      }
+    },
+    "fontFamily": {
+      "default": "JetBrains Mono",
+      "description": "Font family for characters",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Azeret Mono",
+            "value": "Azeret Mono"
+          },
+          {
+            "label": "Courier Prime",
+            "value": "Courier Prime"
+          },
+          {
+            "label": "Cutive Mono",
+            "value": "Cutive Mono"
+          },
+          {
+            "label": "Fira Code",
+            "value": "Fira Code"
+          },
+          {
+            "label": "Geist Mono",
+            "value": "Geist Mono"
+          },
+          {
+            "label": "IBM Plex Mono",
+            "value": "IBM Plex Mono"
+          },
+          {
+            "label": "JetBrains Mono",
+            "value": "JetBrains Mono"
+          },
+          {
+            "label": "Major Mono Display",
+            "value": "Major Mono Display"
+          },
+          {
+            "label": "Martian Mono",
+            "value": "Martian Mono"
+          },
+          {
+            "label": "Nova Mono",
+            "value": "Nova Mono"
+          },
+          {
+            "label": "Press Start 2P",
+            "value": "Press Start 2P"
+          },
+          {
+            "label": "Roboto Mono",
+            "value": "Roboto Mono"
+          },
+          {
+            "label": "Share Tech Mono",
+            "value": "Share Tech Mono"
+          },
+          {
+            "label": "Silkscreen",
+            "value": "Silkscreen"
+          },
+          {
+            "label": "Source Code Pro",
+            "value": "Source Code Pro"
+          },
+          {
+            "label": "Space Mono",
+            "value": "Space Mono"
+          },
+          {
+            "label": "Syne Mono",
+            "value": "Syne Mono"
+          },
+          {
+            "label": "VT323",
+            "value": "VT323"
+          },
+          {
+            "label": "Xanh Mono",
+            "value": "Xanh Mono"
+          }
+        ],
+        "label": "Font Family",
+        "group": "Appearance"
+      }
+    },
+    "spacing": {
+      "default": 1,
+      "description": "Character size within each cell (1.0 = optimal size, 0.0 = smallest)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.05,
+        "label": "Character Size",
+        "group": "Effect"
+      }
+    },
+    "gamma": {
+      "default": 1,
+      "description": "Brightness curve adjustment. <1 brightens darks (more light characters), >1 darkens midtones (more dark characters). Use to better fit characters to image brightness range.",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.25,
+        "max": 3,
+        "step": 0.05,
+        "label": "Gamma",
+        "group": "Effect"
+      }
+    },
+    "alphaThreshold": {
+      "default": 0,
+      "description": "Pixels with alpha below this threshold become fully transparent.",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Alpha Threshold",
+        "group": "Effect"
+      }
+    },
+    "preserveAlpha": {
+      "default": true,
+      "description": "When enabled, output alpha matches input alpha. When disabled, pixels above the alpha threshold become fully opaque.",
+      "ui": {
+        "type": "checkbox",
+        "label": "Preserve Alpha",
+        "group": "Effect"
+      }
+    }
+  }
+}

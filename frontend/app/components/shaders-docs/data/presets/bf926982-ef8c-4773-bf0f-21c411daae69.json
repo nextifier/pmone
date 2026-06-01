@@ -1,0 +1,52 @@
+{
+  "id": "bf926982-ef8c-4773-bf0f-21c411daae69",
+  "title": "Illuminated Clouds 9",
+  "collectionId": "2abc4383-72b2-4372-95c8-968385824d76",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by warm earth tones transitioning from deep burgundy and dark brown in the center to golden-orange and amber hues at the edges. The composition features a smooth, flowing gradient with organic, cloud-like distortions that create a sense of movement and turbulence. The effect appears to simulate a molten or fiery atmosphere with soft, blurred transitions between color zones. A subtle film grain texture overlays the entire surface, adding a cinematic quality and slight visual noise. The darkest areas concentrate in the left-center portion (#1a0805), while warmer golden tones (#ffd726) emerge from the right and upper edges, creating a directional light source effect. The overall mood is warm, dramatic, and somewhat ominous, resembling either a sunset through smoke, molten lava, or an abstract representation of fire and heat. The edges fade with transparency, creating a vignette-like effect that draws focus toward the center.",
+  "thumbnail": "/shaders/thumbnails/bf926982-ef8c-4773-bf0f-21c411daae69.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#1a0805"
+        }
+      },
+      {
+        "type": "Fog",
+        "props": {
+          "id": "idmo78g2qa8dpr72ig3",
+          "blending": 0.9,
+          "colorB": "#000000",
+          "detail": 3,
+          "mouseInfluence": 0.4,
+          "seed": 617,
+          "visible": false
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#1f0400",
+          "colorB": "#4a0e1c",
+          "colorC": "#ff2d05",
+          "colorD": "#ffd726",
+          "distortion": 0,
+          "maskSource": "idmo78g2qa8dpr72ig3",
+          "maskType": "luminance",
+          "seed": 71,
+          "speed": 4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

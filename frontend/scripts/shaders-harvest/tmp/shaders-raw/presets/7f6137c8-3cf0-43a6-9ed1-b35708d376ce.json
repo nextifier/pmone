@@ -1,0 +1,30 @@
+{
+  "id": "7f6137c8-3cf0-43a6-9ed1-b35708d376ce",
+  "title": "Halftone Swirl 5",
+  "collection_id": "d1174db5-5525-4253-b1e5-2c3c44815635",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A gradient shader effect displaying a smooth color transition from turquoise/cyan in the upper left corner to yellow-green in the lower right corner. The gradient flows diagonally across the composition with a halftone pattern overlay consisting of small circular dots arranged at a 45-degree angle, creating a subtle texture throughout. The halftone frequency of 100 produces a fine, regular dot pattern that becomes more visible in the transition zones between colors. The swirl component beneath the halftone creates an underlying color blend between cyan (#2de6c3) and yellow-green (#c4d37c) using LCH color space, resulting in smooth, natural color transitions. The overall effect is a soft, textured gradient with a dotted halftone screen pattern that gives the image a printed or vintage aesthetic. The opacity is fully opaque at 1.0, and the blend mode is set to normal, allowing the halftone pattern to sit cleanly over the gradient base. The effect has no rotation or offset, maintaining a centered, symmetrical appearance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7f6137c8-3cf0-43a6-9ed1-b35708d376ce.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzdmNjEzN2M4LTNjZjAtNDNhNi05ZWQxLWIzNTcwOGQzNzZjZS5qcGciLCJpYXQiOjE3NzI2NTg0NjksImV4cCI6MTgwNDE5NDQ2OX0.pNjxOpj4BCOO73nYPumINVTE0Kfi8QLV1c-0SJ6FTeI",
+  "import": "import {\n  Shader,\n  Halftone,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Halftone,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#00adbd\"/>\n    <Halftone\n      :smoothness=\"0.1\">\n      <Swirl\n        color-a=\"#c4d37c\"\n        color-b=\"#2de6c3\"\n        color-space=\"lch\"/>\n    </Halftone>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

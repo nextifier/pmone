@@ -1,0 +1,49 @@
+{
+  "id": "0a103e42-3cf4-42f7-aa48-47d13359ee5d",
+  "title": "Northern Lights 4",
+  "collectionId": "3755e929-e7fb-4ffe-8c03-2ee38923039f",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect featuring a predominantly black and dark blue gradient background occupying the upper 60% of the image. The lower portion displays a luminous aurora-like phenomenon with a curved, wave-like structure. The aurora features a vibrant gradient transitioning from green (#29ff8d) on the left side through cyan and purple (#8d54ff) tones in the center, with hints of deep blue (#1122d9) creating depth. The effect has a soft, glowing quality with feathered edges that fade into the dark background, creating a sense of atmospheric light bending around a curved horizon. The waviness parameter (193) creates undulating, organic ripples across the light band, giving it a fluid, dynamic appearance. A subtle film grain texture overlays the entire composition, adding a cinematic quality and slight noise throughout. The lighting uses a linear dodge blend mode, making the aurora appear to emit light rather than reflect it, creating an ethereal, otherworldly glow. The effect suggests a northern lights or bioluminescent phenomenon viewed against a night sky.",
+  "thumbnail": "/shaders/thumbnails/0a103e42-3cf4-42f7-aa48-47d13359ee5d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#0b1329",
+          "colorB": "#0c0f17",
+          "detail": 1.6
+        }
+      },
+      {
+        "type": "Aurora",
+        "props": {
+          "balance": 77,
+          "blendMode": "linearDodge",
+          "center": {
+            "x": 0.47,
+            "y": 0.97
+          },
+          "colorA": "#8d54ff",
+          "colorB": "#29ff8d",
+          "colorC": "#1122d9",
+          "colorSpace": "oklab",
+          "curtainCount": 1,
+          "intensity": 83,
+          "rayDensity": 7,
+          "seed": 21,
+          "speed": 5.6,
+          "waviness": 193
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

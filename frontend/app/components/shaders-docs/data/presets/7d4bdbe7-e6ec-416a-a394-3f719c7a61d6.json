@@ -1,0 +1,65 @@
+{
+  "id": "7d4bdbe7-e6ec-416a-a394-3f719c7a61d6",
+  "title": "Liquid Lenses",
+  "collectionId": "b3db9d4b-e81f-41e6-9df5-00df50a351d2",
+  "category": "background",
+  "description": "A sophisticated 3D isometric geometric composition featuring a translucent hexagonal prism or cube-like structure centered in the frame. The primary shape exhibits a frosted glass appearance with subtle internal refractions and light distortions. The color palette transitions smoothly from deep blue tones (#3a77f2) on the left side to cyan and light blue (#33a5ff) on the right side, creating a gradient effect across the form. The background features a soft, blurred blue gradient that complements the foreground geometry. The glass element demonstrates chromatic aberration effects with subtle color fringing at edges, particularly visible at the boundaries between light and shadow. A gentle swirl effect animates the background with organic, flowing patterns that create depth and movement. The overall atmosphere is clean, modern, and ethereal, with soft lighting that creates highlights on the upper surfaces of the geometric form. Fine film grain texture is subtly applied throughout, adding a refined, polished quality. The composition uses isometric perspective, with the shape appearing to float against the gradient background. Cursor ripple effects with mirror-edge behavior create interactive distortions across the entire surface. The lighting angle appears to come from the upper left, creating soft shadows and highlights that enhance the three-dimensional quality of the glass form.",
+  "thumbnail": "/shaders/thumbnails/7d4bdbe7-e6ec-416a-a394-3f719c7a61d6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#3a77f2",
+          "colorB": "#33a5ff",
+          "detail": 1.8,
+          "speed": 0.2
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "chromaticSplit": 0.3,
+          "decay": 1.4,
+          "edges": "mirror",
+          "intensity": 9,
+          "radius": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.28,
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "edgeSoftness": 0.05,
+          "fresnel": 0.03,
+          "fresnelSoftness": 1,
+          "highlight": 0.15,
+          "highlightSoftness": 0.29,
+          "lightAngle": 276,
+          "refraction": 1.96,
+          "shape": {
+            "type": "polygonSDF",
+            "radius": 0.76,
+            "sides": 6,
+            "rounding": 0,
+            "rotation": 0
+          },
+          "shapeType": "polygonSDF",
+          "thickness": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

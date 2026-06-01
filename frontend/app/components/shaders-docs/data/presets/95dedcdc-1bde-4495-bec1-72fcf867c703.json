@@ -1,0 +1,43 @@
+{
+  "id": "95dedcdc-1bde-4495-bec1-72fcf867c703",
+  "title": "Drifting Lights 6",
+  "collectionId": "510560b6-b9da-43ed-8275-561f71268e84",
+  "category": "background",
+  "description": "A radial gradient shader effect featuring a bright lime-green center that transitions smoothly outward into cyan and teal tones, ultimately reaching deep blue and dark blue at the edges. The gradient creates a luminous, glowing core effect with soft, feathered transitions between color zones. The RectangularCoordinates component with scale 3 creates a subtle radial distortion pattern that adds depth and dimensionality to the gradient field. A fine film grain texture overlay (strength 0.3) adds subtle noise throughout, creating a slightly textured, atmospheric quality that prevents the gradient from appearing too smooth or artificial. The overall effect suggests a soft light source emanating from the center, with a cool color temperature dominated by blues and greens. The composition is symmetrical and centered, creating a meditative, ethereal atmosphere. The blend mode is normal with full opacity, allowing all components to layer naturally without color manipulation.",
+  "thumbnail": "/shaders/thumbnails/95dedcdc-1bde-4495-bec1-72fcf867c703.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 1,
+            "easing": "linear",
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "colorA": "#66f454",
+          "colorB": "#0401a7",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "RectangularCoordinates",
+        "props": {
+          "edges": "stretch",
+          "scale": 3
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

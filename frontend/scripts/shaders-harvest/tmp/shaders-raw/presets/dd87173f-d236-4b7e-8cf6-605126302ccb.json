@@ -1,0 +1,30 @@
+{
+  "id": "dd87173f-d236-4b7e-8cf6-605126302ccb",
+  "title": "Undertones 2",
+  "collection_id": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic motion blur effect featuring three diagonal streaks of light traveling across a dark background at approximately 45-degree angles. The primary streak in the center displays a gradient transition from white/light-gray at its core to deep blue edges, with warm orange and red chromatic aberration visible at the trailing end. Two secondary streaks flank the main element, showing similar color separation with blue and orange fringing. The effect creates a sense of rapid motion and speed, with soft, feathered edges that fade into the black background. The fluted glass component creates subtle vertical ribbing patterns across the light streaks, adding texture and refraction. A thin red/orange line appears at the top right, suggesting additional light trails. The overall composition has a cinematic quality with chromatic aberration creating color separation typical of high-speed motion capture or light refraction through glass. Film grain adds subtle texture throughout, enhancing the photographic quality.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/dd87173f-d236-4b7e-8cf6-605126302ccb.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2RkODcxNzNmLWQyMzYtNGI3ZS04Y2Y2LTYwNTEyNjMwMmNjYi5qcGciLCJpYXQiOjE3Nzc4MTg3NzEsImV4cCI6MTgwOTM1NDc3MX0.1K0SYOpvlJ5lGpd_2Kja4Yijc6Iv4mQQlS9C-iXp5iI",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#000000\"\n      color-b=\"#0a0a0a\"\n      :detail=\"1.7\"/>\n    <ChromaFlow\n      base-color=\"#18181a\"\n      down-color=\"#b5b5b5\"\n      left-color=\"#4f4f4f\"\n      :momentum=\"13\"\n      right-color=\"#ebebeb\"\n      up-color=\"#f5fff0\"/>\n    <FlutedGlass\n      :aberration=\"0.61\"\n      :angle=\"120\"\n      :frequency=\"8\"\n      :highlight=\"0.12\"\n      :highlight-softness=\"0\"\n      :light-angle=\"-90\"\n      :refraction=\"4\"\n      shape=\"rounded\"\n      :softness=\"1\"\n      :speed=\"0.15\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "id": "da84e4a9-7008-4be5-b49e-48e9b1dcfcd3",
+  "title": "Cracked Crystal 5",
+  "collectionId": "c5ceb62c-094d-4b4f-b1ce-4aac2500d934",
+  "category": "logo",
+  "description": "A neon-glowing abstract shape composed of three concentric, rounded rectangular loops arranged horizontally with organic, flowing curves. The innermost loop is smallest, the middle loop is medium-sized, and the outermost loop is largest. All three loops glow with a vibrant pink-red luminescence (#ff2147, #c21434) against a very dark, nearly black background (#0a0a0a). The shape exhibits a crystalline, faceted surface texture with approximately 3 facets visible, creating a geometric, glass-like appearance with internal depth and refraction. The glow effect is intense and spreads outward with a soft halo, creating a luminous aura around the entire structure. The lighting appears to come from the upper left, creating subtle highlights and shadows that enhance the three-dimensional, translucent quality. The overall aesthetic is futuristic and ethereal, with the neon pink-red color dominating against the dark background. The shape has smooth, rounded edges with no sharp corners, and the internal surfaces show darker red tones (#14060a, #2e0b18) that contrast with the bright outer glow. Godrays with a dark red tint (#4d000f) emanate from the structure, adding atmospheric depth and movement. The entire composition has a high-contrast, high-saturation appearance typical of neon signage or advanced digital visualization.",
+  "thumbnail": "/shaders/thumbnails/da84e4a9-7008-4be5-b49e-48e9b1dcfcd3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.52,
+            "y": 0.48
+          },
+          "colorA": "#14060a",
+          "colorB": "#2e0b18",
+          "deformation": 0.6,
+          "highlightColor": "#ff2147",
+          "highlightX": -0.5,
+          "highlightY": 0.1,
+          "highlightZ": 0.6,
+          "seed": 22,
+          "size": 0.6,
+          "softness": 1
+        }
+      },
+      {
+        "type": "Crystal",
+        "props": {
+          "cutout": true,
+          "dispersion": 0.62,
+          "edgeSoftness": 0.05,
+          "facets": 3,
+          "fresnel": 0.28,
+          "fresnelColor": "#c8dbfa",
+          "fresnelSoftness": 0.52,
+          "highlights": 0.4,
+          "lightAngle": 165,
+          "shadows": 0.5,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/isQWoyQoe0qA_sdf.bin",
+          "tintColor": "#c21434",
+          "tintIntensity": 0.75
+        },
+        "children": [
+          {
+            "type": "Godrays",
+            "props": {
+              "backgroundColor": "#ff5772",
+              "center": {
+                "type": "mouse-position",
+                "reach": 0.05,
+                "originX": 1,
+                "originY": 0,
+                "momentum": 0.15,
+                "smoothing": 0.25
+              },
+              "density": 0.5,
+              "intensity": 1,
+              "rayColor": "#4d000f",
+              "speed": 2,
+              "spotty": 0.7
+            }
+          }
+        ]
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 0.5,
+          "size": 33,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

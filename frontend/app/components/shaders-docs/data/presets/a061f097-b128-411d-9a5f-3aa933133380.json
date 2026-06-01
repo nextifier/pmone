@@ -1,0 +1,43 @@
+{
+  "id": "a061f097-b128-411d-9a5f-3aa933133380",
+  "title": "Glass Halo 3",
+  "collectionId": "84df37ef-ce5b-4770-b5cf-acf432002340",
+  "category": "logo",
+  "description": "A sophisticated gradient shader effect featuring a vibrant purple-to-pink color transition across the entire background. The composition centers on a glossy, three-dimensional circular glass element with a smooth, organic blob-like interior. The glass ring exhibits realistic light refraction and fresnel effects, creating bright white highlights along its edges and a subtle luminous glow. The interior of the circle contains a flowing, amorphous blob shape with soft gradients transitioning from hot pink (#fa61ce) to light lavender (#caa6dc), with a warm yellow highlight (#ffe11a) positioned in the upper-left quadrant creating a three-dimensional lighting effect. The blob has organic, undulating edges with a deformation value of 0.5, giving it a fluid, living quality. The overall atmosphere is modern and ethereal, with soft focus and smooth blending using oklab color space. The background gradient shifts from deep purple (#a618ca) on the edges to lighter pink tones toward the center, creating depth and dimensionality. The glass element has minimal blur (0) but high refraction (2), producing crisp edge definition with subtle light bending effects. The entire composition has a soft, dreamy quality enhanced by the high softness value (1) on the blob and edge softness (0.15) on the glass.",
+  "thumbnail": "/shaders/thumbnails/a061f097-b128-411d-9a5f-3aa933133380.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#a618ca"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklab",
+          "colorA": "#fa61ce",
+          "colorB": "#caa6dc",
+          "seed": 2,
+          "size": 0.65,
+          "softness": 1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "edgeSoftness": 0.15,
+          "fresnelSoftness": 0.56,
+          "innerZoom": 0.5,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/rc0tyyfP7vSZ_sdf.bin",
+          "thickness": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

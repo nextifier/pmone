@@ -1,0 +1,50 @@
+{
+  "name": "ImageTexture",
+  "category": "Textures",
+  "description": "Display an image with customizable object-fit modes",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "url": {
+      "default": "https://shaders.com/sample.jpg",
+      "description": "Upload an image or provide a URL",
+      "ui": {
+        "type": "image-upload",
+        "label": "Image",
+        "group": "Media"
+      }
+    },
+    "objectFit": {
+      "default": "cover",
+      "description": "How the image should be sized within the viewport",
+      "compileTime": true,
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Cover",
+            "value": "cover"
+          },
+          {
+            "label": "Contain",
+            "value": "contain"
+          },
+          {
+            "label": "Fill",
+            "value": "fill"
+          },
+          {
+            "label": "Scale Down",
+            "value": "scale-down"
+          },
+          {
+            "label": "None",
+            "value": "none"
+          }
+        ],
+        "label": "Object Fit",
+        "group": "Appearance"
+      }
+    }
+  }
+}

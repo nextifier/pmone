@@ -1,0 +1,85 @@
+{
+  "id": "7f41b77a-62a2-42df-a227-ad7ed0760327",
+  "title": "ASCII Peaks",
+  "collectionId": "a6371f07-ed01-4493-8a5e-18a1fd45e18f",
+  "category": "background",
+  "description": "A digital matrix-style effect featuring a dark navy background (#02090f) filled with repeating ASCII characters (O and 0) arranged in a grid pattern. The characters are rendered in bright cyan (#0fdcff) with a glowing, luminescent quality. The text appears to have diagonal striping applied at -28 degrees, creating alternating bands of bright cyan and dark navy through the character grid. Wave distortion effects create subtle vertical undulations across the entire composition, giving the characters a rippling, liquid-like appearance. Grid distortion adds additional warping and displacement, creating pockets of visual turbulence throughout the field. A strong glow effect with high intensity (9.44) and low threshold (0.12) causes the cyan characters to bloom and radiate outward, creating halos of light around each letter. The CRT screen effect adds a retro computer monitor aesthetic with scanlines (intensity 0.29 at 250 frequency), pixel grid artifacts (19px size), and color shift aberration (0.8), enhancing the vintage digital terminal appearance. The overall mood is cyberpunk and technological, evoking the aesthetic of digital rain or data streams in a hacker interface. The bright cyan glow against the nearly black background creates high contrast and visual intensity.",
+  "thumbnail": "/shaders/thumbnails/7f41b77a-62a2-42df-a227-ad7ed0760327.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#02090f"
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "cellSize": 33,
+          "characters": "O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0O0",
+          "fontFamily": "Source Code Pro",
+          "gamma": 1.35,
+          "spacing": 0.75,
+          "visible": true
+        },
+        "children": [
+          {
+            "type": "Stripes",
+            "props": {
+              "angle": -28,
+              "balance": 0.3,
+              "colorA": "#0fdcff",
+              "colorB": "#030217",
+              "density": 1,
+              "softness": 0.5,
+              "speed": 0.1,
+              "visible": true
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 90,
+              "frequency": 4,
+              "strength": 0.59,
+              "visible": true,
+              "waveType": "triangle"
+            }
+          },
+          {
+            "type": "GridDistortion",
+            "props": {
+              "gridSize": 18,
+              "intensity": 5,
+              "radius": 3,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 9.44,
+          "size": 1.98,
+          "threshold": 0.12,
+          "visible": true
+        }
+      },
+      {
+        "type": "CRTScreen",
+        "props": {
+          "brightness": 3,
+          "colorShift": 0.8,
+          "pixelSize": 19,
+          "scanlineFrequency": 250,
+          "scanlineIntensity": 0.29,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

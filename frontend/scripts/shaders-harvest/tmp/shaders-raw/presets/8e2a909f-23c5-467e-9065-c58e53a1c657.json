@@ -1,0 +1,30 @@
+{
+  "id": "8e2a909f-23c5-467e-9065-c58e53a1c657",
+  "title": "Arrow Skies 4",
+  "collection_id": "fea12e25-101d-48a0-83ba-13df1a667892",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant gradient shader effect transitioning from deep blue (#0000ff) in the upper left to bright yellow (#fff700) in the lower right, creating a diagonal color sweep across the canvas. The gradient uses OKLCH color space for smooth perceptual transitions through purple and magenta tones in the middle regions. Overlaid on this base gradient is a dense ASCII pattern composed of directional arrow characters (↖ and ↗) rendered in a monospace font (JetBrains Mono) at 30-pixel cell size with 1-unit spacing. These ASCII characters are themselves filled with the same yellow-to-blue gradient, creating a cohesive visual effect where the arrows follow the color progression. A subtle wave distortion effect (sine wave, 1.4 frequency, 3.9 speed, 151-degree angle) gently undulates the ASCII characters, creating a fluid, organic movement across the static gradient. A soft yellow circular glow (#ffdd00) with 1.87 radius and 1-unit softness is positioned near the center-right area (approximately 69.5% horizontal, 61.2% vertical), adding a luminous focal point. The overall composition has a linear-dodge blended godray effect with low density (0.1) and 0.7 intensity, creating subtle light rays emanating from the bottom-right corner. The mood is energetic and dynamic, with a strong sense of upward and rightward movement conveyed by the arrow patterns and color gradient direction.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8e2a909f-23c5-467e-9065-c58e53a1c657.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzhlMmE5MDlmLTIzYzUtNDY3ZS05MDY1LWM1OGU1M2ExYzY1Ny5qcGciLCJpYXQiOjE3NzI0ODA5MDgsImV4cCI6MTgwNDAxNjkwOH0.sMfFxQeIk0BP1xt6D64AGPvvDOIM3HkFrbdiSHCs4Bo",
+  "import": "import {\n  Shader,\n  Ascii,\n  Circle,\n  Godrays,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Circle,\n  Godrays,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#fff700\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 0.53,\n        y: 0.32\n      }\"\n      :start=\"{\n        x: 1,\n        y: 1\n      }\"/>\n    <Godrays\n      blend-mode=\"linearDodge\"\n      :center=\"{\n        x: 1,\n        y: 1\n      }\"\n      :density=\"0.1\"\n      :intensity=\"0.7\"\n      :opacity=\"0.2\"\n      ray-color=\"#87b4ff\"\n      :speed=\"2\"\n      :visible=\"true\"/>\n    <Ascii\n      characters=\"↖↖↗↗\">\n      <LinearGradient\n        color-a=\"#fff700\"\n        color-space=\"oklch\"\n        :end=\"{\n          x: 0.5,\n          y: 0\n        }\"\n        :start=\"{\n          x: 0.5,\n          y: 1\n        }\"/>\n      <WaveDistortion\n        :angle=\"151\"\n        :frequency=\"1.4\"\n        :speed=\"3.9\"\n        :strength=\"0.5\"/>\n      <Circle\n        blend-mode=\"normal-oklch\"\n        :center=\"{\n          x: 0.7,\n          y: 0.61\n        }\"\n        color=\"#ffdd00\"\n        :radius=\"1.87\"\n        :softness=\"1\"/>\n    </Ascii>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "f44849d2-c161-4dc3-804a-00484d7174ab",
+  "title": "Arrow Grid 2",
+  "collection_id": "b9026919-0325-4f1c-b23b-1dc400fdd8ef",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, tech-noir shader effect displaying a diagonal grid pattern of small triangular ASCII characters (⦉⦊) arranged in precise rows across a black background. The characters feature chromatic aberration with distinct color fringing - predominantly cyan, magenta, yellow, and white edges creating a retro CRT monitor aesthetic. The grid appears to be distorted by a bulge effect with a 35-degree rotation, creating a subtle warping that makes the triangles appear to curve slightly. Overlaid on this are animated ripple patterns with white and black wave interference creating concentric circular distortions emanating from the center. A blob-like organic shape with green (#5cf525) to blue (#1e6ce9) gradient provides dynamic movement beneath the grid, with yellow highlight accents (#fff71a) suggesting 3D depth. The entire composition is processed through a CRT screen filter with visible scanlines (frequency 210, intensity 0.91) and pixel grid artifacts (60px size), creating authentic vintage computer monitor scanline distortion. A tilt-shift blur effect with 90-degree angle orientation adds depth-of-field, keeping the center sharp while edges fade. The overall mood is cyberpunk, digital, and nostalgic with high contrast and vibrant neon-like color separation typical of old arcade or early computer graphics.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7b52ee21-2b15-49e2-a0d5-2f936d4247b8.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzdiNTJlZTIxLTJiMTUtNDllMi1hMGQ1LTJmOTM2ZDQyNDdiOC5qcGciLCJpYXQiOjE3NjM0MDEwODMsImV4cCI6MTc5NDkzNzA4M30.xqMImES-ZcnQcmFRjNbx0r68iRBdv3aR_11ghm-SfEA",
+  "import": "import {\n  Shader,\n  Ascii,\n  Blob,\n  Bulge,\n  CRTScreen,\n  Checkerboard,\n  ChromaFlow,\n  CursorTrail,\n  Group,\n  Ripples,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Blob,\n  Bulge,\n  CRTScreen,\n  Checkerboard,\n  ChromaFlow,\n  CursorTrail,\n  Group,\n  Ripples,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#17171a\"/>\n    <Group>\n      <Checkerboard\n        :cells=\"22\"\n        color-b=\"#383e42\"/>\n      <Ripples\n        blend-mode=\"overlay\"\n        :frequency=\"23.8\"\n        :opacity=\"0.32\"\n        :speed=\"1.9\"\n        :thickness=\"0.3\"/>\n      <Blob\n        id=\"idmh47oyx205ue8s7u1\"\n        color-a=\"#5cf525\"\n        color-b=\"#1e6ce9\"\n        :deformation=\"0.37\"\n        highlight-color=\"#fff71a\"\n        :highlight-intensity=\"0.45\"\n        :highlight-x=\"0.06\"\n        :highlight-y=\"-0.1\"\n        :softness=\"0.63\"\n        :speed=\"2\"\n        :visible=\"true\"/>\n      <Ripples\n        blend-mode=\"overlay\"\n        :frequency=\"6.2\"\n        mask-source=\"idmh47oyx205ue8s7u1\"\n        :opacity=\"0.4\"\n        :softness=\"0.57\"\n        :speed=\"-0.5\"\n        :thickness=\"0.39\"/>\n      <ChromaFlow\n        base-color=\"#eef21d\"\n        down-color=\"#f0e1e1\"\n        :intensity=\"1.5\"\n        left-color=\"#e1e1f0\"\n        mask-source=\"idmh47oyx205ue8s7u1\"\n        :momentum=\"10\"\n        right-color=\"#ededd5\"\n        up-color=\"#c1e0c1\"/>\n      <CursorTrail/>\n      <Ascii\n        :cell-size=\"60\"\n        characters=\"⦉⦊\"/>\n      <Bulge\n        edges=\"mirror\"\n        :falloff=\"1\"\n        :radius=\"2.6\"\n        :strength=\"-0.29\"\n        :transform=\"{\n          edges: 'mirror',\n          rotation: 35\n        }\"/>\n    </Group>\n    <TiltShift\n      :angle=\"90\"\n      :falloff=\"0.26\"\n      :intensity=\"10\"\n      :width=\"0.29\"/>\n    <CRTScreen\n      :brightness=\"2\"\n      :color-shift=\"0.8\"\n      :contrast=\"1.01\"\n      :pixel-size=\"60\"\n      :scanline-frequency=\"210\"\n      :scanline-intensity=\"0.91\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

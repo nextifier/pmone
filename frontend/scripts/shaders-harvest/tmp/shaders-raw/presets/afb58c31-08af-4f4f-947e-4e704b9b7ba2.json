@@ -1,0 +1,38 @@
+{
+  "id": "afb58c31-08af-4f4f-947e-4e704b9b7ba2",
+  "title": "Impression Trail",
+  "collection_id": "c5b900ac-1a98-4f7a-8dd1-c86cd0e95ca6",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "A dithered image with a cream-yellow background (#f2eab3) overlaid with magenta-purple (#d324d4) stippled patterns creating a halftone effect. The composition shows a building or architectural structure in the center-right area, rendered in purple tones against the pale yellow backdrop. The dithering pattern uses blue noise with 3-pixel sizing, creating a grainy, textured appearance throughout. The image has a noisy, paper-like texture applied with subtle grain displacement (0.2 intensity) and roughness (0.21), giving it a vintage or printed quality. The purple elements form concentrated clusters in the upper portion and around the central structure, with scattered dots diminishing toward the edges. The overall effect is reminiscent of old newspaper printing or thermal imaging, with the threshold mapping creating variable density in the dithered areas. A subtle simplex noise layer adds additional texture variation with very low opacity white noise overlay.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/342d1978-1c0c-4c91-a51b-aa43a2b5db58.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzM0MmQxOTc4LTFjMGMtNGM5MS1hNTFiLWFhNDNhMmI1ZGI1OC5qcGciLCJpYXQiOjE3Nzc5OTg1NDMsImV4cCI6MTgwOTUzNDU0M30.YqdaX1yJINkLU0Vuw1H4wpx0CltFNQnnTTgdgKD8C0g",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  Dither,\n  ImageTexture,\n  Paper,\n  SimplexNoise\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  Dither,\n  ImageTexture,\n  Paper,\n  SimplexNoise\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ChromaFlow\n      id=\"idmostv5d9xi2rmvn45\"\n      base-color=\"#ffffff\"\n      down-color=\"#ffffff\"\n      :intensity=\"1.4\"\n      left-color=\"#ffffff\"\n      :momentum=\"10\"\n      :radius=\"4\"\n      right-color=\"#ffffff\"\n      up-color=\"#ffffff\"\n      :visible=\"false\"/>\n    <Dither\n      color-a=\"#f2eab3\"\n      color-b=\"#d324d4\"\n      pattern=\"blueNoise\"\n      :pixel-size=\"3\"\n      :threshold=\"{\n        type: 'map',\n        source: 'idmostv5d9xi2rmvn45',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 0.79,\n        outputMin: 0.1\n      }\">\n      <ImageTexture\n        url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/gZx9yjLKI7VJ.jpeg\"/>\n      <SimplexNoise\n        :balance=\"-0.5\"\n        color-a=\"#ffffff17\"\n        color-b=\"#00000000\"/>\n    </Dither>\n    <Paper\n      :displacement=\"0.2\"\n      :grain-scale=\"0.1\"\n      :roughness=\"0.21\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

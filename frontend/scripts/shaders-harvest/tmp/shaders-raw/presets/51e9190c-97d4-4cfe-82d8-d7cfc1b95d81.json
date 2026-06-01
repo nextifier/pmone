@@ -1,0 +1,30 @@
+{
+  "id": "51e9190c-97d4-4cfe-82d8-d7cfc1b95d81",
+  "title": "Arrow Skies 2",
+  "collection_id": "fea12e25-101d-48a0-83ba-13df1a667892",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient background transitioning from deep purple (#220047) in the upper right to vibrant magenta-pink (#ff0091) in the lower left, creating a rich color field. Overlaid on this gradient is an ASCII character pattern composed of directional arrow symbols (↖↗) arranged in a grid with 30-pixel cell spacing. The ASCII characters display a yellow-to-dark-blue gradient (#fff700 to #00004a) that flows from top-left to bottom-right, creating a secondary color gradient effect. A sine wave distortion effect (angle 151°, frequency 1.4, strength 0.5) is applied to the ASCII layer, causing subtle undulating movement and spatial warping across the character grid. A bright yellow circular glow (#ffdd00) with soft edges is positioned in the lower-left quadrant (approximately 30% from left, 82% from top) with a radius of 1.87 units, adding luminous depth and focal point emphasis. The overall composition creates a sense of directional flow and energy, with the arrows suggesting upward and rightward movement against the purple-to-pink gradient backdrop. The blend of geometric precision (grid layout) with organic distortion (wave effects) and warm-cool color contrasts produces a modern, tech-forward aesthetic with dynamic visual tension.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/51e9190c-97d4-4cfe-82d8-d7cfc1b95d81.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzUxZTkxOTBjLTk3ZDQtNGNmZS04MmQ4LWQ3Y2ZjMWI5NWQ4MS5qcGciLCJpYXQiOjE3NzI0ODEwMDIsImV4cCI6MTgwNDAxNzAwMn0.AxSzI4wtf9XEMpFO75Rn6alNJjOwTeaaLA92tm61xh4",
+  "import": "import {\n  Shader,\n  Ascii,\n  Circle,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Circle,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#ff0091\"\n      color-b=\"#220047\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 0.53,\n        y: 0.32\n      }\"\n      :start=\"{\n        x: 0,\n        y: 1\n      }\"/>\n    <Ascii\n      characters=\"↖↖↗↗\">\n      <LinearGradient\n        color-a=\"#fff700\"\n        color-b=\"#00004a\"\n        color-space=\"oklch\"\n        :end=\"{\n          x: 0.53,\n          y: 0.51\n        }\"\n        :start=\"{\n          x: 0,\n          y: 1\n        }\"/>\n      <WaveDistortion\n        :angle=\"151\"\n        :frequency=\"1.4\"\n        :speed=\"3.9\"\n        :strength=\"0.5\"/>\n      <Circle\n        blend-mode=\"normal-oklch\"\n        :center=\"{\n          x: 0.3,\n          y: 0.82\n        }\"\n        color=\"#ffdd00\"\n        :radius=\"1.87\"\n        :softness=\"1\"/>\n    </Ascii>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

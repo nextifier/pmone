@@ -1,0 +1,61 @@
+{
+  "id": "d170d7fa-ecba-4638-9968-b30742cb18f3",
+  "title": "Redacted Bars 7",
+  "collectionId": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "category": "background",
+  "description": "A dynamic shader effect featuring diagonal falling lines at a 72-degree angle against a dark navy background. The composition consists of multiple layered elements: a deep dark-blue solid color base (#0a0d2b) providing the foundation, overlaid with animated falling lines that transition from bright white (#ffffff) to transparent gray. These lines create a sense of motion and depth, appearing to cascade diagonally across the screen. A linear gradient mask is applied to the falling lines, blending from light periwinkle-blue (#a8c8e8) at the top to deep purple (#6049b3) at the bottom, creating a subtle color shift that adds dimensionality. The lines have a trail effect with 0.95 length, creating elongated streaks rather than solid marks. The overall effect has a modern, tech-forward aesthetic with a cool color temperature. A tilt-shift blur effect is applied with minimal width and high falloff (0.9), which slightly softens the overall image while maintaining clarity. The density of lines is set to 13, creating a balanced visual rhythm without overwhelming the composition. The stroke width of 0.34 produces thin, elegant lines that feel precise and intentional. The speed variance of 0.15 introduces subtle randomization to the falling motion, preventing mechanical repetition. The color space uses oklab for smooth, perceptually accurate color transitions.",
+  "thumbnail": "/shaders/thumbnails/d170d7fa-ecba-4638-9968-b30742cb18f3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0d2b"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmijuosi5e6y2didn",
+          "angle": 72,
+          "colorB": "#cccccc00",
+          "colorSpace": "oklab",
+          "density": 13,
+          "speed": 0.1,
+          "speedVariance": 0.15,
+          "strokeWidth": 0.34,
+          "trailLength": 0.95,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#a8c8e8",
+          "colorB": "#6049b3",
+          "colorSpace": "oklab",
+          "edges": "mirror",
+          "end": {
+            "x": 1,
+            "y": 1
+          },
+          "maskSource": "idmmijuosi5e6y2didn",
+          "start": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "falloff": 0.9,
+          "intensity": 100,
+          "width": 0
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

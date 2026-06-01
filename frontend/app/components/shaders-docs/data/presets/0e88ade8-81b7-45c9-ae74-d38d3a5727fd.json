@@ -1,0 +1,52 @@
+{
+  "id": "0e88ade8-81b7-45c9-ae74-d38d3a5727fd",
+  "title": "Lost Rays",
+  "collectionId": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "category": "background",
+  "description": "A dynamic shader effect featuring layered visual components creating a cinematic, otherworldly atmosphere. The image displays prominent god rays emanating from a light source positioned in the upper-left to center area, with rays of pale blue-white light (#ccdaed) cutting through a dark background. The rays have a spotty, volumetric quality with moderate density (0.3) creating distinct light streaks. A tritone color grading system overlays the entire composition, blending deep dark blue-black shadows (#050817) with vibrant orange (#ffa200) midtones and cyan highlights (#3defff), creating a cool-to-warm color tension. A zoom blur effect radiates from approximately the center-right area with high intensity (100), creating a sense of motion and depth that pulls the viewer's eye inward. Fine film grain texture (0.09 strength) adds a subtle analog quality and visual noise throughout. The overall effect is moody and atmospheric with elongated, feathered shapes suggesting organic forms or particles suspended in space. The color palette transitions from deep navy and teal in the shadows to golden-yellow and cyan in the highlighted areas, creating a cinematic sci-fi or underwater aesthetic. The composition has a sense of movement and energy despite the static nature of the image.",
+  "thumbnail": "/shaders/thumbnails/0e88ade8-81b7-45c9-ae74-d38d3a5727fd.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Godrays",
+        "props": {
+          "backgroundColor": "#1829b5",
+          "center": {
+            "x": 0.23,
+            "y": 0.67
+          },
+          "intensity": 0.58,
+          "rayColor": "#ccdaed",
+          "speed": 0.7
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.09
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "colorA": "#050817",
+          "colorB": "#ffa200",
+          "colorC": "#3defff",
+          "colorSpace": "hsl"
+        }
+      },
+      {
+        "type": "ZoomBlur",
+        "props": {
+          "center": {
+            "x": 0.37,
+            "y": 0.35
+          },
+          "intensity": 100
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

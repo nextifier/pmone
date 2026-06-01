@@ -1,0 +1,83 @@
+{
+  "id": "e0a282b8-0f97-406f-abc3-3375ddad2502",
+  "title": "Dot Panels 2",
+  "collectionId": "56d190bc-7072-4acf-b177-bda1a98e6b6c",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect featuring a deep forest-green to near-black gradient background. The composition uses a radial gradient centered slightly right of center, transitioning from a very dark teal-green (#011c0d) at the edges to an even darker forest-green (#07120a) toward the center. Overlaid on this gradient is a subtle dot grid pattern with small bright lime-green dots (#7ff59b) scattered across the entire canvas at moderate density (60 dots), creating a twinkling starfield or digital rain effect. The dots have a size of 0.06 units and feature a twinkle animation that gives them a flickering, alive quality. A progressive blur effect is applied with an angle of 211 degrees, centered toward the right side of the composition, creating a directional motion blur that softens the right portion of the image with a falloff of 0.68 and intensity of 76. The perspective component applies a 3D camera effect with a wide field of view (96 degrees), pan, and tilt transformations that create subtle depth. A fine film grain texture with 0.02 strength is applied across the entire image, adding subtle noise and texture. The overall mood is dark, mysterious, and technological - reminiscent of a night sky, digital matrix, or deep space environment. The color palette is dominated by very dark greens and blacks with bright accent dots, creating high contrast in localized areas.",
+  "thumbnail": "/shaders/thumbnails/e0a282b8-0f97-406f-abc3-3375ddad2502.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Perspective",
+        "props": {
+          "center": {
+            "x": 0.48,
+            "y": 1
+          },
+          "edges": "mirror",
+          "fov": 96,
+          "offset": {
+            "x": 0.58,
+            "y": 0.57
+          },
+          "pan": 29.2,
+          "tilt": 15,
+          "zoom": 2.28
+        },
+        "children": [
+          {
+            "type": "RadialGradient",
+            "props": {
+              "center": {
+                "x": 0.55,
+                "y": 0.6
+              },
+              "colorA": "#011c0d",
+              "colorB": "#07120a",
+              "colorSpace": "oklab",
+              "radius": 0.7
+            }
+          },
+          {
+            "type": "Grid",
+            "props": {
+              "cells": 6,
+              "color": "#041b33",
+              "thickness": 0
+            }
+          },
+          {
+            "type": "DotGrid",
+            "props": {
+              "color": "#7ff59b",
+              "density": 60,
+              "dotSize": 0.06,
+              "twinkle": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "ProgressiveBlur",
+        "props": {
+          "angle": 211,
+          "center": {
+            "x": 0.77,
+            "y": 0.58
+          },
+          "falloff": 0.68,
+          "intensity": 76
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.02,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

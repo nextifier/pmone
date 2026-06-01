@@ -1,0 +1,47 @@
+{
+  "id": "318f8f75-a133-4a2a-9fba-e69fb0974827",
+  "title": "Pixel Beams 2",
+  "collectionId": "ef3cb88e-1e3e-4371-8816-4821e67b554f",
+  "category": "background",
+  "description": "A dynamic digital shader effect displaying a particle-based dithering pattern with cyan and dark teal coloration. The composition features scattered white and light cyan dots arranged in varying densities across a dark teal background (#03262b). The dots form organic, flowing clusters that appear to drift and undulate across the canvas, creating a sense of movement and fluidity. Dense concentrations of particles appear in the lower-left corner, center-right area, and right edge, while sparse individual dots float in the upper portions. The effect resembles a plasma or particle field with wave-based distortion applied, creating diagonal flowing patterns that suggest movement at approximately 117 degrees. The dithering uses an 8x8 Bayer pattern with a pixel size of 7, producing a characteristic halftone-like granular texture. The overall atmosphere is ethereal and technological, with high contrast between the bright cyan particles (#66fff8) and the deep dark teal background. The wave distortion with square waveform creates subtle undulating ripples throughout the composition, giving the static image a sense of kinetic energy and organic flow.",
+  "thumbnail": "/shaders/thumbnails/318f8f75-a133-4a2a-9fba-e69fb0974827.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#03262b",
+          "colorB": "#66fff8",
+          "pattern": "bayer8",
+          "pixelSize": 7,
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "colorA": "#ffffff",
+              "contrast": 0.9,
+              "density": 0.3,
+              "intensity": 1.3,
+              "speed": 1
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 117,
+              "edges": "mirror",
+              "frequency": 1.8,
+              "strength": 1,
+              "visible": true,
+              "waveType": "square"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

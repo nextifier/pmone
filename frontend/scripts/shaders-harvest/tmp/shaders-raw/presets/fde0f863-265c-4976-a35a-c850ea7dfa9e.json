@@ -1,0 +1,30 @@
+{
+  "id": "fde0f863-265c-4976-a35a-c850ea7dfa9e",
+  "title": "Paint Flow 4",
+  "collection_id": "7c78be7c-6e84-4238-affd-c17c0f91caa2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic, fluid shader effect featuring sharp diagonal zigzag patterns that create a chevron or lightning bolt wave structure. The composition is dominated by a color gradient transitioning from warm orange and red tones in the upper left to deep purple and dark blue in the lower right. The zigzag pattern creates distinct triangular sections with soft, blurred edges that give the effect a thermal or heat-map appearance. The Swirl component generates organic color blending between orange (#ff4400) and deep purple (#1a0033), creating smooth transitions across the diagonal bands. A Blob element adds warm red (#cc0000) and orange (#ff8800) accents with highlights in yellow (#ffdd00), creating focal points of intensity. The WaveDistortion at 98 degrees with 4.2 frequency adds subtle undulation to the sharp edges, softening the geometric precision. Wave patterns ripple through the composition at a speed of 2.5, creating a sense of movement and fluidity. ChromaticAberration with red offset of -1.5 and blue offset of 1.5 introduces subtle color fringing along the edges, enhancing the thermal or energy effect. A Glow layer with screen blend mode and 0.14 intensity creates a luminous halo around the brighter areas, particularly where orange meets purple. Film grain at 0.15 strength adds texture and reduces smoothness, creating a slightly grainy, analog quality. The overall effect resembles thermal imaging, fire, or energy waves with a modern, digital aesthetic. The mood is energetic, warm, and dynamic with strong visual movement from left to right and top to bottom.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/fde0f863-265c-4976-a35a-c850ea7dfa9e.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ZkZTBmODYzLTI2NWMtNDk3Ni1hMzVhLWM4NTBlYTdkZmE5ZS5qcGciLCJpYXQiOjE3NzMxMTEwNzIsImV4cCI6MTgwNDY0NzA3Mn0.2I24WeZEl_r1LJqw367JyrWj0Y-uSLEpI345gKoe6y0",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Glow,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Glow,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FilmGrain\n      :strength=\"0.15\">\n      <Glow\n        blend-mode=\"screen\"\n        :intensity=\"0.14\"\n        :size=\"15\"\n        :threshold=\"0.35\">\n        <Swirl\n          color-a=\"#ff4400\"\n          color-b=\"#1a0033\"\n          color-space=\"lch\"\n          :detail=\"2.5\"\n          :speed=\"0.8\"/>\n        <Blob\n          :center=\"{\n            x: 0.12,\n            y: 0.18\n          }\"\n          color-a=\"#cc0000\"\n          color-b=\"#ff8800\"\n          color-space=\"oklch\"\n          :deformation=\"1\"\n          highlight-color=\"#ffdd00\"\n          :highlight-intensity=\"0.8\"\n          :highlight-x=\"0.5\"\n          :highlight-y=\"-0.5\"\n          :highlight-z=\"0.8\"\n          :opacity=\"0.9\"\n          :seed=\"42\"\n          :size=\"0.78\"\n          :softness=\"2.4\"\n          :speed=\"1.2\"\n          :visible=\"true\"/>\n        <WaveDistortion\n          :angle=\"98\"\n          edges=\"mirror\"\n          :frequency=\"4.2\"\n          :speed=\"2.5\"\n          :strength=\"0.19\"\n          :visible=\"true\"/>\n        <ChromaticAberration\n          :angle=\"142\"\n          :blue-offset=\"1.5\"\n          :red-offset=\"-1.5\"\n          :strength=\"0.04\"\n          :visible=\"true\"/>\n      </Glow>\n    </FilmGrain>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

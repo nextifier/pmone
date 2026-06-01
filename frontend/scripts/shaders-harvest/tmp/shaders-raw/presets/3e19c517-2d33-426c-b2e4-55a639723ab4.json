@@ -1,0 +1,42 @@
+{
+  "id": "3e19c517-2d33-426c-b2e4-55a639723ab4",
+  "title": "Liquid Stripes 6",
+  "collection_id": "1b1c9029-4fe7-48f3-83ad-eff1105b51e2",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring diagonal neon lime-green stripes (#80f820) at 45-degree angle running across a muted purple-gray background (#a09bbb). The stripes have a consistent density of 9 lines with a balance ratio of 0.1, creating thin bright lines against the darker background. Overlaid on this striped pattern is a central glass morphism effect with a complex SVG shape that appears as a crystalline or geometric form with multiple faceted surfaces. The glass element exhibits chromatic aberration with a 0.5 intensity, creating subtle color fringing around the edges. The glass has a blur of 11.3 pixels with a refraction value of 0.51, giving it a translucent, refractive quality that distorts the stripes beneath it. A fresnel effect with 0.11 intensity and 0.38 softness adds subtle edge highlights in white (#ffffff) to the glass shape, enhancing its three-dimensional appearance. Cursor ripples with an intensity of 10 and decay of 10 create interactive distortion waves that emanate from the mouse position. A film grain overlay with 0.3 strength adds subtle texture and analog quality to the entire composition. The overall mood is modern, tech-forward, and interactive with a cyberpunk aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/3e19c517-2d33-426c-b2e4-55a639723ab4.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzNlMTljNTE3LTJkMzMtNDI2Yy1iMmU0LTU1YTYzOTcyM2FiNC5qcGciLCJpYXQiOjE3NzI5MzY4MDAsImV4cCI6MTgwNDQ3MjgwMH0.1He3VsWXyXKs4DmuziE4X1bl7cc36GWws6ORfWMPl1I",
+  "import": "import {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Stripes\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Stripes\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      :balance=\"0.1\"\n      color-a=\"#80f820\"\n      color-b=\"#a09bbb\"\n      :density=\"9\"/>\n    <CursorRipples/>\n    <Glass\n      :blur=\"11.3\"\n      :fresnel=\"0.11\"\n      :fresnel-softness=\"0.38\"\n      :refraction=\"0.51\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/DODKZwnr2rPw_sdf.bin\"\n      :thickness=\"0.13\"/>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

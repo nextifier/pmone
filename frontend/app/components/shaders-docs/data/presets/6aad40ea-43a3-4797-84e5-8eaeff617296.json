@@ -1,0 +1,61 @@
+{
+  "id": "6aad40ea-43a3-4797-84e5-8eaeff617296",
+  "title": "Geogrid 12",
+  "collectionId": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "category": "background",
+  "description": "A sophisticated gradient-based shader composition featuring a warm peachy-orange to cream gradient on the left side that transitions smoothly into a neutral beige-gray center. The composition is dominated by geometric grid patterns rendered in white with varying opacity levels, creating a layered isometric or 3D perspective effect. Multiple grid layers are positioned at different angles (approximately 45-degree rotations), with the grids appearing to recede into depth. A wave distortion effect is applied throughout, creating subtle undulating distortions across the grid lines, giving them a fluid, organic quality despite their geometric nature. The overall effect combines hard geometric structure with soft, flowing distortion. The right side features more prominent grid patterns with higher opacity, while the left side shows the warm gradient more prominently. The blend modes create subtle light interactions, particularly visible in the grid areas where a hardLight blend mode produces luminous highlights. The atmosphere is minimalist and modern, with a calm, professional aesthetic. The distortion effects create a sense of movement and fluidity without being chaotic, suggesting data visualization or abstract technological imagery.",
+  "thumbnail": "/shaders/thumbnails/6aad40ea-43a3-4797-84e5-8eaeff617296.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#e2e0d4",
+          "colorB": "#f05255",
+          "colorSpace": "oklch",
+          "detail": 0.7,
+          "speed": 1.5
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 126,
+          "blendMode": "linearDodge",
+          "edges": "mirror",
+          "frequency": 1.3,
+          "speed": 0.5,
+          "strength": 0.8,
+          "waveType": "triangle"
+        },
+        "children": [
+          {
+            "type": "Grid",
+            "props": {
+              "blendMode": "hardLight",
+              "cells": 28,
+              "color": "#00a2fa",
+              "thickness": 3.2,
+              "transform": {
+                "offsetX": 0.54,
+                "scale": 0.75
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "decay": 1.8,
+          "edges": "wrap",
+          "gridSize": 8,
+          "intensity": 5,
+          "radius": 1.75
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

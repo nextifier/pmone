@@ -1,0 +1,78 @@
+{
+  "id": "38563e2f-9606-42cb-a5b6-d4eaa76a8dac",
+  "title": "Smokey Logo 3",
+  "collectionId": "16454cd8-7469-4d37-80f4-4d8ae0d74fcc",
+  "category": "logo",
+  "description": "A nighttime scene rendered with thermal or night-vision imaging characteristics, dominated by luminescent lime-green and yellow-green smoke effects against a nearly black background. The primary visual element is a large, glowing arch or tunnel structure that appears to be emitting or surrounded by bright neon-green smoke (#8cff75, #a2ff30). The smoke has a turbulent, organic quality with swirling patterns and varying opacity levels, creating depth and movement. The arch structure itself is rendered in darker green tones (#54a80a, #193d20) with a semi-transparent quality. Additional darker smoke layers with muted green and blue undertones (#0b132e) flow from the bottom and right edges, creating a layered atmospheric effect. The overall mood is eerie and otherworldly, with the high-contrast luminescent greens against the pitch-black background (#0d0817) creating a strong visual impact. The smoke dissipates gradually with colorDecay properties creating a fade effect. The composition suggests movement and energy, with directional flow from multiple emission points creating a sense of dynamic turbulence.",
+  "thumbnail": "/shaders/thumbnails/38563e2f-9606-42cb-a5b6-d4eaa76a8dac.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0d0817"
+        }
+      },
+      {
+        "type": "SmokeFill",
+        "props": {
+          "colorA": "#8cff75",
+          "colorB": "#a2ff30",
+          "colorDecay": 3,
+          "detail": 16,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0,
+            "originY": 0,
+            "momentum": 0,
+            "smoothing": 0
+          },
+          "emitRadius": 0.05,
+          "gravity": 0,
+          "intensity": 0.95,
+          "mouseInfluence": 0.35,
+          "scale": 1.1,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin",
+          "speed": 1.4,
+          "spread": 141
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#193d20",
+          "colorB": "#0b132e",
+          "direction": 49,
+          "dissipation": 0.7,
+          "emitFrom": {
+            "x": 0,
+            "y": 0.99
+          },
+          "emitRadius": 0.13,
+          "intensity": 0.75,
+          "speed": 8.3,
+          "spread": 65
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#54a80a",
+          "colorB": "#0b132e",
+          "direction": 277,
+          "dissipation": 0.7,
+          "emitFrom": {
+            "x": 1,
+            "y": 1
+          },
+          "emitRadius": 0.13,
+          "intensity": 0.75,
+          "speed": 8.3,
+          "spread": 65
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

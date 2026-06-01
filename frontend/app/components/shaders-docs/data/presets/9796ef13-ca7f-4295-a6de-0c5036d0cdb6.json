@@ -1,0 +1,39 @@
+{
+  "id": "9796ef13-ca7f-4295-a6de-0c5036d0cdb6",
+  "title": "Smokescreen 9",
+  "collectionId": "75854014-d32e-4ede-8f49-16782c112961",
+  "category": "background",
+  "description": "A dynamic smoke effect shader rendered against a very dark near-black background (#040414). The smoke particles emit from the mouse position and flow upward with a warm color gradient transitioning from golden tan (#e2b25c) at the source to deep reddish-brown (#7f472d) as the particles dissipate. The smoke has a soft, organic appearance with moderate detail and spread, creating wispy, billowing formations that gradually fade and disperse. The particles move with a slight upward gravity bias (0.5) and directional flow at 36 degrees, creating a natural rising motion. The effect has a warm, earthy atmosphere with good opacity and smooth blending. The smoke trails show color decay and dissipation over distance, with the particles becoming increasingly transparent as they move away from the emission point. The overall mood is warm, smoky, and atmospheric with a sense of gentle upward movement and organic particle behavior.",
+  "thumbnail": "/shaders/thumbnails/9796ef13-ca7f-4295-a6de-0c5036d0cdb6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#040414"
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#e2b25c",
+          "colorB": "#7f472d",
+          "colorDecay": 1.4,
+          "colorSpace": "oklab",
+          "detail": 7,
+          "direction": 36,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0,
+            "originY": 0
+          },
+          "mouseInfluence": 0.8,
+          "mouseRadius": 0.07,
+          "speed": 6.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

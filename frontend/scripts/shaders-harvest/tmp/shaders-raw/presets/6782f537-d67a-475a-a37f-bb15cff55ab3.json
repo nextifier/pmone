@@ -1,0 +1,30 @@
+{
+  "id": "6782f537-d67a-475a-a37f-bb15cff55ab3",
+  "title": "Dither Wave 12",
+  "collection_id": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dithered gradient shader effect transitioning from teal-green in the bottom-left corner to bright yellow-lime in the upper-right area. The dithering uses a Bayer8 pattern with 5-pixel squares, creating a characteristic checkerboard-like pixelated appearance throughout the composition. The color transition is smooth yet granular, with the dither pattern becoming more pronounced in areas of color transition. A subtle sine wave element with white coloring and high softness (0.79) is layered beneath, creating gentle undulating distortions at a 169-degree angle, though its effect is minimal due to low amplitude (0.1) and is mostly obscured by the dominant dither effect. The overall mood is vibrant and energetic with a retro digital aesthetic. The threshold value of 0.32 creates distinct color banding within the dither pattern, emphasizing the separation between the teal and yellow color zones. The composition maintains full opacity with normal blend mode, resulting in a clean, unblended appearance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/6782f537-d67a-475a-a37f-bb15cff55ab3.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzY3ODJmNTM3LWQ2N2EtNDc1YS1hMzdmLWJiMTVjZmY1NWFiMy5qcGciLCJpYXQiOjE3NzI5MjQzNjIsImV4cCI6MTgwNDQ2MDM2Mn0.ci2pE-nwiMPsr3Ub0eF5ht8Z3K9QpSVZjjbTHO9wnFw",
+  "import": "import {\n  Shader,\n  Dither,\n  SineWave\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Dither, SineWave } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Dither\n      color-a=\"#248375\"\n      color-b=\"#eaff4a\"\n      pattern=\"bayer8\"\n      :pixel-size=\"5\"\n      :threshold=\"0.32\"\n      :visible=\"true\">\n      <SineWave\n        :amplitude=\"0.1\"\n        :angle=\"169\"\n        :frequency=\"0.7\"\n        :softness=\"0.79\"\n        :thickness=\"0.7\"/>\n    </Dither>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

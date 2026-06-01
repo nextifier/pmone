@@ -1,0 +1,40 @@
+{
+  "id": "e0e4c31a-a064-4b62-9097-36716e595e16",
+  "title": "Dither Wave 8",
+  "collectionId": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "category": "background",
+  "description": "A gradient shader effect transitioning from a lighter mint-green at the top to a deeper turquoise-green at the bottom. The upper portion features a dithered pattern using a Bayer8 matrix with a pixelated appearance, creating a grainy texture that gradually fades into a smooth gradient. Overlaid on this is a subtle sine wave pattern rendered in white, positioned horizontally across the upper-middle section with soft edges and moderate amplitude. The wave creates a gentle undulating line effect with high softness (0.79), making it appear almost like a misty or ethereal horizontal band. The overall composition has a calm, minimalist aesthetic with smooth color transitions and a subtle animated quality from the wave component. The dithering effect adds visual interest without overwhelming the serene gradient base.",
+  "thumbnail": "/shaders/thumbnails/e0e4c31a-a064-4b62-9097-36716e595e16.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#07e6b8",
+          "colorB": "#abffd3",
+          "pattern": "bayer8",
+          "pixelSize": 5,
+          "threshold": 0.32,
+          "visible": true
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.1,
+              "frequency": 0.7,
+              "position": {
+                "x": 0.5,
+                "y": 0
+              },
+              "softness": 0.79,
+              "thickness": 0.81
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

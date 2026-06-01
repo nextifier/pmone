@@ -1,0 +1,41 @@
+{
+  "id": "22c71e1e-ced2-4041-bb49-e26cfc8d31bb",
+  "title": "Gradient Grid 4",
+  "collectionId": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "category": "background",
+  "description": "A flowing gradient shader effect with smooth, organic color transitions creating a dreamlike atmosphere. The composition features a vibrant gradient that flows from hot pink (#ff4d8e) on the left side, transitioning through purple (#9735ff) and magenta tones in the center, to deep dark purple and black (#0a0015) on the right side. The gradient has a soft, blurred quality with gentle wave-like distortions (0.2 distortion value) that create a sense of fluid motion. A very subtle grid pattern (0.01 opacity) overlays the entire composition with white lines, barely visible but adding a technical texture layer. Fine film grain (0.1 strength) is applied uniformly across the surface, creating a subtle noise texture that adds depth and prevents banding. The overall effect is a smooth, glowing gradient with soft edges that fade to transparency, enhanced by the linear dodge blend mode on the grid layer which creates subtle luminous highlights. The color space uses oklab for smooth perceptual transitions. The mood is ethereal, modern, and atmospheric with a cyberpunk aesthetic.",
+  "thumbnail": "/shaders/thumbnails/22c71e1e-ced2-4041-bb49-e26cfc8d31bb.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorB": "#702b63ff",
+          "colorC": "#ff4d8e",
+          "colorD": "#9735ff",
+          "colorSpace": "oklab",
+          "distortion": 0.2,
+          "seed": 76,
+          "visible": true
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "blendMode": "linearDodge",
+          "cells": 30,
+          "opacity": 0.01,
+          "thickness": 0.4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

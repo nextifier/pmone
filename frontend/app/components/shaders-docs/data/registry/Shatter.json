@@ -1,0 +1,142 @@
+{
+  "name": "Shatter",
+  "category": "Interactive",
+  "description": "Broken glass effect with tectonic plate displacement",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "crackWidth": {
+      "default": 1,
+      "description": "Thickness of crack lines",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.5,
+        "max": 5,
+        "step": 0.1,
+        "label": "Crack Width",
+        "group": "Effect"
+      }
+    },
+    "intensity": {
+      "default": 4,
+      "description": "How much shards shift",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 20,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Effect"
+      }
+    },
+    "radius": {
+      "default": 0.4,
+      "description": "Cursor influence radius",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 1,
+        "step": 0.1,
+        "label": "Radius",
+        "group": "Effect"
+      }
+    },
+    "decay": {
+      "default": 1,
+      "description": "How fast shards return to rest",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 10,
+        "step": 0.1,
+        "label": "Decay",
+        "group": "Effect"
+      }
+    },
+    "seed": {
+      "default": 2,
+      "description": "Random seed for pattern",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 50,
+        "step": 1,
+        "label": "Seed",
+        "group": "Effect"
+      }
+    },
+    "chromaticSplit": {
+      "default": 1,
+      "description": "RGB separation for prismatic glass effect",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 5,
+        "step": 0.1,
+        "label": "Chromatic Split",
+        "group": "Effect"
+      }
+    },
+    "refractionStrength": {
+      "default": 5,
+      "description": "How much cracks bend/distort the underlying image",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 10,
+        "step": 0.1,
+        "label": "Refraction",
+        "group": "Effect"
+      }
+    },
+    "shardLighting": {
+      "default": 0.1,
+      "description": "Subtle lighting on tilted shards for 3D depth",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 0.5,
+        "step": 0.1,
+        "label": "Shard Lighting",
+        "group": "Effect"
+      }
+    },
+    "edges": {
+      "default": "mirror",
+      "description": "How to handle edges when displacement pushes content out of bounds",
+      "compileTime": true,
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Stretch",
+            "value": "stretch"
+          },
+          {
+            "label": "Transparent",
+            "value": "transparent"
+          },
+          {
+            "label": "Mirror",
+            "value": "mirror"
+          },
+          {
+            "label": "Wrap",
+            "value": "wrap"
+          }
+        ],
+        "label": "Edges",
+        "group": "Effect"
+      }
+    }
+  }
+}

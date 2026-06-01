@@ -1,0 +1,30 @@
+{
+  "id": "00f01419-f77d-43aa-b782-cf2e985fa6c0",
+  "title": "Flowing Ribbon 2",
+  "collection_id": "ff06c547-4c27-45b2-b509-816b68149be2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic 3D ribbon shader effect featuring a sinuous, wave-like form that twists and undulates across the frame. The ribbon has a smooth, glossy surface with high reflectivity, creating a polished, liquid-like appearance. The primary color palette consists of vibrant neon green (#2cff87) and deep purple (#9300d0) that blend seamlessly across the ribbon's surface using oklab color space interpolation. The green dominates the upper and outer surfaces while the purple creates dramatic shadows and depth within the ribbon's curves and folds. Fine white lines with a linear dodge blend mode create subtle striations and highlights that follow the ribbon's contours, adding dimensionality and a sense of motion. The background is a soft, muted lavender-gray (#dad6ff) with gentle studio lighting that creates a subtle vignette effect. The ribbon appears to be rotating and twisting with a 52-degree twist parameter, creating an organic, flowing motion. A subtle film grain texture overlays the entire composition at 0.3 opacity, adding a cinematic quality. The lighting setup uses ambient illumination at 78% intensity with a wall curvature of 57 degrees, creating soft shadows and highlights that enhance the 3D form's sculptural quality. The overall mood is modern, energetic, and visually striking with a sense of fluid motion frozen in time.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/00f01419-f77d-43aa-b782-cf2e985fa6c0.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzAwZjAxNDE5LWY3N2QtNDNhYS1iNzgyLWNmMmU5ODVmYTZjMC5qcGciLCJpYXQiOjE3NzM1NDkxMDQsImV4cCI6MTgwNTA4NTEwNH0.04yiso4FN5VLHtP2efmLr1vL2veE-Pmv4-pnaODPt7o",
+  "import": "import {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Form3D,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Form3D,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"78\"\n      :brightness=\"100\"\n      :center=\"{\n        x: 0.75,\n        y: 1\n      }\"\n      color=\"#dad6ff\"\n      :fill-intensity=\"0\"\n      :key-intensity=\"0\"\n      :light-target=\"0\"\n      :wall-curvature=\"57\"/>\n    <Form3D\n      :center=\"{\n        x: 0.63,\n        y: 0.72\n      }\"\n      :glossiness=\"200\"\n      :lighting=\"197\"\n      :shape3d=\"{\n        type: 'ribbon',\n        angle: 189,\n        twist: 52,\n        width: 72,\n        thickness: 200,\n        seed: 0\n      }\"\n      :speed=\"2\"\n      :zoom=\"78\">\n      <Swirl\n        color-a=\"#9300d0\"\n        color-b=\"#2cff87\"\n        color-space=\"oklab\"\n        :detail=\"1.9\"/>\n      <FallingLines\n        :angle=\"0\"\n        blend-mode=\"linearDodge\"\n        color-b=\"#000000\"\n        :density=\"12\"\n        :stroke-width=\"0.1\"\n        :trail-length=\"0.72\"/>\n    </Form3D>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

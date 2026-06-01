@@ -1,0 +1,63 @@
+{
+  "id": "71ce84f6-2f5e-4e12-89e8-fec5c66fc2cc",
+  "title": "Dither Logo 5",
+  "collectionId": "099df352-41e8-4298-ad10-74f792b3f539",
+  "category": "logo",
+  "description": "A modern, minimalist logo design featuring four rounded geometric shapes arranged in a 2x2 grid pattern, spelling out 'DDBE' or similar letterforms. The shapes have a soft, organic quality with smooth curves and rounded edges. The logo uses a gradient fill that transitions from white/cream on the left side to a soft pink tone on the right side, creating a subtle dimensional effect with gentle highlights. The background is a deep burgundy-purple gradient that transitions from darker tones on the left to slightly lighter purple-wine tones on the right, creating depth and atmosphere. The logo appears to have a luminous quality with soft glowing edges, enhanced by a subtle dithering pattern applied with a linear dodge blend mode that adds fine texture and sparkle, particularly visible around the edges. The overall effect is contemporary and elegant, with a sophisticated color palette that balances warm pinks against cool deep purples. The plasma effect underneath creates subtle color variations within the shapes, with hints of cyan and magenta visible in the gradients, though the dither effect dominates the final visual appearance.",
+  "thumbnail": "/shaders/thumbnails/71ce84f6-2f5e-4e12-89e8-fec5c66fc2cc.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ImageTexture",
+        "props": {
+          "id": "idmmaykb1vflvohydj1",
+          "objectFit": "contain",
+          "transform": {
+            "offsetX": 0.35,
+            "scale": 0.6
+          },
+          "url": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg",
+          "visible": false
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 1,
+            "y": 0.5
+          },
+          "colorA": "#060612",
+          "colorB": "#420925",
+          "colorSpace": "oklab",
+          "radius": 1.5
+        }
+      },
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 63,
+          "colorA": "#a2f0d4",
+          "colorB": "#ff3f68",
+          "colorSpace": "oklab",
+          "contrast": 2.6,
+          "density": 1.7,
+          "intensity": 3,
+          "maskSource": "idmmaykb1vflvohydj1"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pattern": "bayer8",
+          "pixelSize": 3,
+          "threshold": 0.96
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

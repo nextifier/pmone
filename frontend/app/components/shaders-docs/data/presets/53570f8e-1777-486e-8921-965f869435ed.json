@@ -1,0 +1,80 @@
+{
+  "id": "53570f8e-1777-486e-8921-965f869435ed",
+  "title": "Subtle Liquid 4",
+  "collectionId": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "category": "background",
+  "description": "A vibrant, flowing gradient shader with a luminous quality. The composition features a primary linear gradient transitioning from deep magenta (#ff1493) in the lower left corner through orange and yellow tones in the center, to bright spring green (#00ff7f) in the upper right corner. The gradient follows a 315-degree angle with mirror edge handling, creating a diagonal sweep across the canvas. Overlaid on this base is an animated blob element centered at coordinates (0.25, 0.25) with warm orange (#ff6b00) to gold (#ffd700) coloring, featuring significant deformation (0.82) and a cyan highlight (#00ffff) positioned at (0.4, 0.2) with 0.7 intensity, creating a glossy, three-dimensional appearance. The blob has soft edges (0.45 softness) and appears to glow with internal luminosity. A subtle white dot grid pattern (density 100, 0.12 dot size) overlays the entire composition with 0.3 opacity using linear dodge blending, adding fine texture and sparkle. The Liquify effect with 0.6 swirl and 1.8 radius creates organic wave distortions throughout, softening hard edges and creating fluid motion. Film grain with 0.21 strength adds subtle noise texture for depth. The overall mood is energetic, warm, and organic with a modern, digital aesthetic. The color space uses OKLCH for perceptually uniform transitions.",
+  "thumbnail": "/shaders/thumbnails/53570f8e-1777-486e-8921-965f869435ed.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 315,
+          "colorA": "#ff1493",
+          "colorB": "#00ff7f",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.79,
+            "y": 0.7
+          },
+          "start": {
+            "x": 0.23,
+            "y": 0.32
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.25,
+            "y": 0.25
+          },
+          "colorA": "#ff6b00",
+          "colorB": "#ffd700",
+          "colorSpace": "oklch",
+          "deformation": 0.82,
+          "highlightColor": "#00ffff",
+          "highlightIntensity": 0.7,
+          "highlightX": 0.4,
+          "highlightY": 0.2,
+          "highlightZ": 0.67,
+          "size": 0.325,
+          "softness": 0.45,
+          "speed": 1.2
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "density": 100,
+          "dotSize": 0.12,
+          "opacity": 0.3
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 3.3,
+          "edges": "mirror",
+          "intensity": 1.2,
+          "radius": 1.8,
+          "swirl": 0.6
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.21
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "914d6f82-eca7-475f-8617-d1511fb84119",
+  "title": "Drifting Lights 5",
+  "collection_id": "510560b6-b9da-43ed-8275-561f71268e84",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, radial gradient shader effect that transitions from vibrant red at the center to warm orange and tan tones in the mid-regions, finally fading to bright lime green at the edges. The gradient flows horizontally with a linear interpolation between red (#bb131c) and green (#82ef77) using OKLab color space, creating smooth intermediate hues of coral and peachy tones. A rectangular coordinate system overlay with 3x scale creates subtle geometric structure and depth perception. The entire composition is softened by a film grain texture at 0.3 strength, adding a subtle noise pattern that creates a cinematic, slightly textured appearance. The effect has a warm-to-cool temperature shift from center to periphery, with the grain providing micro-level detail that prevents the gradient from appearing too flat or artificial. The overall mood is energetic and vibrant, with smooth blending and no harsh edges.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/914d6f82-eca7-475f-8617-d1511fb84119.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzkxNGQ2ZjgyLWVjYTctNDc1Zi04NjE3LWQxNTExZmI4NDExOS5qcGciLCJpYXQiOjE3NzI5MzQ1MTIsImV4cCI6MTgwNDQ3MDUxMn0.1s9fWLQWoR19Mneq4TQk-1m8Wj8FZ7oXaxFmWitvQYI",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  LinearGradient,\n  RectangularCoordinates\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  LinearGradient,\n  RectangularCoordinates\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"{\n        mode: 'loop',\n        type: 'auto-animate',\n        speed: 1,\n        easing: 'linear',\n        outputMax: 360,\n        outputMin: 0\n      }\"\n      color-a=\"#bb131c\"\n      color-b=\"#82ef77\"\n      color-space=\"oklab\"/>\n    <RectangularCoordinates\n      edges=\"stretch\"\n      :scale=\"3\"/>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

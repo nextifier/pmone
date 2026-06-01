@@ -1,0 +1,53 @@
+{
+  "id": "d997fa02-86d4-4d60-b95d-d0586bb7eb08",
+  "title": "Pistons 5",
+  "collectionId": "e711302e-35b1-4b30-a736-21de5f52c44e",
+  "category": "background",
+  "description": "A serene, minimalist shader composition featuring a soft turquoise background (#7fdbcc) overlaid with an ASCII art pattern composed of block characters (▄, ║, █) in cream and light gray tones. The ASCII characters form vertical lines and rectangular shapes that create a subtle data visualization or rain-like effect across the canvas. Overlaying this is a godray effect with blue light rays (#3080c7) emanating from the top-right corner, creating volumetric light streaks that add depth and atmospheric quality. The rays have a soft, diffused quality with moderate density (0.2), producing a dreamy, ethereal mood. A paper texture with high roughness (0.85) and fine grain scale (3) is applied across all layers, adding tactile imperfection and organic quality to the otherwise digital composition. The overall effect suggests digital rain, data streams, or light filtering through a textured surface, with a calm, contemplative atmosphere enhanced by the cool color palette and soft lighting.",
+  "thumbnail": "/shaders/thumbnails/d997fa02-86d4-4d60-b95d-d0586bb7eb08.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#7fdbcc"
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "cellSize": 54,
+          "characters": "▄║█",
+          "fontFamily": "Geist Mono",
+          "gamma": 1.3
+        },
+        "children": [
+          {
+            "type": "Godrays",
+            "props": {
+              "backgroundColor": "#e4f0c9",
+              "center": {
+                "x": 1,
+                "y": 1
+              },
+              "density": 0.2,
+              "intensity": 0.9,
+              "rayColor": "#3080c7",
+              "spotty": 0
+            }
+          }
+        ]
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 0,
+          "grainScale": 3,
+          "roughness": 0.85
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

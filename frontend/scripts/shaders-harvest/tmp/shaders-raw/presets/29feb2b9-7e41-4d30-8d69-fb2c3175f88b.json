@@ -1,0 +1,30 @@
+{
+  "id": "29feb2b9-7e41-4d30-8d69-fb2c3175f88b",
+  "title": "Pixel Haze",
+  "collection_id": "0f5e322c-918d-445e-ae74-e65f001e8b98",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, flowing gradient shader effect transitioning from bright electric blue in the upper left to deep dark purple in the lower right. The swirl component creates organic, wave-like distortions that flow diagonally across the canvas, generating a sense of fluid motion. The color palette shifts through vibrant blue (#2b4cf0) to nearly black purple (#1c034f), creating depth and dimensionality. A subtle dither pattern with white overlay adds fine-grained texture throughout, visible as a slight speckled quality that breaks up the smoothness. The grid distortion effect introduces gentle warping and undulation to the gradient, creating subtle ripples and wave patterns that prevent the image from appearing flat. A very fine film grain overlay adds minimal noise for cinematic quality. The overall effect is atmospheric and ethereal, with a cool, modern aesthetic. The edges fade to transparency, and the lighting appears to emanate from the upper left, creating a sense of volumetric depth. The blend modes work together to create a cohesive, polished look without harsh transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/c101aa0e-6ac3-4109-aa62-77bf789075e2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2MxMDFhYTBlLTZhYzMtNDEwOS1hYTYyLTc3YmY3ODkwNzVlMi5qcGciLCJpYXQiOjE3Njk3MTE5MDUsImV4cCI6MTgwMTI0NzkwNX0.E1pXD6SIhO1BQuXQklXGrfnTssLU_tPnLPpgs1kxZEI",
+  "import": "import {\n  Shader,\n  Dither,\n  FilmGrain,\n  GridDistortion,\n  Sharpness,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  FilmGrain,\n  GridDistortion,\n  Sharpness,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"30\"\n      color-a=\"#1c034f\"\n      color-b=\"#2b4cf0\"\n      color-space=\"oklch\"\n      :detail=\"1.2\"\n      :speed=\"0.6\"/>\n    <Dither\n      blend-mode=\"overlay\"\n      :pixel-size=\"5\"\n      :threshold=\"0.45\"/>\n    <GridDistortion\n      edges=\"mirror\"\n      :grid-size=\"75\"\n      :intensity=\"5\"\n      :radius=\"2\"/>\n    <Sharpness\n      :sharpness=\"1\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

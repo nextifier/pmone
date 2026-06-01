@@ -1,0 +1,30 @@
+{
+  "id": "488e7c27-42f5-4f83-a2b0-26e39f92aad6",
+  "title": "Faded Dither 8",
+  "collection_id": "cc49576b-748c-4194-a9d2-234d5b628ea6",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A gradient background transitioning from dark navy blue (#1a3d6b) in the lower left and right corners to lighter cyan-blue tones in the upper center and middle areas. The entire composition is overlaid with a dithered pattern using a Bayer 8x8 matrix, creating a granular, pixelated texture throughout. The dithering uses transparent areas mixed with bright cyan-blue (#4a8bd4) dots, producing a noisy, stippled appearance that becomes denser in lighter regions and sparser in darker regions. Subtle sine wave distortions are visible, creating gentle undulating patterns at approximately 312 degrees angle with white highlights that add luminosity and movement. The overall effect is a soft, atmospheric gradient with a digital, halftone-like quality. The pixelation is most prominent in the mid-tone areas, creating a smooth transition between the deep navy base and the lighter blue highlights. The mood is cool, technological, and serene with a subtle sense of depth created by the layered dithering and wave effects.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/488e7c27-42f5-4f83-a2b0-26e39f92aad6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ4OGU3YzI3LTQyZjUtNGY4My1hMmIwLTI2ZTM5ZjkyYWFkNi5qcGciLCJpYXQiOjE3NzMyNTA3NzYsImV4cCI6MTgwNDc4Njc3Nn0.79rInOxfa3g34LoUmidGz56lx_cOAJBTTbz10Dp5LUw",
+  "import": "import {\n  Shader,\n  Dither,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#1a3d6b\"/>\n    <Dither\n      color-b=\"#4a8fd4\"\n      pattern=\"bayer8\"\n      :threshold=\"0.41\">\n      <SineWave\n        :angle=\"312\"\n        :frequency=\"0.5\"\n        :position=\"{\n          x: 0.48,\n          y: 0.61\n        }\"\n        :softness=\"1\"\n        :speed=\"0.4\"\n        :thickness=\"0.8\"/>\n    </Dither>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

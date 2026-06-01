@@ -1,0 +1,53 @@
+{
+  "id": "fe27e1d6-c6fc-43ee-b3c8-051010bccc2b",
+  "title": "Lost Rays 2",
+  "collectionId": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by deep navy and black tones with dynamic linear striations creating a sense of motion and depth. The image features prominent diagonal line patterns that converge toward the upper right, suggesting a zoom blur effect emanating from the lower left quadrant. Cyan and teal accents appear along the edges of the linear patterns, creating a neon-like glow effect. The composition has a strong sense of directional movement with parallel lines that intensify and spread outward. A subtle film grain texture overlays the entire image, adding a cinematic quality. The color grading applies a tritone effect with dark purples in the shadows, cyan highlights in the midtones, and golden yellow accents in the brightest areas. The overall mood is technological and dynamic, with a sci-fi aesthetic. Godrays emanate from a point in the upper-center area, creating volumetric light streaks that interact with the zoom blur effect. The blend of effects creates a sense of high-speed motion through a digital or abstract space.",
+  "thumbnail": "/shaders/thumbnails/fe27e1d6-c6fc-43ee-b3c8-051010bccc2b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Godrays",
+        "props": {
+          "backgroundColor": "#000000",
+          "center": {
+            "x": 0.53,
+            "y": 0.72
+          },
+          "density": 0.2,
+          "rayColor": "#ffffff",
+          "speed": 0.7
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.09
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "blendMid": 0.7,
+          "colorA": "#0f0517",
+          "colorB": "#00fffa",
+          "colorC": "#ffd53d",
+          "colorSpace": "hsl"
+        }
+      },
+      {
+        "type": "ZoomBlur",
+        "props": {
+          "center": {
+            "x": 0.11,
+            "y": 0.33
+          },
+          "intensity": 100
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

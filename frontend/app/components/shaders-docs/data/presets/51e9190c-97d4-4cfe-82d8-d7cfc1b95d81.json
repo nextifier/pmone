@@ -1,0 +1,76 @@
+{
+  "id": "51e9190c-97d4-4cfe-82d8-d7cfc1b95d81",
+  "title": "Arrow Skies 2",
+  "collectionId": "fea12e25-101d-48a0-83ba-13df1a667892",
+  "category": "background",
+  "description": "A dynamic gradient background transitioning from deep purple (#220047) in the upper right to vibrant magenta-pink (#ff0091) in the lower left, creating a rich color field. Overlaid on this gradient is an ASCII character pattern composed of directional arrow symbols (↖↗) arranged in a grid with 30-pixel cell spacing. The ASCII characters display a yellow-to-dark-blue gradient (#fff700 to #00004a) that flows from top-left to bottom-right, creating a secondary color gradient effect. A sine wave distortion effect (angle 151°, frequency 1.4, strength 0.5) is applied to the ASCII layer, causing subtle undulating movement and spatial warping across the character grid. A bright yellow circular glow (#ffdd00) with soft edges is positioned in the lower-left quadrant (approximately 30% from left, 82% from top) with a radius of 1.87 units, adding luminous depth and focal point emphasis. The overall composition creates a sense of directional flow and energy, with the arrows suggesting upward and rightward movement against the purple-to-pink gradient backdrop. The blend of geometric precision (grid layout) with organic distortion (wave effects) and warm-cool color contrasts produces a modern, tech-forward aesthetic with dynamic visual tension.",
+  "thumbnail": "/shaders/thumbnails/51e9190c-97d4-4cfe-82d8-d7cfc1b95d81.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#ff0091",
+          "colorB": "#220047",
+          "colorSpace": "oklch",
+          "end": {
+            "x": 0.53,
+            "y": 0.32
+          },
+          "start": {
+            "x": 0,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "characters": "↖↖↗↗"
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "colorA": "#fff700",
+              "colorB": "#00004a",
+              "colorSpace": "oklch",
+              "end": {
+                "x": 0.53,
+                "y": 0.51
+              },
+              "start": {
+                "x": 0,
+                "y": 1
+              }
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 151,
+              "frequency": 1.4,
+              "speed": 3.9,
+              "strength": 0.5
+            }
+          },
+          {
+            "type": "Circle",
+            "props": {
+              "blendMode": "normal-oklch",
+              "center": {
+                "x": 0.3,
+                "y": 0.82
+              },
+              "color": "#ffdd00",
+              "radius": 1.87,
+              "softness": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

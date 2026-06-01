@@ -1,0 +1,30 @@
+{
+  "id": "b4dafbdc-70b0-4530-b64c-0004ccf4f502",
+  "title": "Swatch Rings",
+  "collection_id": "307cc7b7-0339-4237-a40b-749e6d5af8f7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A mesmerizing concentric circular gradient pattern with multiple nested rings emanating from the bottom center of the composition. The outermost ring features a cyan-to-green linear gradient (from #07c0d1 to #50fb9b) at 135-degree angle, creating a cool-toned outer boundary. Moving inward, successive rings transition through purple, pink, peach, and yellow hues, creating a rainbow-like effect. A yellow radial glow (#ffff00) positioned at the upper-left adds luminous warmth with 50% opacity. The entire composition is overlaid with a fine white grid pattern (40 cells, 0.3 thickness) creating a subtle mesh texture throughout. Wave distortion with sawtooth waveform (frequency 3.9, strength 0.3) creates subtle undulating ripples across the concentric rings, giving them a slightly fluid, organic quality. The ConcentricSpin effect with 5 rings centered at bottom-middle generates the primary circular structure with 45-degree intensity. Chromatic aberration (0.05 strength) introduces minimal color fringing at edges. Film grain (0.6 strength) adds fine noise texture across the entire surface, creating a slightly grainy, analog quality. The overall effect is vibrant, psychedelic, and hypnotic with smooth color transitions and layered visual depth.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/a5f2fbc0-6181-4ae9-bdc2-3a59e340d8fe.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2E1ZjJmYmMwLTYxODEtNGFlOS1iZGMyLTNhNTllMzQwZDhmZS5qcGciLCJpYXQiOjE3NzExMzIzMTksImV4cCI6MTgwMjY2ODMxOX0.4jujUugjPRlZQIkOTtHtRepZUGgk08chkyEQlXYSbM0",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  FilmGrain,\n  Grid,\n  LinearGradient,\n  RadialGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  FilmGrain,\n  Grid,\n  LinearGradient,\n  RadialGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"135\"\n      color-a=\"#07c0d1\"\n      color-b=\"#50fb9b\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 1,\n        y: 1\n      }\"\n      :start=\"{\n        x: 0,\n        y: 0\n      }\"/>\n    <RadialGradient\n      :center=\"{\n        x: 0.3,\n        y: 0.3\n      }\"\n      color-a=\"#ffff00\"\n      color-b=\"transparent\"\n      color-space=\"oklch\"\n      :opacity=\"0.5\"\n      :radius=\"0.8\"\n      :visible=\"true\"/>\n    <Grid\n      :cells=\"40\"\n      :thickness=\"0.3\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"90\"\n      edges=\"mirror\"\n      :frequency=\"3.9\"\n      :speed=\"2.2\"\n      :visible=\"true\"\n      wave-type=\"sawtooth\"/>\n    <ConcentricSpin\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :intensity=\"45\"\n      :rings=\"5\"\n      :seed=\"42\"\n      :smoothness=\"0\"\n      :speed=\"0.4\"\n      :speed-randomness=\"0.7\"/>\n    <ChromaticAberration\n      :strength=\"0.05\"\n      :visible=\"true\"/>\n    <FilmGrain\n      :strength=\"0.6\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

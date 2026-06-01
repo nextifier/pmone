@@ -1,0 +1,18 @@
+{
+  "id": "4e247d66-4503-4116-bf4a-9bf553b5d136",
+  "title": "Pixel Beams 3",
+  "collection_id": "ef3cb88e-1e3e-4371-8816-4821e67b554f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant magenta and pink gradient background with a sophisticated dithering effect creating a halftone-like texture. The composition features a diagonal wave distortion pattern that runs from the upper-left to lower-right, creating a sense of movement and depth. The dither pattern uses small black dots arranged in a Bayer 8x8 matrix at 7-pixel intervals, creating a grainy, stippled appearance across the entire surface. The underlying plasma effect generates organic, flowing patterns with high contrast between light and dark areas, producing a turbulent, cloud-like texture beneath the dither layer. The wave distortion applies a square-wave modulation at 165 degrees with a frequency of 1.8, creating diagonal striations and a subtle warping effect that gives the image a dynamic, almost liquid quality. The overall mood is energetic and modern, with the combination of geometric dithering and organic plasma creating visual tension. The edges fade to transparency, allowing the effect to blend seamlessly. The color palette transitions smoothly between bright magenta (#f931bc) and deep purple (#80108a), with the plasma layer adding white and black accents that enhance contrast and visual interest.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/4e247d66-4503-4116-bf4a-9bf553b5d136.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzRlMjQ3ZDY2LTQ1MDMtNDExNi1iZjRhLTliZjU1M2I1ZDEzNi5qcGciLCJpYXQiOjE3NzI4MzUyNTgsImV4cCI6MTgwNDM3MTI1OH0.YcMw5bJ2sDZCAgB3YUW2cq3xgUKfbmfwSNSYYdDKalk",
+  "import": "import {\n  Shader,\n  Dither,\n  Plasma,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  Plasma,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Dither\n      color-a=\"#f931bc\"\n      color-b=\"#80108a\"\n      pattern=\"bayer8\"\n      :pixel-size=\"7\"\n      :threshold=\"0.41\">\n      <Plasma\n        color-a=\"#ffffff\"\n        :contrast=\"0.9\"\n        :density=\"0.3\"\n        :intensity=\"1.3\"\n        :speed=\"1\"/>\n      <WaveDistortion\n        :angle=\"165\"\n        edges=\"mirror\"\n        :frequency=\"1.8\"\n        :strength=\"1\"\n        :visible=\"true\"\n        wave-type=\"square\"/>\n    </Dither>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "2cd1e266-fabb-449b-9110-60ad46c7e2a9",
+  "title": "Dot Gradient 4",
+  "collectionId": "b1b5062b-8732-45ac-956d-eca9d27029b4",
+  "category": "background",
+  "description": "A smooth, gradient-based shader effect transitioning diagonally from purple-magenta tones in the upper left to deep blue tones in the lower right. The gradient follows a 141-degree angle with a subtle wave distortion applied at 198 degrees, creating gentle undulating ripples across the surface that add organic movement without dramatic displacement. The primary color transition uses oklab color space for smooth interpolation between #9588ec (light purple) and #1c3f8a (dark blue). Overlaid on this gradient is a fine dot grid pattern with small yellow-green particles (#d8fa2d) scattered across the entire canvas at a density of 30, creating a starfield or sparkle effect. These dots use a linear dodge blend mode with full twinkle animation, making them appear to shimmer and twinkle subtly like distant stars. The wave distortion has a sine wave pattern with 0.6 frequency and 0.45 strength, creating a gentle, flowing visual rhythm. The overall atmosphere is cosmic and ethereal, with a calm, meditative quality. The composition maintains consistent opacity throughout with no transparency masking, creating a cohesive, unified visual experience.",
+  "thumbnail": "/shaders/thumbnails/2cd1e266-fabb-449b-9110-60ad46c7e2a9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 141,
+          "colorA": "#1c3f8a",
+          "colorB": "#9588ec",
+          "colorSpace": "oklab",
+          "end": {
+            "x": 0.93,
+            "y": 0.85
+          },
+          "start": {
+            "x": 0.05,
+            "y": 0.27
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 198,
+          "frequency": 0.6,
+          "strength": 0.45
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "color": "#d8fa2d",
+          "dotSize": 0.05,
+          "twinkle": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

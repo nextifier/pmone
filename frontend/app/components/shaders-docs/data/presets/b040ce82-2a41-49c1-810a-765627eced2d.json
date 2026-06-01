@@ -1,0 +1,72 @@
+{
+  "id": "b040ce82-2a41-49c1-810a-765627eced2d",
+  "title": "Cascading Lines 5",
+  "collectionId": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "category": "background",
+  "description": "A dynamic shader effect featuring vertical falling lines that cascade downward from the top of the composition. The background is a deep burgundy-red (#913030) that provides a warm, rich foundation. Overlaid on this base are numerous thin vertical strands in golden-yellow (#f4a01d) and cream (#ddc593) tones that fall at varying speeds and lengths, creating a rain-like or curtain effect. The lines have varying opacity and trail lengths, with some appearing more prominent and others fading into the background. A subtle swirl effect is applied, creating gentle undulation and movement within the falling lines pattern. The composition uses a dither pattern with a bayer4 algorithm applied with linear dodge blending, adding a subtle grainy texture and luminosity enhancement throughout. The overall effect creates a sense of motion and depth, with the golden lines appearing to cascade like liquid gold or light particles falling through a warm, dark space. The density of lines is moderate (60), allowing the background to show through while maintaining visual interest. The effect has a luxurious, elegant quality with warm autumn tones dominating the palette.",
+  "thumbnail": "/shaders/thumbnails/b040ce82-2a41-49c1-810a-765627eced2d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#913030"
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#f4a01d",
+          "colorB": "#ddc593",
+          "detail": 2,
+          "maskSource": "idmmzanabwzt8f61fke"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmzanabwzt8f61fke",
+          "density": 60,
+          "speed": 0.1,
+          "speedVariance": 0.7,
+          "strokeWidth": 0.66,
+          "trailLength": {
+            "type": "map",
+            "curve": -0.15,
+            "source": "idmmzaokw5nk6ntmihd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmzaokw5nk6ntmihd",
+          "amplitude": 0.4,
+          "angle": 26,
+          "frequency": 0.5,
+          "softness": 1,
+          "speed": 0.4,
+          "thickness": 1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "d08674d2-1bb4-42cc-9f18-57487bd68894",
+  "title": "Vertex Mesh",
+  "collection_id": "a13345f7-1203-449c-a719-9bedee3177b9",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, tech-noir shader effect featuring a deep navy-black background (#11131f) overlaid with a geometric grid pattern. The primary visual element is a bright neon cyan-green grid (#00ffaa) composed of 9x9 cells with thin 0.2-unit line thickness, creating a regular rectangular tessellation across the entire canvas. Overlaying this structured grid is a ConcentricSpin distortion effect that warps and rotates the grid lines in concentric patterns emanating from the center, creating a hypnotic spiral-like appearance with 5 rings of distortion. The GridDistortion component further warps the grid with a decay of 6.4 and intensity of 5, causing the rectangular cells to bend and curve organically, particularly visible in the center where the distortion is strongest and gradually fades toward the edges. A subtle chromatic aberration effect with red offset of -1 and blue offset of +1 introduces thin color fringing along the grid lines, creating a slight 3D anaglyph effect with red and blue separation. The overall mood is cyberpunk and digital, with high contrast between the dark background and luminous neon lines. The distortion creates a sense of depth and movement, as if the grid is being pulled toward a central vortex, while maintaining visibility of the underlying geometric structure throughout.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/19b14812-7bdc-45a0-80fe-e8a254dbac76.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzE5YjE0ODEyLTdiZGMtNDVhMC04MGZlLWU4YTI1NGRiYWM3Ni5qcGciLCJpYXQiOjE3NzExMzI4MzYsImV4cCI6MTgwMjY2ODgzNn0.E4Bx3zVJa2NI0QFLeFl5Nqp29akWxt5BVHnHGAOx9rc",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  Grid,\n  GridDistortion,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  Grid,\n  GridDistortion,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#11131f\"/>\n    <Grid\n      :cells=\"9\"\n      color=\"#00ffaa\"\n      :thickness=\"0.2\"/>\n    <ConcentricSpin\n      :intensity=\"60\"\n      :rings=\"5\"\n      :seed=\"42\"\n      :smoothness=\"0\"\n      :speed=\"0.3\"\n      :speed-randomness=\"0.91\"/>\n    <GridDistortion\n      :decay=\"6.4\"\n      :grid-size=\"27\"\n      :intensity=\"5\"\n      :radius=\"3\"/>\n    <ChromaticAberration\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This shader has a high level of detail/contrast or some other factor that may make it hard to read content on top of it. You may want to consider masking the shader behind any content for readability."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

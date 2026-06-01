@@ -1,0 +1,60 @@
+{
+  "id": "e46fbd06-7ee2-45c1-b0b8-5122f55e13ad",
+  "title": "Comet Streaks 6",
+  "collectionId": "8fffdbdb-2234-4451-884e-58cfad446e4a",
+  "category": "background",
+  "description": "A dynamic shader effect featuring diagonal streaking lines at approximately 40-degree angle against a very dark navy-black background (#140d1c). The falling lines create a sense of rapid downward motion with a meteor or rain-like quality. The lines transition through a gradient color palette dominated by vibrant yellow-lime (#c0c01b) on the warmer side and bright magenta-purple (#d18aff) on the cooler side, with intermediate pink and lavender tones. Each line has a soft, glowing quality with gradient falloff from opaque center to transparent edges, creating a neon-like luminescence effect. The lines vary in brightness and saturation, with some appearing more saturated yellow-green while others shift toward purple and pink hues. A tilt-shift blur effect is applied at a 52-degree angle with significant falloff (0.8), creating selective focus that makes the center lines appear sharper while edges gradually blur, enhancing the depth and sense of motion. The overall atmosphere is futuristic and energetic, with a cyberpunk aesthetic. The density of lines (40 units) creates a moderately populated field without complete saturation, allowing the dark background to remain visible and create contrast. The motion blur and trail length (0.31) contribute to the sense of high-speed movement downward across the frame.",
+  "thumbnail": "/shaders/thumbnails/e46fbd06-7ee2-45c1-b0b8-5122f55e13ad.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#140d1c"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmijuosi5e6y2didn",
+          "angle": 40,
+          "colorSpace": "hsl",
+          "density": 40,
+          "speed": 0.1,
+          "speedVariance": 0.2,
+          "strokeWidth": 1,
+          "trailLength": 0.31,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#c0c01b",
+          "colorB": "#d18aff",
+          "colorSpace": "oklab",
+          "edges": "mirror",
+          "end": {
+            "x": 0.41,
+            "y": 0.68
+          },
+          "maskSource": "idmmijuosi5e6y2didn",
+          "start": {
+            "x": 0.21,
+            "y": 0.82
+          }
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "angle": 52,
+          "falloff": 0.8,
+          "width": 0
+        }
+      }
+    ]
+  },
+  "colorSpace": "srgb",
+  "toneMapping": "aces"
+}

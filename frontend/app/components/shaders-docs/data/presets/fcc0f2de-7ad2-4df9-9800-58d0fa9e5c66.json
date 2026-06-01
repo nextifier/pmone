@@ -1,0 +1,70 @@
+{
+  "id": "fcc0f2de-7ad2-4df9-9800-58d0fa9e5c66",
+  "title": "Solar Silk 4",
+  "collectionId": "680a814f-9b89-4419-8201-182726e05a92",
+  "category": "logo",
+  "description": "A vibrant gradient shader effect transitioning from deep purple (#824bcf) on the left to dark maroon (#61214e) on the right, creating a horizontal linear gradient across the entire canvas. Overlaid on this base is a prominent red circular glow (#ea1624) positioned in the lower-left quadrant with soft feathered edges (softness: 0.59), creating a warm focal point that bleeds into the cooler purple tones. The circle features a subtle purple stroke outline (#a16cce) with 0.2 thickness. A wave distortion effect (sine wave, 122-degree angle, 0.3 strength) subtly undulates across the entire composition, creating organic fluid movement. An SVG-based glass morphism shape is centered in the composition with chromatic aberration (0.93), refraction (0.54), and fresnel effects, adding depth and a translucent quality to the surface. The glass element has a subtle white highlight and tint with edge softness of 0.4, creating a glossy, dimensional appearance. Cursor ripples with chromatic split (intensity: 20, decay: 20) respond to interaction, adding dynamic responsiveness. A fine film grain overlay (strength: 0.2) adds subtle texture and analog quality throughout. The overall mood is modern, energetic, and interactive with a balance between cool purple tones and warm red accents, creating visual tension and depth.",
+  "thumbnail": "/shaders/thumbnails/fcc0f2de-7ad2-4df9-9800-58d0fa9e5c66.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#824bcf",
+          "colorB": "#61214e",
+          "visible": true
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.36,
+            "y": 0.85
+          },
+          "color": "#ea1624",
+          "colorSpace": "oklab",
+          "radius": 1.8,
+          "softness": 0.59,
+          "strokeColor": "#a16cce",
+          "strokeThickness": 0.2
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 122,
+          "speed": 3.7
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "decay": 20,
+          "intensity": 20,
+          "radius": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.93,
+          "edgeSoftness": 0.4,
+          "innerZoom": 2,
+          "refraction": 0.54,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EFaVkr2x3OsR_sdf.bin",
+          "thickness": 0.14
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

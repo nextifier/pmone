@@ -1,0 +1,60 @@
+{
+  "id": "d93381d7-20d2-4837-807b-4a8fe299f81f",
+  "title": "Radial Overlap 3",
+  "collectionId": "8bf4f5c0-a1d9-4f4a-ba81-191a560112d2",
+  "category": "background",
+  "description": "A fluid, organic gradient shader effect featuring a smooth transition between vibrant lime-green (#80c40e) on the left side and turquoise-cyan (#05bb9f) on the right side. The composition uses a swirl distortion effect that creates flowing, wave-like patterns with soft, blended edges. The gradient flows diagonally from upper-left to lower-right with subtle undulating curves that suggest liquid or smoke-like movement. The effect has a modern, contemporary aesthetic with smooth color blending in the oklab color space, creating natural-looking transitions. There are no hard edges or pixelation visible in the final render, indicating the pixelate effect is either disabled or heavily blended. The overall mood is energetic and dynamic, with a sense of motion and fluidity. The lighting appears even and diffuse, creating a seamless, three-dimensional appearance without harsh shadows or highlights.",
+  "thumbnail": "/shaders/thumbnails/d93381d7-20d2-4837-807b-4a8fe299f81f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ConicGradient",
+        "props": {
+          "id": "idmpiichpr7x5ibv89b",
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "colorA": "#ffffff",
+          "colorB": "#ffffff00",
+          "repeat": 3,
+          "rotation": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 0.1,
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#80c40e",
+          "colorB": "#05bb9f",
+          "colorSpace": "oklab",
+          "detail": 1.7,
+          "visible": true
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": {
+            "type": "map",
+            "curve": -0.65,
+            "source": "idmpiichpr7x5ibv89b",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 93,
+            "outputMin": 1
+          }
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

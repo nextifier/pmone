@@ -1,0 +1,38 @@
+{
+  "id": "dba7dac5-93c3-44de-bf39-47b6fa92f90e",
+  "title": "Swirled Lenses 8",
+  "collectionId": "9b4c6e1e-df9a-4b5f-a2b9-227f96acac3a",
+  "category": "background",
+  "description": "A sophisticated shader effect featuring diagonal parallel ridges or flutes that create a three-dimensional ribbed surface texture. The composition uses a color gradient transitioning from deep burgundy/maroon tones in the upper left corner (#500315) through warm beige and cream midtones to pale sage green (#c6e4b3) in the lower right. The fluted glass effect creates sharp linear highlights along each ridge, with a bright white specular reflection running along the peaks of the waves, producing a glossy, polished appearance. The ridges are angled at approximately 133 degrees, creating diagonal lines that sweep across the frame from upper-left to lower-right. The refraction effect (set to 4) causes subtle color separation and distortion along the edges of each flute, with chromatic aberration visible as slight color fringing. The wave amplitude is subtle (0.09), creating gentle undulations rather than dramatic peaks. Soft shadows fall between the ridges, enhancing the three-dimensional depth perception. The overall atmosphere is elegant and luxurious, resembling polished metal, glass, or silk fabric with a satin finish. The lighting appears to come from the upper left at a -90 degree angle, creating dramatic highlights that emphasize the geometric structure.",
+  "thumbnail": "/shaders/thumbnails/dba7dac5-93c3-44de-bf39-47b6fa92f90e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#500315",
+          "colorB": "#c6e4b3",
+          "colorSpace": "oklab",
+          "detail": 1.4
+        }
+      },
+      {
+        "type": "FlutedGlass",
+        "props": {
+          "aberration": 0.3,
+          "angle": 133,
+          "highlight": 0.97,
+          "highlightSoftness": 0.11,
+          "lightAngle": -90,
+          "refraction": 4,
+          "shape": "waves",
+          "softness": 1,
+          "waveAmplitude": 0.09,
+          "waveFrequency": 0.5
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

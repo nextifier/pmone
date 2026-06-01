@@ -1,0 +1,30 @@
+{
+  "id": "672347ce-fe55-473b-86fc-d46226e7b1eb",
+  "title": "Polynesian Waves 4",
+  "collection_id": "48d6b02f-3242-4a90-aac7-f42bea26036a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated 3D embossed geometric pattern featuring repeating diamond and parallelogram shapes arranged in diagonal rows across the composition. The effect creates a strong sense of depth through subtle shadow and highlight gradients, giving the appearance of raised or recessed geometric forms. The primary color palette consists of white and very light gray tones with soft blue-gray accents (#6da2a3) visible in the shadow areas. The linear gradient component (119° angle with 0.25 scale) creates directional lighting that emphasizes the three-dimensional quality of each geometric element. A subtle wave distortion (sine wave at 211° angle with 0.05 strength) adds organic undulation to the otherwise rigid geometric structure, creating a slightly rippled or fluid quality. The dither effect with linear dodge blending at high threshold (0.86) introduces fine-grain texture and luminosity variation, enhancing the embossed appearance and adding visual complexity at the micro level. The overall atmosphere is clean, modern, and minimalist with a sophisticated tactile quality suggesting premium material or refined surface treatment.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/753e2eec-eebf-4fab-8a73-e1284917972c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzc1M2UyZWVjLWVlYmYtNGZhYi04YTczLWUxMjg0OTE3OTcyYy5qcGciLCJpYXQiOjE3NjMzOTk5NDcsImV4cCI6MTc5NDkzNTk0N30.ivPQ_0bjkPJcevJKzc8VTkdxBVrCZ2vXA3ixQxuWZU8",
+  "import": "import {\n  Shader,\n  Dither,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"119\"\n      color-a=\"#ffffff\"\n      color-b=\"#6da2a3\"\n      color-space=\"oklch\"\n      edges=\"wrap\"\n      :end=\"{\n        x: 0.5,\n        y: 0.5\n      }\"\n      :start=\"{\n        x: 0.4,\n        y: 0.72\n      }\"\n      :transform=\"{\n        edges: 'mirror',\n        rotation: 131,\n        scale: 0.25\n      }\"/>\n    <WaveDistortion\n      :angle=\"211\"\n      edges=\"mirror\"\n      :frequency=\"1.3\"\n      :strength=\"0.05\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      :pixel-size=\"1\"\n      :threshold=\"0.86\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

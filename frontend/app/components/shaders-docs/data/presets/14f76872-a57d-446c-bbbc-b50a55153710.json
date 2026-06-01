@@ -1,0 +1,74 @@
+{
+  "id": "14f76872-a57d-446c-bbbc-b50a55153710",
+  "title": "Neon Sign 5",
+  "collectionId": "cd084d1c-0aad-47cd-b889-ff7532d5c79d",
+  "category": "logo",
+  "description": "A neon cross symbol rendered against a pure black background with high contrast. The cross features a glowing outline in golden-yellow (#ffc800) with a warm orange-red secondary glow (#ff4800) creating a dual-tone luminescent effect. The neon tube has realistic characteristics including a bright hot core, soft outer glow halo, and subtle flickering animation. The cross shape is perfectly centered with smooth, rounded corners and consistent tube thickness throughout. The glow radiates outward with an intensity of approximately 0.47 radius, creating a warm atmospheric bloom around the entire shape. Floating particles in pale yellow (#ffed4f) drift slowly around the cross at various angles, adding subtle depth and movement. A tilt-shift blur effect is applied at a 70-degree angle with moderate falloff, creating a shallow depth-of-field that keeps the cross in sharp focus while slightly softening the surrounding glow. The overall mood is modern, energetic, and mystical with a retro neon aesthetic. The black background is nearly opaque (0.95 opacity solid color) to maximize contrast and make the luminous cross appear to float in darkness.",
+  "thumbnail": "/shaders/thumbnails/14f76872-a57d-446c-bbbc-b50a55153710.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ImageTexture",
+        "props": {
+          "url": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/h7eBDklfg_bz.jpeg"
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#000000",
+          "opacity": 0.95
+        }
+      },
+      {
+        "type": "Neon",
+        "props": {
+          "color": "#ffc800",
+          "cornerSmoothing": 0.2,
+          "flickerAmount": 0.24,
+          "flickerSpeed": 1.1,
+          "flowAmount": 1,
+          "flowSpeed": 2.6,
+          "glowColor": "#ffe500",
+          "glowIntensity": 0.25,
+          "glowRadius": 0.47,
+          "hotCoreIntensity": 0.45,
+          "intensity": 1.95,
+          "lightAngle": 251,
+          "scale": 0.9,
+          "secondaryBlend": 1,
+          "secondaryColor": "#ff4800",
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/w6Gk_KBfIO2t_sdf.bin",
+          "specularIntensity": 0.95,
+          "specularSize": 0.32,
+          "tubeThickness": 0.29
+        }
+      },
+      {
+        "type": "FloatingParticles",
+        "props": {
+          "angle": 81,
+          "angleVariance": 105,
+          "particleColor": "#ffed4f",
+          "particleDensity": 0.8,
+          "particleSize": 0.3,
+          "randomness": 0.5,
+          "speed": 0.1,
+          "speedVariance": 0.2,
+          "twinkle": 0.7
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "angle": 70,
+          "falloff": 0.4,
+          "intensity": 80,
+          "width": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

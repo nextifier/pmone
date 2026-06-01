@@ -1,0 +1,88 @@
+{
+  "id": "ce2b0fc1-e411-4dfe-a328-8e6e7d2e0a02",
+  "title": "Heatwave 2",
+  "collectionId": "96e0cd02-50f5-41e6-917c-ba1caa0dd39a",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring a warm-to-cool color transition. The left and center portions display a golden yellow (#fbbf24) to orange (#f59e0b) gradient with a bright, glowing highlight in the upper-center area creating a luminous focal point. The right side transitions dramatically into cool tones with cyan (#06b6d4), light-blue (#0ea5e9), and dark-blue (#1e40af) creating a sharp color boundary. The effect includes subtle film grain texture overlay (0.75 strength) providing a grainy, organic quality throughout. A progressive blur radiates from the upper-right corner (315-degree angle) with moderate falloff creating depth. The swirl component generates flowing, turbulent patterns in the blue regions with medium complexity (5.5), while a soft blob element centered at the lower-left adds organic, amorphous shapes with 0.85 softness and a pale yellow highlight (#fef3c7). Wave distortion with sine waves (3.5 frequency) at 45 degrees adds subtle undulating movement to the entire composition. The overall mood is energetic and dynamic, with smooth color gradations and soft, blurred edges creating an atmospheric, dreamlike quality.",
+  "thumbnail": "/shaders/thumbnails/ce2b0fc1-e411-4dfe-a328-8e6e7d2e0a02.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FilmGrain",
+        "props": {
+          "animated": 0,
+          "strength": 0.75
+        },
+        "children": [
+          {
+            "type": "ProgressiveBlur",
+            "props": {
+              "angle": 315,
+              "center": {
+                "x": 0.75,
+                "y": 0.25
+              },
+              "falloff": 0.4,
+              "intensity": 750
+            },
+            "children": [
+              {
+                "type": "Swirl",
+                "props": {
+                  "blend": 65,
+                  "coarseX": 50,
+                  "coarseY": 50,
+                  "colorA": "#1e40af",
+                  "colorB": "#06b6d4",
+                  "colorC": "#0ea5e9",
+                  "colorSpace": "oklch",
+                  "complexity": 5.5,
+                  "detail": 0.75,
+                  "fineX": 50,
+                  "fineY": 50,
+                  "mediumX": 50,
+                  "mediumY": 50,
+                  "scale": 4.5,
+                  "speed": 0.8
+                }
+              },
+              {
+                "type": "Blob",
+                "props": {
+                  "blendMode": "normal-oklch",
+                  "center": {
+                    "x": 0.25,
+                    "y": 0.75
+                  },
+                  "colorA": "#fbbf24",
+                  "colorB": "#f59e0b",
+                  "colorSpace": "oklab",
+                  "deformation": 0.6,
+                  "highlightColor": "#fef3c7",
+                  "highlightIntensity": 0.8,
+                  "highlightY": -0.25,
+                  "seed": 42,
+                  "size": 1.1,
+                  "softness": 0.85,
+                  "speed": 1.2
+                }
+              },
+              {
+                "type": "WaveDistortion",
+                "props": {
+                  "angle": 45,
+                  "edges": "mirror",
+                  "frequency": 3.5,
+                  "speed": 2.7,
+                  "strength": 0.22
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

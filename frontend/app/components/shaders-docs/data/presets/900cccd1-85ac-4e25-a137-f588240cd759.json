@@ -1,0 +1,85 @@
+{
+  "id": "900cccd1-85ac-4e25-a137-f588240cd759",
+  "title": "Vibrant Waves 3",
+  "collectionId": "489c993a-b238-4d9d-a155-69c82d555b95",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring diagonal wave-like striations that flow from the upper left to lower right. The primary color palette transitions smoothly from vivid magenta and purple tones on the left side to bright cyan and light-green hues on the right side. The effect creates multiple parallel curved bands or ridges that appear to have depth and dimensionality, resembling folded fabric or undulating waves. The sawtooth wave distortion at high frequency (10Hz) creates sharp, angular striations within the smoother sine wave base, producing a ribbed or corrugated texture. A subtle blob element with orange-red and magenta coloring is positioned in the upper-left quadrant, adding organic complexity beneath the geometric wave patterns. The tilt shift effect creates a selective focus with a 155-degree angle, slightly softening the overall sharpness while maintaining the vibrant color saturation. Film grain at 0.2 strength adds fine texture throughout. The color space uses OKLCH for the base swirl, creating perceptually uniform color transitions. The overall mood is energetic and modern, with a strong sense of motion and fluidity despite the static nature of the image.",
+  "thumbnail": "/shaders/thumbnails/900cccd1-85ac-4e25-a137-f588240cd759.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorB": "#f02b63",
+          "colorSpace": "oklch"
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 201,
+          "edges": "wrap",
+          "frequency": 1.6,
+          "strength": 0.1,
+          "transform": {
+            "scale": 1.3
+          }
+        },
+        "children": [
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 294,
+              "edges": "mirror",
+              "frequency": 10,
+              "speed": 0.3,
+              "waveType": "sawtooth"
+            },
+            "children": [
+              {
+                "type": "Blob",
+                "props": {
+                  "center": {
+                    "x": 0.34,
+                    "y": 0.16
+                  },
+                  "deformation": 0.7,
+                  "highlightColor": "#ffc61a",
+                  "highlightX": 0.5,
+                  "size": 0.8,
+                  "softness": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "HueShift",
+        "props": {
+          "shift": -94
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "angle": 155,
+          "center": {
+            "x": 0.63,
+            "y": 0.51
+          },
+          "intensity": 80,
+          "width": 0.5
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

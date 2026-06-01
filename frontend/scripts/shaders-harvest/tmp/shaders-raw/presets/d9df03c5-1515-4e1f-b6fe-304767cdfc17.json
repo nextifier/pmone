@@ -1,0 +1,30 @@
+{
+  "id": "d9df03c5-1515-4e1f-b6fe-304767cdfc17",
+  "title": "Enter The Matrix",
+  "collection_id": "fcbad305-a89b-483b-9701-f144042da99c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A classic Matrix-style digital rain effect rendered with Japanese katakana characters falling diagonally from top to bottom at approximately 90 degrees. The composition features bright neon green glowing characters (#40ff5c) cascading downward against a very dark, nearly black background (#0b1410). The characters have a luminous quality with a strong glow effect (intensity 6.8) that creates bright halos around each character, making them appear to emit light. The falling lines have a trail effect with 0.7 length, creating streaking motion blur as characters descend. The overall scene is viewed from a tilted perspective (30-degree tilt) that gives the impression of looking down at the digital rain from an angle. A subtle CRT screen effect with scanlines (0.1 intensity) and vignetting (0.1 intensity) adds a retro computer monitor aesthetic. The spacing between character columns is consistent at 0.9 units, with 34 density lines creating a dense, immersive rain pattern. The color gradient transitions from bright lime green at the brightest points to dark forest green (#032103) in the trail portions, creating depth and motion perception. The overall mood is cyberpunk, technological, and atmospheric with a strong sense of digital movement and data flow.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8cd8e075-8203-4494-9d75-f51c38172f86.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzhjZDhlMDc1LTgyMDMtNDQ5NC05ZDc1LWY1MWMzODE3MmY4Ni5qcGciLCJpYXQiOjE3NzMwMjUzNTcsImV4cCI6MTgwNDU2MTM1N30.dVNdsu5ctV2eEUQXCmcwrADZLzdbwXAXbKoXjQsm6q8",
+  "import": "import {\n  Shader,\n  Ascii,\n  CRTScreen,\n  FallingLines,\n  Glow,\n  Perspective,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  CRTScreen,\n  FallingLines,\n  Glow,\n  Perspective,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0b1410\"/>\n    <Ascii\n      :cell-size=\"25\"\n      characters=\"ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ\"\n      font-family=\"Geist Mono\"\n      :spacing=\"0.9\">\n      <FallingLines\n        color-a=\"#40ff5c\"\n        color-b=\"#032103ff\"\n        color-space=\"oklab\"\n        :density=\"34\"\n        :speed=\"0.45\"\n        :speed-variance=\"0.55\"\n        :stroke-width=\"0.5\"\n        :trail-length=\"0.7\"\n        :visible=\"true\"/>\n    </Ascii>\n    <Glow\n      :intensity=\"6.8\"\n      :size=\"2\"\n      :threshold=\"0.4\"\n      :visible=\"true\"/>\n    <CRTScreen\n      :color-shift=\"0\"\n      :pixel-size=\"112\"\n      :scanline-frequency=\"100\"\n      :scanline-intensity=\"0.1\"\n      :vignette-intensity=\"0.1\"\n      :vignette-radius=\"0.35\"\n      :visible=\"true\"/>\n    <Perspective\n      edges=\"wrap\"\n      :tilt=\"30\"\n      :zoom=\"0.9\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

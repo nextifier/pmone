@@ -1,0 +1,43 @@
+{
+  "id": "9b5aaa07-0407-4ec0-bbb8-63cb3b4d2cba",
+  "title": "Drifting Lights 9",
+  "collectionId": "510560b6-b9da-43ed-8275-561f71268e84",
+  "category": "background",
+  "description": "A smooth, gradient-based shader effect displaying a horizontal linear gradient that transitions from a muted lavender-purple on the left (#b2a4dc) to a deeper, more saturated blue-purple on the right (#8468f8). The gradient is overlaid with a subtle rectangular coordinate grid pattern that creates a faint geometric structure across the entire canvas, adding depth and mathematical precision to the composition. A fine film grain texture is applied uniformly across the surface at 0.3 strength, introducing organic noise that softens the otherwise smooth gradient and creates a slightly textured, analog quality. The effect is centered and symmetrical, with the gradient flowing horizontally from left to right. The overall mood is ethereal and calming, with a modern, digital aesthetic enhanced by the subtle grain texture. The rectangular coordinates effect at 3x scale creates barely perceptible linear patterns that suggest dimensionality without overwhelming the primary gradient effect.",
+  "thumbnail": "/shaders/thumbnails/9b5aaa07-0407-4ec0-bbb8-63cb3b4d2cba.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 1,
+            "easing": "linear",
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "colorA": "#b2a4dc",
+          "colorB": "#8468f8",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "RectangularCoordinates",
+        "props": {
+          "edges": "stretch",
+          "scale": 3
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

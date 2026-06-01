@@ -1,0 +1,89 @@
+{
+  "id": "171b4e66-561f-4d79-b753-44ca4c1a5c71",
+  "title": "Cloudflare",
+  "collectionId": "9f0ff946-be8d-4b19-af0b-c0f0cff8359f",
+  "category": "background",
+  "description": "A radiant gradient shader effect dominated by warm orange tones transitioning from deep burnt orange at the edges to a bright golden-yellow luminous center. The composition features a strong radial glow emanating from the lower-center area, creating an intense light source effect. The glow has a soft, diffused quality with high intensity (2.69) and a threshold of 0.37, producing a halo-like appearance. A circular gradient element positioned at the bottom center (coordinates 0.5, 1.0) with a soft edge (softness 0.57) creates the primary light source in a peachy-tan color (#ffbb6e). The overall effect is enhanced by god rays rendered from the same bottom-center point with a warm orange-red color (#ff4800), creating subtle directional light streaks. A progressive blur effect with linear dodge blending adds atmospheric depth, while a dot grid pattern with high density (160) and twinkling creates subtle texture variation. The saturation is boosted (intensity 1.13) to enhance color vibrancy. The entire composition creates a warm, glowing sunset or sunrise-like atmosphere with strong luminosity concentrated in the lower portion of the frame.",
+  "thumbnail": "/shaders/thumbnails/171b4e66-561f-4d79-b753-44ca4c1a5c71.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 2.69,
+          "size": 27.5,
+          "threshold": 0.37
+        },
+        "children": [
+          {
+            "type": "Saturation",
+            "props": {
+              "intensity": 1.13
+            },
+            "children": [
+              {
+                "type": "SolidColor",
+                "props": {
+                  "color": "#ff4000"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Circle",
+            "props": {
+              "blendMode": "normal-oklch",
+              "center": {
+                "x": 0.5,
+                "y": 1
+              },
+              "color": "#ffbb6e",
+              "radius": 1.03,
+              "softness": 0.57
+            }
+          },
+          {
+            "type": "ProgressiveBlur",
+            "props": {
+              "angle": 270,
+              "blendMode": "linearDodge",
+              "center": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "intensity": 5
+            },
+            "children": [
+              {
+                "type": "DotGrid",
+                "props": {
+                  "color": "#faa657",
+                  "density": 160,
+                  "dotSize": 0.22,
+                  "twinkle": 1
+                }
+              }
+            ]
+          },
+          {
+            "type": "Godrays",
+            "props": {
+              "blendMode": "linearDodge",
+              "center": {
+                "x": 0.5,
+                "y": 1
+              },
+              "density": 0.1,
+              "intensity": 1,
+              "rayColor": "#ff4800",
+              "speed": 1.82,
+              "spotty": 0.14
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

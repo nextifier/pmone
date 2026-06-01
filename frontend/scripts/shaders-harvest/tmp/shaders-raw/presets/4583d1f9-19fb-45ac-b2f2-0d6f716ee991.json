@@ -1,0 +1,30 @@
+{
+  "id": "4583d1f9-19fb-45ac-b2f2-0d6f716ee991",
+  "title": "Rolling Shadows 5",
+  "collection_id": "0c3f4def-3e49-4ee4-a36d-ec34752656e7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect featuring a smooth blend of deep purples, magentas, and dark blues transitioning into vibrant hot pinks and reds. The composition uses a multi-point gradient system with five color nodes positioned strategically across the canvas. The top-right corner anchors a very dark navy-purple (#020818), while the bottom-left features a bright magenta-pink (#e6125a). A secondary bright pink (#ff4488) is positioned as a mouse-tracking element near the center-left, creating an interactive focal point with momentum-based smoothing. The gradient exhibits soft, organic transitions with a smoothness value of 2, creating a liquid, flowing appearance. A subtle wave distortion effect with sine wave pattern (strength 0.3, frequency 1) adds gentle undulation across the entire surface. A bulge effect centered on mouse position creates localized warping with a radius of 2 and falloff of 2, producing a lens-like magnification effect that follows cursor movement with momentum and smoothing. A fine paper texture overlay (displacement 0.24, grain scale 3, roughness 0.1) adds subtle surface detail and tactile quality. The overall mood is modern, energetic, and atmospheric with a dark, moody foundation punctuated by vibrant neon-like accent colors. The effect creates depth through layered distortions and maintains visual interest through interactive mouse-tracking elements.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/4583d1f9-19fb-45ac-b2f2-0d6f716ee991.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ1ODNkMWY5LTE5ZmItNDVhYy1iMmYyLTBkNmY3MTZlZTk5MS5qcGciLCJpYXQiOjE3NzU5MjA1MjcsImV4cCI6MTgwNzQ1NjUyN30.wTgx_DnHHAvqrxPnn5hrqZuAWMfpWFeGuJwN3fQiybY",
+  "import": "import {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <MultiPointGradient\n      color-a=\"#020818\"\n      color-b=\"#e6125a\"\n      color-c=\"#030a1f\"\n      color-d=\"#ff4488\"\n      color-e=\"#1a0a3d\"\n      :position-a=\"{\n        x: 0.95,\n        y: 0.05\n      }\"\n      :position-b=\"{\n        x: 0.12,\n        y: 0.92\n      }\"\n      :position-c=\"{\n        x: 0.88,\n        y: 0.88\n      }\"\n      :position-d=\"{\n        type: 'mouse-position',\n        originX: 0.15,\n        originY: 0.18,\n        momentum: 0.2,\n        smoothing: 0.6\n      }\"\n      :position-e=\"{\n        x: 0.05,\n        y: 0.12\n      }\"/>\n    <WaveDistortion/>\n    <Bulge\n      :center=\"{\n        type: 'mouse-position',\n        originX: 0.37,\n        originY: 0.6642984014209592,\n        momentum: 0.3,\n        smoothing: 0.8\n      }\"\n      :falloff=\"2\"\n      :radius=\"2\"/>\n    <Paper\n      :displacement=\"0.24\"\n      :grain-scale=\"3\"\n      :roughness=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

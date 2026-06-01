@@ -1,0 +1,30 @@
+{
+  "id": "70d6ad9e-95a5-4569-8a31-0dcaeddee95e",
+  "title": "Pistons",
+  "collection_id": "e711302e-35b1-4b30-a736-21de5f52c44e",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic ASCII art shader effect displaying a vertical bar chart or waveform visualization composed of three distinct character types: solid blocks (█), lower half blocks (▄), and vertical lines (║). The composition creates a columnar pattern that resembles financial data, audio frequencies, or digital readouts. The base layer features a deep purple background (#2b1d59) providing a dark, tech-forward foundation. Overlaid on this are bright cyan-green godray effects (#13b648) that emanate from the right side of the composition, creating luminous vertical streaks that intersect with the ASCII characters. These rays produce a glowing, neon-like quality with high intensity (0.9) and moderate density (0.2), giving the effect a sense of depth and movement. The ASCII characters themselves vary in brightness from light cyan to deep blue, creating a gradient effect that suggests data intensity or amplitude variation. The overall composition has a subtle paper texture overlay with high roughness (0.85) and a grain scale of 3, adding a subtle organic quality to the otherwise digital aesthetic. The spacing between character columns is uniform at 1 unit, with each cell sized at 54 pixels, creating a crisp, readable grid structure. The gamma correction at 0.6 enhances contrast and makes the brighter elements pop against the dark background. The blend mode is set to normal throughout, maintaining color fidelity without additive or subtractive blending effects. The atmosphere is distinctly cyberpunk or tech-noir, evoking themes of data visualization, digital surveillance, or retro-futuristic computing interfaces.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/70d6ad9e-95a5-4569-8a31-0dcaeddee95e.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzcwZDZhZDllLTk1YTUtNDU2OS04YTMxLTBkY2FlZGRlZTk1ZS5qcGciLCJpYXQiOjE3Nzk5Mzk5ODYsImV4cCI6MTgxMTQ3NTk4Nn0.D05K2JFOfACti1_ZiwHiyPSn2ITj6zs8jfxf9D4EneE",
+  "import": "import {\n  Shader,\n  Ascii,\n  Godrays,\n  Paper,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Godrays,\n  Paper,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader tone-mapping=\"aces\">\n    <SolidColor\n      color=\"#2b1d59\"/>\n    <Ascii\n      :cell-size=\"54\"\n      characters=\"▄║█\"\n      font-family=\"Geist Mono\"\n      :gamma=\"0.6\">\n      <Godrays\n        background-color=\"#3513b9\"\n        :center=\"{\n          x: 1,\n          y: 0\n        }\"\n        :density=\"0.2\"\n        :intensity=\"0.9\"\n        ray-color=\"#13b648\"\n        :spotty=\"0\"/>\n    </Ascii>\n    <Paper\n      :displacement=\"0\"\n      :grain-scale=\"3\"\n      :roughness=\"0.85\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

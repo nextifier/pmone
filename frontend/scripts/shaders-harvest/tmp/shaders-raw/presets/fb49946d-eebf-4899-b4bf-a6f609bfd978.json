@@ -1,0 +1,30 @@
+{
+  "id": "fb49946d-eebf-4899-b4bf-a6f609bfd978",
+  "title": "Enter The Matrix 4",
+  "collection_id": "fcbad305-a89b-483b-9701-f144042da99c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A classic Matrix-style digital rain effect rendered on a dark background. The composition features cascading streams of Japanese katakana characters in bright neon green (#40ff5c) falling diagonally across the screen at approximately 44 degrees. The characters have a luminous glow effect with an intensity of 6.8, creating halos around each character that blend into the dark background (#0b1410). The falling lines have a trail length of 0.7, creating motion blur streaks behind the descending characters. A subtle CRT screen effect is applied with scanlines (intensity 0.1) and vignetting (intensity 0.1) at the edges, giving it an authentic cathode ray tube monitor appearance. The perspective is tilted at 21.9 degrees with a zoom of 1.4x, creating a sense of depth and three-dimensional space as if viewing the digital rain receding into the distance. The characters are spaced at 0.55 intervals with a cell size of 24 pixels, creating a dense but readable matrix of falling text. The overall atmosphere is cyberpunk and immersive, with the bright green characters providing stark contrast against the nearly black background, enhanced by the glow effect that creates a soft luminescent quality typical of neon signage in low-light environments.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/fb49946d-eebf-4899-b4bf-a6f609bfd978.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ZiNDk5NDZkLWVlYmYtNDg5OS1iNGJmLWE2ZjYwOWJmZDk3OC5qcGciLCJpYXQiOjE3NzY5OTc1MDQsImV4cCI6MTgwODUzMzUwNH0.TzdFbkNYfacI3mTsgqJ_qJe--NrAIJ0Kop-LumEqOAQ",
+  "import": "import {\n  Shader,\n  Ascii,\n  CRTScreen,\n  FallingLines,\n  Glow,\n  Perspective,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  CRTScreen,\n  FallingLines,\n  Glow,\n  Perspective,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0b1410\"/>\n    <Ascii\n      :cell-size=\"24\"\n      characters=\"ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ\"\n      font-family=\"Geist Mono\"\n      :gamma=\"1.2\"\n      :spacing=\"0.55\">\n      <FallingLines\n        :angle=\"44\"\n        color-a=\"#40ff5c\"\n        color-b=\"#032103ff\"\n        color-space=\"oklab\"\n        :density=\"34\"\n        :speed=\"0.45\"\n        :speed-variance=\"1\"\n        :stroke-width=\"0.5\"\n        :trail-length=\"0.7\"\n        :visible=\"true\"/>\n    </Ascii>\n    <Glow\n      :intensity=\"6.8\"\n      :size=\"2\"\n      :threshold=\"0.4\"\n      :visible=\"true\"/>\n    <CRTScreen\n      :color-shift=\"0\"\n      :pixel-size=\"112\"\n      :scanline-frequency=\"100\"\n      :scanline-intensity=\"0.1\"\n      :vignette-intensity=\"0.1\"\n      :vignette-radius=\"0.35\"\n      :visible=\"true\"/>\n    <Perspective\n      edges=\"wrap\"\n      :tilt=\"21.9\"\n      :zoom=\"1.4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

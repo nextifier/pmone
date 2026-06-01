@@ -1,0 +1,30 @@
+{
+  "id": "66adbc32-4c4c-44c9-8fdf-31d1658b0fc8",
+  "title": "Enter The Matrix 2",
+  "collection_id": "fcbad305-a89b-483b-9701-f144042da99c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A classic Matrix-style digital rain effect rendered on a dark terminal interface. The composition features cascading streams of katakana characters (ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ) falling vertically across the screen at varying speeds and densities. The characters are rendered in a bright neon green (#40ff5c) with a darker green trail (#032103ff) creating a luminous tail effect as they descend. The background is a very dark, nearly black color (#0b1410) providing maximum contrast. A glow effect with high intensity (6.8) and threshold of 0.4 creates a bright halo around the brightest characters, enhancing the neon aesthetic. The entire scene is viewed through a subtle CRT screen filter with scanlines (intensity 0.1) and vignetting (0.1 intensity with 0.35 radius), adding a retro cathode-ray tube monitor appearance. A perspective transformation with a 21.9-degree tilt and 1.4x zoom creates a slight 3D depth effect, making the falling characters appear to recede into the distance. The overall mood is cyberpunk and dystopian, evoking the iconic visual style of digital surveillance and hacking culture. The spacing between characters is set to 0.55 with a cell size of 24 pixels, creating a readable but dense grid pattern.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/66adbc32-4c4c-44c9-8fdf-31d1658b0fc8.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzY2YWRiYzMyLTRjNGMtNDRjOS04ZmRmLTMxZDE2NThiMGZjOC5qcGciLCJpYXQiOjE3NzY5OTc0NzcsImV4cCI6MTgwODUzMzQ3N30.t8hXSHn03EXwGH8c9IjtS3b3R7F1F043rZ4UrUWhZCk",
+  "import": "import {\n  Shader,\n  Ascii,\n  CRTScreen,\n  FallingLines,\n  Glow,\n  Perspective,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  CRTScreen,\n  FallingLines,\n  Glow,\n  Perspective,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0b1410\"/>\n    <Ascii\n      :cell-size=\"24\"\n      characters=\"ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ\"\n      font-family=\"Geist Mono\"\n      :gamma=\"1.2\"\n      :spacing=\"0.55\">\n      <FallingLines\n        :angle=\"0\"\n        color-a=\"#40ff5c\"\n        color-b=\"#032103ff\"\n        color-space=\"oklab\"\n        :density=\"34\"\n        :speed=\"0.45\"\n        :speed-variance=\"1\"\n        :stroke-width=\"0.5\"\n        :trail-length=\"0.7\"\n        :visible=\"true\"/>\n    </Ascii>\n    <Glow\n      :intensity=\"6.8\"\n      :size=\"2\"\n      :threshold=\"0.4\"\n      :visible=\"true\"/>\n    <CRTScreen\n      :color-shift=\"0\"\n      :pixel-size=\"112\"\n      :scanline-frequency=\"100\"\n      :scanline-intensity=\"0.1\"\n      :vignette-intensity=\"0.1\"\n      :vignette-radius=\"0.35\"\n      :visible=\"true\"/>\n    <Perspective\n      edges=\"wrap\"\n      :tilt=\"21.9\"\n      :zoom=\"1.4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

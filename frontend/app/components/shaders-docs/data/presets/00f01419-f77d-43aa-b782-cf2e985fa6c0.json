@@ -1,0 +1,79 @@
+{
+  "id": "00f01419-f77d-43aa-b782-cf2e985fa6c0",
+  "title": "Flowing Ribbon 2",
+  "collectionId": "ff06c547-4c27-45b2-b509-816b68149be2",
+  "category": "background",
+  "description": "A dynamic 3D ribbon shader effect featuring a sinuous, wave-like form that twists and undulates across the frame. The ribbon has a smooth, glossy surface with high reflectivity, creating a polished, liquid-like appearance. The primary color palette consists of vibrant neon green (#2cff87) and deep purple (#9300d0) that blend seamlessly across the ribbon's surface using oklab color space interpolation. The green dominates the upper and outer surfaces while the purple creates dramatic shadows and depth within the ribbon's curves and folds. Fine white lines with a linear dodge blend mode create subtle striations and highlights that follow the ribbon's contours, adding dimensionality and a sense of motion. The background is a soft, muted lavender-gray (#dad6ff) with gentle studio lighting that creates a subtle vignette effect. The ribbon appears to be rotating and twisting with a 52-degree twist parameter, creating an organic, flowing motion. A subtle film grain texture overlays the entire composition at 0.3 opacity, adding a cinematic quality. The lighting setup uses ambient illumination at 78% intensity with a wall curvature of 57 degrees, creating soft shadows and highlights that enhance the 3D form's sculptural quality. The overall mood is modern, energetic, and visually striking with a sense of fluid motion frozen in time.",
+  "thumbnail": "/shaders/thumbnails/00f01419-f77d-43aa-b782-cf2e985fa6c0.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 78,
+          "brightness": 100,
+          "center": {
+            "x": 0.75,
+            "y": 1
+          },
+          "color": "#dad6ff",
+          "fillIntensity": 0,
+          "keyIntensity": 0,
+          "lightTarget": 0,
+          "wallCurvature": 57
+        }
+      },
+      {
+        "type": "Form3D",
+        "props": {
+          "center": {
+            "x": 0.63,
+            "y": 0.72
+          },
+          "glossiness": 200,
+          "lighting": 197,
+          "shape3d": {
+            "type": "ribbon",
+            "angle": 189,
+            "twist": 52,
+            "width": 72,
+            "thickness": 200,
+            "seed": 0
+          },
+          "speed": 2,
+          "zoom": 78
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#9300d0",
+              "colorB": "#2cff87",
+              "colorSpace": "oklab",
+              "detail": 1.9
+            }
+          },
+          {
+            "type": "FallingLines",
+            "props": {
+              "angle": 0,
+              "blendMode": "linearDodge",
+              "colorB": "#000000",
+              "density": 12,
+              "strokeWidth": 0.1,
+              "trailLength": 0.72
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

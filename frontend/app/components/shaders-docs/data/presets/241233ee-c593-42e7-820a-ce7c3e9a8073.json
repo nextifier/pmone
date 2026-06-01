@@ -1,0 +1,54 @@
+{
+  "id": "241233ee-c593-42e7-820a-ce7c3e9a8073",
+  "title": "Undertones 11",
+  "collectionId": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "category": "background",
+  "description": "A sophisticated shader effect composed of horizontal striped bands with varying opacity and chromatic distortion. The image features a dark, moody atmosphere dominated by black and near-black backgrounds with warm tan and brown accent colors running horizontally across the composition. The FlutedGlass component creates pronounced vertical ribbing/fluting patterns with a 90-degree angle, producing parallel horizontal lines with subtle light refraction and chromatic aberration effects. The ChromaFlow layer adds warm earth-tone colors (tan #b8a48a, brown #5a4a3e, and muted gold #8c7560) that flow directionally across the bands, creating a sense of movement and depth. The refraction value of 4 combined with 0.61 aberration creates a subtle color separation effect along the edges of the bands, particularly visible as blue and warm orange fringes. The Swirl component provides a subtle underlying texture with minimal visibility due to the dark color palette (#000000 to #0a0a0a). A fine FilmGrain texture with 0.05 strength adds subtle noise throughout. The overall effect is reminiscent of light passing through ribbed glass or venetian blinds, with warm interior lighting creating a luxurious, tactile appearance. The mood is sophisticated and moody, with strong directional lighting creating highlights and shadows across the horizontal striations.",
+  "thumbnail": "/shaders/thumbnails/241233ee-c593-42e7-820a-ce7c3e9a8073.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#000000",
+          "colorB": "#0a0a0a",
+          "detail": 1.7
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#18181a",
+          "downColor": "#5a4a3e",
+          "leftColor": "#8c7560",
+          "momentum": 13,
+          "rightColor": "#a08870",
+          "upColor": "#b8a48a"
+        }
+      },
+      {
+        "type": "FlutedGlass",
+        "props": {
+          "aberration": 0.61,
+          "angle": 90,
+          "frequency": 8,
+          "highlight": 0.12,
+          "highlightSoftness": 0,
+          "lightAngle": -90,
+          "refraction": 4,
+          "shape": "rounded",
+          "softness": 1,
+          "speed": 0.15
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

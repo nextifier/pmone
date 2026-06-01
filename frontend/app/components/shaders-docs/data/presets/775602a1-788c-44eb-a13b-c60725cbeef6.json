@@ -1,0 +1,46 @@
+{
+  "id": "775602a1-788c-44eb-a13b-c60725cbeef6",
+  "title": "Pixel Beams 8",
+  "collectionId": "ef3cb88e-1e3e-4371-8816-4821e67b554f",
+  "category": "background",
+  "description": "A soft, ethereal shader effect displaying four vertical tower-like structures composed of white dotted patterns against a muted mauve-pink background. The structures are created through a combination of dithering and plasma effects, resulting in a grainy, stippled appearance with varying density. The leftmost and rightmost towers are more densely populated with white dots, creating solid-looking formations, while the center towers appear more dispersed and ethereal. The dither pattern uses an 8x8 Bayer matrix with a pixel size of 7, creating a characteristic checkerboard-like granulation throughout. A wave distortion effect with square wave type at 285 degrees adds subtle undulating movement to the composition. The overall aesthetic is dreamlike and atmospheric, with the white dotted elements appearing to fade and disperse toward the top of the image, creating a sense of upward motion or dissipation. The blend of the plasma effect (with 0.3 density and 1.3 intensity) generates organic, cloud-like formations within the dithered structure, while the wave distortion adds subtle warping that creates a sense of depth and movement. The color palette is restrained and elegant, dominated by soft purples and whites with high contrast between the dotted elements and background.",
+  "thumbnail": "/shaders/thumbnails/775602a1-788c-44eb-a13b-c60725cbeef6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#d1c2cf",
+          "pattern": "bayer8",
+          "pixelSize": 7,
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "colorA": "#ffffff",
+              "contrast": 0.9,
+              "density": 0.3,
+              "intensity": 1.3,
+              "speed": 1
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 285,
+              "edges": "mirror",
+              "frequency": 1.8,
+              "strength": 1,
+              "visible": true,
+              "waveType": "square"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

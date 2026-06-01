@@ -1,0 +1,199 @@
+{
+  "name": "Aurora",
+  "category": "Textures",
+  "description": "Mesmerizing aurora borealis with layered curtains, vertical rays, and flowing light.",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "colorA": {
+      "default": "#a533f8",
+      "description": "Edge color at the curtain base",
+      "ui": {
+        "type": "color",
+        "label": "Color A",
+        "group": "Colors"
+      }
+    },
+    "colorB": {
+      "default": "#22ee88",
+      "description": "Core color in the bright center",
+      "ui": {
+        "type": "color",
+        "label": "Color B",
+        "group": "Colors"
+      }
+    },
+    "colorC": {
+      "default": "#1694e8",
+      "description": "Tip color at the ray ends",
+      "ui": {
+        "type": "color",
+        "label": "Color C",
+        "group": "Colors"
+      }
+    },
+    "colorSpace": {
+      "default": "linear",
+      "compileTime": true,
+      "description": "Color space for color interpolation",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Linear RGB",
+            "value": "linear"
+          },
+          {
+            "label": "OKLCh",
+            "value": "oklch"
+          },
+          {
+            "label": "OKLAB",
+            "value": "oklab"
+          },
+          {
+            "label": "HSL",
+            "value": "hsl"
+          },
+          {
+            "label": "HSV",
+            "value": "hsv"
+          },
+          {
+            "label": "LCH",
+            "value": "lch"
+          }
+        ],
+        "label": "Color Space",
+        "group": "Colors"
+      }
+    },
+    "balance": {
+      "default": 50,
+      "description": "Shifts color distribution across the curtain height",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Balance",
+        "group": "Colors"
+      }
+    },
+    "intensity": {
+      "default": 80,
+      "description": "Overall aurora brightness",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Aurora"
+      }
+    },
+    "curtainCount": {
+      "default": 4,
+      "compileTime": true,
+      "description": "Number of aurora curtain layers",
+      "ui": {
+        "type": "range",
+        "min": 1,
+        "max": 4,
+        "step": 1,
+        "label": "Curtains",
+        "group": "Aurora"
+      }
+    },
+    "speed": {
+      "default": 5,
+      "description": "Animation speed",
+      "ui": {
+        "type": "range",
+        "min": -10,
+        "max": 10,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Aurora"
+      }
+    },
+    "waviness": {
+      "default": 50,
+      "description": "How much the curtains undulate",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 200,
+        "step": 1,
+        "label": "Waviness",
+        "group": "Aurora"
+      }
+    },
+    "rayDensity": {
+      "default": 20,
+      "description": "Density of vertical ray structures",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Ray Detail",
+        "group": "Aurora"
+      }
+    },
+    "height": {
+      "default": 120,
+      "description": "How tall the aurora extends",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 10,
+        "max": 200,
+        "step": 1,
+        "label": "Height",
+        "group": "Scene"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0
+      },
+      "description": "Center position of the aurora",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Scene"
+      }
+    },
+    "seed": {
+      "default": 0,
+      "description": "Random seed for variation",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Seed",
+        "group": "Aurora"
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "96877b51-a3a4-4c2f-b6bd-8f75555b9acd",
+  "title": "Porthole 3",
+  "collectionId": "21f10c11-d381-4e55-9a41-fc9c62c0e872",
+  "category": "background",
+  "description": "A smooth, layered gradient background transitioning from teal-green on the left (#3cbd83) to pale yellow-green on the right (#dfffa3). The gradient is overlaid with a sawtooth wave distortion effect that creates diagonal chevron or arrow-like striping patterns throughout the composition. The waves have a frequency of 7.7 with a strength of 2, producing parallel diagonal bands that angle between 70-110 degrees. The distortion creates a sense of depth and movement, with the wave patterns becoming more pronounced in the center and gradually softening toward the edges. The overall effect is organic and flowing, with soft transitions between the colored bands. The image has a calm, modern aesthetic with no harsh edges or abrupt color shifts. The wave distortion is driven by an invisible circular mask centered near the middle of the composition, creating subtle variations in the wave angle intensity across the canvas.",
+  "thumbnail": "/shaders/thumbnails/96877b51-a3a4-4c2f-b6bd-8f75555b9acd.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#3cbd83",
+          "colorB": "#dfffa3",
+          "colorSpace": "lch"
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": {
+            "type": "map",
+            "source": "idmma4jsk2t7um16f4s",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 110,
+            "outputMin": 70
+          },
+          "frequency": 7.7,
+          "strength": 2,
+          "waveType": "sawtooth"
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmma4jsk2t7um16f4s",
+          "center": {
+            "x": 0.48,
+            "y": 0.55
+          },
+          "radius": 1.25,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

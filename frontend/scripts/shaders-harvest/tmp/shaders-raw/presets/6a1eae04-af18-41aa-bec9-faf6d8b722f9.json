@@ -1,0 +1,42 @@
+{
+  "id": "6a1eae04-af18-41aa-bec9-faf6d8b722f9",
+  "title": "Studio Glass 4",
+  "collection_id": "fcb780f9-158b-46fc-86a3-c8c9da14551b",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A retro pixel-art style alien or space invader character rendered with modern 3D glass shader effects. The character features a symmetrical blocky silhouette with two large square eyes, a rectangular mouth opening, and four protruding antenna-like limbs extending from the top corners and sides. The shape is constructed from cubic voxel-like segments creating a classic 8-bit video game aesthetic. The glass material exhibits strong chromatic aberration with cyan-to-blue color separation visible along the edges, particularly on the left side where turquoise tones dominate and transitioning to deeper blue on the right. The surface demonstrates glossy reflectivity with subtle highlights and fresnel effects that create depth and dimensionality. A soft vignette and ambient lighting from the background creates a studio-like presentation. The character is centered against a soft lavender-gray gradient background with subtle warm undertones. Film grain texture adds a subtle noise overlay. The overall effect combines nostalgic pixel-art gaming imagery with contemporary glass material shaders, creating a modern, polished interpretation of classic arcade aesthetics.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/6a1eae04-af18-41aa-bec9-faf6d8b722f9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzZhMWVhZTA0LWFmMTgtNDFhYS1iZWM5LWZhZjZkOGI3MjJmOS5qcGciLCJpYXQiOjE3NzI3NTE0MjgsImV4cCI6MTgwNDI4NzQyOH0.Y7U4gKMHlLZu_leGWjHC0UTwcIhadsqaoBzN0MRDMWs",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Glass,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Glass,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"65\"\n      :back-intensity=\"25\"\n      :brightness=\"100\"\n      :center=\"{\n        x: 0.5,\n        y: 0.88\n      }\"\n      color=\"#e6e6ff\"\n      :fill-angle=\"53\"\n      :fill-intensity=\"9\"\n      :fill-softness=\"94\"\n      :key-intensity=\"11\"\n      :key-softness=\"100\"\n      :light-target=\"42\"/>\n    <Glass\n      :aberration=\"0.45\"\n      :cutout=\"true\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0.2\"\n      :fresnel-softness=\"0.31\"\n      :highlight=\"0.3\"\n      :inner-zoom=\"1.15\"\n      :refraction=\"0.35\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/OcAv2bFTPVug_sdf.bin\"\n      :thickness=\"1\">\n      <Swirl\n        color-a=\"#1ed4a6\"\n        color-b=\"#1564eb\"\n        color-space=\"oklab\"\n        :speed=\"0.8\"/>\n    </Glass>\n    <FilmGrain\n      :strength=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

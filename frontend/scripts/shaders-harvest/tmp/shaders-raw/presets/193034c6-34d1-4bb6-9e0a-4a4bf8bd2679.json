@@ -1,0 +1,30 @@
+{
+  "id": "193034c6-34d1-4bb6-9e0a-4a4bf8bd2679",
+  "title": "Cascading Markers 6",
+  "collection_id": "a83655f1-13f3-491a-bdbc-dc8566847b9d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic diagonal striped shader effect with a 45-degree angle creating a chevron-like pattern. The base consists of alternating stripes in cyan (#1ed39a) and yellow (#cbdb51) with perfect geometric precision. Overlaid on this foundation are diagonal falling lines with a speed of 0.2, rendered in dark blue (#02236f) and muted purple (#97819a), creating a sense of motion and depth. The falling lines have a trail length of 0.97 with speed variance of 0.45, producing an organic, slightly chaotic movement against the rigid stripe pattern. A subtle twirl distortion with intensity -0.1 creates a gentle warping effect centered at coordinates (1, 1), adding a three-dimensional quality to the otherwise flat pattern. A tilt-shift blur effect is applied at a 125-degree angle with a narrow width of 0.2, creating a selective focus that emphasizes the upper-left portion of the composition while softening the lower-right area, enhancing the sense of depth. The overall atmosphere is cool and technological, with the purple-blue gradient background providing a sophisticated, digital aesthetic. Film grain with 0.2 strength adds texture and a subtle analog quality to the otherwise clean digital effect. The composition creates a sense of forward motion and energy through the diagonal orientation and animated falling elements.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/193034c6-34d1-4bb6-9e0a-4a4bf8bd2679.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzE5MzAzNGM2LTM0ZDEtNGJiNi05ZTBhLTRhNGJmOGJkMjY3OS5qcGciLCJpYXQiOjE3NzQ3OTg0OTksImV4cCI6MTgwNjMzNDQ5OX0.T5atJZrR7tjFRS0RiuNTPrb4UPvYr8tyyp7AvBK3okU",
+  "import": "import {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Stripes,\n  TiltShift,\n  Twirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Stripes,\n  TiltShift,\n  Twirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      color-a=\"#1ed39a\"\n      color-b=\"#cbdb51\"\n      :density=\"1\"\n      :speed=\"0\"/>\n    <FallingLines\n      :angle=\"45\"\n      color-a=\"#02236f\"\n      color-b=\"#97819a\"\n      :density=\"36\"\n      :rounding=\"0\"\n      :speed=\"0.2\"\n      :speed-variance=\"0.45\"\n      :stroke-width=\"1.1\"\n      :trail-length=\"0.97\"/>\n    <Twirl\n      :center=\"{\n        x: 1,\n        y: 1\n      }\"\n      edges=\"mirror\"\n      :intensity=\"-0.1\"/>\n    <TiltShift\n      :angle=\"125\"\n      :center=\"{\n        x: 0.8,\n        y: 0.24\n      }\"\n      :falloff=\"0.7\"\n      :intensity=\"100\"\n      :visible=\"true\"\n      :width=\"0.2\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

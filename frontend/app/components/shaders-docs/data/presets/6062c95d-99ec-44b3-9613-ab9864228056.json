@@ -1,0 +1,89 @@
+{
+  "id": "6062c95d-99ec-44b3-9613-ab9864228056",
+  "title": "Ascii Tunnel",
+  "collectionId": "6ed04980-c582-442a-bf3b-5422f455a70d",
+  "category": "background",
+  "description": "A striking digital visualization featuring a 3D torus structure rendered with ASCII characters (┉╳┉╳) in a cyan and blue color palette. The torus rotates along the X-axis with a spinY rotation of 0.5, creating a dynamic three-dimensional effect. The ASCII overlay uses a JetBrains Mono font with 12-pixel cell size, creating a pixelated, retro-digital aesthetic. Overlaid on this structure are falling lines that move at 0.25 speed with an angle of 90 degrees, creating vertical streaks in blue (#213cad) and cyan (#2ef2d3) colors. The lines have a trail length of 0.49 and stroke width of 0.38, producing a glowing, motion-blur effect reminiscent of digital rain or data streams. The background is a very dark navy-black (#0e1214) with subtle ambient lighting at 98% intensity, creating a deep, immersive atmosphere. The overall composition suggests a cyberpunk or hacker aesthetic with a sense of movement and digital energy. The gamma correction of 0.25 on the ASCII layer enhances contrast and visibility. The blend mode is set to normal throughout, allowing the layered elements to composite naturally. The spatial arrangement places the torus as the central focal point with the falling lines creating a sense of depth and motion around it.",
+  "thumbnail": "/shaders/thumbnails/6062c95d-99ec-44b3-9613-ab9864228056.webp",
+  "config": {
+    "components": [
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "colorA": "#180726",
+          "colorB": "#0f0f17",
+          "radius": 0.8,
+          "visible": false
+        }
+      },
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 98,
+          "ambientSpeed": 5,
+          "brightness": 100,
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "color": "#0e1214",
+          "fillIntensity": 0,
+          "keyIntensity": 5,
+          "lightTarget": 0
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "alphaThreshold": 0.14,
+          "cellSize": 12,
+          "characters": "┉╳┉╳",
+          "gamma": 0.25,
+          "preserveAlpha": false
+        },
+        "children": [
+          {
+            "type": "Form3D",
+            "props": {
+              "glossiness": 0,
+              "lighting": 0,
+              "shape3d": {
+                "type": "torus",
+                "outerRadius": 102,
+                "tubeRadius": 100,
+                "rotX": -90,
+                "rotY": 0,
+                "rotZ": 0,
+                "spinX": 0,
+                "spinY": 0.5,
+                "spinZ": 0
+              },
+              "shape3dType": "torus",
+              "zoom": 92
+            },
+            "children": [
+              {
+                "type": "FallingLines",
+                "props": {
+                  "colorA": "#213cad",
+                  "colorB": "#2ef2d3",
+                  "density": 17,
+                  "speed": 0.25,
+                  "speedVariance": 0.55,
+                  "strokeWidth": 0.38,
+                  "trailLength": 0.49
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "srgb",
+  "toneMapping": "aces"
+}

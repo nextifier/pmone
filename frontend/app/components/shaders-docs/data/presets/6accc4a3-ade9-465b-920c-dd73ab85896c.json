@@ -1,0 +1,83 @@
+{
+  "id": "6accc4a3-ade9-465b-920c-dd73ab85896c",
+  "title": "LED Flow",
+  "collectionId": "919ba9e1-06c8-4d55-8153-002a45a08a91",
+  "category": "background",
+  "description": "A predominantly dark, nearly black background (#0c061a) with subtle dotted patterns visible in the upper left and center areas. The dotted patterns appear as fine white/light gray points arranged in a grid formation, creating a sparse constellation-like effect. A swirling distortion effect is visible in the center-right area, manifesting as curved lines in dark red/maroon tones that create a twirl or vortex pattern. A linear gradient overlay transitions from bright lime green (#1aff00) in the upper left to blue (#0000ff) in the lower right, but this gradient is heavily masked and only visible where the dotted grid and swirl effects exist, creating isolated pockets of color against the dark void. The overall effect is ethereal and cosmic, with a film grain texture adding subtle noise throughout. The composition suggests a deep space or digital void aesthetic with minimal but precise geometric elements creating visual interest against the overwhelming darkness.",
+  "thumbnail": "/shaders/thumbnails/6accc4a3-ade9-465b-920c-dd73ab85896c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Group",
+        "props": {
+          "id": "idmjrnv6c0pom01tg0f",
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 100,
+              "colorA": "#ffffff",
+              "colorB": "#000000",
+              "detail": 3,
+              "maskSource": "idmjrnuq8x4whbsr7v9"
+            }
+          },
+          {
+            "type": "DotGrid",
+            "props": {
+              "id": "idmjrnuq8x4whbsr7v9",
+              "density": 60,
+              "dotSize": 0.12,
+              "visible": false
+            }
+          },
+          {
+            "type": "Twirl",
+            "props": {
+              "center": {
+                "x": 0.85,
+                "y": 0.91
+              },
+              "edges": "wrap",
+              "intensity": -1.2,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0c061a"
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.76,
+            "y": 0.63
+          },
+          "maskSource": "idmjrnv6c0pom01tg0f",
+          "maskType": "luminance",
+          "start": {
+            "x": 0.16,
+            "y": 0.21
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.03
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

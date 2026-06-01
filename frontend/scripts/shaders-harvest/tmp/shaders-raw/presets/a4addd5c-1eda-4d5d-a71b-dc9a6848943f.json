@@ -1,0 +1,30 @@
+{
+  "id": "a4addd5c-1eda-4d5d-a71b-dc9a6848943f",
+  "title": "Flowing Dots 3",
+  "collection_id": "aacfb436-0fcf-46ee-a6e2-93f708c027fb",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant gradient background transitioning diagonally from magenta/pink in the lower left corner to golden yellow/orange in the upper right corner. The gradient uses smooth color interpolation creating a warm, energetic aesthetic. Overlaid on this base gradient is a pixelated dot grid pattern that creates a halftone or mosaic effect, with the dot density and size varying across the canvas to create visual depth and dimensionality. The dots appear more prominent and larger in the center-right area, gradually fading toward the edges. The overall effect suggests a digital, modern interface with a subtle organic quality from the flowing gradient beneath the geometric dot structure. The color transition is smooth and continuous, with intermediate peachy-orange tones dominating the center area. The pixelated overlay adds a contemporary, tech-forward aesthetic while maintaining visual softness through the gradient foundation.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/a4addd5c-1eda-4d5d-a71b-dc9a6848943f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2E0YWRkZDVjLTFlZGEtNGQ1ZC1hNzFiLWRjOWE2ODQ4OTQzZi5qcGciLCJpYXQiOjE3Nzg3ODU0MTIsImV4cCI6MTgxMDMyMTQxMn0.8cjnYu3CgObYl-aX0zNJbqNj-By1Ua2ZFaImRvtFNLo",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  CursorRipples,\n  DotGrid,\n  LinearGradient\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  CursorRipples,\n  DotGrid,\n  LinearGradient\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <DotGrid\n      id=\"idmlsai28917usa8l1j\"\n      :density=\"40\"\n      :dot-size=\"{\n        type: 'map',\n        source: 'idmlsaoh7xdy8aayjbd',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0\n      }\"\n      :twinkle=\"0.9\"\n      :visible=\"false\"/>\n    <ChromaFlow\n      id=\"idmlsaoh7xdy8aayjbd\"\n      :intensity=\"1.4\"\n      :radius=\"4.6\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#ff5eea\"\n      color-b=\"#ffb214\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 1,\n        y: 0\n      }\"\n      :start=\"{\n        x: 0,\n        y: 1\n      }\"/>\n    <LinearGradient\n      color-a=\"#a3a1f5\"\n      color-b=\"#faf13e\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 1,\n        y: 0\n      }\"\n      mask-source=\"idmlsai28917usa8l1j\"\n      :start=\"{\n        x: 0,\n        y: 1\n      }\"\n      :visible=\"true\"/>\n    <CursorRipples/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

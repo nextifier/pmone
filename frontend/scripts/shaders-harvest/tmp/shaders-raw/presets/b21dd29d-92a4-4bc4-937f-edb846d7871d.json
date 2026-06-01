@@ -1,0 +1,39 @@
+{
+  "id": "b21dd29d-92a4-4bc4-937f-edb846d7871d",
+  "title": "Glitch Trail",
+  "collection_id": "63b3b574-74ca-4995-8b25-256805b35913",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "An aerial landscape photograph of mountainous terrain with dramatic chromatic aberration effects applied. The image shows rocky peaks and ridges with brown and tan coloring in the foreground, transitioning to darker green forested valleys in the middle distance. The sky above is moody with dark gray and blue storm clouds, with a bright white break in the clouds creating atmospheric depth. The chromatic aberration effect creates distinctive rainbow-colored fringes (red, green, blue separation) particularly visible on the rocky outcrops and mountain edges, with the red channel offset to the left and blue to the right, creating a glitchy, digital aesthetic. The grid distortion effect adds subtle warping and undulation across the entire composition, creating a sense of movement and instability. The overall mood is cinematic and surreal, with high contrast between the warm earth tones and cool sky tones. The effect creates a VHS or analog video glitch appearance overlaid on a naturalistic landscape photograph.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/5b6c0379-8b19-477d-aae9-ab3c1aba7d47.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzViNmMwMzc5LThiMTktNDc3ZC1hYWU5LWFiM2MxYWJhN2Q0Ny5qcGciLCJpYXQiOjE3NjM1NTkyMTcsImV4cCI6MTc5NTA5NTIxN30.aeBW5m1Ju9komx86T-3q66s5dCw3cNahqHYzRI7TULU",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  CursorTrail,\n  GridDistortion,\n  ImageTexture\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  CursorTrail,\n  GridDistortion,\n  ImageTexture\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      url=\"https://rgqpsgmnzmniyzelfbfx.supabase.co/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/NweYsjkAwAjy.jpeg\"/>\n    <CursorTrail\n      id=\"idmi61gnmkxf1citdd1\"\n      color-a=\"#ffffff\"\n      color-b=\"#ffffff\"\n      :opacity=\"0\"\n      :radius=\"1.15\"\n      :shrink=\"0.5\"\n      :visible=\"false\"/>\n    <ChromaticAberration\n      mask-source=\"idmi61gnmkxf1citdd1\"\n      :strength=\"0.08\">\n      <ImageTexture\n        url=\"https://rgqpsgmnzmniyzelfbfx.supabase.co/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/NweYsjkAwAjy.jpeg\"/>\n    </ChromaticAberration>\n    <GridDistortion\n      :grid-size=\"30\"\n      :intensity=\"3\"\n      :radius=\"2\"\n      :swirl=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "collection_notes": "This effect is meant to be on top of the user's provided media.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

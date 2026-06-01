@@ -1,0 +1,30 @@
+{
+  "id": "2bba2212-b1c1-4403-94a0-2914572ef018",
+  "title": "Sunrise 2",
+  "collection_id": "a76070e7-82d4-4d00-99ff-5e464fdaf463",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, flowing gradient shader effect that transitions diagonally from the lower-left to upper-right. The composition features a warm-to-cool color progression starting with bright yellow (#fad041) in the bottom-left corner, transitioning through orange and coral tones in the lower-middle section, then shifting to pink and magenta hues in the center, and finally resolving to blue (#4e7fd9) and dark-blue (#121bc9) tones in the upper-right. The gradient is extremely smooth and blended, with no hard edges or visible banding. A subtle film grain texture is applied across the entire surface at 0.3 strength, adding a slight noise pattern that prevents the gradient from appearing too synthetic. The progressive blur effect with 90-degree angle and 0.47 falloff creates a soft, diffused quality that enhances the dreamy atmosphere. The blob element positioned at the lower-left contributes warm yellow-orange tones with subtle highlight reflections, while the swirl component adds depth through its blue color palette. A gentle wave distortion with 4.2 frequency and 0.05 strength creates imperceptible undulations across the surface, maintaining visual continuity. The overall effect is a luminous, ethereal gradient with atmospheric depth and a soft, glowing quality.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/2bba2212-b1c1-4403-94a0-2914572ef018.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzJiYmEyMjEyLWIxYzEtNDQwMy05NGEwLTI5MTQ1NzJlZjAxOC5qcGciLCJpYXQiOjE3NzIzODI0NTYsImV4cCI6MTgwMzkxODQ1Nn0.Sp-9LTzSo8vzRx-zXs-70pRtYzk3AcQu8F9Ts1M-xlw",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  ProgressiveBlur,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  ProgressiveBlur,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FilmGrain\n      :strength=\"0.3\">\n      <ProgressiveBlur\n        :angle=\"90\"\n        :center=\"{\n          x: 0.5,\n          y: 0.5\n        }\"\n        :falloff=\"0.47\"\n        :intensity=\"1000\">\n        <Swirl\n          :blend=\"5\"\n          color-a=\"#4e7fd9\"\n          color-b=\"#121bc9\"\n          color-space=\"oklch\"\n          :detail=\"0.5\"\n          :speed=\"0.3\"/>\n        <Blob\n          blend-mode=\"normal-oklch\"\n          :center=\"{\n            x: 0,\n            y: 1\n          }\"\n          color-a=\"#fad041\"\n          color-b=\"#fa722a\"\n          color-space=\"oklab\"\n          :deformation=\"0\"\n          highlight-color=\"#ffe01a\"\n          :highlight-intensity=\"0.35\"\n          :highlight-x=\"0.11\"\n          :highlight-y=\"-0.01\"\n          :highlight-z=\"0.13\"\n          :size=\"1.2\"\n          :softness=\"1\"/>\n        <WaveDistortion\n          :angle=\"360\"\n          edges=\"mirror\"\n          :frequency=\"4.2\"\n          :speed=\"3.4\"\n          :strength=\"0.05\"/>\n      </ProgressiveBlur>\n    </FilmGrain>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

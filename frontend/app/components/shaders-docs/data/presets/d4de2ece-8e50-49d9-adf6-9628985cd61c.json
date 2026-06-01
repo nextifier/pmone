@@ -1,0 +1,76 @@
+{
+  "id": "d4de2ece-8e50-49d9-adf6-9628985cd61c",
+  "title": "Watercolor on Paper 9",
+  "collectionId": "da9f2a2e-c4fb-411e-bbc4-21dca8017cf5",
+  "category": "background",
+  "description": "A smooth, ethereal gradient composition dominated by purple and violet tones creating a soft, dreamlike atmosphere. The image features a multi-point gradient system with five distinct color nodes positioned strategically across the canvas. The darkest deep purple (#1a0a3d) anchors the upper left corner, while a medium purple (#6b3fa0) sits in the upper right area. A lighter lavender (#c4a6e8) glows in the right-center region, creating a luminous focal point. The composition is further enhanced by subtle wave distortion applied at a 232-degree angle with sine wave characteristics, creating gentle undulating movements throughout the gradient. A liquify effect with moderate intensity (10) and stiffness (15) adds organic, fluid-like warping to the color transitions, softening hard edges and creating natural-looking blobs and flows. The paper texture overlay with minimal roughness (0.1) introduces fine surface detail without overwhelming the smooth gradient. Film grain at 0.1 strength adds a subtle cinematic quality. The overall effect is a soft, blurred, atmospheric background with no sharp edges, featuring smooth color transitions from deep purples in the upper left transitioning through medium purples to lighter lavenders on the right side, with the bottom portion showing warmer medium purples. The edges fade to transparency, creating a vignette-like effect that enhances the dreamy, meditative mood.",
+  "thumbnail": "/shaders/thumbnails/d4de2ece-8e50-49d9-adf6-9628985cd61c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "MultiPointGradient",
+        "props": {
+          "colorA": "#1a0a3d",
+          "colorB": "#6b3fa0",
+          "colorC": "#3d1a7a",
+          "colorD": "#c4a6e8",
+          "colorE": "#8e5cc8",
+          "positionA": {
+            "x": 0.08,
+            "y": 0.12
+          },
+          "positionB": {
+            "x": 0.72,
+            "y": 0.05
+          },
+          "positionC": {
+            "x": 0.45,
+            "y": 0.55
+          },
+          "positionD": {
+            "x": 0.92,
+            "y": 0.82
+          },
+          "positionE": {
+            "x": 0.18,
+            "y": 0.91
+          },
+          "smoothness": 2.05
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 232,
+          "frequency": 1.1,
+          "strength": 0.35
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "damping": 0.7,
+          "radius": 1.5,
+          "stiffness": 15
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 1,
+          "grainScale": 0.1,
+          "roughness": 0.1,
+          "seed": 42
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

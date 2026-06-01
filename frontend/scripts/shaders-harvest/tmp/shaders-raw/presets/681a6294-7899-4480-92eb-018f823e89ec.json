@@ -1,0 +1,42 @@
+{
+  "id": "681a6294-7899-4480-92eb-018f823e89ec",
+  "title": "Stainless Steel 3",
+  "collection_id": "434bec2f-8330-4991-9007-b84b4915ed05",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A minimalist logo design featuring a continuous, flowing ribbon-like shape rendered in white glass material against a dark charcoal background. The shape consists of three interconnected loops that form an abstract infinity or wave pattern, reading left to right. The glass material exhibits realistic optical properties including subtle refraction (refraction index 1.95), fresnel effects at edges creating bright highlights, and chromatic aberration that adds depth. The white tinted glass (tintColor #ffffff) has a thickness of 1 unit with soft edge transitions (edgeSoftness 0.05). A swirl shader underneath the glass layer adds subtle internal movement with grayscale color variation (colorA #b0b0b0, colorB #d1d1d1) at 72% blend opacity, creating an organic flowing quality within the glass structure. The background is a carefully lit studio environment with dark primary color (#1b1b21), featuring ambient lighting at 65% intensity and subtle vignetting. A fine film grain texture (0.1 strength) overlays the entire composition, adding subtle texture and reducing digital perfection. The lighting setup uses a key light at 28% intensity positioned at 300 degrees, creating gentle highlights on the upper surfaces of the glass loops. The overall mood is premium, modern, and sophisticated with a focus on material realism and subtle motion.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/681a6294-7899-4480-92eb-018f823e89ec.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzY4MWE2Mjk0LTc4OTktNDQ4MC05MmViLTAxOGY4MjNlODllYy5qcGciLCJpYXQiOjE3NzYwNDgwNjEsImV4cCI6MTgwNzU4NDA2MX0.Ag2CQGRkfT1wSXzWbbfffXqyiN43feHHPqdmVtbBN28",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Glass,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Glass,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"65\"\n      back-color=\"#e8a85c\"\n      :back-intensity=\"40\"\n      :brightness=\"100\"\n      :center=\"{\n        x: 0.5,\n        y: 0.88\n      }\"\n      color=\"#1b1b21\"\n      :fill-angle=\"53\"\n      :fill-intensity=\"9\"\n      :fill-softness=\"94\"\n      key-color=\"#eac8a0\"\n      :key-intensity=\"28\"\n      :key-softness=\"100\"\n      :wall-curvature=\"19\"/>\n    <Glass\n      :aberration=\"1\"\n      :blur=\"20\"\n      :cutout=\"true\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0.02\"\n      :fresnel-softness=\"0.31\"\n      :highlight=\"0.3\"\n      :refraction=\"1.95\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/_anekeNfTTiN_sdf.bin\"\n      :thickness=\"1\">\n      <Swirl\n        :blend=\"72\"\n        color-a=\"#b0b0b0\"\n        color-b=\"#d1d1d1\"\n        color-space=\"hsl\"\n        :detail=\"1.4\"\n        :speed=\"1.8\"/>\n    </Glass>\n    <FilmGrain\n      :strength=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

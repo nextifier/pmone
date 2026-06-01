@@ -1,0 +1,102 @@
+{
+  "name": "Spherize",
+  "category": "Distortions",
+  "description": "Map content onto a 3D sphere surface with depth distortion",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "radius": {
+      "default": 1,
+      "description": "Radius of the sphere (1 = half viewport height)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.1,
+        "max": 3,
+        "step": 0.1,
+        "label": "Radius",
+        "group": "Effect"
+      }
+    },
+    "depth": {
+      "default": 1,
+      "description": "How much the sphere bulges toward viewer (0 = flat, higher = more bulge)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 3,
+        "step": 0.1,
+        "label": "Depth",
+        "group": "Effect"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "The center point of the sphere",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Position"
+      }
+    },
+    "lightPosition": {
+      "default": {
+        "x": 0.3,
+        "y": 0.3
+      },
+      "description": "Position of the specular light source",
+      "ui": {
+        "type": "position",
+        "label": "Light Position",
+        "group": "Position"
+      }
+    },
+    "lightIntensity": {
+      "default": 0.5,
+      "description": "Intensity of the rim light (0 = off)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.1,
+        "label": "Light Intensity",
+        "group": "Effect"
+      }
+    },
+    "lightSoftness": {
+      "default": 0.5,
+      "description": "Softness of the rim light falloff (0 = hard edge, 1 = soft glow)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.1,
+        "label": "Light Softness",
+        "group": "Effect"
+      }
+    },
+    "lightColor": {
+      "default": "#ffffff",
+      "description": "Color of the specular highlight",
+      "ui": {
+        "type": "color",
+        "label": "Light Color",
+        "group": "Effect"
+      }
+    }
+  }
+}

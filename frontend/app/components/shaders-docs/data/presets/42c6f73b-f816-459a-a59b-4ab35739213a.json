@@ -1,0 +1,92 @@
+{
+  "id": "42c6f73b-f816-459a-a59b-4ab35739213a",
+  "title": "Spray Paint Grid",
+  "collectionId": "1d6662e7-3e8a-4151-a8be-2bad068f16cb",
+  "category": "background",
+  "description": "A dynamic gradient shader effect transitioning from deep blue in the upper left to vibrant magenta and pink tones in the lower right. The composition features a dark navy background (#08071a) overlaid with two sine wave components creating flowing diagonal patterns. A blue sine wave (#1733a3) positioned in the upper-left area creates smooth undulating curves at 144 degrees, while a bright magenta sine wave (#ff006e) positioned center-right generates more pronounced wave patterns at 169 degrees. A sawtooth wave distortion at 210 degrees with 0.71 strength creates a geometric, faceted appearance throughout. The entire effect is unified by a glass tiles pattern with 16 tiles and 0.62 roundness, creating a crystalline, pixelated mosaic structure that fragments the underlying gradients into small cubic/diamond-shaped segments with subtle depth. A diffuse blur with 80 intensity softens and blends the color transitions, creating a dreamy, atmospheric quality. Film grain at 0.07 strength adds subtle texture and noise. The overall mood is cyberpunk and ethereal, with smooth color gradients interrupted by sharp geometric tiling patterns, creating visual tension between fluidity and structure.",
+  "thumbnail": "/shaders/thumbnails/42c6f73b-f816-459a-a59b-4ab35739213a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#08071a"
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.5,
+          "angle": 144,
+          "blendMode": "normal-oklch",
+          "color": "#1733a3",
+          "frequency": 0.2,
+          "position": {
+            "x": 0.22,
+            "y": 0.27
+          },
+          "softness": 0.55,
+          "speed": 0.3,
+          "thickness": 0.72
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.75,
+          "angle": 169,
+          "blendMode": "normal-oklch",
+          "color": "#ff006e",
+          "frequency": 0.2,
+          "position": {
+            "x": 0.6,
+            "y": 0.51
+          },
+          "softness": 1,
+          "speed": 0.5,
+          "thickness": 0.39
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 210,
+          "edges": "mirror",
+          "frequency": 2.1,
+          "speed": 0.3,
+          "strength": 0.71,
+          "waveType": "sawtooth"
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.07
+        }
+      },
+      {
+        "type": "DiffuseBlur",
+        "props": {
+          "edges": "mirror",
+          "intensity": 80
+        }
+      },
+      {
+        "type": "GlassTiles",
+        "props": {
+          "intensity": 10,
+          "roundness": 0.62,
+          "tileCount": 16
+        }
+      },
+      {
+        "type": "Sharpness",
+        "props": {
+          "sharpness": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

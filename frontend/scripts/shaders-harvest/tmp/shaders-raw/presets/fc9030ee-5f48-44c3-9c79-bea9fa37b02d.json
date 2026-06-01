@@ -1,0 +1,30 @@
+{
+  "id": "fc9030ee-5f48-44c3-9c79-bea9fa37b02d",
+  "title": "Quantum",
+  "collection_id": "b3c3c82d-d12f-404f-9f61-e43d9f4f85e0",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, fluid gradient shader effect dominated by warm and cool color transitions. The image features a central bright yellow-orange core that radiates outward, surrounded by magenta and purple tones at the edges. The composition shows soft, organic blob-like shapes with smooth color gradients blending seamlessly across the canvas. The Swirl component creates subtle rotational distortions with magenta (#ff006e) and purple (#8338ec) interactions, while the Blob element positioned at coordinates (0.65, 0.35) generates a warm orange-to-yellow gradient (#fb5607 to #ffbe0b) with soft edges and a white highlight creating dimensional depth. Wave distortion at 54 degrees with sine wave patterns adds subtle undulating movement across the surface. The ChromaticAberration effect introduces slight color separation with red, green, and blue channel offsets, creating a barely perceptible prismatic quality. Film grain texture at 0.5 strength adds a subtle grainy quality throughout. The overall effect is smooth and dreamy with soft focus areas, particularly at the edges where magenta and pink tones fade into the composition. The color space uses OKLCH for perceptually uniform color transitions, resulting in natural-looking gradients that feel organic and fluid rather than harsh or digital.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/490d8a9b-2014-4b55-964a-5881d0e422cb.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ5MGQ4YTliLTIwMTQtNGI1NS05NjRhLTU4ODFkMGU0MjJjYi5qcGciLCJpYXQiOjE3NzE5MDgxNDgsImV4cCI6MTgwMzQ0NDE0OH0.1fNWXRne0qpDNHclmI-4uOWODq4lOdvmTO5eaHkd2oU",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  FlowField,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  FlowField,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"35\"\n      color-a=\"#ff006e\"\n      color-b=\"#8338ec\"\n      color-space=\"oklch\"\n      :detail=\"2.4\"\n      :speed=\"0.4\"/>\n    <Blob\n      :center=\"{\n        x: 0.65,\n        y: 0.35\n      }\"\n      color-a=\"#fb5607\"\n      color-b=\"#ffbe0b\"\n      color-space=\"oklch\"\n      :deformation=\"0.75\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.4\"\n      :highlight-z=\"0.5\"\n      :size=\"0.85\"\n      :softness=\"1.2\"\n      :speed=\"0.3\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"54\"\n      edges=\"mirror\"\n      :frequency=\"2.2\"\n      :speed=\"0.8\"\n      :strength=\"0.25\"\n      :visible=\"true\"/>\n    <FlowField\n      :detail=\"1.8\"\n      :speed=\"0.6\"\n      :strength=\"0.1\"/>\n    <ChromaticAberration\n      :angle=\"91\"\n      :blue-offset=\"0.8\"\n      :green-offset=\"-2\"\n      :red-offset=\"1.9\"\n      :strength=\"0.25\"/>\n    <FilmGrain/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "id": "9bb6cf98-77ba-49f4-b861-e61e4a3a1221",
+  "title": "Photocopied 7",
+  "collectionId": "bccc97a3-20d2-46f7-a3c1-c2011429c32f",
+  "category": "logo",
+  "description": "Three vertically stacked rounded rectangular shapes with a checkered pattern fill featuring alternating white and dark navy/black squares. Each shape has a glossy glass effect with subtle refraction and edge highlights creating a 3D beveled appearance. The shapes are arranged in a conversation bubble or chat interface style, with the topmost bubble being the smallest and most complex in its checkered pattern, the middle bubble medium-sized with simpler horizontal striping, and the bottom bubble largest with a similar striped pattern. A pixelated dither effect overlays the entire composition with a bayer4 pattern using white color dodge blending, creating a grainy, retro digital aesthetic. The background is pure black (#0a0a0a), providing stark contrast. Subtle ripple animations emanate from the top-left area of the topmost bubble. A VHS effect with wobble and scanline noise adds temporal distortion and analog video degradation, giving the overall composition a nostalgic, glitchy digital appearance with slight vertical smearing and horizontal scan artifacts.",
+  "thumbnail": "/shaders/thumbnails/9bb6cf98-77ba-49f4-b861-e61e4a3a1221.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "fresnel": 0,
+          "fresnelSoftness": 0,
+          "highlight": 0,
+          "lightAngle": 232,
+          "refraction": 0.64,
+          "scale": 0.8,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/ihHF7QcQ1qcY_sdf.bin",
+          "thickness": 0.1
+        },
+        "children": [
+          {
+            "type": "Ripples",
+            "props": {
+              "center": {
+                "x": 0.5,
+                "y": 0.12
+              },
+              "colorA": "#a8c4d6",
+              "colorB": "#212129",
+              "frequency": 80
+            }
+          },
+          {
+            "type": "Pixelate",
+            "props": {
+              "scale": 47,
+              "visible": true
+            }
+          },
+          {
+            "type": "Dither",
+            "props": {
+              "blendMode": "colorDodge",
+              "colorMode": "source",
+              "pixelSize": 6,
+              "threshold": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "VHS",
+        "props": {
+          "scanlineNoise": 0.09,
+          "smear": 0.3,
+          "wobble": 0.61
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

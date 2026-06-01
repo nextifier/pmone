@@ -1,0 +1,30 @@
+{
+  "id": "89281324-c035-4655-b56f-6e597a2f5a12",
+  "title": "Faded Dither 9",
+  "collection_id": "cc49576b-748c-4194-a9d2-234d5b628ea6",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A gradient shader effect transitioning from a lighter pink tone in the upper portion to a deeper magenta-red in the lower portion. The base layer is a solid color (#d42a5c) providing the foundational warm pink-red hue. Overlaid on top is a dither pattern using a Bayer 8x8 matrix that creates a subtle stippled texture throughout the image, with the dither effect transitioning between transparent and a brighter pink (#f46b93). The dither pattern is most visible in the mid-tones and creates a grainy, halftone-like appearance that adds depth and visual interest. Embedded within the dither layer is a sine wave effect positioned at coordinates (0.35, 0.28) with a white color, creating subtle undulating wave patterns that flow at an angle of 182 degrees. The sine wave has low amplitude (0.15) and frequency (0.5), making it a gentle, barely perceptible wave motion that adds organic movement to the otherwise static gradient. The overall effect is a soft, textured gradient with a subtle animated quality, creating a modern, digital aesthetic with a warm, energetic mood. The edges fade to transparent, and the entire composition maintains a cohesive pink-to-magenta color progression.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/89281324-c035-4655-b56f-6e597a2f5a12.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzg5MjgxMzI0LWMwMzUtNDY1NS1iNTZmLTZlNTk3YTJmNWExMi5qcGciLCJpYXQiOjE3NzMyNTA3OTMsImV4cCI6MTgwNDc4Njc5M30.qc0Xrx1F8VmGbw2J7U8CaigQkOG8uOihgYSGzx59-j0",
+  "import": "import {\n  Shader,\n  Dither,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#d42a5c\"/>\n    <Dither\n      color-b=\"#f46b93\"\n      pattern=\"bayer8\"\n      :threshold=\"0.41\">\n      <SineWave\n        :angle=\"182\"\n        :frequency=\"0.5\"\n        :position=\"{\n          x: 0.35,\n          y: 0.28\n        }\"\n        :softness=\"1\"\n        :speed=\"0.4\"\n        :thickness=\"0.8\"/>\n    </Dither>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

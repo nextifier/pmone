@@ -1,0 +1,45 @@
+{
+  "id": "195ec910-ec9e-4f49-9ab2-094fe3691991",
+  "title": "Frosted Glass 8",
+  "collectionId": "acc42402-71b9-438d-9006-d8c7df2963af",
+  "category": "logo",
+  "description": "A minimalist, ethereal shader effect featuring a soft, luminous background with a pale blue-white gradient transitioning from light cyan to off-white. The composition displays two rectangular glass-like shapes positioned in the upper-center and lower-right areas, with subtle transparency and frosted glass characteristics. A prominent curved swirl pattern emerges from the center, creating organic flowing lines that suggest movement and fluidity. The glass elements exhibit chromatic aberration effects with a slight rainbow-like refraction quality, enhanced by a fresnel lighting effect that creates subtle highlights along the edges. The overall atmosphere is serene and minimalist, with a soft film grain texture overlaid throughout, adding subtle noise and tactile quality. The lighting appears to come from the upper-left, creating gentle highlights on the glass surfaces. The color palette is dominated by cool, desaturated tones with high luminosity, creating a calm, frosted, and ethereal mood. The blur and refraction effects create a sense of depth and dimensionality despite the flat composition.",
+  "thumbnail": "/shaders/thumbnails/195ec910-ec9e-4f49-9ab2-094fe3691991.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#ebf6ff",
+          "colorB": "#d3e4f0",
+          "detail": 1.5
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.64,
+          "blur": 20,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.03,
+          "fresnelSoftness": 1,
+          "highlight": 0,
+          "highlightSoftness": 1,
+          "innerZoom": 2,
+          "lightAngle": 237,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/3qJFWUS-Vtnm_sdf.bin",
+          "thickness": 0.03
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

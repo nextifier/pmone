@@ -1,0 +1,106 @@
+{
+  "name": "BarShift",
+  "category": "Distortions",
+  "description": "Slices content into parallel bars, each offset independently for a fractured or glitch-like effect",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "count": {
+      "default": 6,
+      "description": "Number of bars across the longest viewport dimension",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "label": "Count",
+        "group": "Effect"
+      }
+    },
+    "angle": {
+      "default": 0,
+      "description": "Angle of bar orientation in degrees (0 = vertical bars, 90 = horizontal bars)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": -180,
+        "max": 180,
+        "step": 1,
+        "label": "Angle",
+        "group": "Effect"
+      }
+    },
+    "intensity": {
+      "default": 0.15,
+      "description": "Maximum displacement per bar",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Intensity",
+        "group": "Effect"
+      }
+    },
+    "seed": {
+      "default": 0,
+      "description": "Randomization seed for per-bar offset variation",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Seed",
+        "group": "Effect"
+      }
+    },
+    "speed": {
+      "default": 0,
+      "description": "Animation speed - each bar drifts at its own rate and direction",
+      "ui": {
+        "type": "range",
+        "min": -2,
+        "max": 2,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Animation"
+      }
+    },
+    "edges": {
+      "default": "mirror",
+      "description": "How to handle edges when distortion pushes content out of bounds",
+      "compileTime": true,
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Stretch",
+            "value": "stretch"
+          },
+          {
+            "label": "Transparent",
+            "value": "transparent"
+          },
+          {
+            "label": "Mirror",
+            "value": "mirror"
+          },
+          {
+            "label": "Wrap",
+            "value": "wrap"
+          }
+        ],
+        "label": "Edges",
+        "group": "Effect"
+      }
+    }
+  }
+}

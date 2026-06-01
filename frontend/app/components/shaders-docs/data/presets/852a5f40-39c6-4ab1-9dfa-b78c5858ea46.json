@@ -1,0 +1,81 @@
+{
+  "id": "852a5f40-39c6-4ab1-9dfa-b78c5858ea46",
+  "title": "Retro Bitrate",
+  "collectionId": "7f578c56-f249-4876-87b2-e1b6a1512e95",
+  "category": "background",
+  "description": "A pixelated shader effect displaying a dynamic gradient mesh with a dominant magenta-to-cyan color transition. The image shows a blocky, mosaic-like appearance with pixel sizes approximately 41 units, creating distinct square tiles across the composition. The left side features a solid deep magenta (#9d09a4) gradient that transitions into a complex pattern of lighter magenta, purple, cyan, and white pixels arranged in an organic, noise-driven distribution. The gradient angle appears to be dynamically mapped from simplex noise, creating a flowing directional quality from approximately center-left toward the upper-right. A dithering effect with a Bayer4 pattern is applied using magenta (#9d09a4) and light pink (#e6bce0) colors in screen blend mode, adding a subtle texture and visual complexity to the pixelated blocks. The overall effect creates a retro digital aesthetic with a soft, diffused quality despite the hard pixel edges, suggesting movement or turbulence through the noise-based angle mapping. The color palette ranges from deep purples and magentas on the left through bright magentas and pinks in the center to cyan and light blue tones on the right, with occasional white highlights creating depth variation.",
+  "thumbnail": "/shaders/thumbnails/852a5f40-39c6-4ab1-9dfa-b78c5858ea46.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm4025i3rr2toqt6j",
+          "center": {
+            "x": 0.7,
+            "y": 0.5
+          },
+          "radius": 2,
+          "visible": false
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "id": "idmm5kajmj4uwhjdgmm",
+          "scale": 4.3,
+          "speed": 0.1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": 41
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "angle": {
+                "type": "map",
+                "curve": 0,
+                "source": "idmm5kajmj4uwhjdgmm",
+                "channel": "luminance",
+                "inputMax": 1,
+                "inputMin": 0,
+                "outputMax": 360,
+                "outputMin": 0
+              },
+              "colorA": "#df2ae3",
+              "colorB": "#35b0c7",
+              "colorSpace": "hsl",
+              "edges": "mirror",
+              "end": {
+                "x": 0.89,
+                "y": 0.39
+              },
+              "maskSource": "idmm4025i3rr2toqt6j",
+              "start": {
+                "x": 0.67,
+                "y": 0.48
+              },
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "screen",
+          "colorA": "#9d09a4",
+          "colorB": "#e6bce0",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

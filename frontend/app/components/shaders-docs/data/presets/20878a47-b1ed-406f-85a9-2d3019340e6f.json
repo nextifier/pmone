@@ -1,0 +1,72 @@
+{
+  "id": "20878a47-b1ed-406f-85a9-2d3019340e6f",
+  "title": "Neon Flow 7",
+  "collectionId": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "category": "background",
+  "description": "A soft, blurred gradient composition dominated by warm and cool tones creating a dreamy, ethereal atmosphere. The image features a primary magenta-pink (#e3408a) base that transitions smoothly into peachy-tan (#edbd55) and dusty rose (#d4876e) hues. A prominent organic blob shape with purple-mauve undertones (#a34d7a) is positioned slightly right of center, creating depth through soft, feathered edges. The blob exhibits subtle internal highlights with a white luminous quality (#ffffff) at approximately 40% horizontal and -40% vertical offset, suggesting a light source. Gentle wave distortions ripple across the entire composition at a 122-degree angle, creating subtle undulating patterns that enhance the fluid, organic feel. The overall effect is heavily blurred and soft-focused, with chromatic aberration adding microscopic color fringing at 45-degree angles. Fine film grain texture overlays the entire image at low opacity, adding subtle noise and tactile quality. The composition has a warm, inviting mood with smooth color transitions and no sharp edges, creating a meditative, abstract aesthetic. The spatial arrangement suggests depth with the blob appearing to float within the gradient field.",
+  "thumbnail": "/shaders/thumbnails/20878a47-b1ed-406f-85a9-2d3019340e6f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 45,
+          "colorA": "#e3408a",
+          "colorB": "#edbd55",
+          "colorSpace": "oklab",
+          "detail": 1.8,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.72,
+            "y": 0.52
+          },
+          "colorA": "#d4876e",
+          "colorB": "#a34d7a",
+          "colorSpace": "oklab",
+          "deformation": 0.8,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.3,
+          "highlightX": 0.4,
+          "highlightY": -0.4,
+          "highlightZ": 0.6,
+          "seed": 17,
+          "size": 0.78,
+          "softness": 1.2,
+          "speed": 0.9
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 122,
+          "edges": "mirror",
+          "frequency": 2.8,
+          "speed": 1.8,
+          "strength": 0.14
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 45,
+          "blueOffset": 1.2,
+          "redOffset": -1.2,
+          "strength": 0.015
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.12
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

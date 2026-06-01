@@ -1,0 +1,75 @@
+{
+  "id": "25161d39-35d2-458a-9c58-962817e97961",
+  "title": "Rolling Shadows 8",
+  "collectionId": "0c3f4def-3e49-4ee4-a36d-ec34752656e7",
+  "category": "background",
+  "description": "A multi-layered gradient composition with organic, fluid distortion effects. The image features a warm-to-cool color transition dominated by earthy tones. On the left side, deep forest green (#2b3a1e) and dark olive tones create a shadowy foundation. The center transitions through warm brown (#5c3d1a) and muted earth tones. The right side features a prominent warm golden-yellow (#d4b86a) that appears to glow and radiate outward, creating a focal point with soft, diffused edges. The gradient points are positioned asymmetrically, with the brightest golden tone anchored toward the upper-right quadrant. Wave distortion at 97 degrees creates subtle undulating ripples across the entire surface, giving the effect a liquid, breathing quality. A bulge effect centered near the lower-left area adds dimensional warping and depth, creating a sense of three-dimensional bulging or lens distortion. The overall atmosphere is warm and organic, with a paper texture overlay (displacement 0.24, grain scale 3) adding fine surface detail and tactile quality. The edges blend smoothly with transparent falloff, creating a vignette-like effect that draws focus toward the luminous center. The color space is P3-linear, ensuring rich color depth and smooth gradations.",
+  "thumbnail": "/shaders/thumbnails/25161d39-35d2-458a-9c58-962817e97961.webp",
+  "config": {
+    "components": [
+      {
+        "type": "MultiPointGradient",
+        "props": {
+          "colorA": "#2b3a1e",
+          "colorB": "#5c3d1a",
+          "colorC": "#1e2b16",
+          "colorD": "#d4b86a",
+          "colorE": "#3b2f1c",
+          "positionA": {
+            "x": 0.17,
+            "y": 0.35
+          },
+          "positionB": {
+            "x": 0.62,
+            "y": 0.82
+          },
+          "positionC": {
+            "x": 0.19,
+            "y": 0.74
+          },
+          "positionD": {
+            "type": "mouse-position",
+            "originX": 0.445,
+            "originY": 0.2890070921985816,
+            "momentum": 0.2,
+            "smoothing": 0.6
+          },
+          "positionE": {
+            "x": 0.6,
+            "y": 0.24
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 97
+        }
+      },
+      {
+        "type": "Bulge",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "originX": 0.37,
+            "originY": 0.6642984014209592,
+            "momentum": 0.3,
+            "smoothing": 0.8
+          },
+          "falloff": 2,
+          "radius": 2
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 0.24,
+          "grainScale": 3,
+          "roughness": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

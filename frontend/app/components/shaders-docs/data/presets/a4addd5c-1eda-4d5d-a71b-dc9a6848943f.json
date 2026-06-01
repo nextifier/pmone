@@ -1,0 +1,79 @@
+{
+  "id": "a4addd5c-1eda-4d5d-a71b-dc9a6848943f",
+  "title": "Flowing Dots 3",
+  "collectionId": "aacfb436-0fcf-46ee-a6e2-93f708c027fb",
+  "category": "background",
+  "description": "A vibrant gradient background transitioning diagonally from magenta/pink in the lower left corner to golden yellow/orange in the upper right corner. The gradient uses smooth color interpolation creating a warm, energetic aesthetic. Overlaid on this base gradient is a pixelated dot grid pattern that creates a halftone or mosaic effect, with the dot density and size varying across the canvas to create visual depth and dimensionality. The dots appear more prominent and larger in the center-right area, gradually fading toward the edges. The overall effect suggests a digital, modern interface with a subtle organic quality from the flowing gradient beneath the geometric dot structure. The color transition is smooth and continuous, with intermediate peachy-orange tones dominating the center area. The pixelated overlay adds a contemporary, tech-forward aesthetic while maintaining visual softness through the gradient foundation.",
+  "thumbnail": "/shaders/thumbnails/a4addd5c-1eda-4d5d-a71b-dc9a6848943f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "DotGrid",
+        "props": {
+          "id": "idmlsai28917usa8l1j",
+          "density": 40,
+          "dotSize": {
+            "type": "map",
+            "source": "idmlsaoh7xdy8aayjbd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0
+          },
+          "twinkle": 0.9,
+          "visible": false
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "id": "idmlsaoh7xdy8aayjbd",
+          "intensity": 1.4,
+          "radius": 4.6,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#ff5eea",
+          "colorB": "#ffb214",
+          "colorSpace": "oklch",
+          "end": {
+            "x": 1,
+            "y": 0
+          },
+          "start": {
+            "x": 0,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#a3a1f5",
+          "colorB": "#faf13e",
+          "colorSpace": "oklch",
+          "end": {
+            "x": 1,
+            "y": 0
+          },
+          "maskSource": "idmlsai28917usa8l1j",
+          "start": {
+            "x": 0,
+            "y": 1
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {}
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

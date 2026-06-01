@@ -1,0 +1,64 @@
+{
+  "id": "a37d3bed-7fff-48f4-bd98-10b6a615d087",
+  "title": "Geogrid 7",
+  "collectionId": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "category": "background",
+  "description": "A sophisticated gradient shader effect featuring a layered geometric composition with a dominant purple-to-cyan color transition. The image displays an isometric perspective with multiple overlapping rectangular planes arranged in a chevron or arrow-like pattern pointing toward the upper right. The base layer consists of a smooth Swirl component creating a vibrant gradient from teal (#06baa1) to deep purple (#7c30d9) with organic color blending. Overlaid on this are geometric grid patterns with fine diagonal line work creating a mesh texture across the entire composition. A WaveDistortion effect at 150 degrees introduces subtle undulating distortions to the grid structure, creating a sense of depth and movement. The Grid component rendered in bright cyan (#15ede6) with hardLight blending mode creates crisp, luminous lines that stand out against the purple background. A GridDistortion effect with high intensity (5) and moderate radius (1.75) warps the geometric elements, creating a dynamic, slightly chaotic appearance while maintaining overall structure. The composition has a modern, tech-forward aesthetic with strong neon-like qualities. The lighting appears to emanate from the geometric planes themselves, creating a glowing, three-dimensional effect. The overall mood is energetic and contemporary, with a sense of digital transformation and motion.",
+  "thumbnail": "/shaders/thumbnails/a37d3bed-7fff-48f4-bd98-10b6a615d087.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "coarseX": 26,
+          "coarseY": 24,
+          "colorA": "#06baa1",
+          "colorB": "#7c30d9",
+          "colorSpace": "oklab",
+          "detail": 0.7,
+          "fineX": 50,
+          "fineY": 50,
+          "mediumX": 50,
+          "mediumY": 50,
+          "speed": 1.5
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 150,
+          "edges": "mirror",
+          "frequency": 2.1,
+          "waveType": "triangle"
+        },
+        "children": [
+          {
+            "type": "Grid",
+            "props": {
+              "blendMode": "hardLight",
+              "cells": 16,
+              "color": "#15ede6",
+              "thickness": 1.5,
+              "transform": {
+                "scale": 0.75
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "decay": 1.8,
+          "edges": "wrap",
+          "gridSize": 8,
+          "intensity": 5,
+          "radius": 1.75,
+          "swirl": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "73b3daaf-bcf6-466d-b04c-41a58b903cf0",
+  "title": "Illuminated Clouds 3",
+  "collectionId": "2abc4383-72b2-4372-95c8-968385824d76",
+  "category": "background",
+  "description": "A soft, blurred gradient shader effect dominated by cool tones creating an ethereal, atmospheric appearance. The composition features a dark central area with a deep charcoal-black (#111117) base that transitions smoothly into vibrant green and cyan hues around the edges. The effect creates a sense of depth with a dark triangular or angular shape in the center that appears to recede into the background. The flowing gradient component generates organic, wave-like color transitions moving from dark teal (#001512) through forest green (#134010) to bright cyan (#19ffc2) and lime green (#53ff35). The entire effect is heavily blurred with soft focus, creating a dreamy, out-of-focus quality reminiscent of bokeh or shallow depth of field photography. A subtle film grain texture overlays the entire composition, adding a slight noise pattern that enhances the organic, natural feel. The color space uses oklab for smooth perceptual transitions. The overall mood is cool, calming, and slightly mysterious, with the bright neon greens and cyans creating visual interest against the dark base. The effect suggests movement and fluidity despite being a static composition.",
+  "thumbnail": "/shaders/thumbnails/73b3daaf-bcf6-466d-b04c-41a58b903cf0.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#111117"
+        }
+      },
+      {
+        "type": "Fog",
+        "props": {
+          "id": "idmo78g2qa8dpr72ig3",
+          "blending": 0.9,
+          "colorB": "#000000",
+          "detail": 3,
+          "mouseInfluence": 0.4,
+          "seed": 243,
+          "visible": false
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#001512",
+          "colorB": "#134010",
+          "colorC": "#19ffc2",
+          "colorD": "#53ff35",
+          "colorSpace": "oklab",
+          "distortion": 0,
+          "maskSource": "idmo78g2qa8dpr72ig3",
+          "maskType": "luminance",
+          "seed": 34,
+          "speed": 4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "128a514b-9642-4032-a925-9b59c31575a0",
+  "title": "Ascii Wave",
+  "collection_id": "f0457e72-90b7-4603-b8b9-47953492be76",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric digital composition featuring a deep navy-black background (#0b0f24) that creates a night-like ambiance. The central focus is a large rectangular area filled with cyan-colored asterisk characters (*) arranged in a dense grid pattern, creating a pixelated or ASCII art effect. The cyan characters (#16ded7) are bright and luminous against the dark background, producing a strong contrast. Overlaying this grid is a series of horizontal wavy lines in dark blue/purple tones that flow from left to right, creating a sine wave pattern with smooth, undulating curves. These waves appear to act as a mask or boundary for the ASCII characters, causing them to fade in and out along the wave contours. The waves have a soft, feathered edge quality with moderate softness (0.52), giving them a slightly blurred appearance. The overall effect suggests digital data flow or a technological visualization, with the combination of static ASCII characters and dynamic wave patterns creating a sense of movement and energy. A subtle film grain texture overlays the entire composition, adding a slight noise and vintage digital quality. The composition has a cyberpunk or hacker aesthetic, with the bright cyan glowing characters creating an almost neon-like quality against the dark void.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/80dfd99d-37e7-4d07-8508-af1f094a2368.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzgwZGZkOTlkLTM3ZTctNGQwNy04NTA4LWFmMWYwOTRhMjM2OC5qcGciLCJpYXQiOjE3NjM0NDEwMTEsImV4cCI6MTc5NDk3NzAxMX0.s4p9Tw2igTrHZfsC2mbAqcMnxJE4-Qgyit8Ku7x34R4",
+  "import": "import {\n  Shader,\n  Ascii,\n  FilmGrain,\n  Group,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  FilmGrain,\n  Group,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0b0f24\"/>\n    <Group\n      blend-mode=\"normal-oklch\">\n      <SolidColor\n        color=\"#5413ed\"\n        :visible=\"true\"/>\n      <SineWave\n        id=\"idmh10tevmvxufaxu22\"\n        :amplitude=\"0.26\"\n        :angle=\"36\"\n        color=\"#16ded7\"\n        :frequency=\"0.3\"\n        :position=\"{\n          x: 0.5,\n          y: 1\n        }\"\n        :softness=\"0.52\"\n        :thickness=\"0.99\"\n        :visible=\"true\"/>\n      <Ascii\n        :cell-size=\"25\"\n        characters=\"〜*\"\n        font-family=\"Space Mono\"\n        mask-source=\"idmh10tevmvxufaxu22\"\n        :visible=\"true\"/>\n    </Group>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

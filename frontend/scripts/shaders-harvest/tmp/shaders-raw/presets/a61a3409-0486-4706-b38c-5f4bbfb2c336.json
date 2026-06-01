@@ -1,0 +1,42 @@
+{
+  "id": "a61a3409-0486-4706-b38c-5f4bbfb2c336",
+  "title": "Magnify",
+  "collection_id": "405dad07-aae5-4c4b-b3c3-359381989c06",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "A striking compositional image featuring a small figure wearing a vibrant red and black quilted puffer jacket standing on a barren, tan-colored hillside. The figure is positioned centrally and viewed from behind, with their hands on their hips in a confident stance. Behind the figure is a large, perfectly circular portal or orb with a soft light-blue gradient that creates a glowing halo effect. The circular shape has a luminous quality with subtle white highlights along its edges, suggesting a glass or crystalline material with refraction properties. The background sky transitions from pale blue at the top to deeper blue tones, with subtle cloud formations creating atmospheric depth. The ground texture is dry, sparse vegetation in muted tan and brown tones. The overall mood is surreal and contemplative, with the bright red jacket creating a strong focal point against the cool blue palette. The glass shader effect creates a subtle lens distortion and chromatic aberration around the circular portal, with a fresnel effect that makes the edges appear to have a subtle white glow. The lighting suggests either dawn or dusk, with soft, diffused illumination creating a dreamlike quality.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/32c15536-261e-4d79-acf4-ab97d6a97848.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzMyYzE1NTM2LTI2MWUtNGQ3OS1hY2Y0LWFiOTdkNmE5Nzg0OC5qcGciLCJpYXQiOjE3NzgxMTI4OTUsImV4cCI6MTgwOTY0ODg5NX0.tkkmCeTAUkHWhoAijpWear8lGsAfsjecW7hpXhLrUiw",
+  "import": "import {\n  Shader,\n  Glass,\n  ImageTexture\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Glass, ImageTexture } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/LZa9mfBjaqRg.jpg\"/>\n    <Glass\n      :center=\"{\n        type: 'mouse-position',\n        reach: 1,\n        originX: 0.5,\n        originY: 0.5,\n        momentum: 0.25,\n        smoothing: 0.15\n      }\"\n      :fresnel=\"0.05\"\n      :fresnel-softness=\"0.06\"\n      :inner-zoom=\"1.7\"\n      :refraction=\"0.46\"\n      :thickness=\"0.04\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

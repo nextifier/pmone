@@ -1,0 +1,82 @@
+{
+  "id": "31563825-1ee2-45f1-bb91-f21aab8649b1",
+  "title": "Retro Bitrate 8",
+  "collectionId": "7f578c56-f249-4876-87b2-e1b6a1512e95",
+  "category": "background",
+  "description": "A pixelated shader effect displaying a gradient transition from left to right. The left side features a chaotic mosaic of small square pixels in pastel colors including light yellows, light blues, light greens, peach/tan tones, and pale purples arranged in an organic, noise-based pattern. The right side transitions into a solid bright lime green with a fine dotted texture pattern. The pixelation effect uses a scale of 41 pixels, creating distinct blocky squares throughout. A dithering pattern with a Bayer4 matrix is applied with a screen blend mode, adding a subtle speckled texture using lime green (#75df19) and purple (#a04cb8) colors. The gradient underlying the pixelated area flows from orange-tan (#d38352) to purple (#9c53de) at an angle controlled by simplex noise, creating organic color variation. The overall effect suggests a noisy, procedurally-generated landscape with a sharp transition boundary between the chaotic left region and the uniform right region. The mood is digital and abstract, with a soft, pastel aesthetic on the left contrasting with vibrant neon green on the right.",
+  "thumbnail": "/shaders/thumbnails/31563825-1ee2-45f1-bb91-f21aab8649b1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm4025i3rr2toqt6j",
+          "center": {
+            "x": 0.28,
+            "y": 0.5
+          },
+          "radius": 1.45,
+          "softness": 0.25,
+          "visible": false
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "id": "idmm5kajmj4uwhjdgmm",
+          "scale": 4.3,
+          "speed": 0.1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": 41
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "angle": {
+                "type": "map",
+                "curve": 0,
+                "source": "idmm5kajmj4uwhjdgmm",
+                "channel": "luminance",
+                "inputMax": 1,
+                "inputMin": 0,
+                "outputMax": 360,
+                "outputMin": 0
+              },
+              "colorA": "#d38352",
+              "colorB": "#9c53de",
+              "colorSpace": "hsl",
+              "edges": "mirror",
+              "end": {
+                "x": 0.89,
+                "y": 0.39
+              },
+              "maskSource": "idmm4025i3rr2toqt6j",
+              "start": {
+                "x": 0.67,
+                "y": 0.48
+              },
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "screen",
+          "colorA": "#75df19",
+          "colorB": "#a04cb8",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

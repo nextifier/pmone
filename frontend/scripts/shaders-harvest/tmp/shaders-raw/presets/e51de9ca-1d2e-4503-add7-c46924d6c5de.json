@@ -1,0 +1,30 @@
+{
+  "id": "e51de9ca-1d2e-4503-add7-c46924d6c5de",
+  "title": "Retro Bitrate 9",
+  "collection_id": "7f578c56-f249-4876-87b2-e1b6a1512e95",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A pixelated shader effect displaying a dynamic gradient-based noise pattern. The left two-thirds of the image features a chaotic mosaic of small square pixels in magenta, cyan, light-blue, light-green, and green colors, creating an organic, turbulent appearance. The pixelation scale is set to 41 pixels, producing distinct blocky artifacts. The right third transitions smoothly into a solid bright green area with fine dotted texture. The color distribution appears to be controlled by a simplex noise generator with a scale of 4.3, creating natural-looking organic variation. A linear gradient with dynamic angle mapping (controlled by noise luminance) blends magenta (#f131f6) and dark-green (#517c06) colors across the composition. A dither effect with bayer4 pattern and screen blend mode adds subtle texture and visual noise throughout, using bright green (#19d36b) and dark purple (#070226) in a 3-pixel pattern. The overall effect creates a sense of digital turbulence transitioning to calm, with a vibrant, neon-like quality enhanced by the screen blend mode creating a glowing appearance where colors overlap.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e51de9ca-1d2e-4503-add7-c46924d6c5de.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2U1MWRlOWNhLTFkMmUtNDUwMy1hZGQ3LWM0NjkyNGQ2YzVkZS5qcGciLCJpYXQiOjE3NzI5Mjk2NDgsImV4cCI6MTgwNDQ2NTY0OH0.uIpquJL94ei30UBB-nHXnjGp82igUPEDuVm1pulYR44",
+  "import": "import {\n  Shader,\n  Circle,\n  Dither,\n  LinearGradient,\n  Pixelate,\n  SimplexNoise\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  Dither,\n  LinearGradient,\n  Pixelate,\n  SimplexNoise\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Circle\n      id=\"idmm4025i3rr2toqt6j\"\n      :center=\"{\n        x: 0,\n        y: 0\n      }\"\n      :radius=\"2.5\"\n      :visible=\"false\"/>\n    <SimplexNoise\n      id=\"idmm5kajmj4uwhjdgmm\"\n      :scale=\"4.3\"\n      :speed=\"0.1\"\n      :visible=\"false\"/>\n    <Pixelate\n      :scale=\"41\">\n      <LinearGradient\n        :angle=\"{\n          type: 'map',\n          curve: 0,\n          source: 'idmm5kajmj4uwhjdgmm',\n          channel: 'luminance',\n          inputMax: 1,\n          inputMin: 0,\n          outputMax: 360,\n          outputMin: 0\n        }\"\n        color-a=\"#f131f6\"\n        color-b=\"#517c06\"\n        color-space=\"hsl\"\n        edges=\"mirror\"\n        :end=\"{\n          x: 0.89,\n          y: 0.39\n        }\"\n        mask-source=\"idmm4025i3rr2toqt6j\"\n        :start=\"{\n          x: 0.67,\n          y: 0.48\n        }\"\n        :visible=\"true\"/>\n    </Pixelate>\n    <Dither\n      blend-mode=\"screen\"\n      color-a=\"#19d36b\"\n      color-b=\"#070226\"\n      :pixel-size=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

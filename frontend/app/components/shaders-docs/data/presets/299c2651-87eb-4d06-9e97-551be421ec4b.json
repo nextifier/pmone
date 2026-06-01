@@ -1,0 +1,52 @@
+{
+  "id": "299c2651-87eb-4d06-9e97-551be421ec4b",
+  "title": "Lost Rays 9",
+  "collectionId": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "category": "background",
+  "description": "A sophisticated shader effect featuring a dark, moody atmosphere dominated by deep purple and black tones. The image displays a diagonal motion blur effect emanating from the lower-left area (center at 0.28, 0.35) with an intensity of 42, creating a sense of rapid directional movement across the frame. Overlaid on this is a godray effect centered at the upper-right (0.82, 0.88) with warm beige-tan light rays (#e8d4c6) penetrating through the darkness at 65% intensity, creating a dramatic lighting contrast. The tritone color grading applies a three-tone palette transitioning from very dark purple-black (#0d0a1a) through vibrant magenta-purple (#9b3a8d) to warm golden-tan (#f5c77e), with the blend midpoint at 0.38 creating a rich color transition. A subtle film grain texture (11% strength) adds analog quality and texture throughout. The overall composition creates a cinematic, atmospheric effect with strong directional energy from the zoom blur combined with ethereal light rays, resulting in a moody, dramatic visual with warm highlights against cool dark shadows.",
+  "thumbnail": "/shaders/thumbnails/299c2651-87eb-4d06-9e97-551be421ec4b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Godrays",
+        "props": {
+          "backgroundColor": "#2b1845",
+          "center": {
+            "x": 0.82,
+            "y": 0.88
+          },
+          "intensity": 0.65,
+          "rayColor": "#e8d4c6",
+          "speed": 1.4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.11
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "blendMid": 0.38,
+          "colorA": "#0d0a1a",
+          "colorB": "#9b3a8d",
+          "colorC": "#f5c77e"
+        }
+      },
+      {
+        "type": "ZoomBlur",
+        "props": {
+          "center": {
+            "x": 0.28,
+            "y": 0.35
+          },
+          "intensity": 42
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,72 @@
+{
+  "id": "7390e6fb-d70a-4555-99a5-a5bb299a8b21",
+  "title": "Cascading Lines 6",
+  "collectionId": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "category": "background",
+  "description": "A vibrant shader effect featuring vertical falling lines that cascade downward across the composition. The background is dominated by a rich purple base color (#992ed9) that provides the foundational canvas. Overlaid on this are numerous thin vertical lines in white and light purple tones that appear to fall or stream downward at a 90-degree angle, creating a rain-like or data-stream effect. The lines vary in length and opacity, with some appearing as full-height strokes while others are shorter, creating depth and visual rhythm. Interspersed throughout the composition are golden-orange accents (#c57208) that add warmth and contrast to the cool purple palette. The lines have a soft, slightly transparent quality with varying opacity levels, creating a layered, ethereal appearance. A subtle swirl effect adds organic movement and distortion to the overall pattern, preventing it from appearing too rigid or mechanical. The dithering effect adds a grainy texture with a linear dodge blend mode, creating subtle highlights and a slightly noisy, analog quality. The overall mood is modern, energetic, and somewhat digital or technological in nature, with a sense of motion and flow from top to bottom. The composition maintains consistent density across the frame with no clear focal point, creating an immersive, all-over pattern effect.",
+  "thumbnail": "/shaders/thumbnails/7390e6fb-d70a-4555-99a5-a5bb299a8b21.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#992ed9"
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#ce99ed",
+          "colorB": "#c57208",
+          "detail": 2,
+          "maskSource": "idmmzanabwzt8f61fke"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmzanabwzt8f61fke",
+          "density": 60,
+          "speed": 0.1,
+          "speedVariance": 0.7,
+          "strokeWidth": 0.66,
+          "trailLength": {
+            "type": "map",
+            "curve": -0.15,
+            "source": "idmmzaokw5nk6ntmihd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmzaokw5nk6ntmihd",
+          "amplitude": 0.4,
+          "angle": 26,
+          "frequency": 0.5,
+          "softness": 1,
+          "speed": 0.4,
+          "thickness": 1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

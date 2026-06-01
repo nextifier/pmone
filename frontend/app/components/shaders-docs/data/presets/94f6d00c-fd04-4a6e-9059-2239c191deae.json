@@ -1,0 +1,47 @@
+{
+  "id": "94f6d00c-fd04-4a6e-9059-2239c191deae",
+  "title": "Pixel Beams",
+  "collectionId": "ef3cb88e-1e3e-4371-8816-4821e67b554f",
+  "category": "background",
+  "description": "A dynamic dithered gradient effect transitioning from bright red-orange in the upper left to golden yellow in the lower right. The image employs a Bayer 8x8 dithering pattern with 7-pixel blocks, creating a characteristic pixelated halftone appearance with visible dot patterns that vary in density across the canvas. The underlying plasma effect generates organic, flowing turbulence with high contrast (0.9) and moderate density (0.3), producing subtle cloud-like formations beneath the dither pattern. A square wave distortion at 188 degrees with 1.8 frequency adds subtle horizontal rippling and warping throughout the composition. The overall effect creates a warm, energetic atmosphere with a retro digital aesthetic, reminiscent of 8-bit graphics or vintage computer art. The dither pattern becomes denser and more pronounced in areas of higher color intensity, while remaining more sparse in transition zones. The edges maintain transparency, allowing the effect to blend seamlessly. The combination of plasma turbulence and wave distortion creates subtle movement and depth within the static dithered surface.",
+  "thumbnail": "/shaders/thumbnails/94f6d00c-fd04-4a6e-9059-2239c191deae.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#ff1300",
+          "colorB": "#e6ff00",
+          "pattern": "bayer8",
+          "pixelSize": 7,
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "colorA": "#ffffff",
+              "contrast": 0.9,
+              "density": 0.3,
+              "intensity": 1.3,
+              "speed": 1
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 188,
+              "edges": "mirror",
+              "frequency": 1.8,
+              "strength": 1,
+              "visible": true,
+              "waveType": "square"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

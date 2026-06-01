@@ -1,0 +1,30 @@
+{
+  "id": "5ed6ab72-95e3-43cd-a068-1683b5e1efc7",
+  "title": "Kiwi 2",
+  "collection_id": "65ff265d-8d5e-475d-a404-5adc13e93fab",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, organic gradient shader effect dominated by yellow and green hues with smooth, flowing transitions. The composition features a central blob-like form with warm yellow tones (#fce656, #e9ac1e) positioned slightly left of center, surrounded by vibrant green swirling patterns (#3dd812, #2bf03b) that create a sense of fluid motion. The effect exhibits multiple layers of distortion: wave patterns create subtle undulating ripples across the surface with varying frequencies, while a kaleidoscopic mirror effect adds geometric complexity to the right side of the composition. The overall atmosphere is ethereal and dreamlike, with soft edges that blend seamlessly into the background. Film grain texture adds a subtle grittiness that prevents the effect from appearing too smooth or artificial. The color transitions are smooth and organic, suggesting natural fluid dynamics or organic growth patterns. The lighting appears to come from the upper left, creating subtle depth variations. The entire composition has a warm, inviting quality with the yellow-green color palette evoking spring growth or natural luminescence.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/5ed6ab72-95e3-43cd-a068-1683b5e1efc7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzVlZDZhYjcyLTk1ZTMtNDNjZC1hMDY4LTE2ODNiNWUxZWZjNy5qcGciLCJpYXQiOjE3NzIyNTExOTAsImV4cCI6MTgwMzc4NzE5MH0.giRTr4Teo9X0lLIMqo8Es5ybb8klhH-n6N3ZPAPlDhU",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  Kaleidoscope,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  Kaleidoscope,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#3dd812\"\n      color-b=\"#2bf03b\"\n      color-space=\"oklch\"/>\n    <WaveDistortion\n      :angle=\"257\"\n      edges=\"wrap\"\n      :frequency=\"1.6\"\n      :strength=\"0.1\"\n      :transform=\"{ scale: 1.3 }\">\n      <WaveDistortion\n        :angle=\"73\"\n        edges=\"mirror\"\n        :frequency=\"8.1\"\n        :speed=\"0.3\"\n        wave-type=\"sawtooth\">\n        <Blob\n          :center=\"{\n            x: 0.46,\n            y: 0.53\n          }\"\n          color-a=\"#fce656\"\n          color-b=\"#e9ac1e\"\n          :deformation=\"0.7\"\n          highlight-color=\"#03b2ff\"\n          :highlight-x=\"-0.5\"\n          :highlight-y=\"-0.9\"\n          :highlight-z=\"-0.1\"\n          :size=\"0.8\"\n          :softness=\"1\"/>\n      </WaveDistortion>\n    </WaveDistortion>\n    <Kaleidoscope\n      :center=\"{\n        x: 0.7,\n        y: 0.35\n      }\"\n      :segments=\"17\"/>\n    <FilmGrain\n      :strength=\"0.4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

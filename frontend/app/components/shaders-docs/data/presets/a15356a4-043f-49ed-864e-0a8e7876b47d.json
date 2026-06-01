@@ -1,0 +1,40 @@
+{
+  "id": "a15356a4-043f-49ed-864e-0a8e7876b47d",
+  "title": "Gradient Grid 9",
+  "collectionId": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "category": "background",
+  "description": "A flowing gradient shader effect with a diagonal orientation spanning from upper-left to lower-right. The composition features a smooth color transition starting with deep purple-black (#0a0015) in the upper-left corner, transitioning through warm burnt orange (#c45e18) in the central band, then progressing to lighter golden-orange (#e8943a) and pale yellow (#f0c24d) tones toward the lower-right. The gradient exhibits significant blur and soft feathering at the edges, creating a dreamlike, atmospheric quality. A subtle grid pattern with white lines (30 cells, 0.01 opacity) is barely visible underneath, providing minimal texture definition. Fine film grain noise (0.1 strength) is applied uniformly across the entire surface, adding a cinematic quality and subtle texture. The overall effect is warm and glowing, with smooth color transitions and no hard edges. The distortion parameter (0.2) creates organic, flowing variations in the gradient bands rather than perfectly linear transitions. The lighting appears to emanate from the center-right area, creating a warm, sunset-like ambiance.",
+  "thumbnail": "/shaders/thumbnails/a15356a4-043f-49ed-864e-0a8e7876b47d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorB": "#c45e18",
+          "colorC": "#e8943a",
+          "colorD": "#f0c24d",
+          "distortion": 0.2,
+          "seed": 68,
+          "visible": true
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "blendMode": "linearDodge",
+          "cells": 30,
+          "opacity": 0.01,
+          "thickness": 0.4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,92 @@
+{
+  "id": "49a3ecd8-8660-4525-82a5-9788856acbfe",
+  "title": "Spray Paint 3",
+  "collectionId": "c461387d-b3ec-4cfe-96df-a6e4aed001c5",
+  "category": "background",
+  "description": "A vibrant gradient mesh shader effect featuring four animated blob shapes layered over a solid magenta base color. The composition creates a smooth, flowing transition across the entire canvas. In the upper left quadrant, a warm yellow-to-orange blob (#ffe600 to #ff6b00) with soft edges and subtle highlight creates a glowing orb effect. The upper right features a cyan-to-blue blob (#00e5ff to #3d1dff) positioned at approximately 88% horizontal and 45% vertical, with enhanced softness and a light cyan highlight. The lower center contains a magenta-to-pink blob (#ff00c8 to #ff4dff) with moderate deformation creating organic, undulating edges. The entire composition is unified by a solid magenta background (#ff2d7b) at full opacity. A diffuse blur filter with 100% intensity is applied across all layers, creating a soft, dreamy aesthetic with smooth color transitions and no harsh edges. The blobs feature varying deformation values (0.7-0.9) and highlight intensities (0.5-0.7), creating depth and dimension. The overall effect is a smooth, pastel-like gradient that transitions from warm yellows and oranges on the left, through vibrant magentas and pinks in the center, to cool cyans and blues on the right, with all colors blending seamlessly through the diffuse blur effect.",
+  "thumbnail": "/shaders/thumbnails/49a3ecd8-8660-4525-82a5-9788856acbfe.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#ff2d7b"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.12,
+            "y": 0.18
+          },
+          "colorA": "#ffe600",
+          "colorB": "#ff6b00",
+          "colorSpace": "oklch",
+          "deformation": 0.9,
+          "highlightColor": "#fffbe0",
+          "highlightIntensity": 0.7,
+          "highlightX": 0.2,
+          "highlightY": 0.3,
+          "highlightZ": 0.7,
+          "seed": 55,
+          "size": 1.05,
+          "softness": 2,
+          "speed": 0.3
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.88,
+            "y": 0.45
+          },
+          "colorA": "#00e5ff",
+          "colorB": "#3d1dff",
+          "colorSpace": "oklch",
+          "deformation": 0.7,
+          "highlightColor": "#b8ffec",
+          "highlightX": 0.4,
+          "highlightZ": 0.6,
+          "seed": 31,
+          "size": 0.85,
+          "softness": 2.5,
+          "speed": 0.28
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.48,
+            "y": 0.87
+          },
+          "colorA": "#ff00c8",
+          "colorB": "#ff4dff",
+          "colorSpace": "oklch",
+          "deformation": 0.85,
+          "highlightColor": "#ffaaee",
+          "highlightIntensity": 0.6,
+          "highlightX": -0.3,
+          "highlightY": -0.4,
+          "highlightZ": 0.5,
+          "seed": 14,
+          "size": 0.95,
+          "softness": 2,
+          "speed": 0.35
+        }
+      },
+      {
+        "type": "DiffuseBlur",
+        "props": {
+          "edges": "mirror",
+          "intensity": 100,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

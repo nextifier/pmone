@@ -1,0 +1,25 @@
+{
+  "id": "665d6c20-935d-4eaf-8cec-b4a7fa4ae48a",
+  "title": "Fluid Chrome 4",
+  "collection_id": "11295f25-f0a2-4670-859e-9a8e2ed62ca6",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "Two stacked transparent glass cubes with a luminous blue glow effect against a pure black background. The cubes are rendered with high-quality glass material properties including refraction, fresnel effects, and chromatic aberration. The primary cube sits on top with a slightly offset smaller cube below it, creating an isometric 3D perspective. Bright blue light (#1944ff) swirls dynamically within and around the glass geometry, creating an animated fluid motion effect. The glass surfaces exhibit sharp edge highlights in white, with subtle internal reflections and light refractions visible through the transparent geometry. The fresnel effect creates a blue-tinted glow along the edges of the cubes, particularly visible on the upper surfaces and corners. A swirling pattern of blue and black colors flows through the interior of the glass structures, with the blue component being vibrant and saturated. The overall composition has a sleek, modern, tech-forward aesthetic with strong contrast between the luminous blue elements and the absolute black background. The lighting angle appears to come from the upper right, creating dimensional highlights on the cube surfaces.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/665d6c20-935d-4eaf-8cec-b4a7fa4ae48a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzY2NWQ2YzIwLTkzNWQtNGVhZi04Y2VjLWI0YTdmYTRhZTQ4YS5qcGciLCJpYXQiOjE3Nzc3ODEyMjIsImV4cCI6MTgwOTMxNzIyMn0.qQdnuE-E4hRDEa3E6Nm23lybCgLeUurWA77zVjLTl98",
+  "import": "import {\n  Shader,\n  FlowField,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FlowField,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <Glass\n      :aberration=\"0.89\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0.01\"\n      :fresnel-softness=\"0.14\"\n      :refraction=\"1.09\"\n      :scale=\"0.7\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin\"\n      :thickness=\"0.27\">\n      <Swirl\n        :blend=\"56\"\n        color-a=\"#1944ff\"\n        color-b=\"#0a0a0a\"\n        color-space=\"oklab\"\n        :detail=\"4.2\"\n        :speed=\"0.1\"/>\n      <FlowField\n        :detail=\"1\"\n        :evolution-speed=\"1.5\"\n        :speed=\"1.8\"\n        :strength=\"0.5\"/>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [ "shaders://docs/guide/shape-effects" ]
+  }
+}

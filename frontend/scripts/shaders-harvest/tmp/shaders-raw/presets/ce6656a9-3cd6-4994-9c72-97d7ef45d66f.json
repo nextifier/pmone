@@ -1,0 +1,30 @@
+{
+  "id": "ce6656a9-3cd6-4994-9c72-97d7ef45d66f",
+  "title": "Rounded Panels",
+  "collection_id": "0a33095f-dfca-48af-94a5-5f15acc313ab",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic striped shader effect featuring parallel diagonal lines angled at 78 degrees, creating a sense of motion and depth. The stripes alternate between a deep dark navy blue (#1a0a2e) and a vibrant crimson red (#c4153a), with the red occupying approximately the right third of the composition and the dark blue dominating the left two-thirds. The stripes have sharp, clean edges with subtle wave-like distortions along their boundaries, suggesting a flowing or undulating motion. The effect appears to be modulated by an invisible circular gradient mask centered at coordinates (0.35, 0.58) with a radius of 1.55, which creates a subtle feathering effect on the stripe balance, making the transition between colors appear more organic and less uniform. The density of stripes is set to 12, creating a medium-frequency pattern that's visually engaging without being overwhelming. The overall mood is energetic and modern, with a strong sense of directional movement from lower-left to upper-right. The color space is linear, ensuring accurate color representation. There is no visible blur or glow, maintaining crisp definition throughout the effect.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/ce6656a9-3cd6-4994-9c72-97d7ef45d66f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2NlNjY1NmE5LTNjZDYtNDk5NC05YzcyLTk3ZDdlZjQ1ZDY2Zi5qcGciLCJpYXQiOjE3NzMyNTExNzMsImV4cCI6MTgwNDc4NzE3M30.m51uXgGFdQPGzEXrFPec6XQYfHN4ae6pLDNPyw2y1NM",
+  "import": "import {\n  Shader,\n  Circle,\n  Stripes\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Circle, Stripes } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      :angle=\"78\"\n      :balance=\"{\n        type: 'map',\n        source: 'idmlsathgg7fl4tmxmi',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 0.9,\n        outputMin: 0.1\n      }\"\n      color-a=\"#1a0a2e\"\n      color-b=\"#c4153a\"\n      :density=\"12\"/>\n    <Circle\n      id=\"idmlsathgg7fl4tmxmi\"\n      :center=\"{\n        x: 0.35,\n        y: 0.58\n      }\"\n      :radius=\"1.55\"\n      :softness=\"0.1\"\n      :visible=\"false\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

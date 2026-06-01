@@ -1,0 +1,47 @@
+{
+  "id": "1bb03375-bb9c-4e7c-b0a4-8774776bfc24",
+  "title": "Pixel Beams 7",
+  "collectionId": "ef3cb88e-1e3e-4371-8816-4821e67b554f",
+  "category": "background",
+  "description": "A dynamic dithered shader effect displaying a soft, organic gradient transition between pink and purple tones. The image features a Bayer8 dithering pattern with 7-pixel size creating a characteristic dotted, pixelated appearance across the entire composition. The underlying plasma effect generates flowing, cloud-like formations with organic wave-like distortions that create a sense of movement and fluidity. The plasma contributes white and black noise patterns that are modulated by the dither effect, resulting in a stippled texture where purple dots are densely concentrated in the lower-left, center-bottom, and right-center regions, gradually dispersing toward the edges. The wave distortion with square waveform at 1.8 frequency adds subtle undulating ripples to the composition, creating a gentle warping effect that makes the dotted patterns appear to flow and shift. The overall mood is ethereal and contemporary, with a soft, diffused quality enhanced by the transparent edge handling. The effect creates a sense of depth through varying dot density, with denser concentrations appearing closer and sparse areas receding into the pink background.",
+  "thumbnail": "/shaders/thumbnails/1bb03375-bb9c-4e7c-b0a4-8774776bfc24.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#fab3be",
+          "colorB": "#664af9",
+          "pattern": "bayer8",
+          "pixelSize": 7,
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "colorA": "#ffffff",
+              "contrast": 0.9,
+              "density": 0.3,
+              "intensity": 1.3,
+              "speed": 1
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 6,
+              "edges": "mirror",
+              "frequency": 1.8,
+              "strength": 1,
+              "visible": true,
+              "waveType": "square"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

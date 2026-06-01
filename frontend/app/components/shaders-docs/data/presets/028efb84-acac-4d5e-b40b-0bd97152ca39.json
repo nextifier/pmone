@@ -1,0 +1,124 @@
+{
+  "id": "028efb84-acac-4d5e-b40b-0bd97152ca39",
+  "title": "Saturn",
+  "collectionId": "8a4eaa4e-cb8e-4661-a95d-13d7ba15bac3",
+  "category": "background",
+  "description": "A large spherical celestial body dominates the right side of the composition, rendered with a sophisticated 3D spherize effect that creates dimensional depth and curvature. The sphere features prominent horizontal striations and bands that flow across its surface in warm orange and coral tones (#ffa929), contrasting against cooler blue and purple undertones (#4c71fc, #0d193d). The surface exhibits a glossy, reflective quality with a bright highlight positioned in the upper-left quadrant of the sphere, creating a luminous focal point. Multiple layers of godrays emanate from the sphere's surface, with orange rays moving outward at varying speeds and intensities (0.82 intensity), creating a dynamic atmospheric effect. Darker blue-toned rays (#010640) add depth and shadow definition. The background is a deep, nearly black space (#0e0724) with subtle star-like particles scattered throughout, enhanced by a floating particles effect with minimal opacity (0.05) and high twinkle (0.77). A wave distortion effect (strength 0.21, frequency 7.9) subtly warps the surface details, creating organic movement across the bands. Chromatic aberration (0.02 strength) adds a slight color fringing effect, particularly visible along the edges of the bright regions. The overall mood is cosmic and ethereal, with a balance between cool deep space tones and warm energetic light emissions. Film grain (0.03 strength) provides subtle texture throughout, enhancing the cinematic quality.",
+  "thumbnail": "/shaders/thumbnails/028efb84-acac-4d5e-b40b-0bd97152ca39.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0e0724",
+          "visible": true
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.29,
+            "y": 0.41
+          },
+          "colorA": "#0d193d",
+          "colorB": "#0a0526",
+          "colorSpace": "oklch",
+          "deformation": 1,
+          "highlightIntensity": 0,
+          "size": 0.65,
+          "softness": 1,
+          "visible": true
+        }
+      },
+      {
+        "type": "FloatingParticles",
+        "props": {
+          "blendMode": "linearDodge",
+          "opacity": 0.05,
+          "particleSize": 1,
+          "particleSoftness": 0.15,
+          "randomness": 0.01,
+          "speed": 0,
+          "twinkle": 0.77
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 29,
+          "redOffset": 1,
+          "strength": 0.02
+        },
+        "children": [
+          {
+            "type": "Spherize",
+            "props": {
+              "center": {
+                "x": 0.8,
+                "y": 0.66
+              },
+              "depth": 1.49,
+              "lightColor": "#4c71fc",
+              "lightIntensity": 0.98,
+              "lightPosition": {
+                "x": 0.17,
+                "y": 0.1
+              },
+              "lightSoftness": 0,
+              "radius": 1.3
+            },
+            "children": [
+              {
+                "type": "Godrays",
+                "props": {
+                  "backgroundColor": "#050208",
+                  "center": {
+                    "x": 0.5,
+                    "y": 1
+                  },
+                  "density": 0.05,
+                  "intensity": 0.74,
+                  "rayColor": "#010640",
+                  "speed": -1,
+                  "visible": true
+                }
+              },
+              {
+                "type": "Godrays",
+                "props": {
+                  "blendMode": "normal-oklch",
+                  "density": 0.58,
+                  "intensity": 0.82,
+                  "rayColor": "#ffa929",
+                  "speed": 0.25,
+                  "visible": true
+                }
+              },
+              {
+                "type": "WaveDistortion",
+                "props": {
+                  "angle": 314,
+                  "edges": "mirror",
+                  "frequency": 7.9,
+                  "speed": 0.3,
+                  "strength": 0.21,
+                  "visible": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.03,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

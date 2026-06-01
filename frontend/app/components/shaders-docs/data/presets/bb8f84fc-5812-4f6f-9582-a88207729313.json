@@ -1,0 +1,61 @@
+{
+  "id": "bb8f84fc-5812-4f6f-9582-a88207729313",
+  "title": "Popping Bubbles",
+  "collectionId": "7b719554-fbef-46b9-a0a6-017384aa799a",
+  "category": "background",
+  "description": "A gradient dot matrix visualization displaying a smooth color transition across the canvas. The image features a regular grid of circular dots that vary in size and color intensity based on an underlying flowing gradient. The left side of the composition shows cyan and turquoise tones with medium-sized dots, transitioning through the center with blue and purple hues, and culminating on the right side with magenta and pink tones. The dots are smallest in the upper left corner and gradually increase in size toward the center and right portions of the image. The top-right corner displays the largest, most saturated dots in bright magenta and pink. The overall effect creates a smooth, wave-like color flow from cool cyan-blue tones on the left to warm magenta-pink tones on the right, with the dot size variation creating a sense of depth and movement. The background remains white, allowing the colored dots to stand out clearly. The grid maintains consistent spacing throughout, with approximately 17 dots per row, creating a uniform structure that contrasts with the organic color gradient flowing across it.",
+  "thumbnail": "/shaders/thumbnails/bb8f84fc-5812-4f6f-9582-a88207729313.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Marble",
+        "props": {
+          "id": "idmpa1zdwjasui1k6tk",
+          "colorB": "#000000",
+          "scale": 1,
+          "seed": 33,
+          "speed": 0.09,
+          "turbulence": 5.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "id": "idmpa1xx4hdhp247w9r",
+          "density": 17,
+          "dotSize": {
+            "type": "map",
+            "source": "idmpa1zdwjasui1k6tk",
+            "channel": "luminance",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.35
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#ffffff"
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#ff38b6",
+          "colorB": "#685ef2",
+          "colorC": "#3c2eff",
+          "colorD": "#05ffe1",
+          "distortion": 0.1,
+          "maskSource": "idmpa1xx4hdhp247w9r",
+          "speed": 4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

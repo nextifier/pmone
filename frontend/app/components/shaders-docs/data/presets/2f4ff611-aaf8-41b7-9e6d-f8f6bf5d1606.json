@@ -1,0 +1,53 @@
+{
+  "id": "2f4ff611-aaf8-41b7-9e6d-f8f6bf5d1606",
+  "title": "Pistons 4",
+  "collectionId": "e711302e-35b1-4b30-a736-21de5f52c44e",
+  "category": "background",
+  "description": "A dynamic shader effect featuring vertical ASCII characters (▄, ║, █) arranged in a dense grid pattern against a dark brown background (#361f1f). The characters are rendered in varying shades of tan, beige, and light cream colors, creating a textured, monochromatic appearance with subtle depth. Overlaid on this ASCII grid is a godray effect emanating from the bottom center, producing luminous cyan (#6feafe) light rays that radiate upward and outward, creating a sense of volumetric light penetrating through the character grid. The godrays have an orange-tinted background (#e66f1d) that creates warm glowing halos around the light rays. The overall effect combines a retro terminal aesthetic with modern volumetric lighting, enhanced by a subtle paper texture grain that adds tactile roughness and visual noise throughout. The composition creates a sense of depth and movement, with the godrays suggesting light streaming through a dense matrix of data or code. The gamma correction (1.35) brightens the mid-tones, making the ASCII characters pop against the dark background while maintaining atmospheric depth.",
+  "thumbnail": "/shaders/thumbnails/2f4ff611-aaf8-41b7-9e6d-f8f6bf5d1606.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#361f1f"
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "cellSize": 54,
+          "characters": "▄║█",
+          "fontFamily": "Geist Mono",
+          "gamma": 1.35
+        },
+        "children": [
+          {
+            "type": "Godrays",
+            "props": {
+              "backgroundColor": "#e66f1d",
+              "center": {
+                "x": 0.5,
+                "y": 1
+              },
+              "density": 0.2,
+              "intensity": 0.9,
+              "rayColor": "#6feafe",
+              "spotty": 0
+            }
+          }
+        ]
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 0,
+          "grainScale": 3,
+          "roughness": 0.85
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

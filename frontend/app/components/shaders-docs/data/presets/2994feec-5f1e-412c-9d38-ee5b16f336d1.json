@@ -1,0 +1,57 @@
+{
+  "id": "2994feec-5f1e-412c-9d38-ee5b16f336d1",
+  "title": "Concentric",
+  "collectionId": "e5eaeecb-ba63-4bd3-b177-6d80cf3c3f05",
+  "category": "background",
+  "description": "A mesmerizing concentric circular shader effect featuring multiple layered components creating a hypnotic spiral pattern. The composition centers on a focal point positioned at the bottom-center of the frame (y: 1), from which 14 concentric rings emanate outward in a spinning motion. The primary visual effect is created by the ConcentricSpin component with high intensity (25) and moderate speed (0.5), generating alternating bands of light and shadow that create a tunnel-like depth perception. The color palette is dominated by cool, pale tones - a very light cyan-white (#ddeff0) paired with a muted grayish-blue (#b2c1d1). The Swirl component with detail level 2.3 adds subtle organic distortion to the rings, creating a gentle waviness rather than perfect geometric circles. A soft-edged circular gradient (Circle component with 0.7 softness) positioned at the same focal point reinforces the center and adds luminosity. The overall effect is enhanced by a subtle film grain texture (strength 0.3) that adds a slight grittiness and prevents the image from appearing too smooth or artificial. The mirror edge mode on the concentric spin creates symmetrical reflections, while the high speed randomness (0.99) introduces organic variation in the ring rotation speeds, preventing a mechanical appearance. The lighting creates a sense of depth and movement, with the rings appearing to recede toward the center, producing a vortex-like or wormhole aesthetic. The atmosphere is cool, ethereal, and meditative, with a professional, polished quality suitable for backgrounds or abstract visualizations.",
+  "thumbnail": "/shaders/thumbnails/2994feec-5f1e-412c-9d38-ee5b16f336d1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 44,
+          "colorA": "#ddeff0",
+          "colorB": "#b2c1d1",
+          "colorSpace": "oklch",
+          "detail": 2.3,
+          "speed": 0.4
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "color": "#ddeff0",
+          "radius": 2,
+          "softness": 0.7
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "intensity": 25,
+          "rings": 14,
+          "smoothness": 0.2,
+          "speed": 0.5,
+          "speedRandomness": 0.99
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

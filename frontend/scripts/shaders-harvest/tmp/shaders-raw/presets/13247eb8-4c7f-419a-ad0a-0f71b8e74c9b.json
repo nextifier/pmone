@@ -1,0 +1,25 @@
+{
+  "id": "13247eb8-4c7f-419a-ad0a-0f71b8e74c9b",
+  "title": "Fluid Chrome",
+  "collection_id": "11295f25-f0a2-4670-859e-9a8e2ed62ca6",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "Two stacked translucent glass cubes rendered against a pure black background (#0a0a0a). The cubes feature a crystalline, frosted glass material with sharp geometric edges and hollow interiors revealing the black void within. The glass exhibits strong specular highlights along the upper and left edges, creating bright white reflections that define the form's three-dimensionality. The material demonstrates chromatic aberration with subtle color fringing (0.89 intensity) at the edges, producing iridescent blue and magenta shifts. The cubes are positioned in an isometric perspective with the upper cube slightly offset toward the upper-left. Internal refraction effects (1.09 intensity) create subtle distortion within the hollow cavities. A swirling procedural texture with white and black coloration animates within the glass, creating organic flowing patterns at moderate speed (0.1). The overall aesthetic is clean, minimalist, and highly polished with a premium luxury feel. The lighting angle at 300 degrees creates dramatic side-lighting that emphasizes the glass thickness (0.27) and surface curvature. The composition has a centered, symmetrical balance with strong vertical emphasis from the stacked arrangement.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8652a999-57f8-4e0c-a7f4-210085de2bb4.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzg2NTJhOTk5LTU3ZjgtNGUwYy1hN2Y0LTIxMDA4NWRlMmJiNC5qcGciLCJpYXQiOjE3Nzc3ODExNDksImV4cCI6MTgwOTMxNzE0OX0.0OOB_wqFMXQmVFPKWcu8_qjY8Eo-DsUb43-M_pxxIdE",
+  "import": "import {\n  Shader,\n  FlowField,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FlowField,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <Glass\n      :aberration=\"0.89\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0.01\"\n      :fresnel-softness=\"0.14\"\n      :refraction=\"1.09\"\n      :scale=\"0.7\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin\"\n      :thickness=\"0.27\">\n      <Swirl\n        :blend=\"56\"\n        color-a=\"#ffffff\"\n        color-b=\"#0a0a0a\"\n        color-space=\"oklab\"\n        :detail=\"4.2\"\n        :speed=\"0.1\"/>\n      <FlowField\n        :detail=\"1\"\n        :evolution-speed=\"1.5\"\n        :speed=\"1.8\"\n        :strength=\"0.5\"/>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [ "shaders://docs/guide/shape-effects" ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "6eebff91-7976-4887-b0c0-a8d75398e949",
+  "title": "Swirls 3",
+  "collectionId": "ea4f5ff4-5a57-4f61-b0e3-8fa79cf85205",
+  "category": "background",
+  "description": "A soft, ethereal gradient shader effect dominated by pastel tones creating a dreamy, atmospheric composition. The image features smooth color transitions flowing from deep blue in the upper left corner through lavender and light purple in the upper center, transitioning to pale cyan and mint green tones in the middle sections. The lower left area contains more saturated teal and cyan hues that blend into soft peachy-pink undertones. The overall effect is highly blurred and diffused with no sharp edges, creating a cloud-like or watercolor appearance. A subtle swirling motion is evident throughout, with soft organic wave patterns that suggest fluid dynamics. The composition has a gentle, calming quality with warm peachy-pink accents appearing as soft highlights or glows in the lower-middle area. The film grain texture adds a fine, barely perceptible noise that enhances the organic, natural feel. The color space appears to use oklch color blending which creates smooth, perceptually uniform transitions between hues. The overall mood is serene, meditative, and contemporary, resembling a modern design aesthetic or digital art piece.",
+  "thumbnail": "/shaders/thumbnails/6eebff91-7976-4887-b0c0-a8d75398e949.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#abd0dd",
+          "colorB": "#aec2f2",
+          "detail": 1.5
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blendMode": "overlay",
+          "colorA": "#3a6a72",
+          "colorB": "#37cc78",
+          "colorSpace": "oklch",
+          "detail": 2.3,
+          "maskSource": "idmld8md3zu0rcr8lsf",
+          "speed": 0.3
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.4
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "id": "idmld8md3zu0rcr8lsf",
+          "center": {
+            "x": 0.11,
+            "y": 0.85
+          },
+          "deformation": 1,
+          "size": 0.9,
+          "softness": 3,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

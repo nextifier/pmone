@@ -1,0 +1,78 @@
+{
+  "id": "fc9030ee-5f48-44c3-9c79-bea9fa37b02d",
+  "title": "Quantum",
+  "collectionId": "b3c3c82d-d12f-404f-9f61-e43d9f4f85e0",
+  "category": "background",
+  "description": "A vibrant, fluid gradient shader effect dominated by warm and cool color transitions. The image features a central bright yellow-orange core that radiates outward, surrounded by magenta and purple tones at the edges. The composition shows soft, organic blob-like shapes with smooth color gradients blending seamlessly across the canvas. The Swirl component creates subtle rotational distortions with magenta (#ff006e) and purple (#8338ec) interactions, while the Blob element positioned at coordinates (0.65, 0.35) generates a warm orange-to-yellow gradient (#fb5607 to #ffbe0b) with soft edges and a white highlight creating dimensional depth. Wave distortion at 54 degrees with sine wave patterns adds subtle undulating movement across the surface. The ChromaticAberration effect introduces slight color separation with red, green, and blue channel offsets, creating a barely perceptible prismatic quality. Film grain texture at 0.5 strength adds a subtle grainy quality throughout. The overall effect is smooth and dreamy with soft focus areas, particularly at the edges where magenta and pink tones fade into the composition. The color space uses OKLCH for perceptually uniform color transitions, resulting in natural-looking gradients that feel organic and fluid rather than harsh or digital.",
+  "thumbnail": "/shaders/thumbnails/fc9030ee-5f48-44c3-9c79-bea9fa37b02d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#ff006e",
+          "colorB": "#8338ec",
+          "colorSpace": "oklch",
+          "detail": 2.4,
+          "speed": 0.4
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.65,
+            "y": 0.35
+          },
+          "colorA": "#fb5607",
+          "colorB": "#ffbe0b",
+          "colorSpace": "oklch",
+          "deformation": 0.75,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.4,
+          "highlightZ": 0.5,
+          "size": 0.85,
+          "softness": 1.2,
+          "speed": 0.3,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 54,
+          "edges": "mirror",
+          "frequency": 2.2,
+          "speed": 0.8,
+          "strength": 0.25,
+          "visible": true
+        }
+      },
+      {
+        "type": "FlowField",
+        "props": {
+          "detail": 1.8,
+          "speed": 0.6,
+          "strength": 0.1
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 91,
+          "blueOffset": 0.8,
+          "greenOffset": -2,
+          "redOffset": 1.9,
+          "strength": 0.25
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {}
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "0e88ade8-81b7-45c9-ae74-d38d3a5727fd",
+  "title": "Lost Rays",
+  "collection_id": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring layered visual components creating a cinematic, otherworldly atmosphere. The image displays prominent god rays emanating from a light source positioned in the upper-left to center area, with rays of pale blue-white light (#ccdaed) cutting through a dark background. The rays have a spotty, volumetric quality with moderate density (0.3) creating distinct light streaks. A tritone color grading system overlays the entire composition, blending deep dark blue-black shadows (#050817) with vibrant orange (#ffa200) midtones and cyan highlights (#3defff), creating a cool-to-warm color tension. A zoom blur effect radiates from approximately the center-right area with high intensity (100), creating a sense of motion and depth that pulls the viewer's eye inward. Fine film grain texture (0.09 strength) adds a subtle analog quality and visual noise throughout. The overall effect is moody and atmospheric with elongated, feathered shapes suggesting organic forms or particles suspended in space. The color palette transitions from deep navy and teal in the shadows to golden-yellow and cyan in the highlighted areas, creating a cinematic sci-fi or underwater aesthetic. The composition has a sense of movement and energy despite the static nature of the image.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/0e88ade8-81b7-45c9-ae74-d38d3a5727fd.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzBlODhhZGU4LTgxYjctNDVjOS1hZTc0LWQzOGQzYTU3MjdmZC5qcGciLCJpYXQiOjE3NzI0ODEzODIsImV4cCI6MTgwNDAxNzM4Mn0.EGijxpSkYEtE_As3r143nfuYfh7u3OzVsREYFDFq8FU",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Godrays,\n  Tritone,\n  ZoomBlur\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Godrays,\n  Tritone,\n  ZoomBlur\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Godrays\n      background-color=\"#1829b5\"\n      :center=\"{\n        x: 0.23,\n        y: 0.67\n      }\"\n      :intensity=\"0.58\"\n      ray-color=\"#ccdaed\"\n      :speed=\"0.7\"/>\n    <FilmGrain\n      :strength=\"0.09\"/>\n    <Tritone\n      color-a=\"#050817\"\n      color-b=\"#ffa200\"\n      color-c=\"#3defff\"\n      color-space=\"hsl\"/>\n    <ZoomBlur\n      :center=\"{\n        x: 0.37,\n        y: 0.35\n      }\"\n      :intensity=\"100\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

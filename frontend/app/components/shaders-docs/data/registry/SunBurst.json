@@ -1,0 +1,108 @@
+{
+  "name": "SunBurst",
+  "category": "Textures",
+  "description": "Radial sunburst rays emanating from a center point",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "color": {
+      "default": "#ffdd88",
+      "description": "Ray color",
+      "ui": {
+        "type": "color",
+        "label": "Color",
+        "group": "Colors"
+      }
+    },
+    "background": {
+      "default": "#000000",
+      "description": "Background color",
+      "ui": {
+        "type": "color",
+        "label": "Background",
+        "group": "Colors"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "Center point of the sunburst",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Position"
+      }
+    },
+    "rayCount": {
+      "default": 12,
+      "description": "Number of rays",
+      "ui": {
+        "type": "range",
+        "min": 3,
+        "max": 64,
+        "step": 1,
+        "label": "Ray Count",
+        "group": "Effect"
+      }
+    },
+    "softness": {
+      "default": 0.3,
+      "description": "Softness of ray edges",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Softness",
+        "group": "Effect"
+      }
+    },
+    "radius": {
+      "default": 0.8,
+      "description": "How far the rays extend from the center",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1.2,
+        "step": 0.01,
+        "label": "Radius",
+        "group": "Effect"
+      }
+    },
+    "feather": {
+      "default": 0.5,
+      "description": "How gradually the rays fade at their outer edge",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 5,
+        "step": 0.01,
+        "label": "Feather",
+        "group": "Effect"
+      }
+    },
+    "speed": {
+      "default": 0.2,
+      "description": "Rotation speed - positive values rotate clockwise",
+      "ui": {
+        "type": "range",
+        "min": -2,
+        "max": 2,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Animation"
+      }
+    }
+  }
+}

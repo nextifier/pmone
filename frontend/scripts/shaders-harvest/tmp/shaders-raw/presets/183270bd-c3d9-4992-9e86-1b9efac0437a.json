@@ -1,0 +1,22 @@
+{
+  "id": "183270bd-c3d9-4992-9e86-1b9efac0437a",
+  "title": "Neon Flow 2",
+  "collection_id": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant gradient shader effect featuring smooth, flowing color transitions dominated by warm tones. The composition displays a diagonal swirl pattern flowing from the lower-left to upper-right, with a bright yellow-to-orange core that gradually transitions into magenta and pink hues toward the edges. A prominent blob-like form is positioned in the upper-right quadrant, creating a soft, luminous highlight with white specular reflection. The entire effect is characterized by smooth, blurred color gradations with no hard edges, suggesting heavy use of softness and blur. Wave distortion creates subtle undulating patterns across the surface, particularly visible in the color transitions. A slight chromatic aberration effect adds dimensional depth to the color boundaries. Fine film grain texture is subtly visible throughout, adding a slight grittiness to the otherwise smooth gradient. The overall mood is energetic and warm, with a dreamy, liquid quality enhanced by the soft transitions and gentle distortions. The color space appears to be in OKLCH, providing perceptually uniform transitions between the warm and cool tones.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8ba140a2-68e1-4a3e-a464-0d480ac15a33.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzhiYTE0MGEyLTY4ZTEtNGEzZS1hNDY0LTBkNDgwYWMxNWEzMy5qcGciLCJpYXQiOjE3NzE0MjYwMzYsImV4cCI6MTgwMjk2MjAzNn0.PBO7s5G9XCtvAys9qms8BSoT0h7s72quj1E6JqeUonw",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"45\"\n      color-a=\"#ff3d9a\"\n      color-b=\"#ffd93d\"\n      color-space=\"oklch\"\n      :detail=\"1.8\"\n      :speed=\"0.8\"/>\n    <Blob\n      :center=\"{\n        x: 0.72,\n        y: 0.35\n      }\"\n      color-b=\"#f72585\"\n      color-space=\"oklch\"\n      :deformation=\"0.8\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.3\"\n      :highlight-x=\"0.4\"\n      :highlight-y=\"-0.4\"\n      :highlight-z=\"0.6\"\n      :seed=\"17\"\n      :size=\"0.65\"\n      :softness=\"0.85\"\n      :speed=\"0.9\"/>\n    <WaveDistortion\n      :angle=\"135\"\n      edges=\"mirror\"\n      :frequency=\"3.5\"\n      :speed=\"1.8\"\n      :strength=\"0.08\"/>\n    <ChromaticAberration\n      :angle=\"45\"\n      :blue-offset=\"1.2\"\n      :red-offset=\"-1.2\"\n      :strength=\"0.015\"/>\n    <FilmGrain\n      :strength=\"0.12\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    }
+  ]
+}

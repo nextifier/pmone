@@ -1,0 +1,30 @@
+{
+  "id": "9796ef13-ca7f-4295-a6de-0c5036d0cdb6",
+  "title": "Smokescreen 9",
+  "collection_id": "75854014-d32e-4ede-8f49-16782c112961",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic smoke effect shader rendered against a very dark near-black background (#040414). The smoke particles emit from the mouse position and flow upward with a warm color gradient transitioning from golden tan (#e2b25c) at the source to deep reddish-brown (#7f472d) as the particles dissipate. The smoke has a soft, organic appearance with moderate detail and spread, creating wispy, billowing formations that gradually fade and disperse. The particles move with a slight upward gravity bias (0.5) and directional flow at 36 degrees, creating a natural rising motion. The effect has a warm, earthy atmosphere with good opacity and smooth blending. The smoke trails show color decay and dissipation over distance, with the particles becoming increasingly transparent as they move away from the emission point. The overall mood is warm, smoky, and atmospheric with a sense of gentle upward movement and organic particle behavior.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9796ef13-ca7f-4295-a6de-0c5036d0cdb6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzk3OTZlZjEzLWNhN2YtNDI5NS1hNmRlLTBjNTAzNmQwY2RiNi5qcGciLCJpYXQiOjE3NzY3MDkyMTQsImV4cCI6MTgwODI0NTIxNH0.85kVEnokyi3ziSUCE0zl3F6svYj5S33kwOTWe5ifpJM",
+  "import": "import {\n  Shader,\n  Smoke,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Smoke, SolidColor } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#040414\"/>\n    <Smoke\n      color-a=\"#e2b25c\"\n      color-b=\"#7f472d\"\n      :color-decay=\"1.4\"\n      color-space=\"oklab\"\n      :detail=\"7\"\n      :direction=\"36\"\n      :emit-from=\"{\n        type: 'mouse-position',\n        originX: 0,\n        originY: 0\n      }\"\n      :mouse-influence=\"0.8\"\n      :mouse-radius=\"0.07\"\n      :speed=\"6.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

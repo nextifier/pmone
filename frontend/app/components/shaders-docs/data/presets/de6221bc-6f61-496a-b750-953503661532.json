@@ -1,0 +1,65 @@
+{
+  "id": "de6221bc-6f61-496a-b750-953503661532",
+  "title": "Backlit Smoke 7",
+  "collectionId": "461997f6-0e61-47bc-ab99-69d12423a7fc",
+  "category": "logo",
+  "description": "A 3D isometric hexagonal geometric shape rendered with a glowing red neon aesthetic against a pure black background. The composition features two stacked hexagonal forms with hollow centers, creating a nested cube-like structure. The primary visual effect combines multiple shader layers: a deep red (#db2323) smoke fill that emanates from the shape's edges with turbulent particle dynamics, creating a volumetric glow effect with dark burgundy (#1f0606) undertones. A glass shader layer overlays the geometry with a fresnel effect that produces a subtle peachy-pink (#ff9b8c) rim light along the edges, enhanced by a light angle of 300 degrees. The glass has minimal refraction (1.5) and slight edge softness (0.15) creating a smooth, polished appearance. A sine wave animation in bright red (#ff1f1f) pulses across the surface with low frequency (0.1) and moderate amplitude (0.6), adding dynamic energy to the form. The overall mood is futuristic and technological, with the red neon glow suggesting heat, energy, or digital intensity. The black background provides maximum contrast, making the luminous red geometry appear to float in dark space. The smoke effect has gravity (-2) pulling particles downward slightly, and dissipation (0.1) creating a subtle trailing effect. The shape maintains perfect geometric clarity while being surrounded by soft, diffuse red light that bleeds into the darkness.",
+  "thumbnail": "/shaders/thumbnails/de6221bc-6f61-496a-b750-953503661532.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "SmokeFill",
+        "props": {
+          "colorA": "#db2323",
+          "colorB": "#1f0606",
+          "colorDecay": 0.2,
+          "detail": 4,
+          "dissipation": 0.1,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5
+          },
+          "gravity": -2,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "edgeSoftness": 0.15,
+          "fresnel": 0.18,
+          "fresnelColor": "#ff9b8c",
+          "fresnelSoftness": 0.24,
+          "refraction": 1.5,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.6
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.6,
+              "color": "#ff1f1f",
+              "frequency": 0.1,
+              "softness": 0.3,
+              "speed": 0.6
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

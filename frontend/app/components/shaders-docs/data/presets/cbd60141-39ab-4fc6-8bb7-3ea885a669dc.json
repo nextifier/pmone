@@ -1,0 +1,65 @@
+{
+  "id": "cbd60141-39ab-4fc6-8bb7-3ea885a669dc",
+  "title": "Drifting Contours 2",
+  "collectionId": "099c55ec-a478-44bf-abaa-eaf863f34870",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring smooth, flowing curved lines that create a wave-like or ribbon pattern emanating from the upper right corner. The primary visual element consists of approximately 30 parallel contour lines that follow organic, undulating curves across the composition. The lines transition smoothly from white/light tones on the left side to warm orange and golden yellow tones on the right side, creating a sense of depth and movement. The background is a rich, deep magenta-red (#ad0e3a) that provides strong contrast to the lighter line work. The contour lines appear to be derived from a plasma-based blob effect with soft, feathered edges that blend seamlessly into the background. There's a subtle liquify distortion applied that creates a fluid, organic quality to the otherwise geometric line pattern. The overall effect suggests flowing energy or a three-dimensional wave surface captured in cross-section. The composition has a modern, minimalist aesthetic with high contrast between the warm accent colors and cool magenta background, creating visual tension and drawing the eye toward the upper right quadrant where the lines are most densely concentrated.",
+  "thumbnail": "/shaders/thumbnails/cbd60141-39ab-4fc6-8bb7-3ea885a669dc.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 40,
+          "colorA": "#dd470d",
+          "colorB": "#ad0e3a",
+          "density": 0.9,
+          "warp": 0.3
+        }
+      },
+      {
+        "type": "ContourLines",
+        "props": {
+          "gamma": 0.1,
+          "levels": 30,
+          "lineColor": "#ff4a4a",
+          "lineWidth": 1.5,
+          "source": "alpha"
+        },
+        "children": [
+          {
+            "type": "Blob",
+            "props": {
+              "center": {
+                "x": 0.02,
+                "y": 1
+              },
+              "colorA": "#ffffff",
+              "colorB": "#ff822b",
+              "deformation": 0.2,
+              "highlightColor": "#fbffb3",
+              "highlightIntensity": 1,
+              "highlightX": -0.5,
+              "highlightY": -0.6,
+              "highlightZ": -0.1,
+              "seed": 42,
+              "size": 1,
+              "softness": 1,
+              "speed": 0.2
+            }
+          }
+        ]
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 0.5,
+          "intensity": 1,
+          "radius": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

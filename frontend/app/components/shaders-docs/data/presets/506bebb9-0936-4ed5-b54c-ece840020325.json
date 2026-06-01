@@ -1,0 +1,53 @@
+{
+  "id": "506bebb9-0936-4ed5-b54c-ece840020325",
+  "title": "Undertones 9",
+  "collectionId": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "category": "background",
+  "description": "A vertical striped shader effect displaying a smooth gradient transition from dark to bright orange-red tones. The composition features approximately 12 evenly-spaced vertical lines or bars that divide the canvas, creating a venetian blind or louvered appearance. The leftmost bars are nearly black with minimal visible color, gradually transitioning through dark brown and deep red tones in the center-left bars. The middle section shows the most vibrant orange-red coloration (#ff3312 and #ff5b38 range), appearing warm and luminous. The rightmost bars fade back toward darker tones with some black vignetting at the edges. The effect creates a sense of depth and motion, as if viewing a glowing heat source through vertical slats. A subtle fluted glass refraction effect creates fine horizontal wave patterns across the bars, adding texture and optical distortion. The overall atmosphere is warm, energetic, and slightly industrial. Film grain adds a subtle noise texture throughout. The lighting appears to come from behind or within the bars, creating a backlit glow effect with chromatic color flow that emphasizes the orange-red spectrum.",
+  "thumbnail": "/shaders/thumbnails/506bebb9-0936-4ed5-b54c-ece840020325.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#000000",
+          "colorB": "#0a0a0a",
+          "detail": 1.7
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#18181a",
+          "downColor": "#ffd8b5",
+          "leftColor": "#ff4000",
+          "momentum": 13,
+          "rightColor": "#ff5b38",
+          "upColor": "#ff3312"
+        }
+      },
+      {
+        "type": "FlutedGlass",
+        "props": {
+          "aberration": 0.61,
+          "frequency": 8,
+          "highlight": 0.12,
+          "highlightSoftness": 0,
+          "lightAngle": -90,
+          "refraction": 4,
+          "shape": "rounded",
+          "softness": 1,
+          "speed": 0.15
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

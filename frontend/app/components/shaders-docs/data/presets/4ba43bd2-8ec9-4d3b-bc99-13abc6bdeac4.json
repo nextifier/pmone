@@ -1,0 +1,65 @@
+{
+  "id": "4ba43bd2-8ec9-4d3b-bc99-13abc6bdeac4",
+  "title": "Geogrid 8",
+  "collectionId": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "category": "background",
+  "description": "A vibrant gradient background transitioning from coral-orange in the upper left to deep magenta-purple in the lower right, creating a warm-to-cool color flow. The composition features multiple overlapping parallelogram shapes with diagonal crosshatch grid patterns rendered in white lines. These geometric forms appear to be layered at different depths, creating a 3D isometric perspective effect. The wave distortion effect creates subtle undulating curves across the grid patterns, giving them an organic, flowing quality despite their geometric nature. The grid lines maintain consistent thickness and spacing, creating a technical, architectural aesthetic. The hardLight blend mode of the grid causes the white lines to interact luminously with the underlying gradient, producing bright highlights where they overlap the warmer tones. The overall effect suggests a modern, digital design with elements of motion and depth, reminiscent of contemporary tech or design aesthetics. The distortion parameters create subtle warping that prevents the composition from feeling static, while the swirl and decay effects add complexity to the spatial relationships between elements.",
+  "thumbnail": "/shaders/thumbnails/4ba43bd2-8ec9-4d3b-bc99-13abc6bdeac4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "coarseX": 26,
+          "coarseY": 24,
+          "colorA": "#b106ba",
+          "colorB": "#eb491c",
+          "colorSpace": "oklch",
+          "detail": 0.7,
+          "fineX": 50,
+          "fineY": 50,
+          "mediumX": 50,
+          "mediumY": 50,
+          "speed": 1.5
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 223,
+          "edges": "mirror",
+          "frequency": 1.7,
+          "speed": 0.5,
+          "strength": 0.54,
+          "waveType": "triangle"
+        },
+        "children": [
+          {
+            "type": "Grid",
+            "props": {
+              "blendMode": "hardLight",
+              "cells": 29,
+              "thickness": 3.5,
+              "transform": {
+                "scale": 0.75
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "decay": 1.8,
+          "edges": "wrap",
+          "gridSize": 8,
+          "intensity": 5,
+          "radius": 1.75,
+          "swirl": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

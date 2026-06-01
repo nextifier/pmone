@@ -1,0 +1,45 @@
+{
+  "id": "341e1aa3-d2d5-42a4-92b5-e0235c7b1323",
+  "title": "Rounded Panels 8",
+  "collectionId": "0a33095f-dfca-48af-94a5-5f15acc313ab",
+  "category": "background",
+  "description": "A dynamic striped shader effect featuring diagonal parallel lines running at approximately 118 degrees from horizontal. The stripes alternate between a bright, vibrant yellow (#ffe812) and pure black (#0a0a0a), creating high contrast. The lines have sharp, clean edges with a consistent width pattern. The stripe density is set to 12, creating evenly spaced parallel bands across the composition. On the right side of the image, the stripes transition into predominantly black territory, suggesting a gradient or mask influence. The effect appears to have a subtle depth with the yellow stripes appearing to recede slightly. The overall composition creates a sense of motion and directionality due to the diagonal orientation. A circular gradient mask (centered at x:0.28, y:0.58 with radius 1.78) is applied but set to invisible, controlling the balance/intensity of the stripe effect across the canvas, making the stripes more pronounced on the left and gradually diminishing toward the right edge. The blend mode is set to normal with full opacity, and the color space is linear for accurate color representation.",
+  "thumbnail": "/shaders/thumbnails/341e1aa3-d2d5-42a4-92b5-e0235c7b1323.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "angle": 118,
+          "balance": {
+            "type": "map",
+            "source": "idmlsathgg7fl4tmxmi",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.1
+          },
+          "colorA": "#ffe812",
+          "colorB": "#0a0a0a",
+          "density": 12
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmlsathgg7fl4tmxmi",
+          "center": {
+            "x": 0.28,
+            "y": 0.58
+          },
+          "radius": 1.78,
+          "softness": 0.1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

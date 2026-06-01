@@ -1,0 +1,30 @@
+{
+  "id": "3c6431de-a018-413c-9aab-82bba48b6f85",
+  "title": "Swatch Rings 3",
+  "collection_id": "307cc7b7-0339-4237-a40b-749e6d5af8f7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant abstract shader composition featuring a diagonal linear gradient transitioning from lime-green (#b9dd9b) in the lower-right to deep purple (#441994) in the upper-left. The gradient is overlaid with a fine white grid pattern (40 cells, 0.2 opacity) creating a mesh-like texture across the entire surface. A sawtooth wave distortion effect (frequency 3.9, strength 0.3, angle 90°) creates diagonal linear striations and rippling patterns that flow across the composition, producing a sense of movement and depth. A concentric spin effect centered at coordinates (0.187, 0.204) with 5 rings and 45° intensity creates swirling vortex-like distortions, particularly visible in the upper-left and center areas where purple dominates. The effect generates curved, spiral-like patterns that contrast with the linear wave distortions. A subtle chromatic aberration (strength 0.05 with red offset -1 and blue offset +1) adds slight color fringing at high-contrast edges. Film grain (strength 0.6) provides a grainy, textured overlay throughout, adding analog noise and reducing smoothness. The overall composition creates a dynamic, three-dimensional appearance with layered depth, combining geometric precision (grid) with organic distortion (waves and spin), resulting in a modern, digital aesthetic with retro-futuristic qualities.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/931e40b3-e1f7-46b1-a73f-8016ff1598e0.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzkzMWU0MGIzLWUxZjctNDZiMS1hNzNmLTgwMTZmZjE1OThlMC5qcGciLCJpYXQiOjE3NzExMzI0MzYsImV4cCI6MTgwMjY2ODQzNn0.gZEObY63dDaGJMq3L0aRDhDqAFCoqxfc50zRTYeFknI",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  FilmGrain,\n  Grid,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  FilmGrain,\n  Grid,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"135\"\n      color-a=\"#b9dd9b\"\n      color-b=\"#441994\"\n      color-space=\"hsl\"\n      :end=\"{\n        x: 0,\n        y: 1\n      }\"\n      :start=\"{\n        x: 0.5,\n        y: 0.5\n      }\"/>\n    <Grid\n      :cells=\"40\"\n      :opacity=\"0.2\"\n      :thickness=\"0.3\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"90\"\n      edges=\"mirror\"\n      :frequency=\"3.9\"\n      :speed=\"2.2\"\n      :visible=\"true\"\n      wave-type=\"sawtooth\"/>\n    <ConcentricSpin\n      :center=\"{\n        x: 0.19,\n        y: 0.2\n      }\"\n      :intensity=\"45\"\n      :rings=\"5\"\n      :seed=\"42\"\n      :smoothness=\"0\"\n      :speed=\"0.4\"\n      :speed-randomness=\"0.7\"/>\n    <ChromaticAberration\n      :strength=\"0.05\"\n      :visible=\"true\"/>\n    <FilmGrain\n      :strength=\"0.6\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

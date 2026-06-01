@@ -1,0 +1,41 @@
+{
+  "id": "cfb96995-82ad-4ef2-8518-6492b834ddda",
+  "title": "Halftone Swirl 2",
+  "collectionId": "d1174db5-5525-4253-b1e5-2c3c44815635",
+  "category": "background",
+  "description": "A gradient shader effect transitioning from dark blue at the top to bright lime green at the bottom. The entire composition is overlaid with a halftone dot pattern at 45-degree angle, creating a textured, pixelated appearance throughout. The halftone dots are uniform in distribution with fine smoothness, giving a mechanical, printed quality. The dark blue base color (#042b52) occupies the upper two-thirds of the image, while the lime green (#5ded15) swirl effect emerges from the bottom third, creating a diagonal wave-like transition. The swirl component blends the bright green with darker green undertones (#0b592f), producing subtle color variation within the gradient. The halftone pattern maintains consistent frequency across the entire surface, with dots becoming more visible in the lighter green areas due to contrast. The overall mood is modern and digital, with a tech-forward aesthetic. The effect creates depth through the layering of the solid color base, halftone texture, and swirl gradient, resulting in a sophisticated, multi-dimensional appearance.",
+  "thumbnail": "/shaders/thumbnails/cfb96995-82ad-4ef2-8518-6492b834ddda.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#042b52"
+        }
+      },
+      {
+        "type": "Halftone",
+        "props": {
+          "smoothness": 0.05
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "coarseX": 50,
+              "coarseY": 50,
+              "colorA": "#5ded15",
+              "colorB": "#0b592f",
+              "fineX": 50,
+              "fineY": 50,
+              "mediumX": 50,
+              "mediumY": 50
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

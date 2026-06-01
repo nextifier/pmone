@@ -1,0 +1,60 @@
+{
+  "id": "bb364293-34c9-4851-83e9-7e74220de345",
+  "title": "Geogrid 2",
+  "collectionId": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "category": "background",
+  "description": "A dynamic gradient shader effect transitioning from warm yellow-orange on the left to deep red-brown on the right. The composition features two distinct geometric pattern layers: an upper parallelogram-shaped mesh grid with fine diagonal line work that creates a 3D perspective effect, and a lower triangular wave distortion pattern with similar line-based geometry. The mesh patterns appear to be rendered with a semi-transparent orange overlay (#ff4400) using hard light blending, creating a luminous quality. The wave distortion creates diagonal striations that flow from upper-left to lower-right at approximately 198 degrees, with a triangle wave frequency that produces sharp, angular line patterns. The overall effect combines a smooth color gradient base with intricate geometric line work that suggests motion and depth. The swirl component provides the foundational warm color transition using OKLCH color space, while the wave and grid distortions add structural complexity through their overlapping geometric patterns. The edges fade to transparency, creating a soft boundary effect. The lighting appears to come from the left side, with the brightest yellows concentrated in the lower-left quadrant and progressively darkening toward the upper-right.",
+  "thumbnail": "/shaders/thumbnails/bb364293-34c9-4851-83e9-7e74220de345.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 22,
+          "colorA": "#8b1a00",
+          "colorB": "#ffb800",
+          "colorSpace": "oklch",
+          "detail": 0.6,
+          "speed": 1.5
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 198,
+          "blendMode": "linearDodge",
+          "edges": "mirror",
+          "frequency": 0.7,
+          "strength": 0.78,
+          "waveType": "triangle"
+        },
+        "children": [
+          {
+            "type": "Grid",
+            "props": {
+              "blendMode": "hardLight",
+              "cells": 29,
+              "color": "#ff4400",
+              "thickness": 3.5,
+              "transform": {
+                "scale": 0.75
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "decay": 1.8,
+          "edges": "wrap",
+          "gridSize": 8,
+          "intensity": 5,
+          "radius": 1.75
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

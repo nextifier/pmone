@@ -1,0 +1,113 @@
+{
+  "id": "fc293f04-1f7d-41a5-b5bf-43e70a728b56",
+  "title": "Soft Prism 2",
+  "collectionId": "c9af34bc-c6ec-4b8f-83e0-be239b994f6b",
+  "category": "logo",
+  "description": "A sophisticated shader composition featuring three translucent spherical glass orbs arranged horizontally against a dynamic, blurred background. The leftmost sphere displays deep purple and magenta tones (#250436 transitioning to vibrant cyan #02dbc4), the middle sphere shows a gradient from purple to cyan with soft white highlights, and the rightmost sphere is predominantly cyan with turquoise reflections. Each sphere exhibits realistic glass refraction and fresnel effects with bright white specular highlights positioned at approximately the upper-left quadrant, creating a 3D depth perception. The background features a swirling gradient of purple, magenta, cyan, and turquoise with organic wave distortions and soft focus blur, creating an ethereal, fluid atmosphere. A subtle sine wave pattern runs horizontally through the composition in dark navy (#0f121f). The overall effect is enhanced by chromatic aberration on interactive ripples, film grain texture overlay, and smooth color transitions using LCH and OKLCH color spaces. The composition has a modern, premium aesthetic with soft edges and transparent gradients that blend seamlessly into the dark background.",
+  "thumbnail": "/shaders/thumbnails/fc293f04-1f7d-41a5-b5bf-43e70a728b56.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#250436",
+          "colorB": "#02dbc4",
+          "colorSpace": "lch",
+          "detail": 2.5,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.48,
+            "y": 0.61
+          },
+          "colorA": "#ffff00",
+          "colorB": "#6e00ff",
+          "colorSpace": "oklch",
+          "deformation": 1,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.8,
+          "highlightX": 0.5,
+          "highlightY": -0.5,
+          "highlightZ": 0.8,
+          "opacity": 0.9,
+          "seed": 42,
+          "size": 0.85,
+          "softness": 3,
+          "speed": 1.2,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 161,
+          "edges": "mirror",
+          "frequency": 3.4,
+          "speed": 2.5,
+          "strength": 0.2,
+          "visible": true
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.1,
+          "angle": 97,
+          "color": "#0f121f",
+          "frequency": 0.5,
+          "position": {
+            "x": 0,
+            "y": 0.5
+          },
+          "softness": 1,
+          "speed": -0.6,
+          "thickness": 2.2,
+          "visible": true
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "intensity": 5,
+          "radius": 2,
+          "visible": true
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 1,
+          "center": {
+            "x": 0.7,
+            "y": 0.5
+          },
+          "fresnel": 0,
+          "fresnelSoftness": 0.31,
+          "highlight": 0.1,
+          "highlightColor": "#dbe6ff",
+          "highlightSoftness": 0.27,
+          "innerZoom": 1.15,
+          "lightAngle": 289,
+          "refraction": 0.74,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/ELSMA8FfCFXr_sdf.bin",
+          "thickness": 1,
+          "visible": true
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

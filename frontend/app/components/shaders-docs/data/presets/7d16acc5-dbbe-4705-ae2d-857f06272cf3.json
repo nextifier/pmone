@@ -1,0 +1,113 @@
+{
+  "id": "7d16acc5-dbbe-4705-ae2d-857f06272cf3",
+  "title": "Soft Prism 4",
+  "collectionId": "c9af34bc-c6ec-4b8f-83e0-be239b994f6b",
+  "category": "logo",
+  "description": "A dynamic, fluid shader composition featuring a vibrant gradient background that transitions from deep dark-blue and black in the lower left to bright cyan and turquoise in the upper right, with intermediate purple and magenta tones creating a diagonal sweep across the canvas. The primary Swirl component generates organic, flowing patterns that blend deep purple (#250436) with bright cyan (#02dbc4) using smooth, curved distortions. A Blob element positioned in the upper-center-right area creates a luminous, soft-edged form with yellow-to-purple gradient coloring, featuring a bright white highlight that suggests 3D depth and glossiness. The WaveDistortion effect at 161 degrees introduces subtle undulating patterns across the entire composition with a sine wave at moderate frequency (3.4), creating a sense of movement and fluidity. A SineWave element adds fine linear details with dark coloring positioned in the lower-left area. The Glass component in the upper-right features circular/geometric shapes with refraction and chromatic aberration effects, creating a translucent, lens-like appearance with subtle light bending. The overall atmosphere is modern, energetic, and ethereal, with soft focus areas blending into sharp details. Film grain at low opacity (0.1) adds subtle texture throughout. The composition uses normal blend modes with full opacity, creating a cohesive, layered effect that suggests depth and movement. The color space transitions smoothly through the visible spectrum with emphasis on cool tones (cyan, purple, blue) contrasted against warm accents (yellow, orange).",
+  "thumbnail": "/shaders/thumbnails/7d16acc5-dbbe-4705-ae2d-857f06272cf3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#250436",
+          "colorB": "#02dbc4",
+          "colorSpace": "lch",
+          "detail": 2.5,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.62,
+            "y": 0.57
+          },
+          "colorA": "#ffff00",
+          "colorB": "#6e00ff",
+          "colorSpace": "oklch",
+          "deformation": 1,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.8,
+          "highlightX": 0.5,
+          "highlightY": -0.5,
+          "highlightZ": 0.8,
+          "opacity": 0.9,
+          "seed": 42,
+          "size": 0.85,
+          "softness": 3,
+          "speed": 1.2,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 161,
+          "edges": "mirror",
+          "frequency": 3.4,
+          "speed": 2.5,
+          "strength": 0.2,
+          "visible": true
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.1,
+          "angle": 122,
+          "color": "#0f121f",
+          "frequency": 0.2,
+          "position": {
+            "x": 0.16,
+            "y": 0.94
+          },
+          "softness": 1,
+          "speed": -0.6,
+          "thickness": 1.6,
+          "visible": true
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "intensity": 5,
+          "radius": 2,
+          "visible": true
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 1,
+          "center": {
+            "x": 0.8,
+            "y": 0.23
+          },
+          "fresnel": 0,
+          "fresnelSoftness": 0.31,
+          "highlight": 0.1,
+          "highlightColor": "#dbe6ff",
+          "highlightSoftness": 0.27,
+          "innerZoom": 1.15,
+          "lightAngle": 289,
+          "refraction": 0.74,
+          "scale": 0.45,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/ELSMA8FfCFXr_sdf.bin",
+          "thickness": 1,
+          "visible": true
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

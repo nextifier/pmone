@@ -1,0 +1,30 @@
+{
+  "id": "337c0e13-91ba-4592-a06d-8cf335ed2e0b",
+  "title": "Swirling Gradient",
+  "collection_id": "5b4580ec-38eb-4986-9867-4a5ae2965a1b",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic swirl shader effect featuring concentric circular waves emanating from the center-bottom of the composition. The primary visual consists of alternating bands of vibrant magenta (#d22496) and mint green (#4fca98) that spiral outward in a hypnotic pattern. The swirl component creates smooth, flowing curves with soft gradient transitions between the two colors, blending seamlessly in the oklab color space. Overlaid on this is a ConcentricSpin effect with 9 rings that creates additional radial striations and rhythmic pulsing, rotating counter-clockwise at -1.2 speed with slight randomness in the spin velocity. The rings have a mirror edge treatment that creates symmetrical reflections. A subtle paper texture with 0.15 displacement and 0.2 roughness is applied across the entire surface, adding fine grain and organic irregularity to what would otherwise be smooth gradients. The overall effect is a mesmerizing, fluid animation with a modern, vaporwave aesthetic. The center point is offset toward the bottom (y: 1), creating a focal point that draws the eye downward. The color transitions are smooth and continuous, with no hard edges, creating a dreamy, almost liquid appearance. The combination of the swirl's mouse-controlled blend axis and the spinning rings creates a sense of perpetual motion and depth.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/d6461e95-7a62-473e-b3e2-f93336ceec15.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Q2NDYxZTk1LTdhNjItNDczZS1iM2UyLWY5MzMzNmNlZWMxNS5qcGciLCJpYXQiOjE3Nzc2NzExNTUsImV4cCI6MTgwOTIwNzE1NX0.c5a5AUl9x8r17_EPOEtDWDDZkn0t_OHPlzNB3DAnU_o",
+  "import": "import {\n  Shader,\n  ConcentricSpin,\n  Paper,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ConcentricSpin,\n  Paper,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"{\n        axis: 'x',\n        type: 'mouse',\n        momentum: 0.2,\n        outputMax: 60,\n        outputMin: 40,\n        smoothing: 0.6\n      }\"\n      color-a=\"#4fca98\"\n      color-b=\"#d22496\"\n      color-space=\"oklab\"\n      :detail=\"1.2\"/>\n    <ConcentricSpin\n      :center=\"{\n        x: 0,\n        y: 1\n      }\"\n      :rings=\"9\"\n      :smoothness=\"0.76\"\n      :speed=\"-1.2\"\n      :speed-randomness=\"0.14\"/>\n    <Paper\n      :roughness=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

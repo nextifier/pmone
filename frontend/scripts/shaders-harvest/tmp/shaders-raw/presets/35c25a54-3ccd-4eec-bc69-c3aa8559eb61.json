@@ -1,0 +1,30 @@
+{
+  "id": "35c25a54-3ccd-4eec-bc69-c3aa8559eb61",
+  "title": "Deep Vortex",
+  "collection_id": "6d8cb4da-8ec8-49a3-a3d9-7c4ddb2793a2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A cosmic space scene dominated by radial godray effects emanating from the center point (0.5, 0.5). The primary visual element is a series of purple and violet light beams that radiate outward in all directions, creating a tunnel or wormhole-like effect. The background is a very dark purple-black void with scattered white point lights representing stars. The godrays have a slightly spotty, discontinuous quality with low density (0.05), creating gaps and variation in the light rays rather than solid beams. A secondary layer of subtle purple godrays (#7e36ff) with higher density (1.0) and darken blend mode adds depth and intensity to the effect. The overall atmosphere is ethereal and cosmic, with a sense of depth created by the converging rays. Small floating particles with a light purple/lavender color (#d6b3ff) are distributed throughout, moving at slow speed (0.43) with slight twinkle variation (0.5), adding a subtle sense of motion and life to the static space. A very subtle wave distortion (strength 0.01) with sine wave pattern at 67 degrees angle provides minimal warping to prevent the effect from appearing completely static. The color palette transitions from deep dark purple (#220842, #0d0317) in the background to brighter violet and lavender tones in the rays and particles, creating strong visual contrast and drawing the eye toward the center.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/3686ac08-97ab-4e4f-bec0-f4a8e854a2de.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzM2ODZhYzA4LTk3YWItNGU0Zi1iZWMwLWY0YThlODU0YTJkZS5qcGciLCJpYXQiOjE3NjUzMjE1NTksImV4cCI6MTc5Njg1NzU1OX0.6Is6uy6l6C4MFLiS9ubmc8Gmu8NbxNYaBoLypuMQ2kE",
+  "import": "import {\n  Shader,\n  FloatingParticles,\n  Godrays,\n  PolarCoordinates,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FloatingParticles,\n  Godrays,\n  PolarCoordinates,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Godrays\n      background-color=\"#0d0317\"\n      :center=\"{\n        x: 0.5,\n        y: 0.5\n      }\"\n      :density=\"0.05\"\n      :intensity=\"1\"\n      ray-color=\"#220842\"\n      :speed=\"-3\"/>\n    <PolarCoordinates>\n      <FloatingParticles\n        particle-color=\"#d6b3ff\"\n        :particle-size=\"1\"\n        :speed=\"0.43\"/>\n    </PolarCoordinates>\n    <WaveDistortion\n      :angle=\"67\"\n      edges=\"mirror\"\n      :frequency=\"10\"\n      :speed=\"5\"\n      :strength=\"0.01\"/>\n    <Godrays\n      blend-mode=\"darken\"\n      :center=\"{\n        x: 0.5,\n        y: 0.5\n      }\"\n      :density=\"1\"\n      :intensity=\"0.2\"\n      ray-color=\"#7e36ff\"\n      :spotty=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

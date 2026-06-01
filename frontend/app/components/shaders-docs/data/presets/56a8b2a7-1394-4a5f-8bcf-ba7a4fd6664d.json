@@ -1,0 +1,56 @@
+{
+  "id": "56a8b2a7-1394-4a5f-8bcf-ba7a4fd6664d",
+  "title": "Fluid Chrome 7",
+  "collectionId": "11295f25-f0a2-4670-859e-9a8e2ed62ca6",
+  "category": "logo",
+  "description": "A neon-lit isometric 3D geometric composition featuring two connected hollow cube structures against a pure black background. The primary cube sits in the upper portion with a smaller cube positioned below and to the right, connected by a glowing bridge element. The glass material creates a luminous effect with vibrant purple and white neon coloring that appears to glow from within. The edges and surfaces display chromatic aberration effects with purple fringing on the left sides and white highlights on the right sides, creating a 3D depth perception. The glass has a translucent quality with internal swirl patterns in purple and white that flow dynamically through the structure. A subtle refraction effect distorts the black background visible through the hollow centers. The overall aesthetic is futuristic and crystalline, with the neon glow creating a strong luminosity against the dark void. The lighting angle appears to come from the upper right, emphasizing the geometric facets and creating sharp highlights on the glass surfaces. The composition has a clean, minimalist quality with precise geometric forms and smooth curved edges on the cube structures.",
+  "thumbnail": "/shaders/thumbnails/56a8b2a7-1394-4a5f-8bcf-ba7a4fd6664d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.89,
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0.01,
+          "fresnelSoftness": 0.14,
+          "refraction": 1.09,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.27
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 56,
+              "colorA": "#a31fff",
+              "colorB": "#ffffff",
+              "colorSpace": "oklab",
+              "detail": 4.2,
+              "speed": 0.1
+            }
+          },
+          {
+            "type": "FlowField",
+            "props": {
+              "detail": 1,
+              "evolutionSpeed": 1.5,
+              "speed": 1.8,
+              "strength": 0.5
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

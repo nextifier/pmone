@@ -1,0 +1,18 @@
+{
+  "id": "51cc1952-45b8-449c-9702-f4c12998985b",
+  "title": "Metallic Rings 4",
+  "collection_id": "e7897b27-90b5-4af1-b68f-6a29bc3ade1d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, moody abstract shader effect featuring concentric circular rings that spiral inward toward a central point at the top of the composition. The primary visual element is a ConcentricSpin pattern with 8 rings creating a tunnel-like vortex effect with subtle rotation and mirrored edges. The rings have a smooth, glossy appearance with soft gradations between light and dark areas. Underlying this geometric structure is a Plasma effect that adds organic, flowing distortion and color variation, creating a sense of movement and turbulence. The color palette is predominantly deep navy and dark blue tones (#06030a to #8bbef0), with subtle light blue highlights appearing along the ring edges where light catches the curved surfaces. A fine film grain texture overlays the entire composition at low opacity (0.05), adding subtle noise and a cinematic quality. The overall atmosphere is mysterious and cosmic, with a strong sense of depth created by the converging rings. The lighting appears to come from above, creating subtle highlights on the upper portions of each ring while the lower areas fade into deep shadow. The effect has a polished, three-dimensional quality despite being a 2D shader composition.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/51cc1952-45b8-449c-9702-f4c12998985b.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzUxY2MxOTUyLTQ1YjgtNDQ5Yy05NzAyLWY0YzEyOTk4OTg1Yi5qcGciLCJpYXQiOjE3NzIyNTEwNjksImV4cCI6MTgwMzc4NzA2OX0.1HUUVAF1YMBQOdCZ48BumezFMWaCy5LpWX8XL1ZS_-k",
+  "import": "import {\n  Shader,\n  ConcentricSpin,\n  FilmGrain,\n  Plasma\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ConcentricSpin,\n  FilmGrain,\n  Plasma\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Plasma\n      :balance=\"35\"\n      color-a=\"#8bbef0\"\n      color-b=\"#06030a\"\n      color-space=\"oklab\"\n      :contrast=\"0.7\"\n      :density=\"0.6\"\n      :intensity=\"2\"\n      :speed=\"1.2\"\n      :warp=\"0.45\"/>\n    <ConcentricSpin\n      :center=\"{\n        x: 0.5,\n        y: 0\n      }\"\n      :intensity=\"60\"\n      :smoothness=\"0.04\"\n      :speed-randomness=\"1\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ]
+}

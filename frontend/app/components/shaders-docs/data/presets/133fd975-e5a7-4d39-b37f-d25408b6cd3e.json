@@ -1,0 +1,54 @@
+{
+  "id": "133fd975-e5a7-4d39-b37f-d25408b6cd3e",
+  "title": "Pixel Haze 5",
+  "collectionId": "0f5e322c-918d-445e-ae74-e65f001e8b98",
+  "category": "background",
+  "description": "A smooth gradient shader effect that transitions diagonally from dark navy blue in the upper left corner to bright yellow-lime in the lower right. The gradient flows through intermediate tones of teal, cyan, and light green, creating a soft, luminous diagonal sweep across the composition. The effect features a halftone dot pattern overlay that becomes increasingly visible and dense toward the brighter areas, creating a subtle pixelated texture that enhances the digital aesthetic. The dither pattern creates a grainy, stippled appearance particularly noticeable in the yellow regions. A grid distortion effect adds subtle warping and wave-like undulations to the surface, most apparent in the mid-tone areas where the gradient transitions occur. The overall mood is energetic and modern, with the bright yellow-green corner suggesting light or energy emanating from the lower right. The film grain adds a fine noise texture throughout, softening the otherwise smooth gradients and creating visual depth. The blend of effects creates a contemporary digital art aesthetic with smooth color transitions interrupted by subtle textural elements.",
+  "thumbnail": "/shaders/thumbnails/133fd975-e5a7-4d39-b37f-d25408b6cd3e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 58,
+          "colorA": "#22203b",
+          "colorB": "#f7dd78",
+          "colorSpace": "hsl",
+          "detail": 0.7,
+          "speed": 0.6
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "overlay",
+          "pixelSize": 5,
+          "threshold": 0.45
+        }
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "edges": "mirror",
+          "gridSize": 75,
+          "intensity": 5,
+          "radius": 2
+        }
+      },
+      {
+        "type": "Sharpness",
+        "props": {
+          "sharpness": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

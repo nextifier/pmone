@@ -1,0 +1,30 @@
+{
+  "id": "370028af-3118-481e-b9b8-322063ea7c80",
+  "title": "Ribbon Flows 9",
+  "collection_id": "5e523f88-ad6a-4df5-8e8a-cbdf842ba971",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A serene, minimalist shader effect featuring soft, flowing curves that create an ethereal atmosphere. The composition is dominated by gentle wave-like forms that sweep diagonally across the canvas from upper left to lower right. The primary color palette consists of cool, muted tones transitioning smoothly between pale lavender-gray and soft blue-gray hues. The center of the image is brightest with a luminous, almost glowing quality, while the edges fade into deeper blue-gray tones. The curves have a subtle, feathered quality with soft edges that blend seamlessly into the background, creating a sense of depth and movement. A fine film grain texture is subtly overlaid across the entire surface, adding a delicate, organic quality to the otherwise smooth gradients. The overall mood is calm, contemplative, and atmospheric, with no sharp edges or harsh contrasts. The effect suggests flowing fabric, light diffusion, or abstract liquid movement. The lighting appears to come from within the composition, creating a soft, diffused glow that enhances the peaceful, meditative quality of the piece.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/370028af-3118-481e-b9b8-322063ea7c80.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzM3MDAyOGFmLTMxMTgtNDgxZS1iOWI4LTMyMjA2M2VhN2M4MC5qcGciLCJpYXQiOjE3NzYwNDc5NjksImV4cCI6MTgwNzU4Mzk2OX0.giy7wGj11YBe7SyAKtn9AkvNClzFMdeZVpuzm7nKMPk",
+  "import": "import {\n  Shader,\n  DiamondGradient,\n  FilmGrain,\n  SineWave\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DiamondGradient,\n  FilmGrain,\n  SineWave\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SineWave\n      id=\"idmnwkl123sccj082v5\"\n      :amplitude=\"0.1\"\n      :angle=\"76\"\n      :frequency=\"0.7\"\n      :position=\"{\n        x: 0.35,\n        y: 0.4\n      }\"\n      :softness=\"0.5\"\n      :speed=\"0.8\"\n      :thickness=\"0.5\"\n      :visible=\"false\"/>\n    <DiamondGradient\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.2,\n        originX: 0.75,\n        originY: 0.3,\n        momentum: 0.2,\n        smoothing: 0.65\n      }\"\n      color-a=\"#c4b8d9\"\n      color-b=\"#5a7c9e\"\n      color-space=\"oklab\"\n      :rotation=\"{\n        type: 'map',\n        curve: 1,\n        source: 'idmnwkl123sccj082v5',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 360,\n        outputMin: 0\n      }\"\n      :size=\"1.04\"/>\n    <FilmGrain\n      :strength=\"0.15\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

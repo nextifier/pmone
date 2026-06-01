@@ -1,0 +1,30 @@
+{
+  "id": "eeec37bb-1628-456b-9c32-a6b2dc10cfbb",
+  "title": "Synthesis 9",
+  "collection_id": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, blurred abstract shader effect dominated by a gradient transitioning from deep dark navy/black tones in the upper left to light blue in the center, then shifting to purple and lavender tones in the upper right and lower right areas. The composition features two primary wave distortions: a blue-tinted sine wave positioned in the upper-left quadrant with a 77-degree angle creating a diagonal sweep, and a purple sine wave in the lower-right area at 144 degrees. Both waves have soft, feathered edges with significant blur creating an ethereal, dreamlike quality. The waves appear to flow and undulate across the composition with smooth gradients and gentle amplitude variations. A wave distortion effect at 120 degrees adds subtle rippling and warping to the overall image, creating depth and movement. The entire effect is overlaid with fine film grain at low opacity (0.1 strength) adding subtle texture and visual noise. The overall mood is serene and atmospheric with a cool color palette, soft focus throughout, and smooth color transitions that suggest motion and fluidity. The dark navy base (#08071a) provides deep contrast against the lighter blue (#7a9ec4) and purple (#b09adb) wave elements.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/eeec37bb-1628-456b-9c32-a6b2dc10cfbb.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2VlZWMzN2JiLTE2MjgtNDU2Yi05YzMyLWE2YjJkYzEwY2ZiYi5qcGciLCJpYXQiOjE3NzU5MjExNjMsImV4cCI6MTgwNzQ1NzE2M30.mcSjTzvaV7WMlyAfYTobOysyXGtqTGEBBlzQnhs1XmE",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#08071a\"/>\n    <SineWave\n      :amplitude=\"0.52\"\n      :angle=\"77\"\n      blend-mode=\"normal-oklch\"\n      color=\"#7a9ec4\"\n      :frequency=\"0.35\"\n      :position=\"{\n        x: 0.38,\n        y: 0.35\n      }\"\n      :softness=\"0.62\"\n      :speed=\"0.3\"\n      :thickness=\"0.95\"/>\n    <SineWave\n      :amplitude=\"0.28\"\n      :angle=\"144\"\n      blend-mode=\"normal-oklab\"\n      color=\"#b09adb\"\n      :frequency=\"0.45\"\n      :position=\"{\n        x: 0.72,\n        y: 0.62\n      }\"\n      :softness=\"0.48\"\n      :speed=\"0.5\"\n      :thickness=\"0.58\"/>\n    <WaveDistortion\n      :angle=\"120\"\n      edges=\"mirror\"\n      :frequency=\"1.6\"\n      :speed=\"0.2\"\n      :strength=\"0.42\"/>\n    <FilmGrain\n      :strength=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

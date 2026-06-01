@@ -1,0 +1,100 @@
+{
+  "id": "6a9e0140-9dcc-4612-9dd6-179569be2300",
+  "title": "Hex Path 6",
+  "collectionId": "61fcec0d-813b-4847-98e7-6ffa7212d5a9",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect featuring a hexagonal grid pattern as the primary visual element. The hexagons are rendered with glowing neon outlines in magenta and purple tones, creating a geometric honeycomb structure that extends across the composition. The grid lines vary in thickness and intensity, with brighter, more saturated colors concentrated in the upper right and center areas, gradually fading to darker, more subtle outlines toward the edges. The background is predominantly black with a radial gradient that transitions from a deep burgundy-black (#1a0a14) at the center to pure black (#080808) at the edges, creating depth and dimension. Ripple effects with soft magenta coloration (#7a0a3d) flow through the hexagonal structure, adding dynamic wave-like distortions that interact with the grid. A chromatic flow effect adds directional color shifts with magenta (#ff2a6d), purple (#9812ff), and pink (#c41858) hues that respond to spatial positioning. The entire composition is enhanced with a strong glow effect that creates halos around the brightest grid lines, intensifying the neon aesthetic. A subtle film grain texture overlays the entire image, adding organic noise and reducing the digital sterility. The overall mood is cyberpunk and futuristic, with an interactive quality suggested by the mouse-position-based circle component that influences the grid thickness mapping. The effect creates a sense of depth, energy, and technological sophistication.",
+  "thumbnail": "/shaders/thumbnails/6a9e0140-9dcc-4612-9dd6-179569be2300.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmoz4cglxvtm21v60i",
+          "center": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5,
+            "momentum": 0.35,
+            "smoothing": 0.2
+          },
+          "softness": 0.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "HexGrid",
+        "props": {
+          "id": "idmoz40cq9qk5jrget0",
+          "colorA": "#00000000",
+          "thickness": {
+            "type": "map",
+            "source": "idmoz4cglxvtm21v60i",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 3,
+            "outputMin": 0.4
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "colorA": "#1a0a14",
+          "colorB": "#080808",
+          "radius": 1.4
+        }
+      },
+      {
+        "type": "Ripples",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "colorA": "#7a0a3d",
+          "colorB": "#100a10",
+          "frequency": 7.8,
+          "maskSource": "idmoz40cq9qk5jrget0",
+          "softness": 1.8,
+          "thickness": 0
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#9812ff",
+          "downColor": "#5a0028",
+          "leftColor": "#c41858",
+          "maskSource": "idmoz40cq9qk5jrget0",
+          "momentum": 15,
+          "radius": 3.8,
+          "rightColor": "#e85a8a",
+          "upColor": "#ff2a6d"
+        }
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 21,
+          "size": 6,
+          "threshold": 0.1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

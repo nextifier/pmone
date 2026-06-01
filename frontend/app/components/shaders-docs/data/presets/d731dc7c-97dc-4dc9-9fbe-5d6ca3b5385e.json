@@ -1,0 +1,79 @@
+{
+  "id": "d731dc7c-97dc-4dc9-9fbe-5d6ca3b5385e",
+  "title": "Flowing Ribbon",
+  "collectionId": "ff06c547-4c27-45b2-b509-816b68149be2",
+  "category": "background",
+  "description": "A sophisticated 3D ribbon form twists and curves through the center of the composition against a soft lavender background. The ribbon features a dynamic gradient transitioning from vibrant magenta/hot pink (#fa1192) on the left side to bright cyan/turquoise (#30eedc) on the right side, with smooth white highlights running along the edges and center ridge. The form exhibits a helical twist with approximately 52 degrees of rotation, creating a DNA helix-like appearance. Fine white vertical lines with a linear dodge blend mode cascade across the surface, creating a subtle striped pattern that enhances the sense of depth and dimensionality. The ribbon has high glossiness with reflective properties, showing bright specular highlights that emphasize its three-dimensional form. The background employs a studio lighting setup with soft vignetting and ambient lighting at 78% intensity, creating a gentle purple-tinted atmosphere. A subtle film grain texture overlays the entire composition at 30% strength, adding a refined cinematic quality. The overall mood is modern, sleek, and ethereal, with smooth curves and flowing forms suggesting motion and elegance.",
+  "thumbnail": "/shaders/thumbnails/d731dc7c-97dc-4dc9-9fbe-5d6ca3b5385e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 78,
+          "brightness": 100,
+          "center": {
+            "x": 0.75,
+            "y": 1
+          },
+          "color": "#dad6ff",
+          "fillIntensity": 0,
+          "keyIntensity": 0,
+          "lightTarget": 0,
+          "wallCurvature": 57
+        }
+      },
+      {
+        "type": "Form3D",
+        "props": {
+          "center": {
+            "x": 0.77,
+            "y": 0.16
+          },
+          "glossiness": 200,
+          "lighting": 197,
+          "shape3d": {
+            "type": "ribbon",
+            "angle": 110,
+            "twist": 52,
+            "width": 72,
+            "thickness": 200,
+            "seed": 0
+          },
+          "speed": 2,
+          "zoom": 78
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#fa1192",
+              "colorB": "#30eedc",
+              "colorSpace": "oklab",
+              "detail": 1.9
+            }
+          },
+          {
+            "type": "FallingLines",
+            "props": {
+              "angle": 0,
+              "blendMode": "linearDodge",
+              "colorB": "#000000",
+              "density": 12,
+              "strokeWidth": 0.1,
+              "trailLength": 0.72
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

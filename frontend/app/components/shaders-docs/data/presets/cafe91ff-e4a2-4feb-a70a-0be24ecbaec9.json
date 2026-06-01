@@ -1,0 +1,91 @@
+{
+  "id": "cafe91ff-e4a2-4feb-a70a-0be24ecbaec9",
+  "title": "Magnified Pixels 3",
+  "collectionId": "4077b48f-6bd7-441c-9224-d5eb49d8601c",
+  "category": "logo",
+  "description": "A dark, high-tech digital composition featuring three horizontally stacked glass-like tubular shapes with complex internal light effects. The background is a deep near-black color (#0e0b14). Each tube displays a halftone dot pattern overlay at 45-degree angles with 138 frequency, creating a textured, print-like quality. The primary visual elements showcase vibrant aurora-like light effects with dominant magenta, purple, and red color gradients flowing through the glass structures. The top tube displays cyan and blue vertical line patterns with magenta highlights. The middle tube features the most intense color gradient, transitioning from blue through magenta and pink to orange and red, with strong chromatic aberration effects creating color fringing at the edges. The bottom tube shows magenta and purple tones with similar glass refraction properties. All tubes have a glossy, refractive glass material with fresnel highlights creating bright white edge reflections. A CRT screen effect is applied globally, adding scanlines (200 frequency, 0.2 intensity) and pixel grid artifacts (27 pixel size) with chromatic color shift (1.3 intensity) and vignetting (0.6 intensity, 0.5 radius). The overall mood is cyberpunk and futuristic, with strong neon aesthetic and digital distortion effects. Light angles are set to 300-313 degrees, creating directional highlights. The composition has high contrast and saturated colors against the dark background.",
+  "thumbnail": "/shaders/thumbnails/cafe91ff-e4a2-4feb-a70a-0be24ecbaec9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0e0b14"
+        }
+      },
+      {
+        "type": "Halftone",
+        "props": {
+          "frequency": 138,
+          "smoothness": 0.3
+        },
+        "children": [
+          {
+            "type": "Glass",
+            "props": {
+              "center": {
+                "x": 0.7,
+                "y": 0.51
+              },
+              "cutout": true,
+              "refraction": 2,
+              "scale": 1.45,
+              "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin",
+              "thickness": 0.14
+            },
+            "children": [
+              {
+                "type": "Aurora",
+                "props": {
+                  "balance": 47,
+                  "center": {
+                    "x": 0.69,
+                    "y": 0.38
+                  },
+                  "colorA": "#de33f8",
+                  "colorB": "#8e00cc",
+                  "colorC": "#ff0000",
+                  "colorSpace": "oklab",
+                  "height": 200,
+                  "rayDensity": 100,
+                  "speed": 10,
+                  "waviness": 86
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.49,
+          "center": {
+            "x": 0.64,
+            "y": 0.55
+          },
+          "edgeSoftness": 0.05,
+          "fresnel": 0,
+          "highlight": 0.15,
+          "highlightSoftness": 0.03,
+          "lightAngle": 313,
+          "refraction": 2,
+          "scale": 1.6,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin",
+          "thickness": 1
+        }
+      },
+      {
+        "type": "CRTScreen",
+        "props": {
+          "colorShift": 1.3,
+          "pixelSize": 27,
+          "scanlineIntensity": 0.2,
+          "vignetteIntensity": 0.6
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

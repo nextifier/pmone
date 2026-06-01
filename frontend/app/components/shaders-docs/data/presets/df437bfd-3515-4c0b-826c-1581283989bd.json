@@ -1,0 +1,59 @@
+{
+  "id": "df437bfd-3515-4c0b-826c-1581283989bd",
+  "title": "Stretched Chevrons 7",
+  "collectionId": "94b9788a-b40b-4923-a564-6c3e235d264f",
+  "category": "background",
+  "description": "A geometric pattern composed of repeating chevron or staircase shapes arranged in a diagonal grid. The shapes create a 3D illusion through subtle shadow effects along the edges, giving depth and dimensionality to the flat surface. The primary color is a warm tan or beige (#c9b88a) that forms the main background and chevron shapes. Dark blue-gray shadows (#1a3a5c) are rendered along the inner edges of each step, creating a recessed or embossed appearance. The pattern repeats uniformly across the entire composition with consistent spacing and angle (45 degrees). The lighting appears to come from the upper left, casting shadows that enhance the three-dimensional stepped appearance. The overall effect is architectural and structured, resembling stacked blocks or a cascading staircase pattern viewed from above. The mood is calm and orderly, with a subtle interplay between the warm tan tones and cool dark blue accents creating visual interest without being overwhelming.",
+  "thumbnail": "/shaders/thumbnails/df437bfd-3515-4c0b-826c-1581283989bd.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "id": "idmp1helxtfp3bsckef",
+          "baseColor": "#ffffff",
+          "downColor": "#ffffff",
+          "intensity": 0.6,
+          "leftColor": "#ffffff",
+          "momentum": 0,
+          "rightColor": "#ffffff",
+          "upColor": "#ffffff",
+          "visible": false
+        }
+      },
+      {
+        "type": "Chevron",
+        "props": {
+          "angle": 45,
+          "balance": {
+            "type": "map",
+            "curve": -0.8,
+            "source": "idmp1helxtfp3bsckef",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "colorA": "#1a3a5c",
+          "colorB": "#c9b88a",
+          "colorSpace": "oklab",
+          "softness": {
+            "type": "map",
+            "curve": 1,
+            "source": "idmp1helxtfp3bsckef",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "speed": 0.1,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

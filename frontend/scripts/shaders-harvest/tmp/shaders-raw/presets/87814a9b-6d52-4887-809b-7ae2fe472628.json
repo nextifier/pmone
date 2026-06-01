@@ -1,0 +1,30 @@
+{
+  "id": "87814a9b-6d52-4887-809b-7ae2fe472628",
+  "title": "Popping Bubbles 2",
+  "collection_id": "7b719554-fbef-46b9-a0a6-017384aa799a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A halftone dot matrix visualization displaying a smooth color gradient transition from yellow-green on the left to deep red-orange on the right. The image uses variable-sized circular dots arranged in a regular grid pattern, where dot sizes are modulated by an underlying luminance map to create tonal depth and visual interest. The left third features predominantly yellow and light-green dots with larger diameters, gradually transitioning through orange and coral tones in the middle section, culminating in dense red and dark-orange dots on the right side. The smallest dots appear as sparse, barely visible points in the lightest areas, while the densest, largest dots concentrate in the darker regions, creating a sophisticated halftone printing effect. The overall composition has a smooth, flowing quality with no harsh edges, suggesting the dots are being controlled by a flowing gradient shader with subtle distortion applied. The background remains white, allowing the colored dots to stand out with high contrast. The effect creates a sense of heat or intensity increasing from left to right, with a technical, digital aesthetic reminiscent of color separation printing or thermal imaging visualization.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/87814a9b-6d52-4887-809b-7ae2fe472628.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzg3ODE0YTliLTZkNTItNDg4Ny04MDliLTdhZTJmZTQ3MjYyOC5qcGciLCJpYXQiOjE3NzkwMzk1MzcsImV4cCI6MTgxMDU3NTUzN30.Hv7NVMEPYNmtEb7Nrn9hfd-d2pw-uw6DUe7eMQY6Dyw",
+  "import": "import {\n  Shader,\n  DotGrid,\n  FlowingGradient,\n  Marble,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DotGrid,\n  FlowingGradient,\n  Marble,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Marble\n      id=\"idmpa1zdwjasui1k6tk\"\n      color-b=\"#000000\"\n      :scale=\"0.6\"\n      :seed=\"50\"\n      :speed=\"0.09\"\n      :turbulence=\"25\"\n      :visible=\"false\"/>\n    <DotGrid\n      id=\"idmpa1xx4hdhp247w9r\"\n      :density=\"35\"\n      :dot-size=\"{\n        type: 'map',\n        source: 'idmpa1zdwjasui1k6tk',\n        channel: 'luminance',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 0.9,\n        outputMin: 0.35\n      }\"\n      :visible=\"false\"/>\n    <SolidColor\n      color=\"#ffffff\"/>\n    <FlowingGradient\n      color-a=\"#f5ff38\"\n      color-b=\"#ffc100\"\n      color-c=\"#ff564d\"\n      color-d=\"#ff9735\"\n      color-space=\"oklab\"\n      :distortion=\"0.1\"\n      mask-source=\"idmpa1xx4hdhp247w9r\"\n      :speed=\"4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

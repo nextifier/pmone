@@ -1,0 +1,79 @@
+{
+  "id": "45ab8a55-0cf8-42d4-9ff9-0455610d7fdc",
+  "title": "Subtle Liquid 5",
+  "collectionId": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring a smooth radial blend of warm and cool colors. The composition centers on a bright yellow-white core positioned slightly right of center, transitioning outward through orange and pink tones. The gradient flows diagonally from the bottom-left (magenta/pink) through the center (yellow) to the upper-right (cyan/light-blue), creating a warm-to-cool color progression. A soft, organic blob shape with purple and yellow coloring adds dimensional depth in the center-right area, with a subtle greenish highlight creating a luminous focal point. The entire effect is overlaid with a fine film grain texture that adds subtle noise and organic quality. A barely perceptible dot grid pattern with white dots using linear dodge blending creates a delicate sparkle effect throughout. The liquify effect introduces gentle wave distortions that soften all edges and create a fluid, dreamlike quality. The overall mood is energetic yet smooth, with soft focus transitions between color zones and a glowing, ethereal atmosphere. The color space uses OKLCH for perceptually uniform transitions.",
+  "thumbnail": "/shaders/thumbnails/45ab8a55-0cf8-42d4-9ff9-0455610d7fdc.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 45,
+          "colorA": "#e91e63",
+          "colorB": "#00bcd4",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.1,
+            "y": 0.1
+          },
+          "start": {
+            "x": 0.9,
+            "y": 0.9
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.6,
+            "y": 0.66
+          },
+          "colorA": "#ffeb3b",
+          "colorB": "#9c27b0",
+          "colorSpace": "oklch",
+          "highlightColor": "#00ff88",
+          "highlightIntensity": 0.55,
+          "highlightX": 0.4,
+          "highlightY": 0.2,
+          "highlightZ": 0.67,
+          "size": 0.65,
+          "softness": 0.73,
+          "speed": 1
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "density": 100,
+          "dotSize": 0.08,
+          "opacity": 0.3
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 3.2,
+          "edges": "mirror",
+          "intensity": 0.7,
+          "radius": 2.69,
+          "swirl": 0.11
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.48
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

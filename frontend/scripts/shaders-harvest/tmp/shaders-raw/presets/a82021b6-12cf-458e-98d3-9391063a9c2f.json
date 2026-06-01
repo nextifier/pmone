@@ -1,0 +1,34 @@
+{
+  "id": "a82021b6-12cf-458e-98d3-9391063a9c2f",
+  "title": "Floating Glass",
+  "collection_id": "e185c166-60c9-4120-8394-d33f664d3f63",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring a prominent triangular glass element positioned in the center-right area of the composition. The background is dominated by deep dark-blue to black tones creating a night-like atmosphere. A flowing gradient with purple (#9000ff), white, and gray tones creates organic, wave-like patterns that move across the canvas with soft, blurred edges. The glass triangle element exhibits strong refraction properties with a high refraction value (0.86), creating a lens-like distortion effect that bends and refracts the underlying gradient patterns. The triangle has a subtle fresnel effect with white highlights along its edges, giving it dimensional depth and a glossy appearance. A tritone color mapping overlays the entire composition, mapping dark navy (#1a1c38) to shadows, vibrant purple (#9000ff) to midtones, and cyan (#e3ffff) to highlights, creating a cohesive color grading. The dither effect adds subtle blue noise texture with a threshold of 0.62, creating a grainy, slightly noisy quality that prevents banding. Soft edge transitions and a 0.15 edge softness on the glass create smooth, anti-aliased boundaries. The overall mood is ethereal and futuristic, with a sense of movement and energy flowing through the composition. The lighting angle of 276 degrees creates directional highlights on the glass surface.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/f52c5ade-5a57-42d0-b088-70ac4c8b8aad.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Y1MmM1YWRlLTVhNTctNDJkMC1iMDg4LTcwYWM0YzhiOGFhZC5qcGciLCJpYXQiOjE3NzQ3NDMwOTIsImV4cCI6MTgwNjI3OTA5Mn0.Wg0RSj9pag_7lMZFvOoxFG99coa-0KzwCbtD74SQQcg",
+  "import": "import {\n  Shader,\n  Circle,\n  Dither,\n  FlowingGradient,\n  Glass,\n  SolidColor,\n  Tritone\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  Dither,\n  FlowingGradient,\n  Glass,\n  SolidColor,\n  Tritone\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Circle\n      id=\"idmnayde0qhf56tj00g\"\n      :center=\"{\n        x: 1,\n        y: 0.5\n      }\"\n      :radius=\"3\"\n      :softness=\"0.67\"\n      :visible=\"false\"/>\n    <SolidColor\n      color=\"#000000\"/>\n    <FlowingGradient\n      color-b=\"#9c9c9c\"\n      color-c=\"#a1a1a1\"\n      color-d=\"#d4d4d4\"\n      color-space=\"linear\"\n      :distortion=\"0.3\"\n      mask-source=\"idmnayde0qhf56tj00g\"\n      :seed=\"22\"/>\n    <Glass\n      :aberration=\"0\"\n      :center=\"{\n        y: 0.5,\n        type: 'mouse-position',\n        reach: 0.05,\n        originX: 0.654,\n        originY: 0.49733570159857904,\n        momentum: 0.1,\n        smoothing: 0.7\n      }\"\n      :edge-softness=\"0.15\"\n      :fresnel=\"0.15\"\n      :fresnel-softness=\"1\"\n      :highlight=\"0.25\"\n      :highlight-softness=\"0.52\"\n      :light-angle=\"276\"\n      :refraction=\"0.86\"\n      :shape=\"{\n        type: 'polygonSDF',\n        radius: 0.55,\n        sides: 3,\n        rounding: 0,\n        rotation: 0\n      }\"\n      :thickness=\"1\"/>\n    <Tritone\n      color-a=\"#1a1c38\"\n      color-b=\"#9000ff\"\n      color-c=\"#e3ffff\"\n      :visible=\"true\"/>\n    <Dither\n      color-mode=\"source\"\n      pattern=\"blueNoise\"\n      :pixel-size=\"2\"\n      :threshold=\"0.62\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "c739b8c6-2a7b-4573-bcb7-8b77ab322415",
+  "title": "Rolling Shadows 6",
+  "collection_id": "0c3f4def-3e49-4ee4-a36d-ec34752656e7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, blurred gradient composition featuring a warm golden-orange circular glow centered in the upper-middle portion of the image. The glow has a luminous, diffused quality with soft edges that fade into the surrounding darker tones. The background transitions from deep teal and dark blue-green on the left side to warm tan and beige tones in the center, then darkens to dark blue and charcoal on the right edge. The overall effect is atmospheric and dreamy, with a subtle wave distortion creating gentle undulations across the surface. A fine paper texture overlay adds subtle grain and displacement throughout, creating a tactile, organic quality. The bulge distortion effect creates a subtle spherical warping around the central golden area, enhancing the three-dimensional appearance. The composition has a serene, meditative quality with warm and cool color zones creating visual balance. The smoothness value of 2 creates soft color transitions between the gradient points, resulting in a painterly, impressionistic appearance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/c739b8c6-2a7b-4573-bcb7-8b77ab322415.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2M3MzliOGM2LTJhN2ItNDU3My1iY2I3LThiNzdhYjMyMjQxNS5qcGciLCJpYXQiOjE3NzU5MjA1NTEsImV4cCI6MTgwNzQ1NjU1MX0.UQ6Mp8lFUi_05ITOSLvOo7wm9m2dbJz37gcrWGf3Yak",
+  "import": "import {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <MultiPointGradient\n      color-a=\"#0f2e3d\"\n      color-b=\"#1a5c4a\"\n      color-c=\"#0f2e3d\"\n      color-d=\"#e8a44c\"\n      color-e=\"#123842\"\n      :position-a=\"{\n        x: 0.19,\n        y: 0.4\n      }\"\n      :position-b=\"{\n        x: 0.36,\n        y: 0.47\n      }\"\n      :position-c=\"{\n        x: 0.75,\n        y: 0.66\n      }\"\n      :position-d=\"{\n        type: 'mouse-position',\n        originX: 0.53,\n        originY: 0.13143872113676733,\n        momentum: 0.2,\n        smoothing: 0.6\n      }\"\n      :position-e=\"{\n        x: 0.54,\n        y: 0.92\n      }\"/>\n    <WaveDistortion/>\n    <Bulge\n      :center=\"{\n        type: 'mouse-position',\n        originX: 0.37,\n        originY: 0.6642984014209592,\n        momentum: 0.3,\n        smoothing: 0.8\n      }\"\n      :falloff=\"2\"\n      :radius=\"2\"/>\n    <Paper\n      :displacement=\"0.24\"\n      :grain-scale=\"3\"\n      :roughness=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

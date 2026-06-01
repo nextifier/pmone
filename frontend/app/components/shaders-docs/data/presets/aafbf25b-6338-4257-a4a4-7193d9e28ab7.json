@@ -1,0 +1,92 @@
+{
+  "id": "aafbf25b-6338-4257-a4a4-7193d9e28ab7",
+  "title": "Spray Paint 6",
+  "collectionId": "c461387d-b3ec-4cfe-96df-a6e4aed001c5",
+  "category": "background",
+  "description": "A soft, blurred gradient shader effect featuring a warm-to-cool color transition. The composition centers on warm peachy-tan and terracotta tones in the upper-left and center areas, gradually transitioning to cool blue and slate tones on the right and lower portions. Three organic blob shapes with soft, diffused edges create the primary visual elements: a warm peachy blob in the upper-center area with subtle highlight at approximately 20% from left and 30% from top, a blue-toned blob in the lower-right quadrant with softer highlights, and a warm brown-tan blob in the lower-left area. The entire composition is unified by a dark navy blue base layer (#1a2e4a) that provides depth. A diffuse blur effect with 100% intensity creates a smooth, dreamy quality with no sharp edges, making the overall image appear soft-focused and atmospheric. The blobs feature internal deformation creating organic, slightly irregular shapes rather than perfect circles. Subtle highlight colors (wheat, light blue, and cream tones) add dimension and a three-dimensional quality to each blob. The overall mood is calming and ethereal, with warm and cool tones creating visual balance.",
+  "thumbnail": "/shaders/thumbnails/aafbf25b-6338-4257-a4a4-7193d9e28ab7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#1a2e4a"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.58,
+            "y": 0.28
+          },
+          "colorA": "#e8a87c",
+          "colorB": "#c38d6e",
+          "colorSpace": "oklch",
+          "deformation": 0.7,
+          "highlightColor": "#f5deb3",
+          "highlightIntensity": 0.7,
+          "highlightX": 0.2,
+          "highlightY": 0.3,
+          "highlightZ": 0.7,
+          "seed": 38,
+          "size": 0.7,
+          "softness": 2,
+          "speed": 0.3
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.82,
+            "y": 0.62
+          },
+          "colorA": "#5b7ea1",
+          "colorB": "#8faabe",
+          "colorSpace": "oklch",
+          "deformation": 0.75,
+          "highlightColor": "#a8c8e0",
+          "highlightX": 0.4,
+          "highlightZ": 0.6,
+          "seed": 19,
+          "size": 0.65,
+          "softness": 2.5,
+          "speed": 0.28
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.25,
+            "y": 0.72
+          },
+          "colorA": "#d4956b",
+          "colorB": "#9b6b4a",
+          "colorSpace": "oklch",
+          "deformation": 0.65,
+          "highlightColor": "#e8c9a0",
+          "highlightIntensity": 0.6,
+          "highlightX": -0.3,
+          "highlightY": -0.4,
+          "highlightZ": 0.5,
+          "seed": 12,
+          "size": 0.75,
+          "softness": 2.5,
+          "speed": 0.32
+        }
+      },
+      {
+        "type": "DiffuseBlur",
+        "props": {
+          "edges": "mirror",
+          "intensity": 100,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,72 @@
+{
+  "id": "3acf38f9-bcc9-40e1-ba71-19e06dab6b5c",
+  "title": "Cascading Lines 3",
+  "collectionId": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "category": "background",
+  "description": "A dynamic digital visualization featuring vertical falling lines that create a rain-like effect against a dark teal background. The composition uses a color gradient transitioning from cyan/turquoise on the right side to magenta/purple on the left side. The vertical lines vary in height and opacity, creating a wave-like pattern that suggests audio visualization or data representation. The lines are rendered with a soft glow effect, appearing to emit light against the dark background. A subtle dither pattern with a linear dodge blend mode adds texture and grain throughout, enhancing the digital aesthetic. The overall effect creates a sense of motion and flow, with the lines appearing to cascade downward at varying speeds. The color palette shifts smoothly across the canvas, with the brightest cyan tones in the center-right and deeper purple tones on the left edges. The atmosphere is modern, technological, and energetic, reminiscent of audio equalizers or real-time data visualization interfaces.",
+  "thumbnail": "/shaders/thumbnails/3acf38f9-bcc9-40e1-ba71-19e06dab6b5c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0c2c36"
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#59ebe5",
+          "colorB": "#9622f2",
+          "detail": 2,
+          "maskSource": "idmmzanabwzt8f61fke"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmzanabwzt8f61fke",
+          "density": 60,
+          "speed": 0.1,
+          "speedVariance": 0.7,
+          "strokeWidth": 0.66,
+          "trailLength": {
+            "type": "map",
+            "curve": -0.15,
+            "source": "idmmzaokw5nk6ntmihd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmzaokw5nk6ntmihd",
+          "amplitude": 0.4,
+          "angle": 26,
+          "frequency": 0.5,
+          "softness": 1,
+          "speed": 0.4,
+          "thickness": 1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,56 @@
+{
+  "id": "acbd07f0-c7fc-4314-bc8d-0ef8b6596b44",
+  "title": "Converging Panels 9",
+  "collectionId": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "category": "background",
+  "description": "A radial gradient shader effect dominated by deep crimson red tones transitioning from darker burgundy at the edges to brighter scarlet toward the center. The composition features a soft, diffused lighting setup with a studio background aesthetic. Two bright diagonal light streaks emanate from the upper right quadrant, creating a luminous glow effect that suggests studio lighting or spotlight illumination. The kaleidoscope component with 6 segments creates subtle symmetrical distortions in the light rays, producing a mirrored pattern effect. A fine film grain texture overlays the entire composition at 0.2 strength, adding subtle noise and a cinematic quality. The center point is positioned at the bottom-right corner (originX: 1, originY: 1) with mouse-tracking capability, creating dynamic light movement. The overall mood is warm, dramatic, and theatrical with high ambient intensity (96) and moderate brightness (20), producing a professional studio lighting simulation with soft falloff and vignetting effects.",
+  "thumbnail": "/shaders/thumbnails/acbd07f0-c7fc-4314-bc8d-0ef8b6596b44.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 96,
+          "ambientSpeed": 3,
+          "backIntensity": 0,
+          "backSoftness": 0,
+          "blendMode": "luminosity",
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.7,
+            "originX": 1,
+            "originY": 1,
+            "momentum": 0.3,
+            "smoothing": 0.4
+          },
+          "color": "#ff191d",
+          "fillAngle": 72,
+          "fillIntensity": 9,
+          "keyIntensity": 38,
+          "wallCurvature": 35
+        }
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 1,
+            "originY": 1,
+            "momentum": 0.5,
+            "smoothing": 0.5
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

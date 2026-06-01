@@ -1,0 +1,60 @@
+{
+  "id": "410b517f-358a-4838-8551-21c1774f6cf3",
+  "title": "Radial Overlap 12",
+  "collectionId": "8bf4f5c0-a1d9-4f4a-ba81-191a560112d2",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring flowing, organic wave-like patterns that transition smoothly from cool blue tones on the left to warm magenta and pink tones on the right. The composition uses a Swirl shader as the primary effect, creating fluid, curved striations that flow diagonally across the canvas from upper-left to lower-right. The effect has a soft, blurred quality with layered translucent bands that overlap and create depth. The pixelation component adds subtle texture variation, with pixel density controlled by an invisible conic gradient mask that creates radial variation in the effect intensity. The overall aesthetic is modern and abstract, with a smooth gradient transition between cool and warm color families. The swirling motion creates a sense of movement and fluidity, while the color blend mode (oklab) ensures smooth, perceptually uniform color transitions. The effect has a polished, professional appearance typical of contemporary UI design backgrounds.",
+  "thumbnail": "/shaders/thumbnails/410b517f-358a-4838-8551-21c1774f6cf3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ConicGradient",
+        "props": {
+          "id": "idmpiichpr7x5ibv89b",
+          "center": {
+            "x": 1,
+            "y": 1
+          },
+          "colorA": "#ffffff",
+          "colorB": "#ffffff00",
+          "repeat": 3,
+          "rotation": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 0.1,
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#973471",
+          "colorB": "#4aaefa",
+          "colorSpace": "oklab",
+          "detail": 1.7,
+          "visible": true
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": {
+            "type": "map",
+            "curve": -0.65,
+            "source": "idmpiichpr7x5ibv89b",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 93,
+            "outputMin": 1
+          }
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

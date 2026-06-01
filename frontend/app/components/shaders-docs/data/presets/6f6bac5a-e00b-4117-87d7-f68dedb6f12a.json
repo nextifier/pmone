@@ -1,0 +1,43 @@
+{
+  "id": "6f6bac5a-e00b-4117-87d7-f68dedb6f12a",
+  "title": "Glass Halo",
+  "collectionId": "84df37ef-ce5b-4770-b5cf-acf432002340",
+  "category": "logo",
+  "description": "A modern, glossy 3D shader effect featuring a smooth, curved crescent or C-shaped form rendered in translucent glass material. The composition uses a layered approach with a solid blue background (#188cca) as the base. Overlaid is an animated blob component with organic, flowing shapes that transitions between bright lime green (#3ae044) and deep ocean blue (#027db5) with soft, seamless color blending. The blob exhibits subtle deformation and movement, creating a living, breathing quality. The topmost layer is a glass shader applied to an SVG-based crescent shape, which adds sophisticated optical effects including fresnel reflections, subtle refraction distortion, and edge softness. The glass material creates a luminous highlight effect with a slight yellowish tint (#ffe11a) positioned at the upper-left area, simulating light reflection on a curved transparent surface. The overall mood is contemporary and ethereal, with a soft glow emanating from the center outward. The lighting angle is set to 300 degrees, creating dimensional depth and a sense of three-dimensionality. The blend mode uses normal-oklab color space for smooth, natural color transitions. The effect conveys a sense of fluidity, transparency, and modern digital aesthetics with a professional, polished appearance.",
+  "thumbnail": "/shaders/thumbnails/6f6bac5a-e00b-4117-87d7-f68dedb6f12a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#188cca"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklab",
+          "colorA": "#3ae044",
+          "colorB": "#027db5",
+          "seed": 2,
+          "size": 0.65,
+          "softness": 1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "edgeSoftness": 0.15,
+          "fresnelSoftness": 0.56,
+          "innerZoom": 0.5,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/rc0tyyfP7vSZ_sdf.bin",
+          "thickness": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

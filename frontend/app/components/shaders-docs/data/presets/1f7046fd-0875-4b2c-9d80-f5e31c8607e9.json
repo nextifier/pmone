@@ -1,0 +1,41 @@
+{
+  "id": "1f7046fd-0875-4b2c-9d80-f5e31c8607e9",
+  "title": "Gradient Grid 7",
+  "collectionId": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "category": "background",
+  "description": "A flowing gradient shader effect dominated by deep blue and dark purple tones creating a dynamic, organic atmosphere. The primary visual element is a smooth, undulating gradient that transitions from very dark navy/black (#0a0015) in the upper left and center areas to lighter blue shades (#3a5c9e, #287ec9) toward the edges. The gradient exhibits subtle wave-like distortions with a distortion value of 0.2, creating soft, organic flowing patterns rather than hard edges. A barely visible grid overlay with 30 cells and 1% opacity adds fine texture detail using linear dodge blending, creating subtle white grid lines that enhance the technical feel without overwhelming the composition. Film grain at 10% strength adds a subtle noise texture throughout, giving the effect a slightly cinematic quality. The overall mood is cool, ethereal, and atmospheric with a sense of depth and movement. The edges fade to transparency, creating a soft vignette effect. The color space uses oklab for smooth, perceptually-uniform color transitions. The composition has a sense of upward motion or rising energy, with darker tones concentrated in the center-right area and lighter blues framing the composition.",
+  "thumbnail": "/shaders/thumbnails/1f7046fd-0875-4b2c-9d80-f5e31c8607e9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorB": "#3a5c9e",
+          "colorC": "#287ec9",
+          "colorD": "#5b8fb0",
+          "colorSpace": "oklab",
+          "distortion": 0.2,
+          "seed": 34,
+          "visible": true
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "blendMode": "linearDodge",
+          "cells": 30,
+          "opacity": 0.01,
+          "thickness": 0.4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

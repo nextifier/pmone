@@ -1,0 +1,30 @@
+{
+  "id": "14d0668c-818f-4c6d-b6b0-d3cd2cf53acd",
+  "title": "Flowing Dots",
+  "collection_id": "aacfb436-0fcf-46ee-a6e2-93f708c027fb",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic digital visualization featuring a flowing, curved ribbon or wave pattern composed of thousands of small circular dots arranged in a grid structure. The pattern flows diagonally from the lower left to upper right, creating an elegant S-curve or spiral motion. The dots transition through a vibrant color spectrum: starting with warm orange and yellow tones in the lower left, transitioning through lime-green and bright green in the middle sections, and culminating in cyan and light-blue hues in the upper right. The background is a deep dark-blue to nearly black gradient, creating strong contrast that makes the glowing dots appear luminous and three-dimensional. The dots vary in size and opacity, with the brightest, most saturated colors concentrated along the central curve, while the edges fade to smaller, dimmer dots that dissipate into the dark background. The overall effect suggests fluid motion, energy flow, or particle dynamics with a smooth, organic quality despite the geometric grid structure. The twinkle effect adds subtle shimmer and life to the visualization. The chromatic separation creates subtle color fringing along the edges of the curve, enhancing the sense of depth and digital distortion.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/fceb6fc6-79eb-4edd-90dd-8e433b065154.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ZjZWI2ZmM2LTc5ZWItNGVkZC05MGRkLThlNDMzYjA2NTE1NC5qcGciLCJpYXQiOjE3NzMyODgyMTEsImV4cCI6MTgwNDgyNDIxMX0.BBsIvNbmMCHV1e5ZtT3XL3XXj4Y99hiSRo0opAj5DWk",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  CursorRipples,\n  DotGrid,\n  LinearGradient\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  CursorRipples,\n  DotGrid,\n  LinearGradient\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <DotGrid\n      id=\"idmlsai28917usa8l1j\"\n      :density=\"40\"\n      :dot-size=\"{\n        type: 'map',\n        source: 'idmlsaoh7xdy8aayjbd',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0\n      }\"\n      :twinkle=\"0.9\"\n      :visible=\"false\"/>\n    <ChromaFlow\n      id=\"idmlsaoh7xdy8aayjbd\"\n      :intensity=\"1.4\"\n      :radius=\"2.9\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#0d284d\"\n      color-b=\"#0b051a\"\n      color-space=\"hsl\"\n      :end=\"{\n        x: 1,\n        y: 0\n      }\"\n      :start=\"{\n        x: 0,\n        y: 1\n      }\"/>\n    <LinearGradient\n      color-a=\"#c0096f\"\n      color-b=\"#32dffa\"\n      color-space=\"hsl\"\n      :end=\"{\n        x: 1,\n        y: 0\n      }\"\n      mask-source=\"idmlsai28917usa8l1j\"\n      :start=\"{\n        x: 0,\n        y: 1\n      }\"/>\n    <CursorRipples/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "376686e7-308d-4405-8a22-b4b4b275d674",
+  "title": "Radial Overlap 11",
+  "collectionId": "8bf4f5c0-a1d9-4f4a-ba81-191a560112d2",
+  "category": "background",
+  "description": "An abstract shader effect featuring organic, flowing forms with a dominant lime-green (#8bd035) color palette contrasted against deep burgundy-maroon (#581122) shadows. The composition displays layered, curved surfaces that create a three-dimensional paper-folding or fabric-draping effect. Sharp, angular creases and ridges run diagonally across the image, creating strong directional movement from upper-left to lower-right. The effect combines a swirl distortion pattern that creates fluid, wave-like undulations throughout the composition. A pixelation effect is applied with variable scale intensity, creating a subtle blocky texture that varies in density across the image - more pronounced in darker areas and less visible in brighter regions. The lighting creates dramatic depth with bright lime-green highlights on raised surfaces and deep burgundy shadows in recessed areas. The overall mood is dynamic and organic, resembling folded leaves, abstract fabric, or flowing liquid forms. The color space uses oklab for smooth color transitions, and the blend mode creates seamless integration between the swirl effect and underlying geometry. The effect has a modern, digital aesthetic with strong contrast and dimensional depth.",
+  "thumbnail": "/shaders/thumbnails/376686e7-308d-4405-8a22-b4b4b275d674.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ConicGradient",
+        "props": {
+          "id": "idmpiichpr7x5ibv89b",
+          "center": {
+            "x": 1,
+            "y": 0
+          },
+          "colorA": "#ffffff",
+          "colorB": "#ffffff00",
+          "repeat": 3,
+          "rotation": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 0.1,
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#8bd035",
+          "colorB": "#581122",
+          "colorSpace": "oklab",
+          "detail": 1.7,
+          "visible": true
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": {
+            "type": "map",
+            "curve": -0.65,
+            "source": "idmpiichpr7x5ibv89b",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 93,
+            "outputMin": 1
+          }
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

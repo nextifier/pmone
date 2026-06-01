@@ -1,0 +1,44 @@
+{
+  "id": "488e7c27-42f5-4f83-a2b0-26e39f92aad6",
+  "title": "Faded Dither 8",
+  "collectionId": "cc49576b-748c-4194-a9d2-234d5b628ea6",
+  "category": "background",
+  "description": "A gradient background transitioning from dark navy blue (#1a3d6b) in the lower left and right corners to lighter cyan-blue tones in the upper center and middle areas. The entire composition is overlaid with a dithered pattern using a Bayer 8x8 matrix, creating a granular, pixelated texture throughout. The dithering uses transparent areas mixed with bright cyan-blue (#4a8bd4) dots, producing a noisy, stippled appearance that becomes denser in lighter regions and sparser in darker regions. Subtle sine wave distortions are visible, creating gentle undulating patterns at approximately 312 degrees angle with white highlights that add luminosity and movement. The overall effect is a soft, atmospheric gradient with a digital, halftone-like quality. The pixelation is most prominent in the mid-tone areas, creating a smooth transition between the deep navy base and the lighter blue highlights. The mood is cool, technological, and serene with a subtle sense of depth created by the layered dithering and wave effects.",
+  "thumbnail": "/shaders/thumbnails/488e7c27-42f5-4f83-a2b0-26e39f92aad6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#1a3d6b"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorB": "#4a8fd4",
+          "pattern": "bayer8",
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "angle": 312,
+              "frequency": 0.5,
+              "position": {
+                "x": 0.48,
+                "y": 0.61
+              },
+              "softness": 1,
+              "speed": 0.4,
+              "thickness": 0.8
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

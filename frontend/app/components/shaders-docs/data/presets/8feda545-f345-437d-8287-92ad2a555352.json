@@ -1,0 +1,64 @@
+{
+  "id": "8feda545-f345-437d-8287-92ad2a555352",
+  "title": "Geogrid 5",
+  "collectionId": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "category": "background",
+  "description": "An isometric 3D visualization featuring a layered cubic structure with a gradient background transitioning from cyan-green on the left to deep blue on the right. The composition consists of three primary visual elements: (1) A swirl shader base creating smooth color blending between blue (#2067b3) and green (#10b56b) using oklab color space, providing the foundational gradient atmosphere. (2) A wave distortion effect applied at 66 degrees with triangle waveform, creating subtle undulating ripples across the surface with 0.3 strength, giving the geometry a fluid, breathing quality. (3) A prominent grid overlay rendered in bright cyan (#24ffc5) with 16 cells, scaled to 75% and blended using hardLight mode, creating sharp geometric lines that define the cubic structure's edges and faces. The grid distortion component with 8x8 gridSize and 5 intensity adds depth variation and subtle warping to the grid pattern, with a decay of 1.8 creating perspective-based fading. The overall effect is a modern, tech-forward aesthetic with strong geometric definition, luminous cyan grid lines contrasting against the soft blue-green gradient background, creating depth through layered distortions and the isometric perspective. The hardLight blend mode of the grid creates glowing, semi-transparent line work that appears to float above the distorted surface.",
+  "thumbnail": "/shaders/thumbnails/8feda545-f345-437d-8287-92ad2a555352.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "coarseX": 50,
+          "coarseY": 50,
+          "colorA": "#2067b3",
+          "colorB": "#10b56b",
+          "colorSpace": "oklab",
+          "detail": 0.5,
+          "fineX": 50,
+          "fineY": 50,
+          "mediumX": 50,
+          "mediumY": 50,
+          "speed": 1.5
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 66,
+          "edges": "mirror",
+          "frequency": 2.1,
+          "waveType": "triangle"
+        },
+        "children": [
+          {
+            "type": "Grid",
+            "props": {
+              "blendMode": "hardLight",
+              "cells": 16,
+              "color": "#24ffc5",
+              "thickness": 1.5,
+              "transform": {
+                "scale": 0.75
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "GridDistortion",
+        "props": {
+          "decay": 1.8,
+          "edges": "wrap",
+          "gridSize": 8,
+          "intensity": 5,
+          "radius": 1.75,
+          "swirl": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

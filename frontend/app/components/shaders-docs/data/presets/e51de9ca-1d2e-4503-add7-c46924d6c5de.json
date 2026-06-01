@@ -1,0 +1,81 @@
+{
+  "id": "e51de9ca-1d2e-4503-add7-c46924d6c5de",
+  "title": "Retro Bitrate 9",
+  "collectionId": "7f578c56-f249-4876-87b2-e1b6a1512e95",
+  "category": "background",
+  "description": "A pixelated shader effect displaying a dynamic gradient-based noise pattern. The left two-thirds of the image features a chaotic mosaic of small square pixels in magenta, cyan, light-blue, light-green, and green colors, creating an organic, turbulent appearance. The pixelation scale is set to 41 pixels, producing distinct blocky artifacts. The right third transitions smoothly into a solid bright green area with fine dotted texture. The color distribution appears to be controlled by a simplex noise generator with a scale of 4.3, creating natural-looking organic variation. A linear gradient with dynamic angle mapping (controlled by noise luminance) blends magenta (#f131f6) and dark-green (#517c06) colors across the composition. A dither effect with bayer4 pattern and screen blend mode adds subtle texture and visual noise throughout, using bright green (#19d36b) and dark purple (#070226) in a 3-pixel pattern. The overall effect creates a sense of digital turbulence transitioning to calm, with a vibrant, neon-like quality enhanced by the screen blend mode creating a glowing appearance where colors overlap.",
+  "thumbnail": "/shaders/thumbnails/e51de9ca-1d2e-4503-add7-c46924d6c5de.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm4025i3rr2toqt6j",
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "radius": 2.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "id": "idmm5kajmj4uwhjdgmm",
+          "scale": 4.3,
+          "speed": 0.1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": 41
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "angle": {
+                "type": "map",
+                "curve": 0,
+                "source": "idmm5kajmj4uwhjdgmm",
+                "channel": "luminance",
+                "inputMax": 1,
+                "inputMin": 0,
+                "outputMax": 360,
+                "outputMin": 0
+              },
+              "colorA": "#f131f6",
+              "colorB": "#517c06",
+              "colorSpace": "hsl",
+              "edges": "mirror",
+              "end": {
+                "x": 0.89,
+                "y": 0.39
+              },
+              "maskSource": "idmm4025i3rr2toqt6j",
+              "start": {
+                "x": 0.67,
+                "y": 0.48
+              },
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "screen",
+          "colorA": "#19d36b",
+          "colorB": "#070226",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

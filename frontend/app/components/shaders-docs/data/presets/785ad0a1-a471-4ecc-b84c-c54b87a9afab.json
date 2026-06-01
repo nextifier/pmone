@@ -1,0 +1,69 @@
+{
+  "id": "785ad0a1-a471-4ecc-b84c-c54b87a9afab",
+  "title": "Synthesis 11",
+  "collectionId": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring smooth, flowing color transitions across a dark background. The composition displays three primary color regions: a deep dark-blue to black base layer, overlaid with vibrant purple and magenta sine wave patterns that flow diagonally from upper-left to lower-right at approximately 77 degrees. A bright cyan-green (#22e8a5) sine wave element creates a horizontal flowing band across the middle-lower portion of the composition at 0 degrees. The waves exhibit soft, feathered edges with significant blur and glow effects, creating a luminous, ethereal quality. The WaveDistortion effect at 135 degrees adds subtle rippling and undulation to the overall composition, creating a sense of fluid motion and depth. A fine film grain texture is applied uniformly across the entire surface, adding subtle noise and texture. The blend modes (normal-oklch and normal-oklab) create smooth color transitions where the waves overlap, producing intermediate hues of blue and teal. The overall atmosphere is modern, energetic, and dreamlike, with a strong sense of movement and fluidity. The softness values (0.48 and 0.42) ensure the waves fade gradually rather than having hard edges, contributing to the smooth, blended appearance.",
+  "thumbnail": "/shaders/thumbnails/785ad0a1-a471-4ecc-b84c-c54b87a9afab.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#08071a"
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.42,
+          "angle": 77,
+          "blendMode": "normal-oklch",
+          "color": "#7b2fe8",
+          "frequency": 0.3,
+          "position": {
+            "x": 0.42,
+            "y": 0.38
+          },
+          "softness": 0.48,
+          "speed": 0.3,
+          "thickness": 0.85
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.24,
+          "blendMode": "normal-oklab",
+          "color": "#22e8a5",
+          "frequency": 0.35,
+          "position": {
+            "x": 0.55,
+            "y": 0.62
+          },
+          "softness": 0.42,
+          "speed": 0.5,
+          "thickness": 0.52
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 135,
+          "edges": "mirror",
+          "frequency": 1.2,
+          "speed": 0.2,
+          "strength": 0.45
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.09
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

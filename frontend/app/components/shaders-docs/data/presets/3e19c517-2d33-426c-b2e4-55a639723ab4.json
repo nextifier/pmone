@@ -1,0 +1,44 @@
+{
+  "id": "3e19c517-2d33-426c-b2e4-55a639723ab4",
+  "title": "Liquid Stripes 6",
+  "collectionId": "1b1c9029-4fe7-48f3-83ad-eff1105b51e2",
+  "category": "logo",
+  "description": "A dynamic shader effect featuring diagonal neon lime-green stripes (#80f820) at 45-degree angle running across a muted purple-gray background (#a09bbb). The stripes have a consistent density of 9 lines with a balance ratio of 0.1, creating thin bright lines against the darker background. Overlaid on this striped pattern is a central glass morphism effect with a complex SVG shape that appears as a crystalline or geometric form with multiple faceted surfaces. The glass element exhibits chromatic aberration with a 0.5 intensity, creating subtle color fringing around the edges. The glass has a blur of 11.3 pixels with a refraction value of 0.51, giving it a translucent, refractive quality that distorts the stripes beneath it. A fresnel effect with 0.11 intensity and 0.38 softness adds subtle edge highlights in white (#ffffff) to the glass shape, enhancing its three-dimensional appearance. Cursor ripples with an intensity of 10 and decay of 10 create interactive distortion waves that emanate from the mouse position. A film grain overlay with 0.3 strength adds subtle texture and analog quality to the entire composition. The overall mood is modern, tech-forward, and interactive with a cyberpunk aesthetic.",
+  "thumbnail": "/shaders/thumbnails/3e19c517-2d33-426c-b2e4-55a639723ab4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "balance": 0.1,
+          "colorA": "#80f820",
+          "colorB": "#a09bbb",
+          "density": 9
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {}
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "blur": 11.3,
+          "fresnel": 0.11,
+          "fresnelSoftness": 0.38,
+          "refraction": 0.51,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/DODKZwnr2rPw_sdf.bin",
+          "thickness": 0.13
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

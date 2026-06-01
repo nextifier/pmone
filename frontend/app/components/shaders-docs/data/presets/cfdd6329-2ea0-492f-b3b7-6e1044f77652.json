@@ -1,0 +1,49 @@
+{
+  "id": "cfdd6329-2ea0-492f-b3b7-6e1044f77652",
+  "title": "Illuminated Clouds",
+  "collectionId": "2abc4383-72b2-4372-95c8-968385824d76",
+  "category": "background",
+  "description": "A deeply atmospheric abstract gradient composition dominated by cool tones. The image features a flowing, organic blend of dark purples, deep blues, and cyan hues that create a sense of depth and movement. The left side transitions from near-black (#130926 base) through dark purple tones, while the center and right portions feature vibrant electric purples (#6b17e6, #8935ff) and bright cyan accents (#4dd0ff). The overall effect is heavily blurred and diffused, creating a soft-focus, dreamlike quality with no sharp edges or defined shapes. The gradient flows smoothly across the canvas with subtle undulating patterns suggesting fluid motion or turbulent energy. A fine film grain texture overlays the entire composition, adding subtle noise and visual texture. The atmosphere is moody and ethereal, with the bright cyan and purple elements appearing to glow softly against the darker background. The composition suggests depth through color layering, with darker tones receding and brighter purples and cyans appearing to advance forward.",
+  "thumbnail": "/shaders/thumbnails/cfdd6329-2ea0-492f-b3b7-6e1044f77652.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#130926"
+        }
+      },
+      {
+        "type": "Fog",
+        "props": {
+          "id": "idmo78g2qa8dpr72ig3",
+          "blending": 0.9,
+          "colorB": "#000000",
+          "detail": 3,
+          "mouseInfluence": 0.4,
+          "seed": 203,
+          "visible": false
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorC": "#4dd0ff",
+          "colorD": "#8935ff",
+          "distortion": 0,
+          "maskSource": "idmo78g2qa8dpr72ig3",
+          "maskType": "luminance",
+          "speed": 4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

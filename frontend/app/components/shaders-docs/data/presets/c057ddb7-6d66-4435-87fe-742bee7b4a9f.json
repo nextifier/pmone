@@ -1,0 +1,88 @@
+{
+  "id": "c057ddb7-6d66-4435-87fe-742bee7b4a9f",
+  "title": "Paint Flow 6",
+  "collectionId": "7c78be7c-6e84-4238-affd-c17c0f91caa2",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring a dynamic blend of warm colors transitioning smoothly across the canvas. The primary composition shows diagonal wave patterns flowing from the upper left to lower right, with dominant orange and magenta hues creating a fluid, organic motion. The Swirl component generates color interpolation between orange (#ff4400) and magenta (#ff0066) with a detail level of 2.5, creating soft, blended transitions. A Blob element positioned at coordinates (0.92, 0.12) in the upper right adds a warm orange-red focal point (#ee2200 to #ff6600) with soft edges and a highlight intensity of 0.8, creating dimensional depth. The WaveDistortion effect at 98 degrees with sine wave pattern and frequency 4.2 creates subtle undulating distortions across the surface, giving the gradient a liquid, breathing quality. A ChromaticAberration effect with 0.04 strength and red/blue offsets of ±1.5 adds microscopic color separation, enhancing the visual complexity. The Glow component with screen blend mode and 0.14 intensity creates a luminous, ethereal quality throughout. Film grain at 0.15 strength adds subtle texture and grittiness. The overall effect is a warm, energetic gradient with smooth color transitions, gentle wave distortions, and a soft, glowing atmosphere that feels organic and dynamic.",
+  "thumbnail": "/shaders/thumbnails/c057ddb7-6d66-4435-87fe-742bee7b4a9f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.15
+        },
+        "children": [
+          {
+            "type": "Glow",
+            "props": {
+              "blendMode": "screen",
+              "intensity": 0.14,
+              "size": 15,
+              "threshold": 0.35
+            },
+            "children": [
+              {
+                "type": "Swirl",
+                "props": {
+                  "colorA": "#ff4400",
+                  "colorB": "#ff0066",
+                  "colorSpace": "lch",
+                  "detail": 2.5,
+                  "speed": 0.8
+                }
+              },
+              {
+                "type": "Blob",
+                "props": {
+                  "center": {
+                    "x": 0.92,
+                    "y": 0.12
+                  },
+                  "colorA": "#ee2200",
+                  "colorB": "#ff6600",
+                  "colorSpace": "oklch",
+                  "deformation": 1,
+                  "highlightColor": "#ffaa33",
+                  "highlightIntensity": 0.8,
+                  "highlightX": 0.5,
+                  "highlightY": -0.5,
+                  "highlightZ": 0.8,
+                  "opacity": 0.9,
+                  "seed": 42,
+                  "size": 0.78,
+                  "softness": 2.4,
+                  "speed": 1.2,
+                  "visible": true
+                }
+              },
+              {
+                "type": "WaveDistortion",
+                "props": {
+                  "angle": 98,
+                  "edges": "mirror",
+                  "frequency": 4.2,
+                  "speed": 2.5,
+                  "strength": 0.18,
+                  "visible": true
+                }
+              },
+              {
+                "type": "ChromaticAberration",
+                "props": {
+                  "angle": 142,
+                  "blueOffset": 1.5,
+                  "redOffset": -1.5,
+                  "strength": 0.04,
+                  "visible": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

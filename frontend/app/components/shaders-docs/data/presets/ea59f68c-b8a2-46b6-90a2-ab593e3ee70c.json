@@ -1,0 +1,48 @@
+{
+  "id": "ea59f68c-b8a2-46b6-90a2-ab593e3ee70c",
+  "title": "Dot Gradient 2",
+  "collectionId": "b1b5062b-8732-45ac-956d-eca9d27029b4",
+  "category": "background",
+  "description": "A dynamic gradient background transitioning from light cyan-blue at the top to deep dark blue at the bottom, creating a vertical color flow. The gradient uses the OKLCH color space for smooth transitions between #00a6ff (bright cyan-blue) and #000dff (deep blue). A sine wave distortion effect with 119-degree angle and 0.33 strength creates subtle undulating ripples across the entire surface, giving the gradient a fluid, organic quality with gentle wave-like perturbations. Overlaid on top is a dot grid pattern with #d8fa2d (bright yellow-green) dots at 30% density with 0.04 size, creating a starfield or particle effect. These dots use a linear dodge blend mode, causing them to appear luminous and glowing against the blue gradient background. The dots have a twinkle animation effect set to full intensity, making them shimmer and pulse subtly. The overall atmosphere is serene and cosmic, resembling a night sky or deep water environment with twinkling stars or bioluminescent particles. The wave distortion adds gentle movement and fluidity while maintaining the calm, meditative quality of the composition.",
+  "thumbnail": "/shaders/thumbnails/ea59f68c-b8a2-46b6-90a2-ab593e3ee70c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#00a6ff",
+          "colorB": "#000dff",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.2,
+            "y": 0.9
+          },
+          "start": {
+            "x": 0,
+            "y": 0.3
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 119,
+          "frequency": 0.6,
+          "strength": 0.33
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "color": "#d8fa2d",
+          "dotSize": 0.04,
+          "twinkle": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

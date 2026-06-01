@@ -1,0 +1,45 @@
+{
+  "id": "20d2563a-dc09-49d1-b1ec-e2a97ffc9f3a",
+  "title": "Rounded Panels 12",
+  "collectionId": "0a33095f-dfca-48af-94a5-5f15acc313ab",
+  "category": "background",
+  "description": "A dynamic striped shader effect featuring diagonal parallel lines at a 22-degree angle running from upper-left to lower-right across the composition. The stripes alternate between two primary colors: a deep navy blue (#1a3a5c) and a warm tan/gold (#c4a265). The stripe density is set to 12, creating evenly-spaced parallel bands. The left edge of the composition shows tan-colored stripes, while the majority of the image is dominated by navy blue stripes with subtle tan outlines. A circular gradient mask (centered at 0.55, 0.42 with radius 1.7) modulates the balance between the two colors, creating a subtle variation in stripe intensity across the image. The effect has a soft, blended appearance with no hard edges, and the stripes maintain consistent width and spacing throughout. The overall mood is sophisticated and geometric, with a professional, minimalist aesthetic. The color transition is smooth due to the softness parameter and linear color space rendering.",
+  "thumbnail": "/shaders/thumbnails/20d2563a-dc09-49d1-b1ec-e2a97ffc9f3a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "angle": 22,
+          "balance": {
+            "type": "map",
+            "source": "idmlsathgg7fl4tmxmi",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.1
+          },
+          "colorA": "#1a3a5c",
+          "colorB": "#c4a265",
+          "density": 12
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmlsathgg7fl4tmxmi",
+          "center": {
+            "x": 0.55,
+            "y": 0.42
+          },
+          "radius": 1.7,
+          "softness": 0.1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

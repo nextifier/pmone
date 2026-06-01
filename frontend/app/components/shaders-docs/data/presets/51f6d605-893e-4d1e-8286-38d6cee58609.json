@@ -1,0 +1,72 @@
+{
+  "id": "51f6d605-893e-4d1e-8286-38d6cee58609",
+  "title": "Neon Flow 5",
+  "collectionId": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "category": "background",
+  "description": "A dynamic gradient shader effect dominated by warm to hot color transitions. The image features a primary swirling motion that blends deep red (#e63412) with golden yellow (#ffb703) in a fluid, organic pattern. A prominent blob-like formation is centered slightly right and below center (at coordinates 0.72, 0.58), creating a darker magenta-to-orange gradient (#ff4400 to #8b0045) with soft, deformed edges and a subtle white highlight suggesting dimensional depth. The entire composition is overlaid with subtle wave distortions at a 122-degree angle, creating a rippling effect that undulates across the surface at moderate speed. A fine chromatic aberration effect with red and blue channel separation adds a slight color fringing at the edges of color transitions, enhancing the sense of movement and energy. The overall atmosphere is warm, energetic, and fluid, with soft focus areas that create depth. A light film grain texture adds subtle noise throughout, preventing the gradients from appearing too smooth and artificial. The color space transitions between HSV for the swirl and OKLCH for the blob create rich, saturated hues with smooth interpolation.",
+  "thumbnail": "/shaders/thumbnails/51f6d605-893e-4d1e-8286-38d6cee58609.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 45,
+          "colorA": "#e63412",
+          "colorB": "#ffb703",
+          "colorSpace": "hsv",
+          "detail": 1.8,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.72,
+            "y": 0.58
+          },
+          "colorA": "#ff4400",
+          "colorB": "#8b0045",
+          "colorSpace": "oklch",
+          "deformation": 0.8,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.3,
+          "highlightX": 0.4,
+          "highlightY": -0.4,
+          "highlightZ": 0.6,
+          "seed": 17,
+          "size": 1.15,
+          "softness": 1.4,
+          "speed": 0.9
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 122,
+          "edges": "mirror",
+          "frequency": 2.1,
+          "speed": 1.8,
+          "strength": 0.35
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 45,
+          "blueOffset": 1.2,
+          "redOffset": -1.2,
+          "strength": 0.015
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.12
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

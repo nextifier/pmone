@@ -1,0 +1,54 @@
+{
+  "id": "bb1fda80-5ce2-4072-b528-9837f6e7aff7",
+  "title": "Undertones 8",
+  "collectionId": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by a predominantly black background with horizontal linear striations. Two diagonal bands of chromatic distortion traverse the image from upper-left to lower-right, creating a sense of motion and depth. The upper band exhibits a vibrant purple-to-magenta gradient (#a50ff2 transitioning through #7618db to #301252), while the lower band shows a deeper blue-purple tone (#0c096e). These colored bands appear to have a fluid, flowing quality with soft edges that suggest chromatic aberration and refraction effects. The fluted glass component creates subtle linear refractions across the entire image at an 84-degree angle, producing fine parallel lines that add texture and a sense of depth. A very subtle film grain texture overlays the entire composition, adding a cinematic quality. The overall mood is sleek, modern, and slightly ethereal, with the colored bands appearing to move or flow across the dark background like light passing through glass or liquid. The lighting is minimal and directional, creating highlights along the edges of the colored bands.",
+  "thumbnail": "/shaders/thumbnails/bb1fda80-5ce2-4072-b528-9837f6e7aff7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#000000",
+          "colorB": "#0a0a0a",
+          "detail": 1.7
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#18181a",
+          "downColor": "#0c096e",
+          "leftColor": "#7618db",
+          "momentum": 13,
+          "rightColor": "#301252",
+          "upColor": "#a50ff2"
+        }
+      },
+      {
+        "type": "FlutedGlass",
+        "props": {
+          "aberration": 0.61,
+          "angle": 284,
+          "frequency": 8,
+          "highlight": 0.12,
+          "highlightSoftness": 0,
+          "lightAngle": -90,
+          "refraction": 4,
+          "shape": "rounded",
+          "softness": 1,
+          "speed": 0.15
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

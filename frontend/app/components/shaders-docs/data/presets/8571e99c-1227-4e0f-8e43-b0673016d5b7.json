@@ -1,0 +1,56 @@
+{
+  "id": "8571e99c-1227-4e0f-8e43-b0673016d5b7",
+  "title": "Fluid Chrome 3",
+  "collectionId": "11295f25-f0a2-4670-859e-9a8e2ed62ca6",
+  "category": "logo",
+  "description": "A 3D isometric composition featuring two interconnected hollow cube structures rendered with a glass material shader. The cubes are positioned diagonally against a pure black background, creating strong contrast. The primary visual effect is a vibrant magenta/pink neon glow emanating from the glass edges and surfaces, with the color #ec54fd (hot magenta) being the dominant accent. The glass material exhibits high refraction (1.09) and chromatic aberration (0.89), creating subtle rainbow-like color separation along the edges. The cubes have a translucent quality with internal swirling patterns that blend magenta and black colors using an oklab color space, creating organic flowing distortions within the glass geometry. A flow field effect adds secondary motion patterns with mirrored edges, contributing to the dynamic, liquid-like appearance within the transparent structures. The fresnel effect creates bright white highlights along the top edges and corners where light reflects most intensely. The overall mood is futuristic and cyberpunk, with the neon magenta glow suggesting energy or data flow. The thickness of the glass material (0.27) creates visible depth and dimensionality. Edge softness (0.2) prevents harsh transitions, while the highlight softness (0.5) creates smooth, glowing reflections rather than sharp specular points. The composition has a tech-forward aesthetic with smooth, polished surfaces and a sense of three-dimensional depth.",
+  "thumbnail": "/shaders/thumbnails/8571e99c-1227-4e0f-8e43-b0673016d5b7.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.89,
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0.01,
+          "fresnelSoftness": 0.14,
+          "refraction": 1.09,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.27
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 56,
+              "colorA": "#ec54fd",
+              "colorB": "#0a0a0a",
+              "colorSpace": "oklab",
+              "detail": 4.2,
+              "speed": 0.1
+            }
+          },
+          {
+            "type": "FlowField",
+            "props": {
+              "detail": 1,
+              "evolutionSpeed": 1.5,
+              "speed": 1.8,
+              "strength": 0.5
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

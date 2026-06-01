@@ -1,0 +1,30 @@
+{
+  "id": "011a60f7-d51c-4c48-9ed2-c82dd22e06e4",
+  "title": "Fireworks 5",
+  "collection_id": "42dfbfb7-1c8f-4071-bf86-bf26ecca5335",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic neon shader effect featuring radial lines emanating from a vanishing point at the top-center of the composition, creating a sense of forward motion and depth. The primary visual elements are thin, glowing lines arranged in a starburst pattern that converge toward the center. The color palette consists of vibrant neon red (#ff2400) and cyan (#00e5ff) lines with intermediate warm white and pale orange tones, creating a striking contrast against the deep dark-blue to near-black background (#040a14). The lines appear to be falling or moving downward with motion blur trails, giving the effect a sense of speed and direction. A soft white circular gradient mask is applied from the top, creating a vignette effect that softens the edges and focuses attention toward the center. The entire composition is enhanced with a strong glow effect (size 10.4, intensity 1.1) that creates halos around the bright neon lines, making them appear to emit light. A subtle halftone overlay pattern (162 frequency, 45-degree angle) adds texture and a print-like quality. Fine paper grain texture with high roughness (0.95) and displacement (0.22) provides subtle surface irregularity. The polar coordinate transformation warps the falling lines into this radial pattern, with the effect masked by an inverted alpha channel to create the starburst appearance. The overall mood is cyberpunk, energetic, and futuristic with a strong sense of motion and technological aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/011a60f7-d51c-4c48-9ed2-c82dd22e06e4.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzAxMWE2MGY3LWQ1MWMtNGM0OC05ZWQyLWM4MmRkMjJlMDZlNC5qcGciLCJpYXQiOjE3NzMxNTkyMjEsImV4cCI6MTgwNDY5NTIyMX0.klsPJokM0od9OeXCGptu-KXMv-WsWZIC0IPQ33KGe7A",
+  "import": "import {\n  Shader,\n  Circle,\n  FallingLines,\n  Glow,\n  Halftone,\n  Paper,\n  PolarCoordinates,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  FallingLines,\n  Glow,\n  Halftone,\n  Paper,\n  PolarCoordinates,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Circle\n      id=\"idmmksxe5fmdwqd736t\"\n      :center=\"{\n        x: 0.5,\n        y: 0\n      }\"\n      :radius=\"1.05\"\n      :softness=\"0.47\"/>\n    <SolidColor\n      color=\"#040a14\"/>\n    <PolarCoordinates\n      :center=\"{\n        x: 0.5,\n        y: 0\n      }\"\n      mask-source=\"idmmksxe5fmdwqd736t\"\n      mask-type=\"alphaInverted\"\n      :radius=\"0.7\">\n      <FallingLines\n        color-a=\"#ff2400\"\n        color-b=\"#00e5ff\"\n        color-space=\"oklab\"\n        :density=\"35\"\n        :speed=\"0.25\"\n        :speed-variance=\"0.55\"/>\n    </PolarCoordinates>\n    <Glow\n      :intensity=\"1.1\"\n      :size=\"10.4\"\n      :threshold=\"0.2\"/>\n    <Halftone\n      blend-mode=\"overlay\"\n      :frequency=\"162\"\n      :smoothness=\"0\"/>\n    <Paper\n      :displacement=\"0.22\"\n      :grain-scale=\"3\"\n      :roughness=\"0.95\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "57e963bf-4f49-4243-833b-05426d719d39",
+  "title": "Neon Flow",
+  "collection_id": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, fluid gradient shader effect featuring smooth color transitions across the entire canvas. The composition is dominated by a large yellow-green radiant glow emanating from the upper-center area, creating a luminous focal point. This central brightness transitions smoothly into surrounding regions of purple, blue, and magenta tones. The Blob component creates organic, flowing shapes with soft edges that appear to pulse and morph, centered slightly above the middle of the canvas. A bright yellow-to-blue gradient blob dominates the upper portion with a subtle white highlight suggesting three-dimensional depth. The Swirl effect adds rotational motion and blending between lime green and violet hues, creating a sense of dynamic movement. Wave distortion at 107 degrees with sine wave patterns introduces subtle undulating ripples across the surface, particularly visible in the color transitions. The overall effect is smooth and dreamlike with soft, feathered edges that fade to transparency at the boundaries. Chromatic aberration adds a subtle color separation effect, particularly noticeable at high-contrast edges where red and blue channels slightly diverge. Film grain adds a fine texture overlay at 12% strength, preventing the image from appearing too perfectly smooth. The color space uses OKLAB and OKLCH for perceptually uniform color transitions, resulting in natural-looking gradients that maintain color harmony throughout the composition.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/57e963bf-4f49-4243-833b-05426d719d39.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzU3ZTk2M2JmLTRmNDktNDI0My04MzNiLTA1NDI2ZDcxOWQzOS5qcGciLCJpYXQiOjE3NzIyNDcyODQsImV4cCI6MTgwMzc4MzI4NH0.GpkiXkMbadyg0IZTAG6KhlSuhKi_QHz182TlJmYJXVg",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"45\"\n      color-a=\"#5edf3c\"\n      color-b=\"#7636ff\"\n      color-space=\"oklab\"\n      :detail=\"1.8\"\n      :speed=\"0.8\"/>\n    <Blob\n      blend-mode=\"normal-oklab\"\n      :center=\"{\n        x: 0.54,\n        y: 0.33\n      }\"\n      color-a=\"#f2ff05\"\n      color-b=\"#0037ff\"\n      color-space=\"oklch\"\n      :deformation=\"0.8\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.3\"\n      :highlight-x=\"0.4\"\n      :highlight-y=\"-0.4\"\n      :highlight-z=\"0.6\"\n      :seed=\"17\"\n      :size=\"0.95\"\n      :softness=\"2\"\n      :speed=\"0.9\"/>\n    <WaveDistortion\n      :angle=\"107\"\n      edges=\"mirror\"\n      :frequency=\"1.6\"\n      :speed=\"1.8\"\n      :strength=\"0.25\"/>\n    <ChromaticAberration\n      :angle=\"45\"\n      :blue-offset=\"1.2\"\n      :red-offset=\"-1.2\"\n      :strength=\"0.015\"/>\n    <FilmGrain\n      :strength=\"0.12\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

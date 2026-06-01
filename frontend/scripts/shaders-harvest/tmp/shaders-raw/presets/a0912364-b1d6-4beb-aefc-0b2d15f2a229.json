@@ -1,0 +1,38 @@
+{
+  "id": "a0912364-b1d6-4beb-aefc-0b2d15f2a229",
+  "title": "Impression Trail 3",
+  "collection_id": "c5b900ac-1a98-4f7a-8dd1-c86cd0e95ca6",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "A vibrant lime-green background (#7dc310) with a sophisticated dithering effect applied across the entire composition. The dither pattern uses blue noise with a 3-pixel size, creating a granular, stippled texture throughout. Overlaid on this are organic, cloud-like formations rendered in white (#ffffff) with varying opacity levels, distributed across the upper portion and scattered throughout the middle and lower sections. These white elements appear to be noise-based textures with soft, diffused edges. The overall effect combines a retro computer graphics aesthetic with modern shader techniques. A subtle paper texture with displacement (0.2) and low roughness (0.21) adds tactile quality and micro-surface variation. The composition has a slightly noisy, analog quality enhanced by the SimplexNoise layer (colorA: #ffffff17) which introduces fine white grain at low opacity. The spatial distribution creates depth through varying opacity and scale, with denser dithering patterns in certain regions. The atmosphere is clean, minimalist, and slightly grainy, suggesting a digital art piece with intentional texture layering. The blend modes are set to normal throughout, maintaining color integrity while building visual complexity through layering.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/a0912364-b1d6-4beb-aefc-0b2d15f2a229.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2EwOTEyMzY0LWIxZDYtNGJlYi1hZWZjLTBiMmQxNWYyYTIyOS5qcGciLCJpYXQiOjE3Nzc5OTg3MjQsImV4cCI6MTgwOTUzNDcyNH0.MNCPtMqCpgjynZs6TJblgcUc1H5kj3hO51oWwWwugIA",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  Dither,\n  ImageTexture,\n  Paper,\n  SimplexNoise\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  Dither,\n  ImageTexture,\n  Paper,\n  SimplexNoise\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ChromaFlow\n      id=\"idmostv5d9xi2rmvn45\"\n      base-color=\"#ffffff\"\n      down-color=\"#ffffff\"\n      :intensity=\"1.4\"\n      left-color=\"#ffffff\"\n      :momentum=\"10\"\n      :radius=\"4\"\n      right-color=\"#ffffff\"\n      up-color=\"#ffffff\"\n      :visible=\"false\"/>\n    <Dither\n      color-a=\"#7dc310\"\n      color-b=\"#ffefe6\"\n      pattern=\"blueNoise\"\n      :pixel-size=\"3\"\n      :threshold=\"{\n        type: 'map',\n        source: 'idmostv5d9xi2rmvn45',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 0.79,\n        outputMin: 0.1\n      }\">\n      <ImageTexture\n        url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/gZx9yjLKI7VJ.jpeg\"/>\n      <SimplexNoise\n        :balance=\"-0.5\"\n        color-a=\"#ffffff17\"\n        color-b=\"#00000000\"/>\n    </Dither>\n    <Paper\n      :displacement=\"0.2\"\n      :grain-scale=\"0.1\"\n      :roughness=\"0.21\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "id": "f44849d2-c161-4dc3-804a-00484d7174ab",
+  "title": "Arrow Grid 2",
+  "collectionId": "b9026919-0325-4f1c-b23b-1dc400fdd8ef",
+  "category": "background",
+  "description": "A dark, tech-noir shader effect displaying a diagonal grid pattern of small triangular ASCII characters (⦉⦊) arranged in precise rows across a black background. The characters feature chromatic aberration with distinct color fringing - predominantly cyan, magenta, yellow, and white edges creating a retro CRT monitor aesthetic. The grid appears to be distorted by a bulge effect with a 35-degree rotation, creating a subtle warping that makes the triangles appear to curve slightly. Overlaid on this are animated ripple patterns with white and black wave interference creating concentric circular distortions emanating from the center. A blob-like organic shape with green (#5cf525) to blue (#1e6ce9) gradient provides dynamic movement beneath the grid, with yellow highlight accents (#fff71a) suggesting 3D depth. The entire composition is processed through a CRT screen filter with visible scanlines (frequency 210, intensity 0.91) and pixel grid artifacts (60px size), creating authentic vintage computer monitor scanline distortion. A tilt-shift blur effect with 90-degree angle orientation adds depth-of-field, keeping the center sharp while edges fade. The overall mood is cyberpunk, digital, and nostalgic with high contrast and vibrant neon-like color separation typical of old arcade or early computer graphics.",
+  "thumbnail": "/shaders/thumbnails/f44849d2-c161-4dc3-804a-00484d7174ab.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#17171a"
+        }
+      },
+      {
+        "type": "Group",
+        "props": {},
+        "children": [
+          {
+            "type": "Checkerboard",
+            "props": {
+              "cells": 22,
+              "colorB": "#383e42"
+            }
+          },
+          {
+            "type": "Ripples",
+            "props": {
+              "blendMode": "overlay",
+              "frequency": 23.8,
+              "opacity": 0.32,
+              "speed": 1.9,
+              "thickness": 0.3
+            }
+          },
+          {
+            "type": "Blob",
+            "props": {
+              "id": "idmh47oyx205ue8s7u1",
+              "colorA": "#5cf525",
+              "colorB": "#1e6ce9",
+              "deformation": 0.37,
+              "highlightColor": "#fff71a",
+              "highlightIntensity": 0.45,
+              "highlightX": 0.06,
+              "highlightY": -0.1,
+              "softness": 0.63,
+              "speed": 2,
+              "visible": true
+            }
+          },
+          {
+            "type": "Ripples",
+            "props": {
+              "blendMode": "overlay",
+              "frequency": 6.2,
+              "maskSource": "idmh47oyx205ue8s7u1",
+              "opacity": 0.4,
+              "softness": 0.57,
+              "speed": -0.5,
+              "thickness": 0.39
+            }
+          },
+          {
+            "type": "ChromaFlow",
+            "props": {
+              "baseColor": "#eef21d",
+              "downColor": "#f0e1e1",
+              "intensity": 1.5,
+              "leftColor": "#e1e1f0",
+              "maskSource": "idmh47oyx205ue8s7u1",
+              "momentum": 10,
+              "rightColor": "#ededd5",
+              "upColor": "#c1e0c1"
+            }
+          },
+          {
+            "type": "CursorTrail",
+            "props": {}
+          },
+          {
+            "type": "Ascii",
+            "props": {
+              "cellSize": 60,
+              "characters": "⦉⦊"
+            }
+          },
+          {
+            "type": "Bulge",
+            "props": {
+              "edges": "mirror",
+              "falloff": 1,
+              "radius": 2.6,
+              "strength": -0.29,
+              "transform": {
+                "edges": "mirror",
+                "rotation": 35
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "angle": 90,
+          "falloff": 0.26,
+          "intensity": 10,
+          "width": 0.29
+        }
+      },
+      {
+        "type": "CRTScreen",
+        "props": {
+          "brightness": 2,
+          "colorShift": 0.8,
+          "contrast": 1.01,
+          "pixelSize": 60,
+          "scanlineFrequency": 210,
+          "scanlineIntensity": 0.91
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

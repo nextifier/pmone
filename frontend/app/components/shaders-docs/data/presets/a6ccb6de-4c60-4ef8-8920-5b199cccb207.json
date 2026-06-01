@@ -1,0 +1,84 @@
+{
+  "id": "a6ccb6de-4c60-4ef8-8920-5b199cccb207",
+  "title": "Flowing Dots 2",
+  "collectionId": "aacfb436-0fcf-46ee-a6e2-93f708c027fb",
+  "category": "background",
+  "description": "A dark, sophisticated shader effect featuring a central focal point with intricate chromatic aberration and iridescent distortion patterns. The composition shows a symmetrical, organic form rendered through a halftone dot grid pattern that transitions from dense white dots on the right side to sparse, fading dots on the left, creating a sense of depth and dimensionality. The central subject displays vivid color separation with cyan, magenta, yellow, and blue hues creating a prismatic, glitchy aesthetic typical of chromatic flow effects. The background is a deep charcoal-to-black gradient that provides stark contrast. Subtle film grain texture overlays the entire composition, adding analog authenticity. The dot grid mask creates a pixelated, pointillist appearance that gradually dissolves into the dark background. Cursor ripples with chromatic splitting would add interactive distortion waves. The overall mood is futuristic, digital, and somewhat unsettling with its combination of organic form and digital degradation.",
+  "thumbnail": "/shaders/thumbnails/a6ccb6de-4c60-4ef8-8920-5b199cccb207.webp",
+  "config": {
+    "components": [
+      {
+        "type": "DotGrid",
+        "props": {
+          "id": "idmlsai28917usa8l1j",
+          "density": 40,
+          "dotSize": {
+            "type": "map",
+            "source": "idmlsaoh7xdy8aayjbd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0
+          },
+          "twinkle": 0.9,
+          "visible": false
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "id": "idmlsaoh7xdy8aayjbd",
+          "intensity": 1.4,
+          "radius": 2.9,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#1e1e1f",
+          "colorB": "#070708",
+          "colorSpace": "hsl",
+          "end": {
+            "x": 1,
+            "y": 0
+          },
+          "start": {
+            "x": 0,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#000000",
+          "colorB": "#ffffff",
+          "colorSpace": "hsl",
+          "end": {
+            "x": 1,
+            "y": 0
+          },
+          "maskSource": "idmlsai28917usa8l1j",
+          "start": {
+            "x": 0,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {}
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

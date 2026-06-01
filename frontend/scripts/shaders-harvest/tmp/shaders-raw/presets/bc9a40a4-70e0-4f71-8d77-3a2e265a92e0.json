@@ -1,0 +1,30 @@
+{
+  "id": "bc9a40a4-70e0-4f71-8d77-3a2e265a92e0",
+  "title": "Rolling Shadows 9",
+  "collection_id": "0c3f4def-3e49-4ee4-a36d-ec34752656e7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A fluid, organic gradient shader effect displaying a multi-point gradient system with five color nodes creating a seamless blend across the canvas. The dominant color palette consists of deep teals and forest greens with accents of bright cyan. The gradient flows from darker forest green tones (#0b3d2e, #0e4a3f, #134f42) in the upper left and lower right regions toward brighter teal and cyan tones (#1a6b5a, #5eebc4) in the center and right areas. The effect features smooth color transitions with a high smoothness value of 2, creating soft, blended edges between color zones. A wave distortion effect with sine wave pattern and 0.3 strength adds subtle undulating movement to the surface, creating a liquid-like quality. A bulge distortion centered near the lower-left area with radius 2 and falloff 2 creates a subtle spherical warping effect that follows mouse position with momentum and smoothing. A paper texture overlay with 0.24 displacement and 0.1 roughness adds fine grain detail and subtle surface irregularity, creating a tactile, slightly weathered appearance. The overall effect is atmospheric and calming, with a sense of depth and movement despite the static nature of the base gradient. The color space is p3-linear, ensuring accurate color representation across the gradient transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bc9a40a4-70e0-4f71-8d77-3a2e265a92e0.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JjOWE0MGE0LTcwZTAtNGY3MS04ZDc3LTNhMmUyNjVhOTJlMC5qcGciLCJpYXQiOjE3NzU5MjA2MTgsImV4cCI6MTgwNzQ1NjYxOH0.GSWQeDOQxIldA0ktnX1GfNtzgnJwVn7q36BRxJLbtjo",
+  "import": "import {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <MultiPointGradient\n      color-a=\"#0b3d2e\"\n      color-b=\"#1a6b5a\"\n      color-c=\"#0e4a3f\"\n      color-d=\"#5eebc4\"\n      color-e=\"#134f42\"\n      :position-a=\"{\n        x: 0.16,\n        y: 0.38\n      }\"\n      :position-b=\"{\n        x: 0.61,\n        y: 0.81\n      }\"\n      :position-c=\"{\n        x: 0.82,\n        y: 0.45\n      }\"\n      :position-d=\"{\n        type: 'mouse-position',\n        originX: 0.445,\n        originY: 0.2816725978647687,\n        momentum: 0.2,\n        smoothing: 0.6\n      }\"\n      :position-e=\"{\n        x: 0.53,\n        y: 0.69\n      }\"/>\n    <WaveDistortion/>\n    <Bulge\n      :center=\"{\n        type: 'mouse-position',\n        originX: 0.37,\n        originY: 0.6642984014209592,\n        momentum: 0.3,\n        smoothing: 0.8\n      }\"\n      :falloff=\"2\"\n      :radius=\"2\"/>\n    <Paper\n      :displacement=\"0.24\"\n      :grain-scale=\"3\"\n      :roughness=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

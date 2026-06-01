@@ -1,0 +1,79 @@
+{
+  "id": "b172992f-b853-4c7e-a9fd-078a20d31711",
+  "title": "Swatch Rings 4",
+  "collectionId": "307cc7b7-0339-4237-a40b-749e6d5af8f7",
+  "category": "background",
+  "description": "A dynamic shader effect featuring concentric circular rings emanating from the lower-left corner, creating a spiral vortex pattern. The primary color gradient transitions from bright yellow-gold (#fbcb50) in the center-left areas to deep teal and dark cyan (#07292a) in the outer regions and right side. The composition shows 5 distinct concentric rings with smooth, curved boundaries that appear to rotate or spin. A subtle diagonal wave distortion with sawtooth pattern creates linear striations across the surface, giving it a ribbed or textured appearance. A fine grid overlay with 40 cells and low opacity (0.17) adds micro-texture detail throughout. Chromatic aberration effects introduce slight color fringing at high-contrast edges. Film grain noise at 0.6 strength provides a grainy, analog quality. The overall effect creates depth through the layered rings while maintaining smooth color transitions. The lighting appears to come from the center-left, with the brightest yellow-green tones there and progressively darker tones moving toward the edges. The mood is energetic yet sophisticated, with a modern digital aesthetic.",
+  "thumbnail": "/shaders/thumbnails/b172992f-b853-4c7e-a9fd-078a20d31711.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 135,
+          "colorA": "#fbcb50",
+          "colorB": "#07292a",
+          "colorSpace": "hsl",
+          "end": {
+            "x": 0,
+            "y": 1
+          },
+          "start": {
+            "x": 0.5,
+            "y": 0.5
+          }
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "cells": 40,
+          "opacity": 0.17,
+          "thickness": 0.3,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 177,
+          "edges": "mirror",
+          "frequency": 3.9,
+          "speed": 2.2,
+          "visible": true,
+          "waveType": "sawtooth"
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 1
+          },
+          "intensity": 45,
+          "rings": 5,
+          "seed": 42,
+          "smoothness": 0,
+          "speed": 0.4,
+          "speedRandomness": 0.7
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "strength": 0.05,
+          "visible": true
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.6
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

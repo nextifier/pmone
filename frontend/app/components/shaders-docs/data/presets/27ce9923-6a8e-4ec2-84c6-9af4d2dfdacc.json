@@ -1,0 +1,56 @@
+{
+  "id": "27ce9923-6a8e-4ec2-84c6-9af4d2dfdacc",
+  "title": "Fluid Chrome 10",
+  "collectionId": "11295f25-f0a2-4670-859e-9a8e2ed62ca6",
+  "category": "logo",
+  "description": "A 3D isometric composition featuring two interconnected hollow hexagonal cubes rendered with a translucent glass material against a pure black background. The primary structure consists of a larger hexagon positioned above and to the left, connected to a slightly smaller hexagon below and to the right. The glass material exhibits a vibrant purple gradient that transitions from deep violet (#7d19d5) on the outer edges to lighter lavender (#a7a3ea) toward the interior surfaces. The effect creates a luminous, neon-like appearance with strong internal glow and refraction properties. The glass surfaces show pronounced fresnel effects along the edges, creating bright white highlights that enhance the three-dimensional depth perception. Within the glass structure, animated swirl patterns in purple and lavender tones flow dynamically, creating organic movement within the geometric forms. A subtle flow field effect adds additional turbulence and visual complexity to the interior. The overall lighting suggests a light source positioned at approximately 300 degrees, creating dramatic highlights on the upper and right-facing surfaces while leaving other edges in subtle shadow. The cutout design allows the black background to show through the hollow centers of both hexagons, emphasizing the transparent nature of the material. The composition has a modern, tech-forward aesthetic with a glossy, premium appearance reminiscent of contemporary 3D UI design or digital art.",
+  "thumbnail": "/shaders/thumbnails/27ce9923-6a8e-4ec2-84c6-9af4d2dfdacc.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.89,
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0.01,
+          "fresnelSoftness": 0.14,
+          "refraction": 1.09,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.27
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 56,
+              "colorA": "#7d19d5",
+              "colorB": "#a7a3ea",
+              "colorSpace": "oklab",
+              "detail": 4.2,
+              "speed": 0.1
+            }
+          },
+          {
+            "type": "FlowField",
+            "props": {
+              "detail": 1,
+              "evolutionSpeed": 1.5,
+              "speed": 1.8,
+              "strength": 0.5
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

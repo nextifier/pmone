@@ -1,0 +1,68 @@
+{
+  "id": "ed7d0839-a782-4da4-93bd-1eb37da5c453",
+  "title": "Cascading Markers",
+  "collectionId": "a83655f1-13f3-491a-bdbc-dc8566847b9d",
+  "category": "background",
+  "description": "A dynamic shader composition featuring concentric curved rectangular stripes that create a tunnel-like perspective effect. The base layer consists of alternating stripes in deep blue (#0b4478) and magenta (#ce20b0) at 45-degree angles, forming the foundational pattern. Overlaid on this are falling diagonal lines with a gradient from purple (#a103e7) to peachy-tan (#fdc7a8), creating a sense of motion and depth with 36 lines of density. A strong twirl distortion effect with -0.7 intensity warps the entire composition, particularly concentrated toward the right-center area (0.727, 0.508), creating a vortex-like spiral that pulls the striped pattern into curved, flowing waves. A tilt-shift blur effect is applied at 159-degree angle with a 0.2 width, creating selective focus that enhances the three-dimensional tunnel effect. The overall atmosphere is ethereal and hypnotic, with smooth gradient transitions between purple, pink, and cream tones. Film grain at 0.2 strength adds subtle texture throughout. The composition creates a sense of infinite depth and movement, with the curved stripes appearing to recede into the distance while the falling lines suggest continuous motion forward.",
+  "thumbnail": "/shaders/thumbnails/ed7d0839-a782-4da4-93bd-1eb37da5c453.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "colorA": "#0b4478",
+          "colorB": "#ce20b0",
+          "density": 1,
+          "speed": 0
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "angle": 45,
+          "colorA": "#a103e7",
+          "colorB": "#fdc7a8",
+          "density": 36,
+          "rounding": 0,
+          "speed": 0.2,
+          "speedVariance": 0.45,
+          "strokeWidth": 1.1,
+          "trailLength": 0.97
+        }
+      },
+      {
+        "type": "Twirl",
+        "props": {
+          "center": {
+            "x": 0.73,
+            "y": 0.51
+          },
+          "edges": "mirror",
+          "intensity": -0.7
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "angle": 159,
+          "center": {
+            "x": 0.59,
+            "y": 0.68
+          },
+          "falloff": 0.7,
+          "intensity": 100,
+          "visible": true,
+          "width": 0.2
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "51103616-92e4-4478-bba3-1cb7717a95c8",
+  "title": "Soft Register 3",
+  "collection_id": "2fb15a69-4382-4184-85e3-56fe672c4af1",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A flowing, organic gradient shader effect dominated by vibrant lime and green tones. The composition features smooth, undulating waves of color that blend seamlessly across the canvas. The primary colors transition from bright yellow-green (#b9ff5e) through neon lime (#b0ff05) to deep forest green (#08990f) and soft mint green (#7eff7a). The gradient creates a fluid, liquid-like appearance with soft, blurred edges that fade to transparency at the boundaries. A subtle halftone overlay with CMYK printing style is applied at 20% opacity using an overlay blend mode, adding fine texture and depth without overwhelming the smooth gradient base. The distortion parameter of 0.6 creates gentle wave-like undulations throughout the effect, giving it a sense of movement and organic flow. The overall atmosphere is fresh, natural, and energetic, reminiscent of flowing water or wind-swept foliage. The halftone pattern introduces microscopic dot patterns at 180 frequency, creating a subtle print-like texture that adds visual complexity while maintaining the smooth gradient appearance. The effect has no rotation or offset, maintaining perfect center alignment with transparent edges creating a soft vignette effect.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/51103616-92e4-4478-bba3-1cb7717a95c8.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzUxMTAzNjE2LTkyZTQtNDQ3OC1iYmEzLTFjYjc3MTdhOTVjOC5qcGciLCJpYXQiOjE3NzgxOTA5MTAsImV4cCI6MTgwOTcyNjkxMH0.OIh6YS6DzqOX5cTUChkM4egEMfPZsgvmgh4yR8dxZBs",
+  "import": "import {\n  Shader,\n  FlowingGradient,\n  Halftone\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, FlowingGradient, Halftone } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FlowingGradient\n      color-a=\"#b9ff5e\"\n      color-b=\"#b0ff05\"\n      color-c=\"#08990f\"\n      color-d=\"#7eff7a\"\n      color-space=\"oklab\"\n      :distortion=\"0.6\"\n      :seed=\"73\"/>\n    <Halftone\n      blend-mode=\"overlay\"\n      :frequency=\"180\"\n      :opacity=\"0.2\"\n      style=\"cmyk\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

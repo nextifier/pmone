@@ -1,0 +1,30 @@
+{
+  "id": "900918ff-0a35-4a59-a7b4-09d1becd5dbe",
+  "title": "Watercolor on Paper 4",
+  "collection_id": "da9f2a2e-c4fb-411e-bbc4-21dca8017cf5",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, flowing gradient shader effect that transitions from warm golden-yellow tones in the upper left corner through coral and salmon orange hues in the center, to deep crimson red in the upper right, and rich magenta-purple in the lower right corner. The gradient features five color anchor points creating a multi-directional color flow with a bright, almost white highlight area in the center-left portion. The effect is softened by a wave distortion applied at a 232-degree angle with sine wave characteristics, creating subtle undulating ripples across the surface. A liquify effect with moderate intensity (10) and high stiffness (15) adds organic, fluid warping to the gradient, creating soft bulges and subtle deformations. The overall composition is further refined by a paper texture overlay with minimal roughness (0.1) and fine grain scale (0.1), adding subtle surface irregularity and tactile quality. A film grain effect with 0.4 strength introduces fine noise particles throughout, creating a cinematic, slightly aged appearance. The edges fade to transparency, and the entire composition maintains full opacity with normal blending mode, resulting in a warm, organic, and slightly textured gradient that feels both smooth and naturally imperfect.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/900918ff-0a35-4a59-a7b4-09d1becd5dbe.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzkwMDkxOGZmLTBhMzUtNGE1OS1hN2I0LTA5ZDFiZWNkNWRiZS5qcGciLCJpYXQiOjE3NzU3NTgxNTUsImV4cCI6MTgwNzI5NDE1NX0.uURchvYR6GQWmRJsL5a54smT02EiEw0Eyfpd0IbdoP0",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Liquify,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Liquify,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <MultiPointGradient\n      color-a=\"#c43a2f\"\n      color-b=\"#f5a623\"\n      color-c=\"#8b2252\"\n      color-d=\"#ffd4a1\"\n      color-e=\"#e05c1a\"\n      :position-a=\"{\n        x: 0.72,\n        y: 0.12\n      }\"\n      :position-b=\"{\n        x: 0.15,\n        y: 0.35\n      }\"\n      :position-c=\"{\n        x: 0.88,\n        y: 0.78\n      }\"\n      :position-d=\"{\n        x: 0.35,\n        y: 0.92\n      }\"\n      :position-e=\"{\n        x: 0.55,\n        y: 0.48\n      }\"/>\n    <WaveDistortion\n      :angle=\"232\"\n      :frequency=\"1.2\"\n      :strength=\"0.35\"/>\n    <Liquify\n      :damping=\"0.7\"\n      :radius=\"1.5\"\n      :stiffness=\"15\"/>\n    <Paper\n      :displacement=\"1\"\n      :grain-scale=\"0.1\"\n      :roughness=\"0.1\"\n      :seed=\"42\"/>\n    <FilmGrain\n      :strength=\"0.4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

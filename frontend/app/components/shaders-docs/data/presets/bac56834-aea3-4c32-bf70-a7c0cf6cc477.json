@@ -1,0 +1,44 @@
+{
+  "id": "bac56834-aea3-4c32-bf70-a7c0cf6cc477",
+  "title": "Gradient Grid 2",
+  "collectionId": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "category": "background",
+  "description": "A flowing gradient shader effect with smooth, organic color transitions creating a dreamy, ethereal atmosphere. The composition features a primary gradient flowing from white in the upper left corner through soft pink and magenta tones in the center, transitioning to vibrant purple and violet hues in the upper right, with warm peachy-orange tones emerging in the lower right corner. The gradient exhibits significant distortion with a 0.2 distortion value, creating soft, blurred color boundaries that blend seamlessly without hard edges. A subtle grid pattern with 30 cells is overlaid at 6% opacity using multiply blending mode, adding fine texture and structure while remaining nearly imperceptible. Fine film grain at 10% strength is applied across the entire surface, providing subtle noise that enhances the organic, natural quality of the effect. The overall mood is soft, romantic, and contemporary with a modern aesthetic. Colors flow dynamically with smooth interpolation in OKLab color space, creating perceptually uniform transitions. The effect has no rotation or offset, maintaining centered symmetry with transparent edges that fade naturally into the background.",
+  "thumbnail": "/shaders/thumbnails/bac56834-aea3-4c32-bf70-a7c0cf6cc477.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#ffffff",
+          "colorB": "#fc9d77ff",
+          "colorC": "#b108ff",
+          "colorD": "#ff21d6",
+          "colorSpace": "oklab",
+          "distortion": 0.2,
+          "seed": 32,
+          "visible": true
+        }
+      },
+      {
+        "type": "Grid",
+        "props": {
+          "blendMode": "multiply",
+          "cells": 30,
+          "color": "#000000",
+          "opacity": 0.06,
+          "thickness": 0.4,
+          "visible": true
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

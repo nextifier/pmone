@@ -1,0 +1,51 @@
+{
+  "id": "d66229b5-e1be-4208-a827-b1dc8cbfb08d",
+  "title": "Synthesis 7",
+  "collectionId": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by a deep navy-black background (#08071a) with vibrant purple glowing elements. The primary visual feature is a soft, diffused purple glow that emanates from the center-right area of the composition, creating a luminous focal point. The purple light (#9000ff) has a very soft, feathered edge with high softness (0.57), producing a dreamy, ethereal quality. The glow appears to pulse and wave subtly due to the sine wave animation at 0.3 speed and the wave distortion effect applied at 177 degrees. The effect creates diagonal streaks of purple light that fade smoothly into the black background, suggesting motion or energy flowing across the frame. A subtle wave distortion with sine wave pattern adds organic, fluid movement to the light, making it appear to ripple and undulate. The overall atmosphere is moody and cinematic, with a cool color temperature dominated by purples against near-black darkness. Fine film grain texture (0.07 strength) adds a subtle grittiness and analog quality to the otherwise smooth gradients. The composition has a sense of depth and dimensionality created by the soft falloff of the glowing purple light.",
+  "thumbnail": "/shaders/thumbnails/d66229b5-e1be-4208-a827-b1dc8cbfb08d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#08071a"
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.9,
+          "blendMode": "normal-oklch",
+          "color": "#9000ff",
+          "frequency": 0.2,
+          "position": {
+            "x": 0.6,
+            "y": 0.51
+          },
+          "softness": 0.57,
+          "speed": 0.3,
+          "thickness": 0.58
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 177,
+          "edges": "mirror",
+          "speed": 0.3,
+          "strength": 0.61
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.07
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

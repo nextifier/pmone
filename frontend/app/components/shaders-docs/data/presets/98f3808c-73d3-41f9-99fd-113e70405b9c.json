@@ -1,0 +1,66 @@
+{
+  "id": "98f3808c-73d3-41f9-99fd-113e70405b9c",
+  "title": "City Grid 8",
+  "collectionId": "f1e3b27c-d2ba-498c-a1e0-29065f9295c9",
+  "category": "background",
+  "description": "A digital pixelated shader effect displaying a dynamic plasma-based animation with a gradient fade pattern. The composition features a dark navy-to-black background (#09060f) with a prominent pixelated grid overlay creating a mosaic appearance. The pixelation scale is set to 74 with rounded corners (0.2 roundness), producing visible square blocks that vary in opacity. The primary visual element is an animated plasma effect with colors transitioning between cyan-blue (#0073b5) and deep purple (#1f0761), creating a swirling, organic energy pattern. The plasma has high intensity (1.8) and contrast (1.6), generating vibrant color variations within the pixelated blocks. A sine wave pattern (invisible but functionally mapped) controls the gap spacing of the pixelation, creating a dynamic modulation effect where pixel density varies across the composition - denser in the upper-left quadrant and progressively sparser toward the lower-right, creating a sense of depth and movement. The overall effect suggests a digital, technological aesthetic with a glowing, energetic quality. The blend mode is set to normal, maintaining the integrity of the underlying colors while the pixelation effect creates a retro-digital or data visualization appearance.",
+  "thumbnail": "/shaders/thumbnails/98f3808c-73d3-41f9-99fd-113e70405b9c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#09060f"
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "gap": {
+            "type": "map",
+            "curve": 0.35,
+            "source": "idmmbhthud5inxgebqc",
+            "channel": "alphaInverted",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.16
+          },
+          "roundness": 0.2,
+          "scale": 74
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "balance": 57,
+              "colorA": "#0073b5",
+              "colorB": "#1f0761",
+              "contrast": 1.6,
+              "density": 3.3,
+              "intensity": 1.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmbhthud5inxgebqc",
+          "amplitude": 0.1,
+          "angle": 159,
+          "frequency": 0.7,
+          "position": {
+            "x": 0.3,
+            "y": 0.62
+          },
+          "softness": 1,
+          "thickness": 1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

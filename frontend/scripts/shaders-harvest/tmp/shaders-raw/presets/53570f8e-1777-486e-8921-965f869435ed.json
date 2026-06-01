@@ -1,0 +1,30 @@
+{
+  "id": "53570f8e-1777-486e-8921-965f869435ed",
+  "title": "Subtle Liquid 4",
+  "collection_id": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, flowing gradient shader with a luminous quality. The composition features a primary linear gradient transitioning from deep magenta (#ff1493) in the lower left corner through orange and yellow tones in the center, to bright spring green (#00ff7f) in the upper right corner. The gradient follows a 315-degree angle with mirror edge handling, creating a diagonal sweep across the canvas. Overlaid on this base is an animated blob element centered at coordinates (0.25, 0.25) with warm orange (#ff6b00) to gold (#ffd700) coloring, featuring significant deformation (0.82) and a cyan highlight (#00ffff) positioned at (0.4, 0.2) with 0.7 intensity, creating a glossy, three-dimensional appearance. The blob has soft edges (0.45 softness) and appears to glow with internal luminosity. A subtle white dot grid pattern (density 100, 0.12 dot size) overlays the entire composition with 0.3 opacity using linear dodge blending, adding fine texture and sparkle. The Liquify effect with 0.6 swirl and 1.8 radius creates organic wave distortions throughout, softening hard edges and creating fluid motion. Film grain with 0.21 strength adds subtle noise texture for depth. The overall mood is energetic, warm, and organic with a modern, digital aesthetic. The color space uses OKLCH for perceptually uniform transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7727da68-14e6-4acc-b16c-16d32cc0fcfe.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzc3MjdkYTY4LTE0ZTYtNGFjYy1iMTZjLTE2ZDMyY2MwZmNmZS5qcGciLCJpYXQiOjE3NjM1NTk0NjksImV4cCI6MTc5NTA5NTQ2OX0.5gbVRaWbKSipjnhmcL6P1Yg8XBnPiEuzG7BWbQaPk-o",
+  "import": "import {\n  Shader,\n  Blob,\n  DotGrid,\n  FilmGrain,\n  LinearGradient,\n  Liquify\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  DotGrid,\n  FilmGrain,\n  LinearGradient,\n  Liquify\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"315\"\n      color-a=\"#ff1493\"\n      color-b=\"#00ff7f\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.79,\n        y: 0.7\n      }\"\n      :start=\"{\n        x: 0.23,\n        y: 0.32\n      }\"\n      :visible=\"true\"/>\n    <Blob\n      blend-mode=\"normal-oklch\"\n      :center=\"{\n        x: 0.25,\n        y: 0.25\n      }\"\n      color-a=\"#ff6b00\"\n      color-b=\"#ffd700\"\n      color-space=\"oklch\"\n      :deformation=\"0.82\"\n      highlight-color=\"#00ffff\"\n      :highlight-intensity=\"0.7\"\n      :highlight-x=\"0.4\"\n      :highlight-y=\"0.2\"\n      :highlight-z=\"0.67\"\n      :size=\"0.325\"\n      :softness=\"0.45\"\n      :speed=\"1.2\"/>\n    <DotGrid\n      blend-mode=\"linearDodge\"\n      :density=\"100\"\n      :dot-size=\"0.12\"\n      :opacity=\"0.3\"/>\n    <Liquify\n      :decay=\"3.3\"\n      edges=\"mirror\"\n      :intensity=\"1.2\"\n      :radius=\"1.8\"\n      :swirl=\"0.6\"/>\n    <FilmGrain\n      :strength=\"0.21\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

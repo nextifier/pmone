@@ -1,0 +1,57 @@
+{
+  "id": "901ddf05-6e98-4b1f-9f2f-cd2e45aea555",
+  "title": "Dither Logo",
+  "collectionId": "099df352-41e8-4298-ad10-74f792b3f539",
+  "category": "logo",
+  "description": "A modern, geometric logo composed of four rounded rectangular shapes arranged in a 2x2 grid pattern, forming an abstract symbol. The logo features a striking blue gradient effect with dynamic plasma animation flowing across the letterforms. The background is a deep radial gradient transitioning from very dark navy (#060612) at the edges to a slightly lighter dark blue (#090942) toward the center, creating depth. The plasma effect uses bright cyan-blue (#3aa4f1) and darker blue (#052b9a) colors with high contrast (2.6), creating luminous, flowing patterns that appear to move and warp across the shapes. A subtle dithering effect with a bayer8 pattern and white color adds fine grain texture and visual noise, applied with linear dodge blending to enhance the glowing quality. The overall atmosphere is sleek, technological, and energetic, with the plasma animation giving the static logo a sense of motion and vitality. The shapes have clean, modern proportions with smooth curves, and the lighting creates a three-dimensional appearance despite the flat design. The effect suggests advanced technology, digital transformation, or modern software branding.",
+  "thumbnail": "/shaders/thumbnails/901ddf05-6e98-4b1f-9f2f-cd2e45aea555.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ImageTexture",
+        "props": {
+          "id": "idmmaykb1vflvohydj1",
+          "objectFit": "contain",
+          "transform": {
+            "scale": 0.6
+          },
+          "url": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg",
+          "visible": false
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "colorA": "#060612",
+          "colorB": "#090942",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 63,
+          "colorA": "#3aa4f1",
+          "colorB": "#052b9a",
+          "colorSpace": "oklch",
+          "contrast": 2.6,
+          "density": 1.7,
+          "intensity": 3,
+          "maskSource": "idmmaykb1vflvohydj1"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pattern": "bayer8",
+          "pixelSize": 3,
+          "threshold": 0.96
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

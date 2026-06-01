@@ -1,0 +1,47 @@
+{
+  "id": "1bdb943d-ea7b-4236-b5a3-63f8428841d9",
+  "title": "Metallic Rings 3",
+  "collectionId": "e7897b27-90b5-4af1-b68f-6a29bc3ade1d",
+  "category": "background",
+  "description": "A mesmerizing concentric circular pattern dominates the composition, featuring multiple nested rings that spiral inward toward a vanishing point. The effect creates a tunnel-like vortex with a strong sense of depth and motion. The primary color palette consists of deep navy and near-black tones (#06030a) forming the dominant background, contrasted with subtle cool blue accents (#8bbef0) that appear as faint luminescent highlights along the ring edges. The concentric rings exhibit a mirror-edge treatment that creates symmetrical wave-like distortions across the circular bands, giving them an organic, undulating quality. A slow rotational spin effect (0.1 speed) causes the rings to subtly rotate around a center point positioned slightly below the frame's vertical center (y: 1.0). The plasma layer underneath adds atmospheric turbulence with a warp value of 0.45, creating subtle color shifts and density variations (0.6) that make the dark background feel alive with barely-perceptible movement. The overall contrast is high (0.7), making the geometric rings pop against the nearly black background. A fine film grain texture (0.05 strength) overlays the entire composition, adding a subtle cinematic quality and preventing the image from appearing too smooth or artificial. The atmosphere is deeply mysterious and hypnotic, evoking a sense of infinite depth and cosmic motion. The lighting appears to come from within the rings themselves, creating a self-illuminated effect with no external light source.",
+  "thumbnail": "/shaders/thumbnails/1bdb943d-ea7b-4236-b5a3-63f8428841d9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 35,
+          "colorA": "#8bbef0",
+          "colorB": "#06030a",
+          "colorSpace": "oklab",
+          "contrast": 0.7,
+          "density": 0.6,
+          "intensity": 2,
+          "speed": 1.2,
+          "warp": 0.45
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "intensity": 60,
+          "rings": 5,
+          "smoothness": 0.06,
+          "speedRandomness": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

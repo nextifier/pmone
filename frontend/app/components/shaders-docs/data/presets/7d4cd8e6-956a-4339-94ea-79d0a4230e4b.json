@@ -1,0 +1,36 @@
+{
+  "id": "7d4cd8e6-956a-4339-94ea-79d0a4230e4b",
+  "title": "Concentric 4",
+  "collectionId": "e5eaeecb-ba63-4bd3-b177-6d80cf3c3f05",
+  "category": "background",
+  "description": "A sophisticated gradient shader effect featuring smooth, flowing organic shapes with a primary base of deep blue (#344fbc) that dominates the composition. Overlaid are curved, ribbon-like swirling patterns in warm peachy-orange and golden-yellow tones (#f3e491) that flow diagonally across the canvas with graceful, undulating curves. The swirls appear to have soft, feathered edges with a glowing quality, creating a luminous effect against the cool blue background. Concentric circular patterns emanate from the right side of the composition, creating subtle radial distortions that add depth and movement. The overall effect is smooth and dreamlike with no harsh edges, featuring soft transitions between colors. The lighting creates a sense of depth with the warm tones appearing to glow or emit light. The composition has a balanced, centered feel despite the off-center circular patterns, with the swirling elements creating a sense of fluid motion frozen in time. The atmosphere is serene and modern, with a polished, premium aesthetic suitable for contemporary digital design.",
+  "thumbnail": "/shaders/thumbnails/7d4cd8e6-956a-4339-94ea-79d0a4230e4b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 100,
+          "colorA": "#f3e491",
+          "colorB": "#344fbc",
+          "colorSpace": "oklch",
+          "detail": 1.2
+        }
+      },
+      {
+        "type": "ConcentricSpin",
+        "props": {
+          "center": {
+            "x": 1,
+            "y": 0
+          },
+          "intensity": 25,
+          "rings": 7,
+          "smoothness": 0.06
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

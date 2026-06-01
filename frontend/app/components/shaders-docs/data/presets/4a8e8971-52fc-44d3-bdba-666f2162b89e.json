@@ -1,0 +1,67 @@
+{
+  "id": "4a8e8971-52fc-44d3-bdba-666f2162b89e",
+  "title": "Synthesis 4",
+  "collectionId": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring a smooth, flowing blend of colors transitioning diagonally across the frame. The composition begins with deep dark-blue and black tones in the upper left corner, transitioning through rich purple hues in the upper portion. The center-right area features a prominent magenta-to-pink gradient that flows into warm orange tones in the middle-right section. The lower left maintains deep magenta and purple colors, while the lower right fades to dark tones. Two sine wave components create subtle undulating patterns - one magenta wave positioned in the upper-left quadrant with soft edges and moderate amplitude, and an orange wave in the center-right area with tighter frequency. A wave distortion effect with sine wave pattern at 0.4 frequency adds subtle fluid movement throughout. The overall effect is smooth and atmospheric with soft color transitions, enhanced by minimal film grain (0.07 strength) that adds subtle texture without disrupting the gradient flow. The blend mode uses OKLCH color space for the sine waves, creating more perceptually uniform color transitions. The effect conveys a modern, digital aesthetic with a warm-to-cool color journey.",
+  "thumbnail": "/shaders/thumbnails/4a8e8971-52fc-44d3-bdba-666f2162b89e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#08071a"
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.36,
+          "blendMode": "normal-oklch",
+          "color": "#e8059c",
+          "frequency": 0.2,
+          "position": {
+            "x": 0.22,
+            "y": 0.27
+          },
+          "softness": 0.55,
+          "speed": 0.3,
+          "thickness": 0.72
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.17,
+          "angle": 343,
+          "blendMode": "normal-oklch",
+          "color": "#d94704",
+          "frequency": 0.7,
+          "position": {
+            "x": 0.6,
+            "y": 0.51
+          },
+          "softness": 0.3,
+          "speed": 0.5,
+          "thickness": 0.41
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "frequency": 0.4,
+          "speed": 0.2,
+          "strength": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.07
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

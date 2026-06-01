@@ -1,0 +1,30 @@
+{
+  "id": "49227556-4172-43f7-b4d8-1455855e049f",
+  "title": "Flowing Ribbon 5",
+  "collection_id": "ff06c547-4c27-45b2-b509-816b68149be2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated 3D shader effect featuring a large curved ribbon form dominating the composition. The ribbon has a smooth, organic surface with subtle curvature, positioned in the lower-left to center area of the frame. The primary color palette transitions from deep blue (#0c26e3) on the left side to soft purple and magenta tones (#b17fc2) toward the right, creating a smooth gradient across the form's surface. The background is a soft, muted lavender-gray (#dad6ff) with gentle vignetting that creates depth. Fine white lines with a linear-dodge blend mode streak across the ribbon's surface at diagonal angles, creating a sense of motion and energy. These lines have a trail effect with approximately 72% length, appearing to flow downward and leftward. The overall lighting is soft and diffused with high ambient intensity (78%), creating a studio-like environment with subtle shadows that enhance the 3D form's dimensionality. A fine film grain texture overlays the entire composition at 30% strength, adding subtle texture and photographic quality. The ribbon's glossiness is high (200), giving it a polished, reflective appearance. The composition has a modern, minimalist aesthetic with a cool color temperature and a sense of calm, sophisticated motion.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/49227556-4172-43f7-b4d8-1455855e049f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ5MjI3NTU2LTQxNzItNDNmNy1iNGQ4LTE0NTU4NTVlMDQ5Zi5qcGciLCJpYXQiOjE3NzM1NDkyMzAsImV4cCI6MTgwNTA4NTIzMH0.Bs9YY6kdfrjBfyYYa1toWQueKhVFaajUhmORYifAOGo",
+  "import": "import {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Form3D,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Form3D,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"78\"\n      :brightness=\"100\"\n      :center=\"{\n        x: 0.75,\n        y: 1\n      }\"\n      color=\"#dad6ff\"\n      :fill-intensity=\"0\"\n      :key-intensity=\"0\"\n      :light-target=\"0\"\n      :wall-curvature=\"57\"/>\n    <Form3D\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :glossiness=\"200\"\n      :lighting=\"197\"\n      :shape3d=\"{\n        type: 'ribbon',\n        angle: 0,\n        twist: 24,\n        width: 100,\n        thickness: 500,\n        seed: 0\n      }\"\n      :speed=\"2\"\n      :zoom=\"78\">\n      <Swirl\n        color-a=\"#b17fc2\"\n        color-b=\"#0c26e3\"\n        color-space=\"oklab\"\n        :detail=\"1.9\"/>\n      <FallingLines\n        :angle=\"0\"\n        blend-mode=\"linearDodge\"\n        color-b=\"#000000\"\n        :density=\"12\"\n        :stroke-width=\"0.1\"\n        :trail-length=\"0.72\"/>\n    </Form3D>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

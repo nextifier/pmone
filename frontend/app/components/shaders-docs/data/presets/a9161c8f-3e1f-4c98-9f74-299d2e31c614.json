@@ -1,0 +1,65 @@
+{
+  "id": "a9161c8f-3e1f-4c98-9f74-299d2e31c614",
+  "title": "Studio Glass",
+  "collectionId": "fcb780f9-158b-46fc-86a3-c8c9da14551b",
+  "category": "logo",
+  "description": "A retro pixel-art style alien invader character rendered with modern glass shader effects. The character features a symmetrical, blocky silhouette with two large rectangular eye cutouts and protruding limbs. The shape is filled with a vibrant gradient that transitions from bright yellow-green (#ebf267) on the left side to magenta-pink (#d817f1) on the right side, creating a smooth color blend through the center. The glass material has a glossy, translucent quality with subtle refraction and chromatic aberration effects visible at the edges, giving it depth and dimensionality. A soft fresnel highlight creates a luminous rim around the character's perimeter. The background is a soft, diffused lavender-gray (#e6e6ff) with subtle lighting and vignetting that creates a studio-like environment. The overall atmosphere is clean, modern, and slightly ethereal, with the character appearing to glow softly against the neutral backdrop. A fine film grain texture is applied across the entire composition, adding subtle texture and visual interest. The lighting suggests a three-point studio setup with soft key and fill lights creating a polished, professional appearance.",
+  "thumbnail": "/shaders/thumbnails/a9161c8f-3e1f-4c98-9f74-299d2e31c614.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 65,
+          "backIntensity": 25,
+          "brightness": 100,
+          "center": {
+            "x": 0.5,
+            "y": 0.88
+          },
+          "color": "#e6e6ff",
+          "fillAngle": 53,
+          "fillIntensity": 9,
+          "fillSoftness": 94,
+          "keyIntensity": 11,
+          "keySoftness": 100,
+          "lightTarget": 42
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.45,
+          "cutout": true,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.2,
+          "fresnelSoftness": 0.31,
+          "highlight": 0.3,
+          "innerZoom": 1.15,
+          "refraction": 0.35,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/OcAv2bFTPVug_sdf.bin",
+          "thickness": 1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#d817f1",
+              "colorB": "#ebf267",
+              "colorSpace": "oklab",
+              "speed": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

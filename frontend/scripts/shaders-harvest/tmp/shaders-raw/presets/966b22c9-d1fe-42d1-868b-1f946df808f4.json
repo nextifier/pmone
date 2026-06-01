@@ -1,0 +1,30 @@
+{
+  "id": "966b22c9-d1fe-42d1-868b-1f946df808f4",
+  "title": "Ice Spheres 6",
+  "collection_id": "c76dd378-6b7c-4501-9373-35d78062bef3",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring a radial gradient of circular perforations or dots arranged in a honeycomb-like pattern that emanates from the center-right area of the composition. The dots transition from small and dark on the left side to larger and more luminous on the right side, creating a strong sense of depth and perspective. The dominant color palette consists of deep purples and magentas with underlying dark navy and black tones. The circular elements have a semi-transparent, glowing quality with soft edges that create a bokeh-like effect. The overall atmosphere is dark and moody with a neon-like glow concentrated in the center-right quadrant. The effect appears to be created by layering a swirl pattern with glass tile distortion, resulting in a three-dimensional appearance where the dots seem to curve away from the viewer. The lighting creates highlights on the upper portions of each circular element, suggesting a light source from above-right. The background gradually fades from dark purple in the illuminated areas to nearly black in the upper-left corner, creating strong contrast and visual hierarchy.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/966b22c9-d1fe-42d1-868b-1f946df808f4.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzk2NmIyMmM5LWQxZmUtNDJkMS04NjhiLTFmOTQ2ZGY4MDhmNC5qcGciLCJpYXQiOjE3NzMxMTA0MjQsImV4cCI6MTgwNDY0NjQyNH0.lfLo9Irw-yfM1FqI0qkNLtPgRmxkvpTCEcguFcrOMow",
+  "import": "import {\n  Shader,\n  Blob,\n  GlassTiles,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  GlassTiles,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"10\"\n      color-a=\"#0c0c1c\"\n      color-b=\"#12081f\"\n      :detail=\"2.8\"\n      :speed=\"0.8\"/>\n    <GlassTiles\n      :intensity=\"40\"\n      mask-source=\"idmjrma2hqerhhnv380\"\n      :rotation=\"22\"\n      :roundness=\"1\"\n      :tile-count=\"25\">\n      <Swirl\n        :blend=\"8\"\n        color-a=\"#0c0c1c\"\n        color-b=\"#7b3bcc\"\n        :detail=\"2.8\"\n        :speed=\"0.8\"/>\n    </GlassTiles>\n    <Blob\n      id=\"idmjrma2hqerhhnv380\"\n      :center=\"{\n        x: 0.55,\n        y: 0.62\n      }\"\n      :deformation=\"1.5\"\n      :highlight-intensity=\"0\"\n      :highlight-x=\"-1\"\n      :highlight-y=\"-1\"\n      :highlight-z=\"-1\"\n      :size=\"0.72\"\n      :softness=\"1.2\"\n      :speed=\"0.6\"\n      :visible=\"false\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

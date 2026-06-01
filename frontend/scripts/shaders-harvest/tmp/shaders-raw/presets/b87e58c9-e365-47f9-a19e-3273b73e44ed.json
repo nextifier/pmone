@@ -1,0 +1,42 @@
+{
+  "id": "b87e58c9-e365-47f9-a19e-3273b73e44ed",
+  "title": "Liquid Stripes 3",
+  "collection_id": "1b1c9029-4fe7-48f3-83ad-eff1105b51e2",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A vibrant shader effect featuring a bright lime-green background (#b6f10c) with evenly-spaced diagonal stripes running at 45 degrees in a teal-cyan color (#0ac193). The stripes create a consistent linear pattern across the entire canvas with a density of 9 lines. Overlaid on this striped foundation is a central glass morphism effect featuring a star or burst-like SVG shape with multiple pointed rays emanating from the center. This glass element exhibits significant chromatic aberration and refraction properties, creating a prismatic, translucent appearance with subtle rainbow-like color separation along the edges. The glass shape has a frosted, diffused quality with a blur radius of 11.3 pixels, giving it a soft, glowing appearance while maintaining visibility of the underlying stripe pattern through its semi-transparent surface. The shape is centered in the composition and features fresnel reflections and highlights that enhance its three-dimensional glass-like quality. A subtle film grain texture is applied across the entire image with 0.3 strength, adding a slight noise pattern for texture. Interactive cursor ripples with chromatic split effects are present, creating concentric wave distortions that respond to mouse movement. The overall mood is energetic and modern, with a strong sense of depth created by the layered glass effect against the dynamic striped background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/b87e58c9-e365-47f9-a19e-3273b73e44ed.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2I4N2U1OGM5LWUzNjUtNDdmOS1hMTllLTMyNzNiNzNlNDRlZC5qcGciLCJpYXQiOjE3NzI5MzY4MTQsImV4cCI6MTgwNDQ3MjgxNH0.qfoBnnXGRBuYcee0UeGMXam86zoZ3SJVJG1CrBRhYm4",
+  "import": "import {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Stripes\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Stripes\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      :balance=\"0.1\"\n      color-a=\"#0ac193\"\n      color-b=\"#b6f10c\"\n      :density=\"9\"/>\n    <CursorRipples/>\n    <Glass\n      :blur=\"11.3\"\n      :fresnel=\"0.11\"\n      :fresnel-softness=\"0.38\"\n      :refraction=\"0.51\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/DODKZwnr2rPw_sdf.bin\"\n      :thickness=\"0.13\"/>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

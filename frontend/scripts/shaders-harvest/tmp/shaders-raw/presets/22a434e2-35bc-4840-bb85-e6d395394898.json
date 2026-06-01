@@ -1,0 +1,42 @@
+{
+  "id": "22a434e2-35bc-4840-bb85-e6d395394898",
+  "title": "Cracked Crystal 2",
+  "collection_id": "c5ceb62c-094d-4b4f-b1ce-4aac2500d934",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A glowing neon-style abstract shape composed of nested, rounded rectangular loops arranged horizontally against a pure black background. The primary shape features three concentric curved bands that create an organic, flowing form reminiscent of a stylized infinity symbol or interconnected loops. The outermost band glows with a vibrant magenta-purple luminescence (#d321ff, #9c11d6) with crystalline faceted surfaces that refract light, creating bright highlights along the upper left edge. The middle and inner bands follow the same curved path, creating visual depth through layered transparency. The entire structure exhibits a faceted crystal-like texture with geometric patterns across its surface, suggesting a 3D crystalline material. A soft purple glow radiates outward from the shape, blending into the black background with a halo effect. The lighting appears to come from the upper left, creating bright specular highlights on the faceted surfaces while maintaining darker shadow areas on the right side. The overall atmosphere is futuristic and ethereal, with the purple luminescence creating a sense of energy and motion despite the static composition. Subtle godrays with a dark purple tint (#37004a) emanate from within the structure, adding atmospheric depth. The color space is linear P3, enhancing the vibrancy and saturation of the purple tones.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/22a434e2-35bc-4840-bb85-e6d395394898.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzIyYTQzNGUyLTM1YmMtNDg0MC1iYjg1LWU2ZDM5NTM5NDg5OC5qcGciLCJpYXQiOjE3NzgwMzMwODksImV4cCI6MTgwOTU2OTA4OX0.6SyUeKBGPPfSAAOiLbXqkVZFCvG1P82O2n0SdHXUNdc",
+  "import": "import {\n  Shader,\n  Blob,\n  Crystal,\n  Glow,\n  Godrays,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  Crystal,\n  Glow,\n  Godrays,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <Blob\n      :center=\"{\n        x: 0.49,\n        y: 0.56\n      }\"\n      color-a=\"#0d0714\"\n      color-b=\"#170b1c\"\n      :deformation=\"0.6\"\n      highlight-color=\"#d321ff\"\n      :highlight-x=\"-0.4\"\n      :seed=\"36\"\n      :size=\"0.6\"\n      :softness=\"1\"/>\n    <Crystal\n      :cutout=\"true\"\n      :dispersion=\"0.54\"\n      :edge-softness=\"0.05\"\n      :facets=\"3\"\n      :fresnel=\"0.28\"\n      fresnel-color=\"#c8dbfa\"\n      :fresnel-softness=\"0.52\"\n      :highlights=\"0.4\"\n      :light-angle=\"172\"\n      :shadows=\"0.5\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/isQWoyQoe0qA_sdf.bin\"\n      tint-color=\"#9c11d6\"\n      :tint-intensity=\"0.4\">\n      <Godrays\n        background-color=\"#d47dff\"\n        :center=\"{\n          type: 'mouse-position',\n          reach: 0.05,\n          originX: 1,\n          originY: 0,\n          momentum: 0.15,\n          smoothing: 0.25\n        }\"\n        :density=\"0.5\"\n        :intensity=\"1\"\n        ray-color=\"#37004a\"\n        :speed=\"2\"\n        :spotty=\"0.7\"/>\n    </Crystal>\n    <Glow\n      :intensity=\"0.5\"\n      :size=\"33\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

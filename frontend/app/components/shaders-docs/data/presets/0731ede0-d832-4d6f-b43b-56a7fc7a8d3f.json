@@ -1,0 +1,61 @@
+{
+  "id": "0731ede0-d832-4d6f-b43b-56a7fc7a8d3f",
+  "title": "Redacted Bars 3",
+  "collectionId": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "category": "background",
+  "description": "A dynamic gradient shader effect displaying diagonal parallel lines that transition smoothly across a color spectrum. The composition features a dark navy/black background (#0a0b14) with approximately 13 evenly-spaced diagonal lines angled at 345 degrees, creating a sense of forward motion. The lines exhibit a smooth color gradient progression from warm yellow-green tones in the upper left (#cce8a5) through orange, coral, pink, and magenta hues in the center, transitioning to deep blue and purple tones (#090e82) in the lower right. Each line has soft, rounded edges with a glowing quality and appears to have a trailing effect that creates depth. The lines maintain consistent spacing and thickness (approximately 0.34 stroke width) while the gradient mask creates a luminous quality where colors blend seamlessly. A tilt-shift blur effect with 90% falloff is applied, keeping the center sharp while edges remain slightly softened. The overall mood is modern, energetic, and tech-forward with a sense of movement and dimensionality. The color transitions follow an oklch color space for smooth perceptual gradients.",
+  "thumbnail": "/shaders/thumbnails/0731ede0-d832-4d6f-b43b-56a7fc7a8d3f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0b14"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmijuosi5e6y2didn",
+          "angle": 345,
+          "colorB": "#cccccc00",
+          "colorSpace": "oklab",
+          "density": 13,
+          "speed": 0.1,
+          "speedVariance": 0.15,
+          "strokeWidth": 0.34,
+          "trailLength": 0.95,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#cce8a5",
+          "colorB": "#090e82",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 1,
+            "y": 1
+          },
+          "maskSource": "idmmijuosi5e6y2didn",
+          "start": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "falloff": 0.9,
+          "intensity": 100,
+          "width": 0
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

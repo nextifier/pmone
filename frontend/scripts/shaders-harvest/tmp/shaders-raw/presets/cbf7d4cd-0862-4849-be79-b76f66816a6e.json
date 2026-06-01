@@ -1,0 +1,38 @@
+{
+  "id": "cbf7d4cd-0862-4849-be79-b76f66816a6e",
+  "title": "Broken Track",
+  "collection_id": "a4f9eee7-985a-4c56-9838-b96eb1614445",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "A high-contrast black and white photograph of classic automobiles displayed in a showroom or garage setting, viewed from a low angle perspective. The image features three vintage cars with prominent white-wall tires and detailed wheel designs. The composition uses dramatic diagonal lines created by the car bodies and floor markings that lead the viewer's eye through the frame. The grayscale treatment eliminates all color information, creating a stark, film noir aesthetic. A wave distortion effect with a sawtooth pattern at 60-degree angle creates subtle horizontal rippling across the entire image, giving it a slightly unstable, dreamlike quality. The shatter effect with high intensity (6) and significant crack width (2.3) introduces fragmented glass-like breaks throughout the composition, particularly visible as dark linear cracks overlaying the vehicles and background. A dither pattern using 8x8 Bayer matrix with white pixels on transparent background creates a grainy, halftone texture that adds noise and reduces smooth tonal transitions, enhancing the vintage or degraded photographic quality. The combination produces a moody, atmospheric effect reminiscent of damaged archival photography or a corrupted digital image. Lighting is dramatic with strong highlights on the wheel details and car surfaces contrasting against deep black shadows in the background and recessed areas.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e09e95fe-54d2-4cc8-bc58-be4ed5dcac3c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2UwOWU5NWZlLTU0ZDItNGNjOC1iYzU4LWJlNGVkNWRjYWMzYy5qcGciLCJpYXQiOjE3NzA1Mjc4NDksImV4cCI6MTgwMjA2Mzg0OX0.OTMECKD9WrQKGHCrTHKqIRdPNUDNdQi1sTHZjO8rw8M",
+  "import": "import {\n  Shader,\n  Dither,\n  Grayscale,\n  ImageTexture,\n  Shatter,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  Grayscale,\n  ImageTexture,\n  Shatter,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      :transform=\"{ scale: 0.87 }\"\n      url=\"https://rgqpsgmnzmniyzelfbfx.supabase.co/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/VndlthoLOyC_.jpeg\"/>\n    <Grayscale/>\n    <WaveDistortion\n      :angle=\"60\"\n      edges=\"mirror\"\n      :frequency=\"2.3\"\n      :speed=\"1.1\"\n      :strength=\"0.1\"\n      wave-type=\"sawtooth\"/>\n    <Shatter\n      :chromatic-split=\"0\"\n      :crack-width=\"2.3\"\n      :decay=\"0.5\"\n      :intensity=\"6\"\n      :radius=\"1\"\n      :refraction-strength=\"2.3\"\n      :shard-lighting=\"0.3\"/>\n    <Dither\n      color-mode=\"source\"\n      pattern=\"bayer8\"\n      :threshold=\"0.68\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

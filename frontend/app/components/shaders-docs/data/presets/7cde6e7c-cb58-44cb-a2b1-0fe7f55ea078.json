@@ -1,0 +1,72 @@
+{
+  "id": "7cde6e7c-cb58-44cb-a2b1-0fe7f55ea078",
+  "title": "Cascading Lines 2",
+  "collectionId": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "category": "background",
+  "description": "A dynamic shader effect featuring vertical falling lines with varying heights creating a waveform or audio visualization aesthetic. The composition uses a dark charcoal background (#1c1b21) as the base layer. Vertical strokes in light blue (#8a9fb9) and white dominate the center and right portions, while magenta and pink (#a5006d) tones concentrate on the left and right edges, creating a color gradient transition. The lines appear to cascade downward with staggered heights, suggesting motion and rhythm. A subtle swirl effect blends the color palette, creating smooth transitions between the cool blue tones and warm magenta accents. The overall effect has a glitchy, digital quality enhanced by dithering that adds texture and grain throughout. The lines maintain consistent vertical alignment with slight variations in opacity and length, creating depth and visual interest. The mood is modern, energetic, and atmospheric with a cyberpunk or synthwave aesthetic.",
+  "thumbnail": "/shaders/thumbnails/7cde6e7c-cb58-44cb-a2b1-0fe7f55ea078.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#1c1b21"
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#8a9fb9",
+          "colorB": "#a5006d",
+          "detail": 2,
+          "maskSource": "idmmzanabwzt8f61fke"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmzanabwzt8f61fke",
+          "density": 60,
+          "speed": 0.1,
+          "speedVariance": 0.7,
+          "strokeWidth": 0.66,
+          "trailLength": {
+            "type": "map",
+            "curve": -0.15,
+            "source": "idmmzaokw5nk6ntmihd",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmzaokw5nk6ntmihd",
+          "amplitude": 0.4,
+          "angle": 26,
+          "frequency": 0.5,
+          "softness": 1,
+          "speed": 0.4,
+          "thickness": 1,
+          "visible": false
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pixelSize": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

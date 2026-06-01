@@ -1,0 +1,30 @@
+{
+  "id": "e213f636-6696-4a80-98b2-d8b65fc52962",
+  "title": "Vibrant Waves 8",
+  "collection_id": "489c993a-b238-4d9d-a155-69c82d555b95",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant gradient shader effect featuring smooth, flowing wave-like distortions that sweep diagonally across the composition from upper left to lower right. The primary color palette transitions from warm yellow-orange tones in the upper left corner, through lime green in the lower left, to cool blue and purple hues dominating the right side and upper right. The waves create a sense of fluid motion with soft, blurred edges that blend seamlessly between color zones. Multiple layered wave distortions create depth and complexity, with the sawtooth wave distortion adding subtle linear striations perpendicular to the main flow. A blob element with green-to-blue gradient is positioned in the lower left area, contributing to the organic, flowing aesthetic. The overall effect has a soft, ethereal quality enhanced by the tilt-shift blur that creates a focal plane effect across the middle of the composition. Fine film grain texture is subtly applied throughout, adding a cinematic quality. The hue shift transformation shifts the color palette, creating the distinctive purple-blue dominance on the right side. The composition suggests flowing energy or liquid motion with a modern, digital aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e213f636-6696-4a80-98b2-d8b65fc52962.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2UyMTNmNjM2LTY2OTYtNGE4MC05OGIyLWQ4YjY1ZmM1Mjk2Mi5qcGciLCJpYXQiOjE3NzMxMTExNTYsImV4cCI6MTgwNDY0NzE1Nn0.xXYblFm2C3tf9694gbl8HqAVga1vrEyvVDPbOfp20j4",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  HueShift,\n  Swirl,\n  TiltShift,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  HueShift,\n  Swirl,\n  TiltShift,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"52\"\n      color-a=\"#d4880a\"\n      color-b=\"#c41a1a\"\n      color-space=\"oklch\"/>\n    <WaveDistortion\n      :angle=\"58\"\n      edges=\"wrap\"\n      :frequency=\"1.7\"\n      :strength=\"0.18\"\n      :transform=\"{ scale: 1.3 }\">\n      <WaveDistortion\n        :angle=\"142\"\n        edges=\"mirror\"\n        :frequency=\"14\"\n        :speed=\"0.3\"\n        wave-type=\"sawtooth\">\n        <Blob\n          :center=\"{\n            x: 0.15,\n            y: 0.92\n          }\"\n          color-a=\"#2ee8a5\"\n          color-b=\"#3a1bb8\"\n          :deformation=\"0.7\"\n          highlight-color=\"#ffc61a\"\n          :highlight-x=\"0.5\"\n          :size=\"0.8\"\n          :softness=\"1\"/>\n      </WaveDistortion>\n    </WaveDistortion>\n    <HueShift\n      :shift=\"-128\"/>\n    <TiltShift\n      :angle=\"185\"\n      :center=\"{\n        x: 0.38,\n        y: 0.62\n      }\"\n      :intensity=\"100\"\n      :width=\"0.5\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

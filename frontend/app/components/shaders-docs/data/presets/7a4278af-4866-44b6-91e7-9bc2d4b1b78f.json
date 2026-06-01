@@ -1,0 +1,39 @@
+{
+  "id": "7a4278af-4866-44b6-91e7-9bc2d4b1b78f",
+  "title": "Swirled Lenses 3",
+  "collectionId": "9b4c6e1e-df9a-4b5f-a2b9-227f96acac3a",
+  "category": "background",
+  "description": "A fluid, organic shader effect featuring smooth, undulating wave patterns that flow diagonally across the composition from upper-left to lower-right. The primary visual element is a series of parallel, curved ridges that create a three-dimensional appearance through subtle shadow and highlight variations. The effect combines two shader layers: a swirl component that provides the base magenta-to-purple color gradient, and a fluted glass component that adds fine linear striations and reflective highlights. The waves have a glossy, liquid-like quality with soft, diffused edges that fade to transparency at the boundaries. The lighting creates subtle specular highlights along the ridge peaks, particularly visible as white and light-pink reflections that enhance the dimensional quality. The overall mood is smooth, modern, and ethereal, with a sense of flowing motion despite the static nature of the image. The color transitions smoothly from bright magenta in the lower-left to deeper purple-magenta in the upper-right, creating depth and visual interest. The wave frequency is moderate, creating approximately 8-10 visible wave cycles across the composition.",
+  "thumbnail": "/shaders/thumbnails/7a4278af-4866-44b6-91e7-9bc2d4b1b78f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#ff61ff",
+          "colorB": "#ca10a3",
+          "colorSpace": "oklab",
+          "detail": 1.8
+        }
+      },
+      {
+        "type": "FlutedGlass",
+        "props": {
+          "aberration": 0.3,
+          "angle": 94,
+          "frequency": 11,
+          "highlight": 0.97,
+          "highlightSoftness": 0.11,
+          "lightAngle": -90,
+          "refraction": 4,
+          "shape": "waves",
+          "softness": 1,
+          "waveAmplitude": 0.1,
+          "waveFrequency": 0.5
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

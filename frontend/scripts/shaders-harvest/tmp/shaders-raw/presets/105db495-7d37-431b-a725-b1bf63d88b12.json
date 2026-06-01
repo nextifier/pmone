@@ -1,0 +1,30 @@
+{
+  "id": "105db495-7d37-431b-a725-b1bf63d88b12",
+  "title": "Synthesis 2",
+  "collection_id": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect featuring a dark navy base (#08071a) with two prominent sine wave components creating flowing, organic shapes. The primary visual elements include a deep blue sine wave (#1733a3) positioned in the upper-left quadrant at 144-degree angle with moderate softness (0.55), creating a smooth, undulating form. A bright cyan wave (#00ffea) emanates from the right-center area at 0 degrees, producing a luminous, glowing effect that contrasts sharply against the dark background. Both waves utilize normal-oklch blend mode for smooth color transitions. A wave distortion effect at 114 degrees with 0.61 strength adds subtle rippling and warping to the overall composition, creating depth and movement. The distortion uses mirror-edge behavior for seamless tiling. A light film grain overlay (0.07 strength) adds subtle texture and visual noise, preventing the gradient from appearing too smooth and artificial. The overall atmosphere is cool and ethereal, with the cyan glow suggesting luminescence or energy, while the dark blue provides depth and mystery. The composition has a soft, blurred quality with smooth transitions between color zones, creating a dreamy, atmospheric effect reminiscent of underwater lighting or cosmic phenomena.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7ff80162-0906-40fa-9c5c-099cdbb1d246.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzdmZjgwMTYyLTA5MDYtNDBmYS05YzVjLTA5OWNkYmIxZDI0Ni5qcGciLCJpYXQiOjE3NjM0NDA4NDAsImV4cCI6MTc5NDk3Njg0MH0.Sw4cmOPbhbdJWN8TDb9rIA2ETonW8KS08S4tDfXvjdk",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#08071a\"/>\n    <SineWave\n      :amplitude=\"0.5\"\n      :angle=\"144\"\n      blend-mode=\"normal-oklch\"\n      color=\"#1733a3\"\n      :frequency=\"0.2\"\n      :position=\"{\n        x: 0.22,\n        y: 0.27\n      }\"\n      :softness=\"0.55\"\n      :speed=\"0.3\"\n      :thickness=\"0.72\"/>\n    <SineWave\n      :amplitude=\"0.58\"\n      blend-mode=\"normal-oklch\"\n      color=\"#00ffea\"\n      :frequency=\"0.2\"\n      :position=\"{\n        x: 0.6,\n        y: 0.51\n      }\"\n      :softness=\"0.57\"\n      :speed=\"0.5\"\n      :thickness=\"0.58\"/>\n    <WaveDistortion\n      :angle=\"114\"\n      edges=\"mirror\"\n      :speed=\"0.3\"\n      :strength=\"0.61\"/>\n    <FilmGrain\n      :strength=\"0.07\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

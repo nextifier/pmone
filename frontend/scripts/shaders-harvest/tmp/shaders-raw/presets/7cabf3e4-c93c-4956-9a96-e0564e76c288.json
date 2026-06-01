@@ -1,0 +1,26 @@
+{
+  "id": "7cabf3e4-c93c-4956-9a96-e0564e76c288",
+  "title": "Binary Rays",
+  "collection_id": "c7e0998c-0ba4-497b-b915-a05ce3b90e27",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A digital matrix-style effect displaying cascading binary code (1s and 0s) on a dark background. The composition features a CRT screen aesthetic with visible scanlines running horizontally across the entire image, creating a retro computer monitor appearance. The binary characters are rendered in varying shades of blue and cyan, with some characters appearing brighter and more saturated while others fade into the darker background. The text appears to flow and swirl with a subtle motion effect, creating depth through the Swirl component. Blue god rays emanate from the right side of the image, creating volumetric light streaks that add atmospheric depth. A subtle sine wave distortion runs horizontally across the middle section, creating a gentle undulating effect. The overall color palette is dominated by deep navy and dark blue tones with bright cyan and light blue accents for the text and light effects. The pixelated quality and scanline intensity give it an authentic CRT monitor feel with slight color shifting at the edges. The atmosphere is cyberpunk and technological, evoking themes of digital data, hacking, and digital surveillance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9ea6edf1-0511-4217-b104-854fb29c59d3.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzllYTZlZGYxLTA1MTEtNDIxNy1iMTA0LTg1NGZiMjljNTlkMy5qcGciLCJpYXQiOjE3NjM0NDExNjAsImV4cCI6MTc5NDk3NzE2MH0.Ke_JGRO2QpzExtvgKr01ziRTuWLC85gOq3_Afxpoh4Y",
+  "import": "import {\n  Shader,\n  Ascii,\n  CRTScreen,\n  Godrays,\n  SineWave,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  CRTScreen,\n  Godrays,\n  SineWave,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <CRTScreen\n      :brightness=\"2.5\"\n      :color-shift=\"10\"\n      :curvature=\"0\"\n      :pixel-size=\"108\"\n      :scale-to-fill=\"0\"\n      :scanline-frequency=\"150\"\n      :scanline-intensity=\"0.56\">\n      <Swirl\n        :blend=\"88\"\n        :coarse-x=\"50\"\n        :coarse-y=\"50\"\n        color-a=\"#010b17\"\n        color-b=\"#040617\"\n        :detail=\"1.8\"\n        :fine-x=\"50\"\n        :fine-y=\"50\"\n        :medium-x=\"50\"\n        :medium-y=\"50\"/>\n      <Ascii\n        characters=\"01010101010101010101010101 \"\n        font-family=\"Space Mono\">\n        <Godrays\n          :center=\"{\n            x: 1,\n            y: 0.5\n          }\"\n          :density=\"0.08\"\n          ray-color=\"#78a7ff\"\n          :speed=\"1.02\"/>\n        <SineWave\n          :amplitude=\"0.06\"\n          color=\"#3c4f8f\"\n          :frequency=\"0.6\"\n          :position=\"{\n            x: 0.5,\n            y: 0\n          }\"\n          :softness=\"0.83\"\n          :thickness=\"0.09\"/>\n      </Ascii>\n    </CRTScreen>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    }
+  ]
+}

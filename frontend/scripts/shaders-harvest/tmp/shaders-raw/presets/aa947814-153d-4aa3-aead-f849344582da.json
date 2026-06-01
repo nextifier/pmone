@@ -1,0 +1,30 @@
+{
+  "id": "aa947814-153d-4aa3-aead-f849344582da",
+  "title": "Chevron Nodes 4",
+  "collection_id": "ac1fd59b-3dba-41ba-90b1-41306a344d80",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A digital circuit board or technical schematic visualization with a dark, deep navy background (#050c17). The composition features a layered grid system with multiple scales: a fine micro-grid in dark blue (#011c3b) at 91% opacity creating subtle texture, overlaid with a coarser macro-grid in bright blue (#485ed4) forming larger rectangular sections. The grids are distorted by a wave effect at 326 degrees with square waveform characteristics, creating organic undulation and ripple patterns across the geometric structure. A grid distortion effect with radius 2.8 and decay of 3 adds localized warping and bulging to the grid intersections. White dithering with bayer2 pattern (9px pixel size, 69% threshold) applied via screen blend mode creates a grainy, scanline-like texture throughout, simulating digital noise and CRT monitor artifacts. A strong glow effect (intensity 4.8, size 20) illuminates the bright blue grid lines and dithered white elements, creating a luminous halo and bloom effect. The overall aesthetic is cyberpunk/tech-noir with a sense of depth, movement, and digital energy. Vertical and horizontal lines show varying intensity with some appearing as dashed segments, suggesting circuit traces or data flow paths.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/aa947814-153d-4aa3-aead-f849344582da.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2FhOTQ3ODE0LTE1M2QtNGFhMy1hZWFkLWY4NDkzNDQ1ODJkYS5qcGciLCJpYXQiOjE3NzIzMjg1NjUsImV4cCI6MTgwMzg2NDU2NX0.giZvC-xJzJ7PX3-lEiSpQ_GGKvc1r4UTgbuht4cOmzs",
+  "import": "import {\n  Shader,\n  Dither,\n  Glow,\n  Grid,\n  GridDistortion,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  Glow,\n  Grid,\n  GridDistortion,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#050c17\"/>\n    <Grid\n      :cells=\"20\"\n      color=\"#011c3b\"\n      :opacity=\"0.91\"\n      :thickness=\"0.25\"\n      :visible=\"true\"/>\n    <Grid\n      :cells=\"4\"\n      color=\"#485ed4\"\n      :thickness=\"0.2\"\n      :visible=\"true\"/>\n    <GridDistortion\n      edges=\"mirror\"\n      :grid-size=\"77\"\n      :radius=\"2.8\"/>\n    <WaveDistortion\n      :angle=\"326\"\n      edges=\"mirror\"\n      :frequency=\"4.1\"\n      :speed=\"0.6\"\n      :strength=\"0.55\"\n      wave-type=\"square\"/>\n    <Dither\n      blend-mode=\"screen\"\n      color-mode=\"source\"\n      pattern=\"bayer2\"\n      :pixel-size=\"9\"\n      :spread=\"0.96\"\n      :threshold=\"0.69\"/>\n    <Glow\n      :intensity=\"4.8\"\n      :size=\"20\"\n      :threshold=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

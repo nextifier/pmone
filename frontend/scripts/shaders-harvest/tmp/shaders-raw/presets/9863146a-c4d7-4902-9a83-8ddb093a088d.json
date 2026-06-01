@@ -1,0 +1,30 @@
+{
+  "id": "9863146a-c4d7-4902-9a83-8ddb093a088d",
+  "title": "Stars and Stripes",
+  "collection_id": "b0060308-172e-45be-a7e1-0421205392ed",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic digital display featuring a pixelated ASCII art pattern rendered in perspective view. The composition shows a grid of characters (stars ★ and bars ▬▤) arranged in horizontal rows that recede into depth, creating a 3D tunnel effect. The left portion displays blue stars on a dark navy background, transitioning to red horizontal bars on the right side. A subtle striped pattern with black and white diagonal lines at 159 degrees overlays the ASCII characters, adding texture and movement. The tritone color mapping creates a gradient transition from deep blue (#1100ff) through white to bright red (#ff0000), with the white serving as the midpoint. A perspective transformation with 86-degree field of view tilts the plane at approximately 29.5 degrees, making the top-right area appear closer and more prominent. A tilt-shift depth-of-field effect is applied at a 115-degree angle, creating selective focus that keeps the center-right area sharp while gradually blurring the edges and corners. The overall atmosphere is futuristic and technological, with a sense of data visualization or digital matrix. The dark navy background (#00052e) provides strong contrast, making the colored elements pop. The effect suggests motion and dimensionality, as if viewing a digital landscape receding into space.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/c0e701cb-881e-4e30-93a0-9e435cecf86f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2MwZTcwMWNiLTg4MWUtNGUzMC05M2EwLTllNDM1Y2VjZjg2Zi5qcGciLCJpYXQiOjE3Njg1MzExMjIsImV4cCI6MTgwMDA2NzEyMn0.1bXf5QE9fdpIwu6ZWIFKL-2k3K0WIEQCsd_OUYmQAHU",
+  "import": "import {\n  Shader,\n  Ascii,\n  Perspective,\n  SolidColor,\n  Stripes,\n  TiltShift,\n  Tritone\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Perspective,\n  SolidColor,\n  Stripes,\n  TiltShift,\n  Tritone\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#00052e\"/>\n    <Ascii\n      :cell-size=\"32\"\n      characters=\"★▬★▤\"\n      :opacity=\"0.95\">\n      <Stripes\n        :angle=\"159\"\n        :density=\"1\"\n        :softness=\"0.5\"/>\n      <Tritone\n        color-a=\"#1100ff\"\n        color-b=\"#ffffff\"\n        color-c=\"#ff0000\"\n        color-space=\"oklab\"/>\n    </Ascii>\n    <Perspective\n      :fov=\"86\"\n      :offset=\"{\n        x: 0.39,\n        y: 0.33\n      }\"\n      :pan=\"20.4\"\n      :tilt=\"29.5\"\n      :zoom=\"1.75\"/>\n    <TiltShift\n      :angle=\"115\"\n      :center=\"{\n        x: 0.67,\n        y: 0.52\n      }\"\n      :falloff=\"0.39\"\n      :width=\"0.34\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

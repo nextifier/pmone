@@ -1,0 +1,39 @@
+{
+  "id": "bfa30df6-98f0-4791-8df8-662b71ab7858",
+  "title": "Dither Logo 6",
+  "collection_id": "099df352-41e8-4298-ad10-74f792b3f539",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A modern, minimalist logo design featuring four rounded geometric shapes arranged in a 2x2 grid pattern, creating an abstract composition. The logo uses a bright lime-green color (#5bd438) as the primary hue with subtle gradient variations and luminous quality. The shapes have smooth, organic curves with clean negative space between them. The background is a dark, deep teal-to-black gradient that transitions from slightly lighter on the left to nearly pure black on the right, creating depth and contrast. A subtle plasma effect with purple-to-green color shifts (#79699c to #5bd438) animates across the logo shapes, adding dynamic movement and visual interest. The dithering effect with a bayer8 pattern at 3-pixel size adds a subtle grainy texture and retro-digital aesthetic, particularly visible along the edges and highlights. The overall mood is contemporary, tech-forward, and energetic, with the glowing green against the dark background creating a sense of luminosity and modern sophistication. The composition has a balanced, symmetrical quality despite the organic curves of the individual elements.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bfa30df6-98f0-4791-8df8-662b71ab7858.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JmYTMwZGY2LTk4ZjAtNDc5MS04ZGY4LTY2MmI3MWFiNzg1OC5qcGciLCJpYXQiOjE3NzI5MjkxNjYsImV4cCI6MTgwNDQ2NTE2Nn0.oOsUfEb3z31fFyFqai7Brs4SktudLLWX85DE3tPfFjM",
+  "import": "import {\n  Shader,\n  Dither,\n  ImageTexture,\n  Plasma,\n  RadialGradient\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  ImageTexture,\n  Plasma,\n  RadialGradient\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      id=\"idmmaykb1vflvohydj1\"\n      object-fit=\"contain\"\n      :transform=\"{\n        offsetX: 0.35,\n        scale: 0.6\n      }\"\n      url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg\"\n      :visible=\"false\"/>\n    <RadialGradient\n      :center=\"{\n        x: 1,\n        y: 0.5\n      }\"\n      color-a=\"#060612\"\n      color-b=\"#00161c\"\n      color-space=\"oklab\"\n      :radius=\"1.5\"/>\n    <Plasma\n      :balance=\"55\"\n      color-a=\"#79699c\"\n      color-b=\"#5bd438\"\n      color-space=\"oklab\"\n      :density=\"1.7\"\n      :intensity=\"3\"\n      mask-source=\"idmmaykb1vflvohydj1\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-mode=\"source\"\n      pattern=\"bayer8\"\n      :pixel-size=\"3\"\n      :threshold=\"0.96\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "collection_notes": "The logo for this shader can be replaced by updating the image texture that's used as a mask.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

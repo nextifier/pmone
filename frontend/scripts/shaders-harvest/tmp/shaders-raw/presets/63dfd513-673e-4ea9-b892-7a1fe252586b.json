@@ -1,0 +1,30 @@
+{
+  "id": "63dfd513-673e-4ea9-b892-7a1fe252586b",
+  "title": "Comet Streaks 7",
+  "collection_id": "8fffdbdb-2234-4451-884e-58cfad446e4a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring diagonal falling lines at a 40-degree angle against a very dark navy-black background (#140d1c). The lines appear as elongated streaks with a motion blur effect, creating a sense of rapid downward movement. Each line transitions from bright white (#ffffff) at its leading edge to transparent, giving them a comet-like or rain-like appearance. The lines vary in length and intensity, with a trail length of approximately 31% creating a streaking effect. A subtle warm gradient overlay in brown and tan tones (#4b2a16 to #d4d3ba) is applied as a mask to the falling lines, adding depth and warmth to the otherwise cool white streaks. The gradient creates an organic, slightly brownish tint that varies across the composition. A tilt-shift blur effect with 50% intensity is applied at a 52-degree angle, creating selective focus that softens and blurs portions of the scene while keeping other areas sharper, enhancing the sense of depth and motion. The overall mood is cinematic and atmospheric, suggesting rainfall, digital data streams, or particle effects in motion. The density of 40 lines creates a moderate visual complexity without overwhelming the composition.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/63dfd513-673e-4ea9-b892-7a1fe252586b.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzYzZGZkNTEzLTY3M2UtNGVhOS1iODkyLTdhMWZlMjUyNTg2Yi5qcGciLCJpYXQiOjE3NzMwMjc4MTEsImV4cCI6MTgwNDU2MzgxMX0.2a4eL3W4ztozHgqiFqcgm0Bf-uDCL-XaB9igSw_gxVs",
+  "import": "import {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#140d1c\"/>\n    <FallingLines\n      id=\"idmmijuosi5e6y2didn\"\n      :angle=\"40\"\n      color-space=\"hsl\"\n      :density=\"40\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.2\"\n      :stroke-width=\"1\"\n      :trail-length=\"0.31\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#4b2a16\"\n      color-b=\"#d4d3ba\"\n      color-space=\"oklab\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.41,\n        y: 0.68\n      }\"\n      mask-source=\"idmmijuosi5e6y2didn\"\n      :start=\"{\n        x: 0.21,\n        y: 0.82\n      }\"/>\n    <TiltShift\n      :angle=\"52\"\n      :falloff=\"0.8\"\n      :width=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

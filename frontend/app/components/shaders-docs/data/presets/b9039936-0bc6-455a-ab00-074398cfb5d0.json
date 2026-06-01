@@ -1,0 +1,70 @@
+{
+  "id": "b9039936-0bc6-455a-ab00-074398cfb5d0",
+  "title": "Solar Silk 10",
+  "collectionId": "680a814f-9b89-4419-8201-182726e05a92",
+  "category": "logo",
+  "description": "A vibrant gradient background transitioning horizontally from hot pink (#ff3d6b) on the left through magenta and purple in the center to cyan (#0af0e8) on the right. Overlaid on this gradient is a large, soft-edged yellow circle (#ffe014) positioned in the lower-center area with significant blur and feathering, creating a glowing orb effect. The yellow circle has a subtle magenta stroke outline. A hexagonal glass shape with chromatic aberration and refraction effects is centered in the composition, creating a frosted glass appearance with light refractions and highlights. The glass element shows iridescent color shifts and subtle internal distortions. Wave distortion effects create subtle undulating ripples across the entire composition at a 122-degree angle. Cursor ripples with chromatic splitting add interactive shimmer effects. Fine film grain texture overlays the entire image at low opacity, adding subtle noise and texture. The overall mood is modern, dreamy, and ethereal with a soft, glowing aesthetic. The color space uses OKLAB for smooth color transitions and linear gradients for precise color blending.",
+  "thumbnail": "/shaders/thumbnails/b9039936-0bc6-455a-ab00-074398cfb5d0.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#ff3d6b",
+          "colorB": "#0af0e8",
+          "visible": true
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.48,
+            "y": 0.85
+          },
+          "color": "#ffe014",
+          "colorSpace": "oklab",
+          "radius": 1.8,
+          "softness": 0.59,
+          "strokeColor": "#e020e8",
+          "strokeThickness": 0.2
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 122,
+          "speed": 3.7
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "decay": 20,
+          "intensity": 20,
+          "radius": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.93,
+          "edgeSoftness": 0.4,
+          "innerZoom": 2,
+          "refraction": 0.54,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EFaVkr2x3OsR_sdf.bin",
+          "thickness": 0.14
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

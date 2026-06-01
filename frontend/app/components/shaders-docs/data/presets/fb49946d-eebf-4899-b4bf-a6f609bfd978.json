@@ -1,0 +1,76 @@
+{
+  "id": "fb49946d-eebf-4899-b4bf-a6f609bfd978",
+  "title": "Enter The Matrix 4",
+  "collectionId": "fcbad305-a89b-483b-9701-f144042da99c",
+  "category": "background",
+  "description": "A classic Matrix-style digital rain effect rendered on a dark background. The composition features cascading streams of Japanese katakana characters in bright neon green (#40ff5c) falling diagonally across the screen at approximately 44 degrees. The characters have a luminous glow effect with an intensity of 6.8, creating halos around each character that blend into the dark background (#0b1410). The falling lines have a trail length of 0.7, creating motion blur streaks behind the descending characters. A subtle CRT screen effect is applied with scanlines (intensity 0.1) and vignetting (intensity 0.1) at the edges, giving it an authentic cathode ray tube monitor appearance. The perspective is tilted at 21.9 degrees with a zoom of 1.4x, creating a sense of depth and three-dimensional space as if viewing the digital rain receding into the distance. The characters are spaced at 0.55 intervals with a cell size of 24 pixels, creating a dense but readable matrix of falling text. The overall atmosphere is cyberpunk and immersive, with the bright green characters providing stark contrast against the nearly black background, enhanced by the glow effect that creates a soft luminescent quality typical of neon signage in low-light environments.",
+  "thumbnail": "/shaders/thumbnails/fb49946d-eebf-4899-b4bf-a6f609bfd978.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0b1410"
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "cellSize": 24,
+          "characters": "ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ",
+          "fontFamily": "Geist Mono",
+          "gamma": 1.2,
+          "spacing": 0.55
+        },
+        "children": [
+          {
+            "type": "FallingLines",
+            "props": {
+              "angle": 44,
+              "colorA": "#40ff5c",
+              "colorB": "#032103ff",
+              "colorSpace": "oklab",
+              "density": 34,
+              "speed": 0.45,
+              "speedVariance": 1,
+              "strokeWidth": 0.5,
+              "trailLength": 0.7,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 6.8,
+          "size": 2,
+          "threshold": 0.4,
+          "visible": true
+        }
+      },
+      {
+        "type": "CRTScreen",
+        "props": {
+          "colorShift": 0,
+          "pixelSize": 112,
+          "scanlineFrequency": 100,
+          "scanlineIntensity": 0.1,
+          "vignetteIntensity": 0.1,
+          "vignetteRadius": 0.35,
+          "visible": true
+        }
+      },
+      {
+        "type": "Perspective",
+        "props": {
+          "edges": "wrap",
+          "tilt": 21.9,
+          "zoom": 1.4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

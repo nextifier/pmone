@@ -1,0 +1,170 @@
+{
+  "name": "Trapezoid",
+  "category": "Shapes",
+  "description": "Trapezoid with adjustable top and bottom widths and height",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "color": {
+      "default": "#ffffff",
+      "description": "Fill color of the trapezoid",
+      "ui": {
+        "type": "color",
+        "label": "Color",
+        "group": "Colors"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "Center position of the trapezoid",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Position"
+      }
+    },
+    "bottomWidth": {
+      "default": 0.35,
+      "description": "Half-width of the bottom edge",
+      "ui": {
+        "type": "range",
+        "min": 0.01,
+        "max": 1,
+        "step": 0.01,
+        "label": "Bottom Width",
+        "group": "Shape"
+      }
+    },
+    "topWidth": {
+      "default": 0.2,
+      "description": "Half-width of the top edge",
+      "ui": {
+        "type": "range",
+        "min": 0.01,
+        "max": 1,
+        "step": 0.01,
+        "label": "Top Width",
+        "group": "Shape"
+      }
+    },
+    "height": {
+      "default": 0.25,
+      "description": "Half-height of the trapezoid",
+      "ui": {
+        "type": "range",
+        "min": 0.01,
+        "max": 1,
+        "step": 0.01,
+        "label": "Height",
+        "group": "Shape"
+      }
+    },
+    "rotation": {
+      "default": 0,
+      "description": "Rotation in degrees",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "label": "Rotation",
+        "group": "Shape"
+      }
+    },
+    "softness": {
+      "default": 0,
+      "description": "Edge softness for antialiasing",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 0.1,
+        "step": 0.001,
+        "label": "Softness",
+        "group": "Effect"
+      }
+    },
+    "strokeThickness": {
+      "default": 0,
+      "description": "Stroke thickness. Zero means no stroke.",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 0.2,
+        "step": 0.005,
+        "label": "Stroke Thickness",
+        "group": "Stroke"
+      }
+    },
+    "strokeColor": {
+      "default": "#000000",
+      "description": "Color of the stroke outline",
+      "ui": {
+        "type": "color",
+        "label": "Stroke Color",
+        "group": "Colors"
+      }
+    },
+    "strokePosition": {
+      "default": "center",
+      "description": "Position of the stroke relative to the shape edge",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Outside",
+            "value": "outside"
+          },
+          {
+            "label": "Center",
+            "value": "center"
+          },
+          {
+            "label": "Inside",
+            "value": "inside"
+          }
+        ],
+        "label": "Stroke Position",
+        "group": "Stroke"
+      }
+    },
+    "colorSpace": {
+      "default": "linear",
+      "compileTime": true,
+      "description": "Color space for blending fill and stroke colors",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Linear RGB",
+            "value": "linear"
+          },
+          {
+            "label": "OKLCh",
+            "value": "oklch"
+          },
+          {
+            "label": "OKLAB",
+            "value": "oklab"
+          },
+          {
+            "label": "HSL",
+            "value": "hsl"
+          },
+          {
+            "label": "HSV",
+            "value": "hsv"
+          },
+          {
+            "label": "LCH",
+            "value": "lch"
+          }
+        ],
+        "label": "Color Blending",
+        "group": "Colors"
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "4f69641a-fa5e-4c7b-b40a-4c9ca001a920",
+  "title": "Halftone Swirl 4",
+  "collectionId": "d1174db5-5525-4253-b1e5-2c3c44815635",
+  "category": "background",
+  "description": "A gradient shader effect transitioning from bright lime green at the top to a deeper, more saturated green at the bottom. The image features a halftone pattern overlay with a 45-degree angle creating a subtle dotted texture throughout the composition. Beneath the halftone effect is a swirl component that blends two green tones (#4ec15b and #9fff91) using LCH color space, creating organic, flowing variations in the green hues. The swirl effect adds subtle undulating distortions and color shifts that create depth and movement within the gradient. The overall effect is smooth and atmospheric with a gentle, natural feel. The halftone frequency of 100 creates a fine, barely noticeable dot pattern that adds texture without overwhelming the gradient. The blend mode is set to normal with full opacity, resulting in a cohesive, unified appearance. The edges fade transparently, and there is no rotation or offset applied to the transform.",
+  "thumbnail": "/shaders/thumbnails/4f69641a-fa5e-4c7b-b40a-4c9ca001a920.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#00bd40"
+        }
+      },
+      {
+        "type": "Halftone",
+        "props": {
+          "smoothness": 0.1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#4ec15b",
+              "colorB": "#9fff91",
+              "colorSpace": "lch"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "55c1a998-df5c-4ace-8a6e-b49649f914a9",
+  "title": "Halftone Swirl 3",
+  "collectionId": "d1174db5-5525-4253-b1e5-2c3c44815635",
+  "category": "background",
+  "description": "A gradient shader effect transitioning from deep purple on the left to cyan-blue on the right. The base layer is a solid dark purple (#3c0452) that establishes the foundation. Overlaid on top is a halftone pattern with a 45-degree angle that creates a subtle dotted texture throughout the entire composition. The halftone dots are small and evenly distributed, becoming more visible toward the edges while maintaining transparency. Beneath the halftone sits a swirl effect that blends two colors - a bright cyan-blue (#1593ed) and a deep magenta-purple (#4d054d) - creating a smooth, organic color transition. The swirl effect uses oklch color space for smooth interpolation between the two hues. The overall mood is modern and digital, with a cool, atmospheric quality. The blend of the swirl at 50% opacity creates a balanced color gradient that flows diagonally from the warm purple tones on the left to the cool blue tones on the right. The halftone texture adds a subtle graininess that prevents the gradient from appearing too smooth, giving it a slightly textured, technical appearance.",
+  "thumbnail": "/shaders/thumbnails/55c1a998-df5c-4ace-8a6e-b49649f914a9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#3c0452"
+        }
+      },
+      {
+        "type": "Halftone",
+        "props": {
+          "smoothness": 0.05
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "coarseX": 50,
+              "coarseY": 50,
+              "colorA": "#1593ed",
+              "colorB": "#4d054d",
+              "colorSpace": "oklch",
+              "fineX": 50,
+              "fineY": 50,
+              "mediumX": 50,
+              "mediumY": 50
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

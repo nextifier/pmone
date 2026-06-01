@@ -1,0 +1,30 @@
+{
+  "id": "3f8438f7-951a-44e1-ab0d-17165d51489b",
+  "title": "Holographic Waves 3",
+  "collection_id": "e02b22a4-a103-4920-9eef-1e543daa3eb2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect featuring diagonal parallel lines running from upper-left to lower-right across the entire composition. The lines create a strong sense of directional motion and depth. The color palette transitions smoothly from teal and light-green on the left edges, through warm golden-orange and tan tones in the upper-left quadrant, to a bright white and pale lavender center, then back to green and cyan on the right side. The central area features a bright white highlight that creates a focal point of maximum luminosity. The diagonal lines vary in thickness and color intensity, with some appearing as thin golden-yellow stripes while others blend into the pastel background. A subtle wave distortion effect creates undulating ripples across the linear pattern, particularly noticeable in the frequency of line spacing. The overall effect is smooth and polished with a slight film grain texture overlay that adds subtle noise without disrupting the clean gradient. The chromatic aberration effect is minimal but creates a slight color separation at high-contrast edges. The composition has a modern, digital aesthetic with a soft, almost iridescent quality reminiscent of light refracting through a prism or oil on water.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/3f8438f7-951a-44e1-ab0d-17165d51489b.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzNmODQzOGY3LTk1MWEtNDRlMS1hYjBkLTE3MTY1ZDUxNDg5Yi5qcGciLCJpYXQiOjE3NzIzODcxNzUsImV4cCI6MTgwMzkyMzE3NX0.wryFax2b67KKHvbEN0Q8zrA5oFkYCjc-i7iP1ERVpok",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Sharpness,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Sharpness,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"59\"\n      color-a=\"#f2af1c\"\n      color-b=\"#83c697\"\n      color-space=\"oklch\"\n      :detail=\"4.1\"/>\n    <Blob\n      :center=\"{\n        x: 0.43,\n        y: 0.65\n      }\"\n      color-a=\"#d5d7f8\"\n      color-b=\"#02af86\"\n      color-space=\"oklch\"\n      :deformation=\"1\"\n      :highlight-intensity=\"0.8\"\n      :highlight-z=\"0.8\"\n      :size=\"0.95\"\n      :softness=\"1\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"208\"\n      edges=\"mirror\"\n      :frequency=\"30\"\n      :speed=\"4.9\"\n      :strength=\"0.7\"\n      :visible=\"true\"\n      wave-type=\"triangle\"/>\n    <ChromaticAberration\n      :strength=\"0.02\"\n      :visible=\"true\"/>\n    <Sharpness\n      :sharpness=\"2\"/>\n    <FilmGrain\n      :strength=\"0.15\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

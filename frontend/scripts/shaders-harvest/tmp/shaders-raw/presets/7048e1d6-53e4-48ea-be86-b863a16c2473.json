@@ -1,0 +1,30 @@
+{
+  "id": "7048e1d6-53e4-48ea-be86-b863a16c2473",
+  "title": "Rolling Shadows 4",
+  "collection_id": "0c3f4def-3e49-4ee4-a36d-ec34752656e7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, ethereal shader effect featuring a multi-point gradient system with five color nodes creating smooth color transitions across the canvas. The dominant visual elements include a bright, glowing light blue center area that radiates outward, surrounded by darker blue-gray tones at the edges. The gradient flows from deep navy (#2a3d5e) in the upper left, through muted slate blue (#6b8fa3) in the mid-tones, to a bright cyan-white (#a8d4e6) that appears to be driven by mouse position tracking in the upper-center area. A subtle wave distortion with sine wave pattern (strength 0.3, frequency 1) creates gentle undulating ripples across the entire surface, giving it a liquid-like quality. A bulge effect centered near the lower-left area (with mouse-tracking momentum of 0.3) creates a subtle spherical protrusion that adds depth and dimensionality. The bulge has a large radius (2) with smooth falloff (2), creating a soft lens-like distortion. A fine paper texture overlay (displacement 0.24, grain scale 3, roughness 0.1) adds subtle surface detail and tactile quality without overwhelming the smooth gradient. The overall effect is atmospheric and calming, with a dreamlike quality enhanced by the smooth color transitions and gentle motion-based distortions. The edges fade to transparency, creating a vignette-like effect that draws focus toward the luminous center.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7048e1d6-53e4-48ea-be86-b863a16c2473.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzcwNDhlMWQ2LTUzZTQtNDhlYS1iZTg2LWI4NjNhMTZjMjQ3My5qcGciLCJpYXQiOjE3NzU5MjA0NzksImV4cCI6MTgwNzQ1NjQ3OX0.SgtuVhTg4uMyFyIU9EUz2NqMRtLrL4d9ya4AvLtJnUo",
+  "import": "import {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Bulge,\n  MultiPointGradient,\n  Paper,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <MultiPointGradient\n      color-a=\"#2a3d5e\"\n      color-b=\"#6b8fa3\"\n      color-c=\"#1e2b45\"\n      color-d=\"#a8d4e6\"\n      color-e=\"#3b5068\"\n      :position-a=\"{\n        x: 0.15,\n        y: 0.35\n      }\"\n      :position-b=\"{\n        x: 0.61,\n        y: 0.82\n      }\"\n      :position-c=\"{\n        x: 0.83,\n        y: 0.47\n      }\"\n      :position-d=\"{\n        type: 'mouse-position',\n        originX: 0.435,\n        originY: 0.2846975088967972,\n        momentum: 0.2,\n        smoothing: 0.6\n      }\"\n      :position-e=\"{\n        x: 0.52,\n        y: 0.69\n      }\"/>\n    <WaveDistortion/>\n    <Bulge\n      :center=\"{\n        type: 'mouse-position',\n        originX: 0.37,\n        originY: 0.6642984014209592,\n        momentum: 0.3,\n        smoothing: 0.8\n      }\"\n      :falloff=\"2\"\n      :radius=\"2\"/>\n    <Paper\n      :displacement=\"0.24\"\n      :grain-scale=\"3\"\n      :roughness=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

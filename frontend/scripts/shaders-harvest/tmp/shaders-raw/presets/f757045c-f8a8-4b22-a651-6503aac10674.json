@@ -1,0 +1,30 @@
+{
+  "id": "f757045c-f8a8-4b22-a651-6503aac10674",
+  "title": "Smokescreen 2",
+  "collection_id": "75854014-d32e-4ede-8f49-16782c112961",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic smoke effect shader with a dark forest green background (#04140d) serving as the base layer. The primary visual element is an interactive smoke simulation that emits from the mouse position, creating billowing plumes of color-shifting particles. The smoke transitions from a warm golden-yellow (#f2bc09) at the core to a vibrant bright green (#0fda1a) at the edges, creating a striking chromatic contrast. The particles exhibit soft, feathered edges with a glowing quality due to the linear color space rendering. The smoke spreads outward with a 60-degree spread angle and moves upward with subtle gravity influence (0.5), creating a natural rising motion. The effect demonstrates high detail (level 7) with visible turbulence and organic flow patterns. The particles gradually dissipate as they move away from the emission point, with a color decay factor of 1.4 creating a subtle fade effect. The overall atmosphere is ethereal and energetic, with the bright yellow-green contrast against the dark background creating a luminous, almost bioluminescent quality. The mouse influence parameter (0.8) allows the smoke to respond to cursor movement with a 7% emission radius, making it interactive and responsive.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8a311952-530c-40a7-93d6-438dce1e4ca4.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzhhMzExOTUyLTUzMGMtNDBhNy05M2Q2LTQzOGRjZTFlNGNhNC5qcGciLCJpYXQiOjE3NzY3MDkxNDAsImV4cCI6MTgwODI0NTE0MH0.flrQZlATYYMo-e3XQ4N42n9ij0GykRyTg-vySxA4XnY",
+  "import": "import {\n  Shader,\n  Smoke,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Smoke, SolidColor } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#04140d\"/>\n    <Smoke\n      color-a=\"#f2bc09\"\n      color-b=\"#0fda1a\"\n      :color-decay=\"1.4\"\n      :detail=\"7\"\n      :direction=\"36\"\n      :emit-from=\"{\n        type: 'mouse-position',\n        originX: 0,\n        originY: 0\n      }\"\n      :mouse-influence=\"0.8\"\n      :mouse-radius=\"0.07\"\n      :speed=\"6.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

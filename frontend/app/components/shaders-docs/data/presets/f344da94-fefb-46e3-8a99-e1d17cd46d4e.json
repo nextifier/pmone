@@ -1,0 +1,65 @@
+{
+  "id": "f344da94-fefb-46e3-8a99-e1d17cd46d4e",
+  "title": "Ice Spheres 7",
+  "collectionId": "c76dd378-6b7c-4501-9373-35d78062bef3",
+  "category": "background",
+  "description": "A mesmerizing shader effect featuring a grid of circular perforations or holes arranged in a regular pattern across a curved, three-dimensional surface. The holes appear to be semi-spherical indentations with depth, creating a honeycomb-like structure. The surface is illuminated with a cyan-green glow that emanates from the right side, creating a dramatic lighting gradient that transitions from dark navy-black on the left to bright cyan-green on the right. The lighting creates strong specular highlights on the raised edges of each circular perforation, giving them a glossy, metallic appearance. The overall effect suggests a technological or sci-fi aesthetic, with the curved surface appearing to wrap around the viewer's perspective. The depth of field creates a subtle blur effect where the perforations fade into focus from the foreground to background, enhancing the three-dimensional quality. The swirling base layer beneath the glass tiles adds subtle color variation and movement, while the cyan-green accent color (#22e8c4) provides vibrant contrast against the dark navy base colors (#0c0c1c, #0e1a2e). The atmosphere is cool, modern, and futuristic with an emphasis on geometric precision and luminous depth.",
+  "thumbnail": "/shaders/thumbnails/f344da94-fefb-46e3-8a99-e1d17cd46d4e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 10,
+          "colorA": "#0c0c1c",
+          "colorB": "#0e1a2e",
+          "detail": 2.8,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "GlassTiles",
+        "props": {
+          "intensity": 40,
+          "maskSource": "idmjrma2hqerhhnv380",
+          "rotation": 22,
+          "roundness": 1,
+          "tileCount": 25
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 8,
+              "colorA": "#0c0c1c",
+              "colorB": "#22e8c4",
+              "detail": 2.8,
+              "speed": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "id": "idmjrma2hqerhhnv380",
+          "center": {
+            "x": 0.52,
+            "y": 0.38
+          },
+          "deformation": 1.4,
+          "highlightIntensity": 0,
+          "highlightX": -1,
+          "highlightY": -1,
+          "highlightZ": -1,
+          "size": 0.75,
+          "softness": 1.2,
+          "speed": 0.6,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

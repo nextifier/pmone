@@ -1,0 +1,82 @@
+{
+  "id": "853045b7-ec5a-4913-a8f0-7d794664f219",
+  "title": "Digital Activation 8",
+  "collectionId": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "category": "background",
+  "description": "A sophisticated digital shader effect featuring a three-dimensional spherical or teardrop-shaped form rendered with a glass-like material against a near-black background. The shape is filled with a dense grid of small yellow-gold square pixels or dots arranged in a regular pattern, creating a pixelated texture that follows the contours of the 3D form. The yellow elements (#ffe100) transition from bright and saturated on the right side to darker and more subdued on the left side, suggesting volumetric lighting and depth. A subtle spiral gradient emanates from the lower portion of the shape, blending from dark navy blue (#0a131f) to bright yellow, creating a sense of rotational energy and movement. The glass material exhibits chromatic aberration effects with a slight rainbow-like color separation at the edges, particularly visible along the curved boundaries. The overall composition has a dark, atmospheric quality with a faint background dot grid pattern in dark gray (#292936), adding subtle texture to the void. The lighting appears to come from the upper right, creating highlights and dimensional depth on the glossy surface. The effect conveys a sense of technological sophistication, digital transformation, and dynamic energy.",
+  "thumbnail": "/shaders/thumbnails/853045b7-ec5a-4913-a8f0-7d794664f219.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0e0f14"
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "color": "#292936",
+          "density": 49,
+          "dotSize": 0.1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.8,
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0,
+          "fresnelSoftness": 0.23,
+          "highlight": 0,
+          "highlightSoftness": 0.16,
+          "lightAngle": 274,
+          "refraction": 2,
+          "scale": 1.45,
+          "shape": {
+            "type": "roundedRectSDF",
+            "radius": 0.48,
+            "height": 0.25,
+            "rounding": 0.5,
+            "rotation": 32
+          },
+          "shapeSdfUrl": "",
+          "shapeType": "circleSDF"
+        },
+        "children": [
+          {
+            "type": "SolidColor",
+            "props": {
+              "color": "#0e0f14"
+            }
+          },
+          {
+            "type": "Ascii",
+            "props": {
+              "characters": "◘•",
+              "gamma": 0.55,
+              "spacing": 0.8
+            },
+            "children": [
+              {
+                "type": "Spiral",
+                "props": {
+                  "center": {
+                    "x": 0,
+                    "y": 0.8
+                  },
+                  "colorA": "#0a131f",
+                  "colorB": "#ffe100",
+                  "softness": 0.4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

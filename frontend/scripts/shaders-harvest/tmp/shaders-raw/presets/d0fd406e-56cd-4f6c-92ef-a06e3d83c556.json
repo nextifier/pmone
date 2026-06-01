@@ -1,0 +1,42 @@
+{
+  "id": "d0fd406e-56cd-4f6c-92ef-a06e3d83c556",
+  "title": "Chroma Chrome 3",
+  "collection_id": "e101c7d3-2313-42e9-a40f-7ddc609df98c",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A sleek, modern logo composition featuring a spherical glass orb on the left side with sophisticated optical properties. The orb displays realistic glass refraction and reflection with a subtle gradient from light to dark, creating depth and dimensionality. The sphere has a polished, translucent quality with highlights that suggest light hitting curved surfaces. Adjacent to the orb is the word 'Galileo' rendered in a thin, elegant sans-serif typeface with a metallic or chrome-like appearance. The background is a very dark navy-black (#130f1a) that creates high contrast with the lighter elements. Within and around the glass sphere, there are subtle swirling patterns in dark grays and purples (#26262b, #0d111a, #b700ff, #a600ff) that suggest internal movement or energy. The overall effect is enhanced by chromatic aberration effects visible as subtle purple and magenta color fringing around the glass element. A fine film grain texture is applied across the entire composition, adding a cinematic quality. The lighting angle appears to come from approximately 237 degrees, creating realistic specular highlights on the glass surface. The entire composition has a premium, technological aesthetic with a cool color temperature dominated by deep purples, dark blues, and metallic grays against the near-black background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/d0fd406e-56cd-4f6c-92ef-a06e3d83c556.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2QwZmQ0MDZlLTU2Y2QtNGY2Yy05MmVmLWEwNmUzZDgzYzU1Ni5qcGciLCJpYXQiOjE3NzI3MjkzMDUsImV4cCI6MTgwNDI2NTMwNX0.IbrWHiKV1S_iNgy-G_BvRYIRVDXIpMsKZAY5GKYBoVY",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  Glass,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#130f1a\"\n      :visible=\"true\"/>\n    <Glass\n      :cutout=\"true\"\n      :fresnel=\"0.04\"\n      :fresnel-softness=\"0.05\"\n      :highlight=\"0.5\"\n      :highlight-softness=\"0.21\"\n      :inner-zoom=\"1.5\"\n      :light-angle=\"237\"\n      :refraction=\"2\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/Fo7ahNLZwqrY_sdf.bin\"\n      :thickness=\"1\">\n      <Swirl\n        color-a=\"#26262b\"\n        color-b=\"#0d111a\"\n        :detail=\"5\"\n        :speed=\"0.2\"/>\n      <ChromaFlow\n        base-color=\"#a600ff\"\n        down-color=\"#d400ff\"\n        left-color=\"#6300ff\"\n        :momentum=\"10\"\n        :radius=\"2\"\n        right-color=\"#7b00ff\"\n        up-color=\"#b700ff\"/>\n    </Glass>\n    <FilmGrain\n      :opacity=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

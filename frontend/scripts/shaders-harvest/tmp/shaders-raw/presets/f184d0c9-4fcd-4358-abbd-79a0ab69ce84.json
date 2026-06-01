@@ -1,0 +1,30 @@
+{
+  "id": "f184d0c9-4fcd-4358-abbd-79a0ab69ce84",
+  "title": "Stretched Chevrons",
+  "collection_id": "94b9788a-b40b-4923-a564-6c3e235d264f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A geometric pattern of repeating chevron or staircase shapes arranged in a regular grid across a dark purple background. The shapes are outlined in a bright purple/magenta color (#a461ff) with sharp, clean edges and subtle glowing effects along the borders. The chevrons are oriented at 45-degree angles and create a sense of depth through their three-dimensional appearance, with each shape appearing to step inward. The background is a very dark purple (#1d063d), creating high contrast with the bright purple outlines. The pattern repeats uniformly across the entire image with consistent spacing and sizing. There is a subtle luminous glow or bloom effect around the purple edges of each chevron shape, giving them a neon-like quality. The overall mood is modern, digital, and somewhat hypnotic due to the regular repetition of the geometric forms. The effect appears to be a shader-based pattern with mathematical precision in its construction.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/3bf05eef-2fd5-452e-ba52-b81329d2f457.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzNiZjA1ZWVmLTJmZDUtNDUyZS1iYTUyLWI4MTMyOWQyZjQ1Ny5qcGciLCJpYXQiOjE3Nzg1MjM4MjEsImV4cCI6MTgxMDA1OTgyMX0.xkGtpsZEYtkv6Kk0ylef0QIlFIcUrqamfsmJKOpbBFs",
+  "import": "import {\n  Shader,\n  Chevron,\n  ChromaFlow\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Chevron, ChromaFlow } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ChromaFlow\n      id=\"idmp1helxtfp3bsckef\"\n      base-color=\"#ffffff\"\n      down-color=\"#ffffff\"\n      :intensity=\"0.6\"\n      left-color=\"#ffffff\"\n      :momentum=\"0\"\n      right-color=\"#ffffff\"\n      up-color=\"#ffffff\"\n      :visible=\"false\"/>\n    <Chevron\n      :angle=\"45\"\n      :balance=\"{\n        type: 'map',\n        curve: -0.8,\n        source: 'idmp1helxtfp3bsckef',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      color-a=\"#a461ff\"\n      color-b=\"#1d063d\"\n      color-space=\"oklab\"\n      :count=\"4\"\n      :softness=\"{\n        type: 'map',\n        curve: 1,\n        source: 'idmp1helxtfp3bsckef',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      :speed=\"0.1\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

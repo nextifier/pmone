@@ -1,0 +1,76 @@
+{
+  "id": "c2d66d8f-76bd-45bd-8b7c-92e149ed29aa",
+  "title": "Watercolor on Paper 7",
+  "collectionId": "da9f2a2e-c4fb-411e-bbc4-21dca8017cf5",
+  "category": "background",
+  "description": "A smooth, flowing gradient shader with five distinct color nodes creating a multi-point radial blend. The composition features a warm orange (#e85d2c) in the upper right, transitioning through peachy tones (#f29f6b) in the center-right area. A cool blue (#2c8ae8) dominates the left side, while a darker navy blue (#1b5fa0) anchors the lower left quadrant. A golden yellow (#d4a32e) appears in the lower right corner. The gradient is highly smoothed with a smoothness value of 2.05, creating soft, almost imperceptible color transitions. A sine wave distortion at 232 degrees with 0.35 strength adds subtle undulating ripples across the surface, creating a liquid-like quality. The liquify effect with intensity 10 and stiffness 15 introduces organic, fluid warping that softens edges and creates a dreamlike, melting appearance. A fine paper texture with 0.1 grain scale and 1 displacement adds subtle surface irregularity, while film grain at 0.4 strength introduces a delicate noise pattern throughout. The overall effect is a warm-to-cool gradient with soft, organic distortions that evoke a sunset or aurora-like atmosphere with a slightly textured, analog quality.",
+  "thumbnail": "/shaders/thumbnails/c2d66d8f-76bd-45bd-8b7c-92e149ed29aa.webp",
+  "config": {
+    "components": [
+      {
+        "type": "MultiPointGradient",
+        "props": {
+          "colorA": "#e85d2c",
+          "colorB": "#2c8ae8",
+          "colorC": "#d4a32e",
+          "colorD": "#1b5fa0",
+          "colorE": "#f29f6b",
+          "positionA": {
+            "x": 0.72,
+            "y": 0.12
+          },
+          "positionB": {
+            "x": 0.15,
+            "y": 0.35
+          },
+          "positionC": {
+            "x": 0.88,
+            "y": 0.75
+          },
+          "positionD": {
+            "x": 0.35,
+            "y": 0.88
+          },
+          "positionE": {
+            "x": 0.52,
+            "y": 0.48
+          },
+          "smoothness": 2.05
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 232,
+          "frequency": 1.1,
+          "strength": 0.35
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "damping": 0.7,
+          "radius": 1.5,
+          "stiffness": 15
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 1,
+          "grainScale": 0.1,
+          "roughness": 0.1,
+          "seed": 42
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

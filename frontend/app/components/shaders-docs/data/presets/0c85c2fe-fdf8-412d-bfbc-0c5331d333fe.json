@@ -1,0 +1,37 @@
+{
+  "id": "0c85c2fe-fdf8-412d-bfbc-0c5331d333fe",
+  "title": "Halftone Swirl 6",
+  "collectionId": "d1174db5-5525-4253-b1e5-2c3c44815635",
+  "category": "background",
+  "description": "A vibrant gradient shader effect transitioning from deep purple-magenta tones in the upper left to bright hot pink and magenta hues across the composition. The image features a halftone pattern overlay with a 45-degree angle creating a subtle crosshatch texture throughout. Beneath this, a swirl effect blends between hot pink (#fe0aad) and deep blue (#4750ff) using oklch color space, creating a dynamic color transition that adds depth and movement to the solid magenta base color (#cf16d9). The halftone frequency of 100 with 0.1 smoothness creates a fine, barely perceptible dotted pattern that gives the surface a slightly textured appearance while maintaining the smooth gradient flow. The overall effect is a modern, neon-inspired aesthetic with layered color blending that suggests motion and energy. The edges maintain transparency, and the composition uses normal blend mode for a clean, unified visual presentation.",
+  "thumbnail": "/shaders/thumbnails/0c85c2fe-fdf8-412d-bfbc-0c5331d333fe.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#cf16d9",
+          "visible": true
+        }
+      },
+      {
+        "type": "Halftone",
+        "props": {
+          "smoothness": 0.1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#fe0aad",
+              "colorB": "#4750ff",
+              "colorSpace": "oklch"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

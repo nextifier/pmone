@@ -1,0 +1,30 @@
+{
+  "id": "fb986e99-fb53-4450-af09-8e14d94cd636",
+  "title": "Pistons 2",
+  "collection_id": "e711302e-35b1-4b30-a736-21de5f52c44e",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vertical striped pattern composed of candlestick-like shapes in varying heights, creating a rhythmic, wave-like visual rhythm across the composition. The background is a deep dark purple (#381652), while the foreground features tall rectangular bars in light pink/lavender (#f5c6e2) arranged in vertical columns with consistent spacing. The bars vary in height to create an undulating pattern that resembles financial candlestick charts or audio waveforms. A vibrant magenta godray effect (#8608ff) emanates from the left side, creating luminous rays that intersect with the striped pattern, producing a glowing, ethereal quality. The ASCII characters (▄║█) form the structural basis of the bars, creating a technical, digital aesthetic. A subtle paper texture overlay adds fine grain and slight roughness to the entire composition, reducing the flatness and adding tactile depth. The overall mood is cyberpunk and energetic, with the interplay of the dark background, bright pink bars, and magenta rays creating strong visual contrast and a sense of movement or data flow.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/fb986e99-fb53-4450-af09-8e14d94cd636.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ZiOTg2ZTk5LWZiNTMtNDQ1MC1hZjA5LThlMTRkOTRjZDYzNi5qcGciLCJpYXQiOjE3Nzk5NDAxMDIsImV4cCI6MTgxMTQ3NjEwMn0.vv4kS5TBxb_gBQ351hR0x0YDRtkiipkSe65_zqQvLF8",
+  "import": "import {\n  Shader,\n  Ascii,\n  Godrays,\n  Paper,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Godrays,\n  Paper,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader tone-mapping=\"aces\">\n    <SolidColor\n      color=\"#381652\"/>\n    <Ascii\n      :cell-size=\"54\"\n      characters=\"▄║█\"\n      font-family=\"Geist Mono\"\n      :gamma=\"1.65\">\n      <Godrays\n        background-color=\"#f5c6e2\"\n        :density=\"0.2\"\n        :intensity=\"0.9\"\n        ray-color=\"#8608ff\"\n        :spotty=\"0\"/>\n    </Ascii>\n    <Paper\n      :displacement=\"0\"\n      :grain-scale=\"3\"\n      :roughness=\"0.85\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

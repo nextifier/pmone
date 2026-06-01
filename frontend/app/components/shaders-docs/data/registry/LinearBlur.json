@@ -1,0 +1,39 @@
+{
+  "name": "LinearBlur",
+  "category": "Blurs",
+  "description": "Directional motion blur in a specific angle",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "intensity": {
+      "default": 30,
+      "description": "Intensity of the linear blur effect",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Effect"
+      }
+    },
+    "angle": {
+      "default": 0,
+      "description": "Direction of the linear blur (in degrees)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "label": "Angle",
+        "group": "Effect"
+      }
+    }
+  }
+}

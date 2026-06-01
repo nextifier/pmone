@@ -1,0 +1,87 @@
+{
+  "id": "44808b7e-afea-4a4e-8bd6-00d78c08ee3a",
+  "title": "Vertex Mesh 3",
+  "collectionId": "a13345f7-1203-449c-a719-9bedee3177b9",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect featuring a deep navy-black background (#11131f) with a prominent geometric grid pattern overlay. The grid consists of magenta/pink lines (#ea00ff) arranged in a 29-cell structure, creating a perspective-distorted mesh that appears to recede into the distance. The grid is concentrated in the center-lower portion of the composition, with the distortion creating a curved, wave-like deformation that suggests depth and movement. A circular mask centered at coordinates (0.5, 1) with a radius of 1.7 and 0.65 softness creates a radial vignette effect, causing the grid to fade smoothly at the edges. The ConcentricSpin effect with 4 rings and 0.3 speed adds subtle rotational distortion centered at the bottom of the frame. A GridDistortion effect with intensity 5 and decay 6.4 warps the grid lines into organic, undulating patterns. Chromatic aberration with red offset -1 and blue offset +1 introduces subtle color fringing at high-contrast edges. The overall mood is cyberpunk and digital, with a sense of three-dimensional space and subtle animation. The magenta grid lines have a thin 0.2 thickness, creating a delicate wireframe appearance against the dark background.",
+  "thumbnail": "/shaders/thumbnails/44808b7e-afea-4a4e-8bd6-00d78c08ee3a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#11131f",
+          "visible": true
+        }
+      },
+      {
+        "type": "Group",
+        "props": {
+          "maskSource": "idmm5st7oo9avp1hoem"
+        },
+        "children": [
+          {
+            "type": "SolidColor",
+            "props": {
+              "color": "#11131f",
+              "visible": true
+            }
+          },
+          {
+            "type": "Grid",
+            "props": {
+              "cells": 29,
+              "color": "#ea00ff",
+              "thickness": 0.2
+            }
+          },
+          {
+            "type": "ConcentricSpin",
+            "props": {
+              "center": {
+                "x": 0.5,
+                "y": 1
+              },
+              "intensity": 60,
+              "rings": 4,
+              "seed": 42,
+              "smoothness": 0,
+              "speed": 0.3,
+              "speedRandomness": 0.91
+            }
+          },
+          {
+            "type": "GridDistortion",
+            "props": {
+              "decay": 6.4,
+              "gridSize": 27,
+              "intensity": 5,
+              "radius": 3
+            }
+          },
+          {
+            "type": "ChromaticAberration",
+            "props": {
+              "strength": 0.05
+            }
+          }
+        ]
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm5st7oo9avp1hoem",
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "radius": 1.7,
+          "softness": 0.65,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,64 @@
+{
+  "id": "370028af-3118-481e-b9b8-322063ea7c80",
+  "title": "Ribbon Flows 9",
+  "collectionId": "5e523f88-ad6a-4df5-8e8a-cbdf842ba971",
+  "category": "background",
+  "description": "A serene, minimalist shader effect featuring soft, flowing curves that create an ethereal atmosphere. The composition is dominated by gentle wave-like forms that sweep diagonally across the canvas from upper left to lower right. The primary color palette consists of cool, muted tones transitioning smoothly between pale lavender-gray and soft blue-gray hues. The center of the image is brightest with a luminous, almost glowing quality, while the edges fade into deeper blue-gray tones. The curves have a subtle, feathered quality with soft edges that blend seamlessly into the background, creating a sense of depth and movement. A fine film grain texture is subtly overlaid across the entire surface, adding a delicate, organic quality to the otherwise smooth gradients. The overall mood is calm, contemplative, and atmospheric, with no sharp edges or harsh contrasts. The effect suggests flowing fabric, light diffusion, or abstract liquid movement. The lighting appears to come from within the composition, creating a soft, diffused glow that enhances the peaceful, meditative quality of the piece.",
+  "thumbnail": "/shaders/thumbnails/370028af-3118-481e-b9b8-322063ea7c80.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmnwkl123sccj082v5",
+          "amplitude": 0.1,
+          "angle": 76,
+          "frequency": 0.7,
+          "position": {
+            "x": 0.35,
+            "y": 0.4
+          },
+          "softness": 0.5,
+          "speed": 0.8,
+          "thickness": 0.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "DiamondGradient",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.2,
+            "originX": 0.75,
+            "originY": 0.3,
+            "momentum": 0.2,
+            "smoothing": 0.65
+          },
+          "colorA": "#c4b8d9",
+          "colorB": "#5a7c9e",
+          "colorSpace": "oklab",
+          "rotation": {
+            "type": "map",
+            "curve": 1,
+            "source": "idmnwkl123sccj082v5",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "size": 1.04
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.15
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

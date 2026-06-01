@@ -1,0 +1,42 @@
+{
+  "id": "5f81999d-680a-48a5-bcf4-36cd57d4f1ae",
+  "title": "Embossed Relief 4",
+  "collectionId": "7afcc3e6-8052-4e03-abf9-e549715a49f9",
+  "category": "logo",
+  "description": "A minimalist embossed shader effect on a warm, off-white background (#f5f2eb). The composition features a circular embossed shape with subtle 3D depth, creating a gentle inset effect. Within this circle are four horizontal parallel lines that appear to be embossed or engraved, creating a layered depth effect with soft shadows and highlights. The embossing has a shallow depth of 0.08, producing delicate relief details rather than dramatic protrusions. The lighting appears to respond to mouse movement along the x-axis, creating dynamic shadow and highlight variations across the embossed elements. A fine paper texture overlay (displacement 0.15, roughness 0.3) adds tactile surface quality and subtle grain throughout, enhancing the physical, handcrafted appearance. The overall mood is serene and sophisticated, with warm neutral tones and soft, diffused lighting that creates a subtle three-dimensional quality without harsh contrasts. The effect suggests embossed paper or a finely crafted material surface.",
+  "thumbnail": "/shaders/thumbnails/5f81999d-680a-48a5-bcf4-36cd57d4f1ae.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#f5f2eb"
+        }
+      },
+      {
+        "type": "Emboss",
+        "props": {
+          "depth": 0.08,
+          "lightAngle": {
+            "axis": "x",
+            "type": "mouse",
+            "curve": 0.4,
+            "momentum": 0.15,
+            "outputMax": 311,
+            "outputMin": 240,
+            "smoothing": 0.2
+          },
+          "lightIntensity": 0.2,
+          "shadowIntensity": 0.23,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/LxxV4-VS2bDS_sdf.bin"
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {}
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "22be0c5a-9c13-4912-b25c-ceb481440e46",
+  "title": "Rounded Panels 2",
+  "collectionId": "0a33095f-dfca-48af-94a5-5f15acc313ab",
+  "category": "background",
+  "description": "A dynamic shader effect featuring vertical stripes in bright lime green (#01cc6f) rendered against a vibrant purple background (#b243ff). The stripes have a uniform density of 12 lines and maintain a 0-degree angle, creating perfectly vertical parallel lines across the composition. The most striking feature is a circular gradient mask centered at coordinates (0.5, 1.0) with a radius of 1.8, positioned at the bottom-center of the frame. This circular mask creates a smooth, soft-edged gradient that modulates the stripe pattern, causing the stripes to fade and blend progressively from solid green at the bottom-center outward toward the edges. The effect creates a wave-like or bulging appearance where the stripes appear to curve around an invisible sphere. The softness value of 0.1 on the circle mask produces smooth feathering at the transition zones. The balance mapping uses the circle's alpha channel to vary stripe intensity across the composition, with output values ranging from 0.1 to 0.9, creating depth and visual interest. The overall mood is modern and energetic, with a sense of movement and dimensionality created by the interplay between the rigid vertical stripes and the organic circular gradient mask.",
+  "thumbnail": "/shaders/thumbnails/22be0c5a-9c13-4912-b25c-ceb481440e46.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "angle": 0,
+          "balance": {
+            "type": "map",
+            "source": "idmlsathgg7fl4tmxmi",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.1
+          },
+          "colorA": "#01cc6f",
+          "colorB": "#b243ff",
+          "density": 12
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmlsathgg7fl4tmxmi",
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "radius": 1.8,
+          "softness": 0.1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

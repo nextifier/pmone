@@ -1,0 +1,27 @@
+{
+  "id": "1ffb7c12-c305-4346-b80a-780628e6b286",
+  "title": "Magnified Pixels",
+  "collection_id": "4077b48f-6bd7-441c-9224-d5eb49d8601c",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A striking digital composition featuring five horizontally stacked elongated rectangular shapes against a deep black background (#0e0b14). Each shape exhibits a distinct chromatic aberration effect with vibrant neon colors separated into distinct color channels. The top shape displays a rainbow gradient transitioning from red through yellow, green, to blue with a rounded right corner. The second shape is predominantly magenta with subtle color separation. The third shape features a bright white-blue left edge that transitions to cyan and green tones across its length, creating a strong light refraction effect. The fourth shape shows magenta and orange tones with color channel separation. The fifth shape displays green and orange chromatic aberration. All shapes are overlaid with a halftone dot pattern at 45-degree angle (frequency 138) that creates a pixelated, print-like texture throughout. A CRT screen effect with scanlines (intensity 0.2, frequency 200) and vignetting (intensity 0.6) is applied globally, creating a retro cathode-ray tube monitor aesthetic. The glass effect with high refraction (2.0) and aberration (0.5) creates a luminous, glowing quality with bright highlights. The overall mood is cyberpunk and digital, with strong neon aesthetics reminiscent of 1980s computer graphics and modern digital art.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/1ffb7c12-c305-4346-b80a-780628e6b286.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzFmZmI3YzEyLWMzMDUtNDM0Ni1iODBhLTc4MDYyOGU2YjI4Ni5qcGciLCJpYXQiOjE3NzMxOTk3NTMsImV4cCI6MTgwNDczNTc1M30.qopoA3AD8mwOkCcgMeTwrMkWkOPMbBez8Cm_-kBVRbE",
+  "import": "import {\n  Shader,\n  Aurora,\n  CRTScreen,\n  Glass,\n  Halftone,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Aurora,\n  CRTScreen,\n  Glass,\n  Halftone,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0e0b14\"/>\n    <Halftone\n      :frequency=\"138\"\n      :smoothness=\"0.3\">\n      <Glass\n        :cutout=\"true\"\n        :refraction=\"2\"\n        shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin\"\n        :thickness=\"0.14\">\n        <Aurora\n          :center=\"{\n            x: 0.42,\n            y: 0.22\n          }\"\n          color-space=\"oklab\"\n          :height=\"200\"\n          :intensity=\"88\"\n          :ray-density=\"100\"\n          :speed=\"10\"\n          :waviness=\"78\"/>\n      </Glass>\n    </Halftone>\n    <Glass\n      :fresnel=\"0\"\n      :highlight=\"0.15\"\n      :highlight-softness=\"0.03\"\n      :light-angle=\"313\"\n      :refraction=\"2\"\n      :scale=\"1.2\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin\"\n      :thickness=\"1\"/>\n    <CRTScreen\n      :color-shift=\"1.3\"\n      :pixel-size=\"27\"\n      :scanline-intensity=\"0.2\"\n      :vignette-intensity=\"0.6\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {"uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide"},
+    {"uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide"},
+    {"uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide"},
+    {"uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide"},
+    {"uri": "shaders://docs/guide/transforms", "label": "Transforms guide"}
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

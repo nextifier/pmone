@@ -1,0 +1,79 @@
+{
+  "id": "847bece6-5490-4027-b903-3a732ba0c511",
+  "title": "Simple Sunset",
+  "collectionId": "ac172e8b-58ba-48ab-97ff-5c001c6cc034",
+  "category": "background",
+  "description": "A smooth, flowing gradient shader that transitions diagonally from deep blue-navy in the lower left corner to warm coral-orange in the upper right corner. The gradient uses a 90-degree vertical angle with OKLCH color space interpolation, creating a perceptually smooth color transition through purple and pink midtones. Overlaid on this base gradient is a subtle sine wave pattern positioned at 35% vertical height, rendered in warm tan (#f4a261) with 56% opacity, creating gentle undulating horizontal waves with soft edges and low frequency. A fine simplex noise texture with reduced contrast (-0.6) and 15% opacity adds delicate organic variation and texture throughout, creating a slightly grainy, cloud-like quality. The entire composition is finished with a light film grain effect at full opacity with 20% strength, adding a subtle cinematic texture that enhances the atmospheric quality. The overall effect is soft, dreamy, and ethereal with warm-to-cool color harmony.",
+  "thumbnail": "/shaders/thumbnails/847bece6-5490-4027-b903-3a732ba0c511.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 90,
+          "colorA": "#ff6b35",
+          "colorB": "#004e89",
+          "colorSpace": "oklch",
+          "end": {
+            "x": 0.5,
+            "y": 1
+          },
+          "start": {
+            "x": 0.5,
+            "y": 0
+          },
+          "transform": {
+            "edges": "stretch"
+          }
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.2,
+          "blendMode": "normal-oklch",
+          "color": "#f4a261",
+          "frequency": 0.15,
+          "opacity": 0.56,
+          "position": {
+            "x": 0.5,
+            "y": 0.35
+          },
+          "softness": 0.43,
+          "speed": 0.3,
+          "thickness": 0.4,
+          "transform": {
+            "edges": "stretch"
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "SimplexNoise",
+        "props": {
+          "balance": 0.3,
+          "colorB": "transparent",
+          "contrast": -0.6,
+          "opacity": 0.15,
+          "scale": 1.5,
+          "seed": 42,
+          "speed": 1.5,
+          "transform": {
+            "edges": "stretch"
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2,
+          "transform": {
+            "edges": "stretch"
+          }
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

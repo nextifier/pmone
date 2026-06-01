@@ -1,0 +1,38 @@
+{
+  "id": "dc52e98f-ad0c-4a71-8418-683ac3f72463",
+  "title": "Dithered Reveal",
+  "collection_id": "4a43334c-df91-458d-bde9-63247e7cf1fe",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "An ice cave interior photographed from within, featuring a solitary figure in dark clothing with an orange/red helmet standing on white snow-covered ground. The cave walls are composed of massive ice formations in shades of white and pale blue-gray, creating dramatic textured surfaces with deep shadows on the left side. Brilliant blue light streams through an opening in the cave ceiling, creating a striking contrast between the cool blue illumination and the warm orange helmet. The composition uses strong directional lighting that emphasizes the three-dimensional ice formations and creates a sense of depth and scale. A dithered texture overlay with a bayer4 pattern adds subtle grain and visual noise throughout the image, enhancing the atmospheric quality. The blend mode of linear dodge on the upper image layer creates a luminous glow effect, particularly visible in the brighter areas where the blue light penetrates. The overall mood is one of exploration, isolation, and awe-inspiring natural beauty, with a cool color temperature dominated by blues and whites contrasted against warm accent colors.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8e16b2a7-bf58-4b82-a609-07330e956de2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzhlMTZiMmE3LWJmNTgtNGI4Mi1hNjA5LTA3MzMwZTk1NmRlMi5qcGciLCJpYXQiOjE3NzkzODUwMDYsImV4cCI6MTgxMDkyMTAwNn0.JThn_dI-5WWhWqNVnWfAW8CywtlyOBEG6QFGMHD9Bgk",
+  "import": "import {\n  Shader,\n  Blob,\n  Dither,\n  ImageTexture,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  Dither,\n  ImageTexture,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader tone-mapping=\"neutral\">\n    <Blob\n      id=\"idmpfrizgqtkwnqtrvg\"\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.65,\n        originX: 0.5,\n        originY: 0.5,\n        momentum: 0.15,\n        smoothing: 0.65\n      }\"\n      :deformation=\"1\"\n      :size=\"0.45\"\n      :softness=\"2\"\n      :speed=\"2\"\n      :visible=\"false\"/>\n    <SolidColor\n      color=\"#08101f\"/>\n    <Dither\n      color-b=\"#30404a\"\n      :pixel-size=\"3\"\n      :spread=\"0.67\"\n      :threshold=\"0.4\">\n      <ImageTexture\n        url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/jtOBXMVnOU2O.jpeg\"/>\n    </Dither>\n    <ImageTexture\n      blend-mode=\"linearDodge\"\n      mask-source=\"idmpfrizgqtkwnqtrvg\"\n      url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/jtOBXMVnOU2O.jpeg\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

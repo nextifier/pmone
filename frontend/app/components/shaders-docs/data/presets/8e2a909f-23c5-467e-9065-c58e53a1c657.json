@@ -1,0 +1,90 @@
+{
+  "id": "8e2a909f-23c5-467e-9065-c58e53a1c657",
+  "title": "Arrow Skies 4",
+  "collectionId": "fea12e25-101d-48a0-83ba-13df1a667892",
+  "category": "background",
+  "description": "A vibrant gradient shader effect transitioning from deep blue (#0000ff) in the upper left to bright yellow (#fff700) in the lower right, creating a diagonal color sweep across the canvas. The gradient uses OKLCH color space for smooth perceptual transitions through purple and magenta tones in the middle regions. Overlaid on this base gradient is a dense ASCII pattern composed of directional arrow characters (↖ and ↗) rendered in a monospace font (JetBrains Mono) at 30-pixel cell size with 1-unit spacing. These ASCII characters are themselves filled with the same yellow-to-blue gradient, creating a cohesive visual effect where the arrows follow the color progression. A subtle wave distortion effect (sine wave, 1.4 frequency, 3.9 speed, 151-degree angle) gently undulates the ASCII characters, creating a fluid, organic movement across the static gradient. A soft yellow circular glow (#ffdd00) with 1.87 radius and 1-unit softness is positioned near the center-right area (approximately 69.5% horizontal, 61.2% vertical), adding a luminous focal point. The overall composition has a linear-dodge blended godray effect with low density (0.1) and 0.7 intensity, creating subtle light rays emanating from the bottom-right corner. The mood is energetic and dynamic, with a strong sense of upward and rightward movement conveyed by the arrow patterns and color gradient direction.",
+  "thumbnail": "/shaders/thumbnails/8e2a909f-23c5-467e-9065-c58e53a1c657.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#fff700",
+          "colorSpace": "oklch",
+          "end": {
+            "x": 0.53,
+            "y": 0.32
+          },
+          "start": {
+            "x": 1,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "Godrays",
+        "props": {
+          "blendMode": "linearDodge",
+          "center": {
+            "x": 1,
+            "y": 1
+          },
+          "density": 0.1,
+          "intensity": 0.7,
+          "opacity": 0.2,
+          "rayColor": "#87b4ff",
+          "speed": 2,
+          "visible": true
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "characters": "↖↖↗↗"
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "colorA": "#fff700",
+              "colorSpace": "oklch",
+              "end": {
+                "x": 0.5,
+                "y": 0
+              },
+              "start": {
+                "x": 0.5,
+                "y": 1
+              }
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 151,
+              "frequency": 1.4,
+              "speed": 3.9,
+              "strength": 0.5
+            }
+          },
+          {
+            "type": "Circle",
+            "props": {
+              "blendMode": "normal-oklch",
+              "center": {
+                "x": 0.7,
+                "y": 0.61
+              },
+              "color": "#ffdd00",
+              "radius": 1.87,
+              "softness": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,61 @@
+{
+  "id": "407f4172-6694-47a3-bbe3-af8d5ea4e0ad",
+  "title": "Redacted Bars 2",
+  "collectionId": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "category": "background",
+  "description": "A dynamic shader effect featuring horizontal glowing lines arranged in a staggered, offset pattern against a very dark forest green background. The lines emit a bright lime-green glow with soft rounded endpoints, creating a neon-like appearance. The lines vary slightly in length and are positioned at different horizontal offsets, creating a sense of depth and movement. The glow has a subtle gradient from bright lime-green (#88df46) to a slightly muted sage-green (#98da83), giving the lines dimensional quality. The overall effect suggests motion or data flow, with the lines appearing to float or stream across the dark background. The contrast between the intense bright green luminescence and the nearly black background creates a high-energy, tech-forward aesthetic reminiscent of terminal displays or digital scanning effects. The lines maintain consistent width with smooth anti-aliased edges and a trailing luminescence effect that suggests velocity or continuous animation.",
+  "thumbnail": "/shaders/thumbnails/407f4172-6694-47a3-bbe3-af8d5ea4e0ad.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0b2102"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmijuosi5e6y2didn",
+          "angle": 186,
+          "colorB": "#cccccc00",
+          "colorSpace": "hsl",
+          "density": 13,
+          "speed": 0.1,
+          "speedVariance": 0.15,
+          "strokeWidth": 0.34,
+          "trailLength": 0.95,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#88df46",
+          "colorB": "#98da83",
+          "colorSpace": "oklab",
+          "edges": "mirror",
+          "end": {
+            "x": 1,
+            "y": 0
+          },
+          "maskSource": "idmmijuosi5e6y2didn",
+          "start": {
+            "x": 0,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "falloff": 0.9,
+          "intensity": 100,
+          "width": 0
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

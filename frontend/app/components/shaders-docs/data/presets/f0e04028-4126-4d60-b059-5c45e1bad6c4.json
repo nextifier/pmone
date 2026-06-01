@@ -1,0 +1,96 @@
+{
+  "id": "f0e04028-4126-4d60-b059-5c45e1bad6c4",
+  "title": "Hex Path 3",
+  "collectionId": "61fcec0d-813b-4847-98e7-6ffa7212d5a9",
+  "category": "background",
+  "description": "A dark, sophisticated shader effect featuring a hexagonal grid pattern as the central focal point. The hexagons are arranged in a roughly rectangular cluster in the center of the composition, with the innermost hexagons glowing bright white (#ffffff) and gradually transitioning to golden-amber tones (#ffb300, #ffb726, #ffde0a) as they extend outward. The hexagons have luminous white outlines that create a neon-like appearance. The background is nearly black (#080808 to #211a12) with a subtle radial gradient that darkens toward the edges, creating depth. Concentric ripple patterns in warm brown (#854f04) emanate from the center, creating subtle wave distortions across the hex grid. A soft glow effect amplifies the brightness of the white and golden hexagons, creating a halo-like luminescence around the central cluster. The overall atmosphere is sleek and technological, with warm golden accents contrasting against the cool darkness. Film grain texture is subtly applied across the entire composition, adding a slight organic quality to the otherwise digital aesthetic. The effect suggests energy or data flow concentrated at the center, with the hexagonal structure implying honeycomb-like organization or network connectivity.",
+  "thumbnail": "/shaders/thumbnails/f0e04028-4126-4d60-b059-5c45e1bad6c4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmoz4cglxvtm21v60i",
+          "center": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5,
+            "momentum": 0.35,
+            "smoothing": 0.2
+          },
+          "softness": 0.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "HexGrid",
+        "props": {
+          "id": "idmoz40cq9qk5jrget0",
+          "colorA": "#00000000",
+          "thickness": {
+            "type": "map",
+            "source": "idmoz4cglxvtm21v60i",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 3,
+            "outputMin": 0.4
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 0
+          },
+          "colorA": "#211a12",
+          "colorB": "#080808",
+          "radius": 1.4
+        }
+      },
+      {
+        "type": "Ripples",
+        "props": {
+          "colorA": "#854f04",
+          "colorB": "#1c1917",
+          "frequency": 11.7,
+          "maskSource": "idmoz40cq9qk5jrget0",
+          "softness": 1.8,
+          "thickness": 0
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#ffffff",
+          "downColor": "#ffb726",
+          "leftColor": "#ffde0a",
+          "maskSource": "idmoz40cq9qk5jrget0",
+          "momentum": 15,
+          "radius": 3.5,
+          "rightColor": "#fab97d",
+          "upColor": "#ffb300"
+        }
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 21,
+          "size": 6,
+          "threshold": 0.1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

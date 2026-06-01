@@ -1,0 +1,34 @@
+{
+  "id": "1a9dc122-2a90-4353-a927-9da3c9fce06c",
+  "title": "Liquid Lenses 2",
+  "collection_id": "b3db9d4b-e81f-41e6-9df5-00df50a351d2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A mesmerizing abstract shader effect featuring concentric swirling patterns with a dominant purple and lavender color palette. The composition consists of two nested circular/spiral forms that create a tunnel-like depth effect. The outer ring displays a soft, blurred transition between light gray (#a6a0bb) and vibrant purple (#7644f1), with smooth gradient blending. The inner circular form maintains similar color relationships but with enhanced saturation and contrast. The swirl effect creates organic, flowing motion lines that spiral inward, giving the impression of movement and depth. A subtle glass-like refraction effect is applied to a ring-shaped element positioned at the bottom-center, creating a glossy, crystalline quality with chromatic aberration visible at the edges. The overall atmosphere is ethereal and dreamlike, with soft focus areas transitioning to sharper details. Film grain texture is subtly applied throughout, adding a slight grittiness that prevents the image from appearing too smooth. The lighting suggests a soft, diffused light source with gentle highlights along the glass element's edges. The color space is linear, providing smooth gradations between the purple and gray tones. Cursor ripples with mirror edge behavior add interactive responsiveness to the effect, creating concentric wave patterns when engaged.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/1a9dc122-2a90-4353-a927-9da3c9fce06c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzFhOWRjMTIyLTJhOTAtNDM1My1hOTI3LTlkYTNjOWZjZTA2Yy5qcGciLCJpYXQiOjE3Nzk5NDA3MzMsImV4cCI6MTgxMTQ3NjczM30.j94-LFWu921We_Y_ILbaldBHDxuU1AcdeuTOM1fKKVQ",
+  "import": "import {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#a6a0bb\"\n      color-b=\"#7644f1\"\n      :detail=\"1.8\"\n      :speed=\"0.2\"/>\n    <CursorRipples\n      :chromatic-split=\"0.3\"\n      :decay=\"1.4\"\n      edges=\"mirror\"\n      :intensity=\"9\"\n      :radius=\"1\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n    <Glass\n      :aberration=\"0.28\"\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0.03\"\n      :fresnel-softness=\"1\"\n      :highlight=\"0.15\"\n      :highlight-softness=\"0.29\"\n      :light-angle=\"276\"\n      :refraction=\"1.96\"\n      :shape=\"{\n        type: 'ringSDF',\n        radius: 0.7,\n        thickness: 0.3\n      }\"\n      shape-type=\"ringSDF\"\n      :thickness=\"1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

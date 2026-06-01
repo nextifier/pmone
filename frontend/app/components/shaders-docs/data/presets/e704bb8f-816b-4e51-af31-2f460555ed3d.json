@@ -1,0 +1,43 @@
+{
+  "id": "e704bb8f-816b-4e51-af31-2f460555ed3d",
+  "title": "Frosted Glass 11",
+  "collectionId": "acc42402-71b9-438d-9006-d8c7df2963af",
+  "category": "logo",
+  "description": "A sophisticated glass morphism shader effect featuring a frosted glass aesthetic with subtle swirling patterns. The composition consists of two overlapping rectangular shapes with rounded corners positioned in the center-right area of the canvas. The primary shape exhibits a soft, translucent quality with a light blue-white gradient transitioning from #ebf6ff to #d3e4f0. A secondary glass element overlays the composition with chromatic aberration effects (0.55 intensity) creating subtle color fringing at edges. The glass surface demonstrates realistic refraction properties with a fresnel effect (0.08 intensity) producing subtle highlights along the edges, particularly visible on the upper-left and lower-right boundaries. A swirling motion effect with speed 1 and detail 1.5 creates organic, flowing patterns within the glass surfaces. The overall atmosphere is ethereal and minimalist, set against a soft, neutral gray background (#d3e4f0). Film grain texture with 0.3 strength adds subtle noise throughout, enhancing the tactile quality. The lighting angle at 336 degrees creates directional highlights with 0.2 intensity, producing a gentle luminous quality. Edge softness of 0.05 creates smooth transitions between the glass shapes and background.",
+  "thumbnail": "/shaders/thumbnails/e704bb8f-816b-4e51-af31-2f460555ed3d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#ebf6ff",
+          "colorB": "#d3e4f0",
+          "detail": 1.5
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.55,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.08,
+          "fresnelSoftness": 0.64,
+          "highlight": 0.2,
+          "highlightSoftness": 0.46,
+          "lightAngle": 336,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/3qJFWUS-Vtnm_sdf.bin",
+          "thickness": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

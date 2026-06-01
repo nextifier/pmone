@@ -1,0 +1,43 @@
+{
+  "id": "785cc637-57c2-4a72-bd1d-99145fadd71e",
+  "title": "Neon Sign",
+  "collection_id": "cd084d1c-0aad-47cd-b889-ff7532d5c79d",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A neon cross symbol rendered against a pure black background with high contrast. The cross features a glowing outline with a gradient color transition from magenta/pink on the upper and left edges to blue on the lower and right edges, creating a dynamic chromatic effect. The neon tube has a thick, luminous glow with an orange-yellow halo radiating outward from the core, suggesting intense heat and energy. The cross shape is geometric with sharp right angles and smooth curved transitions at the corners. The glow creates a soft bloom effect that extends into the surrounding darkness, with the intensity peaking at approximately 1.95 as specified in the shader parameters. Small floating particles with warm golden-orange tones (#ffd4a0) drift subtly around the cross, adding atmospheric depth. The overall effect suggests a glowing neon sign in a dark environment, with the secondary blue color creating a cool-warm color contrast that enhances visual interest. A subtle tilt-shift blur effect is applied, keeping the center sharp while softly defocusing the periphery. The image conveys a modern, digital aesthetic with strong cyberpunk or retro-futuristic styling.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/785cc637-57c2-4a72-bd1d-99145fadd71e.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzc4NWNjNjM3LTU3YzItNGE3Mi1iZDFkLTk5MTQ1ZmFkZDcxZS5qcGciLCJpYXQiOjE3NzMxMTAxMTgsImV4cCI6MTgwNDY0NjExOH0.Mop05VTfMHTBjAfX3vkK0ZT4ehm6lkA4y_HZYJnIeyQ",
+  "import": "import {\n  Shader,\n  FloatingParticles,\n  ImageTexture,\n  Neon,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FloatingParticles,\n  ImageTexture,\n  Neon,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/h7eBDklfg_bz.jpeg\"/>\n    <SolidColor\n      color=\"#000000\"\n      :opacity=\"0.95\"/>\n    <Neon\n      color=\"#ff6a00\"\n      :corner-smoothing=\"0.2\"\n      :flicker-amount=\"0.24\"\n      :flicker-speed=\"1.1\"\n      :flow-amount=\"1\"\n      :flow-speed=\"2.6\"\n      glow-color=\"#ff8800\"\n      :glow-intensity=\"0.25\"\n      :glow-radius=\"0.47\"\n      :hot-core-intensity=\"0.45\"\n      :intensity=\"1.95\"\n      :light-angle=\"251\"\n      :scale=\"0.9\"\n      :secondary-blend=\"1\"\n      secondary-color=\"#0055ff\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/w6Gk_KBfIO2t_sdf.bin\"\n      :specular-intensity=\"0.95\"\n      :specular-size=\"0.32\"\n      :tube-thickness=\"0.29\"/>\n    <FloatingParticles\n      :angle=\"81\"\n      :angle-variance=\"105\"\n      particle-color=\"#ffd4a0\"\n      :particle-density=\"0.8\"\n      :particle-size=\"0.3\"\n      :randomness=\"0.5\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.2\"\n      :twinkle=\"0.7\"/>\n    <TiltShift\n      :angle=\"70\"\n      :falloff=\"0.4\"\n      :intensity=\"80\"\n      :width=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "collection_notes": "In some cases the user may not want this effect to \"flicker\", in which case there's a prop on the Neon component to control that",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "60e11484-87fb-459d-a954-444db36dbcce",
+  "title": "Cloudflare 2",
+  "collection_id": "9f0ff946-be8d-4b19-af0b-c0f0cff8359f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A radial gradient shader effect transitioning from a warm yellow-orange core in the lower left corner to a vibrant orange-red throughout the composition. The effect features a glowing aura with high intensity (2.69) and a glow size of 27.5 pixels, creating a soft luminous halo around the central light source. A circular gradient element centered at coordinates (0, 1) with radius 2 and color #ffbb6e adds a peachy-orange focal point. The composition includes god rays emanating from the lower left (0, 1) with a ray color of #ff4800, creating dramatic light streaks with low spotty value (0.14) for smooth ray distribution. A progressive blur effect with linear dodge blending mode and 270-degree angle creates a directional fade from the center outward. A dot grid pattern with color #faa657 and high density (160) adds fine texture detail with subtle twinkling. The saturation is enhanced at 1.13 intensity, making colors more vivid. The overall atmosphere is warm, energetic, and luminous, resembling a sunset or sunrise with intense light diffusion.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/60e11484-87fb-459d-a954-444db36dbcce.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzYwZTExNDg0LTg3ZmItNDU5ZC1hOTU0LTQ0NGRiMzZkYmNjZS5qcGciLCJpYXQiOjE3NzMxNTc1OTMsImV4cCI6MTgwNDY5MzU5M30.XndRxgBg_H3S3t4O7Ku2UukXAQp721zCSQSIDhPgit4",
+  "import": "import {\n  Shader,\n  Circle,\n  DotGrid,\n  Glow,\n  Godrays,\n  ProgressiveBlur,\n  Saturation,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  DotGrid,\n  Glow,\n  Godrays,\n  ProgressiveBlur,\n  Saturation,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Glow\n      :intensity=\"2.69\"\n      :size=\"27.5\"\n      :threshold=\"0.37\">\n      <Saturation\n        :intensity=\"1.13\">\n        <SolidColor\n          color=\"#ff4000\"/>\n      </Saturation>\n      <Circle\n        blend-mode=\"normal-oklch\"\n        :center=\"{\n          x: 0,\n          y: 1\n        }\"\n        color=\"#ffbb6e\"\n        :radius=\"2\"\n        :softness=\"1\"/>\n      <ProgressiveBlur\n        :angle=\"270\"\n        blend-mode=\"linearDodge\"\n        :center=\"{\n          x: 0.5,\n          y: 0.5\n        }\"\n        :intensity=\"5\">\n        <DotGrid\n          color=\"#faa657\"\n          :density=\"160\"\n          :dot-size=\"0.22\"\n          :twinkle=\"1\"/>\n      </ProgressiveBlur>\n      <Godrays\n        blend-mode=\"linearDodge\"\n        :center=\"{\n          x: 0,\n          y: 1\n        }\"\n        :density=\"0.1\"\n        :intensity=\"1\"\n        ray-color=\"#ff4800\"\n        :speed=\"1.82\"\n        :spotty=\"0.14\"/>\n    </Glow>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

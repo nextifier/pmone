@@ -1,0 +1,30 @@
+{
+  "id": "9340680d-0483-4544-b5f1-795752deed23",
+  "title": "Spectral Bloom 6",
+  "collection_id": "8f28b454-e0a8-4479-98c0-ed684536e957",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": null,
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9340680d-0483-4544-b5f1-795752deed23.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzkzNDA2ODBkLTA0ODMtNDU0NC1iNWYxLTc5NTc1MmRlZWQyMy5qcGciLCJpYXQiOjE3NzkyMTMyNTIsImV4cCI6MTgxMDc0OTI1Mn0.-etCjkB5WLNk_T8B-uR5tMLwpLaAdOeLxUY79TV7XRQ",
+  "import": "import {\n  Shader,\n  ColorWheel,\n  Halftone,\n  SunBurst\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ColorWheel,\n  Halftone,\n  SunBurst\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SunBurst\n      id=\"idmpcwxhawsfhikefj9\"\n      background=\"#00000000\"\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.05,\n        invertX: false,\n        invertY: false,\n        originX: 0.3260437375745527,\n        originY: 0.4531802120141343,\n        momentum: 0.25,\n        smoothing: 0.45\n      }\"\n      color=\"#ffffff\"\n      :feather=\"2.18\"\n      :radius=\"2\"\n      :ray-count=\"8\"\n      :softness=\"0.9\"\n      :speed=\"0\"\n      :visible=\"false\"/>\n    <ColorWheel\n      :angle=\"{\n        mode: 'loop',\n        type: 'auto-animate',\n        speed: 0.2,\n        outputMax: 180,\n        outputMin: -180\n      }\"\n      color-a=\"#ff00ee\"\n      color-b=\"#ffdd00\"\n      color-c=\"#df2dfa\"\n      :scale=\"{\n        type: 'map',\n        source: 'idmpcwxhawsfhikefj9',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 10,\n        outputMin: 0.1\n      }\"/>\n    <Halftone\n      :frequency=\"125\"\n      :misprint=\"0.0055\"\n      :opacity=\"0.05\"\n      style=\"cmyk\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

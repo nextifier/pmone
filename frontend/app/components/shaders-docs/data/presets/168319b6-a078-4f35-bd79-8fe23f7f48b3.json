@@ -1,0 +1,72 @@
+{
+  "id": "168319b6-a078-4f35-bd79-8fe23f7f48b3",
+  "title": "Neon Flow 6",
+  "collectionId": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "category": "background",
+  "description": "A smooth, flowing gradient shader effect featuring a soft blend of cyan and magenta tones with organic, undulating shapes. The composition shows a large swirling vortex pattern emanating from the upper left, transitioning through purple and pink hues toward the lower right. A prominent blob-like formation is centered slightly right and below the middle, creating a luminous focal point with soft, feathered edges. The overall effect has a dreamy, ethereal quality with subtle wave distortions creating gentle ripples across the surface. Fine film grain texture adds subtle noise throughout. Chromatic aberration creates minimal color fringing at edges, enhancing depth perception. The colors flow seamlessly using oklab color space for smooth transitions between the cool cyan (#76d3f5, #7dd3fc) and warm magenta/purple tones (#b569ff, #e0aaff). The effect appears to be gently animated with soft, organic movement. Highlights suggest a three-dimensional quality with subtle lighting from the upper left. The overall mood is calming and contemporary, with a vaporwave aesthetic.",
+  "thumbnail": "/shaders/thumbnails/168319b6-a078-4f35-bd79-8fe23f7f48b3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 45,
+          "colorA": "#76d3f5",
+          "colorB": "#b569ff",
+          "colorSpace": "oklab",
+          "detail": 1.8,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.72,
+            "y": 0.62
+          },
+          "colorA": "#7dd3fc",
+          "colorB": "#e0aaff",
+          "colorSpace": "oklab",
+          "deformation": 0.8,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.3,
+          "highlightX": 0.4,
+          "highlightY": -0.4,
+          "highlightZ": 0.6,
+          "seed": 17,
+          "size": 1.15,
+          "softness": 2.4,
+          "speed": 0.9
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 122,
+          "edges": "mirror",
+          "frequency": 2.4,
+          "speed": 1.8,
+          "strength": 0.18
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 45,
+          "blueOffset": 1.2,
+          "redOffset": -1.2,
+          "strength": 0.015
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.12
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

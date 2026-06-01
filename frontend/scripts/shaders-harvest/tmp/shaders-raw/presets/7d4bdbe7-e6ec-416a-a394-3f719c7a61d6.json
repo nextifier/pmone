@@ -1,0 +1,34 @@
+{
+  "id": "7d4bdbe7-e6ec-416a-a394-3f719c7a61d6",
+  "title": "Liquid Lenses",
+  "collection_id": "b3db9d4b-e81f-41e6-9df5-00df50a351d2",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated 3D isometric geometric composition featuring a translucent hexagonal prism or cube-like structure centered in the frame. The primary shape exhibits a frosted glass appearance with subtle internal refractions and light distortions. The color palette transitions smoothly from deep blue tones (#3a77f2) on the left side to cyan and light blue (#33a5ff) on the right side, creating a gradient effect across the form. The background features a soft, blurred blue gradient that complements the foreground geometry. The glass element demonstrates chromatic aberration effects with subtle color fringing at edges, particularly visible at the boundaries between light and shadow. A gentle swirl effect animates the background with organic, flowing patterns that create depth and movement. The overall atmosphere is clean, modern, and ethereal, with soft lighting that creates highlights on the upper surfaces of the geometric form. Fine film grain texture is subtly applied throughout, adding a refined, polished quality. The composition uses isometric perspective, with the shape appearing to float against the gradient background. Cursor ripple effects with mirror-edge behavior create interactive distortions across the entire surface. The lighting angle appears to come from the upper left, creating soft shadows and highlights that enhance the three-dimensional quality of the glass form.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7d4bdbe7-e6ec-416a-a394-3f719c7a61d6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzdkNGJkYmU3LWU2ZWMtNDE2YS1hMzk0LTNmNzE5YzdhNjFkNi5qcGciLCJpYXQiOjE3Nzk5NDA3NzQsImV4cCI6MTgxMTQ3Njc3NH0.vOT86WCRbJB03aTn9Cr41yxzhk5rzghG5nKh8JombLs",
+  "import": "import {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader tone-mapping=\"aces\">\n    <Swirl\n      color-a=\"#3a77f2\"\n      color-b=\"#33a5ff\"\n      :detail=\"1.8\"\n      :speed=\"0.2\"/>\n    <CursorRipples\n      :chromatic-split=\"0.3\"\n      :decay=\"1.4\"\n      edges=\"mirror\"\n      :intensity=\"9\"\n      :radius=\"1\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n    <Glass\n      :aberration=\"0.28\"\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0.03\"\n      :fresnel-softness=\"1\"\n      :highlight=\"0.15\"\n      :highlight-softness=\"0.29\"\n      :light-angle=\"276\"\n      :refraction=\"1.96\"\n      :shape=\"{\n        type: 'polygonSDF',\n        radius: 0.76,\n        sides: 6,\n        rounding: 0,\n        rotation: 0\n      }\"\n      shape-type=\"polygonSDF\"\n      :thickness=\"1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

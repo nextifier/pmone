@@ -1,0 +1,30 @@
+{
+  "id": "4227a1b1-ac39-4fae-bd42-0bb21783f592",
+  "title": "Gradient Grid 6",
+  "collection_id": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A fluid, organic gradient shader effect featuring a smooth blend of warm colors transitioning across the canvas. The primary composition shows deep dark purple (#0a0015) in the lower left corner, flowing diagonally upward and rightward through burnt orange (#c4421a) and bright orange (#ff8c2e), with vibrant magenta-red (#e6174b) accents distributed throughout the upper and right portions. The gradient exhibits soft, blurred transitions with a flowing, liquid-like quality created by the 0.2 distortion parameter, giving the effect an ethereal, almost smoky appearance. A subtle grid pattern with 30 cells is barely visible, rendered in white at 0.01 opacity with linear dodge blending, adding fine texture detail without overwhelming the gradient. Fine film grain at 0.1 strength is applied uniformly across the entire surface, creating a subtle cinematic texture that enhances the depth and prevents the gradient from appearing too smooth or artificial. The overall mood is warm, energetic, and atmospheric, with a sense of movement and fluidity. The edges fade to transparency, creating a seamless blend. The color space uses OKLCH for perceptually uniform color transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/4227a1b1-ac39-4fae-bd42-0bb21783f592.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQyMjdhMWIxLWFjMzktNGZhZS1iZDQyLTBiYjIxNzgzZjU5Mi5qcGciLCJpYXQiOjE3NzQ2MjA0MTMsImV4cCI6MTgwNjE1NjQxM30.bIPGeXSv6BvkiU3XyHBWNgXHwvc8BN9w_3RzvguGpyU",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  FlowingGradient,\n  Grid\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  FlowingGradient,\n  Grid\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FlowingGradient\n      color-b=\"#c4421a\"\n      color-c=\"#ff8c2e\"\n      color-d=\"#e6174b\"\n      :distortion=\"0.2\"\n      :seed=\"40\"\n      :visible=\"true\"/>\n    <Grid\n      blend-mode=\"linearDodge\"\n      :cells=\"30\"\n      :opacity=\"0.01\"\n      :thickness=\"0.4\"/>\n    <FilmGrain\n      :strength=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "id": "35fb093c-10fb-46b4-a38c-16bd9c9607d1",
+  "title": "Ribbon Flows 3",
+  "collectionId": "5e523f88-ad6a-4df5-8e8a-cbdf842ba971",
+  "category": "background",
+  "description": "A smooth, flowing gradient shader effect dominated by purple and yellow tones. The composition features a soft, blurred diamond gradient that transitions from a bright yellow-gold center (#ffe633) positioned slightly off-center toward the lower portion of the canvas, gradually blending into deep purple (#6b0fa3) at the edges. Multiple curved, wave-like lines flow across the upper portion of the image, creating a sense of motion and fluidity. These flowing lines appear to be semi-transparent with soft edges, creating a layered, ethereal quality. The overall effect has a dreamy, atmospheric quality with very soft focus and gentle color transitions. A subtle film grain texture is applied across the entire surface, adding a slight noise pattern that enhances the organic, natural feel. The lighting appears to emanate from the center-bottom area, creating a radiant glow effect that softly illuminates the surrounding purple space. The blend modes and opacity settings create a harmonious, non-harsh color interaction where the yellow and purple complement each other beautifully. The spatial composition suggests depth through color gradation, with warmer tones appearing closer and cooler purples receding into the background.",
+  "thumbnail": "/shaders/thumbnails/35fb093c-10fb-46b4-a38c-16bd9c9607d1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmnwkl123sccj082v5",
+          "amplitude": 0.1,
+          "angle": 196,
+          "frequency": 0.7,
+          "position": {
+            "x": 0.15,
+            "y": 0.2
+          },
+          "softness": 0.5,
+          "speed": 0.8,
+          "thickness": 0.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "DiamondGradient",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.2,
+            "originX": 0.5117903930131005,
+            "originY": 1,
+            "momentum": 0.2,
+            "smoothing": 0.65
+          },
+          "colorA": "#ffe633",
+          "colorB": "#6b0fa3",
+          "colorSpace": "oklab",
+          "rotation": {
+            "type": "map",
+            "curve": 1,
+            "source": "idmnwkl123sccj082v5",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "size": 1.04
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

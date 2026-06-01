@@ -1,0 +1,65 @@
+{
+  "id": "6b6da07d-6430-448c-a9b2-33fa20fec9d8",
+  "title": "Studio Glass 5",
+  "collectionId": "fcb780f9-158b-46fc-86a3-c8c9da14551b",
+  "category": "logo",
+  "description": "A retro pixel-art style alien invader character rendered with modern 3D glass shader effects. The character features a symmetrical blocky silhouette with two large square eye cutouts and a rectangular mouth opening, characteristic of classic arcade game aesthetics. The shape is constructed from cubic voxel-like segments with sharp angular protrusions extending upward and outward from the main body. The glass material creates a luminous, translucent appearance with vibrant color gradients flowing from blue-purple on the left side through magenta in the center to hot pink-red on the right side. The glass surface exhibits strong refraction and chromatic aberration effects, creating a subtle rainbow-like distortion around the edges. A soft white fresnel glow highlights the contours and edges of the character, enhancing the three-dimensional depth. The background features a soft, diffused studio lighting setup with a pale lavender-gray gradient, creating a clean, minimalist environment. The overall lighting is bright and even, with subtle vignetting and ambient illumination that emphasizes the glowing quality of the central character. A fine film grain texture overlays the entire composition, adding subtle visual noise and a polished, contemporary feel to the retro-inspired design.",
+  "thumbnail": "/shaders/thumbnails/6b6da07d-6430-448c-a9b2-33fa20fec9d8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 65,
+          "backIntensity": 25,
+          "brightness": 100,
+          "center": {
+            "x": 0.5,
+            "y": 0.88
+          },
+          "color": "#e6e6ff",
+          "fillAngle": 53,
+          "fillIntensity": 9,
+          "fillSoftness": 94,
+          "keyIntensity": 11,
+          "keySoftness": 100,
+          "lightTarget": 42
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.45,
+          "cutout": true,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.2,
+          "fresnelSoftness": 0.31,
+          "highlight": 0.3,
+          "innerZoom": 1.15,
+          "refraction": 0.35,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/OcAv2bFTPVug_sdf.bin",
+          "thickness": 1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#d81d50",
+              "colorB": "#25b7ba",
+              "colorSpace": "oklch",
+              "speed": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

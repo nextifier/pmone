@@ -1,0 +1,66 @@
+{
+  "id": "7d231e53-2fc8-4413-987a-47c685ab7adf",
+  "title": "Studio Glass 9",
+  "collectionId": "fcb780f9-158b-46fc-86a3-c8c9da14551b",
+  "category": "logo",
+  "description": "A retro 8-bit style alien invader character rendered in vibrant pink and magenta gradient colors, centered against a soft lavender-gray background. The character features a symmetrical blocky silhouette with two large rectangular eye cutouts, four protruding antenna-like protrusions on top, and two leg-like extensions at the bottom, characteristic of classic arcade game aesthetics. The glass shader effect creates a glossy, translucent appearance with subtle refraction and chromatic aberration (0.45 intensity), giving the pink form a luminous, three-dimensional quality with highlights and fresnel reflections along the edges. The background employs a studio lighting setup with soft vignetting and ambient illumination centered slightly lower on the canvas, creating a gentle gradient from cooler purples at the edges to warmer whites in the center. A subtle film grain texture (0.1 strength) overlays the entire composition, adding a nostalgic, slightly textured quality. The overall mood is playful and retro-futuristic, with the glowing pink character appearing to float against the ethereal background.",
+  "thumbnail": "/shaders/thumbnails/7d231e53-2fc8-4413-987a-47c685ab7adf.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 65,
+          "backIntensity": 25,
+          "brightness": 100,
+          "center": {
+            "x": 0.5,
+            "y": 0.88
+          },
+          "color": "#e6e6ff",
+          "fillAngle": 53,
+          "fillIntensity": 9,
+          "fillSoftness": 94,
+          "keyIntensity": 11,
+          "keySoftness": 100,
+          "lightTarget": 42
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.45,
+          "cutout": true,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.2,
+          "fresnelSoftness": 0.31,
+          "highlight": 0.3,
+          "innerZoom": 1.15,
+          "refraction": 0.35,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/OcAv2bFTPVug_sdf.bin",
+          "thickness": 1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 53,
+              "colorA": "#f57fb9",
+              "colorB": "#ff00ff",
+              "colorSpace": "oklch",
+              "speed": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "e847a10c-bdc6-4fa2-8206-a43eaefb21e2",
+  "title": "Vertex Mesh 2",
+  "collection_id": "a13345f7-1203-449c-a719-9bedee3177b9",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, tech-noir shader effect featuring a perspective grid pattern that recedes into the distance. The composition shows a cyan/neon-green (#00ffaa) grid with approximately 29x29 cells rendered with thin 0.2-thickness lines against a very dark navy-black background (#11131f). The grid appears to be distorted and warped, creating a subtle 3D perspective effect that suggests depth and movement. The grid distortion is applied with a decay of 6.4 and radius of 3, creating organic wave-like undulations across the mesh. A concentric spin effect with 5 rings adds subtle rotational animation at 0.3 speed with high randomness (0.91), creating a vortex-like quality at the center. Chromatic aberration with red offset of -1 and blue offset of 1 introduces slight color fringing at the edges of the grid lines, adding a glitchy, digital aesthetic. The overall effect is masked by a circular gradient (radius 3.2 with 2 softness) that creates a vignette-like fade toward the edges. The atmosphere is cyberpunk and digital, with a cool, moody tone dominated by the contrast between the bright neon grid and the deep dark background. The effect conveys motion, depth, and technological sophistication.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e847a10c-bdc6-4fa2-8206-a43eaefb21e2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2U4NDdhMTBjLWJkYzYtNGZhMi04MjA2LWE0M2VhZWZiMjFlMi5qcGciLCJpYXQiOjE3NzIyNTE1OTEsImV4cCI6MTgwMzc4NzU5MX0.PtwglhhFMv7D9CsZF8Szumgh4moKslIj_a_0WnGMYTM",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  Circle,\n  ConcentricSpin,\n  Grid,\n  GridDistortion,\n  Group,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  Circle,\n  ConcentricSpin,\n  Grid,\n  GridDistortion,\n  Group,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#11131f\"\n      :visible=\"true\"/>\n    <Group\n      mask-source=\"idmm5st7oo9avp1hoem\">\n      <SolidColor\n        color=\"#11131f\"\n        :visible=\"true\"/>\n      <Grid\n        :cells=\"29\"\n        color=\"#00ffaa\"\n        :thickness=\"0.2\"/>\n      <ConcentricSpin\n        :center=\"{\n          x: 0,\n          y: 0\n        }\"\n        :intensity=\"60\"\n        :rings=\"5\"\n        :seed=\"42\"\n        :smoothness=\"0\"\n        :speed=\"0.3\"\n        :speed-randomness=\"0.91\"/>\n      <GridDistortion\n        :decay=\"6.4\"\n        :grid-size=\"27\"\n        :intensity=\"5\"\n        :radius=\"3\"/>\n      <ChromaticAberration\n        :strength=\"0.1\"/>\n    </Group>\n    <Circle\n      id=\"idmm5st7oo9avp1hoem\"\n      :center=\"{\n        x: 0,\n        y: 0\n      }\"\n      :radius=\"3.2\"\n      :softness=\"2\"\n      :visible=\"false\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This shader has a high level of detail/contrast or some other factor that may make it hard to read content on top of it. You may want to consider masking the shader behind any content for readability."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

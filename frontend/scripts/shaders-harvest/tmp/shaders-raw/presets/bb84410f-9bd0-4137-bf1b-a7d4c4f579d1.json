@@ -1,0 +1,22 @@
+{
+  "id": "bb84410f-9bd0-4137-bf1b-a7d4c4f579d1",
+  "title": "Neon Flow 8",
+  "collection_id": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, fluid gradient shader effect dominated by warm tones transitioning smoothly across the canvas. The primary visual composition features a large, soft-edged blob centered toward the upper-right area (approximately 72% horizontally) that radiates from yellow-green at the edges to bright yellow in the core, with a subtle white highlight creating depth and dimensionality. A swirling motion effect creates organic, flowing patterns that blend red-magenta tones with cyan-green hues, particularly visible in the lower-left quadrant where sharp color transitions occur. The wave distortion effect at 144 degrees creates subtle undulating ripples across the entire surface, giving the impression of liquid movement. A diagonal gradient sweeps from the upper-left (bright lime-green and cyan) through the center (golden yellow) to the lower-right (deep orange and coral-red). The chromatic aberration effect introduces slight color fringing at high-contrast edges, with red shifting left and blue shifting right, creating a subtle 3D separation effect. Fine film grain texture overlays the entire composition, adding subtle noise that prevents the gradients from appearing too smooth and artificial. The overall atmosphere is energetic and dynamic, with soft blurs and smooth color transitions creating a dreamy, liquid quality. The color space transitions between HSV (for the swirl) and OKLCH (for the blob) create natural, perceptually smooth color blending.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bb84410f-9bd0-4137-bf1b-a7d4c4f579d1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JiODQ0MTBmLTliZDAtNDEzNy1iZjFiLWE3ZDRjNGY1NzlkMS5qcGciLCJpYXQiOjE3NzYwNDgxOTcsImV4cCI6MTgwNzU4NDE5N30.Cb2XN97Xrt1ApyJOPv7O075mJ9rfCFieKjx61TzT4Tk",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"45\"\n      color-a=\"#ff0040\"\n      color-b=\"#00ff88\"\n      color-space=\"hsv\"\n      :detail=\"1.8\"\n      :speed=\"0.8\"/>\n    <Blob\n      :center=\"{\n        x: 0.72,\n        y: 0\n      }\"\n      color-a=\"#ffe600\"\n      color-b=\"#ff00d5\"\n      color-space=\"oklch\"\n      :deformation=\"0.8\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.3\"\n      :highlight-x=\"0.4\"\n      :highlight-y=\"-0.4\"\n      :highlight-z=\"0.6\"\n      :seed=\"17\"\n      :size=\"1.35\"\n      :softness=\"0.85\"\n      :speed=\"0.9\"/>\n    <WaveDistortion\n      :angle=\"144\"\n      edges=\"mirror\"\n      :frequency=\"1.6\"\n      :speed=\"1.8\"\n      :strength=\"0.45\"/>\n    <ChromaticAberration\n      :angle=\"45\"\n      :blue-offset=\"1.2\"\n      :red-offset=\"-1.2\"\n      :strength=\"0.015\"/>\n    <FilmGrain\n      :strength=\"0.12\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    }
+  ]
+}

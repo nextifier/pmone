@@ -1,0 +1,18 @@
+{
+  "id": "0432a9a5-b550-4f73-81ff-321ba0ded0c1",
+  "title": "Redacted Bars 6",
+  "collection_id": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic neon shader effect featuring vertical falling lines with a gradient color transition. The background is a deep dark navy blue (#0a0d2b) providing a dark canvas. Overlaid are numerous vertical lines that appear to be falling or streaming downward at approximately 79 degrees, creating a sense of motion and depth. These lines transition from bright magenta/pink (#ff1f77) at the top-left to vibrant blue (#1000ff) at the bottom-right through a linear gradient. The lines have a glowing neon quality with soft edges and varying opacity, creating a trail effect as they descend. The overall composition suggests a cyberpunk or digital rain aesthetic with approximately 13 lines of varying brightness distributed across the frame. The gradient mask applied to the falling lines creates a smooth color transition from hot pink through purple to electric blue. The effect has a modern, tech-forward atmosphere with high contrast between the dark background and the luminous neon lines.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/0432a9a5-b550-4f73-81ff-321ba0ded0c1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzA0MzJhOWE1LWI1NTAtNGY3My04MWZmLTMyMWJhMGRlZDBjMS5qcGciLCJpYXQiOjE3NzMwMjgxNDcsImV4cCI6MTgwNDU2NDE0N30.6XKfbEQDiDtMJzY39kqKRPJBCc9vAgYyJFEeytaDTpI",
+  "import": "import {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0d2b\"/>\n    <FallingLines\n      id=\"idmmijuosi5e6y2didn\"\n      :angle=\"79\"\n      color-b=\"#cccccc00\"\n      color-space=\"oklab\"\n      :density=\"13\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.15\"\n      :stroke-width=\"0.34\"\n      :trail-length=\"0.95\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#ff1f77\"\n      color-b=\"#1000ff\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 1,\n        y: 1\n      }\"\n      mask-source=\"idmmijuosi5e6y2didn\"\n      :start=\"{\n        x: 0,\n        y: 0\n      }\"/>\n    <TiltShift\n      :falloff=\"0.9\"\n      :intensity=\"100\"\n      :width=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ]
+}

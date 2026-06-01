@@ -1,0 +1,78 @@
+{
+  "id": "62e672fc-8bfc-4d9a-9c80-4e1063bd04c6",
+  "title": "Quantum 2",
+  "collectionId": "b3c3c82d-d12f-404f-9f61-e43d9f4f85e0",
+  "category": "background",
+  "description": "A vibrant, fluid gradient shader effect featuring soft, organic color transitions across the entire canvas. The composition displays a dynamic swirl of purple and magenta tones on the left side that smoothly blend into cyan and turquoise in the center, transitioning to yellow-green and mint green on the right side. The effect creates a dreamy, liquid-like appearance with smooth color gradients and soft edges. A prominent blob-like form with subtle 3D highlights appears in the upper-right quadrant, centered around coordinates (0.65, 0.35), adding depth and dimension. Wave distortions create subtle undulating patterns throughout, giving the effect a flowing, water-like quality. The overall atmosphere is ethereal and pastel-like, with soft focus and gentle color bleeding between regions. Chromatic aberration introduces slight color separation at the edges, creating a subtle iridescent quality. Fine film grain texture overlays the entire composition, adding a subtle noise pattern that prevents the effect from appearing too smooth or artificial. The color transitions are smooth and organic, with no hard edges, creating a cohesive, unified visual experience.",
+  "thumbnail": "/shaders/thumbnails/62e672fc-8bfc-4d9a-9c80-4e1063bd04c6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 35,
+          "colorA": "#7907bc",
+          "colorB": "#2bb3c4",
+          "colorSpace": "oklch",
+          "detail": 2.4,
+          "speed": 0.4
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.65,
+            "y": 0.35
+          },
+          "colorA": "#50c3a3",
+          "colorB": "#39c1c1",
+          "colorSpace": "oklch",
+          "deformation": 0.75,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.4,
+          "highlightZ": 0.5,
+          "size": 0.85,
+          "softness": 1.2,
+          "speed": 0.3,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 167,
+          "edges": "mirror",
+          "frequency": 2.2,
+          "speed": 0.8,
+          "strength": 0.25,
+          "visible": true
+        }
+      },
+      {
+        "type": "FlowField",
+        "props": {
+          "detail": 1.1,
+          "speed": 0.6,
+          "strength": 0.1
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 212,
+          "blueOffset": 0.8,
+          "greenOffset": -2,
+          "redOffset": 1.9,
+          "strength": 0.25
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {}
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

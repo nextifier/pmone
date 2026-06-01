@@ -1,0 +1,30 @@
+{
+  "id": "bf926982-ef8c-4773-bf0f-21c411daae69",
+  "title": "Illuminated Clouds 9",
+  "collection_id": "2abc4383-72b2-4372-95c8-968385824d76",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect dominated by warm earth tones transitioning from deep burgundy and dark brown in the center to golden-orange and amber hues at the edges. The composition features a smooth, flowing gradient with organic, cloud-like distortions that create a sense of movement and turbulence. The effect appears to simulate a molten or fiery atmosphere with soft, blurred transitions between color zones. A subtle film grain texture overlays the entire surface, adding a cinematic quality and slight visual noise. The darkest areas concentrate in the left-center portion (#1a0805), while warmer golden tones (#ffd726) emerge from the right and upper edges, creating a directional light source effect. The overall mood is warm, dramatic, and somewhat ominous, resembling either a sunset through smoke, molten lava, or an abstract representation of fire and heat. The edges fade with transparency, creating a vignette-like effect that draws focus toward the center.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bf926982-ef8c-4773-bf0f-21c411daae69.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JmOTI2OTgyLWVmOGMtNDc3My1iZjBmLTIxYzQxMWRhYWU2OS5qcGciLCJpYXQiOjE3NzY3MDg2OTEsImV4cCI6MTgwODI0NDY5MX0.XEMCkQhC-m8gGWZm3nbq6QYEP2Fvj6Kn0-Q2EXiM8Xg",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  FlowingGradient,\n  Fog,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  FlowingGradient,\n  Fog,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#1a0805\"/>\n    <Fog\n      id=\"idmo78g2qa8dpr72ig3\"\n      :blending=\"0.9\"\n      color-b=\"#000000\"\n      :detail=\"3\"\n      :mouse-influence=\"0.4\"\n      :seed=\"617\"\n      :visible=\"false\"/>\n    <FlowingGradient\n      color-a=\"#1f0400\"\n      color-b=\"#4a0e1c\"\n      color-c=\"#ff2d05\"\n      color-d=\"#ffd726\"\n      :distortion=\"0\"\n      mask-source=\"idmo78g2qa8dpr72ig3\"\n      mask-type=\"luminance\"\n      :seed=\"71\"\n      :speed=\"4\"/>\n    <FilmGrain\n      :strength=\"0.075\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

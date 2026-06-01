@@ -1,0 +1,30 @@
+{
+  "id": "210fb270-8ff1-4854-8a35-4249c1cb5978",
+  "title": "Ascii Tunnel 4",
+  "collection_id": "6ed04980-c582-442a-bf3b-5422f455a70d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A striking digital visualization featuring a dark, deep space-like environment with a dominant dark navy-black background (#0c151c). The composition is built around a 3D torus structure that creates a tunnel or vortex effect, with radiating lines of ASCII characters (┉╳┉╳) extending outward in multiple directions from the center. The lines are composed of falling vertical strokes rendered in a gradient that transitions from bright blue (#6d82f5) to vibrant purple (#8137d3), creating a luminous, neon-like quality. The ASCII characters form diagonal bands that converge toward a central vanishing point, creating a strong sense of depth and perspective. The lines have a pixelated, retro-digital aesthetic with slight transparency and glow effects. The overall mood is cyberpunk and futuristic, with the purple-blue color palette evoking a sense of digital energy and movement. The falling lines effect adds animation-like motion trails, while the 3D torus provides structural geometry beneath the ASCII layer. The composition uses radial symmetry with lines radiating outward from the center both horizontally and vertically, creating a kaleidoscopic, tunnel-like effect. The lighting is minimal with no traditional illumination, relying instead on the self-emissive quality of the colored lines against the dark background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/210fb270-8ff1-4854-8a35-4249c1cb5978.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzIxMGZiMjcwLThmZjEtNDg1NC04YTM1LTQyNDljMWNiNTk3OC5qcGciLCJpYXQiOjE3NzM1NDgyMjYsImV4cCI6MTgwNTA4NDIyNn0.0Hxp-kNIutVE7Ag7KURd_MOmCrv4CIs617yEYdgyy2o",
+  "import": "import {\n  Shader,\n  Ascii,\n  FallingLines,\n  Form3D,\n  RadialGradient,\n  StudioBackground\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  FallingLines,\n  Form3D,\n  RadialGradient,\n  StudioBackground\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader color-space=\"srgb\">\n    <RadialGradient\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      color-a=\"#180726\"\n      color-b=\"#0f0f17\"\n      :radius=\"0.8\"\n      :visible=\"false\"/>\n    <StudioBackground\n      :ambient-intensity=\"98\"\n      :ambient-speed=\"5\"\n      :brightness=\"100\"\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      color=\"#0c151c\"\n      :fill-intensity=\"0\"\n      :key-intensity=\"5\"\n      :light-target=\"0\"/>\n    <Ascii\n      :alpha-threshold=\"0.14\"\n      :cell-size=\"12\"\n      characters=\"┉╳┉╳\"\n      :gamma=\"0.25\"\n      :preserve-alpha=\"false\">\n      <Form3D\n        :glossiness=\"0\"\n        :lighting=\"0\"\n        :shape3d=\"{\n          type: 'torus',\n          outerRadius: 102,\n          tubeRadius: 100,\n          rotX: -90,\n          rotY: 0,\n          rotZ: 0,\n          spinX: 0,\n          spinY: 0.5,\n          spinZ: 0\n        }\"\n        shape3d-type=\"torus\"\n        :zoom=\"92\">\n        <FallingLines\n          color-a=\"#6d82f5\"\n          color-b=\"#8137d3\"\n          :density=\"17\"\n          :speed=\"0.25\"\n          :speed-variance=\"0.55\"\n          :stroke-width=\"0.38\"\n          :trail-length=\"0.49\"/>\n      </Form3D>\n    </Ascii>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

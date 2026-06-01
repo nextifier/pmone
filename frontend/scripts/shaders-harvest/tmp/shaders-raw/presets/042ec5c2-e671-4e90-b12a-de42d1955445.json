@@ -1,0 +1,42 @@
+{
+  "id": "042ec5c2-e671-4e90-b12a-de42d1955445",
+  "title": "Holofoil 6",
+  "collection_id": "0234a72c-9666-4ed8-bc62-0ffa9393f58c",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "Two interlocking circular rings rendered with a glossy glass material effect against a pure black background. The rings feature a gradient color transition from vibrant magenta on the left side to soft pink and light cyan on the right side, creating a smooth chromatic shift across the forms. The glass shader produces a subtle frosted appearance with visible fresnel highlights along the edges, particularly noticeable as bright white reflections on the upper portions of both rings. The rings have a thickness of approximately 5% of their diameter and are positioned at a slight 3D angle, with the upper ring appearing to pass behind the lower ring, creating depth and dimensionality. A very subtle halftone pattern (CMYK style at 17% opacity) is visible as a fine dot texture overlay, adding a print-like quality to the otherwise smooth surfaces. The lighting angle at 224 degrees creates directional highlights that enhance the glass-like refraction and give the rings a luminous, three-dimensional quality. The overall effect is modern, sleek, and has a premium aesthetic with the gradient colors suggesting motion or energy flowing through the interlocked forms.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/042ec5c2-e671-4e90-b12a-de42d1955445.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzA0MmVjNWMyLWU2NzEtNGU5MC1iMTJhLWRlNDJkMTk1NTQ0NS5qcGciLCJpYXQiOjE3Nzg1MTQ3MTYsImV4cCI6MTgxMDA1MDcxNn0.agDgqMb93DYIDefeAf7Q3S_Lh3UGIATPK2bkbqbpe2M",
+  "import": "import {\n  Shader,\n  ColorWheel,\n  Glass,\n  Halftone,\n  SolidColor,\n  WorleyNoise\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ColorWheel,\n  Glass,\n  Halftone,\n  SolidColor,\n  WorleyNoise\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <WorleyNoise\n      id=\"idmp1dieut6oaemps9r\"\n      :balance=\"0.8\"\n      :contrast=\"4\"\n      distance=\"chebyshev\"\n      :jitter=\"0.5\"\n      mode=\"f2MinusF1\"\n      :scale=\"50\"\n      :seed=\"35\"\n      :visible=\"false\"/>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <Glass\n      :aberration=\"0\"\n      :cutout=\"true\"\n      :fresnel=\"0.19\"\n      :fresnel-softness=\"0.26\"\n      :highlight=\"0.4\"\n      :highlight-softness=\"0.6\"\n      :light-angle=\"224\"\n      :refraction=\"1.05\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/NEnjqh3-kdfX_sdf.bin\"\n      :thickness=\"0.05\">\n      <ColorWheel\n        :angle=\"-39\"\n        color-a=\"#7dfbff\"\n        color-b=\"#3ef7a1\"\n        color-c=\"#ff00bf\"\n        color-space=\"oklab\"\n        mode=\"custom\"\n        :scale=\"{\n          type: 'map',\n          curve: 0,\n          source: 'idmp1dieut6oaemps9r',\n          channel: 'luminance',\n          inputMax: 1,\n          inputMin: 0,\n          outputMax: 4.1,\n          outputMin: 4\n        }\"\n        :speed=\"0.3\"/>\n      <Halftone\n        :frequency=\"151\"\n        :opacity=\"0.17\"\n        style=\"cmyk\"/>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

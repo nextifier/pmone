@@ -1,0 +1,64 @@
+{
+  "id": "4c0ad7ef-2872-45c9-ab1d-81d468fedd4b",
+  "title": "Backlit Smoke 4",
+  "collectionId": "461997f6-0e61-47bc-ab99-69d12423a7fc",
+  "category": "logo",
+  "description": "A 3D isometric hexagonal cube rendered with a sophisticated glass shader effect against a pure black background. The cube features a hollow interior with transparent geometry, creating a sense of depth and dimensionality. The surface exhibits a frosted glass appearance with subtle white highlights along the edges, particularly visible on the top and right-facing surfaces. A soft peachy-pink fresnel glow (#ff9b8c) appears along the edges where light refracts through the glass material, creating a warm rim-light effect. Below the cube, a dark shadow is cast on the surface, enhancing the three-dimensional presence. Subtle smoke or particle effects in light gray and dark blue tones (#ccdce6 and #151724) swirl around the cube, creating atmospheric movement and depth. The overall lighting suggests a single directional light source from the upper left at approximately 300 degrees, creating sharp highlights and soft shadows. The glass material has a high refractive index (1.5) with minimal aberration, maintaining clarity while adding subtle distortion. The composition is centered and symmetrical, with the cube positioned in the upper-center portion of the frame, leaving negative space below.",
+  "thumbnail": "/shaders/thumbnails/4c0ad7ef-2872-45c9-ab1d-81d468fedd4b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "SmokeFill",
+        "props": {
+          "colorA": "#ccdce6",
+          "colorB": "#151724",
+          "colorDecay": 0.2,
+          "detail": 4,
+          "dissipation": 0.1,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5
+          },
+          "gravity": -2,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "edgeSoftness": 0.15,
+          "fresnel": 0.18,
+          "fresnelColor": "#ff9b8c",
+          "fresnelSoftness": 0.24,
+          "refraction": 1.5,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.6
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.6,
+              "frequency": 0.1,
+              "softness": 0.3,
+              "speed": 0.6
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

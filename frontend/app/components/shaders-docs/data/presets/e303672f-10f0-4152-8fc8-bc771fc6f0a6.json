@@ -1,0 +1,60 @@
+{
+  "id": "e303672f-10f0-4152-8fc8-bc771fc6f0a6",
+  "title": "Radial Overlap 9",
+  "collectionId": "8bf4f5c0-a1d9-4f4a-ba81-191a560112d2",
+  "category": "background",
+  "description": "A dynamic radial shader effect featuring sharp, angular light rays emanating from the lower-left corner toward the upper-right, creating a sense of motion and energy. The composition uses alternating bands of bright yellow (#ffff52) and white (#ffffff) that form triangular wedge shapes, progressively narrowing as they extend outward. The effect creates a starburst or speed-line pattern reminiscent of motion blur or light refraction. The white areas serve as negative space between the yellow rays, enhancing the contrast and directional flow. The edges fade smoothly to transparency, creating a soft vignette effect around the perimeter. The overall atmosphere is bright, energetic, and luminous, with a clean geometric quality. The pixelation effect is subtly applied, particularly visible in the gradient transitions between colors, adding a subtle digital texture without overwhelming the smooth radial gradient foundation. The blend of the swirl component creates organic color mixing between the white and yellow, while the conic gradient (though not visible in the final render) provides the underlying structural framework for the ray pattern.",
+  "thumbnail": "/shaders/thumbnails/e303672f-10f0-4152-8fc8-bc771fc6f0a6.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ConicGradient",
+        "props": {
+          "id": "idmpiichpr7x5ibv89b",
+          "center": {
+            "x": 0,
+            "y": 1
+          },
+          "colorA": "#ffffff",
+          "colorB": "#ffffff00",
+          "repeat": 3,
+          "rotation": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 0.1,
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "visible": false
+        }
+      },
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#ffffff",
+          "colorB": "#ffff52",
+          "colorSpace": "oklab",
+          "detail": 1.7,
+          "visible": true
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "scale": {
+            "type": "map",
+            "curve": -0.65,
+            "source": "idmpiichpr7x5ibv89b",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 93,
+            "outputMin": 1
+          }
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

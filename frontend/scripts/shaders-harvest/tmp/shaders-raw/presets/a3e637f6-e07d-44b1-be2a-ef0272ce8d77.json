@@ -1,0 +1,30 @@
+{
+  "id": "a3e637f6-e07d-44b1-be2a-ef0272ce8d77",
+  "title": "Drifting Contours 6",
+  "collection_id": "099c55ec-a478-44bf-abaa-eaf863f34870",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated abstract shader composition featuring a flowing, organic wave-like form rendered in gradient tones. The primary visual element is a smooth, undulating surface with contour lines that create a topographic map effect. The background transitions from deep blue on the left to purple-tinted blue on the right, creating atmospheric depth. Overlaid on this are delicate golden-yellow contour lines that follow the organic curves of the central blob form, creating approximately 30 distinct line levels that emphasize the three-dimensional topology. The blob itself appears to be a soft, luminous form with subtle internal gradients shifting between muted gold-tan and cool blue-gray tones, positioned slightly left of center. A gentle highlight effect creates a subtle luminous quality on the upper-left portion of the blob. The contour lines are crisp and well-defined with approximately 1.5-pixel width, creating a technical, almost scientific visualization aesthetic. The overall effect combines organic fluidity with geometric precision, suggesting data visualization or topographic mapping. The liquify effect adds subtle warping and distortion to the edges, softening the transition between the form and background. The composition has a calm, meditative quality with smooth gradients and no harsh edges.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/a3e637f6-e07d-44b1-be2a-ef0272ce8d77.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2EzZTYzN2Y2LWUwN2QtNDRiMS1iZTJhLWVmMDI3MmNlOGQ3Ny5qcGciLCJpYXQiOjE3NzI2NTgwOTksImV4cCI6MTgwNDE5NDA5OX0.ZFzr5WfWD0_pfFh8wPHz6iQN7dlY5OGRgaQC28S7OWs",
+  "import": "import {\n  Shader,\n  Blob,\n  ContourLines,\n  Liquify,\n  Plasma\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ContourLines,\n  Liquify,\n  Plasma\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Plasma\n      :balance=\"29\"\n      color-a=\"#d65188\"\n      color-b=\"#215597\"\n      :contrast=\"0.7\"\n      :density=\"0.9\"\n      :warp=\"0.3\"/>\n    <ContourLines\n      :gamma=\"0.1\"\n      :levels=\"30\"\n      line-color=\"#ff4a4a\"\n      :line-width=\"1.5\"\n      source=\"alpha\">\n      <Blob\n        :center=\"{\n          x: 0.15,\n          y: 0.39\n        }\"\n        color-a=\"#c1b861\"\n        color-b=\"#8190ab\"\n        :deformation=\"0.7\"\n        highlight-color=\"#fbffb3\"\n        :highlight-intensity=\"1\"\n        :highlight-x=\"-0.5\"\n        :highlight-y=\"-0.6\"\n        :highlight-z=\"-0.1\"\n        :seed=\"42\"\n        :size=\"0.7\"\n        :softness=\"1\"\n        :speed=\"0.2\"/>\n    </ContourLines>\n    <Liquify\n      :decay=\"0.5\"\n      :intensity=\"1\"\n      :radius=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

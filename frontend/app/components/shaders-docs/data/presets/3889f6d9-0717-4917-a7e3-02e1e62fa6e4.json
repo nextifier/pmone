@@ -1,0 +1,62 @@
+{
+  "id": "3889f6d9-0717-4917-a7e3-02e1e62fa6e4",
+  "title": "Dither Wave 6",
+  "collectionId": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "category": "background",
+  "description": "A smooth, gradient-based shader effect displaying a horizontal color transition from left to right. The left side features a vibrant magenta/pink (#df5fc7) that gradually transitions through purple and blue tones in the center, eventually shifting to a bright lime-green (#93e142) on the right side. The gradient uses the OKLab color space for smooth perceptual transitions. Overlaid on this base gradient is a second diagonal gradient that runs from the upper-left to lower-right, transitioning from deep blue (#1925d2) to magenta (#d65be6), creating a complex multi-directional color blend. The entire composition is rendered with a halftone dot pattern that becomes increasingly sparse and visible toward the edges, particularly noticeable in the lower-left and upper-right corners where the dots are more pronounced. This dithering effect creates a subtle texture that adds depth and visual interest to the smooth gradients. The overall mood is vibrant and modern, with a soft, diffused quality created by the blended gradients and the fine dot pattern texture.",
+  "thumbnail": "/shaders/thumbnails/3889f6d9-0717-4917-a7e3-02e1e62fa6e4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 180,
+          "colorA": "#93e142",
+          "colorB": "#df5fc7",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "id": "idmgijmh7s6y9u9f0ao",
+          "opacity": 0,
+          "pixelSize": 5,
+          "threshold": 0.24,
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.1,
+              "angle": 146,
+              "frequency": 1.4,
+              "softness": 0.79,
+              "thickness": 0.81
+            }
+          }
+        ]
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#1925d2",
+          "colorB": "#d65be6",
+          "colorSpace": "oklab",
+          "end": {
+            "x": 0.83,
+            "y": 0.87
+          },
+          "maskSource": "idmgijmh7s6y9u9f0ao",
+          "start": {
+            "x": 0.08,
+            "y": 0.06
+          }
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

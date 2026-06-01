@@ -1,0 +1,34 @@
+{
+  "id": "853045b7-ec5a-4913-a8f0-7d794664f219",
+  "title": "Digital Activation 8",
+  "collection_id": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated digital shader effect featuring a three-dimensional spherical or teardrop-shaped form rendered with a glass-like material against a near-black background. The shape is filled with a dense grid of small yellow-gold square pixels or dots arranged in a regular pattern, creating a pixelated texture that follows the contours of the 3D form. The yellow elements (#ffe100) transition from bright and saturated on the right side to darker and more subdued on the left side, suggesting volumetric lighting and depth. A subtle spiral gradient emanates from the lower portion of the shape, blending from dark navy blue (#0a131f) to bright yellow, creating a sense of rotational energy and movement. The glass material exhibits chromatic aberration effects with a slight rainbow-like color separation at the edges, particularly visible along the curved boundaries. The overall composition has a dark, atmospheric quality with a faint background dot grid pattern in dark gray (#292936), adding subtle texture to the void. The lighting appears to come from the upper right, creating highlights and dimensional depth on the glossy surface. The effect conveys a sense of technological sophistication, digital transformation, and dynamic energy.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/853045b7-ec5a-4913-a8f0-7d794664f219.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzg1MzA0NWI3LWVjNWEtNDkxMy1hOGYwLTdkNzk0NjY0ZjIxOS5qcGciLCJpYXQiOjE3NzMxNzI5ODIsImV4cCI6MTgwNDcwODk4Mn0.Le8FIddag_yWlwVSlMVyZ12rH2SjN_MTjqyGAP4nAFw",
+  "import": "import {\n  Shader,\n  Ascii,\n  DotGrid,\n  Glass,\n  SolidColor,\n  Spiral\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  DotGrid,\n  Glass,\n  SolidColor,\n  Spiral\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0e0f14\"/>\n    <DotGrid\n      color=\"#292936\"\n      :density=\"49\"\n      :dot-size=\"0.1\"/>\n    <Glass\n      :aberration=\"0.8\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0\"\n      :fresnel-softness=\"0.23\"\n      :highlight=\"0\"\n      :highlight-softness=\"0.16\"\n      :light-angle=\"274\"\n      :refraction=\"2\"\n      :scale=\"1.45\"\n      :shape=\"{\n        type: 'roundedRectSDF',\n        radius: 0.48,\n        height: 0.25,\n        rounding: 0.5,\n        rotation: 32\n      }\"\n      shape-sdf-url=\"\"\n      shape-type=\"circleSDF\">\n      <SolidColor\n        color=\"#0e0f14\"/>\n      <Ascii\n        characters=\"◘•\"\n        :gamma=\"0.55\"\n        :spacing=\"0.8\">\n        <Spiral\n          :center=\"{\n            x: 0,\n            y: 0.8\n          }\"\n          color-a=\"#0a131f\"\n          color-b=\"#ffe100\"\n          :softness=\"0.4\"/>\n      </Ascii>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

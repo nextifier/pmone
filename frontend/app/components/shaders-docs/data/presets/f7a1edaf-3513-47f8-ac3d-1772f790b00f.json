@@ -1,0 +1,72 @@
+{
+  "id": "f7a1edaf-3513-47f8-ac3d-1772f790b00f",
+  "title": "Neon Flow 4",
+  "collectionId": "f9758107-9fef-4a2c-9b6f-b0f177315e72",
+  "category": "background",
+  "description": "A dynamic, fluid gradient shader effect featuring smooth color transitions across the entire canvas. The composition displays a swirling vortex pattern with a dominant purple-to-teal color gradient flowing diagonally from upper left to lower right. A bright lime-green blob with soft, organic edges is positioned in the upper-center area, creating a luminous focal point. The effect incorporates wave distortion that creates subtle undulating ripples throughout the composition, giving the impression of liquid movement. A bright magenta-to-purple swirl emanates from the left side, blending smoothly into yellow-green tones in the center, then transitioning to cyan and teal on the right. The overall aesthetic is highly saturated and vibrant with soft, feathered edges that fade to transparent at the boundaries. Chromatic aberration introduces subtle color fringing at high-contrast edges, while film grain adds a fine texture overlay. The lighting appears to have a subtle 3D quality with highlights suggesting depth, creating an almost holographic or iridescent appearance. The entire effect conveys fluidity, motion, and energy with a dreamlike, abstract quality.",
+  "thumbnail": "/shaders/thumbnails/f7a1edaf-3513-47f8-ac3d-1772f790b00f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 45,
+          "colorA": "#4e0149",
+          "colorB": "#058d92",
+          "colorSpace": "oklch",
+          "detail": 1.8,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.48,
+            "y": 0
+          },
+          "colorA": "#7657f0",
+          "colorB": "#79eb0b",
+          "colorSpace": "oklch",
+          "deformation": 0.8,
+          "highlightColor": "#ffffff",
+          "highlightIntensity": 0.3,
+          "highlightX": 0.4,
+          "highlightY": -0.4,
+          "highlightZ": 0.6,
+          "seed": 17,
+          "size": 1.35,
+          "softness": 3,
+          "speed": 0.9
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 144,
+          "edges": "mirror",
+          "frequency": 1.8,
+          "speed": 1.8,
+          "strength": 0.45
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "angle": 45,
+          "blueOffset": 1.2,
+          "redOffset": -1.2,
+          "strength": 0.015
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.12
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

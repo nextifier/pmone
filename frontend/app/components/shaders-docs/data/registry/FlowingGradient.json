@@ -1,0 +1,123 @@
+{
+  "name": "FlowingGradient",
+  "category": "Textures",
+  "description": "Liquid silk gradient with organic flowing color bands",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "colorA": {
+      "default": "#0a0015",
+      "description": "Deep background color",
+      "ui": {
+        "type": "color",
+        "label": "Color A",
+        "group": "Colors"
+      }
+    },
+    "colorB": {
+      "default": "#6b17e6",
+      "description": "Primary accent color",
+      "ui": {
+        "type": "color",
+        "label": "Color B",
+        "group": "Colors"
+      }
+    },
+    "colorC": {
+      "default": "#ff4d6a",
+      "description": "Secondary accent color",
+      "ui": {
+        "type": "color",
+        "label": "Color C",
+        "group": "Colors"
+      }
+    },
+    "colorD": {
+      "default": "#ff6b35",
+      "description": "Tertiary accent color",
+      "ui": {
+        "type": "color",
+        "label": "Color D",
+        "group": "Colors"
+      }
+    },
+    "colorSpace": {
+      "default": "oklch",
+      "compileTime": true,
+      "description": "Color space for color interpolation",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Linear RGB",
+            "value": "linear"
+          },
+          {
+            "label": "OKLCh",
+            "value": "oklch"
+          },
+          {
+            "label": "OKLAB",
+            "value": "oklab"
+          },
+          {
+            "label": "HSL",
+            "value": "hsl"
+          },
+          {
+            "label": "HSV",
+            "value": "hsv"
+          },
+          {
+            "label": "LCH",
+            "value": "lch"
+          }
+        ],
+        "label": "Color Space",
+        "group": "Colors"
+      }
+    },
+    "speed": {
+      "default": 1,
+      "description": "Animation speed",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 10,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Effect"
+      }
+    },
+    "distortion": {
+      "default": 0.5,
+      "description": "Organic distortion intensity",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 2,
+        "step": 0.1,
+        "label": "Distortion",
+        "group": "Effect"
+      }
+    },
+    "seed": {
+      "default": 0,
+      "description": "Random seed for variation",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Seed",
+        "group": "Effect"
+      }
+    }
+  }
+}

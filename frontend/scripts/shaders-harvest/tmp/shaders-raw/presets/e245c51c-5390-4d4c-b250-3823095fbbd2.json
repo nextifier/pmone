@@ -1,0 +1,30 @@
+{
+  "id": "e245c51c-5390-4d4c-b250-3823095fbbd2",
+  "title": "Crystal Ball 5",
+  "collection_id": "09641523-a2b0-4319-84a2-1d87394ded75",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect featuring a large spherical form centered in the upper-middle portion of the image. The sphere has a deep, glossy appearance with subtle internal lighting that creates a sense of depth and dimensionality. The overall color palette is dominated by very dark navy and near-black tones with hints of deep purple and teal undertones. A vignette effect darkens the edges significantly, creating a tunnel-like focus toward the center. The background exhibits a subtle gradient with warm brownish tones bleeding through the darkness, particularly visible in the lower-middle area. Floating particles with a soft lavender-purple hue (approximately #c5b7ed) drift slowly across the sphere, creating a sense of ethereal movement. A lens flare effect with chromatic aberration is present, contributing subtle rainbow-like color shifts along the edges. The overall mood is mysterious, cosmic, and introspective, with a cinematic quality enhanced by film grain texture overlay. The lighting appears to come from below and behind, creating rim lighting on the spherical form. The effect combines studio lighting simulation with organic particle effects and optical phenomena.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e245c51c-5390-4d4c-b250-3823095fbbd2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2UyNDVjNTFjLTUzOTAtNGQ0Yy1iMjUwLTM4MjMwOTVmYmJkMi5qcGciLCJpYXQiOjE3NzIzMzAyNTgsImV4cCI6MTgwMzg2NjI1OH0.sX8CZ5yp7K8efgzZPO_D7upf8kswo470M0TnDky9Oks",
+  "import": "import {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  FloatingParticles,\n  LensFlare,\n  Spherize,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  FloatingParticles,\n  LensFlare,\n  Spherize,\n  StudioBackground,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"32\"\n      :ambient-speed=\"0.3\"\n      back-color=\"#1a0f2e\"\n      :back-intensity=\"34\"\n      :back-softness=\"61\"\n      :brightness=\"5\"\n      :center=\"{\n        x: 0.5,\n        y: 0.89\n      }\"\n      color=\"#17171c\"\n      :fill-angle=\"84\"\n      fill-color=\"#ffffff\"\n      :fill-intensity=\"55\"\n      :fill-softness=\"100\"\n      key-color=\"#ffffff\"\n      :key-intensity=\"15\"\n      :key-softness=\"70\"\n      :light-target=\"64\"\n      :seed=\"42\"\n      :vignette=\"25\"\n      :wall-curvature=\"42\"/>\n    <Spherize\n      :center=\"{\n        x: 0.5,\n        y: 0.2\n      }\"\n      :depth=\"0.6\"\n      light-color=\"#48637a\"\n      :light-intensity=\"0.1\"\n      :light-position=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :light-softness=\"0.2\"\n      :radius=\"1.7\">\n      <Swirl\n        color-a=\"#0a0a0d\"\n        color-b=\"#0f0f1a\"\n        color-space=\"oklab\"\n        :detail=\"1.2\"\n        :speed=\"0.5\"/>\n      <LensFlare\n        :ghost-chroma=\"0\"\n        :ghost-spread=\"0.78\"\n        :glare-intensity=\"0.15\"\n        :glare-size=\"0.15\"\n        :halo-chroma=\"2\"\n        :halo-intensity=\"0.26\"\n        :halo-radius=\"0.58\"\n        :halo-softness=\"1.1\"\n        :intensity=\"0.37\"\n        :light-position=\"{\n          x: 0.49,\n          y: 1\n        }\"\n        :speed=\"0.9\"\n        :starburst-intensity=\"0.13\"\n        :starburst-points=\"4\"\n        :streak-intensity=\"0\"\n        :streak-length=\"0.21\"/>\n      <FloatingParticles\n        :angle=\"188\"\n        :angle-variance=\"77\"\n        :opacity=\"0.49\"\n        particle-color=\"#c5b7ed\"\n        :particle-size=\"0.6\"\n        :randomness=\"0.3\"\n        :speed=\"0.1\"\n        :speed-variance=\"0.6\"\n        :twinkle=\"1\"/>\n      <CursorRipples\n        :chromatic-split=\"3\"\n        :decay=\"4\"/>\n    </Spherize>\n    <FilmGrain\n      :strength=\"0.05\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

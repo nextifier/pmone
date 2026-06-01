@@ -1,0 +1,18 @@
+{
+  "id": "66524569-4580-426e-86ba-4d5e5e44c56b",
+  "title": "Redacted Bars 8",
+  "collection_id": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A modern neon shader effect featuring diagonal parallel lines arranged at approximately 31 degrees from horizontal, creating a sense of dynamic motion and depth. The lines transition smoothly from hot magenta/pink (#ff1a6d) on the left side through purple and blue hues to bright cyan (#0af0e8) on the right side, creating a vibrant color gradient across the composition. Each line has a glowing, luminescent quality with soft rounded edges and appears to have a trailing effect that suggests movement or velocity. The lines are rendered against a very dark navy-black background (#0a0d2b) which provides high contrast and makes the neon colors appear to glow intensely. The overall effect is reminiscent of speed lines, digital rain, or futuristic motion graphics. The spacing between lines is consistent and uniform, with approximately 13 lines visible across the frame. The gradient transitions smoothly across the spectrum using oklch color space, creating natural color transitions. There is a subtle depth and atmospheric quality enhanced by the tilt-shift effect applied, though with minimal blur intensity. The composition has a strong sense of forward motion and energy, typical of modern tech or gaming interfaces.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/66524569-4580-426e-86ba-4d5e5e44c56b.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzY2NTI0NTY5LTQ1ODAtNDI2ZS04NmJhLTRkNWU1ZTQ0YzU2Yi5qcGciLCJpYXQiOjE3NzMwODM1MDksImV4cCI6MTgwNDYxOTUwOX0.UDiuEIuGoDiCF4YFIEq_qlqQh2DFCrNGUQRryN354yc",
+  "import": "import {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0d2b\"/>\n    <FallingLines\n      id=\"idmmijuosi5e6y2didn\"\n      :angle=\"31\"\n      color-b=\"#cccccc00\"\n      color-space=\"oklab\"\n      :density=\"13\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.15\"\n      :stroke-width=\"0.34\"\n      :trail-length=\"0.95\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#ff1a6d\"\n      color-b=\"#0af0e8\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 1,\n        y: 1\n      }\"\n      mask-source=\"idmmijuosi5e6y2didn\"\n      :start=\"{\n        x: 0,\n        y: 0\n      }\"/>\n    <TiltShift\n      :falloff=\"0.9\"\n      :intensity=\"100\"\n      :width=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "01cdebd0-0085-453f-babd-250c9eb7abb1",
+  "title": "Vibrant Waves 7",
+  "collection_id": "489c993a-b238-4d9d-a155-69c82d555b95",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, flowing gradient shader effect that transitions from deep red (#c41232) in the upper left corner through warm orange (#d4880a) in the center, to golden yellow and peachy tones toward the lower right. The composition features organic, curved wave-like striations that create a sense of depth and movement, resembling layered fabric or liquid surfaces. The waves appear to ripple horizontally across the canvas with varying frequencies - some subtle and broad, others more pronounced and detailed. A soft blob shape with highlights is positioned in the lower right area, adding dimensional depth with warm orange (#f5a623) and pink (#e8365d) tones. The overall effect has a polished, luminous quality with a slight film grain texture overlay that adds subtle noise without disrupting the smooth gradient. The tilt-shift effect creates a gentle focus blur that enhances the three-dimensional appearance. The color space uses oklch for the base swirl and linear for the blob, creating rich, vibrant hues that feel warm and energetic. The entire composition evokes a sense of flowing heat, warmth, and organic movement.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/01cdebd0-0085-453f-babd-250c9eb7abb1.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzAxY2RlYmQwLTAwODUtNDUzZi1iYWJkLTI1MGM5ZWI3YWJiMS5qcGciLCJpYXQiOjE3NzMxMTExNDcsImV4cCI6MTgwNDY0NzE0N30.FmWd0zQrotAoOEI3Gz3OheQYejZqkUHLM12v15jG5Ec",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  Swirl,\n  TiltShift,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  Swirl,\n  TiltShift,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"52\"\n      color-a=\"#d4880a\"\n      color-b=\"#c41232\"\n      color-space=\"oklch\"/>\n    <WaveDistortion\n      :angle=\"182\"\n      edges=\"wrap\"\n      :frequency=\"1.5\"\n      :strength=\"0.15\"\n      :transform=\"{ scale: 1.3 }\">\n      <WaveDistortion\n        :angle=\"58\"\n        edges=\"mirror\"\n        :frequency=\"13\"\n        :speed=\"0.3\"\n        wave-type=\"sawtooth\">\n        <Blob\n          :center=\"{\n            x: 0.58,\n            y: 0.92\n          }\"\n          color-a=\"#f5a623\"\n          color-b=\"#e8365d\"\n          :deformation=\"0.7\"\n          highlight-color=\"#ffc61a\"\n          :highlight-x=\"0.5\"\n          :size=\"0.8\"\n          :softness=\"1\"/>\n      </WaveDistortion>\n    </WaveDistortion>\n    <TiltShift\n      :angle=\"175\"\n      :center=\"{\n        x: 0.45,\n        y: 0.52\n      }\"\n      :intensity=\"90\"\n      :width=\"0.5\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

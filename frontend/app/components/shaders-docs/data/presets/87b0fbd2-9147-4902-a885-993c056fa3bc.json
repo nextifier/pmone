@@ -1,0 +1,53 @@
+{
+  "id": "87b0fbd2-9147-4902-a885-993c056fa3bc",
+  "title": "Dither Wave 5",
+  "collectionId": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "category": "background",
+  "description": "A smooth, horizontally-oriented gradient shader effect transitioning from magenta/pink on the left through coral and salmon tones in the center to golden-orange and bright orange on the right. The gradient uses a linear interpolation across the full width of the canvas. A subtle halftone or dotted texture pattern overlays the entire surface, creating a fine pixelated appearance that adds visual depth and prevents the gradient from appearing too flat. The dot pattern is denser in some areas and creates a gentle, organic feel. The color transition is seamless and uses oklab color space for the primary gradient (red to orange) with a secondary linear gradient (magenta to gold) blending in normal mode. The overall effect is warm and energetic, with no sharp edges or hard transitions. The atmosphere is modern and vibrant, suitable for contemporary design applications. The dotted texture gives it a slightly retro or artistic quality while maintaining a polished, professional appearance.",
+  "thumbnail": "/shaders/thumbnails/87b0fbd2-9147-4902-a885-993c056fa3bc.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 180,
+          "colorA": "#e06519",
+          "colorB": "#df001a",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "id": "idmgijmh7s6y9u9f0ao",
+          "opacity": 0,
+          "pixelSize": 5,
+          "threshold": 0.24,
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.1,
+              "angle": 203,
+              "frequency": 1.4,
+              "softness": 0.79,
+              "thickness": 0.81
+            }
+          }
+        ]
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#d0309a",
+          "colorB": "#e6af18",
+          "maskSource": "idmgijmh7s6y9u9f0ao"
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,27 @@
+{
+  "id": "45387850-754f-45cc-b204-fa953ddcccdd",
+  "title": "Embossed Relief 2",
+  "collection_id": "7afcc3e6-8052-4e03-abf9-e549715a49f9",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A minimalist 3D rendered composition featuring a circular disc with a warm beige background (#f5f2eb). The central element is a white circular form with five horizontal rectangular slats or fins extending diagonally across its surface from upper-left to lower-right. The emboss effect creates pronounced shadows beneath each slat, giving them significant depth and dimensionality. The lighting appears to come from the upper-left, casting soft shadows that enhance the three-dimensional quality of the protruding elements. The overall aesthetic is clean and modern with subtle paper texture overlay adding fine grain detail. The shadows are soft and diffused rather than harsh, creating a sophisticated, product-design quality. The composition uses strong contrast between the white geometric elements and the neutral background, with carefully controlled shadow intensity (0.54) and light intensity (0.35) creating a refined, professional appearance. The paper texture (displacement 0.15, roughness 0.3) adds subtle surface variation without overwhelming the geometric clarity.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/45387850-754f-45cc-b204-fa953ddcccdd.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ1Mzg3ODUwLTc1NGYtNDVjYy1iMjA0LWZhOTUzZGRjY2NkZC5qcGciLCJpYXQiOjE3NzI5NDk2NjgsImV4cCI6MTgwNDQ4NTY2OH0.xlPZtdHLK5W7gj5WUGjAbCcxm08szAZ2nB_tENCrG_0",
+  "import": "import {\n  Shader,\n  Emboss,\n  Paper,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Emboss,\n  Paper,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#f5f2eb\"/>\n    <Emboss\n      :depth=\"0.79\"\n      :light-angle=\"{\n        axis: 'x',\n        type: 'mouse',\n        curve: 0.4,\n        momentum: 0.15,\n        outputMax: 311,\n        outputMin: 240,\n        smoothing: 0.2\n      }\"\n      :light-intensity=\"0.35\"\n      :shadow-intensity=\"0.54\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/LxxV4-VS2bDS_sdf.bin\"/>\n    <Paper/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {"uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide"},
+    {"uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide"},
+    {"uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide"},
+    {"uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide"},
+    {"uri": "shaders://docs/guide/transforms", "label": "Transforms guide"}
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

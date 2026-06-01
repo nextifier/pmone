@@ -1,0 +1,34 @@
+{
+  "id": "2dabb2a6-7b06-4b50-b0c4-6db620ebc26e",
+  "title": "Digital Activation 5",
+  "collection_id": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, sophisticated shader effect featuring a near-black background (#0e0f14) with a subtle dot grid pattern in dark gray (#292936) distributed across the entire canvas. The dominant visual element is a bright lime-green spiral gradient effect (#55ff0a) that emanates from the upper-right portion of the screen, creating a curved, wave-like distortion pattern. The spiral appears to be contained within or interacting with a glass-like refractive element with a ring-shaped boundary, positioned at the top-center of the composition. The green spiral has a soft, glowing quality with smooth falloff edges, creating a sense of depth and luminosity against the dark background. ASCII characters (◘•) rendered in the same bright green color follow the spiral's trajectory, adding a digital, matrix-like aesthetic. The overall effect suggests a futuristic, tech-forward atmosphere with chromatic aberration and refraction properties creating subtle color separation. The composition uses a blend of geometric precision (the dot grid and ring shape) with organic, flowing curves (the spiral), resulting in a balanced, visually striking design with strong contrast between the dark base and the vibrant green accent.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/2dabb2a6-7b06-4b50-b0c4-6db620ebc26e.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzJkYWJiMmE2LTdiMDYtNGI1MC1iMGM0LTZkYjYyMGViYzI2ZS5qcGciLCJpYXQiOjE3NzMxNzI3OTYsImV4cCI6MTgwNDcwODc5Nn0.YNlCmuNSR5w_QagHDO0HeesNTXU9m9UzkZ5oPtmScSU",
+  "import": "import {\n  Shader,\n  Ascii,\n  DotGrid,\n  Glass,\n  SolidColor,\n  Spiral\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  DotGrid,\n  Glass,\n  SolidColor,\n  Spiral\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0e0f14\"/>\n    <DotGrid\n      color=\"#292936\"\n      :density=\"49\"\n      :dot-size=\"0.1\"/>\n    <Glass\n      :aberration=\"0.8\"\n      :center=\"{\n        x: 0.5,\n        y: 0\n      }\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0\"\n      :fresnel-softness=\"0.23\"\n      :highlight=\"0\"\n      :highlight-softness=\"0.16\"\n      :light-angle=\"274\"\n      :refraction=\"2\"\n      :scale=\"1.45\"\n      :shape=\"{\n        type: 'ringSDF',\n        radius: 0.8,\n        thickness: 0.15\n      }\">\n      <SolidColor\n        color=\"#0e0f14\"/>\n      <Ascii\n        characters=\"◘•\"\n        :gamma=\"0.8\"\n        :spacing=\"0.8\">\n        <Spiral\n          :center=\"{\n            x: 0.51,\n            y: 0.22\n          }\"\n          color-a=\"#0a131f\"\n          color-b=\"#55ff0a\"\n          :softness=\"0.4\"/>\n      </Ascii>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

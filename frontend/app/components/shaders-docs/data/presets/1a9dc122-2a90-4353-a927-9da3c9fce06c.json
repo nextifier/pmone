@@ -1,0 +1,63 @@
+{
+  "id": "1a9dc122-2a90-4353-a927-9da3c9fce06c",
+  "title": "Liquid Lenses 2",
+  "collectionId": "b3db9d4b-e81f-41e6-9df5-00df50a351d2",
+  "category": "background",
+  "description": "A mesmerizing abstract shader effect featuring concentric swirling patterns with a dominant purple and lavender color palette. The composition consists of two nested circular/spiral forms that create a tunnel-like depth effect. The outer ring displays a soft, blurred transition between light gray (#a6a0bb) and vibrant purple (#7644f1), with smooth gradient blending. The inner circular form maintains similar color relationships but with enhanced saturation and contrast. The swirl effect creates organic, flowing motion lines that spiral inward, giving the impression of movement and depth. A subtle glass-like refraction effect is applied to a ring-shaped element positioned at the bottom-center, creating a glossy, crystalline quality with chromatic aberration visible at the edges. The overall atmosphere is ethereal and dreamlike, with soft focus areas transitioning to sharper details. Film grain texture is subtly applied throughout, adding a slight grittiness that prevents the image from appearing too smooth. The lighting suggests a soft, diffused light source with gentle highlights along the glass element's edges. The color space is linear, providing smooth gradations between the purple and gray tones. Cursor ripples with mirror edge behavior add interactive responsiveness to the effect, creating concentric wave patterns when engaged.",
+  "thumbnail": "/shaders/thumbnails/1a9dc122-2a90-4353-a927-9da3c9fce06c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#a6a0bb",
+          "colorB": "#7644f1",
+          "detail": 1.8,
+          "speed": 0.2
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "chromaticSplit": 0.3,
+          "decay": 1.4,
+          "edges": "mirror",
+          "intensity": 9,
+          "radius": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.28,
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "edgeSoftness": 0.05,
+          "fresnel": 0.03,
+          "fresnelSoftness": 1,
+          "highlight": 0.15,
+          "highlightSoftness": 0.29,
+          "lightAngle": 276,
+          "refraction": 1.96,
+          "shape": {
+            "type": "ringSDF",
+            "radius": 0.7,
+            "thickness": 0.3
+          },
+          "shapeType": "ringSDF",
+          "thickness": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

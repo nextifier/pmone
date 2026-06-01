@@ -1,0 +1,42 @@
+{
+  "id": "d6a06d00-82cb-429f-994a-26f95087c8c6",
+  "title": "Broken Panel 7",
+  "collection_id": "16730531-0705-470f-a154-788e5336708f",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A dark, high-contrast shader effect displaying a glowing green geometric shape against a pure black background. The central element is a glass-like component with a complex SVG-based shape rendered at 65% scale, featuring bright lime-green highlights (#4dff40) that create a neon glow effect. The shape appears to be pixelated with a scale of 50, creating a blocky, retro-digital aesthetic. Overlaid on the glass component are diagonal falling lines in bright green (#43df20 to #4ebe24) moving at a slow speed (0.25) at a 58-degree angle, creating a cascading matrix-like effect. The lines have a trail length of 0.15 and a stroke width of 0.76, producing thin streaks of light. A reflective plane effect at the bottom creates a subtle mirrored distortion with 4.7 blur and 0.59 distance falloff, suggesting depth and reflection. A dither pattern with bayer2 algorithm and 2-pixel size adds subtle noise texture throughout. The overall atmosphere is cyberpunk and digital, with a glass refraction effect (refraction value of 2) creating subtle light bending around the shape edges. The highlight color (#4dff40) dominates the visual with 0.8 intensity, creating a strong neon appearance. Edge softness of 0.2 provides slight anti-aliasing to the sharp geometric forms.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/d6a06d00-82cb-429f-994a-26f95087c8c6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Q2YTA2ZDAwLTgyY2ItNDI5Zi05OTRhLTI2Zjk1MDg3YzhjNi5qcGciLCJpYXQiOjE3Nzg4MTM2ODAsImV4cCI6MTgxMDM0OTY4MH0.rfagrUf77DNLtFwmd00mPRirDHIJ5AYyTKwvwSftRDU",
+  "import": "import {\n  Shader,\n  Dither,\n  FallingLines,\n  Glass,\n  Pixelate,\n  ReflectivePlane,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  FallingLines,\n  Glass,\n  Pixelate,\n  ReflectivePlane,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#000000\"/>\n    <Glass\n      :aberration=\"0\"\n      :cutout=\"true\"\n      :edge-softness=\"0.2\"\n      :fresnel=\"0\"\n      :fresnel-softness=\"0\"\n      :highlight=\"0.8\"\n      highlight-color=\"#4dff40\"\n      :inner-zoom=\"1.2\"\n      :refraction=\"2\"\n      :scale=\"0.65\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin\"\n      :thickness=\"0.24\">\n      <FallingLines\n        :angle=\"58\"\n        color-a=\"#43df20\"\n        color-b=\"#4ebe24\"\n        :density=\"60\"\n        :rounding=\"0\"\n        :speed=\"0.25\"\n        :speed-variance=\"0.8\"\n        :stroke-width=\"0.76\"\n        :trail-length=\"0.15\"/>\n      <Pixelate\n        :visible=\"true\"/>\n    </Glass>\n    <Dither\n      color-mode=\"source\"\n      pattern=\"bayer2\"\n      :pixel-size=\"2\"/>\n    <ReflectivePlane\n      :blur=\"4.7\"\n      :blur-distance=\"0.14\"\n      :distance=\"0.59\"\n      :falloff=\"1.91\"\n      :height=\"0.75\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

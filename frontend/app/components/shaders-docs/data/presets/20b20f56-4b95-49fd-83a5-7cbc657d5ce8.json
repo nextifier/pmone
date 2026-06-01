@@ -1,0 +1,74 @@
+{
+  "id": "20b20f56-4b95-49fd-83a5-7cbc657d5ce8",
+  "title": "Subtle Liquid 8",
+  "collectionId": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "category": "background",
+  "description": "A smooth, flowing gradient shader effect transitioning from teal-cyan tones on the left side to deep blue on the right side. The primary gradient flows diagonally from lower-left to upper-right, creating a sense of depth and movement. A soft, organic blob shape with subtle iridescent highlights is positioned slightly left of center, featuring colors ranging from turquoise (#2ec4b6) to deeper blue (#0b6e99). The blob has a luminous quality with a bright cyan-green highlight (#7efff0) positioned in the upper-left area, creating a three-dimensional lighting effect. A very subtle dot grid pattern is visible throughout, adding fine texture detail with low opacity (15%). The entire composition is enhanced with a liquify effect that creates gentle wave-like distortions, giving the surface a liquid, undulating quality. A fine film grain texture is applied at low strength (0.18) to add subtle noise and visual interest. The overall atmosphere is serene and ethereal, with soft, diffused lighting and smooth color transitions creating a calming, water-like ambiance.",
+  "thumbnail": "/shaders/thumbnails/20b20f56-4b95-49fd-83a5-7cbc657d5ce8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#0a7a8c",
+          "colorB": "#1b3fa0",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.67,
+            "y": 0.28
+          },
+          "start": {
+            "x": 0.23,
+            "y": 0.7
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.42,
+            "y": 0.55
+          },
+          "colorA": "#2ec4b6",
+          "colorB": "#0b6e99",
+          "colorSpace": "oklch",
+          "deformation": 0.7,
+          "highlightColor": "#7efff0",
+          "size": 0.7,
+          "softness": 1.4,
+          "speed": 1
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "density": 60,
+          "dotSize": 0.08,
+          "opacity": 0.15
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 2.2,
+          "edges": "mirror",
+          "intensity": 1.2,
+          "radius": 2
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.18
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

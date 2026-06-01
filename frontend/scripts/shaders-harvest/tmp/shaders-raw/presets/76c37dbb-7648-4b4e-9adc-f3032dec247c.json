@@ -1,0 +1,30 @@
+{
+  "id": "76c37dbb-7648-4b4e-9adc-f3032dec247c",
+  "title": "Geogrid 9",
+  "collection_id": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant green gradient background featuring an isometric geometric pattern composed of interconnected diamond and chevron shapes. The shapes are rendered with fine diagonal line hatching in a lighter green (#00fa6f) that creates a textured, three-dimensional appearance. Multiple layered geometric forms are positioned at various depths across the composition, creating an illusion of floating 3D blocks or crystalline structures. The wave distortion effect creates subtle undulations across the grid pattern, giving the entire composition a fluid, organic quality despite the rigid geometric structure. The hardLight blend mode on the grid elements causes the lighter green lines to appear luminous and slightly glowing against the darker green base. The overall effect is modern, tech-forward, and dynamic, with a sense of depth and movement created by the combination of the swirl base effect, wave distortion, and grid overlay. The composition has a clean, minimalist aesthetic with precise geometric control.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/efce5619-3f7d-4ef2-b0fc-d952ee2d9aaa.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2VmY2U1NjE5LTNmN2QtNGVmMi1iMGZjLWQ5NTJlZTJkOWFhYS5qcGciLCJpYXQiOjE3NjM0OTYwMTEsImV4cCI6MTc5NTAzMjAxMX0.7zdjqZIsDDn-1qWTjegidhiqCcS8orUnf0qCFYmWrLs",
+  "import": "import {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :coarse-x=\"26\"\n      :coarse-y=\"24\"\n      color-a=\"#2dba06\"\n      color-b=\"#2ad602\"\n      color-space=\"oklch\"\n      :detail=\"0.7\"\n      :fine-x=\"50\"\n      :fine-y=\"50\"\n      :medium-x=\"50\"\n      :medium-y=\"50\"\n      :speed=\"1.5\"/>\n    <WaveDistortion\n      :angle=\"90\"\n      blend-mode=\"linearDodge\"\n      edges=\"mirror\"\n      :frequency=\"1.3\"\n      :speed=\"0.5\"\n      :strength=\"0.8\"\n      wave-type=\"triangle\">\n      <Grid\n        blend-mode=\"hardLight\"\n        :cells=\"29\"\n        color=\"#00fa6f\"\n        :thickness=\"3.5\"\n        :transform=\"{ scale: 0.75 }\"/>\n    </WaveDistortion>\n    <GridDistortion\n      :decay=\"1.8\"\n      edges=\"wrap\"\n      :grid-size=\"8\"\n      :intensity=\"5\"\n      :radius=\"1.75\"\n      :swirl=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

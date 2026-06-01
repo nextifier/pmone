@@ -1,0 +1,30 @@
+{
+  "id": "6032b2c8-63dc-41da-a498-ea3c720c019f",
+  "title": "Lava Lamp 2",
+  "collection_id": "0a15bcb6-a997-453b-8ad1-be2edf509050",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic, organic shader effect featuring a dark navy background (#16023b) with a prominent amorphous blob shape positioned in the lower-left to center area. The blob displays a smooth gradient transition from vibrant purple (#7f1aeb) to muted mauve-pink (#bc7ec0), creating a soft, luminous quality. The blob has organic, undulating edges with high softness, giving it a fluid, cloud-like appearance. A bright yellow highlight (#ffe11a) is positioned in the upper-left quadrant of the blob, creating a glossy, three-dimensional lighting effect that suggests a light source. The entire composition is overlaid with subtle film grain texture at 20% opacity, adding a cinematic quality and slight visual noise. The blob appears to be in motion or deformation state with a seed value of 1, creating natural-looking organic distortions. The overall mood is ethereal and modern, with the purple-to-pink gradient creating a sense of depth and the highlight adding dimensionality. The effect has a soft focus quality with transparent edges that blend seamlessly into the dark background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/69161497-68ff-4090-9690-cb742246b3e2.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzY5MTYxNDk3LTY4ZmYtNDA5MC05NjkwLWNiNzQyMjQ2YjNlMi5qcGciLCJpYXQiOjE3NzYwNDk1MTksImV4cCI6MTgwNzU4NTUxOX0.u7UiWfhlKxLEHxZVci9YHOJqcwM_NO-mFC4LZI_0Q6Y",
+  "import": "import {\n  Shader,\n  Blob,\n  FilmGrain,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  FilmGrain,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#16023b\"/>\n    <Blob\n      :center=\"{\n        x: 0.37,\n        y: 0.86\n      }\"\n      color-a=\"#7f1aeb\"\n      color-b=\"#bc7ec0\"\n      color-space=\"oklab\"\n      :deformation=\"5\"\n      :size=\"1.25\"\n      :softness=\"1\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

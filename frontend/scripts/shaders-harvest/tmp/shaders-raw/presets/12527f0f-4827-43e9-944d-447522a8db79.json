@@ -1,0 +1,42 @@
+{
+  "id": "12527f0f-4827-43e9-944d-447522a8db79",
+  "title": "Frosted Glass 2",
+  "collection_id": "acc42402-71b9-438d-9006-d8c7df2963af",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A serene, ethereal shader composition featuring a gradient background that transitions from light gray-white at the top to vibrant cyan and turquoise tones at the bottom. The primary visual element is a large glass morphism shape positioned in the center, appearing as an organic, curved form with a frosted glass effect. The glass shape exhibits chromatic aberration with a subtle rainbow fringing (0.64 aberration value), creating iridescent edges. A bright cyan sine wave pattern emanates from the lower portion of the composition, creating a horizontal wave effect with soft, feathered edges. The overall atmosphere is calm and modern, with a subtle film grain texture overlay adding tactile quality. The glass element has a high refraction value (2.0) creating a distorted, magnifying effect of the background gradients visible through it. Light plays across the glass surface with fresnel effects and subtle highlights, while the composition maintains a dreamy, translucent quality throughout. The swirl component in the background provides soft, blended color transitions between cool tones.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/5a6fed88-0366-476d-b4dd-c7f9b52179ec.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzVhNmZlZDg4LTAzNjYtNDc2ZC1iNGRkLWM3ZjliNTIxNzllYy5qcGciLCJpYXQiOjE3NzI3Mjg0ODEsImV4cCI6MTgwNDI2NDQ4MX0.fHaHN5aavZGcXF2QKut7XSbAg3OpRElW4QTc0SO8jdc",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Glass,\n  SineWave,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Glass,\n  SineWave,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#ebf6ff\"\n      color-b=\"#d3e4f0\"\n      :detail=\"1.5\"/>\n    <SineWave\n      color=\"#05ffea\"\n      :position=\"{\n        x: 0.49,\n        y: 0.98\n      }\"\n      :softness=\"0.7\"\n      :thickness=\"0.4\"/>\n    <Glass\n      :aberration=\"0.64\"\n      :blur=\"20\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0.03\"\n      :fresnel-softness=\"1\"\n      :highlight=\"0\"\n      :highlight-softness=\"1\"\n      :inner-zoom=\"2\"\n      :light-angle=\"237\"\n      :refraction=\"2\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/3qJFWUS-Vtnm_sdf.bin\"\n      :thickness=\"0.03\"/>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

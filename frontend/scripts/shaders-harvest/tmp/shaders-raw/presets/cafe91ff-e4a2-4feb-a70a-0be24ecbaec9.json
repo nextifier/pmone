@@ -1,0 +1,27 @@
+{
+  "id": "cafe91ff-e4a2-4feb-a70a-0be24ecbaec9",
+  "title": "Magnified Pixels 3",
+  "collection_id": "4077b48f-6bd7-441c-9224-d5eb49d8601c",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A dark, high-tech digital composition featuring three horizontally stacked glass-like tubular shapes with complex internal light effects. The background is a deep near-black color (#0e0b14). Each tube displays a halftone dot pattern overlay at 45-degree angles with 138 frequency, creating a textured, print-like quality. The primary visual elements showcase vibrant aurora-like light effects with dominant magenta, purple, and red color gradients flowing through the glass structures. The top tube displays cyan and blue vertical line patterns with magenta highlights. The middle tube features the most intense color gradient, transitioning from blue through magenta and pink to orange and red, with strong chromatic aberration effects creating color fringing at the edges. The bottom tube shows magenta and purple tones with similar glass refraction properties. All tubes have a glossy, refractive glass material with fresnel highlights creating bright white edge reflections. A CRT screen effect is applied globally, adding scanlines (200 frequency, 0.2 intensity) and pixel grid artifacts (27 pixel size) with chromatic color shift (1.3 intensity) and vignetting (0.6 intensity, 0.5 radius). The overall mood is cyberpunk and futuristic, with strong neon aesthetic and digital distortion effects. Light angles are set to 300-313 degrees, creating directional highlights. The composition has high contrast and saturated colors against the dark background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/cafe91ff-e4a2-4feb-a70a-0be24ecbaec9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2NhZmU5MWZmLWU0YTItNGZlYi1hNzBhLTBiZTI0ZWNiYWVjOS5qcGciLCJpYXQiOjE3NzMxOTk4ODksImV4cCI6MTgwNDczNTg4OX0.ay5mPghnnWCff5inVMp2Rchi-8IOvysXlV4_8ncW8QA",
+  "import": "import {\n  Shader,\n  Aurora,\n  CRTScreen,\n  Glass,\n  Halftone,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Aurora,\n  CRTScreen,\n  Glass,\n  Halftone,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0e0b14\"/>\n    <Halftone\n      :frequency=\"138\"\n      :smoothness=\"0.3\">\n      <Glass\n        :center=\"{\n          x: 0.7,\n          y: 0.51\n        }\"\n        :cutout=\"true\"\n        :refraction=\"2\"\n        :scale=\"1.45\"\n        shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin\"\n        :thickness=\"0.14\">\n        <Aurora\n          :balance=\"47\"\n          :center=\"{\n            x: 0.69,\n            y: 0.38\n          }\"\n          color-a=\"#de33f8\"\n          color-b=\"#8e00cc\"\n          color-c=\"#ff0000\"\n          color-space=\"oklab\"\n          :height=\"200\"\n          :ray-density=\"100\"\n          :speed=\"10\"\n          :waviness=\"86\"/>\n      </Glass>\n    </Halftone>\n    <Glass\n      :aberration=\"0.49\"\n      :center=\"{\n        x: 0.64,\n        y: 0.55\n      }\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0\"\n      :highlight=\"0.15\"\n      :highlight-softness=\"0.03\"\n      :light-angle=\"313\"\n      :refraction=\"2\"\n      :scale=\"1.6\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin\"\n      :thickness=\"1\"/>\n    <CRTScreen\n      :color-shift=\"1.3\"\n      :pixel-size=\"27\"\n      :scanline-intensity=\"0.2\"\n      :vignette-intensity=\"0.6\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {"uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide"},
+    {"uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide"},
+    {"uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide"},
+    {"uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide"},
+    {"uri": "shaders://docs/guide/transforms", "label": "Transforms guide"}
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

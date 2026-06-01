@@ -1,0 +1,64 @@
+{
+  "name": "Mirror",
+  "category": "Distortions",
+  "description": "Mirror content across a line defined by center point and angle",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "The point the mirror line passes through",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Position"
+      }
+    },
+    "angle": {
+      "default": 0,
+      "description": "The angle of the mirror line in degrees",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "label": "Angle",
+        "group": "Effect"
+      }
+    },
+    "edges": {
+      "default": "mirror",
+      "description": "How to handle edges when distortion pushes content out of bounds",
+      "compileTime": true,
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Stretch",
+            "value": "stretch"
+          },
+          {
+            "label": "Transparent",
+            "value": "transparent"
+          },
+          {
+            "label": "Mirror",
+            "value": "mirror"
+          },
+          {
+            "label": "Wrap",
+            "value": "wrap"
+          }
+        ],
+        "label": "Edges",
+        "group": "Effect"
+      }
+    }
+  }
+}

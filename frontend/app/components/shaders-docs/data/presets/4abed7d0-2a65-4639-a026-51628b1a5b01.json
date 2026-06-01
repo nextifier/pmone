@@ -1,0 +1,74 @@
+{
+  "id": "4abed7d0-2a65-4639-a026-51628b1a5b01",
+  "title": "Subtle Liquid 9",
+  "collectionId": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "category": "background",
+  "description": "A sophisticated gradient-based shader effect featuring a smooth transition from deep navy blue (#1a3a6b) to light periwinkle blue (#a8c8f0) across a diagonal axis. The gradient flows from the lower-left toward the upper-right, creating a sense of depth and movement. Overlaid on this base is a large, organic blob shape positioned in the upper-center-right area, rendered in darker blue tones (#2e5a9e to #0b1f42) with soft, feathered edges that create a subtle vignette effect. The blob features a highlight accent in the upper-left region with a pale blue-white color (#c0d8f8) at moderate intensity (0.5), giving it dimensional depth and a glossy appearance. A fine white dot grid pattern is subtly visible across the entire composition at 15% opacity, using a linear dodge blend mode that creates a delicate sparkle effect without overwhelming the base colors. The liquify effect with a decay of 2.2 adds subtle wave-like distortions and organic undulation to the overall composition, softening hard edges and creating a fluid, dreamlike quality. A light film grain texture (0.18 strength) is applied uniformly, adding subtle noise and texture that prevents the image from appearing too smooth or artificial. The overall mood is serene, professional, and atmospheric with a cool color temperature dominated by blue hues.",
+  "thumbnail": "/shaders/thumbnails/4abed7d0-2a65-4639-a026-51628b1a5b01.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#1a3a6b",
+          "colorB": "#a8c8f0",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.67,
+            "y": 0.28
+          },
+          "start": {
+            "x": 0.23,
+            "y": 0.7
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklch",
+          "center": {
+            "x": 0.58,
+            "y": 0.42
+          },
+          "colorA": "#2e5a9e",
+          "colorB": "#0b1f42",
+          "colorSpace": "oklch",
+          "deformation": 0.7,
+          "highlightColor": "#c0d8f8",
+          "size": 0.65,
+          "softness": 1.2,
+          "speed": 1
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "blendMode": "linearDodge",
+          "density": 65,
+          "dotSize": 0.08,
+          "opacity": 0.15
+        }
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 2.2,
+          "edges": "mirror",
+          "intensity": 1.2,
+          "radius": 2
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.18
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

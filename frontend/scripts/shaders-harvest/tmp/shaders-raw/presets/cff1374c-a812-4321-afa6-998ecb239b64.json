@@ -1,0 +1,42 @@
+{
+  "id": "cff1374c-a812-4321-afa6-998ecb239b64",
+  "title": "Backlit Smoke 5",
+  "collection_id": "461997f6-0e61-47bc-ab99-69d12423a7fc",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A 3D isometric hexagonal shape rendered with a sophisticated multi-layer shader effect against a pure black background. The hexagon features a warm orange-to-amber gradient (#de4400 to #ff7a1f) with dynamic volumetric smoke/fire effects emanating from within and around the shape. The glass layer creates a glossy, refractive surface with subtle fresnel highlights in peachy-pink tones (#ff9b8c) along the edges, giving the shape dimensional depth and translucency. The smoke fill component generates organic, turbulent particle effects that flow upward with gravity simulation, creating a glowing ember-like atmosphere. The inner geometry shows a hollow center with visible depth, enhanced by the glass refraction properties (1.5 refraction index) and edge softness. Subtle sine wave animations add rhythmic luminous bands across the surface in bright orange (#ff7a1f). The overall mood is dramatic and energetic, with warm incandescent tones suggesting heat, fire, or molten material. The lighting angle at 300 degrees creates dimensional shading on the geometric surfaces, emphasizing the 3D structure. The effect combines rigid geometric precision with fluid, organic smoke dynamics for a striking contrast.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/cff1374c-a812-4321-afa6-998ecb239b64.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2NmZjEzNzRjLWE4MTItNDMyMS1hZmE2LTk5OGVjYjIzOWI2NC5qcGciLCJpYXQiOjE3Nzc3ODIzNDcsImV4cCI6MTgwOTMxODM0N30.sFcZILrXGtCV0vYvcr75cuBxWPYjlHPH-dpB9kjg7P4",
+  "import": "import {\n  Shader,\n  Glass,\n  SineWave,\n  SmokeFill,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Glass,\n  SineWave,\n  SmokeFill,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0a0a\"/>\n    <SmokeFill\n      color-a=\"#de4400\"\n      color-b=\"#210701\"\n      :color-decay=\"0.2\"\n      :detail=\"4\"\n      :dissipation=\"0.1\"\n      :emit-from=\"{\n        type: 'mouse-position',\n        originX: 0.5,\n        originY: 0.5\n      }\"\n      :gravity=\"-2\"\n      :scale=\"0.7\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin\"/>\n    <Glass\n      :aberration=\"0\"\n      :cutout=\"true\"\n      :edge-softness=\"0.15\"\n      :fresnel=\"0.18\"\n      fresnel-color=\"#ff9b8c\"\n      :fresnel-softness=\"0.24\"\n      :refraction=\"1.5\"\n      :scale=\"0.7\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin\"\n      :thickness=\"0.6\">\n      <SineWave\n        :amplitude=\"0.6\"\n        color=\"#ff7a1f\"\n        :frequency=\"0.1\"\n        :softness=\"0.3\"\n        :speed=\"0.6\"/>\n    </Glass>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

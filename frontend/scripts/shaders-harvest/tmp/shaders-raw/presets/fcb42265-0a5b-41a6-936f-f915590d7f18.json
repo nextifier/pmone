@@ -1,0 +1,30 @@
+{
+  "id": "fcb42265-0a5b-41a6-936f-f915590d7f18",
+  "title": "Swatch Rings 7",
+  "collection_id": "307cc7b7-0339-4237-a40b-749e6d5af8f7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated shader effect featuring a layered composition with a dominant purple color palette. The base is a linear gradient transitioning from deep dark-blue (#1a0a3d) at the bottom-left to light lavender (#c4a8f0) at the top-right, angled at 135 degrees. Overlaid on this gradient is a radial gradient centered at coordinates (0.7, 0.8) that emanates violet (#8b5cf6) with 40% opacity, creating a soft glowing hotspot in the upper-right quadrant. A fine white grid pattern with 40 cells and 0.35 opacity creates a subtle mesh texture across the entire surface, providing technical precision and depth. The composition is further enhanced by a sawtooth wave distortion applied at 177 degrees with a frequency of 3.9 and strength of 0.3, creating diagonal rippling patterns that flow across the image with mirror-edge behavior. A concentric spin effect centered at (1, 0) with 5 rings and 45% intensity adds rotational complexity, particularly visible in the right edge. Chromatic aberration with red offset of -1 and blue offset of +1 introduces subtle color fringing along high-contrast edges, creating a slight 3D anaglyph effect. Film grain with 0.6 strength adds analog texture and noise throughout, enhancing the cinematic quality. The overall effect is a modern, tech-forward aesthetic with flowing geometric patterns and a cool purple-to-lavender color temperature.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/fcb42265-0a5b-41a6-936f-f915590d7f18.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ZjYjQyMjY1LTBhNWItNDFhNi05MzZmLWY5MTU1OTBkN2YxOC5qcGciLCJpYXQiOjE3NzMwODQ0MDUsImV4cCI6MTgwNDYyMDQwNX0.MmDdmp4U3461IwURTlzrxVyYuyxpbX6zSgpkDM7BoqM",
+  "import": "import {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  FilmGrain,\n  Grid,\n  LinearGradient,\n  RadialGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaticAberration,\n  ConcentricSpin,\n  FilmGrain,\n  Grid,\n  LinearGradient,\n  RadialGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"135\"\n      color-a=\"#1a0a3d\"\n      color-b=\"#c4a8f0\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :start=\"{\n        x: 0.5,\n        y: 0\n      }\"/>\n    <RadialGradient\n      :center=\"{\n        x: 0.7,\n        y: 0.8\n      }\"\n      color-a=\"#8b5cf6\"\n      color-b=\"transparent\"\n      color-space=\"oklch\"\n      :opacity=\"0.4\"\n      :radius=\"0.6\"\n      :visible=\"true\"/>\n    <Grid\n      :cells=\"40\"\n      :opacity=\"0.35\"\n      :thickness=\"0.3\"\n      :visible=\"true\"/>\n    <WaveDistortion\n      :angle=\"177\"\n      edges=\"mirror\"\n      :frequency=\"3.9\"\n      :speed=\"2.2\"\n      :visible=\"true\"\n      wave-type=\"sawtooth\"/>\n    <ConcentricSpin\n      :center=\"{\n        x: 1,\n        y: 0\n      }\"\n      :intensity=\"45\"\n      :rings=\"5\"\n      :seed=\"42\"\n      :smoothness=\"0\"\n      :speed=\"0.4\"\n      :speed-randomness=\"0.7\"/>\n    <ChromaticAberration\n      :strength=\"0.05\"\n      :visible=\"true\"/>\n    <FilmGrain\n      :strength=\"0.6\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

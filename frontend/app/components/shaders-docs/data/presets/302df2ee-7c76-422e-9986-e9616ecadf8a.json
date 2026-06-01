@@ -1,0 +1,50 @@
+{
+  "id": "302df2ee-7c76-422e-9986-e9616ecadf8a",
+  "title": "Porthole 8",
+  "collectionId": "21f10c11-d381-4e55-9a41-fc9c62c0e872",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring diagonal parallel stripes that transition smoothly from vibrant magenta on the left to soft cyan on the right. The stripes are created through a linear gradient component running horizontally across the canvas with a color transition from #bf1ccb (deep magenta) to #b0fddf (light cyan/mint). A sawtooth wave distortion effect is applied with a frequency of 7.7 and strength of 2, creating subtle undulating ripples across the striped pattern. The wave distortion angle is dynamically mapped to a circular mask positioned at the bottom center (coordinates 0.5, 1.0) with a radius of 1.8, creating a radial influence on the wave intensity. The overall effect produces a sense of depth and movement, with the stripes appearing to bend and flow organically. The color space is linear, providing smooth color interpolation. The composition has a modern, minimalist aesthetic with a soft, ethereal quality enhanced by the gradient's smooth color transitions and the subtle wave distortions creating a three-dimensional layered appearance.",
+  "thumbnail": "/shaders/thumbnails/302df2ee-7c76-422e-9986-e9616ecadf8a.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#bf1ccb",
+          "colorB": "#b0fddf"
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": {
+            "type": "map",
+            "source": "idmma4jsk2t7um16f4s",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 110,
+            "outputMin": 70
+          },
+          "frequency": 7.7,
+          "strength": 2,
+          "waveType": "sawtooth"
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmma4jsk2t7um16f4s",
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "radius": 1.8,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

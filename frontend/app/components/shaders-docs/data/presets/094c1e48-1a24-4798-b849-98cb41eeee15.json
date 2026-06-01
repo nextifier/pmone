@@ -1,0 +1,60 @@
+{
+  "id": "094c1e48-1a24-4798-b849-98cb41eeee15",
+  "title": "Stretched Chevrons 8",
+  "collectionId": "94b9788a-b40b-4923-a564-6c3e235d264f",
+  "category": "background",
+  "description": "A geometric shader effect displaying a repeating chevron or zigzag pattern arranged in horizontal rows across the entire composition. The pattern consists of pointed triangular shapes that create a quilted, three-dimensional appearance through subtle shadow and depth effects. The chevrons are oriented at a -90 degree angle, creating downward-pointing V-shapes. The color palette transitions between a deep burgundy-red (#b8003f) and a very dark purple-black (#0a0612), creating strong contrast and visual depth. Each chevron row casts soft shadows that enhance the embossed or relief effect, giving the surface a tactile, dimensional quality. The shadows appear as darker gradations along the edges of each triangular form, suggesting light coming from above. The overall effect is reminiscent of quilted fabric or embossed leather with a luxurious, sophisticated appearance. The background maintains a consistent deep red tone while the chevron edges define sharp geometric boundaries. The softness parameter creates subtle anti-aliasing and feathering at the edges of each shape, preventing harsh pixelation. The opacity is set to full visibility, and the blend mode is normal, allowing the colors to appear pure and saturated without transparency effects.",
+  "thumbnail": "/shaders/thumbnails/094c1e48-1a24-4798-b849-98cb41eeee15.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "id": "idmp1helxtfp3bsckef",
+          "baseColor": "#ffffff",
+          "downColor": "#ffffff",
+          "intensity": 0.6,
+          "leftColor": "#ffffff",
+          "momentum": 0,
+          "rightColor": "#ffffff",
+          "upColor": "#ffffff",
+          "visible": false
+        }
+      },
+      {
+        "type": "Chevron",
+        "props": {
+          "angle": -90,
+          "balance": {
+            "type": "map",
+            "curve": -0.8,
+            "source": "idmp1helxtfp3bsckef",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "colorA": "#0a0612",
+          "colorB": "#b8003f",
+          "colorSpace": "oklab",
+          "count": 4,
+          "softness": {
+            "type": "map",
+            "curve": 1,
+            "source": "idmp1helxtfp3bsckef",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.01
+          },
+          "speed": 0.1,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

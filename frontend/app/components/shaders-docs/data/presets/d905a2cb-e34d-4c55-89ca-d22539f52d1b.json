@@ -1,0 +1,79 @@
+{
+  "id": "d905a2cb-e34d-4c55-89ca-d22539f52d1b",
+  "title": "Holofoil 2",
+  "collectionId": "0234a72c-9666-4ed8-bc62-0ffa9393f58c",
+  "category": "logo",
+  "description": "Two interlocking circular rings rendered with a sophisticated glass shader effect against a pure black background. The upper ring features a gradient transitioning from soft pink/coral on the left through white at the top to magenta/purple on the right. The lower ring displays a complementary gradient flowing from pink/magenta on the upper portion through purple and blue on the right side, creating a smooth chromatic progression. Both rings have a luminous, translucent quality with subtle internal reflections and highlights characteristic of glass material. The rings overlap in the center, creating a Venn diagram-like intersection. A fine halftone texture with CMYK dot patterns is subtly visible across the surface at approximately 17% opacity, adding micro-level detail and print-like quality. The glass shader applies fresnel effects with soft edge highlights and a slight refraction distortion (1.05 intensity), giving the rings dimensional depth and a polished, three-dimensional appearance. The overall composition has a modern, premium aesthetic with smooth color transitions in OKLCH color space, creating harmonious gradients between the magenta, white, and blue anchor colors. The lighting angle is set to 224 degrees, creating subtle directional highlights on the ring surfaces.",
+  "thumbnail": "/shaders/thumbnails/d905a2cb-e34d-4c55-89ca-d22539f52d1b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "WorleyNoise",
+        "props": {
+          "id": "idmp1dieut6oaemps9r",
+          "balance": 0.8,
+          "contrast": 4,
+          "distance": "chebyshev",
+          "jitter": 0.5,
+          "mode": "f2MinusF1",
+          "scale": 50,
+          "seed": 35,
+          "visible": false
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "fresnel": 0.19,
+          "fresnelSoftness": 0.26,
+          "highlight": 0.4,
+          "highlightSoftness": 0.6,
+          "lightAngle": 224,
+          "refraction": 1.05,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/NEnjqh3-kdfX_sdf.bin",
+          "thickness": 0.05
+        },
+        "children": [
+          {
+            "type": "ColorWheel",
+            "props": {
+              "angle": 47,
+              "colorA": "#de39fa",
+              "colorB": "#ffffff",
+              "mode": "custom",
+              "scale": {
+                "type": "map",
+                "curve": 0,
+                "source": "idmp1dieut6oaemps9r",
+                "channel": "luminance",
+                "inputMax": 1,
+                "inputMin": 0,
+                "outputMax": 4.1,
+                "outputMin": 4
+              },
+              "speed": 0.3
+            }
+          },
+          {
+            "type": "Halftone",
+            "props": {
+              "frequency": 151,
+              "opacity": 0.17,
+              "style": "cmyk"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

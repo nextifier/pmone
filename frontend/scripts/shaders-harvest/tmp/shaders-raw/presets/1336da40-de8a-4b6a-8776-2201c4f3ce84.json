@@ -1,0 +1,30 @@
+{
+  "id": "1336da40-de8a-4b6a-8776-2201c4f3ce84",
+  "title": "Polynesian Waves 3",
+  "collection_id": "48d6b02f-3242-4a90-aac7-f42bea26036a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic abstract shader effect featuring diagonal wavy stripes in warm orange and red tones. The composition consists of parallel diagonal bands that flow from upper-left to lower-right at approximately 45-degree angles, creating a sense of movement and depth. The stripes alternate between brighter orange (#d14d00) and deeper red (#cc0000) with subtle gradations between them. The wave distortion effect creates organic, undulating edges along each stripe, giving them a fluid, ribbon-like appearance rather than rigid geometric lines. Small diamond-shaped voids or negative spaces appear periodically within the pattern, adding visual complexity. The overall effect has a subtle texture with minimal dithering applied through a linear dodge blend mode, creating slight luminous highlights in pale yellow-green tones (#dbde1f) that accent the darker areas. The edges use mirror wrapping, creating a seamless, continuous pattern. The atmosphere is energetic and warm, with a sense of flowing motion. The 3D depth is achieved through the wave distortion and the layered gradient application with a 131-degree rotation, making the flat surface appear to have subtle topographical undulation.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/8f501c9f-8d2b-4a80-b0a7-d711d8063148.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzhmNTAxYzlmLThkMmItNGE4MC1iMGE3LWQ3MTFkODA2MzE0OC5qcGciLCJpYXQiOjE3NjMzOTkzODMsImV4cCI6MTc5NDkzNTM4M30.TuwXrXkt333FHzOYGfag32M4UzqsvyECKZyLfo65xPg",
+  "import": "import {\n  Shader,\n  Dither,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"233\"\n      color-a=\"#cc0000\"\n      color-b=\"#d14d00\"\n      color-space=\"oklch\"\n      edges=\"wrap\"\n      :end=\"{\n        x: 0.5,\n        y: 0.5\n      }\"\n      :start=\"{\n        x: 0.4,\n        y: 0.72\n      }\"\n      :transform=\"{\n        edges: 'mirror',\n        rotation: 131,\n        scale: 0.25\n      }\"/>\n    <WaveDistortion\n      :angle=\"211\"\n      edges=\"mirror\"\n      :frequency=\"1.3\"\n      :strength=\"0.05\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-b=\"#dbde1f\"\n      :pixel-size=\"1\"\n      :threshold=\"0.38\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

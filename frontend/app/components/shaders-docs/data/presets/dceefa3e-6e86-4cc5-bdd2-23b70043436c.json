@@ -1,0 +1,77 @@
+{
+  "id": "dceefa3e-6e86-4cc5-bdd2-23b70043436c",
+  "title": "Broken Panel 6",
+  "collectionId": "16730531-0705-470f-a154-788e5336708f",
+  "category": "logo",
+  "description": "A sleek, modern shader effect displaying three stacked rounded rectangular containers against a pure black background. The composition features a glass morphism aesthetic with frosted glass panels outlined in cyan/turquoise borders. Inside each container, pixelated blocks of color are arranged horizontally - combinations of coral/salmon red (#ff6440), light green (#0affd2), tan/beige, and cyan tones create a retro-digital aesthetic. The glass components have a subtle refractive quality with highlights in bright cyan (#40fff9). Falling diagonal lines in coral and cyan colors stream through the glass at approximately 234 degrees, creating motion and energy. A reflective plane beneath the containers creates a soft, blurred mirror effect with falloff, suggesting depth and dimensionality. The overall mood is cyberpunk-inspired with a blend of retro pixel art and contemporary glass UI design. Fine dithering patterns add texture and visual noise throughout. The pixelation effect (scale 50) gives the colored blocks a chunky, 8-bit video game quality, while the glass blur and refraction parameters create a sophisticated, layered depth effect.",
+  "thumbnail": "/shaders/thumbnails/dceefa3e-6e86-4cc5-bdd2-23b70043436c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#000000"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0,
+          "fresnelSoftness": 0,
+          "highlight": 0.8,
+          "highlightColor": "#40fff9",
+          "innerZoom": 1.2,
+          "refraction": 2,
+          "scale": 0.65,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin",
+          "thickness": 0.24
+        },
+        "children": [
+          {
+            "type": "FallingLines",
+            "props": {
+              "angle": 234,
+              "colorA": "#ff6440",
+              "colorB": "#0affd2",
+              "density": 60,
+              "rounding": 0,
+              "speed": 0.25,
+              "speedVariance": 0.8,
+              "strokeWidth": 0.76,
+              "trailLength": 0.3
+            }
+          },
+          {
+            "type": "Pixelate",
+            "props": {
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorMode": "source",
+          "pattern": "bayer2",
+          "pixelSize": 2
+        }
+      },
+      {
+        "type": "ReflectivePlane",
+        "props": {
+          "blur": 4.7,
+          "blurDistance": 0.14,
+          "distance": 0.59,
+          "falloff": 1.91,
+          "height": 0.75
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

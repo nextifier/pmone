@@ -1,0 +1,30 @@
+{
+  "id": "08091894-f4c9-4ef8-82fb-73d548353e57",
+  "title": "Bad Signal 3",
+  "collection_id": "3cee27ba-7e1d-4272-8940-233ddc176e7c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dense, retro-futuristic digital display featuring layered shader effects creating a complex visual composition. The dominant visual element is a repeating ASCII character pattern (@, %, #, *, +, =, -, :, .) rendered in cyan, red, and green colors across the entire screen, creating a classic terminal or matrix-like aesthetic. The characters are arranged in a grid pattern with consistent spacing, appearing to be approximately 65 pixels in cell size. Overlaid on this ASCII foundation is a CRT screen effect with visible scanlines running horizontally across the image at regular intervals, creating a 200Hz frequency pattern with subtle brightness variations. The scanlines have approximately 0.3 intensity, giving the impression of an old cathode ray tube monitor. A swirling color distortion effect in orange (#ff6600) and cyan (#00ffee) creates organic, flowing patterns that blend across the character grid with a 60% blend strength and 2.8 speed, adding dynamic movement to the otherwise static ASCII pattern. The CRT effect includes a subtle color shift (4.8 intensity) creating chromatic aberration-like artifacts. A checkerboard pattern with gray (#cccccc) and darker gray (#999999) tones provides additional texture underneath the primary elements. A faint sine wave pattern in white adds subtle undulation across the composition. The overall atmosphere is intensely digital and nostalgic, evoking 1980s computer terminals and early digital art. The color palette is dominated by bright cyan and magenta against a pure black background, with orange and green accents creating a vibrant, high-contrast aesthetic. The effect uses hardLight blending mode for the CRT component, creating enhanced contrast and visual intensity.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/08091894-f4c9-4ef8-82fb-73d548353e57.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzA4MDkxODk0LWY0YzktNGVmOC04MmZiLTczZDU0ODM1M2U1Ny5qcGciLCJpYXQiOjE3NzcwMDM2MTMsImV4cCI6MTgwODUzOTYxM30.kNntXaFwLRu8YWYaZXK1ofve-h5eq2LU_95hMh0rxZg",
+  "import": "import {\n  Shader,\n  Ascii,\n  CRTScreen,\n  Checkerboard,\n  CursorTrail,\n  SineWave,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  CRTScreen,\n  Checkerboard,\n  CursorTrail,\n  SineWave,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"60\"\n      color-a=\"#ff6600\"\n      color-b=\"#00ffee\"\n      :detail=\"1.9\"\n      :speed=\"2.8\"/>\n    <CRTScreen\n      blend-mode=\"hardLight\"\n      :brightness=\"1.1\"\n      :color-shift=\"4.8\"\n      :contrast=\"1.2\">\n      <Checkerboard/>\n      <SineWave\n        :amplitude=\"0.01\"\n        :frequency=\"0.9\"\n        :softness=\"0.27\"\n        :thickness=\"0.78\"/>\n      <CursorTrail\n        color-a=\"#ffee00\"\n        :radius=\"1\"/>\n      <Ascii\n        :cell-size=\"65\"\n        :spacing=\"0.5\"/>\n    </CRTScreen>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "87b0fbd2-9147-4902-a885-993c056fa3bc",
+  "title": "Dither Wave 5",
+  "collection_id": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, horizontally-oriented gradient shader effect transitioning from magenta/pink on the left through coral and salmon tones in the center to golden-orange and bright orange on the right. The gradient uses a linear interpolation across the full width of the canvas. A subtle halftone or dotted texture pattern overlays the entire surface, creating a fine pixelated appearance that adds visual depth and prevents the gradient from appearing too flat. The dot pattern is denser in some areas and creates a gentle, organic feel. The color transition is seamless and uses oklab color space for the primary gradient (red to orange) with a secondary linear gradient (magenta to gold) blending in normal mode. The overall effect is warm and energetic, with no sharp edges or hard transitions. The atmosphere is modern and vibrant, suitable for contemporary design applications. The dotted texture gives it a slightly retro or artistic quality while maintaining a polished, professional appearance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/87b0fbd2-9147-4902-a885-993c056fa3bc.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzg3YjBmYmQyLTkxNDctNDkwMi1hODg1LTk5M2MwNTZmYTNiYy5qcGciLCJpYXQiOjE3NzI1MDYyMTMsImV4cCI6MTgwNDA0MjIxM30.l4RuzSlUPO_thCTCsIVQ9Zy-SEkkrKJ3KsQENqoI0KI",
+  "import": "import {\n  Shader,\n  Dither,\n  LinearGradient,\n  SineWave\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  LinearGradient,\n  SineWave\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"180\"\n      color-a=\"#e06519\"\n      color-b=\"#df001a\"\n      color-space=\"oklab\"/>\n    <Dither\n      id=\"idmgijmh7s6y9u9f0ao\"\n      :opacity=\"0\"\n      :pixel-size=\"5\"\n      :threshold=\"0.24\"\n      :visible=\"false\">\n      <SineWave\n        :amplitude=\"0.1\"\n        :angle=\"203\"\n        :frequency=\"1.4\"\n        :softness=\"0.79\"\n        :thickness=\"0.81\"/>\n    </Dither>\n    <LinearGradient\n      color-a=\"#d0309a\"\n      color-b=\"#e6af18\"\n      mask-source=\"idmgijmh7s6y9u9f0ao\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

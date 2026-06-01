@@ -1,0 +1,82 @@
+{
+  "id": "be229fa2-d17a-46de-b539-31b4d4f30e0b",
+  "title": "Digital Activation 3",
+  "collectionId": "f9ed8284-27d8-4158-9421-327a0e280067",
+  "category": "background",
+  "description": "A sophisticated digital shader effect featuring a dark, near-black background (#0e0f14) with a subtle dot grid pattern in dark purple-gray (#292936). The dominant visual element is a large ring-shaped glass structure with chromatic aberration and refraction effects, creating a glowing neon aesthetic. A bright lime-green spiral (#55ff0a) emanates from the lower-left portion of the ring, flowing upward and curving around the glass shape with a soft, feathered edge. The spiral creates a luminous trail effect against the dark background. ASCII characters (◘•) are distributed across the composition in a grid pattern, with the characters becoming more densely packed and brighter green where the spiral passes through them, creating a sense of data flow or digital energy. The glass component has a subtle white highlight and fresnel effect along its edges, with a thickness of 0.2 and an aberration value of 0.8 creating color separation. The overall composition has a cyberpunk aesthetic with strong contrast between the deep blacks and the vibrant lime-green accents. The lighting angle is set to 274 degrees, creating directional illumination across the glass surface. The effect conveys motion and energy flowing through a digital matrix or network structure.",
+  "thumbnail": "/shaders/thumbnails/be229fa2-d17a-46de-b539-31b4d4f30e0b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0e0f14"
+        }
+      },
+      {
+        "type": "DotGrid",
+        "props": {
+          "color": "#292936",
+          "density": 49,
+          "dotSize": 0.1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.8,
+          "center": {
+            "x": 0,
+            "y": 0
+          },
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0,
+          "fresnelSoftness": 0.23,
+          "highlight": 0,
+          "highlightSoftness": 0.16,
+          "lightAngle": 274,
+          "refraction": 2,
+          "scale": 1.45,
+          "shape": {
+            "type": "ringSDF",
+            "radius": 0.8,
+            "thickness": 0.185
+          }
+        },
+        "children": [
+          {
+            "type": "SolidColor",
+            "props": {
+              "color": "#0e0f14"
+            }
+          },
+          {
+            "type": "Ascii",
+            "props": {
+              "characters": "◘•",
+              "gamma": 0.8,
+              "spacing": 0.8
+            },
+            "children": [
+              {
+                "type": "Spiral",
+                "props": {
+                  "center": {
+                    "x": 0.07,
+                    "y": 0.66
+                  },
+                  "colorA": "#0a131f",
+                  "colorB": "#55ff0a",
+                  "softness": 0.4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "3ba72024-2fb2-4e62-86da-662305bd20ee",
+  "title": "Dither Wave 10",
+  "collectionId": "5c0b6ee9-6fd1-46fa-9105-d7c4ce6c6bdf",
+  "category": "background",
+  "description": "A smooth gradient transition shader effect that flows from a vibrant deep red (#f40943) on the left side to a bright golden yellow (#f6dc28) on the right side. The gradient is created using a Bayer8 dithering pattern with a pixelSize of 5, which creates a subtle dotted texture throughout the entire composition. The dithering pattern becomes progressively more visible in the transition zone, creating a halftone-like effect that softens the color shift. Overlaid on this gradient is a sine wave component positioned at the right edge (x: 1) that creates vertical undulating lines with white color, soft edges (softness: 0.79), and a frequency of 0.7, adding a subtle wave distortion to the right portion of the gradient. The overall effect has a warm, energetic atmosphere with smooth color transitions and a modern, digital aesthetic. The opacity is fully set to 1, making the effect fully visible without transparency.",
+  "thumbnail": "/shaders/thumbnails/3ba72024-2fb2-4e62-86da-662305bd20ee.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Dither",
+        "props": {
+          "colorA": "#f40943",
+          "colorB": "#f6dc28",
+          "pattern": "bayer8",
+          "pixelSize": 5,
+          "threshold": 0.32,
+          "visible": true
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.1,
+              "angle": 90,
+              "frequency": 0.7,
+              "position": {
+                "x": 1,
+                "y": 0.5
+              },
+              "softness": 0.79,
+              "thickness": 2
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "dd5f898c-2808-4b8b-a6d8-e684df5aa14c",
+  "title": "Faded Dither 6",
+  "collectionId": "cc49576b-748c-4194-a9d2-234d5b628ea6",
+  "category": "background",
+  "description": "A soft, gradient shader effect transitioning from light pink at the top to deeper magenta-pink at the bottom. The base layer is a solid color (#de8ed9) providing the foundational warm pink tone. Overlaid on this is a dither pattern using a Bayer 8x8 matrix that creates a subtle grainy texture across the entire surface, with the dither transitioning between transparent and a lighter pink (#f0adea). The dither effect has a threshold of 0.41, creating a stippled, dotted appearance that adds visual complexity without overwhelming the smooth gradient. Embedded within the dither layer is a sine wave effect rendered in white (#ffffff) that creates subtle undulating horizontal wave patterns moving across the composition at a slow speed (0.4). The wave has low amplitude (0.15) and moderate frequency (0.5), positioned slightly offset from center (x: 0.413). The overall effect is a serene, atmospheric gradient with gentle noise texture and barely perceptible wave distortions, creating a dreamy, ethereal quality. The composition maintains full opacity throughout with normal blend modes, resulting in a cohesive, unified visual presentation.",
+  "thumbnail": "/shaders/thumbnails/dd5f898c-2808-4b8b-a6d8-e684df5aa14c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#de8ed9"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorB": "#f0adea",
+          "pattern": "bayer8",
+          "threshold": 0.41
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "angle": 169,
+              "frequency": 0.5,
+              "position": {
+                "x": 0.41,
+                "y": 0
+              },
+              "softness": 1,
+              "speed": 0.4,
+              "thickness": 0.8
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

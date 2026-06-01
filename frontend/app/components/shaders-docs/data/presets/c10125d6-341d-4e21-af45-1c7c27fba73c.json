@@ -1,0 +1,60 @@
+{
+  "id": "c10125d6-341d-4e21-af45-1c7c27fba73c",
+  "title": "Frosted Glass 13",
+  "collectionId": "acc42402-71b9-438d-9006-d8c7df2963af",
+  "category": "logo",
+  "description": "A modern shader effect composition featuring layered geometric elements with a vibrant magenta and white color scheme. The background displays diagonal sweeping bands of magenta (#df0eff) with soft blur and feathered edges creating a sense of motion and depth. Overlaid on this are three white rectangular/square shapes with subtle glass-like properties, featuring soft edges and a slight frosted appearance. A prominent curved magenta shape with a glass effect sits centrally, creating a lens-like distortion that refracts the background colors. The overall aesthetic combines a swirl effect in the background (light blue-gray tones), sine wave patterns creating the diagonal magenta stripes with softness and amplitude variation, and a glass morphism effect on the geometric shapes with chromatic aberration (0.64 intensity) and refraction properties. A fine film grain texture is applied across the entire composition at 0.3 strength, adding subtle noise and tactile quality. The lighting appears to come from approximately 237 degrees, creating subtle fresnel highlights on the glass elements. The composition has a contemporary, minimalist design with a dreamy, ethereal quality enhanced by the blur and transparency effects.",
+  "thumbnail": "/shaders/thumbnails/c10125d6-341d-4e21-af45-1c7c27fba73c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#ebf6ff",
+          "colorB": "#d3e4f0",
+          "detail": 1.5
+        }
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "amplitude": 0.4,
+          "angle": 57,
+          "color": "#df0eff",
+          "frequency": 2.8,
+          "position": {
+            "x": 1,
+            "y": 0.48
+          },
+          "softness": 0.3,
+          "thickness": 1.6
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.64,
+          "blur": 20,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.03,
+          "fresnelSoftness": 1,
+          "highlight": 0,
+          "highlightSoftness": 1,
+          "innerZoom": 2,
+          "lightAngle": 237,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/3qJFWUS-Vtnm_sdf.bin",
+          "thickness": 0.03
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,67 @@
+{
+  "id": "bd935422-4e09-4600-9d3b-edd7d21a7fc3",
+  "title": "Afternoon Sunlight 3",
+  "collectionId": "7ba4f0d6-0d97-48da-bac9-b6d0d9b13e8f",
+  "category": "background",
+  "description": "A soft, ethereal shader effect dominated by a light gray background with subtle organic texture. The composition features a gentle, diffused lighting that creates a cloudy, atmospheric appearance. A Worley noise pattern generates organic cellular-like structures with warm off-white (#fcf8f0) highlights against cooler gray tones (#a69f9f), creating a natural stone or marble-like texture. A linear blur effect at 211 degrees adds directional motion blur, creating a sense of movement from upper-left to lower-right, softening all elements into a dreamy, unfocused state. Chromatic aberration with subtle red and blue channel shifts (±1 offset) introduces minimal color fringing at edges, adding a slight iridescent quality. The overall effect is soft-focused and atmospheric, resembling frosted glass or a heavily blurred natural material surface. The blend of noise patterns and blur creates depth and a three-dimensional quality despite the flat composition. The mood is serene, minimalist, and ethereal with a cool-to-warm color balance.",
+  "thumbnail": "/shaders/thumbnails/bd935422-4e09-4600-9d3b-edd7d21a7fc3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Blob",
+        "props": {
+          "id": "idmozyext3ts4o5d9ra",
+          "center": {
+            "x": 0.53,
+            "y": 0.97
+          },
+          "colorA": "#000000",
+          "colorB": "#000000",
+          "size": 0.9,
+          "softness": 1.5,
+          "speed": 0.8,
+          "visible": false
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#c4c4c4"
+        }
+      },
+      {
+        "type": "WorleyNoise",
+        "props": {
+          "colorA": "#a69f9f",
+          "colorB": "#fcf8f0",
+          "contrast": 0.55,
+          "lacunarity": 2.3,
+          "maskSource": "idmozyext3ts4o5d9ra",
+          "mode": "f2MinusF1",
+          "octaves": 2,
+          "persistence": 1,
+          "scale": 2.5,
+          "seed": 33,
+          "speed": 3.3
+        }
+      },
+      {
+        "type": "LinearBlur",
+        "props": {
+          "angle": 211,
+          "intensity": 500,
+          "visible": true
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "strength": 0.15,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

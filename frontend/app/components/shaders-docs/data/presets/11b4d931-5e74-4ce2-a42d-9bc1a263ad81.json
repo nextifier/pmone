@@ -1,0 +1,43 @@
+{
+  "id": "11b4d931-5e74-4ce2-a42d-9bc1a263ad81",
+  "title": "Drifting Lights 2",
+  "collectionId": "510560b6-b9da-43ed-8275-561f71268e84",
+  "category": "background",
+  "description": "A smooth, blended gradient shader effect transitioning horizontally from left to right. The left side features a vibrant magenta (#e106a9) that gradually transitions through pink and mauve tones in the center, ultimately shifting to a bright lime-green (#52b744) on the right side. The gradient uses OKLab color space for smooth perceptual blending, creating soft, natural color transitions without harsh banding. A rectangular coordinate system overlay with 3x scale creates subtle geometric structure and depth perception across the composition. Fine film grain texture with 0.3 strength is applied uniformly across the entire surface, adding a subtle cinematic quality and reducing the smoothness of the gradient. The grain creates a slightly textured, analog appearance while maintaining the overall smooth gradient flow. The effect has a horizontal linear gradient axis running from left (x:0) to right (x:1) at the vertical center (y:0.5), with the angle set to auto-animate in a loop, though the current frame shows the static gradient state. The overall mood is modern, vibrant, and slightly ethereal with balanced saturation across the color spectrum.",
+  "thumbnail": "/shaders/thumbnails/11b4d931-5e74-4ce2-a42d-9bc1a263ad81.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": {
+            "mode": "loop",
+            "type": "auto-animate",
+            "speed": 1,
+            "easing": "linear",
+            "outputMax": 360,
+            "outputMin": 0
+          },
+          "colorA": "#52b744",
+          "colorB": "#e106a9",
+          "colorSpace": "oklab"
+        }
+      },
+      {
+        "type": "RectangularCoordinates",
+        "props": {
+          "edges": "stretch",
+          "scale": 3
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

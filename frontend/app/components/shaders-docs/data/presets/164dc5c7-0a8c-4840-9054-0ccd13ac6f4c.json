@@ -1,0 +1,62 @@
+{
+  "id": "164dc5c7-0a8c-4840-9054-0ccd13ac6f4c",
+  "title": "Dither Logo 8",
+  "collectionId": "099df352-41e8-4298-ad10-74f792b3f539",
+  "category": "logo",
+  "description": "A modern gradient shader effect featuring a smooth transition from vibrant purple on the left to soft cyan and pale green on the right. The background uses a radial gradient centered slightly left of center, blending deep purple (#6a01e3) with muted sage green (#99ada2). Overlaid on this base is an animated plasma effect with cyan (#3893a9) and mint green (#72ceae) tones, creating organic flowing patterns with moderate warp and density. The plasma effect is masked to an SVG logo shape (four rounded geometric forms arranged in a 2x2 grid pattern), making the cyan-green plasma visible only within those letter-like shapes. A subtle dither pattern with white highlights and a linear dodge blend mode adds fine texture and luminosity across the entire composition, creating a grainy, slightly pixelated quality that enhances the digital aesthetic. The overall mood is contemporary and tech-forward, with smooth color transitions and a gentle, flowing energy from the plasma animation.",
+  "thumbnail": "/shaders/thumbnails/164dc5c7-0a8c-4840-9054-0ccd13ac6f4c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ImageTexture",
+        "props": {
+          "id": "idmmaykb1vflvohydj1",
+          "objectFit": "contain",
+          "transform": {
+            "offsetX": -0.35,
+            "scale": 0.6
+          },
+          "url": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg",
+          "visible": false
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 0.5
+          },
+          "colorA": "#6a01e3",
+          "colorB": "#99ada2",
+          "colorSpace": "oklab",
+          "radius": 1.7
+        }
+      },
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 55,
+          "colorA": "#3893a9",
+          "colorB": "#72ceae",
+          "colorSpace": "oklab",
+          "density": 1.7,
+          "intensity": 3,
+          "maskSource": "idmmaykb1vflvohydj1"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pattern": "bayer8",
+          "pixelSize": 3,
+          "threshold": 0.96
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

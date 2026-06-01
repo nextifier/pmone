@@ -1,0 +1,53 @@
+{
+  "id": "bc2cb6b1-ff58-4908-a995-153e68dc5936",
+  "title": "Lost Rays 7",
+  "collectionId": "023043ce-f731-4bdc-872e-ab2671cbf89d",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by deep brown and black tones with striking neon accents. The composition features radial godray effects emanating from the upper-right quadrant, creating luminous streaks of bright yellow-green (#47ff14) that pierce through the darkness. A secondary zoom blur originates from the lower-left corner, creating a sense of rapid motion and depth convergence. The overall palette transitions from very dark burgundy-brown (#1a0502) in the shadows to vibrant lime-green highlights. Film grain texture is subtly overlaid throughout, adding a cinematic quality and slight noise. The godrays have a spotty, volumetric quality with moderate density, creating distinct light shafts that fade into the murky background. The tritone color grading maps dark areas to deep brown, mid-tones to bright neon green, and maintains black in the deepest shadows. The zoom blur effect intensifies the sense of motion and creates directional energy flowing from bottom-left toward the center. The overall mood is mysterious, intense, and cyberpunk-inspired with high contrast between the nearly black background and the electric green accents.",
+  "thumbnail": "/shaders/thumbnails/bc2cb6b1-ff58-4908-a995-153e68dc5936.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Godrays",
+        "props": {
+          "backgroundColor": "#0a0a1a",
+          "center": {
+            "x": 0.77,
+            "y": 0.59
+          },
+          "intensity": 0.7,
+          "rayColor": "#8b00ff",
+          "speed": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.15
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "blendMid": 0.25,
+          "colorA": "#1a0502",
+          "colorB": "#47ff14",
+          "colorC": "#000000",
+          "colorSpace": "oklch"
+        }
+      },
+      {
+        "type": "ZoomBlur",
+        "props": {
+          "center": {
+            "x": 0.14,
+            "y": 0.97
+          },
+          "intensity": 12
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

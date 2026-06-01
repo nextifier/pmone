@@ -1,0 +1,30 @@
+{
+  "id": "9c8d6e2e-e99e-4d2d-b42f-c49d2f6e6a56",
+  "title": "Porthole 7",
+  "collection_id": "21f10c11-d381-4e55-9a41-fc9c62c0e872",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect displaying diagonal parallel stripes that transition smoothly across the canvas. The composition features a linear gradient flowing horizontally from left to right, starting with deep blue (#064caa) on the left side and transitioning through magenta and pink tones in the center, culminating in pale cream and white (#d4e9e3) on the right side. The gradient operates in LCH color space for perceptually smooth transitions. Overlaid on this base gradient is a sawtooth wave distortion effect with a frequency of 7.7, creating diagonal striped bands that angle across the image. The wave distortion has a strength of 2 pixels and uses an angle mapped from a circular mask positioned at the bottom center (0.5, 1.0) with a radius of 1.8, creating varying wave angles between 70-110 degrees based on the circular mask's alpha channel. This produces a three-dimensional ribbon or venetian blind effect where the stripes appear to fold and angle progressively across the canvas. The overall mood is modern and abstract, with smooth color gradations and geometric precision. The effect creates depth through the interplay of the horizontal gradient and the diagonal wave distortion, resulting in a sophisticated, contemporary visual aesthetic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9c8d6e2e-e99e-4d2d-b42f-c49d2f6e6a56.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzljOGQ2ZTJlLWU5OWUtNGQyZC1iNDJmLWM0OWQyZjZlNmE1Ni5qcGciLCJpYXQiOjE3NzI1MTM1NDAsImV4cCI6MTgwNDA0OTU0MH0.T6vHa42EgE5ULnLba3nu4rW0PjXXWuYbTTLPNFTe5h4",
+  "import": "import {\n  Shader,\n  Circle,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#064caa\"\n      color-b=\"#d4e9e3\"\n      color-space=\"lch\"/>\n    <WaveDistortion\n      :angle=\"{\n        type: 'map',\n        source: 'idmma4jsk2t7um16f4s',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 110,\n        outputMin: 70\n      }\"\n      :frequency=\"7.7\"\n      :strength=\"2\"\n      wave-type=\"sawtooth\"/>\n    <Circle\n      id=\"idmma4jsk2t7um16f4s\"\n      :center=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :radius=\"1.8\"\n      :visible=\"false\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

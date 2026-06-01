@@ -1,0 +1,39 @@
+{
+  "id": "1b46cf35-477e-43f1-802b-8c5c372d3685",
+  "title": "Smokescreen 7",
+  "collectionId": "75854014-d32e-4ede-8f49-16782c112961",
+  "category": "background",
+  "description": "A dynamic smoke effect shader with a dark purple and magenta color palette. The background is a very dark near-black color (#040414) that provides a stark contrast. Overlaid on this is an animated smoke simulation that emits from the mouse position, creating billowing clouds of magenta (#e928d7) and deep purple (#5a1e76) particles. The smoke has a soft, diffused appearance with significant blur and glow, creating an ethereal, atmospheric quality. The particles spread outward in a cone-like pattern with a 60-degree spread angle, moving upward with gentle gravity influence (0.5). The smoke exhibits color decay and dissipation, causing the bright magenta edges to gradually fade into the darker purple tones as they disperse. The overall effect creates a mystical, neon-like ambiance with smooth gradients between the hot magenta highlights and cool purple shadows. The smoke trails have soft feathered edges that blend seamlessly into the dark background, with no hard boundaries. The intensity and detail level (7) create fine, wispy tendrils rather than chunky particles, giving the effect a refined, professional appearance.",
+  "thumbnail": "/shaders/thumbnails/1b46cf35-477e-43f1-802b-8c5c372d3685.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#040414"
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#e928d7",
+          "colorB": "#5a1e76",
+          "colorDecay": 1.4,
+          "colorSpace": "oklab",
+          "detail": 7,
+          "direction": 36,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0,
+            "originY": 0
+          },
+          "mouseInfluence": 0.8,
+          "mouseRadius": 0.07,
+          "speed": 6.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

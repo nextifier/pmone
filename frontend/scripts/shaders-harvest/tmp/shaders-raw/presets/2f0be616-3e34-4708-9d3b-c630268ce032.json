@@ -1,0 +1,30 @@
+{
+  "id": "2f0be616-3e34-4708-9d3b-c630268ce032",
+  "title": "Cascading Lines 4",
+  "collection_id": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A digital shader effect featuring vertical falling lines that create a rain-like or matrix-inspired aesthetic. The composition uses a dark navy-black background (#0f191c) as the base layer. Overlaid are numerous thin vertical lines in varying heights, predominantly in bright lime-green (#ade79a) and cyan (#13bca9) tones that fade from opaque at the top to transparent at the bottom, creating a sense of depth and motion. The lines have a subtle glow quality and appear to be falling downward with variable speeds and trail lengths. A dithering pattern with a bayer4 algorithm adds fine texture and noise throughout, applied with a linear dodge blend mode to create subtle white highlights and grain. The overall effect suggests digital rain or cascading data streams, with the swirl component adding subtle color transitions between the green and cyan hues. The density of lines is moderate to high (60 density), creating a visually rich but not overwhelming pattern. The effect has a cool, technological atmosphere with a slight sense of motion and fluidity despite the static nature of the vertical orientation.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/2f0be616-3e34-4708-9d3b-c630268ce032.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzJmMGJlNjE2LTNlMzQtNDcwOC05ZDNiLWM2MzAyNjhjZTAzMi5qcGciLCJpYXQiOjE3NzQwNTI1NTYsImV4cCI6MTgwNTU4ODU1Nn0.HRnHeeAG2O43vAeZpDuj_W9TMy2K_Yj5CTha9_umi0k",
+  "import": "import {\n  Shader,\n  Dither,\n  FallingLines,\n  SineWave,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  FallingLines,\n  SineWave,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0f191c\"/>\n    <Swirl\n      :blend=\"35\"\n      color-a=\"#ade79a\"\n      color-b=\"#13bca9\"\n      :detail=\"2\"\n      mask-source=\"idmmzanabwzt8f61fke\"/>\n    <FallingLines\n      id=\"idmmzanabwzt8f61fke\"\n      :density=\"60\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.7\"\n      :stroke-width=\"0.66\"\n      :trail-length=\"{\n        type: 'map',\n        curve: -0.15,\n        source: 'idmmzaokw5nk6ntmihd',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      :visible=\"false\"/>\n    <SineWave\n      id=\"idmmzaokw5nk6ntmihd\"\n      :amplitude=\"0.4\"\n      :angle=\"26\"\n      :frequency=\"0.5\"\n      :softness=\"1\"\n      :speed=\"0.4\"\n      :thickness=\"1\"\n      :visible=\"false\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-mode=\"source\"\n      :pixel-size=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

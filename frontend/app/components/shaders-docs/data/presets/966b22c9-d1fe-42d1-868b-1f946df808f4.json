@@ -1,0 +1,65 @@
+{
+  "id": "966b22c9-d1fe-42d1-868b-1f946df808f4",
+  "title": "Ice Spheres 6",
+  "collectionId": "c76dd378-6b7c-4501-9373-35d78062bef3",
+  "category": "background",
+  "description": "A dynamic shader effect featuring a radial gradient of circular perforations or dots arranged in a honeycomb-like pattern that emanates from the center-right area of the composition. The dots transition from small and dark on the left side to larger and more luminous on the right side, creating a strong sense of depth and perspective. The dominant color palette consists of deep purples and magentas with underlying dark navy and black tones. The circular elements have a semi-transparent, glowing quality with soft edges that create a bokeh-like effect. The overall atmosphere is dark and moody with a neon-like glow concentrated in the center-right quadrant. The effect appears to be created by layering a swirl pattern with glass tile distortion, resulting in a three-dimensional appearance where the dots seem to curve away from the viewer. The lighting creates highlights on the upper portions of each circular element, suggesting a light source from above-right. The background gradually fades from dark purple in the illuminated areas to nearly black in the upper-left corner, creating strong contrast and visual hierarchy.",
+  "thumbnail": "/shaders/thumbnails/966b22c9-d1fe-42d1-868b-1f946df808f4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 10,
+          "colorA": "#0c0c1c",
+          "colorB": "#12081f",
+          "detail": 2.8,
+          "speed": 0.8
+        }
+      },
+      {
+        "type": "GlassTiles",
+        "props": {
+          "intensity": 40,
+          "maskSource": "idmjrma2hqerhhnv380",
+          "rotation": 22,
+          "roundness": 1,
+          "tileCount": 25
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 8,
+              "colorA": "#0c0c1c",
+              "colorB": "#7b3bcc",
+              "detail": 2.8,
+              "speed": 0.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "id": "idmjrma2hqerhhnv380",
+          "center": {
+            "x": 0.55,
+            "y": 0.62
+          },
+          "deformation": 1.5,
+          "highlightIntensity": 0,
+          "highlightX": -1,
+          "highlightY": -1,
+          "highlightZ": -1,
+          "size": 0.72,
+          "softness": 1.2,
+          "speed": 0.6,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

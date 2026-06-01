@@ -1,0 +1,76 @@
+{
+  "id": "079294bc-04c0-4aa5-ae02-0c7d8afb5ae9",
+  "title": "Arrow Skies",
+  "collectionId": "fea12e25-101d-48a0-83ba-13df1a667892",
+  "category": "background",
+  "description": "A dynamic gradient shader effect transitioning from deep dark-blue/purple in the upper left to vibrant magenta/pink in the lower right. The background features a dense repeating pattern of small arrow characters (↖ and ↗) that create a directional flow across the entire canvas. The arrows are rendered in a yellow-to-dark-blue gradient, creating a luminous contrast against the base gradient. A subtle wave distortion effect animates across the arrow pattern, creating a rippling, undulating motion that suggests movement and fluidity. The arrows appear to follow diagonal trajectories, with the pattern becoming more saturated and yellow-tinted toward the center-right of the composition, while maintaining darker tones in the upper-left quadrant. A soft circular glow element in yellow appears in the lower-right area, adding depth and focal point emphasis. The overall effect creates a sense of directional energy flow with a modern, digital aesthetic. The color space uses OKLCH for smooth perceptual transitions, and the wave distortion operates at a sine frequency of 1.4 with moderate strength, creating organic undulation without overwhelming the base pattern.",
+  "thumbnail": "/shaders/thumbnails/079294bc-04c0-4aa5-ae02-0c7d8afb5ae9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#ff0091",
+          "colorB": "#220047",
+          "colorSpace": "oklch",
+          "end": {
+            "x": 0.53,
+            "y": 0.32
+          },
+          "start": {
+            "x": 1,
+            "y": 1
+          }
+        }
+      },
+      {
+        "type": "Ascii",
+        "props": {
+          "characters": "↖↖↗↗"
+        },
+        "children": [
+          {
+            "type": "LinearGradient",
+            "props": {
+              "colorA": "#fff700",
+              "colorB": "#00004a",
+              "colorSpace": "oklch",
+              "end": {
+                "x": 0.53,
+                "y": 0.51
+              },
+              "start": {
+                "x": 1,
+                "y": 1
+              }
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 151,
+              "frequency": 1.4,
+              "speed": 3.9,
+              "strength": 0.5
+            }
+          },
+          {
+            "type": "Circle",
+            "props": {
+              "blendMode": "normal-oklch",
+              "center": {
+                "x": 0.72,
+                "y": 0.85
+              },
+              "color": "#ffdd00",
+              "radius": 1.87,
+              "softness": 1
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

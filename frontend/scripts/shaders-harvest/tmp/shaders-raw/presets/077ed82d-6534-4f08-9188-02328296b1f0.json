@@ -1,0 +1,30 @@
+{
+  "id": "077ed82d-6534-4f08-9188-02328296b1f0",
+  "title": "Retro Pop 7",
+  "collection_id": "ec625475-7334-406b-a343-b43545a5579c",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring diagonal parallel stripes that flow from upper-left to lower-right across the entire composition. The stripes are created by a dithered gradient transitioning between dark blue (#1a3d8f) and light blue (#8fb8f5) tones. The stripe pattern has a -115 degree angle with moderate density, creating evenly-spaced parallel bands. A stretch distortion effect is applied with a center point slightly offset to the right and middle of the frame, creating a subtle warping that makes the stripes appear to curve and stretch outward, particularly visible in the directional flow. The dither component adds a grainy, pixelated texture with 4-pixel blocks throughout, giving the effect a slightly noisy, digital quality. The overall mood is cool and technological, with a sense of motion and depth created by the combination of the linear stripe pattern and the radial stretch distortion. The opacity is fully opaque, and the blend mode is normal, allowing all three shader components to composite together seamlessly. The softness value of 0.57 on the stripes creates slightly feathered edges between the light and dark stripe bands, preventing harsh aliasing.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/077ed82d-6534-4f08-9188-02328296b1f0.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzA3N2VkODJkLTY1MzQtNGYwOC05MTg4LTAyMzI4Mjk2YjFmMC5qcGciLCJpYXQiOjE3Nzg3ODUyMDcsImV4cCI6MTgxMDMyMTIwN30.XTT_Fgh5wfYX8RD9c8-emFjSr6QVdg7PJQjfr_MdbyA",
+  "import": "import {\n  Shader,\n  Dither,\n  Stretch,\n  Stripes\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  Stretch,\n  Stripes\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      :angle=\"-115\"\n      :balance=\"0.77\"\n      :density=\"4\"\n      :softness=\"0.57\"/>\n    <Stretch\n      :angle=\"258\"\n      :center=\"{\n        x: 0.53,\n        y: 0.53\n      }\"\n      :falloff=\"0.49\"/>\n    <Dither\n      color-a=\"#1a3d8f\"\n      color-b=\"#8fb8f5\"\n      :threshold=\"0.66\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

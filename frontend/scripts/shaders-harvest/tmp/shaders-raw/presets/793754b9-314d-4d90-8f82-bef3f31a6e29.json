@@ -1,0 +1,30 @@
+{
+  "id": "793754b9-314d-4d90-8f82-bef3f31a6e29",
+  "title": "Soft Register 2",
+  "collection_id": "2fb15a69-4382-4184-85e3-56fe672c4af1",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A flowing, organic gradient shader effect dominated by vibrant magenta and purple tones. The image displays smooth, wave-like distortions that create a sense of liquid motion across the entire frame. The primary colors transition fluidly between hot magenta (#df5eff, #ea05ff), deep purple (#6a0899), and bright neon magenta (#ee35ff). The distortion parameter of 0.8 creates undulating, fabric-like ripples that flow diagonally across the composition, giving the effect a three-dimensional, silk-like appearance. A subtle halftone overlay with CMYK color separation is applied at 20% opacity with an overlay blend mode, adding fine texture and a print-like quality to the smooth gradient base. The halftone pattern at 180 frequency is barely perceptible but adds microscopic detail and visual complexity. The edges fade to transparency, creating a soft vignette effect. The overall mood is energetic and ethereal, with a modern, digital aesthetic that suggests movement and fluidity. The color space uses oklab for smooth interpolation between the magenta and purple hues, resulting in natural-looking transitions without banding.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/793754b9-314d-4d90-8f82-bef3f31a6e29.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzc5Mzc1NGI5LTMxNGQtNGQ5MC04ZjgyLWJlZjNmMzFhNmUyOS5qcGciLCJpYXQiOjE3NzgxOTA4ODMsImV4cCI6MTgwOTcyNjg4M30.U7HSxeyVisRGKkQRLmj8vEYn90XFAl7s7lqJKqNEU_8",
+  "import": "import {\n  Shader,\n  FlowingGradient,\n  Halftone\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, FlowingGradient, Halftone } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FlowingGradient\n      color-a=\"#df5eff\"\n      color-b=\"#ea05ff\"\n      color-c=\"#6a0899\"\n      color-d=\"#ee35ff\"\n      color-space=\"oklab\"\n      :distortion=\"0.8\"\n      :seed=\"57\"/>\n    <Halftone\n      blend-mode=\"overlay\"\n      :frequency=\"180\"\n      :opacity=\"0.2\"\n      style=\"cmyk\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

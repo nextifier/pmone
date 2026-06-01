@@ -1,0 +1,77 @@
+{
+  "id": "e916e603-fabe-4e67-89c6-5cb3cccade97",
+  "title": "Broken Panel 4",
+  "collectionId": "16730531-0705-470f-a154-788e5336708f",
+  "category": "logo",
+  "description": "A dark, minimalist shader effect dominated by a pure black background (#000000) with high contrast elements. The composition features a central glass morphism component with a subtle geometric shape outlined in thin orange/red lines. Within this glass element, there are falling diagonal lines in red (#ff0303) and orange (#f2871d) colors moving at a slow speed (0.25) at approximately 201 degrees angle, creating a sense of controlled motion against the dark void. The glass component has a refraction value of 2 with a highlight color of #ff4055 (bright red-pink), creating subtle light reflections and edge definition. A pixelation effect (scale 50) is applied to the glass layer, giving it a blocky, digital aesthetic. Below the main glass element, a reflective plane creates a mirrored effect with significant blur (4.7) and falloff (1.91), extending approximately 75% of the composition height and creating a sense of depth and reflection. A dither pattern overlay using a bayer2 pattern adds subtle texture and grain throughout. The overall mood is cyberpunk-inspired with a focus on geometric precision, digital artifacts, and a stark contrast between the absolute black background and the warm orange-red accent colors. The effect suggests motion, technology, and a sense of digital decay or digital rain.",
+  "thumbnail": "/shaders/thumbnails/e916e603-fabe-4e67-89c6-5cb3cccade97.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#000000"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "edgeSoftness": 0.2,
+          "fresnel": 0,
+          "fresnelSoftness": 0,
+          "highlight": 0.8,
+          "highlightColor": "#ff4055",
+          "innerZoom": 1.2,
+          "refraction": 2,
+          "scale": 0.65,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/UGhd-3-7xDaU_sdf.bin",
+          "thickness": 0.24
+        },
+        "children": [
+          {
+            "type": "FallingLines",
+            "props": {
+              "angle": 201,
+              "colorA": "#ff0303",
+              "colorB": "#f2871d",
+              "density": 60,
+              "rounding": 0,
+              "speed": 0.25,
+              "speedVariance": 0.8,
+              "strokeWidth": 0.76,
+              "trailLength": 0.03
+            }
+          },
+          {
+            "type": "Pixelate",
+            "props": {
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorMode": "source",
+          "pattern": "bayer2",
+          "pixelSize": 2
+        }
+      },
+      {
+        "type": "ReflectivePlane",
+        "props": {
+          "blur": 4.7,
+          "blurDistance": 0.14,
+          "distance": 0.59,
+          "falloff": 1.91,
+          "height": 0.75
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

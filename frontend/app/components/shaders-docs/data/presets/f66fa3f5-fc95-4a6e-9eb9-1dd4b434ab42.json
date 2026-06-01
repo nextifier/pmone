@@ -1,0 +1,45 @@
+{
+  "id": "f66fa3f5-fc95-4a6e-9eb9-1dd4b434ab42",
+  "title": "Rounded Panels 6",
+  "collectionId": "0a33095f-dfca-48af-94a5-5f15acc313ab",
+  "category": "background",
+  "description": "A dynamic striped shader effect featuring parallel diagonal lines at approximately 76 degrees angle, creating a sense of motion and depth. The stripes alternate between a dark forest green (#3e5542) and a bright sky blue (#32a8f4), with consistent spacing and uniform width. The stripe density is set to 12, creating evenly distributed bands across the composition. A circular gradient mask is applied with a center offset toward the upper-right area (approximately 58% horizontally, 63% vertically), with a radius of 1.65 units. This circular mask creates a soft vignette effect with 0.1 softness, causing the stripe balance to vary from 0.1 to 0.9 opacity based on the circle's alpha channel. The effect creates an illusion of striped ribbons or venetian blinds receding into space, with the circular mask adding dimensional variation. The overall atmosphere is clean and geometric, with a modern, minimalist aesthetic. The color contrast between the cool blue and muted green creates visual interest while maintaining a professional appearance.",
+  "thumbnail": "/shaders/thumbnails/f66fa3f5-fc95-4a6e-9eb9-1dd4b434ab42.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Stripes",
+        "props": {
+          "angle": 76,
+          "balance": {
+            "type": "map",
+            "source": "idmlsathgg7fl4tmxmi",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 0.9,
+            "outputMin": 0.1
+          },
+          "colorA": "#3e5542",
+          "colorB": "#32a8f4",
+          "density": 12
+        }
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmlsathgg7fl4tmxmi",
+          "center": {
+            "x": 0.58,
+            "y": 0.63
+          },
+          "radius": 1.65,
+          "softness": 0.1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

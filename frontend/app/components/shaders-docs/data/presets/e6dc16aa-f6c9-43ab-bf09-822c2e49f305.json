@@ -1,0 +1,73 @@
+{
+  "id": "e6dc16aa-f6c9-43ab-bf09-822c2e49f305",
+  "title": "Rolling Shadows 2",
+  "collectionId": "0c3f4def-3e49-4ee4-a36d-ec34752656e7",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring a multi-point gradient system with five color nodes creating a complex, flowing color field. The dominant visual elements include deep purples and magentas radiating from the center-right area, transitioning into dark blues and navy tones toward the edges. The primary color node (positioned at approximately 87.4% horizontally, 55.2% vertically) emits a bright magenta/violet glow that serves as the focal point. Secondary color nodes contribute deep indigo (#3d154f) and darker navy (#0c0f33, #0d0d26) tones that frame the composition. A subtle wave distortion with sine wave characteristics (strength 0.3, frequency 1) creates gentle undulating ripples across the entire surface, giving the effect a liquid, breathing quality. A bulge distortion centered near the mouse position (37% horizontally, 66.4% vertically) with a radius of 2 and falloff of 2 adds localized warping and depth. The paper texture overlay with 0.24 displacement and 3x grain scale introduces fine surface detail and organic noise, breaking up the smoothness and creating a tactile, slightly grainy appearance. The overall atmosphere is moody and ethereal, with a strong sense of depth created by the layered color transitions and interactive distortion effects that respond to mouse movement with momentum smoothing.",
+  "thumbnail": "/shaders/thumbnails/e6dc16aa-f6c9-43ab-bf09-822c2e49f305.webp",
+  "config": {
+    "components": [
+      {
+        "type": "MultiPointGradient",
+        "props": {
+          "colorA": "#0c0f33",
+          "colorB": "#0d0d26",
+          "colorC": "#3d154f",
+          "colorD": "#7612b5",
+          "colorE": "#15264f",
+          "positionA": {
+            "x": 0.79,
+            "y": 0.09
+          },
+          "positionB": {
+            "x": 0.28,
+            "y": 0.66
+          },
+          "positionC": {
+            "x": 0.4,
+            "y": 0.31
+          },
+          "positionD": {
+            "type": "mouse-position",
+            "originX": 0.874,
+            "originY": 0.5523978685612788,
+            "momentum": 0.2,
+            "smoothing": 0.6
+          },
+          "positionE": {
+            "x": 0.78,
+            "y": 0.86
+          }
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {}
+      },
+      {
+        "type": "Bulge",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "originX": 0.37,
+            "originY": 0.6642984014209592,
+            "momentum": 0.3,
+            "smoothing": 0.8
+          },
+          "falloff": 2,
+          "radius": 2
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {
+          "displacement": 0.24,
+          "grainScale": 3,
+          "roughness": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

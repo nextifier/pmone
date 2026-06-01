@@ -1,0 +1,97 @@
+{
+  "id": "48298476-10c2-44d2-9f0e-232ae0cdcd42",
+  "title": "Paint Flow",
+  "collectionId": "7c78be7c-6e84-4238-affd-c17c0f91caa2",
+  "category": "background",
+  "description": "A vibrant, fluid abstract shader effect featuring smooth, organic wave-like patterns flowing diagonally across the composition. The image displays a dynamic gradient transitioning between hot pink (#ff006e), electric blue (#0066ff), and cyan (#00d9ff) colors with warm orange and yellow tones emerging on the right side. The swirling patterns create a sense of motion and fluidity, with soft, blurred edges that suggest a glow effect applied throughout. A luminous blob-like form with yellow-to-magenta coloring is positioned in the upper-right quadrant, adding dimensional depth. The overall aesthetic is smooth and dreamlike with subtle wave distortions creating rippling effects across the surface. Fine film grain texture is subtly visible, adding a slight grittiness to the otherwise smooth gradients. Chromatic aberration creates minimal color fringing at high-contrast edges. The composition has a modern, neon-inspired aesthetic with a soft, ethereal quality enhanced by the screen blend mode glow effect. The spatial arrangement suggests flowing liquid or energy moving from lower-left to upper-right with organic, undulating motion.",
+  "thumbnail": "/shaders/thumbnails/48298476-10c2-44d2-9f0e-232ae0cdcd42.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FilmGrain",
+        "props": {
+          "animated": 0,
+          "strength": 0.15
+        },
+        "children": [
+          {
+            "type": "Glow",
+            "props": {
+              "blendMode": "screen",
+              "intensity": 0.14,
+              "size": 15,
+              "threshold": 0.35
+            },
+            "children": [
+              {
+                "type": "Swirl",
+                "props": {
+                  "coarseX": 40,
+                  "coarseY": 40,
+                  "colorA": "#ff006e",
+                  "colorB": "#0066ff",
+                  "colorC": "#00d9ff",
+                  "colorSpace": "oklch",
+                  "complexity": 5.5,
+                  "detail": 2.5,
+                  "fineX": 65,
+                  "fineY": 65,
+                  "mediumX": 60,
+                  "mediumY": 60,
+                  "scale": 1,
+                  "speed": 0.8
+                }
+              },
+              {
+                "type": "Blob",
+                "props": {
+                  "center": {
+                    "x": 0.85,
+                    "y": 0.55
+                  },
+                  "colorA": "#ffff00",
+                  "colorB": "#ff0080",
+                  "colorSpace": "oklch",
+                  "deformation": 1,
+                  "highlightColor": "#ffffff",
+                  "highlightIntensity": 0.8,
+                  "highlightX": 0.5,
+                  "highlightY": -0.5,
+                  "highlightZ": 0.8,
+                  "opacity": 0.9,
+                  "seed": 42,
+                  "size": 0.54,
+                  "softness": 1,
+                  "speed": 1.2,
+                  "visible": true
+                }
+              },
+              {
+                "type": "WaveDistortion",
+                "props": {
+                  "angle": 45,
+                  "edges": "mirror",
+                  "frequency": 6,
+                  "speed": 2.5,
+                  "strength": 0.15,
+                  "visible": true
+                }
+              },
+              {
+                "type": "ChromaticAberration",
+                "props": {
+                  "blueOffset": 1.5,
+                  "redOffset": -1.5,
+                  "strength": 0.02,
+                  "visible": true
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

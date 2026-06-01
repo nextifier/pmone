@@ -1,0 +1,30 @@
+{
+  "id": "61835102-518b-4a93-b083-42e68a9dae0f",
+  "title": "Geogrid 11",
+  "collection_id": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A geometric grid-based shader effect displaying an isometric perspective with a parallelogram shape. The composition features a dense grid of diagonal lines creating a chevron or herringbone pattern that appears to wave and undulate across the canvas. The grid lines are rendered in a light cyan-blue color (#a8d4e6) with a thickness of approximately 2.3 pixels, creating sharp linear patterns. The underlying background transitions smoothly from a muted purple-lavender on the left side to a soft blue-gray on the right, creating a subtle gradient atmosphere. The grid pattern exhibits wave distortion applied at a 350-degree angle with triangle wave characteristics, causing the parallel lines to bend and flow in a rhythmic, undulating motion. The distortion creates a sense of depth and movement, making the flat geometric pattern appear to ripple and shift. The overall effect combines a hard light blend mode that makes the grid lines stand out crisply against the gradient background. The composition maintains a 75% scale with the grid centered, and the entire effect is overlaid with a swirl component that adds subtle color variation between blue-gray (#7a9cb8) and soft purple (#b0a3c8) tones. The visual result is a modern, tech-forward aesthetic with a sense of dynamic motion frozen in time.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/61835102-518b-4a93-b083-42e68a9dae0f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzYxODM1MTAyLTUxOGItNGE5My1iMDgzLTQyZTY4YTlkYWUwZi5qcGciLCJpYXQiOjE3NzMwODM3NTIsImV4cCI6MTgwNDYxOTc1Mn0.-f-HsjWyCGrNKa6x99CoYCc6Taj4fGV4IYxmgt79Yv4",
+  "import": "import {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"28\"\n      color-a=\"#7a9cb8\"\n      color-b=\"#b0a3c8\"\n      color-space=\"oklch\"\n      :detail=\"0.6\"\n      :speed=\"1.5\"/>\n    <WaveDistortion\n      :angle=\"350\"\n      edges=\"mirror\"\n      :frequency=\"1.3\"\n      :strength=\"0.25\"\n      wave-type=\"triangle\">\n      <Grid\n        blend-mode=\"hardLight\"\n        :cells=\"24\"\n        color=\"#a8d4e6\"\n        :thickness=\"2.3\"\n        :transform=\"{ scale: 0.75 }\"/>\n    </WaveDistortion>\n    <GridDistortion\n      :decay=\"1.8\"\n      edges=\"wrap\"\n      :grid-size=\"8\"\n      :intensity=\"5\"\n      :radius=\"1.75\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

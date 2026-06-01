@@ -1,0 +1,86 @@
+{
+  "id": "b2f08b7b-327d-49c7-a80e-707f895cf1b8",
+  "title": "LED Flow 4",
+  "collectionId": "919ba9e1-06c8-4d55-8153-002a45a08a91",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect dominated by deep navy and black tones with subtle dimensional distortion. The composition features a swirling twirl effect centered in the lower-right portion of the canvas, creating a vortex-like distortion that warps the space around it with an intensity of 2.6. The background is a near-black solid color (#0c061a) providing a deep, void-like foundation. Overlaid on this is a diagonal linear gradient transitioning from magenta (#ff00b2) to cyan (#85fbff) at a 141-degree angle, creating a neon-like color shift that's visible primarily through the luminance mask applied by the invisible swirl and dot grid group. The gradient uses OKLCH color space for smooth perceptual transitions. Subtle white dots arranged in a grid pattern (60 density, 0.12 dot size) are masked and invisible but influence the gradient's visibility through luminance masking, creating an underlying structure. A fine film grain texture with 0.03 strength adds subtle noise and texture throughout, enhancing the cinematic quality. The overall effect is moody, dark, and ethereal with a sense of dynamic motion from the twirl distortion, while the magenta-to-cyan gradient provides striking color contrast against the predominantly black canvas. The edges wrap around the twirl effect, creating a seamless distortion field.",
+  "thumbnail": "/shaders/thumbnails/b2f08b7b-327d-49c7-a80e-707f895cf1b8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Group",
+        "props": {
+          "id": "idmjrnv6c0pom01tg0f",
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 100,
+              "colorA": "#ffffff",
+              "colorB": "#000000",
+              "detail": 1.6,
+              "maskSource": "idmjrnuq8x4whbsr7v9"
+            }
+          },
+          {
+            "type": "DotGrid",
+            "props": {
+              "id": "idmjrnuq8x4whbsr7v9",
+              "density": 60,
+              "dotSize": 0.12,
+              "visible": false
+            }
+          },
+          {
+            "type": "Twirl",
+            "props": {
+              "center": {
+                "x": 0.64,
+                "y": 1
+              },
+              "edges": "wrap",
+              "intensity": 2.6,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0c061a"
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "angle": 141,
+          "colorA": "#ff00b2",
+          "colorB": "#85fbff",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 0.37,
+            "y": 0.26
+          },
+          "maskSource": "idmjrnv6c0pom01tg0f",
+          "maskType": "luminance",
+          "start": {
+            "x": 0.41,
+            "y": 0.4
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.03
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,88 @@
+{
+  "id": "4d21d972-7ca2-4790-bb1d-9318cd4cacb8",
+  "title": "Collapsing Grid 6",
+  "collectionId": "c64aa228-91ce-47b8-b2e3-ebb22cc2ad80",
+  "category": "background",
+  "description": "A gradient mesh composed of rounded square tiles arranged in a 16x10 grid pattern. The shader creates a smooth color transition from deep purple (#160091) in the top-left corner to soft pink (#f285ba) in the bottom-right corner, with intermediate purple and mauve tones throughout. Each tile has subtle rounded corners with a small dark border/gap (0.03 scale) separating them, creating a pixelated mosaic effect with scale factor of 18. The roundness of each tile varies dynamically, controlled by an invisible sine wave and chroma flow effect mapped to the alpha channel, creating organic variation in corner radius across the grid. The color interpolation uses the OKLAB color space for perceptually smooth transitions. The overall effect produces a soft, gradient-based pixelated appearance with a gentle, modern aesthetic. The tiles transition smoothly from highly saturated deep purple on the left to desaturated pale pink on the right, with the gradient flowing diagonally across the composition. The effect has a calm, minimalist mood with smooth color blending and geometric precision.",
+  "thumbnail": "/shaders/thumbnails/4d21d972-7ca2-4790-bb1d-9318cd4cacb8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Group",
+        "props": {
+          "id": "idmpijta5dnhqxghigt",
+          "visible": false
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.2,
+              "angle": 222,
+              "frequency": 0.6,
+              "position": {
+                "x": 0.36,
+                "y": 0.37
+              },
+              "softness": 0.8,
+              "thickness": 0.5,
+              "visible": true
+            }
+          },
+          {
+            "type": "ChromaFlow",
+            "props": {
+              "baseColor": "#ffffff",
+              "downColor": "#ffffff",
+              "intensity": 1.5,
+              "leftColor": "#ffffff",
+              "momentum": 15,
+              "opacity": 0.4,
+              "radius": 4.3,
+              "rightColor": "#ffffff",
+              "upColor": "#ffffff",
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#160091"
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "gap": 0.03,
+          "roundness": {
+            "type": "map",
+            "source": "idmpijta5dnhqxghigt",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.13
+          },
+          "scale": 18
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#f285ba",
+              "colorB": "#531fcf",
+              "colorSpace": "oklab",
+              "detail": 1.3,
+              "speed": 2,
+              "visible": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

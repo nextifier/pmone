@@ -1,0 +1,38 @@
+{
+  "id": "3c9e74bb-14d8-473f-b6ed-480f8a2a1ed9",
+  "title": "Hex Path 7",
+  "collection_id": "61fcec0d-813b-4847-98e7-6ffa7212d5a9",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A futuristic digital interface featuring a hexagonal grid pattern with cyan/turquoise glowing edges arranged in a rectangular formation against a dark background. The hexagons have bright cyan (#19ffff) outlines with varying thickness, creating a luminous neon effect. The grid is centered in the composition with approximately 8x8 cells. Behind the grid, there's a radial gradient background transitioning from a dark forest green (#0a2418) at the top to nearly black (#050a07) at the edges, creating depth. Ripple effects with green tones (#1f5e3d) emanate from the top center, creating subtle wave patterns that interact with the hexagonal structure. A chromatic flow effect adds directional color shifts with greens (#3fa86a, #5cc47e, #7fe8a3) and cyan accents flowing through the grid. The entire composition has a strong glow effect with high intensity (21), causing the bright cyan lines to bloom and create halos around the hexagon edges. A subtle film grain texture overlays the entire image, adding a slight noise pattern. The overall mood is technological, cybernetic, and ethereal, with a cool color temperature dominated by cyan and green hues against deep dark backgrounds. The effect suggests a digital network, data visualization, or advanced technological interface.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/3c9e74bb-14d8-473f-b6ed-480f8a2a1ed9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzNjOWU3NGJiLTE0ZDgtNDczZi1iNmVkLTQ4MGY4YTJhMWVkOS5qcGciLCJpYXQiOjE3NzgzNzkyMDEsImV4cCI6MTgwOTkxNTIwMX0.9CczKo4YOlFpm9YzU9EXf6-0v9cfNIjXh_t6pX2FxIY",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  Circle,\n  FilmGrain,\n  Glow,\n  HexGrid,\n  RadialGradient,\n  Ripples\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  Circle,\n  FilmGrain,\n  Glow,\n  HexGrid,\n  RadialGradient,\n  Ripples\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Circle\n      id=\"idmoz4cglxvtm21v60i\"\n      :center=\"{\n        type: 'mouse-position',\n        originX: 0.5,\n        originY: 0.5,\n        momentum: 0.35,\n        smoothing: 0.2\n      }\"\n      :softness=\"0.5\"\n      :visible=\"false\"/>\n    <HexGrid\n      id=\"idmoz40cq9qk5jrget0\"\n      color-a=\"#00000000\"\n      :thickness=\"{\n        type: 'map',\n        source: 'idmoz4cglxvtm21v60i',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 3,\n        outputMin: 0.4\n      }\"\n      :visible=\"true\"/>\n    <RadialGradient\n      :center=\"{\n        x: 0.5,\n        y: 0\n      }\"\n      color-a=\"#0a2418\"\n      color-b=\"#050a07\"\n      :radius=\"0.9\"/>\n    <Ripples\n      :center=\"{\n        x: 0.5,\n        y: 0\n      }\"\n      color-a=\"#1f5e3d\"\n      color-b=\"#0d1a13\"\n      :frequency=\"11\"\n      mask-source=\"idmoz40cq9qk5jrget0\"\n      :softness=\"1.8\"\n      :thickness=\"0\"/>\n    <ChromaFlow\n      base-color=\"#19ffff\"\n      down-color=\"#1a4d2e\"\n      left-color=\"#3fa86a\"\n      mask-source=\"idmoz40cq9qk5jrget0\"\n      :momentum=\"15\"\n      :radius=\"3.8\"\n      right-color=\"#5cc47e\"\n      up-color=\"#7fe8a3\"/>\n    <Glow\n      :intensity=\"21\"\n      :size=\"6\"\n      :threshold=\"0.1\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This shader has a high level of detail/contrast or some other factor that may make it hard to read content on top of it. You may want to consider masking the shader behind any content for readability."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

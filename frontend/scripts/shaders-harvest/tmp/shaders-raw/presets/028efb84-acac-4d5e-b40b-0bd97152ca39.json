@@ -1,0 +1,30 @@
+{
+  "id": "028efb84-acac-4d5e-b40b-0bd97152ca39",
+  "title": "Saturn",
+  "collection_id": "8a4eaa4e-cb8e-4661-a95d-13d7ba15bac3",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A large spherical celestial body dominates the right side of the composition, rendered with a sophisticated 3D spherize effect that creates dimensional depth and curvature. The sphere features prominent horizontal striations and bands that flow across its surface in warm orange and coral tones (#ffa929), contrasting against cooler blue and purple undertones (#4c71fc, #0d193d). The surface exhibits a glossy, reflective quality with a bright highlight positioned in the upper-left quadrant of the sphere, creating a luminous focal point. Multiple layers of godrays emanate from the sphere's surface, with orange rays moving outward at varying speeds and intensities (0.82 intensity), creating a dynamic atmospheric effect. Darker blue-toned rays (#010640) add depth and shadow definition. The background is a deep, nearly black space (#0e0724) with subtle star-like particles scattered throughout, enhanced by a floating particles effect with minimal opacity (0.05) and high twinkle (0.77). A wave distortion effect (strength 0.21, frequency 7.9) subtly warps the surface details, creating organic movement across the bands. Chromatic aberration (0.02 strength) adds a slight color fringing effect, particularly visible along the edges of the bright regions. The overall mood is cosmic and ethereal, with a balance between cool deep space tones and warm energetic light emissions. Film grain (0.03 strength) provides subtle texture throughout, enhancing the cinematic quality.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/29ff1448-5ea1-4e6d-86b6-bac47d8c702d.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzI5ZmYxNDQ4LTVlYTEtNGU2ZC04NmI2LWJhYzQ3ZDhjNzAyZC5qcGciLCJpYXQiOjE3NjU1ODA3NDQsImV4cCI6MTc5NzExNjc0NH0.hjISfSTWx-FlSJtlI42Cmx85q7P-nfcPdEiiq1xuMKQ",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  FloatingParticles,\n  Godrays,\n  SolidColor,\n  Spherize,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  FloatingParticles,\n  Godrays,\n  SolidColor,\n  Spherize,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0e0724\"\n      :visible=\"true\"/>\n    <Blob\n      :center=\"{\n        x: 0.29,\n        y: 0.41\n      }\"\n      color-a=\"#0d193d\"\n      color-b=\"#0a0526\"\n      color-space=\"oklch\"\n      :deformation=\"1\"\n      :highlight-intensity=\"0\"\n      :size=\"0.65\"\n      :softness=\"1\"\n      :visible=\"true\"/>\n    <FloatingParticles\n      blend-mode=\"linearDodge\"\n      :opacity=\"0.05\"\n      :particle-size=\"1\"\n      :particle-softness=\"0.15\"\n      :randomness=\"0.01\"\n      :speed=\"0\"\n      :twinkle=\"0.77\"/>\n    <ChromaticAberration\n      :angle=\"29\"\n      :red-offset=\"1\"\n      :strength=\"0.02\">\n      <Spherize\n        :center=\"{\n          x: 0.8,\n          y: 0.66\n        }\"\n        :depth=\"1.49\"\n        light-color=\"#4c71fc\"\n        :light-intensity=\"0.98\"\n        :light-position=\"{\n          x: 0.17,\n          y: 0.1\n        }\"\n        :light-softness=\"0\"\n        :radius=\"1.3\">\n        <Godrays\n          background-color=\"#050208\"\n          :center=\"{\n            x: 0.5,\n            y: 1\n          }\"\n          :density=\"0.05\"\n          :intensity=\"0.74\"\n          ray-color=\"#010640\"\n          :speed=\"-1\"\n          :visible=\"true\"/>\n        <Godrays\n          blend-mode=\"normal-oklch\"\n          :density=\"0.58\"\n          :intensity=\"0.82\"\n          ray-color=\"#ffa929\"\n          :speed=\"0.25\"\n          :visible=\"true\"/>\n        <WaveDistortion\n          :angle=\"314\"\n          edges=\"mirror\"\n          :frequency=\"7.9\"\n          :speed=\"0.3\"\n          :strength=\"0.21\"\n          :visible=\"true\"/>\n      </Spherize>\n    </ChromaticAberration>\n    <FilmGrain\n      :strength=\"0.03\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

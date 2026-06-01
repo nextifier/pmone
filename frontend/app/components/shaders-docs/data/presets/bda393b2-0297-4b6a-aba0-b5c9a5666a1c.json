@@ -1,0 +1,78 @@
+{
+  "id": "bda393b2-0297-4b6a-aba0-b5c9a5666a1c",
+  "title": "Cracked Crystal",
+  "collectionId": "c5ceb62c-094d-4b4f-b1ce-4aac2500d934",
+  "category": "logo",
+  "description": "A glowing neon-style abstract logo featuring two concentric rounded rectangular shapes with smooth, organic curves against a pure black background. The outer and inner shapes create a nested, flowing design reminiscent of interconnected loops or a stylized infinity symbol. The primary visual effect is an intense blue neon glow that emanates from the geometric forms, with bright cyan-white highlights concentrated along the upper edges and outer perimeter of the shapes, creating a luminous, three-dimensional appearance. The glow has a soft, diffused quality that bleeds into the surrounding darkness, with the brightest intensity at the core of the shapes transitioning to softer blue halos at the edges. The interior surfaces of the shapes display a subtle crystalline texture with faceted reflections, suggesting a glass or ice-like material with refractive properties. Light rays and subtle god-ray effects emanate from the center, adding atmospheric depth. The overall mood is futuristic, technological, and ethereal, with a cool color temperature dominated by electric blues and cyan tones. The composition is centered and symmetrical, with the shapes appearing to float in infinite darkness.",
+  "thumbnail": "/shaders/thumbnails/bda393b2-0297-4b6a-aba0-b5c9a5666a1c.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "colorA": "#070814",
+          "colorB": "#141426",
+          "deformation": 0.6,
+          "highlightColor": "#21a9ff",
+          "size": 0.6,
+          "softness": 1
+        }
+      },
+      {
+        "type": "Crystal",
+        "props": {
+          "cutout": true,
+          "dispersion": 0.75,
+          "edgeSoftness": 0.05,
+          "facets": 3,
+          "fresnel": 0.28,
+          "fresnelColor": "#c8dbfa",
+          "fresnelSoftness": 0.52,
+          "highlights": 0.4,
+          "lightAngle": 272,
+          "shadows": 0.5,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/isQWoyQoe0qA_sdf.bin",
+          "tintColor": "#2763e3",
+          "tintIntensity": 0.2
+        },
+        "children": [
+          {
+            "type": "Godrays",
+            "props": {
+              "backgroundColor": "#7dd9ff",
+              "center": {
+                "type": "mouse-position",
+                "reach": 0.05,
+                "originX": 1,
+                "originY": 0,
+                "momentum": 0.15,
+                "smoothing": 0.25
+              },
+              "density": 0.5,
+              "intensity": 1,
+              "rayColor": "#002fc2",
+              "speed": 2,
+              "spotty": 0.7
+            }
+          }
+        ]
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 0.5,
+          "size": 33,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

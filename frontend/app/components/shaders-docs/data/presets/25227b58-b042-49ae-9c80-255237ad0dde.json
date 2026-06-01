@@ -1,0 +1,54 @@
+{
+  "id": "25227b58-b042-49ae-9c80-255237ad0dde",
+  "title": "Undertones 6",
+  "collectionId": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "category": "background",
+  "description": "A dark, sophisticated shader effect featuring diagonal striped patterns across a predominantly black background. The composition showcases four vertical glowing bands with intense blue luminescence positioned in the center-left area of the frame. The leftmost band exhibits a deep purple-to-red gradient transition, while the three central bands display vibrant electric blue (#0033ff to #00e1ff range) with soft, diffused glowing edges that create a volumetric light effect. The rightmost band transitions back to darker purple tones. The entire composition is overlaid with fine diagonal line patterns that create a ribbed or fluted glass texture, giving the effect a sense of depth and refraction. A subtle film grain texture is applied uniformly across the image, adding analog quality. The glowing bands appear to have chromatic aberration and light diffusion, suggesting movement or energy flow. The overall atmosphere is modern, technological, and cinematic with high contrast between the luminous blue elements and the deep black background. The lighting creates a sense of three-dimensionality through subtle shadowing and highlight variations on the glowing surfaces.",
+  "thumbnail": "/shaders/thumbnails/25227b58-b042-49ae-9c80-255237ad0dde.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#000000",
+          "colorB": "#0a0a0a",
+          "detail": 1.7
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#18181a",
+          "downColor": "#0033ff",
+          "leftColor": "#0059ff",
+          "momentum": 13,
+          "rightColor": "#5500ff",
+          "upColor": "#00e1ff"
+        }
+      },
+      {
+        "type": "FlutedGlass",
+        "props": {
+          "aberration": 0.61,
+          "angle": 28,
+          "frequency": 8,
+          "highlight": 0.12,
+          "highlightSoftness": 0,
+          "lightAngle": -90,
+          "refraction": 4,
+          "shape": "rounded",
+          "softness": 1,
+          "speed": 0.15
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

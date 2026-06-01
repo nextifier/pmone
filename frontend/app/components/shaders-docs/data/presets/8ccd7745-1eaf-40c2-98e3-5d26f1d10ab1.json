@@ -1,0 +1,52 @@
+{
+  "id": "8ccd7745-1eaf-40c2-98e3-5d26f1d10ab1",
+  "title": "Illuminated Clouds 5",
+  "collectionId": "2abc4383-72b2-4372-95c8-968385824d76",
+  "category": "background",
+  "description": "A highly blurred, abstract gradient composition dominated by warm and cool color transitions. The image features a flowing, organic movement of colors with a deep burgundy/maroon base (#1a0005) establishing the darkest tones. Vibrant magenta and pink hues (#ff0558) create bright focal points that radiate outward, while golden yellow (#ffe014) accents provide warm highlights throughout the composition. The effect is heavily blurred with soft, feathered edges creating a dreamy, atmospheric quality. Dark purple and deep maroon tones (#3d0a2e) form shadowy regions that contrast with the luminous pink and yellow areas. The overall composition suggests flowing, liquid-like movement with no distinct shapes, creating a sense of depth and dimensionality through color layering. A subtle film grain texture is applied across the entire surface, adding a cinematic quality. The lighting appears to emanate from within the gradient itself, creating a self-illuminated, ethereal atmosphere with warm-to-cool color transitions that suggest motion and energy.",
+  "thumbnail": "/shaders/thumbnails/8ccd7745-1eaf-40c2-98e3-5d26f1d10ab1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#1a0005"
+        }
+      },
+      {
+        "type": "Fog",
+        "props": {
+          "id": "idmo78g2qa8dpr72ig3",
+          "blending": 0.9,
+          "colorB": "#000000",
+          "detail": 3,
+          "mouseInfluence": 0.4,
+          "seed": 817,
+          "visible": false
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#1a0005",
+          "colorB": "#3d0a2e",
+          "colorC": "#ff0558",
+          "colorD": "#ffe014",
+          "distortion": 0.3,
+          "maskSource": "idmo78g2qa8dpr72ig3",
+          "maskType": "luminance",
+          "seed": 73,
+          "speed": 4
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

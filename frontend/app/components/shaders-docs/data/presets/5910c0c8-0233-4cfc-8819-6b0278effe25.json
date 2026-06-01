@@ -1,0 +1,92 @@
+{
+  "id": "5910c0c8-0233-4cfc-8819-6b0278effe25",
+  "title": "Spray Paint",
+  "collectionId": "c461387d-b3ec-4cfe-96df-a6e4aed001c5",
+  "category": "background",
+  "description": "A vibrant gradient shader effect featuring a deep purple base (#7718ca) with three animated blob shapes creating a fluid, organic composition. The primary blob in the upper-right area blends pink (#fd79a8) and yellow (#ffc34d) tones with soft, diffused edges and a warm highlight. A secondary blob in the lower-right displays blue-purple gradients (#7261ff to #a29bfe) with moderate deformation and cooler highlights. A third blob on the left side features magenta-pink tones (#ff6b9d to #f55f8a) with enhanced softness and subtle yellow highlights. All blobs have organic, morphing shapes with smooth transitions between colors, creating a dreamy, ethereal atmosphere. The entire composition is unified by a diffuse blur effect (intensity 100) that softens edges and creates a cohesive, glowing quality. The color transitions are smooth and gradient-based, with highlights positioned to create depth and dimension. The overall mood is modern, energetic, and visually soothing with a contemporary design aesthetic.",
+  "thumbnail": "/shaders/thumbnails/5910c0c8-0233-4cfc-8819-6b0278effe25.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#7718ca"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.66,
+            "y": 0.34
+          },
+          "colorA": "#fd79a8",
+          "colorB": "#ffc34d",
+          "colorSpace": "oklch",
+          "deformation": 0.6,
+          "highlightColor": "#ffeaa7",
+          "highlightIntensity": 0.7,
+          "highlightX": 0.2,
+          "highlightY": 0.3,
+          "highlightZ": 0.7,
+          "seed": 42,
+          "size": 0.65,
+          "softness": 2,
+          "speed": 0.35
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.77,
+            "y": 0.73
+          },
+          "colorA": "#7261ff",
+          "colorB": "#a29bfe",
+          "colorSpace": "oklch",
+          "deformation": 0.8,
+          "highlightColor": "#74b9ff",
+          "highlightX": 0.4,
+          "highlightZ": 0.6,
+          "seed": 23,
+          "size": 0.6,
+          "softness": 2,
+          "speed": 0.25
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.2,
+            "y": 0.63
+          },
+          "colorA": "#ff6b9d",
+          "colorB": "#f55f8a",
+          "colorSpace": "oklch",
+          "deformation": 0.7,
+          "highlightColor": "#ffd93d",
+          "highlightIntensity": 0.6,
+          "highlightX": -0.3,
+          "highlightY": -0.4,
+          "highlightZ": 0.5,
+          "seed": 7,
+          "size": 0.7,
+          "softness": 3,
+          "speed": 0.3
+        }
+      },
+      {
+        "type": "DiffuseBlur",
+        "props": {
+          "edges": "mirror",
+          "intensity": 100,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

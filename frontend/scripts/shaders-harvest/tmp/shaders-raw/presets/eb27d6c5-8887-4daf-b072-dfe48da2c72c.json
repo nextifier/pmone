@@ -1,0 +1,42 @@
+{
+  "id": "eb27d6c5-8887-4daf-b072-dfe48da2c72c",
+  "title": "Frosted Glass",
+  "collection_id": "acc42402-71b9-438d-9006-d8c7df2963af",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A sophisticated gradient background transitioning from light periwinkle at the top to deep blue at the bottom, creating a serene atmospheric effect. The composition features a glass morphism effect with a frosted, translucent quality applied to geometric shapes - specifically a rounded rectangular form at the top and a larger curved/arc-shaped element in the center-right area. These glass elements have a subtle blur effect (approximately 20px) with chromatic aberration creating slight color fringing at the edges. The glass shapes exhibit a frosted appearance with minimal transparency, allowing the gradient background to show through while maintaining distinct shape boundaries. A sine wave pattern in bright blue (#1755ff) flows horizontally across the lower portion, adding subtle wave-like distortion. Fine film grain texture overlays the entire composition at low opacity (0.3), providing subtle texture and reducing the smoothness of the gradient. The overall mood is clean, modern, and minimalist with a cool color temperature. The spatial arrangement creates depth through layering of semi-transparent elements, with the glass effect creating a sense of dimensional separation from the background gradient.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/eb27d6c5-8887-4daf-b072-dfe48da2c72c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ViMjdkNmM1LTg4ODctNGRhZi1iMDcyLWRmZTQ4ZGEyYzcyYy5qcGciLCJpYXQiOjE3NzI3Mjg3NTcsImV4cCI6MTgwNDI2NDc1N30.tnG5SG_yuhKaRKfB97cpHR8ZUdvWyxjG2M8O6UCi74o",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Glass,\n  SineWave,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Glass,\n  SineWave,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#ebf6ff\"\n      color-b=\"#d3e4f0\"\n      :detail=\"1.5\"/>\n    <SineWave\n      :amplitude=\"0.1\"\n      color=\"#1755ff\"\n      :frequency=\"0.6\"\n      :position=\"{\n        x: 0.5,\n        y: 1\n      }\"\n      :softness=\"1\"\n      :thickness=\"0.7\"/>\n    <Glass\n      :aberration=\"0.64\"\n      :blur=\"20\"\n      :edge-softness=\"0.05\"\n      :fresnel=\"0.03\"\n      :fresnel-softness=\"1\"\n      :highlight=\"0\"\n      :highlight-softness=\"1\"\n      :inner-zoom=\"2\"\n      :light-angle=\"237\"\n      :refraction=\"2\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/3qJFWUS-Vtnm_sdf.bin\"\n      :thickness=\"0.03\"/>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

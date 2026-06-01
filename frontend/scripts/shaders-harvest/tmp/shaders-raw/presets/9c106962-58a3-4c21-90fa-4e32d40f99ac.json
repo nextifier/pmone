@@ -1,0 +1,18 @@
+{
+  "id": "9c106962-58a3-4c21-90fa-4e32d40f99ac",
+  "title": "Redacted Bars 5",
+  "collection_id": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect displaying diagonal parallel lines at a 31-degree angle flowing from upper-left to lower-right across a dark background. The lines feature a sophisticated color gradient transitioning from golden-yellow (#a39148) on the left side through warm orange and coral tones in the center, culminating in deep magenta-pink (#ce235c) on the right side. Each line has a soft, rounded stroke with a trailing gradient effect that creates a sense of motion and depth. The lines are evenly spaced with consistent density, creating a rhythmic pattern. The background is a very dark navy-black (#0a0b14) that provides high contrast, making the colored lines appear to float and glow. The overall effect suggests movement or energy flowing diagonally across the composition, with a smooth blend between warm and cool color temperatures. A subtle tilt-shift effect with minimal width and high falloff is applied, though its impact is minimal given the width setting of 0. The color space uses OKLCH for smooth perceptual gradients.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/9c106962-58a3-4c21-90fa-4e32d40f99ac.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzljMTA2OTYyLTU4YTMtNGMyMS05MGZhLTRlMzJkNDBmOTlhYy5qcGciLCJpYXQiOjE3NzMwMjgwNTMsImV4cCI6MTgwNDU2NDA1M30.aO5bnhy6Vxajk7PwBNM_dkObNmCRLJCDeRZQBavREMc",
+  "import": "import {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a0b14\"/>\n    <FallingLines\n      id=\"idmmijuosi5e6y2didn\"\n      :angle=\"31\"\n      color-b=\"#cccccc00\"\n      color-space=\"hsl\"\n      :density=\"13\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.15\"\n      :stroke-width=\"0.34\"\n      :trail-length=\"0.95\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#a39148\"\n      color-b=\"#ce235c\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 1,\n        y: 0\n      }\"\n      mask-source=\"idmmijuosi5e6y2didn\"\n      :start=\"{\n        x: 0,\n        y: 1\n      }\"/>\n    <TiltShift\n      :falloff=\"0.9\"\n      :intensity=\"100\"\n      :width=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ]
+}

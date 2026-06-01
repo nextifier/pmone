@@ -1,0 +1,65 @@
+{
+  "id": "f645b9ab-5615-4060-b1b4-1cd2540dcf59",
+  "title": "City Grid 9",
+  "collectionId": "f1e3b27c-d2ba-498c-a1e0-29065f9295c9",
+  "category": "background",
+  "description": "A gradient pixelated shader effect transitioning from deep black on the left to vibrant purple and blue on the right. The image displays a smooth horizontal gradient composed of small square pixels that increase in size and intensity from left to right. The left side features nearly invisible dark pixels against the black background (#09060f), creating a subtle dotted pattern. Moving rightward, pixels become progressively larger and more visible, with colors shifting from dark purple through medium purple (#6500ff) to bright white and light blue. The pixelation creates a blocky, digital aesthetic with rounded corners on each pixel element (roundness: 0.2). An underlying plasma effect generates organic, flowing color variations within the pixelated structure, creating a dynamic, animated quality. The overall composition suggests a wave or gradient map influence, with the sine wave component controlling the pixel gap distribution. The effect has a modern, tech-forward aesthetic with a smooth fade from darkness to luminous color, evoking a sense of digital emergence or data visualization.",
+  "thumbnail": "/shaders/thumbnails/f645b9ab-5615-4060-b1b4-1cd2540dcf59.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#09060f"
+        }
+      },
+      {
+        "type": "Pixelate",
+        "props": {
+          "gap": {
+            "type": "map",
+            "curve": 0.35,
+            "source": "idmmbhthud5inxgebqc",
+            "channel": "alphaInverted",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 1,
+            "outputMin": 0.16
+          },
+          "roundness": 0.2,
+          "scale": 74
+        },
+        "children": [
+          {
+            "type": "Plasma",
+            "props": {
+              "balance": 57,
+              "colorA": "#ffffff",
+              "colorB": "#6500ff",
+              "density": 3.3,
+              "intensity": 1.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "SineWave",
+        "props": {
+          "id": "idmmbhthud5inxgebqc",
+          "amplitude": 0.1,
+          "angle": 246,
+          "frequency": 0.7,
+          "position": {
+            "x": 0.78,
+            "y": 0.84
+          },
+          "softness": 1,
+          "thickness": 1,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

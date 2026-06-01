@@ -1,0 +1,30 @@
+{
+  "id": "3d823972-8bf4-477b-b261-eb45272f7b18",
+  "title": "Polynesian Waves 2",
+  "collection_id": "48d6b02f-3242-4a90-aac7-f42bea26036a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic optical illusion pattern composed of nested diamond and chevron shapes that create a sense of depth and movement. The primary visual effect consists of concentric geometric forms radiating outward from multiple focal points across the canvas. The pattern exhibits a strong directional flow with diagonal lines running at approximately 50-degree angles, creating a sense of forward motion. The wave distortion effect adds subtle undulation to the linear patterns, making the rigid geometric shapes appear to ripple and flex organically. The color gradient transitions smoothly from warm red-orange tones on the left and center to vibrant lime-green on the right, with yellow serving as the transitional midpoint. The dither effect with cyan overlay adds a subtle texture and visual noise that breaks up the smoothness of the gradient, creating a slightly grainy, almost halftone-like quality. The overall effect is hypnotic and visually stimulating, with the combination of geometric precision and organic wave distortion creating tension between order and chaos. The linear dodge blend mode of the dither layer causes the cyan to brighten and enhance the underlying colors rather than darken them, adding luminosity to the composition.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/0b6035f0-d4eb-4ead-ba10-cc400b31b3af.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzBiNjAzNWYwLWQ0ZWItNGVhZC1iYTEwLWNjNDAwYjMxYjNhZi5qcGciLCJpYXQiOjE3NjMzOTg5MzgsImV4cCI6MTc5NDkzNDkzOH0.6W1vfryg24gWnjqZfbBPTJLjyKGJopZwzQk8EL8dN7I",
+  "import": "import {\n  Shader,\n  Dither,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      :angle=\"50\"\n      color-a=\"#ff0808\"\n      color-b=\"#7bff00\"\n      color-space=\"oklch\"\n      edges=\"wrap\"\n      :end=\"{\n        x: 0.5,\n        y: 0.5\n      }\"\n      :start=\"{\n        x: 0.59,\n        y: 0.52\n      }\"\n      :transform=\"{\n        edges: 'mirror',\n        rotation: 131,\n        scale: 0.25\n      }\"/>\n    <WaveDistortion\n      :angle=\"110\"\n      edges=\"mirror\"\n      :frequency=\"2.4\"\n      :strength=\"0.09\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-b=\"#1faede\"\n      :pixel-size=\"1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

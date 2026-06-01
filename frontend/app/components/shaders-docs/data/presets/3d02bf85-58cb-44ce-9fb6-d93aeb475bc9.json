@@ -1,0 +1,92 @@
+{
+  "id": "3d02bf85-58cb-44ce-9fb6-d93aeb475bc9",
+  "title": "Spray Paint 7",
+  "collectionId": "c461387d-b3ec-4cfe-96df-a6e4aed001c5",
+  "category": "background",
+  "description": "A smooth, blurred gradient shader featuring warm sunset tones transitioning across the canvas. The composition consists of four animated blob elements layered over a dark blue base (#1a2e6b). The upper right features a large orange-to-golden blob (#ff7b2e to #ffba6b) centered at coordinates (0.85, 0.18) with soft highlights creating a luminous glow effect. The upper left contains a smaller red-coral blob (#e8443a to #ff6f52) positioned at (0.12, 0.25) with warm peachy highlights. The lower center area features a golden-yellow blob (#c9a02e to #f5d76e) at (0.48, 0.88) with creamy highlights. All blobs employ OKLCH color space interpolation for smooth transitions and include 3D highlight positioning (highlightX, highlightY, highlightZ) creating dimensional depth. A diffuse blur filter with 100% intensity and mirror edge handling is applied across the entire composition, creating a soft, dreamy aesthetic with no hard edges. The overall effect produces a warm, glowing atmosphere reminiscent of a sunset or sunrise with organic, flowing shapes that appear to gently animate. The color transitions are seamless due to the softness parameter (2-3) on each blob and the final blur pass.",
+  "thumbnail": "/shaders/thumbnails/3d02bf85-58cb-44ce-9fb6-d93aeb475bc9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#1a2e6b"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.85,
+            "y": 0.18
+          },
+          "colorA": "#ff7b2e",
+          "colorB": "#ffba6b",
+          "colorSpace": "oklch",
+          "deformation": 0.9,
+          "highlightColor": "#ffe0a3",
+          "highlightIntensity": 0.7,
+          "highlightX": 0.2,
+          "highlightY": 0.3,
+          "highlightZ": 0.7,
+          "seed": 42,
+          "size": 1.05,
+          "softness": 2,
+          "speed": 0.35
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.12,
+            "y": 0.25
+          },
+          "colorA": "#e8443a",
+          "colorB": "#ff6f52",
+          "colorSpace": "oklch",
+          "deformation": 0.7,
+          "highlightColor": "#ffad85",
+          "highlightX": 0.4,
+          "highlightZ": 0.6,
+          "seed": 23,
+          "size": 0.75,
+          "softness": 2,
+          "speed": 0.25
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.48,
+            "y": 0.88
+          },
+          "colorA": "#c9a02e",
+          "colorB": "#f5d76e",
+          "colorSpace": "oklch",
+          "deformation": 1,
+          "highlightColor": "#fff4c2",
+          "highlightIntensity": 0.6,
+          "highlightX": -0.3,
+          "highlightY": -0.4,
+          "highlightZ": 0.5,
+          "seed": 7,
+          "size": 0.85,
+          "softness": 3,
+          "speed": 0.3
+        }
+      },
+      {
+        "type": "DiffuseBlur",
+        "props": {
+          "edges": "mirror",
+          "intensity": 100,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

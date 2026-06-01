@@ -1,0 +1,30 @@
+{
+  "id": "e807dc2b-1ca8-45ea-ade2-d4b123f7ea5e",
+  "title": "Popping Bubbles 3",
+  "collection_id": "7b719554-fbef-46b9-a0a6-017384aa799a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A radial gradient dot matrix shader effect displaying a sophisticated color field visualization. The composition features a dense grid of circular dots that vary in size and opacity based on underlying luminance mapping. The center of the image contains a bright white area that gradually transitions outward. Four distinct color regions emanate from the center in a flowing pattern: vibrant purple (#b938ff) in the upper-center area, cyan/turquoise (#17e6d5) on the right side, light blue (#4dc1ff) distributed across the upper-right and lower portions, and bright lime-green (#aeff35) concentrated in the bottom-right corner. The dots themselves range from fully opaque and saturated in the colored regions to nearly transparent and pale in the white center and outer edges. The effect creates a smooth, organic color transition despite the discrete dot-based rendering, achieved through the FlowingGradient component with subtle distortion (0.1). The dot density remains constant at 35 dots per unit area, but their individual sizes vary from 0.35 to 0.9 relative units based on the underlying marble texture luminance mapping. The overall mood is modern, scientific, and visually harmonious, with a sense of flowing energy radiating from the center outward. The color space uses oklab for perceptually uniform transitions between hues.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/6e9adee5-3021-4df9-8ec8-7c602917a019.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzZlOWFkZWU1LTMwMjEtNGRmOS04ZWM4LTdjNjAyOTE3YTAxOS5qcGciLCJpYXQiOjE3NzkwMzk0MDYsImV4cCI6MTgxMDU3NTQwNn0.iN-BsauXbd4zwKyTY2MzkP5n6469KN0K5kkg6QKmLWk",
+  "import": "import {\n  Shader,\n  DotGrid,\n  FlowingGradient,\n  Marble,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DotGrid,\n  FlowingGradient,\n  Marble,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Marble\n      id=\"idmpa1zdwjasui1k6tk\"\n      color-b=\"#000000\"\n      :scale=\"0.7\"\n      :turbulence=\"4.5\"\n      :visible=\"false\"/>\n    <DotGrid\n      id=\"idmpa1xx4hdhp247w9r\"\n      :density=\"35\"\n      :dot-size=\"{\n        type: 'map',\n        source: 'idmpa1zdwjasui1k6tk',\n        channel: 'luminance',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 0.9,\n        outputMin: 0.35\n      }\"\n      :visible=\"false\"/>\n    <SolidColor\n      color=\"#ffffff\"/>\n    <FlowingGradient\n      color-a=\"#b938ff\"\n      color-b=\"#17e6d5\"\n      color-c=\"#4dc1ff\"\n      color-d=\"#aeff35\"\n      color-space=\"oklab\"\n      :distortion=\"0.1\"\n      mask-source=\"idmpa1xx4hdhp247w9r\"\n      :speed=\"4\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

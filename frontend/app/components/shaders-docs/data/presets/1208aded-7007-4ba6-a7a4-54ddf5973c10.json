@@ -1,0 +1,56 @@
+{
+  "id": "1208aded-7007-4ba6-a7a4-54ddf5973c10",
+  "title": "Converging Panels 7",
+  "collectionId": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "category": "background",
+  "description": "A vibrant magenta gradient background with smooth, flowing light transitions creating a luminous, ethereal atmosphere. The primary color is a bright magenta (#ff0ac2) that dominates the composition, transitioning into deeper purple and dark magenta tones toward the edges and center. A soft vignette effect darkens the periphery, creating depth and focus toward the center-left area. The lighting appears to come from a studio setup with ambient illumination creating soft highlights and shadows that give the surface a three-dimensional, fabric-like quality. A subtle kaleidoscopic pattern with 6 segments is applied with mirror edges, creating symmetrical distortions that are barely perceptible but add a gentle geometric structure to the otherwise organic gradient. Fine film grain texture overlays the entire surface at low opacity (0.2 strength), adding a subtle cinematic quality and preventing the gradient from appearing too smooth or artificial. The overall mood is modern, energetic, and slightly surreal with a professional studio lighting aesthetic. The blend mode of luminosity on the background component creates a sophisticated interplay of light and color, while the smooth transitions and high ambient intensity (96) produce a glowing, almost neon-like quality.",
+  "thumbnail": "/shaders/thumbnails/1208aded-7007-4ba6-a7a4-54ddf5973c10.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 96,
+          "ambientSpeed": 3,
+          "backIntensity": 0,
+          "backSoftness": 0,
+          "blendMode": "luminosity",
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.7,
+            "originX": 0.42513368983957217,
+            "originY": 0.32805071315372425,
+            "momentum": 0.3,
+            "smoothing": 0.4
+          },
+          "color": "#ff0ac2",
+          "fillAngle": 72,
+          "fillIntensity": 24,
+          "keyIntensity": 38,
+          "wallCurvature": 35
+        }
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 0.5,
+            "originY": 1,
+            "momentum": 0.5,
+            "smoothing": 0.5
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "srgb",
+  "toneMapping": "aces"
+}

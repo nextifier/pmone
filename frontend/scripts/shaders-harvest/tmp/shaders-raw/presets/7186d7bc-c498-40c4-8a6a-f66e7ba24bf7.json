@@ -1,0 +1,30 @@
+{
+  "id": "7186d7bc-c498-40c4-8a6a-f66e7ba24bf7",
+  "title": "Cascading Markers 5",
+  "collection_id": "a83655f1-13f3-491a-bdbc-dc8566847b9d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A mesmerizing abstract shader effect featuring layered curved stripes that create a tunnel-like perspective. The base consists of alternating vertical stripes in white (#ffffff) and dark navy blue (#232370) at a 45-degree angle, providing the foundational geometric structure. Overlaid on this are diagonal falling lines in gradient colors transitioning from purple (#675ff8) to cyan (#3eadc4), moving at a slow speed with a density of 36 lines creating a sense of motion and depth. The composition features a subtle twirl distortion centered in the upper right area (approximately 92.7% horizontally, 15.5% vertically) with 0.6 intensity, causing the parallel lines to curve and spiral inward, creating a vortex-like effect. A tilt-shift blur effect is applied at a 125-degree angle with moderate falloff, creating selective focus that enhances the depth perception and draws attention toward the center-upper region. The entire composition is enhanced with subtle film grain at 0.2 strength for texture and realism. The color palette transitions smoothly from cool purples and blues on the left to cyan and turquoise tones on the right, creating a vibrant, neon-like atmosphere. The effect conveys motion, depth, and a futuristic digital aesthetic with a sense of infinite perspective.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7186d7bc-c498-40c4-8a6a-f66e7ba24bf7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzcxODZkN2JjLWM0OTgtNDBjNC04YTZhLWY2NmU3YmEyNGJmNy5qcGciLCJpYXQiOjE3NzQ3OTg0NDcsImV4cCI6MTgwNjMzNDQ0N30.JVamA4GJk908cKNMGEowRnu1_nu2-OxMQUGiBxCO-eE",
+  "import": "import {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Stripes,\n  TiltShift,\n  Twirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  FilmGrain,\n  Stripes,\n  TiltShift,\n  Twirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      color-a=\"#ffffff\"\n      color-b=\"#232370\"\n      :density=\"1\"\n      :speed=\"0\"/>\n    <FallingLines\n      :angle=\"45\"\n      color-a=\"#675ff8\"\n      color-b=\"#3eadc4\"\n      :density=\"36\"\n      :rounding=\"0\"\n      :speed=\"0.2\"\n      :speed-variance=\"0.45\"\n      :stroke-width=\"1.1\"\n      :trail-length=\"0.97\"/>\n    <Twirl\n      :center=\"{\n        x: 0.93,\n        y: 0.16\n      }\"\n      edges=\"mirror\"\n      :intensity=\"0.6\"/>\n    <TiltShift\n      :angle=\"125\"\n      :center=\"{\n        x: 0.51,\n        y: 0.33\n      }\"\n      :falloff=\"0.7\"\n      :intensity=\"100\"\n      :visible=\"true\"\n      :width=\"0.2\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

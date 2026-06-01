@@ -1,0 +1,30 @@
+{
+  "id": "0c85c2fe-fdf8-412d-bfbc-0c5331d333fe",
+  "title": "Halftone Swirl 6",
+  "collection_id": "d1174db5-5525-4253-b1e5-2c3c44815635",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant gradient shader effect transitioning from deep purple-magenta tones in the upper left to bright hot pink and magenta hues across the composition. The image features a halftone pattern overlay with a 45-degree angle creating a subtle crosshatch texture throughout. Beneath this, a swirl effect blends between hot pink (#fe0aad) and deep blue (#4750ff) using oklch color space, creating a dynamic color transition that adds depth and movement to the solid magenta base color (#cf16d9). The halftone frequency of 100 with 0.1 smoothness creates a fine, barely perceptible dotted pattern that gives the surface a slightly textured appearance while maintaining the smooth gradient flow. The overall effect is a modern, neon-inspired aesthetic with layered color blending that suggests motion and energy. The edges maintain transparency, and the composition uses normal blend mode for a clean, unified visual presentation.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/0c85c2fe-fdf8-412d-bfbc-0c5331d333fe.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzBjODVjMmZlLWZkZjgtNDEyZC1iZmJjLTBjNTMzMWQzMzNmZS5qcGciLCJpYXQiOjE3NzI2NTg1MzQsImV4cCI6MTgwNDE5NDUzNH0.EKm53e3Ccvunt-2-26HeI_tbKaC0pQNfqsWLvSUJW5A",
+  "import": "import {\n  Shader,\n  Halftone,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Halftone,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#cf16d9\"\n      :visible=\"true\"/>\n    <Halftone\n      :smoothness=\"0.1\">\n      <Swirl\n        color-a=\"#fe0aad\"\n        color-b=\"#4750ff\"\n        color-space=\"oklch\"/>\n    </Halftone>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

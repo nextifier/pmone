@@ -1,0 +1,30 @@
+{
+  "id": "4d9e3eab-4b83-418e-aae3-6bc2b6ea5b2a",
+  "title": "Drifting Contours 7",
+  "collection_id": "099c55ec-a478-44bf-abaa-eaf863f34870",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant magenta-dominated abstract shader effect featuring flowing, organic wave patterns. The composition displays layered plasma-like distortions with smooth, undulating contour lines that create a sense of depth and movement. The upper left portion shows tightly packed parallel lines that curve and flow organically, creating a feathered or hair-like texture that gradually transitions into broader, more fluid wave patterns across the center and right side of the composition. The color palette transitions from deep purple-magenta (#6e94e7 blue base mixing with #e721ef magenta) creating a rich, saturated pink-purple atmosphere. Subtle darker purple tones (#5a3182) provide shadow and depth, while bright magenta accents (#ff30f3) add luminosity. The effect has a soft, glowing quality with smooth gradients and no harsh edges. The contour lines create rhythmic visual patterns that suggest movement and fluidity, reminiscent of liquid dynamics or electromagnetic field visualizations. The overall mood is energetic yet smooth, with a modern, digital aesthetic. The liquify effect adds a subtle warping quality that makes the entire composition feel slightly malleable and organic, as if the patterns are gently flowing and transforming.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/4d9e3eab-4b83-418e-aae3-6bc2b6ea5b2a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzRkOWUzZWFiLTRiODMtNDE4ZS1hYWUzLTZiYzJiNmVhNWIyYS5qcGciLCJpYXQiOjE3NzI2NTgxMjksImV4cCI6MTgwNDE5NDEyOX0.4frfnVzJMmRE_-k6o8eI3GdHunQ9EVfiFK2NwBn_ACw",
+  "import": "import {\n  Shader,\n  Blob,\n  ContourLines,\n  Liquify,\n  Plasma\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ContourLines,\n  Liquify,\n  Plasma\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Plasma\n      :balance=\"29\"\n      color-a=\"#6e94e7\"\n      color-b=\"#e721ef\"\n      :contrast=\"0.7\"\n      :density=\"0.9\"\n      :warp=\"0.3\"/>\n    <ContourLines\n      :gamma=\"0.1\"\n      :levels=\"30\"\n      line-color=\"#ff4a4a\"\n      :line-width=\"1.5\"\n      source=\"alpha\">\n      <Blob\n        :center=\"{\n          x: 0.81,\n          y: 0.14\n        }\"\n        color-a=\"#5a3182\"\n        color-b=\"#ff30f3\"\n        :deformation=\"0.7\"\n        highlight-color=\"#fbffb3\"\n        :highlight-intensity=\"1\"\n        :highlight-x=\"-0.5\"\n        :highlight-y=\"-0.6\"\n        :highlight-z=\"-0.1\"\n        :seed=\"42\"\n        :size=\"0.7\"\n        :softness=\"1\"\n        :speed=\"0.2\"/>\n    </ContourLines>\n    <Liquify\n      :decay=\"0.5\"\n      :intensity=\"1\"\n      :radius=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

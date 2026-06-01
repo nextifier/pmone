@@ -1,0 +1,56 @@
+{
+  "id": "28f291f5-e3c8-46d8-a65b-b1bb3b15a8d8",
+  "title": "Converging Panels 3",
+  "collectionId": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "category": "background",
+  "description": "A sophisticated shader effect featuring a deep blue gradient background with subtle atmospheric lighting. The primary base is a rich medium blue (#2a6aa8) that transitions smoothly across the canvas with soft directional lighting creating a three-dimensional depth effect. Bright light rays emanate from the upper left area, creating luminous streaks that fade diagonally across the composition, suggesting a studio lighting setup with key light positioned at approximately 71% horizontal and 78% vertical. The background exhibits a subtle vignette effect with darker navy tones concentrated in the upper left corner, gradually brightening toward the center and right edges. A kaleidoscopic pattern with 6 segments is subtly integrated, creating a faint symmetrical geometric structure that's barely perceptible beneath the dominant lighting effects. The overall atmosphere is cool and professional, reminiscent of high-end studio backgrounds used in broadcast or premium visual production. Fine film grain texture is applied uniformly across the entire surface at 20% strength, adding a subtle cinematic quality and preventing the gradient from appearing too smooth or artificial. The lighting creates a sense of depth and dimensionality, with the fill light (#d5e4ea) providing soft illumination at 9% intensity, while the ambient lighting at 96% intensity creates the overall atmospheric glow. The blend mode uses luminosity, which preserves the underlying color information while emphasizing the light distribution.",
+  "thumbnail": "/shaders/thumbnails/28f291f5-e3c8-46d8-a65b-b1bb3b15a8d8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 96,
+          "ambientSpeed": 3,
+          "backIntensity": 0,
+          "backSoftness": 0,
+          "blendMode": "luminosity",
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.7,
+            "originX": 0.713903743315508,
+            "originY": 0.7781299524564184,
+            "momentum": 0.3,
+            "smoothing": 0.4
+          },
+          "color": "#2a6aa8",
+          "fillAngle": 72,
+          "fillIntensity": 9,
+          "keyIntensity": 38,
+          "wallCurvature": 35
+        }
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 0.8324420677361853,
+            "originY": 0.24881141045958796,
+            "momentum": 0.5,
+            "smoothing": 0.5
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

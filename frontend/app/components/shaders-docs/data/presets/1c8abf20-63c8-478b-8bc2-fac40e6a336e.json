@@ -1,0 +1,62 @@
+{
+  "id": "1c8abf20-63c8-478b-8bc2-fac40e6a336e",
+  "title": "Chroma Chrome 2",
+  "collectionId": "e101c7d3-2313-42e9-a40f-7ddc609df98c",
+  "category": "logo",
+  "description": "A dark, sophisticated shader effect featuring a glossy glass orb with moon-like phases rendered on the left side of the composition. The background is a very dark navy-black color (#130f1a) creating a night-sky atmosphere. The glass sphere displays realistic refraction and fresnel effects with subtle white highlights along its curved edges, giving it dimensional depth and a luminous quality. The sphere contains internal swirling patterns with colors transitioning between dark grays (#26262b) and deep blues (#0d111a), creating a subtle vortex effect within the glass. A chromatic aberration effect is visible with color fringing in red, green, blue, and yellow channels creating a subtle iridescent quality around the glass edges. The text \"Galileo\" appears to the right of the sphere in large, bold gray typography with a subtle embossed or metallic appearance. The entire composition has a fine film grain texture overlay at low opacity (0.1) adding photographic authenticity and subtle noise. The lighting angle is set to 268 degrees, creating rim lighting that emphasizes the glass's translucent properties. The overall mood is elegant, scientific, and contemplative with a premium, high-tech aesthetic.",
+  "thumbnail": "/shaders/thumbnails/1c8abf20-63c8-478b-8bc2-fac40e6a336e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#130f1a",
+          "visible": true
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "blur": 20,
+          "cutout": true,
+          "edgeSoftness": 0.15,
+          "fresnel": 0.02,
+          "fresnelSoftness": 1,
+          "highlight": 0.15,
+          "highlightSoftness": 0.18,
+          "innerZoom": 1.5,
+          "lightAngle": 268,
+          "refraction": 0.23,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/Fo7ahNLZwqrY_sdf.bin",
+          "thickness": 1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#26262b",
+              "colorB": "#0d111a",
+              "detail": 5,
+              "speed": 0.2
+            }
+          },
+          {
+            "type": "ChromaFlow",
+            "props": {
+              "momentum": 10,
+              "radius": 2
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "opacity": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

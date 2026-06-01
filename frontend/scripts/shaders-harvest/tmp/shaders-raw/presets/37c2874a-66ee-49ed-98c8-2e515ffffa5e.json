@@ -1,0 +1,30 @@
+{
+  "id": "37c2874a-66ee-49ed-98c8-2e515ffffa5e",
+  "title": "Comet Streaks 4",
+  "collection_id": "8fffdbdb-2234-4451-884e-58cfad446e4a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring diagonal falling lines at approximately 40 degrees angle against a very dark navy-black background (#140d1c). The primary visual element consists of numerous elongated rounded rectangular strokes that cascade diagonally from upper-left to lower-right, creating a sense of motion and depth. These lines transition from a vibrant hot pink/red (#f44d5e) at their brightest points to a soft pale pink (#fcc5d0) and fade to transparency, creating a glowing trail effect. The lines have varying opacity and brightness, with some appearing more saturated while others fade into the dark background. A tilt-shift blur effect is applied at a 52-degree angle with significant falloff (0.8), which creates a selective focus that softens the overall image while maintaining some sharpness in specific regions. The effect has a high-tech, digital aesthetic with a sense of rapid movement and energy. The color gradient uses oklab color space for smooth transitions between the red and pink tones. The overall mood is modern, energetic, and slightly ethereal with a neon-like quality despite the relatively muted saturation due to the blur effect.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/37c2874a-66ee-49ed-98c8-2e515ffffa5e.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzM3YzI4NzRhLTY2ZWUtNDllZC05OGM4LTJlNTE1ZmZmZmE1ZS5qcGciLCJpYXQiOjE3NzMwMjc3NzAsImV4cCI6MTgwNDU2Mzc3MH0.RmUTBBHN4yTTAItQxEf4KsV8h-_JERbkT7CCThHoHDo",
+  "import": "import {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FallingLines,\n  LinearGradient,\n  SolidColor,\n  TiltShift\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader color-space=\"srgb\">\n    <SolidColor\n      color=\"#140d1c\"/>\n    <FallingLines\n      id=\"idmmijuosi5e6y2didn\"\n      :angle=\"40\"\n      color-space=\"hsl\"\n      :density=\"40\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.2\"\n      :stroke-width=\"1\"\n      :trail-length=\"0.31\"\n      :visible=\"false\"/>\n    <LinearGradient\n      color-a=\"#f44d5e\"\n      color-b=\"#fcc5d0\"\n      color-space=\"oklab\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.41,\n        y: 0.68\n      }\"\n      mask-source=\"idmmijuosi5e6y2didn\"\n      :start=\"{\n        x: 0.21,\n        y: 0.82\n      }\"/>\n    <TiltShift\n      :angle=\"52\"\n      :falloff=\"0.8\"\n      :width=\"0\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "9ab7f8be-b7ae-4260-8688-7b8770074fdf",
+  "title": "Geogrid 6",
+  "collection_id": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A three-dimensional isometric composition featuring three interconnected geometric structures set against a warm gradient background transitioning from deep red to orange. The primary structure is a large diamond-shaped lattice grid rendered in golden-yellow lines with a diamond crosshatch pattern, positioned in the upper-right area. Two smaller identical structures flank it on the left and lower-right, creating a symmetrical spatial arrangement. Each structure contains vertical linear elements that create a ribbed or corrugated appearance, suggesting depth and dimensionality. The golden-yellow grid lines (#c8ff24 and #d1811f tones) have a luminous quality with subtle glow effects. The background exhibits a smooth warm color gradient with slight atmospheric depth. The overall composition demonstrates wave distortion effects applied to the grid elements, creating subtle undulations and perspective shifts. The hard-light blend mode of the grid components creates enhanced luminosity where the yellow lines intersect with the warm background. The geometric structures appear to float in three-dimensional space with careful attention to isometric perspective and spatial relationships. Fine detail in the lattice work shows consistent line thickness and regular geometric spacing throughout all three structures.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bec2f998-3513-4bb2-8916-45eb87c31cba.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JlYzJmOTk4LTM1MTMtNGJiMi04OTE2LTQ1ZWI4N2MzMWNiYS5qcGciLCJpYXQiOjE3NjM0OTQ4OTMsImV4cCI6MTc5NTAzMDg5M30.wrI9jFq6ee_fFYlvYjsiwwFdXLFfD9_K_NqBiydoy0E",
+  "import": "import {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :coarse-x=\"26\"\n      :coarse-y=\"24\"\n      color-a=\"#d1811f\"\n      color-b=\"#d93030\"\n      color-space=\"oklab\"\n      :detail=\"0.7\"\n      :fine-x=\"50\"\n      :fine-y=\"50\"\n      :medium-x=\"50\"\n      :medium-y=\"50\"\n      :speed=\"1.5\"/>\n    <WaveDistortion\n      :angle=\"125\"\n      edges=\"mirror\"\n      :frequency=\"2.1\"\n      wave-type=\"triangle\">\n      <Grid\n        blend-mode=\"hardLight\"\n        :cells=\"16\"\n        color=\"#c8ff24\"\n        :thickness=\"1.5\"\n        :transform=\"{ scale: 0.75 }\"/>\n    </WaveDistortion>\n    <GridDistortion\n      :decay=\"1.8\"\n      edges=\"wrap\"\n      :grid-size=\"8\"\n      :intensity=\"5\"\n      :radius=\"1.75\"\n      :swirl=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

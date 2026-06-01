@@ -1,0 +1,261 @@
+{
+  "name": "StudioBackground",
+  "category": "Textures",
+  "description": "Multi-light studio background with ambient motion.",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "color": {
+      "default": "#d8dbec",
+      "description": "Base studio surface color",
+      "ui": {
+        "type": "color",
+        "label": "Surface Color",
+        "group": "Colors"
+      }
+    },
+    "keyColor": {
+      "default": "#d5e4ea",
+      "description": "Color of the overhead key light",
+      "ui": {
+        "type": "color",
+        "label": "Key Color",
+        "group": "Key Light"
+      }
+    },
+    "keyIntensity": {
+      "default": 40,
+      "description": "Intensity of the key light",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Key Light"
+      }
+    },
+    "keySoftness": {
+      "default": 50,
+      "description": "How diffuse the key light is",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Softness",
+        "group": "Key Light"
+      }
+    },
+    "fillColor": {
+      "default": "#d5e4ea",
+      "description": "Color of the side fill lights",
+      "ui": {
+        "type": "color",
+        "label": "Fill Color",
+        "group": "Fill Lights"
+      }
+    },
+    "fillIntensity": {
+      "default": 10,
+      "description": "Intensity of the fill lights",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Fill Lights"
+      }
+    },
+    "fillSoftness": {
+      "default": 70,
+      "description": "How diffuse the fill lights are",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Softness",
+        "group": "Fill Lights"
+      }
+    },
+    "fillAngle": {
+      "default": 70,
+      "description": "How far apart the fill lights are from center",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Spread",
+        "group": "Fill Lights"
+      }
+    },
+    "backColor": {
+      "default": "#c8d4e8",
+      "description": "Color of the upward back wash",
+      "ui": {
+        "type": "color",
+        "label": "Back Color",
+        "group": "Back Light"
+      }
+    },
+    "backIntensity": {
+      "default": 20,
+      "description": "Intensity of the back wash",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Back Light"
+      }
+    },
+    "backSoftness": {
+      "default": 80,
+      "description": "How diffuse the back wash is",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Softness",
+        "group": "Back Light"
+      }
+    },
+    "brightness": {
+      "default": 20,
+      "description": "Overall ambient light level",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Ambient",
+        "group": "Lighting"
+      }
+    },
+    "vignette": {
+      "default": 0,
+      "description": "Edge darkening",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Vignette",
+        "group": "Lighting"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.8
+      },
+      "description": "Where the spotlight meets the floor",
+      "ui": {
+        "type": "position",
+        "label": "Stage Center",
+        "group": "Scene"
+      }
+    },
+    "lightTarget": {
+      "default": 100,
+      "description": "How far toward the floor vs wall the spotlights aim",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Light Depth",
+        "group": "Scene"
+      }
+    },
+    "wallCurvature": {
+      "default": 10,
+      "description": "How rounded the cove is",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Wall Curvature",
+        "group": "Scene"
+      }
+    },
+    "ambientIntensity": {
+      "default": 50,
+      "description": "Intensity of drifting ambient lights",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Ambient Detail",
+        "group": "Environment"
+      }
+    },
+    "ambientSpeed": {
+      "default": 2,
+      "description": "Drift speed",
+      "ui": {
+        "type": "range",
+        "min": -5,
+        "max": 5,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Environment"
+      }
+    },
+    "seed": {
+      "default": 0,
+      "description": "Seed for ambient pattern",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Seed",
+        "group": "Environment"
+      }
+    }
+  }
+}

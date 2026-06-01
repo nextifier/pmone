@@ -1,0 +1,61 @@
+{
+  "id": "0432a9a5-b550-4f73-81ff-321ba0ded0c1",
+  "title": "Redacted Bars 6",
+  "collectionId": "df9a8300-b1cc-4928-b2b6-3ea1f1dca384",
+  "category": "background",
+  "description": "A dynamic neon shader effect featuring vertical falling lines with a gradient color transition. The background is a deep dark navy blue (#0a0d2b) providing a dark canvas. Overlaid are numerous vertical lines that appear to be falling or streaming downward at approximately 79 degrees, creating a sense of motion and depth. These lines transition from bright magenta/pink (#ff1f77) at the top-left to vibrant blue (#1000ff) at the bottom-right through a linear gradient. The lines have a glowing neon quality with soft edges and varying opacity, creating a trail effect as they descend. The overall composition suggests a cyberpunk or digital rain aesthetic with approximately 13 lines of varying brightness distributed across the frame. The gradient mask applied to the falling lines creates a smooth color transition from hot pink through purple to electric blue. The effect has a modern, tech-forward atmosphere with high contrast between the dark background and the luminous neon lines.",
+  "thumbnail": "/shaders/thumbnails/0432a9a5-b550-4f73-81ff-321ba0ded0c1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0d2b"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmijuosi5e6y2didn",
+          "angle": 79,
+          "colorB": "#cccccc00",
+          "colorSpace": "oklab",
+          "density": 13,
+          "speed": 0.1,
+          "speedVariance": 0.15,
+          "strokeWidth": 0.34,
+          "trailLength": 0.95,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#ff1f77",
+          "colorB": "#1000ff",
+          "colorSpace": "oklch",
+          "edges": "mirror",
+          "end": {
+            "x": 1,
+            "y": 1
+          },
+          "maskSource": "idmmijuosi5e6y2didn",
+          "start": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "falloff": 0.9,
+          "intensity": 100,
+          "width": 0
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

@@ -1,0 +1,122 @@
+{
+  "id": "e245c51c-5390-4d4c-b250-3823095fbbd2",
+  "title": "Crystal Ball 5",
+  "collectionId": "09641523-a2b0-4319-84a2-1d87394ded75",
+  "category": "background",
+  "description": "A dark, atmospheric shader effect featuring a large spherical form centered in the upper-middle portion of the image. The sphere has a deep, glossy appearance with subtle internal lighting that creates a sense of depth and dimensionality. The overall color palette is dominated by very dark navy and near-black tones with hints of deep purple and teal undertones. A vignette effect darkens the edges significantly, creating a tunnel-like focus toward the center. The background exhibits a subtle gradient with warm brownish tones bleeding through the darkness, particularly visible in the lower-middle area. Floating particles with a soft lavender-purple hue (approximately #c5b7ed) drift slowly across the sphere, creating a sense of ethereal movement. A lens flare effect with chromatic aberration is present, contributing subtle rainbow-like color shifts along the edges. The overall mood is mysterious, cosmic, and introspective, with a cinematic quality enhanced by film grain texture overlay. The lighting appears to come from below and behind, creating rim lighting on the spherical form. The effect combines studio lighting simulation with organic particle effects and optical phenomena.",
+  "thumbnail": "/shaders/thumbnails/e245c51c-5390-4d4c-b250-3823095fbbd2.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 32,
+          "ambientSpeed": 0.3,
+          "backColor": "#1a0f2e",
+          "backIntensity": 34,
+          "backSoftness": 61,
+          "brightness": 5,
+          "center": {
+            "x": 0.5,
+            "y": 0.89
+          },
+          "color": "#17171c",
+          "fillAngle": 84,
+          "fillColor": "#ffffff",
+          "fillIntensity": 55,
+          "fillSoftness": 100,
+          "keyColor": "#ffffff",
+          "keyIntensity": 15,
+          "keySoftness": 70,
+          "lightTarget": 64,
+          "seed": 42,
+          "vignette": 25,
+          "wallCurvature": 42
+        }
+      },
+      {
+        "type": "Spherize",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 0.2
+          },
+          "depth": 0.6,
+          "lightColor": "#48637a",
+          "lightIntensity": 0.1,
+          "lightPosition": {
+            "x": 0.5,
+            "y": 1
+          },
+          "lightSoftness": 0.2,
+          "radius": 1.7
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "colorA": "#0a0a0d",
+              "colorB": "#0f0f1a",
+              "colorSpace": "oklab",
+              "detail": 1.2,
+              "speed": 0.5
+            }
+          },
+          {
+            "type": "LensFlare",
+            "props": {
+              "ghostChroma": 0,
+              "ghostSpread": 0.78,
+              "glareIntensity": 0.15,
+              "glareSize": 0.15,
+              "haloChroma": 2,
+              "haloIntensity": 0.26,
+              "haloRadius": 0.58,
+              "haloSoftness": 1.1,
+              "intensity": 0.37,
+              "lightPosition": {
+                "x": 0.49,
+                "y": 1
+              },
+              "speed": 0.9,
+              "starburstIntensity": 0.13,
+              "starburstPoints": 4,
+              "streakIntensity": 0,
+              "streakLength": 0.21
+            }
+          },
+          {
+            "type": "FloatingParticles",
+            "props": {
+              "angle": 188,
+              "angleVariance": 77,
+              "opacity": 0.49,
+              "particleColor": "#c5b7ed",
+              "particleSize": 0.6,
+              "randomness": 0.3,
+              "speed": 0.1,
+              "speedVariance": 0.6,
+              "twinkle": 1
+            }
+          },
+          {
+            "type": "CursorRipples",
+            "props": {
+              "chromaticSplit": 3,
+              "decay": 4
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

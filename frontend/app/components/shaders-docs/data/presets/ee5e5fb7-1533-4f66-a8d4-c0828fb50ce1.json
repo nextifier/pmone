@@ -1,0 +1,73 @@
+{
+  "id": "ee5e5fb7-1533-4f66-a8d4-c0828fb50ce1",
+  "title": "Holographic Waves 6",
+  "collectionId": "e02b22a4-a103-4920-9eef-1e543daa3eb2",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring diagonal parallel lines that flow from upper-left to lower-right across the entire composition. The effect creates a sense of motion and depth through directional line work. The color palette transitions smoothly from warm peachy-orange tones in the upper-left corner, through vibrant magenta and pink hues in the center, to deep dark-blue and purple tones in the upper-right and lower-right areas. The lines vary in thickness and intensity, with brighter, more saturated lines concentrated in the left-center area and darker, more subdued lines toward the right edge. A subtle wave distortion is applied perpendicular to the line direction, creating a rippling effect that adds dimensionality. The overall composition has a high-frequency detail level with sharp line definition enhanced by the sharpness filter. A very subtle film grain texture is visible throughout, adding a slight organic quality to the otherwise smooth gradients. The blob component contributes warm golden-yellow and magenta highlights in the left-center region, creating a focal point of intensity. Chromatic aberration is minimally applied, creating imperceptible color fringing at high-contrast edges. The effect conveys a sense of energy, motion, and modern digital aesthetics with a sunset-to-night color journey.",
+  "thumbnail": "/shaders/thumbnails/ee5e5fb7-1533-4f66-a8d4-c0828fb50ce1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 59,
+          "colorA": "#e04870",
+          "colorB": "#2a1f8e",
+          "colorSpace": "oklch",
+          "detail": 4.1
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.28,
+            "y": 0.38
+          },
+          "colorA": "#f7c46e",
+          "colorB": "#d44892",
+          "colorSpace": "oklch",
+          "deformation": 1,
+          "highlightIntensity": 0.8,
+          "highlightZ": 0.8,
+          "size": 0.72,
+          "softness": 1,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 168,
+          "edges": "mirror",
+          "frequency": 30,
+          "speed": 4.9,
+          "strength": 0.7,
+          "visible": true,
+          "waveType": "triangle"
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "strength": 0.02,
+          "visible": true
+        }
+      },
+      {
+        "type": "Sharpness",
+        "props": {
+          "sharpness": 2
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.15
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

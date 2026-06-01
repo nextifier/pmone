@@ -1,0 +1,30 @@
+{
+  "id": "079294bc-04c0-4aa5-ae02-0c7d8afb5ae9",
+  "title": "Arrow Skies",
+  "collection_id": "fea12e25-101d-48a0-83ba-13df1a667892",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic gradient shader effect transitioning from deep dark-blue/purple in the upper left to vibrant magenta/pink in the lower right. The background features a dense repeating pattern of small arrow characters (↖ and ↗) that create a directional flow across the entire canvas. The arrows are rendered in a yellow-to-dark-blue gradient, creating a luminous contrast against the base gradient. A subtle wave distortion effect animates across the arrow pattern, creating a rippling, undulating motion that suggests movement and fluidity. The arrows appear to follow diagonal trajectories, with the pattern becoming more saturated and yellow-tinted toward the center-right of the composition, while maintaining darker tones in the upper-left quadrant. A soft circular glow element in yellow appears in the lower-right area, adding depth and focal point emphasis. The overall effect creates a sense of directional energy flow with a modern, digital aesthetic. The color space uses OKLCH for smooth perceptual transitions, and the wave distortion operates at a sine frequency of 1.4 with moderate strength, creating organic undulation without overwhelming the base pattern.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/079294bc-04c0-4aa5-ae02-0c7d8afb5ae9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzA3OTI5NGJjLTA0YzAtNGFhNS1hZTAyLTBjN2Q4YWZiNWFlOS5qcGciLCJpYXQiOjE3NzI0ODA5ODYsImV4cCI6MTgwNDAxNjk4Nn0.iEUYXU9ZGFa9hTAOvsgNYVkR8HIfG1u-vP-IBmbFqW0",
+  "import": "import {\n  Shader,\n  Ascii,\n  Circle,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Circle,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#ff0091\"\n      color-b=\"#220047\"\n      color-space=\"oklch\"\n      :end=\"{\n        x: 0.53,\n        y: 0.32\n      }\"\n      :start=\"{\n        x: 1,\n        y: 1\n      }\"/>\n    <Ascii\n      characters=\"↖↖↗↗\">\n      <LinearGradient\n        color-a=\"#fff700\"\n        color-b=\"#00004a\"\n        color-space=\"oklch\"\n        :end=\"{\n          x: 0.53,\n          y: 0.51\n        }\"\n        :start=\"{\n          x: 1,\n          y: 1\n        }\"/>\n      <WaveDistortion\n        :angle=\"151\"\n        :frequency=\"1.4\"\n        :speed=\"3.9\"\n        :strength=\"0.5\"/>\n      <Circle\n        blend-mode=\"normal-oklch\"\n        :center=\"{\n          x: 0.72,\n          y: 0.85\n        }\"\n        color=\"#ffdd00\"\n        :radius=\"1.87\"\n        :softness=\"1\"/>\n    </Ascii>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "id": "681a6294-7899-4480-92eb-018f823e89ec",
+  "title": "Stainless Steel 3",
+  "collectionId": "434bec2f-8330-4991-9007-b84b4915ed05",
+  "category": "logo",
+  "description": "A minimalist logo design featuring a continuous, flowing ribbon-like shape rendered in white glass material against a dark charcoal background. The shape consists of three interconnected loops that form an abstract infinity or wave pattern, reading left to right. The glass material exhibits realistic optical properties including subtle refraction (refraction index 1.95), fresnel effects at edges creating bright highlights, and chromatic aberration that adds depth. The white tinted glass (tintColor #ffffff) has a thickness of 1 unit with soft edge transitions (edgeSoftness 0.05). A swirl shader underneath the glass layer adds subtle internal movement with grayscale color variation (colorA #b0b0b0, colorB #d1d1d1) at 72% blend opacity, creating an organic flowing quality within the glass structure. The background is a carefully lit studio environment with dark primary color (#1b1b21), featuring ambient lighting at 65% intensity and subtle vignetting. A fine film grain texture (0.1 strength) overlays the entire composition, adding subtle texture and reducing digital perfection. The lighting setup uses a key light at 28% intensity positioned at 300 degrees, creating gentle highlights on the upper surfaces of the glass loops. The overall mood is premium, modern, and sophisticated with a focus on material realism and subtle motion.",
+  "thumbnail": "/shaders/thumbnails/681a6294-7899-4480-92eb-018f823e89ec.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 65,
+          "backColor": "#e8a85c",
+          "backIntensity": 40,
+          "brightness": 100,
+          "center": {
+            "x": 0.5,
+            "y": 0.88
+          },
+          "color": "#1b1b21",
+          "fillAngle": 53,
+          "fillIntensity": 9,
+          "fillSoftness": 94,
+          "keyColor": "#eac8a0",
+          "keyIntensity": 28,
+          "keySoftness": 100,
+          "wallCurvature": 19
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 1,
+          "blur": 20,
+          "cutout": true,
+          "edgeSoftness": 0.05,
+          "fresnel": 0.02,
+          "fresnelSoftness": 0.31,
+          "highlight": 0.3,
+          "refraction": 1.95,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/_anekeNfTTiN_sdf.bin",
+          "thickness": 1
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 72,
+              "colorA": "#b0b0b0",
+              "colorB": "#d1d1d1",
+              "colorSpace": "hsl",
+              "detail": 1.4,
+              "speed": 1.8
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

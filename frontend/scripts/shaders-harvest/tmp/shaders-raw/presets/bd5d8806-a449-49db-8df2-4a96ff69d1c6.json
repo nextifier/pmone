@@ -1,0 +1,30 @@
+{
+  "id": "bd5d8806-a449-49db-8df2-4a96ff69d1c6",
+  "title": "Drifting Contours 5",
+  "collection_id": "099c55ec-a478-44bf-abaa-eaf863f34870",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A fluid, organic abstract composition featuring smooth, undulating contour lines that create a topographical map-like effect. The primary visual element consists of nested, flowing curved lines in purple and magenta tones that ripple across the composition from left to right, creating a sense of movement and depth. The background is a warm coral-salmon gradient that provides strong contrast to the cool purple line work. The contour lines vary in thickness and density, with tighter line spacing creating areas of visual intensity, particularly along the edges and curves. The lines appear to follow a wave-like pattern, suggesting liquid or plasma-based distortion effects. A subtle blob-like form with purple-to-magenta gradient coloring is positioned in the lower-center area, adding dimensional depth. The overall effect is reminiscent of topographic elevation maps or fluid dynamics visualization, with a modern, minimalist aesthetic. The liquify effect adds subtle warping and organic deformation to the line patterns, creating a sense of fluidity and motion. The composition has a calm, meditative quality despite the dynamic line work, with excellent balance between the negative space and the detailed line patterns.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bd5d8806-a449-49db-8df2-4a96ff69d1c6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JkNWQ4ODA2LWE0NDktNDlkYi04ZGYyLTRhOTZmZjY5ZDFjNi5qcGciLCJpYXQiOjE3NzI2NTgwNjQsImV4cCI6MTgwNDE5NDA2NH0.0yugfjuloSxC3s1LZ27bMXGeXLB5wENvWv1dHPORtp0",
+  "import": "import {\n  Shader,\n  Blob,\n  ContourLines,\n  Liquify,\n  Plasma\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ContourLines,\n  Liquify,\n  Plasma\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Plasma\n      :balance=\"40\"\n      color-a=\"#ed5fbc\"\n      color-b=\"#fe7c74\"\n      :density=\"0.9\"\n      :warp=\"0.3\"/>\n    <ContourLines\n      :gamma=\"0.1\"\n      :levels=\"30\"\n      line-color=\"#ff4a4a\"\n      :line-width=\"1.5\"\n      source=\"alpha\">\n      <Blob\n        :center=\"{\n          x: 0.52,\n          y: 1\n        }\"\n        color-a=\"#730db1\"\n        color-b=\"#cf62dc\"\n        :deformation=\"0.7\"\n        highlight-color=\"#fbffb3\"\n        :highlight-intensity=\"1\"\n        :highlight-x=\"-0.5\"\n        :highlight-y=\"-0.6\"\n        :highlight-z=\"-0.1\"\n        :seed=\"42\"\n        :size=\"0.7\"\n        :softness=\"1\"\n        :speed=\"0.2\"/>\n    </ContourLines>\n    <Liquify\n      :decay=\"0.5\"\n      :intensity=\"1\"\n      :radius=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

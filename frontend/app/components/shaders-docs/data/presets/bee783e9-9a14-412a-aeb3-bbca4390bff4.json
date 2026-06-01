@@ -1,0 +1,65 @@
+{
+  "id": "bee783e9-9a14-412a-aeb3-bbca4390bff4",
+  "title": "Backlit Smoke 3",
+  "collectionId": "461997f6-0e61-47bc-ab99-69d12423a7fc",
+  "category": "logo",
+  "description": "A 3D isometric geometric composition featuring two interconnected hollow cubes rendered in a vibrant neon green (#57db23) against a pure black background (#0a0a0a). The cubes are positioned at an isometric angle, with the upper cube slightly offset to the left and the lower cube to the right, creating a connected chain-like structure. The geometry has a glass-like quality with subtle fresnel reflections and edge highlights that create a luminous glow effect. A dynamic smoke fill effect in matching neon green with dark olive undertones (#1f1d06) emanates from the shape, creating an organic, flowing particle effect that swirls around the geometric forms. The smoke has a dissipating quality with gravity influence, giving it a natural drift pattern. The glass material exhibits subtle refraction with a light peachy-pink fresnel color (#ff9b8c) at the edges, enhancing the dimensional quality. A sine wave pattern in bright lime green (#1ff01f) pulses gently through the structure, adding an animated energy layer. The overall atmosphere is futuristic and tech-forward, with high contrast between the glowing green elements and the absolute black void background, creating a striking cyberpunk aesthetic. The lighting angle is positioned at approximately 300 degrees, creating dimensional highlights on the upper surfaces of the cubes.",
+  "thumbnail": "/shaders/thumbnails/bee783e9-9a14-412a-aeb3-bbca4390bff4.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "SmokeFill",
+        "props": {
+          "colorA": "#57db23",
+          "colorB": "#1f1d06",
+          "colorDecay": 0.2,
+          "detail": 4,
+          "dissipation": 0.1,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5
+          },
+          "gravity": -2,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "edgeSoftness": 0.15,
+          "fresnel": 0.18,
+          "fresnelColor": "#ff9b8c",
+          "fresnelSoftness": 0.24,
+          "refraction": 1.5,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.6
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.6,
+              "color": "#1ff01f",
+              "frequency": 0.1,
+              "softness": 0.3,
+              "speed": 0.6
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

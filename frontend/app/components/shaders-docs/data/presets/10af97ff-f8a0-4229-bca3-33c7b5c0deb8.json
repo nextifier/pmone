@@ -1,0 +1,92 @@
+{
+  "id": "10af97ff-f8a0-4229-bca3-33c7b5c0deb8",
+  "title": "Floating Glass 5",
+  "collectionId": "e185c166-60c9-4120-8394-d33f664d3f63",
+  "category": "background",
+  "description": "A sophisticated shader effect featuring a trapezoid-shaped glass element positioned in the upper-right portion of the composition. The glass shape exhibits strong refraction and fresnel effects, creating a luminous cyan-to-blue gradient that appears to bend light across its surface. The background is dominated by deep black (#000000) on the left side, transitioning into flowing cyan and blue tones on the right. A FlowingGradient component creates organic, wave-like distortions with colors ranging from very dark purple (#0a0015) through cyan to light gray, producing a liquid, ethereal quality. The glass element has a highlight intensity of 0.25 with white fresnel effects at 0.15 intensity, creating bright edge definition. A Tritone color grading overlay applies a dark navy-to-cyan-to-blue color mapping across the entire composition, enhancing the cool color palette. The Dither effect with blue noise pattern and 0.62 threshold adds subtle texture and grain throughout, preventing banding and creating a more organic, film-like appearance. The overall effect suggests light refracting through a transparent, curved surface with soft edge softness of 0.15, creating a dreamy, otherworldly atmosphere with strong depth perception and dimensional quality.",
+  "thumbnail": "/shaders/thumbnails/10af97ff-f8a0-4229-bca3-33c7b5c0deb8.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmnayde0qhf56tj00g",
+          "center": {
+            "x": 1,
+            "y": 1
+          },
+          "radius": 3,
+          "softness": 0.63,
+          "visible": false
+        }
+      },
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#000000"
+        }
+      },
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorB": "#9c9c9c",
+          "colorC": "#a1a1a1",
+          "colorD": "#d4d4d4",
+          "colorSpace": "linear",
+          "maskSource": "idmnayde0qhf56tj00g",
+          "seed": 49
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "center": {
+            "y": 0.5,
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 0.5,
+            "originY": 0.5,
+            "momentum": 0.1,
+            "smoothing": 0.7
+          },
+          "edgeSoftness": 0.15,
+          "fresnel": 0.15,
+          "fresnelSoftness": 1,
+          "highlight": 0.25,
+          "highlightSoftness": 0.52,
+          "lightAngle": 276,
+          "refraction": 0.86,
+          "shape": {
+            "type": "trapezoidSDF",
+            "bottomWidth": 0.5,
+            "topWidth": 0.73,
+            "height": 0.43,
+            "rotation": 0
+          },
+          "thickness": 1
+        }
+      },
+      {
+        "type": "Tritone",
+        "props": {
+          "colorA": "#1a1c38",
+          "colorB": "#31cfeb",
+          "colorC": "#3d5dff",
+          "visible": true
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "colorMode": "source",
+          "pattern": "blueNoise",
+          "pixelSize": 2,
+          "threshold": 0.62
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

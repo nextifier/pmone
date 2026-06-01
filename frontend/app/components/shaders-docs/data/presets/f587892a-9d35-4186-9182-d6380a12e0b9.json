@@ -1,0 +1,78 @@
+{
+  "id": "f587892a-9d35-4186-9182-d6380a12e0b9",
+  "title": "Smokey Logo 5",
+  "collectionId": "16454cd8-7469-4d37-80f4-4d8ae0d74fcc",
+  "category": "logo",
+  "description": "A dark, atmospheric shader effect featuring layered smoke and particle systems against a nearly black background (#0d0817). The composition shows ethereal cyan and teal-colored smoke plumes rising and swirling from the bottom corners and center of the frame. The primary smoke effect uses bright cyan (#7ad4e6) transitioning to deeper teal (#3ab8d4) with high opacity and smooth dissipation. A secondary darker smoke layer (#142e3d to #0b132e) creates depth and shadow beneath the brighter cyan plumes, giving the effect a three-dimensional quality. The smoke particles emit from specific points with directional flow - one stream from the lower left (direction 49°) and another from the lower right (direction 277°), creating a converging, arch-like formation. The smoke has moderate gravity (0.5) causing gentle downward drift, while detail level of 25 creates fine, turbulent texture. Mouse interaction adds dynamic responsiveness with the SmokeFill component allowing real-time manipulation. The overall mood is mysterious and ethereal, with a cool color palette dominated by deep blues and cyans against the near-black void. The effect suggests underwater currents, supernatural mist, or digital energy flows with soft, organic motion and natural dissipation patterns.",
+  "thumbnail": "/shaders/thumbnails/f587892a-9d35-4186-9182-d6380a12e0b9.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0d0817"
+        }
+      },
+      {
+        "type": "SmokeFill",
+        "props": {
+          "colorA": "#7ad4e6",
+          "colorB": "#3ab8d4",
+          "colorDecay": 3,
+          "detail": 16,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0,
+            "originY": 0,
+            "momentum": 0,
+            "smoothing": 0
+          },
+          "emitRadius": 0.05,
+          "gravity": 0,
+          "intensity": 0.95,
+          "mouseInfluence": 0.35,
+          "scale": 1.1,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin",
+          "speed": 1.4,
+          "spread": 141
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#142e3d",
+          "colorB": "#0b132e",
+          "direction": 49,
+          "dissipation": 0.7,
+          "emitFrom": {
+            "x": 0,
+            "y": 0.99
+          },
+          "emitRadius": 0.13,
+          "intensity": 0.75,
+          "speed": 8.3,
+          "spread": 65
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#0a6e7a",
+          "colorB": "#0b132e",
+          "direction": 277,
+          "dissipation": 0.7,
+          "emitFrom": {
+            "x": 1,
+            "y": 1
+          },
+          "emitRadius": 0.13,
+          "intensity": 0.75,
+          "speed": 8.3,
+          "spread": 65
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

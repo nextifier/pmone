@@ -1,0 +1,65 @@
+{
+  "id": "7d6cde4c-b6db-451a-b31b-36b2bc11a3d3",
+  "title": "Backlit Smoke 8",
+  "collectionId": "461997f6-0e61-47bc-ab99-69d12423a7fc",
+  "category": "logo",
+  "description": "A 3D isometric geometric shape (hexagonal/cubic form) rendered with a sophisticated multi-layer shader effect against a pure black background. The primary shape features a deep magenta-pink (#f01f5a) neon glow with a glass-like material that creates a luminous, translucent appearance. The shape exhibits strong fresnel effects along its edges, producing bright pink-coral highlights (#ff9b8c) that intensify at viewing angles. A dark burgundy smoke effect (#8a1a3d) swirls around and within the shape, creating atmospheric depth and volumetric presence. The smoke dissipates gradually with a dark maroon undertone (#1f0610), adding dimensionality. The glass material has a subtle refraction quality with a thickness parameter that creates internal depth perception. Sine wave patterns in bright magenta (#f01f5a) animate across the surface at a slow speed (0.6), adding rhythmic visual movement. The overall composition has a cyberpunk aesthetic with high contrast between the glowing neon form and the absolute black void background. Soft edge rendering (0.15 softness) prevents harsh aliasing, while the fresnel softness (0.24) creates smooth light falloff. The shape casts subtle shadows and maintains a floating, three-dimensional presence through careful lighting angle positioning (300 degrees).",
+  "thumbnail": "/shaders/thumbnails/7d6cde4c-b6db-451a-b31b-36b2bc11a3d3.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0a0a0a"
+        }
+      },
+      {
+        "type": "SmokeFill",
+        "props": {
+          "colorA": "#8a1a3d",
+          "colorB": "#1f0610",
+          "colorDecay": 0.2,
+          "detail": 4,
+          "dissipation": 0.1,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5
+          },
+          "gravity": -2,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "cutout": true,
+          "edgeSoftness": 0.15,
+          "fresnel": 0.18,
+          "fresnelColor": "#ff9b8c",
+          "fresnelSoftness": 0.24,
+          "refraction": 1.5,
+          "scale": 0.7,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EKiSRi_0Mh6g_sdf.bin",
+          "thickness": 0.6
+        },
+        "children": [
+          {
+            "type": "SineWave",
+            "props": {
+              "amplitude": 0.6,
+              "color": "#f01f5a",
+              "frequency": 0.1,
+              "softness": 0.3,
+              "speed": 0.6
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

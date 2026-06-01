@@ -1,0 +1,30 @@
+{
+  "id": "b811ddba-9639-4061-93b6-d2a1187b1b39",
+  "title": "Stretched Chevrons 9",
+  "collection_id": "94b9788a-b40b-4923-a564-6c3e235d264f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A seamless repeating pattern of chevron shapes arranged in horizontal rows across the entire image. The chevrons are created using a gradient color scheme transitioning from warm orange (#ff6b1c) to golden yellow (#ffd84d). Each chevron has a pointed V-shape oriented at 90 degrees, creating a zigzag or sawtooth pattern that repeats 7 times across the width. The chevrons have soft, feathered edges with subtle anti-aliasing that creates a smooth transition between the colored shapes and the lighter yellow background (#ffd84d dominant). The overall effect has a 3D embossed or relief quality due to the soft shadows and highlights on each chevron point, giving depth to the flat pattern. The background is a uniform pale yellow with slight tonal variations that enhance the dimensional appearance of the chevron elements. The pattern creates a sense of movement and rhythm through the repetitive diagonal lines, with a warm, cheerful, and energetic mood. The softness parameter creates a gentle blur effect on the chevron edges, preventing harsh lines and maintaining visual harmony.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/b811ddba-9639-4061-93b6-d2a1187b1b39.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2I4MTFkZGJhLTk2MzktNDA2MS05M2I2LWQyYTExODdiMWIzOS5qcGciLCJpYXQiOjE3Nzg1MjQyNzksImV4cCI6MTgxMDA2MDI3OX0.BzKqQOqB9OpFTPuxFrwUvGfXKtb-4skaAqyCbZNaa5Q",
+  "import": "import {\n  Shader,\n  Chevron,\n  ChromaFlow\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport { Shader, Chevron, ChromaFlow } from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ChromaFlow\n      id=\"idmp1helxtfp3bsckef\"\n      base-color=\"#ffffff\"\n      down-color=\"#ffffff\"\n      :intensity=\"0.6\"\n      left-color=\"#ffffff\"\n      :momentum=\"0\"\n      right-color=\"#ffffff\"\n      up-color=\"#ffffff\"\n      :visible=\"false\"/>\n    <Chevron\n      :angle=\"90\"\n      :balance=\"{\n        type: 'map',\n        curve: -0.8,\n        source: 'idmp1helxtfp3bsckef',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      color-a=\"#ff6b1c\"\n      color-b=\"#ffd84d\"\n      color-space=\"oklab\"\n      :count=\"7\"\n      :softness=\"{\n        type: 'map',\n        curve: 1,\n        source: 'idmp1helxtfp3bsckef',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      :speed=\"0.1\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

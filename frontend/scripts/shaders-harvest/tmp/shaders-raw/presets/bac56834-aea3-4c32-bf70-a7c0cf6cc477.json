@@ -1,0 +1,30 @@
+{
+  "id": "bac56834-aea3-4c32-bf70-a7c0cf6cc477",
+  "title": "Gradient Grid 2",
+  "collection_id": "e10db22f-daf7-4149-ac1a-cc2bc603e68f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A flowing gradient shader effect with smooth, organic color transitions creating a dreamy, ethereal atmosphere. The composition features a primary gradient flowing from white in the upper left corner through soft pink and magenta tones in the center, transitioning to vibrant purple and violet hues in the upper right, with warm peachy-orange tones emerging in the lower right corner. The gradient exhibits significant distortion with a 0.2 distortion value, creating soft, blurred color boundaries that blend seamlessly without hard edges. A subtle grid pattern with 30 cells is overlaid at 6% opacity using multiply blending mode, adding fine texture and structure while remaining nearly imperceptible. Fine film grain at 10% strength is applied across the entire surface, providing subtle noise that enhances the organic, natural quality of the effect. The overall mood is soft, romantic, and contemporary with a modern aesthetic. Colors flow dynamically with smooth interpolation in OKLab color space, creating perceptually uniform transitions. The effect has no rotation or offset, maintaining centered symmetry with transparent edges that fade naturally into the background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/bac56834-aea3-4c32-bf70-a7c0cf6cc477.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2JhYzU2ODM0LWFlYTMtNGMzMi1iZjcwLWE3YzBjZjZjYzQ3Ny5qcGciLCJpYXQiOjE3NzQ2MjAzMDEsImV4cCI6MTgwNjE1NjMwMX0.NPZbVdtYRwKRMiiy4jkmxkKCsvEqlkwvG4EorZ4R6vs",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  FlowingGradient,\n  Grid\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  FlowingGradient,\n  Grid\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <FlowingGradient\n      color-a=\"#ffffff\"\n      color-b=\"#fc9d77ff\"\n      color-c=\"#b108ff\"\n      color-d=\"#ff21d6\"\n      color-space=\"oklab\"\n      :distortion=\"0.2\"\n      :seed=\"32\"\n      :visible=\"true\"/>\n    <Grid\n      blend-mode=\"multiply\"\n      :cells=\"30\"\n      color=\"#000000\"\n      :opacity=\"0.06\"\n      :thickness=\"0.4\"\n      :visible=\"true\"/>\n    <FilmGrain\n      :strength=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

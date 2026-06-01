@@ -1,0 +1,82 @@
+{
+  "id": "81be88bd-ffa2-4c7c-b31b-a1118491ab0b",
+  "title": "Dot Panels",
+  "collectionId": "56d190bc-7072-4acf-b177-bda1a98e6b6c",
+  "category": "background",
+  "description": "A deep space-themed shader effect featuring a starfield that gradually fades from left to right. The left side displays bright, scattered blue-white dots representing stars against a dark navy background, while the right side progressively darkens into near-complete black, creating a depth gradient effect. The background uses a radial gradient transitioning from a dark teal-blue (#001e2e) to an almost pure black (#05051a), centered slightly off-center toward the lower-left. A subtle grid structure underlies the composition with minimal visibility. The stars exhibit a twinkling animation effect with varying opacity, creating a sense of atmospheric depth and cosmic movement. A progressive blur filter is applied with center-weighted falloff, causing the stars to become increasingly diffuse and out-of-focus toward the right edge of the frame. The entire composition is overlaid with fine film grain at low intensity (0.02), adding subtle texture and a cinematic quality. The perspective is tilted slightly (15 degrees) with a wide field of view (96 degrees), creating a sense of immersion into the starfield. The overall mood is serene, mysterious, and contemplative, evoking the vastness of space.",
+  "thumbnail": "/shaders/thumbnails/81be88bd-ffa2-4c7c-b31b-a1118491ab0b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Perspective",
+        "props": {
+          "center": {
+            "x": 0.48,
+            "y": 1
+          },
+          "edges": "mirror",
+          "fov": 96,
+          "offset": {
+            "x": 0.58,
+            "y": 0.57
+          },
+          "pan": -38,
+          "tilt": 15,
+          "zoom": 2.28
+        },
+        "children": [
+          {
+            "type": "RadialGradient",
+            "props": {
+              "center": {
+                "x": 0.2,
+                "y": 1
+              },
+              "colorA": "#001e2e",
+              "colorB": "#05051a",
+              "colorSpace": "oklab",
+              "radius": 0.66
+            }
+          },
+          {
+            "type": "Grid",
+            "props": {
+              "cells": 6,
+              "color": "#041b33",
+              "thickness": 0
+            }
+          },
+          {
+            "type": "DotGrid",
+            "props": {
+              "color": "#80a8ff",
+              "density": 60,
+              "dotSize": 0.06,
+              "twinkle": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "ProgressiveBlur",
+        "props": {
+          "center": {
+            "x": 0.25,
+            "y": 0.5
+          },
+          "falloff": 0.68,
+          "intensity": 76
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.02,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

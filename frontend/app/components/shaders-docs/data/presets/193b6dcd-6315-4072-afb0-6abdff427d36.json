@@ -1,0 +1,98 @@
+{
+  "id": "193b6dcd-6315-4072-afb0-6abdff427d36",
+  "title": "Mercury 6",
+  "collectionId": "8cefc8df-84a3-4d51-b006-c90065d0b8bf",
+  "category": "logo",
+  "description": "A geometric letter 'G' shape rendered with a sophisticated glass shader effect against a pure black background. The shape features a thick, hollow construction with smooth curved edges on the outer perimeter and rectangular cutouts forming the interior negative space. The primary visual effect is a vibrant magenta-to-purple gradient that flows across the surface with dynamic lighting and refraction properties. The glass material exhibits strong fresnel effects with bright magenta highlights (#ff2bd6) concentrated along the upper and right edges, creating a luminous rim-lighting appearance. The interior contains swirling animated patterns in deep purple (#1a0533) and bright magenta that create a sense of movement and depth. Cyan and turquoise accent colors (#00ffe1, #3effa8) appear as soft, glowing highlights that respond to cursor position, creating interactive blob-like distortions. A subtle wave distortion effect adds organic undulation to the surface at approximately 2.5 units per second. The overall aesthetic combines hard geometric precision with fluid, organic motion effects. Chromatic aberration and refraction values create subtle color separation and glass-like transparency. A fine film grain texture overlays the entire composition at low opacity (0.075), adding subtle texture and reducing digital perfection. The lighting angle is set to 305 degrees, creating dramatic directional highlights. The effect conveys a modern, premium digital aesthetic with a cyberpunk or neon-influenced color palette.",
+  "thumbnail": "/shaders/thumbnails/193b6dcd-6315-4072-afb0-6abdff427d36.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0f0f0f"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "cutout": true,
+          "fresnel": 0.04,
+          "fresnelColor": "#dc91ff",
+          "fresnelSoftness": 0.48,
+          "highlight": 0.1,
+          "highlightColor": "#dbe6ff",
+          "highlightSoftness": 0.27,
+          "lightAngle": 305,
+          "refraction": 0.82,
+          "scale": 1.1,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin",
+          "thickness": 0.37,
+          "visible": true
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 45,
+              "colorA": "#ff2bd6",
+              "colorB": "#1a0533",
+              "colorSpace": "oklab",
+              "detail": 3.5,
+              "speed": 0.75
+            }
+          },
+          {
+            "type": "Blob",
+            "props": {
+              "blendMode": "linearDodge",
+              "center": {
+                "type": "mouse-position",
+                "reach": 0.55,
+                "originX": 0.5,
+                "originY": 0.5,
+                "momentum": 0.3,
+                "smoothing": 0.3
+              },
+              "colorA": "#00ffe1",
+              "colorB": "#3effa8",
+              "deformation": 0.9,
+              "size": 0.15,
+              "softness": 0.7
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 23,
+              "edges": "mirror",
+              "frequency": 5.1,
+              "speed": 2.5,
+              "strength": 0.15,
+              "visible": true
+            }
+          },
+          {
+            "type": "CursorRipples",
+            "props": {
+              "chromaticSplit": 2,
+              "decay": 5,
+              "intensity": 20,
+              "radius": 0.7,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

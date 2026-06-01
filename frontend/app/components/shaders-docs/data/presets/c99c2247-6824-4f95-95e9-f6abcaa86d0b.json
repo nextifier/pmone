@@ -1,0 +1,42 @@
+{
+  "id": "c99c2247-6824-4f95-95e9-f6abcaa86d0b",
+  "title": "Embossed Relief",
+  "collectionId": "7afcc3e6-8052-4e03-abf9-e549715a49f9",
+  "category": "logo",
+  "description": "A minimalist 3D embossed composition featuring a circular form with a warm beige background (#f5f2eb). The central element is a sphere with horizontal linear striations or bands crossing diagonally across its surface. The emboss effect creates pronounced shadow and highlight contrasts, giving the sphere significant depth and dimensionality. The lighting appears to come from the upper left, casting subtle shadows beneath each horizontal band, creating a relief-like appearance. The striations have sharp, clean edges with soft gradations between light and shadow areas. A fine paper texture overlay adds subtle grain and tactile quality to the entire composition. The overall aesthetic is clean, modern, and minimalist with a soft, neutral color palette. The emboss depth is set to -0.95, creating an inset or recessed appearance. The lighting angle responds to mouse movement with smooth momentum, suggesting interactive responsiveness. The composition has a serene, sophisticated mood with careful attention to subtle tonal variations and three-dimensional form.",
+  "thumbnail": "/shaders/thumbnails/c99c2247-6824-4f95-95e9-f6abcaa86d0b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#f5f2eb"
+        }
+      },
+      {
+        "type": "Emboss",
+        "props": {
+          "depth": -0.95,
+          "lightAngle": {
+            "axis": "x",
+            "type": "mouse",
+            "curve": 0.4,
+            "momentum": 0.15,
+            "outputMax": 311,
+            "outputMin": 240,
+            "smoothing": 0.2
+          },
+          "lightIntensity": 0.35,
+          "shadowIntensity": 0.5,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/LxxV4-VS2bDS_sdf.bin"
+        }
+      },
+      {
+        "type": "Paper",
+        "props": {}
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

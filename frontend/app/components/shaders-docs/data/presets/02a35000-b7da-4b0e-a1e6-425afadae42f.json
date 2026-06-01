@@ -1,0 +1,43 @@
+{
+  "id": "02a35000-b7da-4b0e-a1e6-425afadae42f",
+  "title": "Glass Halo 4",
+  "collectionId": "84df37ef-ce5b-4770-b5cf-acf432002340",
+  "category": "logo",
+  "description": "A warm, glowing gradient background transitioning from deep orange (#faa30c) at the edges to pale yellow at the center, creating a radiant sunburst effect. Centered in the composition is a large circular glass morphism shape with a smooth, organic blob-like form. The blob features a sophisticated color gradient blending from warm tan/brown (#d17e1f) on the outer edges to bright pale yellow (#fcda7c) toward the interior. A bright highlight in the upper-left quadrant (#ffe11a) creates a glossy, three-dimensional appearance with strong luminosity. The glass element has subtle refraction properties with a fresnel effect creating rim lighting along the curved edges, giving it depth and translucency. The overall effect is soft and diffused with high-quality blur and glow, creating an ethereal, liquid-like appearance. The composition uses oklab color blending for smooth color transitions and maintains a centered, symmetrical layout with the glass shape positioned at the exact center of the frame.",
+  "thumbnail": "/shaders/thumbnails/02a35000-b7da-4b0e-a1e6-425afadae42f.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#faa30c"
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "blendMode": "normal-oklab",
+          "colorA": "#d17e1f",
+          "colorB": "#fcda7c",
+          "seed": 2,
+          "size": 0.65,
+          "softness": 1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0,
+          "edgeSoftness": 0.15,
+          "fresnelSoftness": 0.56,
+          "innerZoom": 0.5,
+          "refraction": 2,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/rc0tyyfP7vSZ_sdf.bin",
+          "thickness": 1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

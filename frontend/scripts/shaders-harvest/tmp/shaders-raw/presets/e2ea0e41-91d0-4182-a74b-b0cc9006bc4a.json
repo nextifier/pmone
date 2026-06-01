@@ -1,0 +1,42 @@
+{
+  "id": "e2ea0e41-91d0-4182-a74b-b0cc9006bc4a",
+  "title": "Solar Silk 7",
+  "collection_id": "680a814f-9b89-4419-8201-182726e05a92",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A serene, minimalist shader effect featuring a soft gradient background transitioning from light blue (#b8d4e3) on the left to deeper blue (#5491bf) on the right. The composition is dominated by a large, softly blurred circular form centered slightly off-center (at coordinates 0.42, 0.84921875) with a muted blue-gray color (#9bb5d4). The circle has significant softness (0.59 blur) creating a gentle, diffused glow effect with a subtle stroke outline in pale purple (#c9b8d9). The overall atmosphere is calm and ethereal, enhanced by subtle wave distortions (sine wave at 122 degrees with 0.3 strength) that create gentle undulations across the entire surface. A fine film grain texture (0.2 strength) adds subtle noise and tactile quality. Interactive cursor ripples with chromatic aberration effects are present but subtle. A glass effect with refraction (0.54), aberration (0.93), and fresnel properties creates a luminous, translucent quality with soft highlights. The lighting angle at 300 degrees produces gentle specular highlights. The overall mood is tranquil, meditative, and slightly ethereal with soft, rounded forms and smooth color transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/e2ea0e41-91d0-4182-a74b-b0cc9006bc4a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2UyZWEwZTQxLTkxZDAtNDE4Mi1hNzRiLWIwY2M5MDA2YmM0YS5qcGciLCJpYXQiOjE3NzU5MjA5MjEsImV4cCI6MTgwNzQ1NjkyMX0.nupwc0lCazstpMXdaS-IumaovJ0Kdeqejm02nyljAXw",
+  "import": "import {\n  Shader,\n  Circle,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Circle,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  LinearGradient,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#b8d4e3\"\n      color-b=\"#5491bf\"\n      :visible=\"true\"/>\n    <Circle\n      blend-mode=\"normal-oklch\"\n      :center=\"{\n        x: 0.42,\n        y: 0.85\n      }\"\n      color=\"#9bb5d4\"\n      color-space=\"oklab\"\n      :radius=\"1.8\"\n      :softness=\"0.59\"\n      stroke-color=\"#c9b8d9\"\n      :stroke-thickness=\"0.2\"/>\n    <WaveDistortion\n      :angle=\"122\"\n      :speed=\"3.7\"/>\n    <CursorRipples\n      :decay=\"20\"\n      :intensity=\"20\"\n      :radius=\"1\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n    <Glass\n      :aberration=\"0.93\"\n      :edge-softness=\"0.4\"\n      :inner-zoom=\"2\"\n      :refraction=\"0.54\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/EFaVkr2x3OsR_sdf.bin\"\n      :thickness=\"0.14\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

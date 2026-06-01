@@ -1,0 +1,30 @@
+{
+  "id": "5d45c759-df8f-409c-840c-8b15c0eb7dc9",
+  "title": "Subtle Liquid 2",
+  "collection_id": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, dreamy gradient composition featuring a large amorphous blob shape as the central focal point. The blob transitions smoothly from warm peachy-tan tones (#e6c997) on the outer edges through vibrant magenta and pink hues in the mid-tones, culminating in a rich electric blue core (#268bff). The blob has organic, undulating edges with high softness creating a cloud-like appearance. The background features a subtle linear gradient flowing from pale yellow-green (#cbdea9) in the upper left to warm peachy-tan (#f5ca93) in the lower right, with mirror edge handling creating symmetrical color transitions. A fine white dot grid overlay with 40% density and linear dodge blending adds a subtle sparkle effect across the entire composition. The Liquify effect with intensity 2 and mirror edges creates gentle wave distortions throughout, softening all edges and creating a fluid, melting quality. A barely perceptible film grain texture (0.09 strength) adds subtle noise for depth. The overall mood is ethereal and calming, with smooth color transitions in OKLCH color space creating perceptually balanced gradients. The composition has a centered, balanced layout with the blob positioned at the canvas center, radiating outward with decreasing intensity.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/de4cf827-2f3f-450f-9abe-1c14e277fd4d.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2RlNGNmODI3LTJmM2YtNDUwZi05YWJlLTFjMTRlMjc3ZmQ0ZC5qcGciLCJpYXQiOjE3NjM0OTk4MzUsImV4cCI6MTc5NTAzNTgzNX0.DaS1wb8zUEy3GujEh7lLLJHWORx-gZe_f74NBZaFCrU",
+  "import": "import {\n  Shader,\n  Blob,\n  DotGrid,\n  FilmGrain,\n  LinearGradient,\n  Liquify\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  DotGrid,\n  FilmGrain,\n  LinearGradient,\n  Liquify\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#cbdea9\"\n      color-b=\"#f5ca93\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.67,\n        y: 0.28\n      }\"\n      :start=\"{\n        x: 0.23,\n        y: 0.7\n      }\"\n      :visible=\"true\"/>\n    <Blob\n      blend-mode=\"normal-oklch\"\n      color-a=\"#e6c997\"\n      color-b=\"#268bff\"\n      color-space=\"oklch\"\n      :deformation=\"0.9\"\n      :size=\"1\"\n      :softness=\"2\"\n      :speed=\"1\"/>\n    <DotGrid\n      blend-mode=\"linearDodge\"\n      :density=\"40\"\n      :dot-size=\"0.05\"\n      :opacity=\"0.3\"/>\n    <Liquify\n      :decay=\"1\"\n      edges=\"mirror\"\n      :intensity=\"2\"\n      :radius=\"2\"\n      :swirl=\"0\"/>\n    <FilmGrain\n      :strength=\"0.09\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "f2d7592f-85c6-4409-8256-93f7dbf838a5",
+  "title": "Swirling Gradient 3",
+  "collection_id": "5b4580ec-38eb-4986-9867-4a5ae2965a1b",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A fluid, organic shader effect featuring smooth, flowing wave-like patterns that sweep diagonally across the composition. The primary visual elements consist of alternating vertical and curved bands of warm peachy-tan tones (#e6af59) and cool cyan-turquoise tones (#4edada) that interweave and blend seamlessly. The Swirl component creates smooth, undulating curves with a detail level of 1.2, producing graceful wave formations that flow from upper left to lower right. The ConcentricSpin component adds subtle concentric circular distortions centered off-axis (at coordinates 1, 0), creating a gentle rotational warping effect with 9 rings that modulates the wave patterns with a negative speed of -1.2, producing a counter-rotating visual rhythm. The Paper texture overlay adds fine-grained surface detail with 0.15 displacement and 0.2 roughness, creating a subtle tactile quality that prevents the effect from appearing too smooth or synthetic. The overall atmosphere is serene and meditative, with warm and cool tones creating visual balance and harmony. The blending uses OKLab color space for smooth interpolation between the two primary colors, resulting in natural-looking gradient transitions. The effect has a liquid, almost fabric-like quality with gentle undulations that suggest movement and flow without being chaotic.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/f2d7592f-85c6-4409-8256-93f7dbf838a5.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2YyZDc1OTJmLTg1YzYtNDQwOS04MjU2LTkzZjdkYmY4MzhhNS5qcGciLCJpYXQiOjE3Nzc2NzEzMDAsImV4cCI6MTgwOTIwNzMwMH0.At21wgYZyIkLjoGiopnj8jAB6vCJ9UDf3oUAoJcKRXA",
+  "import": "import {\n  Shader,\n  ConcentricSpin,\n  Paper,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ConcentricSpin,\n  Paper,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"{\n        axis: 'x',\n        type: 'mouse',\n        momentum: 0.2,\n        outputMax: 60,\n        outputMin: 40,\n        smoothing: 0.6\n      }\"\n      color-a=\"#e6af59\"\n      color-b=\"#4edada\"\n      color-space=\"oklab\"\n      :detail=\"1.2\"/>\n    <ConcentricSpin\n      :center=\"{\n        x: 1,\n        y: 0\n      }\"\n      :rings=\"9\"\n      :smoothness=\"0.76\"\n      :speed=\"-1.2\"\n      :speed-randomness=\"0.14\"/>\n    <Paper\n      :roughness=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

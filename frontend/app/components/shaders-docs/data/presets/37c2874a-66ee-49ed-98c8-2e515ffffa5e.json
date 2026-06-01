@@ -1,0 +1,60 @@
+{
+  "id": "37c2874a-66ee-49ed-98c8-2e515ffffa5e",
+  "title": "Comet Streaks 4",
+  "collectionId": "8fffdbdb-2234-4451-884e-58cfad446e4a",
+  "category": "background",
+  "description": "A dynamic shader effect featuring diagonal falling lines at approximately 40 degrees angle against a very dark navy-black background (#140d1c). The primary visual element consists of numerous elongated rounded rectangular strokes that cascade diagonally from upper-left to lower-right, creating a sense of motion and depth. These lines transition from a vibrant hot pink/red (#f44d5e) at their brightest points to a soft pale pink (#fcc5d0) and fade to transparency, creating a glowing trail effect. The lines have varying opacity and brightness, with some appearing more saturated while others fade into the dark background. A tilt-shift blur effect is applied at a 52-degree angle with significant falloff (0.8), which creates a selective focus that softens the overall image while maintaining some sharpness in specific regions. The effect has a high-tech, digital aesthetic with a sense of rapid movement and energy. The color gradient uses oklab color space for smooth transitions between the red and pink tones. The overall mood is modern, energetic, and slightly ethereal with a neon-like quality despite the relatively muted saturation due to the blur effect.",
+  "thumbnail": "/shaders/thumbnails/37c2874a-66ee-49ed-98c8-2e515ffffa5e.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#140d1c"
+        }
+      },
+      {
+        "type": "FallingLines",
+        "props": {
+          "id": "idmmijuosi5e6y2didn",
+          "angle": 40,
+          "colorSpace": "hsl",
+          "density": 40,
+          "speed": 0.1,
+          "speedVariance": 0.2,
+          "strokeWidth": 1,
+          "trailLength": 0.31,
+          "visible": false
+        }
+      },
+      {
+        "type": "LinearGradient",
+        "props": {
+          "colorA": "#f44d5e",
+          "colorB": "#fcc5d0",
+          "colorSpace": "oklab",
+          "edges": "mirror",
+          "end": {
+            "x": 0.41,
+            "y": 0.68
+          },
+          "maskSource": "idmmijuosi5e6y2didn",
+          "start": {
+            "x": 0.21,
+            "y": 0.82
+          }
+        }
+      },
+      {
+        "type": "TiltShift",
+        "props": {
+          "angle": 52,
+          "falloff": 0.8,
+          "width": 0
+        }
+      }
+    ]
+  },
+  "colorSpace": "srgb",
+  "toneMapping": "aces"
+}

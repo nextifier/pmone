@@ -1,0 +1,30 @@
+{
+  "id": "dfb6da95-386e-41e8-b413-d359df3b32fa",
+  "title": "Converging Panels 6",
+  "collection_id": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A deep, rich purple gradient background with dynamic lighting effects. The primary color is a vibrant #6200ff purple that dominates the composition. The image features soft, glowing light spots with a luminous quality, creating an ethereal atmosphere. There are subtle variations in brightness across the canvas, with brighter purple-blue tones in the upper left and left-center areas, gradually transitioning to darker, more saturated purple tones toward the right and bottom edges. The effect appears to have a gentle blur or soft-focus quality with smooth color transitions. A subtle film grain texture overlays the entire image, adding a cinematic quality without being obtrusive. The overall mood is moody, atmospheric, and slightly mystical, with the lighting suggesting ambient illumination from an off-screen source. The composition has a vignette-like quality with the edges appearing slightly darker than the center, creating depth and focus toward the middle of the frame.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/dfb6da95-386e-41e8-b413-d359df3b32fa.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2RmYjZkYTk1LTM4NmUtNDFlOC1iNDEzLWQzNTlkZjNiMzJmYS5qcGciLCJpYXQiOjE3NzI5Mjc1NTQsImV4cCI6MTgwNDQ2MzU1NH0.zUqg_-yKkK7lIy0EdV7N4p1gg02QFWyKNQT4HW3RjdA",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  Kaleidoscope,\n  StudioBackground\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  Kaleidoscope,\n  StudioBackground\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"96\"\n      :ambient-speed=\"3\"\n      :back-intensity=\"0\"\n      :back-softness=\"0\"\n      blend-mode=\"luminosity\"\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.7,\n        originX: 0.713903743315508,\n        originY: 0.7781299524564184,\n        momentum: 0.3,\n        smoothing: 0.4\n      }\"\n      color=\"#6200ff\"\n      :fill-angle=\"72\"\n      :fill-intensity=\"9\"\n      :key-intensity=\"38\"\n      :wall-curvature=\"35\"/>\n    <Kaleidoscope\n      :center=\"{\n        type: 'mouse-position',\n        reach: 0.05,\n        originX: 0.26024955436720143,\n        originY: 0.6196513470681458,\n        momentum: 0.5,\n        smoothing: 0.5\n      }\"/>\n    <FilmGrain\n      :strength=\"0.2\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "20b20f56-4b95-49fd-83a5-7cbc657d5ce8",
+  "title": "Subtle Liquid 8",
+  "collection_id": "2dfc065e-17ed-4355-b30a-0b32924667f7",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A smooth, flowing gradient shader effect transitioning from teal-cyan tones on the left side to deep blue on the right side. The primary gradient flows diagonally from lower-left to upper-right, creating a sense of depth and movement. A soft, organic blob shape with subtle iridescent highlights is positioned slightly left of center, featuring colors ranging from turquoise (#2ec4b6) to deeper blue (#0b6e99). The blob has a luminous quality with a bright cyan-green highlight (#7efff0) positioned in the upper-left area, creating a three-dimensional lighting effect. A very subtle dot grid pattern is visible throughout, adding fine texture detail with low opacity (15%). The entire composition is enhanced with a liquify effect that creates gentle wave-like distortions, giving the surface a liquid, undulating quality. A fine film grain texture is applied at low strength (0.18) to add subtle noise and visual interest. The overall atmosphere is serene and ethereal, with soft, diffused lighting and smooth color transitions creating a calming, water-like ambiance.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/20b20f56-4b95-49fd-83a5-7cbc657d5ce8.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzIwYjIwZjU2LTRiOTUtNDlmZC04M2E1LTdjYmM2NTdkNWNlOC5qcGciLCJpYXQiOjE3NzMxMTE0MDYsImV4cCI6MTgwNDY0NzQwNn0.nyjx1JHq9_49SkkCvMVOPK87qobp5MPw9yeSoOHYpIw",
+  "import": "import {\n  Shader,\n  Blob,\n  DotGrid,\n  FilmGrain,\n  LinearGradient,\n  Liquify\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  DotGrid,\n  FilmGrain,\n  LinearGradient,\n  Liquify\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <LinearGradient\n      color-a=\"#0a7a8c\"\n      color-b=\"#1b3fa0\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.67,\n        y: 0.28\n      }\"\n      :start=\"{\n        x: 0.23,\n        y: 0.7\n      }\"\n      :visible=\"true\"/>\n    <Blob\n      blend-mode=\"normal-oklch\"\n      :center=\"{\n        x: 0.42,\n        y: 0.55\n      }\"\n      color-a=\"#2ec4b6\"\n      color-b=\"#0b6e99\"\n      color-space=\"oklch\"\n      :deformation=\"0.7\"\n      highlight-color=\"#7efff0\"\n      :size=\"0.7\"\n      :softness=\"1.4\"\n      :speed=\"1\"/>\n    <DotGrid\n      blend-mode=\"linearDodge\"\n      :density=\"60\"\n      :dot-size=\"0.08\"\n      :opacity=\"0.15\"/>\n    <Liquify\n      :decay=\"2.2\"\n      edges=\"mirror\"\n      :intensity=\"1.2\"\n      :radius=\"2\"/>\n    <FilmGrain\n      :strength=\"0.18\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

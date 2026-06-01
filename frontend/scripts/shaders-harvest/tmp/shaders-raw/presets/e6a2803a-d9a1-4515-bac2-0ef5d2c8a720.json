@@ -1,0 +1,30 @@
+{
+  "id": "e6a2803a-d9a1-4515-bac2-0ef5d2c8a720",
+  "title": "LED Flow 2",
+  "collection_id": "919ba9e1-06c8-4d55-8153-002a45a08a91",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A predominantly dark, almost black background with a deep navy-to-black color (#0c061a) forming the base. The image features subtle geometric patterns created by a dot grid effect visible in the upper portion and edges, with small white dots arranged in a regular pattern at approximately 60% density. A twirl distortion effect is applied with negative intensity (-1.2), creating subtle spiral warping particularly noticeable in the lower-left and upper-right corners where the dot pattern appears to bend and curve inward. A linear gradient overlay using magenta (#ff00f6) to blue (#0000ff) is applied with luminance masking, creating a very subtle color shift that's barely perceptible against the dark background. The gradient runs diagonally from upper-right to lower-left. Fine film grain texture is overlaid at 3% strength, adding a subtle noise pattern across the entire surface. The overall effect is extremely dark and moody with minimal visible detail, creating an almost imperceptible visual experience dominated by deep blacks and navy tones with only faint hints of the underlying geometric and color effects.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/d954ccd4-07a7-4ec1-8b8b-a22813f7c656.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Q5NTRjY2Q0LTA3YTctNGVjMS04YjhiLWEyMjgxM2Y3YzY1Ni5qcGciLCJpYXQiOjE3NjcwNDM2NTAsImV4cCI6MTc5ODU3OTY1MH0.NC0s0_L6XP3ix3ERXuMEuBlRBKVP74QK0ntNsY2ySWo",
+  "import": "import {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Group,\n  LinearGradient,\n  SolidColor,\n  Swirl,\n  Twirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Group,\n  LinearGradient,\n  SolidColor,\n  Swirl,\n  Twirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Group\n      id=\"idmjrnv6c0pom01tg0f\"\n      :visible=\"false\">\n      <Swirl\n        :blend=\"100\"\n        color-a=\"#ffffff\"\n        color-b=\"#000000\"\n        :detail=\"2.5\"\n        mask-source=\"idmjrnuq8x4whbsr7v9\"/>\n      <DotGrid\n        id=\"idmjrnuq8x4whbsr7v9\"\n        :density=\"60\"\n        :dot-size=\"0.12\"\n        :visible=\"false\"/>\n      <Twirl\n        :center=\"{\n          x: 0.27,\n          y: 0.12\n        }\"\n        edges=\"wrap\"\n        :intensity=\"-1.2\"\n        :visible=\"true\"/>\n    </Group>\n    <SolidColor\n      color=\"#0c061a\"/>\n    <LinearGradient\n      color-a=\"#ff00f6\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.27,\n        y: 0.76\n      }\"\n      mask-source=\"idmjrnv6c0pom01tg0f\"\n      mask-type=\"luminance\"\n      :start=\"{\n        x: 0.8,\n        y: 0.18\n      }\"/>\n    <FilmGrain\n      :strength=\"0.03\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

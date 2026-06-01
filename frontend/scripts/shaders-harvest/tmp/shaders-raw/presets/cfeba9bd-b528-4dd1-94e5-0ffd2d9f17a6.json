@@ -1,0 +1,30 @@
+{
+  "id": "cfeba9bd-b528-4dd1-94e5-0ffd2d9f17a6",
+  "title": "Pistons 6",
+  "collection_id": "e711302e-35b1-4b30-a736-21de5f52c44e",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A gradient-based shader effect featuring a soft purple and pink color palette transitioning from cooler lavender tones at the top to warmer mauve and dusty rose tones toward the bottom. The composition is dominated by an ASCII character pattern using vertical bars (║), blocks (█), and lower half blocks (▄) arranged in a grid formation with 54-pixel cell sizes. These characters create vertical striations and rectangular shapes that give the effect a retro digital or glitch aesthetic. Overlaid on this ASCII pattern is a subtle godray effect with light blue-white rays (#c3d1f7) emanating from the center, creating a radiant light diffusion that adds depth and luminosity. The rays have low density (0.2) and moderate intensity (0.9), producing a soft, ethereal glow rather than harsh light streaks. A fine paper texture with high roughness (0.85) and 3-pixel grain scale is applied across the entire composition, adding subtle surface irregularity and tactile quality. The overall mood is ethereal and atmospheric, with a cyberpunk or vaporwave aesthetic created by the combination of geometric ASCII characters, soft color gradients, and luminous ray effects. The blend mode is normal throughout, maintaining color saturation while the paper texture provides organic imperfection to the otherwise digital composition.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/cfeba9bd-b528-4dd1-94e5-0ffd2d9f17a6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2NmZWJhOWJkLWI1MjgtNGRkMS05NGU1LTBmZmQyZDlmMTdhNi5qcGciLCJpYXQiOjE3Nzk5NDAyNjAsImV4cCI6MTgxMTQ3NjI2MH0.cqPSwWdMmRlCWhlmslF9XbqUzNsnZaQ0nkeUqoVdEwY",
+  "import": "import {\n  Shader,\n  Ascii,\n  Godrays,\n  Paper,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  Godrays,\n  Paper,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader tone-mapping=\"aces\">\n    <SolidColor\n      color=\"#be7fdb\"/>\n    <Ascii\n      :cell-size=\"54\"\n      characters=\"▄║█\"\n      font-family=\"Geist Mono\"\n      :gamma=\"1.25\">\n      <Godrays\n        background-color=\"#c77b9e\"\n        :center=\"{\n          x: 0.5,\n          y: 0.5\n        }\"\n        :density=\"0.2\"\n        :intensity=\"0.9\"\n        ray-color=\"#c3d1f7\"\n        :spotty=\"0\"/>\n    </Ascii>\n    <Paper\n      :displacement=\"0\"\n      :grain-scale=\"3\"\n      :roughness=\"0.85\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

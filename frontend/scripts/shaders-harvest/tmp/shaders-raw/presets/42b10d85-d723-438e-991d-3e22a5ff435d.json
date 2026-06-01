@@ -1,0 +1,30 @@
+{
+  "id": "42b10d85-d723-438e-991d-3e22a5ff435d",
+  "title": "Daisy Wave",
+  "collection_id": "0b76df0e-b8fd-48c9-a224-ab7455c87446",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A gradient shader effect displaying a dense grid of asterisk-like symbols (*) arranged in rows and columns against a dark background. The symbols transition through a color gradient from bright golden yellow (#ffd700) on the left side to progressively warmer orange and reddish tones (#ff6b35) toward the right side, creating a smooth chromatic transition. The background is a very dark purple-black (#1a0f2e), providing high contrast. The symbols appear to fade and become less visible toward the right edge, suggesting a mask or opacity gradient following a sine wave pattern at an 288-degree angle. The overall effect creates a sense of depth and movement, with the wavy distortion pattern visible in how the symbol density and color intensity shift across the composition. A subtle film grain texture overlays the entire image at 12% strength, adding a slight noise characteristic. The spacing between symbols is uniform and consistent, creating a regular grid pattern that emphasizes the smooth color and opacity transitions. The mood is atmospheric and digital, with a warm color palette that evokes heat or energy flowing from left to right.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/6d88f62c-9fd9-44da-bbc8-2be83dd5d48a.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzZkODhmNjJjLTlmZDktNDRkYS1iYmM4LTJiZTgzZGQ1ZDQ4YS5qcGciLCJpYXQiOjE3NjM1Mjc2NzQsImV4cCI6MTc5NTA2MzY3NH0.9NNV4Y6VolY1XQhUN5L6Gm6y7vhtgZVjw3T42vdxuzg",
+  "import": "import {\n  Shader,\n  Ascii,\n  FilmGrain,\n  Group,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Ascii,\n  FilmGrain,\n  Group,\n  SineWave,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#1a0f2e\"/>\n    <Group\n      blend-mode=\"normal-oklch\">\n      <SolidColor\n        color=\"#ff6b35\"\n        :visible=\"true\"/>\n      <SineWave\n        id=\"idmh10tevmvxufaxu22\"\n        :amplitude=\"0.42\"\n        :angle=\"288\"\n        color=\"#ffd700\"\n        :frequency=\"0.51\"\n        :position=\"{\n          x: 0.2,\n          y: 0.15\n        }\"\n        :softness=\"0.52\"\n        :thickness=\"0.99\"\n        :visible=\"true\"/>\n      <Ascii\n        :cell-size=\"38\"\n        characters=\"〜*\"\n        font-family=\"Space Mono\"\n        mask-source=\"idmh10tevmvxufaxu22\"\n        :visible=\"true\"/>\n    </Group>\n    <FilmGrain\n      :strength=\"0.12\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

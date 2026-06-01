@@ -1,0 +1,61 @@
+{
+  "id": "eef7eeca-5d32-452b-aa8d-a89454d1cd78",
+  "title": "Dither Logo 9",
+  "collectionId": "099df352-41e8-4298-ad10-74f792b3f539",
+  "category": "logo",
+  "description": "A vibrant gradient background transitioning from deep blue in the upper corners to cyan and light-green in the center, then to yellow-green at the bottom. The background uses a radial gradient centered lower on the canvas, creating a smooth color flow from cool to warm tones. Overlaid on this gradient is a stylized four-circle logo design composed of geometric shapes - two circles at the top and two at the bottom arranged in a clover-like pattern. The logo features a soft peachy-yellow outline with semi-transparent fills that reveal the gradient beneath. A dynamic plasma effect with magenta and yellow tones creates organic, flowing distortions across the logo shapes, giving them an animated, liquid quality. The plasma effect is masked to the logo outline, creating sharp boundaries between the effect and background. A subtle dither pattern with white pixels is applied using a linear dodge blend mode, adding a fine grainy texture and luminous quality to the entire composition. The overall effect is modern, colorful, and has a soft, glowing aesthetic with smooth color transitions and organic movement.",
+  "thumbnail": "/shaders/thumbnails/eef7eeca-5d32-452b-aa8d-a89454d1cd78.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ImageTexture",
+        "props": {
+          "id": "idmmaykb1vflvohydj1",
+          "objectFit": "contain",
+          "transform": {
+            "scale": 0.6
+          },
+          "url": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg",
+          "visible": false
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "colorA": "#92bf37",
+          "colorB": "#1d5eac",
+          "colorSpace": "oklab",
+          "radius": 1.2
+        }
+      },
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 55,
+          "colorA": "#ae1f82",
+          "colorB": "#cccb3d",
+          "colorSpace": "oklab",
+          "density": 1.7,
+          "intensity": 3,
+          "maskSource": "idmmaykb1vflvohydj1"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pattern": "bayer8",
+          "pixelSize": 3,
+          "threshold": 0.96
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

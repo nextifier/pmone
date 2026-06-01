@@ -1,0 +1,250 @@
+{
+  "name": "SmokeFill",
+  "category": "Shape Effects",
+  "description": "Fill a shape with swirling fluid smoke that interacts with the shape boundary",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "colorA": {
+      "default": "#8cf3ff",
+      "description": "Color of fresh smoke",
+      "ui": {
+        "type": "color",
+        "label": "Start Color",
+        "group": "Colors"
+      }
+    },
+    "colorB": {
+      "default": "#04a0d6",
+      "description": "Color smoke transitions to as it ages",
+      "ui": {
+        "type": "color",
+        "label": "End Color",
+        "group": "Colors"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "Center position of the shape",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Position"
+      }
+    },
+    "scale": {
+      "default": 1,
+      "description": "Scale of the shape (1 = default size)",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 3,
+        "step": 0.05,
+        "label": "Scale",
+        "group": "Position"
+      }
+    },
+    "emitFrom": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "Emission source point within the shape",
+      "ui": {
+        "type": "position",
+        "label": "Emit From",
+        "group": "Emission"
+      }
+    },
+    "direction": {
+      "default": 0,
+      "description": "Emission direction (0 = up, 90 = right, 180 = down, 270 = left)",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "label": "Direction",
+        "group": "Emission"
+      }
+    },
+    "speed": {
+      "default": 10,
+      "description": "Emission velocity strength",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 30,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Emission"
+      }
+    },
+    "spread": {
+      "default": 60,
+      "description": "Emission cone angle in degrees",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 180,
+        "step": 1,
+        "label": "Spread",
+        "group": "Emission"
+      }
+    },
+    "emitRadius": {
+      "default": 0.03,
+      "description": "Size of the emission area",
+      "ui": {
+        "type": "range",
+        "min": 0.01,
+        "max": 0.3,
+        "step": 0.01,
+        "label": "Emit Size",
+        "group": "Emission"
+      }
+    },
+    "intensity": {
+      "default": 1,
+      "description": "Smoke emission density",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 1,
+        "step": 0.05,
+        "label": "Intensity",
+        "group": "Effect"
+      }
+    },
+    "dissipation": {
+      "default": 0.3,
+      "description": "How fast smoke fades over time",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 5,
+        "step": 0.1,
+        "label": "Dissipation",
+        "group": "Effect"
+      }
+    },
+    "detail": {
+      "default": 25,
+      "description": "Fine-scale swirling detail",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 50,
+        "step": 1,
+        "label": "Detail",
+        "group": "Effect"
+      }
+    },
+    "gravity": {
+      "default": 0.5,
+      "description": "Downward gravitational pull on smoke - 0 = weightless, negative values = smoke rises",
+      "ui": {
+        "type": "range",
+        "min": -2,
+        "max": 2,
+        "step": 0.1,
+        "label": "Gravity",
+        "group": "Effect"
+      }
+    },
+    "colorDecay": {
+      "default": 0.4,
+      "description": "How quickly smoke shifts from Color A to Color B",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 3,
+        "step": 0.1,
+        "label": "Color Decay",
+        "group": "Colors"
+      }
+    },
+    "mouseInfluence": {
+      "default": 0.1,
+      "description": "Strength of cursor influence",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 2,
+        "step": 0.05,
+        "label": "Cursor Influence",
+        "group": "Interaction"
+      }
+    },
+    "mouseRadius": {
+      "default": 0.1,
+      "description": "Radius of cursor influence area",
+      "ui": {
+        "type": "range",
+        "min": 0.02,
+        "max": 0.5,
+        "step": 0.01,
+        "label": "Cursor Radius",
+        "group": "Interaction"
+      }
+    },
+    "colorSpace": {
+      "default": "linear",
+      "compileTime": true,
+      "description": "Color space for color interpolation",
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Linear RGB",
+            "value": "linear"
+          },
+          {
+            "label": "OKLCh",
+            "value": "oklch"
+          },
+          {
+            "label": "OKLAB",
+            "value": "oklab"
+          },
+          {
+            "label": "HSL",
+            "value": "hsl"
+          },
+          {
+            "label": "HSV",
+            "value": "hsv"
+          },
+          {
+            "label": "LCH",
+            "value": "lch"
+          }
+        ],
+        "label": "Color Space",
+        "group": "Colors"
+      }
+    },
+    "shape": {
+      "default": "{\"type\":\"circleSDF\",\"radius\":0.35}",
+      "description": "Serialized shape configuration (JSON)",
+      "ui": {
+        "type": "shape",
+        "label": "Shape",
+        "group": "Shape"
+      }
+    },
+    "shapeSdfUrl": {
+      "default": "",
+      "compileTime": true,
+      "description": "URL to a pre-generated SDF .bin file"
+    },
+    "shapeType": {
+      "default": "",
+      "compileTime": true,
+      "description": "Active SDF shape type"
+    }
+  }
+}

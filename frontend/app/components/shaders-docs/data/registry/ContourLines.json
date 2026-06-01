@@ -1,0 +1,139 @@
+{
+  "name": "ContourLines",
+  "category": "Stylize",
+  "description": "Draw topographical contour lines based on luminance or alpha",
+  "requiresChild": true,
+  "requiresRTT": false,
+  "props": {
+    "levels": {
+      "default": 5,
+      "description": "Number of contour levels",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 2,
+        "max": 30,
+        "step": 1,
+        "label": "Levels",
+        "group": "Effect"
+      }
+    },
+    "lineWidth": {
+      "default": 2,
+      "description": "Width of the contour lines in pixels",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.5,
+        "max": 5,
+        "step": 0.1,
+        "label": "Line Width",
+        "group": "Effect"
+      }
+    },
+    "softness": {
+      "default": 0,
+      "description": "Edge softness of the lines (0 = sharp, 1 = soft)",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 1,
+        "step": 0.05,
+        "label": "Softness",
+        "group": "Effect"
+      }
+    },
+    "gamma": {
+      "default": 0.5,
+      "description": "Contour distribution. <1 clusters in bright, >1 clusters in dark",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.1,
+        "max": 2,
+        "step": 0.05,
+        "label": "Gamma",
+        "group": "Effect"
+      }
+    },
+    "invert": {
+      "default": false,
+      "description": "Invert the source values",
+      "ui": {
+        "type": "checkbox",
+        "label": "Invert",
+        "group": "Effect"
+      }
+    },
+    "source": {
+      "default": "luminance",
+      "description": "Use luminance or alpha channel for contours",
+      "compileTime": true,
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Luminance",
+            "value": "luminance"
+          },
+          {
+            "label": "Alpha",
+            "value": "alpha"
+          }
+        ],
+        "label": "Source",
+        "group": "Effect"
+      }
+    },
+    "colorMode": {
+      "default": "source",
+      "description": "Use source image colors or custom colors",
+      "compileTime": true,
+      "ui": {
+        "type": "select",
+        "options": [
+          {
+            "label": "Source",
+            "value": "source"
+          },
+          {
+            "label": "Custom",
+            "value": "custom"
+          }
+        ],
+        "label": "Color Mode",
+        "group": "Colors"
+      }
+    },
+    "lineColor": {
+      "default": "#000000",
+      "description": "Color of the contour lines (custom mode)",
+      "ui": {
+        "type": "color",
+        "label": "Line Color",
+        "group": "Colors",
+        "condition": {
+          "colorMode": "custom"
+        }
+      }
+    },
+    "backgroundColor": {
+      "default": "transparent",
+      "description": "Background color (custom mode)",
+      "ui": {
+        "type": "color",
+        "label": "Background Color",
+        "group": "Colors",
+        "condition": {
+          "colorMode": "custom"
+        }
+      }
+    }
+  }
+}

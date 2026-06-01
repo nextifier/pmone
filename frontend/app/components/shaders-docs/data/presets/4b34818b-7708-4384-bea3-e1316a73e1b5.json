@@ -1,0 +1,64 @@
+{
+  "id": "4b34818b-7708-4384-bea3-e1316a73e1b5",
+  "title": "Dark and Stormy",
+  "collectionId": "1561f9b6-3469-4394-8a91-802704fb425f",
+  "category": "background",
+  "description": "A deeply atmospheric shader effect dominated by dark, moody tones with a predominantly dark-blue and navy color palette. The image shows a soft, blurred composition with two luminous, rounded shapes that appear to be glowing orbs or bokeh-like elements rendered in muted blue-purple hues. The background is nearly black with subtle gradations of deep navy blue, creating a sense of depth and mystery. A vignette effect darkens the edges significantly, drawing focus toward the center where the glowing shapes are positioned. The overall aesthetic suggests a nighttime or cosmic environment with soft, diffused lighting. Fine film grain texture overlays the entire composition, adding a subtle analog quality. CRT screen effects with minimal scanlines create a retro-digital aesthetic without being overly pronounced. The FlowField component introduces subtle fluid distortion patterns that create organic, wave-like movements throughout the composition. Floating particles with low opacity and high softness contribute to a dreamy, ethereal quality. The lighting is predominantly ambient with low brightness (46%), creating a cinematic, low-key mood. The color palette emphasizes cool tones with the key color being a soft light-blue (#d5e4ea) that provides subtle highlights against the dark background.",
+  "thumbnail": "/shaders/thumbnails/4b34818b-7708-4384-bea3-e1316a73e1b5.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 46,
+          "backIntensity": 36,
+          "brightness": 46,
+          "color": "#1a1b38",
+          "fillAngle": 69,
+          "fillIntensity": 100,
+          "fillSoftness": 100,
+          "keyIntensity": 100,
+          "keySoftness": 38,
+          "lightTarget": 0,
+          "vignette": 81,
+          "wallCurvature": 50
+        }
+      },
+      {
+        "type": "FlowField",
+        "props": {
+          "detail": 0.6,
+          "evolutionSpeed": 5.2,
+          "speed": 3.3,
+          "strength": 0.5
+        }
+      },
+      {
+        "type": "FloatingParticles",
+        "props": {
+          "count": 2,
+          "particleColor": "#4274a6",
+          "particleDensity": 0.9,
+          "particleSize": 0.5,
+          "randomness": 0.4,
+          "speed": 0
+        }
+      },
+      {
+        "type": "CRTScreen",
+        "props": {
+          "pixelSize": 20,
+          "scanlineIntensity": 0.1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

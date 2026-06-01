@@ -1,0 +1,65 @@
+{
+  "id": "7ef44906-bacf-43d3-b309-671c27386b92",
+  "title": "Liquid Lenses 3",
+  "collectionId": "b3db9d4b-e81f-41e6-9df5-00df50a351d2",
+  "category": "background",
+  "description": "A soft, dreamy gradient composition featuring two concentric crescent or arc shapes positioned in the lower half of the image. The outer crescent has a larger radius while the inner crescent creates a frame-like effect. The color palette transitions smoothly from warm peachy-tan tones (#ed9076) on the left side to soft pink (#fe7690) on the right side, with the background gradient complementing these warm hues. The crescents appear to have a subtle glass-like quality with minimal refraction and a very soft fresnel effect creating delicate highlights along the edges. A fine film grain texture is subtly applied across the entire composition, adding a gentle noise pattern. The overall effect is ethereal and calming, with soft edges that blend seamlessly into the background. The lighting suggests a gentle, diffused light source positioned at approximately 276 degrees, creating subtle highlights on the crescent shapes. The composition has a serene, minimalist aesthetic with smooth color transitions and no harsh contrasts.",
+  "thumbnail": "/shaders/thumbnails/7ef44906-bacf-43d3-b309-671c27386b92.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#ed9076",
+          "colorB": "#fe7690",
+          "detail": 1.8,
+          "speed": 0.2
+        }
+      },
+      {
+        "type": "CursorRipples",
+        "props": {
+          "chromaticSplit": 0.3,
+          "decay": 1.4,
+          "edges": "mirror",
+          "intensity": 9,
+          "radius": 1
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "aberration": 0.28,
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "edgeSoftness": 0.05,
+          "fresnel": 0.03,
+          "fresnelSoftness": 1,
+          "highlight": 0.15,
+          "highlightSoftness": 0.29,
+          "lightAngle": 276,
+          "refraction": 1.96,
+          "shape": {
+            "type": "crescentSDF",
+            "radius": 0.92,
+            "innerRatio": 0.63,
+            "offset": 0.26,
+            "rotation": 0
+          },
+          "shapeType": "crescentSDF",
+          "thickness": 1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

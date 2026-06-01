@@ -1,0 +1,39 @@
+{
+  "id": "e1fbf497-7874-472a-9c68-c44a57aa2be5",
+  "title": "Smokescreen 6",
+  "collectionId": "75854014-d32e-4ede-8f49-16782c112961",
+  "category": "background",
+  "description": "A dramatic atmospheric shader effect featuring a dark near-black background (#040414) with a prominent smoke simulation layer. The smoke effect creates billowing, cloud-like formations that transition from light gray (#e1e2e8) to pure white (#ffffff), with soft, diffused edges that fade to transparency. The smoke appears to emit from the center-left area and flows upward with a gentle rightward drift, creating a sense of movement and turbulence. The effect has high detail (detail level 7) resulting in intricate, organic smoke patterns with natural-looking dissipation at the edges. The overall mood is ethereal and moody, with strong contrast between the dark background and the luminous white smoke formations. The smoke has a realistic volumetric quality with color decay creating subtle gray tones within the white plumes. The composition suggests upward motion with a spread angle of 60 degrees, creating a natural, organic dispersal pattern typical of rising smoke or steam.",
+  "thumbnail": "/shaders/thumbnails/e1fbf497-7874-472a-9c68-c44a57aa2be5.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#040414"
+        }
+      },
+      {
+        "type": "Smoke",
+        "props": {
+          "colorA": "#e1e2e8",
+          "colorB": "#ffffff",
+          "colorDecay": 1.4,
+          "colorSpace": "oklab",
+          "detail": 7,
+          "direction": 36,
+          "emitFrom": {
+            "type": "mouse-position",
+            "originX": 0,
+            "originY": 0
+          },
+          "mouseInfluence": 0.8,
+          "mouseRadius": 0.07,
+          "speed": 6.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

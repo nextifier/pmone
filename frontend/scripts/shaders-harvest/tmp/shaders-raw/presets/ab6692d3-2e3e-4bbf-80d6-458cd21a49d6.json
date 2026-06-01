@@ -1,0 +1,25 @@
+{
+  "id": "ab6692d3-2e3e-4bbf-80d6-458cd21a49d6",
+  "title": "Glass Halo 5",
+  "collection_id": "84df37ef-ce5b-4770-b5cf-acf432002340",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A modern, organic shader effect featuring a soft, glowing circular form centered on a gradient background. The composition consists of three layered components: a base lime-green solid color (#7eb518) providing the foundational hue, a central animated blob with warm yellow tones (#fff990 to #e4d71b) that creates an organic, flowing shape with soft edges and internal luminosity, and a glass overlay with an SVG-based circular ring shape that adds dimensional depth and subtle refraction. The blob component features a highlight positioned at coordinates (0.3, -0.3, 0.4) with bright yellow (#ffe11a) at 50% intensity, creating a three-dimensional appearance. The glass element applies a subtle fresnel effect (0.1 intensity) with edge softness of 0.15, producing a smooth transition between the inner and outer surfaces. The overall effect is warm and inviting, with the yellow-green color palette creating a fresh, natural aesthetic. The background gradient transitions smoothly from yellow-green in the center to deeper green at the edges, with soft focus and transparent edges creating a vignette effect. The lighting appears to come from the upper left, enhanced by the highlight positioning and fresnel calculations. The blend mode uses normal-oklab for the blob, preserving color relationships in perceptual space.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/ab6692d3-2e3e-4bbf-80d6-458cd21a49d6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2FiNjY5MmQzLTJlM2UtNGJiZi04MGQ2LTQ1OGNkMjFhNDlkNi5qcGciLCJpYXQiOjE3NzI5NDA4NDcsImV4cCI6MTgwNDQ3Njg0N30.pVhiHAlt8UwVQA89sFHMdx6SgDgyuh4MvN_KtlUUolA",
+  "import": "import {\n  Shader,\n  Blob,\n  Glass,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  Glass,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#7eb518\"/>\n    <Blob\n      blend-mode=\"normal-oklab\"\n      color-a=\"#fff990\"\n      color-b=\"#e4d71b\"\n      :seed=\"2\"\n      :size=\"0.65\"\n      :softness=\"1\"/>\n    <Glass\n      :aberration=\"0\"\n      :edge-softness=\"0.15\"\n      :fresnel-softness=\"0.56\"\n      :inner-zoom=\"0.5\"\n      :refraction=\"2\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/rc0tyyfP7vSZ_sdf.bin\"\n      :thickness=\"1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [ "shaders://docs/guide/shape-effects" ]
+  }
+}

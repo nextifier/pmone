@@ -1,0 +1,30 @@
+{
+  "id": "46d72617-189f-42f1-92f0-38971f33d70d",
+  "title": "Light Leaks 2",
+  "collection_id": "77e7af2c-a9f2-4329-a8f5-332d4f07e2d0",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant, highly blurred abstract shader composition featuring soft, flowing organic shapes with intense color gradients. The image displays a swirling vortex effect in the background created by the Swirl component, transitioning from dark navy blue (#0a1628) to magenta (#b54a98). Two prominent Blob shapes overlay this base: a cyan-to-lime-green gradient blob positioned in the left-center area with soft, luminous edges and a bright yellow-green blob on the right side with enhanced deformation and highlight intensity. The entire composition is heavily blurred with a bokeh-like quality, creating a dreamy, out-of-focus appearance. Chromatic aberration adds subtle color fringing at 45-degree angles, with red and blue channel offsets creating a slight 3D separation effect. A fine film grain texture overlays the entire image at low opacity (0.08 strength), adding subtle noise. The color space uses OKLCH for smooth, perceptually uniform color transitions. The overall mood is ethereal and dynamic, with soft glowing highlights suggesting 3D depth and luminosity. The spatial composition places the brightest elements in the center-right area, with darker tones dominating the edges.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/46d72617-189f-42f1-92f0-38971f33d70d.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQ2ZDcyNjE3LTE4OWYtNDJmMS05MmYwLTM4OTcxZjMzZDcwZC5qcGciLCJpYXQiOjE3NzIyNTE0NzcsImV4cCI6MTgwMzc4NzQ3N30.FpjLtvpOXo2Um22AiqKqmTRB4KQ_q7kOE1ONuXHgY2w",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  FilmGrain,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"40\"\n      color-a=\"#0a1628\"\n      color-b=\"#b54a98\"\n      color-space=\"oklch\"\n      :detail=\"2.5\"\n      :speed=\"0.5\"/>\n    <Blob\n      :center=\"{\n        x: 0.32,\n        y: 0.68\n      }\"\n      color-a=\"#01dcfe\"\n      color-b=\"#b7fba0\"\n      color-space=\"oklch\"\n      :deformation=\"1.5\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.6\"\n      :opacity=\"0.55\"\n      :size=\"0.6\"\n      :softness=\"3\"\n      :speed=\"0.8\"\n      :visible=\"true\"/>\n    <Blob\n      :center=\"{\n        x: 0.7,\n        y: 0.68\n      }\"\n      color-a=\"#91b75d\"\n      color-b=\"#d8f72b\"\n      color-space=\"oklch\"\n      :deformation=\"1.8\"\n      highlight-color=\"#ffffff\"\n      :highlight-intensity=\"0.7\"\n      :opacity=\"0.95\"\n      :softness=\"3.5\"\n      :speed=\"0.7\"\n      :visible=\"true\"/>\n    <ChromaticAberration\n      :angle=\"45\"\n      :blue-offset=\"1.5\"\n      :red-offset=\"-1.5\"\n      :strength=\"0.55\"/>\n    <FilmGrain\n      :strength=\"0.08\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

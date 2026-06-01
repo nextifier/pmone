@@ -1,0 +1,49 @@
+{
+  "id": "8f1e3a96-6c4b-4469-9312-926601017b5d",
+  "title": "Northern Lights",
+  "collectionId": "3755e929-e7fb-4ffe-8c03-2ee38923039f",
+  "category": "background",
+  "description": "A dynamic aurora-like shader effect dominated by luminous, flowing waves of green and purple light against a deep dark-blue to black background. The primary visual element is a large, glowing green mass in the center-right portion of the image with soft, diffused edges that fade into the dark background. Overlaying this green glow is a distinctive purple-to-cyan gradient arc that curves across the upper portion, creating a ribbon-like aurora effect with high luminosity and a subtle waviness. The green light exhibits a bright, almost neon quality with significant glow and bloom, while the purple arc maintains a more ethereal, translucent appearance. The entire composition has a soft, out-of-focus quality with gentle gradients and no hard edges, creating an atmospheric, otherworldly mood. A subtle film grain texture is applied across the entire surface, adding a slight noise pattern that enhances the organic, natural feel. The lighting appears to emanate from within the green mass, with the purple arc acting as a secondary light source creating depth and dimensionality. The overall effect suggests a bioluminescent or celestial phenomenon with smooth, undulating motion captured in a single frame.",
+  "thumbnail": "/shaders/thumbnails/8f1e3a96-6c4b-4469-9312-926601017b5d.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#0b1329",
+          "colorB": "#0c0f17",
+          "detail": 1.6
+        }
+      },
+      {
+        "type": "Aurora",
+        "props": {
+          "balance": 73,
+          "blendMode": "linearDodge",
+          "center": {
+            "x": 0.33,
+            "y": 0.36
+          },
+          "colorA": "#8d54ff",
+          "colorB": "#29ff8d",
+          "colorC": "#1122d9",
+          "colorSpace": "oklab",
+          "height": 84,
+          "intensity": 75,
+          "rayDensity": 24,
+          "seed": 14,
+          "speed": 5.6,
+          "waviness": 78
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.1
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

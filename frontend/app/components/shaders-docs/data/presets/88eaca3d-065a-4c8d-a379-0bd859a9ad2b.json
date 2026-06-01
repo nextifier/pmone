@@ -1,0 +1,36 @@
+{
+  "id": "88eaca3d-065a-4c8d-a379-0bd859a9ad2b",
+  "title": "Soft Register 4",
+  "collectionId": "2fb15a69-4382-4184-85e3-56fe672c4af1",
+  "category": "background",
+  "description": "",
+  "thumbnail": "/shaders/thumbnails/88eaca3d-065a-4c8d-a379-0bd859a9ad2b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "FlowingGradient",
+        "props": {
+          "colorA": "#ff8c3a",
+          "colorB": "#ff2d0e",
+          "colorC": "#990818",
+          "colorD": "#ffb84d",
+          "colorSpace": "oklab",
+          "distortion": 0.9,
+          "seed": 24,
+          "speed": 1.2
+        }
+      },
+      {
+        "type": "Halftone",
+        "props": {
+          "blendMode": "overlay",
+          "frequency": 180,
+          "opacity": 0.2,
+          "style": "cmyk"
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

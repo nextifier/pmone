@@ -1,0 +1,252 @@
+{
+  "name": "LensFlare",
+  "category": "Stylize",
+  "description": "Realistic camera lens flare with artifacts.",
+  "requiresChild": false,
+  "requiresRTT": false,
+  "props": {
+    "lightPosition": {
+      "default": {
+        "x": 0.3,
+        "y": 0.3
+      },
+      "description": "Position of the light source",
+      "ui": {
+        "type": "position",
+        "label": "Light Position",
+        "group": "Light"
+      }
+    },
+    "intensity": {
+      "default": 0.5,
+      "description": "Master brightness of the entire lens flare effect",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 2,
+        "step": 0.01,
+        "label": "Intensity",
+        "group": "Light"
+      }
+    },
+    "ghostIntensity": {
+      "default": 0.4,
+      "description": "Brightness of internal reflection ghost discs along the flare axis",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Ghosts",
+        "group": "Reflections"
+      }
+    },
+    "ghostSpread": {
+      "default": 0.7,
+      "description": "Spacing between ghost reflections along the flare axis",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 2,
+        "step": 0.01,
+        "label": "Ghost Spread",
+        "group": "Reflections"
+      }
+    },
+    "ghostChroma": {
+      "default": 0.3,
+      "description": "Rainbow chromatic fringing around ghost element edges",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Ghost Chroma",
+        "group": "Reflections"
+      }
+    },
+    "haloIntensity": {
+      "default": 0.4,
+      "description": "Brightness of the circular halo ring from internal reflection",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Halo",
+        "group": "Reflections"
+      }
+    },
+    "haloRadius": {
+      "default": 0.6,
+      "description": "Radius of the halo ring",
+      "ui": {
+        "type": "range",
+        "min": 0.1,
+        "max": 1,
+        "step": 0.01,
+        "label": "Halo Size",
+        "group": "Reflections"
+      }
+    },
+    "haloChroma": {
+      "default": 0.6,
+      "description": "Spectral dispersion on the halo creating rainbow color separation",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Halo Chroma",
+        "group": "Reflections"
+      }
+    },
+    "haloSoftness": {
+      "default": 0.8,
+      "description": "Thickness and softness of the halo ring",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.01,
+        "max": 3,
+        "step": 0.01,
+        "label": "Halo Softness",
+        "group": "Reflections"
+      }
+    },
+    "starburstIntensity": {
+      "default": 0.3,
+      "description": "Brightness of diffraction spikes radiating from the light source",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Starburst",
+        "group": "Effects"
+      }
+    },
+    "starburstPoints": {
+      "default": 6,
+      "description": "Number of starburst spikes (simulates aperture blade count)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 4,
+        "max": 16,
+        "step": 1,
+        "label": "Blades",
+        "group": "Effects"
+      }
+    },
+    "streakIntensity": {
+      "default": 0.15,
+      "description": "Brightness of horizontal anamorphic light streak",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Streak",
+        "group": "Effects"
+      }
+    },
+    "streakLength": {
+      "default": 0.5,
+      "description": "Horizontal extent of the anamorphic streak",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.1,
+        "max": 1,
+        "step": 0.01,
+        "label": "Streak Length",
+        "group": "Effects"
+      }
+    },
+    "glareIntensity": {
+      "default": 0.2,
+      "description": "Soft veiling glare that washes out contrast around the light",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Glare",
+        "group": "Effects"
+      }
+    },
+    "glareSize": {
+      "default": 0.5,
+      "description": "Size of the soft glare glow",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0.1,
+        "max": 1,
+        "step": 0.01,
+        "label": "Glare Size",
+        "group": "Effects"
+      }
+    },
+    "edgeFade": {
+      "default": 0.2,
+      "description": "How much the flare fades when the light source is near the screen edge (0 = no fade, 1 = heavy fade)",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 1,
+        "step": 0.01,
+        "label": "Edge Fade",
+        "group": "Light"
+      }
+    },
+    "speed": {
+      "default": 0.5,
+      "description": "Speed of subtle flare shimmer and starburst rotation",
+      "ui": {
+        "type": "range",
+        "min": 0,
+        "max": 3,
+        "step": 0.1,
+        "label": "Speed",
+        "group": "Animation"
+      }
+    }
+  }
+}

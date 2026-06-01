@@ -1,0 +1,56 @@
+{
+  "id": "9598b3e0-f0be-40a5-abcd-d709363297ca",
+  "title": "Converging Panels",
+  "collectionId": "1f7a18b9-8ac7-4bc1-9bfa-d98daa0b4b5d",
+  "category": "background",
+  "description": "A warm, glowing abstract shader effect dominated by golden and orange tones. The image features a soft, blurred bokeh-like quality with multiple overlapping light sources creating a dreamy, out-of-focus appearance. The primary illumination originates from the upper-center area, creating a bright yellow-gold core that gradually transitions to deeper orange and brown tones toward the edges. The StudioBackground component generates ambient lighting with a luminosity blend mode, producing soft halos and diffused light rays. A subtle kaleidoscopic pattern with 6 segments is layered underneath, creating gentle geometric distortions that are barely visible due to the low reach setting (0.05) and the dominant background. The overall effect is atmospheric and warm, with a vignette-like darkening at the corners transitioning from bright center to darker brown edges. A fine film grain texture (0.2 strength) adds subtle noise throughout, enhancing the cinematic quality. The composition suggests studio lighting with high ambient intensity (96) and moderate fill softness (70), creating a professional, polished glow effect with soft shadows and highlights blending seamlessly.",
+  "thumbnail": "/shaders/thumbnails/9598b3e0-f0be-40a5-abcd-d709363297ca.webp",
+  "config": {
+    "components": [
+      {
+        "type": "StudioBackground",
+        "props": {
+          "ambientIntensity": 96,
+          "ambientSpeed": 3,
+          "backIntensity": 0,
+          "backSoftness": 0,
+          "blendMode": "luminosity",
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.7,
+            "originX": 0.713903743315508,
+            "originY": 0.7781299524564184,
+            "momentum": 0.3,
+            "smoothing": 0.4
+          },
+          "color": "#ff9d0a",
+          "fillAngle": 72,
+          "fillIntensity": 24,
+          "keyIntensity": 38,
+          "wallCurvature": 35
+        }
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "type": "mouse-position",
+            "reach": 0.05,
+            "originX": 0.551693404634581,
+            "originY": 0.26465927099841524,
+            "momentum": 0.5,
+            "smoothing": 0.5
+          }
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.2
+        }
+      }
+    ]
+  },
+  "colorSpace": "srgb",
+  "toneMapping": "aces"
+}

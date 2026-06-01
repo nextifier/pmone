@@ -1,0 +1,42 @@
+{
+  "id": "008503bf-9245-4a6d-a813-75c876fcb17d",
+  "title": "Liquid Stripes 8",
+  "collection_id": "1b1c9029-4fe7-48f3-83ad-eff1105b51e2",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A vibrant purple gradient background with diagonal parallel stripes running at 45 degrees from upper-left to lower-right. The stripes alternate between a lighter pink-purple (#dd84ec) and a deeper dark purple (#9004ab), creating a rhythmic linear pattern with 9 stripes visible across the composition. Centered in the middle is a radial starburst or mandala-like shape composed of rectangular glass-like elements arranged in a circular pattern around a central void. The glass elements exhibit chromatic aberration effects with subtle color fringing, creating an iridescent quality. The shape demonstrates refraction and light-bending properties with a frosted glass appearance, featuring highlights and fresnel reflections that catch light at approximately 300 degrees. The overall effect is enhanced by a subtle film grain texture overlay that adds a slight noise pattern throughout. The cursor ripple effect creates concentric circular distortions emanating from the center point, with a decay rate that causes the ripples to fade outward. The composition has a modern, digital aesthetic with a strong sense of depth created by the glass effect's refraction properties and the layered transparency of the geometric shape against the striped background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/008503bf-9245-4a6d-a813-75c876fcb17d.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzAwODUwM2JmLTkyNDUtNGE2ZC1hODEzLTc1Yzg3NmZjYjE3ZC5qcGciLCJpYXQiOjE3NzI5MzY4NDUsImV4cCI6MTgwNDQ3Mjg0NX0.yw56sU44Ut5Vni2Pz41NyEg85XDO8C0i5Uyc-p21FXA",
+  "import": "import {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Stripes\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CursorRipples,\n  FilmGrain,\n  Glass,\n  Stripes\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Stripes\n      :balance=\"0.1\"\n      color-a=\"#dd84ec\"\n      color-b=\"#9004ab\"\n      :density=\"9\"/>\n    <CursorRipples/>\n    <Glass\n      :blur=\"11.3\"\n      :fresnel=\"0.11\"\n      :fresnel-softness=\"0.38\"\n      :refraction=\"0.51\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/DODKZwnr2rPw_sdf.bin\"\n      :thickness=\"0.13\"/>\n    <FilmGrain\n      :strength=\"0.3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "id": "78529bdb-eb02-4848-8844-2fe6262586e1",
+  "title": "Mercury 5",
+  "collectionId": "8cefc8df-84a3-4d51-b006-c90065d0b8bf",
+  "category": "logo",
+  "description": "A sophisticated glass morphism shader effect featuring a geometric 'G' logo shape with a cutout design. The composition uses a deep black background (#0f0f0f) that provides stark contrast. The central glass element displays a thick-walled geometric form with an orange gradient interior (#ff7a1a to #170308). The glass surface exhibits strong refraction (0.82) and chromatic aberration (0.5), creating a luminous, translucent quality with warm orange tones (#ffb380) concentrated at the fresnel edges. A dynamic swirl effect animates within the glass, blending orange and dark brown colors with high detail (3.5). An interactive blob element with yellow-gold highlights (#ffd633, #ffb614, #ffe11a) responds to mouse position, creating soft, deformable light spots that add dimensionality. Wave distortion at 23 degrees with sine waves (frequency 5.1, speed 2.5) creates subtle undulating surface movement. Cursor ripples with chromatic split (intensity 20) add interactive responsiveness. The overall effect conveys a premium, modern aesthetic with warm ambient lighting, glossy reflective surfaces, and fluid organic motion within a rigid geometric structure. Film grain (0.075 strength) adds subtle texture and cinematic quality.",
+  "thumbnail": "/shaders/thumbnails/78529bdb-eb02-4848-8844-2fe6262586e1.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#0f0f0f"
+        }
+      },
+      {
+        "type": "Glass",
+        "props": {
+          "cutout": true,
+          "fresnel": 0.04,
+          "fresnelColor": "#ffb380",
+          "fresnelSoftness": 0.48,
+          "highlight": 0.1,
+          "highlightColor": "#dbe6ff",
+          "highlightSoftness": 0.27,
+          "lightAngle": 305,
+          "refraction": 0.82,
+          "scale": 1.1,
+          "shapeSdfUrl": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin",
+          "thickness": 0.23,
+          "visible": true
+        },
+        "children": [
+          {
+            "type": "Swirl",
+            "props": {
+              "blend": 45,
+              "colorA": "#ff7a1a",
+              "colorB": "#170308",
+              "colorSpace": "oklab",
+              "detail": 3.5,
+              "speed": 0.7
+            }
+          },
+          {
+            "type": "Blob",
+            "props": {
+              "blendMode": "linearDodge",
+              "center": {
+                "type": "mouse-position",
+                "reach": 0.55,
+                "originX": 0.5,
+                "originY": 0.5,
+                "momentum": 0.3,
+                "smoothing": 0.3
+              },
+              "colorA": "#ffd633",
+              "colorB": "#ffb614",
+              "deformation": 0.9,
+              "size": 0.15,
+              "softness": 0.7
+            }
+          },
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 23,
+              "edges": "mirror",
+              "frequency": 5.1,
+              "speed": 2.5,
+              "strength": 0.15,
+              "visible": true
+            }
+          },
+          {
+            "type": "CursorRipples",
+            "props": {
+              "chromaticSplit": 2,
+              "decay": 5,
+              "intensity": 20,
+              "radius": 0.7,
+              "visible": true
+            }
+          }
+        ]
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.075,
+          "visible": true
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

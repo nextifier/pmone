@@ -1,0 +1,30 @@
+{
+  "id": "241233ee-c593-42e7-820a-ce7c3e9a8073",
+  "title": "Undertones 11",
+  "collection_id": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A sophisticated shader effect composed of horizontal striped bands with varying opacity and chromatic distortion. The image features a dark, moody atmosphere dominated by black and near-black backgrounds with warm tan and brown accent colors running horizontally across the composition. The FlutedGlass component creates pronounced vertical ribbing/fluting patterns with a 90-degree angle, producing parallel horizontal lines with subtle light refraction and chromatic aberration effects. The ChromaFlow layer adds warm earth-tone colors (tan #b8a48a, brown #5a4a3e, and muted gold #8c7560) that flow directionally across the bands, creating a sense of movement and depth. The refraction value of 4 combined with 0.61 aberration creates a subtle color separation effect along the edges of the bands, particularly visible as blue and warm orange fringes. The Swirl component provides a subtle underlying texture with minimal visibility due to the dark color palette (#000000 to #0a0a0a). A fine FilmGrain texture with 0.05 strength adds subtle noise throughout. The overall effect is reminiscent of light passing through ribbed glass or venetian blinds, with warm interior lighting creating a luxurious, tactile appearance. The mood is sophisticated and moody, with strong directional lighting creating highlights and shadows across the horizontal striations.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/241233ee-c593-42e7-820a-ce7c3e9a8073.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzI0MTIzM2VlLWM1OTMtNDJlNy04MjBhLWNlN2MzZTlhODA3My5qcGciLCJpYXQiOjE3Nzc4MTkxMjcsImV4cCI6MTgwOTM1NTEyN30.5ciQ7RjRjN59JDdd9Kyza7pFmljmCsqTShirnAs-IJg",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#000000\"\n      color-b=\"#0a0a0a\"\n      :detail=\"1.7\"/>\n    <ChromaFlow\n      base-color=\"#18181a\"\n      down-color=\"#5a4a3e\"\n      left-color=\"#8c7560\"\n      :momentum=\"13\"\n      right-color=\"#a08870\"\n      up-color=\"#b8a48a\"/>\n    <FlutedGlass\n      :aberration=\"0.61\"\n      :angle=\"90\"\n      :frequency=\"8\"\n      :highlight=\"0.12\"\n      :highlight-softness=\"0\"\n      :light-angle=\"-90\"\n      :refraction=\"4\"\n      shape=\"rounded\"\n      :softness=\"1\"\n      :speed=\"0.15\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

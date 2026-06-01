@@ -1,0 +1,66 @@
+{
+  "id": "a3e637f6-e07d-44b1-be2a-ef0272ce8d77",
+  "title": "Drifting Contours 6",
+  "collectionId": "099c55ec-a478-44bf-abaa-eaf863f34870",
+  "category": "background",
+  "description": "A sophisticated abstract shader composition featuring a flowing, organic wave-like form rendered in gradient tones. The primary visual element is a smooth, undulating surface with contour lines that create a topographic map effect. The background transitions from deep blue on the left to purple-tinted blue on the right, creating atmospheric depth. Overlaid on this are delicate golden-yellow contour lines that follow the organic curves of the central blob form, creating approximately 30 distinct line levels that emphasize the three-dimensional topology. The blob itself appears to be a soft, luminous form with subtle internal gradients shifting between muted gold-tan and cool blue-gray tones, positioned slightly left of center. A gentle highlight effect creates a subtle luminous quality on the upper-left portion of the blob. The contour lines are crisp and well-defined with approximately 1.5-pixel width, creating a technical, almost scientific visualization aesthetic. The overall effect combines organic fluidity with geometric precision, suggesting data visualization or topographic mapping. The liquify effect adds subtle warping and distortion to the edges, softening the transition between the form and background. The composition has a calm, meditative quality with smooth gradients and no harsh edges.",
+  "thumbnail": "/shaders/thumbnails/a3e637f6-e07d-44b1-be2a-ef0272ce8d77.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 29,
+          "colorA": "#d65188",
+          "colorB": "#215597",
+          "contrast": 0.7,
+          "density": 0.9,
+          "warp": 0.3
+        }
+      },
+      {
+        "type": "ContourLines",
+        "props": {
+          "gamma": 0.1,
+          "levels": 30,
+          "lineColor": "#ff4a4a",
+          "lineWidth": 1.5,
+          "source": "alpha"
+        },
+        "children": [
+          {
+            "type": "Blob",
+            "props": {
+              "center": {
+                "x": 0.15,
+                "y": 0.39
+              },
+              "colorA": "#c1b861",
+              "colorB": "#8190ab",
+              "deformation": 0.7,
+              "highlightColor": "#fbffb3",
+              "highlightIntensity": 1,
+              "highlightX": -0.5,
+              "highlightY": -0.6,
+              "highlightZ": -0.1,
+              "seed": 42,
+              "size": 0.7,
+              "softness": 1,
+              "speed": 0.2
+            }
+          }
+        ]
+      },
+      {
+        "type": "Liquify",
+        "props": {
+          "decay": 0.5,
+          "intensity": 1,
+          "radius": 3
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

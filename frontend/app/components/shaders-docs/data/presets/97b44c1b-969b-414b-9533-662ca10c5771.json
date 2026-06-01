@@ -1,0 +1,100 @@
+{
+  "id": "97b44c1b-969b-414b-9533-662ca10c5771",
+  "title": "Hex Path 4",
+  "collectionId": "61fcec0d-813b-4847-98e7-6ffa7212d5a9",
+  "category": "background",
+  "description": "A dark, sophisticated shader effect featuring a hexagonal grid pattern as the primary structural element. The hexagons are arranged in a regular tessellation across the entire canvas, with their outlines rendered in warm golden-orange tones (#ffcc00, #ff8a00, #ffd97a). The grid lines gradually brighten from left to right, creating a directional lighting effect that suggests illumination from the upper-right portion of the image. The background is predominantly black (#080808) with subtle warm brown undertones (#2a1408) that create depth through a radial gradient emanating from the bottom-center. The hexagon outlines vary in thickness, with thicker, more luminous lines concentrated in the upper-right quadrant, gradually fading to thinner, dimmer lines toward the left and bottom edges. A soft glow effect radiates from the brighter hexagon lines, creating a halo-like luminescence around the illuminated cells. The overall atmosphere is technological and elegant, with a warm color temperature dominated by golden yellows and burnt oranges against the deep black background. Film grain texture is subtly applied across the entire composition, adding a slight grittiness and analog quality to the otherwise digital aesthetic. The effect suggests either a heat map visualization, a futuristic interface, or an abstract representation of energy distribution across a honeycomb structure.",
+  "thumbnail": "/shaders/thumbnails/97b44c1b-969b-414b-9533-662ca10c5771.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmoz4cglxvtm21v60i",
+          "center": {
+            "type": "mouse-position",
+            "originX": 0.5,
+            "originY": 0.5,
+            "momentum": 0.35,
+            "smoothing": 0.2
+          },
+          "softness": 0.5,
+          "visible": false
+        }
+      },
+      {
+        "type": "HexGrid",
+        "props": {
+          "id": "idmoz40cq9qk5jrget0",
+          "colorA": "#00000000",
+          "thickness": {
+            "type": "map",
+            "source": "idmoz4cglxvtm21v60i",
+            "channel": "alpha",
+            "inputMax": 1,
+            "inputMin": 0,
+            "outputMax": 3,
+            "outputMin": 0.4
+          },
+          "visible": true
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "colorA": "#2a1408",
+          "colorB": "#080808",
+          "radius": 1.4
+        }
+      },
+      {
+        "type": "Ripples",
+        "props": {
+          "center": {
+            "x": 0,
+            "y": 1
+          },
+          "colorA": "#a83806",
+          "colorB": "#1a0f0a",
+          "frequency": 8.1,
+          "maskSource": "idmoz40cq9qk5jrget0",
+          "softness": 1.8,
+          "thickness": 0
+        }
+      },
+      {
+        "type": "ChromaFlow",
+        "props": {
+          "baseColor": "#ff6a1a",
+          "downColor": "#c43a05",
+          "leftColor": "#ff8a00",
+          "maskSource": "idmoz40cq9qk5jrget0",
+          "momentum": 15,
+          "radius": 3.8,
+          "rightColor": "#ffd97a",
+          "upColor": "#ffcc00"
+        }
+      },
+      {
+        "type": "Glow",
+        "props": {
+          "intensity": 21,
+          "size": 6,
+          "threshold": 0.1
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.05
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

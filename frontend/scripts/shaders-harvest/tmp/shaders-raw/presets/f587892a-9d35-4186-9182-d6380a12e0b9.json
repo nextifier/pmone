@@ -1,0 +1,42 @@
+{
+  "id": "f587892a-9d35-4186-9182-d6380a12e0b9",
+  "title": "Smokey Logo 5",
+  "collection_id": "16454cd8-7469-4d37-80f4-4d8ae0d74fcc",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect featuring layered smoke and particle systems against a nearly black background (#0d0817). The composition shows ethereal cyan and teal-colored smoke plumes rising and swirling from the bottom corners and center of the frame. The primary smoke effect uses bright cyan (#7ad4e6) transitioning to deeper teal (#3ab8d4) with high opacity and smooth dissipation. A secondary darker smoke layer (#142e3d to #0b132e) creates depth and shadow beneath the brighter cyan plumes, giving the effect a three-dimensional quality. The smoke particles emit from specific points with directional flow - one stream from the lower left (direction 49°) and another from the lower right (direction 277°), creating a converging, arch-like formation. The smoke has moderate gravity (0.5) causing gentle downward drift, while detail level of 25 creates fine, turbulent texture. Mouse interaction adds dynamic responsiveness with the SmokeFill component allowing real-time manipulation. The overall mood is mysterious and ethereal, with a cool color palette dominated by deep blues and cyans against the near-black void. The effect suggests underwater currents, supernatural mist, or digital energy flows with soft, organic motion and natural dissipation patterns.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/f587892a-9d35-4186-9182-d6380a12e0b9.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Y1ODc4OTJhLTlkMzUtNDE4Ni05MTgyLWQ2MzgwYTEyZTBiOS5qcGciLCJpYXQiOjE3NzY3MDg1NjQsImV4cCI6MTgwODI0NDU2NH0.GYK4YP-nqYIU0dwtILhJkHmzL_ERDtCmniIyt9FPMKQ",
+  "import": "import {\n  Shader,\n  Smoke,\n  SmokeFill,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Smoke,\n  SmokeFill,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0d0817\"/>\n    <SmokeFill\n      color-a=\"#7ad4e6\"\n      color-b=\"#3ab8d4\"\n      :color-decay=\"3\"\n      :detail=\"16\"\n      :emit-from=\"{\n        type: 'mouse-position',\n        originX: 0,\n        originY: 0,\n        momentum: 0,\n        smoothing: 0\n      }\"\n      :emit-radius=\"0.05\"\n      :gravity=\"0\"\n      :intensity=\"0.95\"\n      :mouse-influence=\"0.35\"\n      :scale=\"1.1\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/5T7CT5qxxArz_sdf.bin\"\n      :speed=\"1.4\"\n      :spread=\"141\"/>\n    <Smoke\n      color-a=\"#142e3d\"\n      color-b=\"#0b132e\"\n      :direction=\"49\"\n      :dissipation=\"0.7\"\n      :emit-from=\"{\n        x: 0,\n        y: 0.99\n      }\"\n      :emit-radius=\"0.13\"\n      :intensity=\"0.75\"\n      :speed=\"8.3\"\n      :spread=\"65\"/>\n    <Smoke\n      color-a=\"#0a6e7a\"\n      color-b=\"#0b132e\"\n      :direction=\"277\"\n      :dissipation=\"0.7\"\n      :emit-from=\"{\n        x: 1,\n        y: 1\n      }\"\n      :emit-radius=\"0.13\"\n      :intensity=\"0.75\"\n      :speed=\"8.3\"\n      :spread=\"65\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    },
+    {
+      "uri": "shaders://docs/guide/shape-effects",
+      "label": "Shape effects guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

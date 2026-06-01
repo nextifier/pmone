@@ -1,0 +1,30 @@
+{
+  "id": "b2f08b7b-327d-49c7-a80e-707f895cf1b8",
+  "title": "LED Flow 4",
+  "collection_id": "919ba9e1-06c8-4d55-8153-002a45a08a91",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect dominated by deep navy and black tones with subtle dimensional distortion. The composition features a swirling twirl effect centered in the lower-right portion of the canvas, creating a vortex-like distortion that warps the space around it with an intensity of 2.6. The background is a near-black solid color (#0c061a) providing a deep, void-like foundation. Overlaid on this is a diagonal linear gradient transitioning from magenta (#ff00b2) to cyan (#85fbff) at a 141-degree angle, creating a neon-like color shift that's visible primarily through the luminance mask applied by the invisible swirl and dot grid group. The gradient uses OKLCH color space for smooth perceptual transitions. Subtle white dots arranged in a grid pattern (60 density, 0.12 dot size) are masked and invisible but influence the gradient's visibility through luminance masking, creating an underlying structure. A fine film grain texture with 0.03 strength adds subtle noise and texture throughout, enhancing the cinematic quality. The overall effect is moody, dark, and ethereal with a sense of dynamic motion from the twirl distortion, while the magenta-to-cyan gradient provides striking color contrast against the predominantly black canvas. The edges wrap around the twirl effect, creating a seamless distortion field.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/fbdda785-5f19-4e26-9b3f-242ee75febd6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2ZiZGRhNzg1LTVmMTktNGUyNi05YjNmLTI0MmVlNzVmZWJkNi5qcGciLCJpYXQiOjE3NjcwNDM5NTQsImV4cCI6MTc5ODU3OTk1NH0.ByLXk92mMbO9nvevZy2E9IyqVETw2dV2N9BHX5B4O2U",
+  "import": "import {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Group,\n  LinearGradient,\n  SolidColor,\n  Swirl,\n  Twirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  DotGrid,\n  FilmGrain,\n  Group,\n  LinearGradient,\n  SolidColor,\n  Swirl,\n  Twirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Group\n      id=\"idmjrnv6c0pom01tg0f\"\n      :visible=\"false\">\n      <Swirl\n        :blend=\"100\"\n        color-a=\"#ffffff\"\n        color-b=\"#000000\"\n        :detail=\"1.6\"\n        mask-source=\"idmjrnuq8x4whbsr7v9\"/>\n      <DotGrid\n        id=\"idmjrnuq8x4whbsr7v9\"\n        :density=\"60\"\n        :dot-size=\"0.12\"\n        :visible=\"false\"/>\n      <Twirl\n        :center=\"{\n          x: 0.64,\n          y: 1\n        }\"\n        edges=\"wrap\"\n        :intensity=\"2.6\"\n        :visible=\"true\"/>\n    </Group>\n    <SolidColor\n      color=\"#0c061a\"/>\n    <LinearGradient\n      :angle=\"141\"\n      color-a=\"#ff00b2\"\n      color-b=\"#85fbff\"\n      color-space=\"oklch\"\n      edges=\"mirror\"\n      :end=\"{\n        x: 0.37,\n        y: 0.26\n      }\"\n      mask-source=\"idmjrnv6c0pom01tg0f\"\n      mask-type=\"luminance\"\n      :start=\"{\n        x: 0.41,\n        y: 0.4\n      }\"/>\n    <FilmGrain\n      :strength=\"0.03\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

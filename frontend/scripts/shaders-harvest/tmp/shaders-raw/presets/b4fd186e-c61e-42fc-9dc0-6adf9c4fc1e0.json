@@ -1,0 +1,38 @@
+{
+  "id": "b4fd186e-c61e-42fc-9dc0-6adf9c4fc1e0",
+  "title": "Tinted Lenses 4",
+  "collection_id": "626ba5b2-2995-4cbc-abe6-0673e66079d2",
+  "collection_category": "image-effects",
+  "format": "vue",
+  "visual_description": "A silhouetted figure of a person is displayed against a gradient background transitioning from yellow-green on the left to coral-red on the right. The figure itself is rendered in deep magenta-red (#b8073f) with bright neon green (#07e558) highlights creating a striking duotone effect, particularly visible on the face and upper body areas. The entire composition is overlaid with a fluted glass effect featuring vertical bars at a 24-degree angle, creating a refractive distortion pattern that mimics ribbed glass or venetian blinds. The glass effect has a softness value of 0.29, producing a subtle blur and refraction with a refraction strength of 2.65, causing the colors and details to shimmer and wave slightly. The bars are evenly spaced with a frequency of 9, and the effect includes wave distortion with an amplitude of 0.06 and frequency of 1.5, adding subtle undulation to the glass texture. The lighting angle is set to -90 degrees, creating highlights that enhance the glass-like appearance. The overall mood is modern, artistic, and somewhat ethereal, with the combination of the duotone coloring and glass refraction creating a contemporary, stylized portrait effect.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/54da16eb-b8b6-4d3a-87ae-e3be8a0e1e28.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzU0ZGExNmViLWI4YjYtNGQzYS04N2FlLWUzYmU4YTBlMWUyOC5qcGciLCJpYXQiOjE3NzkwMjkzNjYsImV4cCI6MTgxMDU2NTM2Nn0.gQL0ydOBaIHzaB-zo5oHZRrbpz_7Kn62EJiRaA54QoM",
+  "import": "import {\n  Shader,\n  Duotone,\n  FlutedGlass,\n  ImageTexture\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Duotone,\n  FlutedGlass,\n  ImageTexture\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/e7Jy8b5il0_q.png\"/>\n    <Duotone\n      color-a=\"#b8073f\"\n      color-b=\"#07e558\"/>\n    <FlutedGlass\n      :aberration=\"0\"\n      :angle=\"24\"\n      :frequency=\"9\"\n      :highlight=\"0\"\n      :highlight-softness=\"0\"\n      :light-angle=\"-90\"\n      :refraction=\"2.65\"\n      :softness=\"0.29\"\n      :speed=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is an image/media effect. You will likely want to ask the user for the media file in the codebase and update the appropriate media effect component(s) with the file path / url."
+    ],
+    "resources": [
+      "shaders://pro-notes/hero-section-masking"
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "id": "bfa30df6-98f0-4791-8df8-662b71ab7858",
+  "title": "Dither Logo 6",
+  "collectionId": "099df352-41e8-4298-ad10-74f792b3f539",
+  "category": "logo",
+  "description": "A modern, minimalist logo design featuring four rounded geometric shapes arranged in a 2x2 grid pattern, creating an abstract composition. The logo uses a bright lime-green color (#5bd438) as the primary hue with subtle gradient variations and luminous quality. The shapes have smooth, organic curves with clean negative space between them. The background is a dark, deep teal-to-black gradient that transitions from slightly lighter on the left to nearly pure black on the right, creating depth and contrast. A subtle plasma effect with purple-to-green color shifts (#79699c to #5bd438) animates across the logo shapes, adding dynamic movement and visual interest. The dithering effect with a bayer8 pattern at 3-pixel size adds a subtle grainy texture and retro-digital aesthetic, particularly visible along the edges and highlights. The overall mood is contemporary, tech-forward, and energetic, with the glowing green against the dark background creating a sense of luminosity and modern sophistication. The composition has a balanced, symmetrical quality despite the organic curves of the individual elements.",
+  "thumbnail": "/shaders/thumbnails/bfa30df6-98f0-4791-8df8-662b71ab7858.webp",
+  "config": {
+    "components": [
+      {
+        "type": "ImageTexture",
+        "props": {
+          "id": "idmmaykb1vflvohydj1",
+          "objectFit": "contain",
+          "transform": {
+            "offsetX": 0.35,
+            "scale": 0.6
+          },
+          "url": "https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg",
+          "visible": false
+        }
+      },
+      {
+        "type": "RadialGradient",
+        "props": {
+          "center": {
+            "x": 1,
+            "y": 0.5
+          },
+          "colorA": "#060612",
+          "colorB": "#00161c",
+          "colorSpace": "oklab",
+          "radius": 1.5
+        }
+      },
+      {
+        "type": "Plasma",
+        "props": {
+          "balance": 55,
+          "colorA": "#79699c",
+          "colorB": "#5bd438",
+          "colorSpace": "oklab",
+          "density": 1.7,
+          "intensity": 3,
+          "maskSource": "idmmaykb1vflvohydj1"
+        }
+      },
+      {
+        "type": "Dither",
+        "props": {
+          "blendMode": "linearDodge",
+          "colorMode": "source",
+          "pattern": "bayer8",
+          "pixelSize": 3,
+          "threshold": 0.96
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

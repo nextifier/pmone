@@ -1,0 +1,30 @@
+{
+  "id": "4b34818b-7708-4384-bea3-e1316a73e1b5",
+  "title": "Dark and Stormy",
+  "collection_id": "1561f9b6-3469-4394-8a91-802704fb425f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A deeply atmospheric shader effect dominated by dark, moody tones with a predominantly dark-blue and navy color palette. The image shows a soft, blurred composition with two luminous, rounded shapes that appear to be glowing orbs or bokeh-like elements rendered in muted blue-purple hues. The background is nearly black with subtle gradations of deep navy blue, creating a sense of depth and mystery. A vignette effect darkens the edges significantly, drawing focus toward the center where the glowing shapes are positioned. The overall aesthetic suggests a nighttime or cosmic environment with soft, diffused lighting. Fine film grain texture overlays the entire composition, adding a subtle analog quality. CRT screen effects with minimal scanlines create a retro-digital aesthetic without being overly pronounced. The FlowField component introduces subtle fluid distortion patterns that create organic, wave-like movements throughout the composition. Floating particles with low opacity and high softness contribute to a dreamy, ethereal quality. The lighting is predominantly ambient with low brightness (46%), creating a cinematic, low-key mood. The color palette emphasizes cool tones with the key color being a soft light-blue (#d5e4ea) that provides subtle highlights against the dark background.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7767b1f7-084d-4748-b316-2f17e100c0eb.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzc3NjdiMWY3LTA4NGQtNDc0OC1iMzE2LTJmMTdlMTAwYzBlYi5qcGciLCJpYXQiOjE3NzYwNDY4NjcsImV4cCI6MTgwNzU4Mjg2N30._Ra3X08ulkED0QLTgK5laQk0S5cVZr_1MQqYCnnPnNU",
+  "import": "import {\n  Shader,\n  CRTScreen,\n  FilmGrain,\n  FloatingParticles,\n  FlowField,\n  StudioBackground\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  CRTScreen,\n  FilmGrain,\n  FloatingParticles,\n  FlowField,\n  StudioBackground\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <StudioBackground\n      :ambient-intensity=\"46\"\n      :back-intensity=\"36\"\n      :brightness=\"46\"\n      color=\"#1a1b38\"\n      :fill-angle=\"69\"\n      :fill-intensity=\"100\"\n      :fill-softness=\"100\"\n      :key-intensity=\"100\"\n      :key-softness=\"38\"\n      :light-target=\"0\"\n      :vignette=\"81\"\n      :wall-curvature=\"50\"/>\n    <FlowField\n      :detail=\"0.6\"\n      :evolution-speed=\"5.2\"\n      :speed=\"3.3\"\n      :strength=\"0.5\"/>\n    <FloatingParticles\n      :count=\"2\"\n      particle-color=\"#4274a6\"\n      :particle-density=\"0.9\"\n      :particle-size=\"0.5\"\n      :randomness=\"0.4\"\n      :speed=\"0\"/>\n    <CRTScreen\n      :pixel-size=\"20\"\n      :scanline-intensity=\"0.1\"/>\n    <FilmGrain\n      :strength=\"0.1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

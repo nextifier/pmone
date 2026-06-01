@@ -1,0 +1,30 @@
+{
+  "id": "d8451c59-e1b6-469d-88be-bb2752d926d6",
+  "title": "Undertones 12",
+  "collection_id": "b68937e5-771d-48bd-b1b9-a2e85f40bffc",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dark, atmospheric shader effect dominated by vertical scan lines creating a striped pattern across the entire composition. The left two-thirds of the image is nearly pure black with subtle vertical line texture. The right third features a chromatic aberration effect with vibrant neon colors flowing vertically - primarily magenta (#ff00aa), purple (#6600ff), and pink (#ff0066) hues creating a glowing, diffused light source. The colors blend and fade with soft edges, creating a bokeh-like glow effect that appears to move or pulse. The ChromaFlow component generates directional color momentum with the upColor magenta, downColor purple, and rightColor pink creating a tri-color gradient that bleeds and refracts across the vertical lines. The FlutedGlass layer adds subtle wave distortion and refraction with chromatic aberration (0.61 intensity), creating a glass-like quality with light bending effects. The overall mood is cyberpunk and neon-noir, with high contrast between the dark base and the luminous color gradients. Film grain adds subtle texture throughout. The effect suggests movement or energy concentrated on the right side, with the vertical lines emphasizing a sense of digital scanning or data flow.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/d8451c59-e1b6-469d-88be-bb2752d926d6.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2Q4NDUxYzU5LWUxYjYtNDY5ZC04OGJlLWJiMjc1MmQ5MjZkNi5qcGciLCJpYXQiOjE3Nzc4MTkxNzksImV4cCI6MTgwOTM1NTE3OX0.saGvl0hE9gRKfWgU0UrsVCWH6dzj7ytythlADkkjLWI",
+  "import": "import {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  ChromaFlow,\n  FilmGrain,\n  FlutedGlass,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      color-a=\"#000000\"\n      color-b=\"#0a0a0a\"\n      :detail=\"1.7\"/>\n    <ChromaFlow\n      base-color=\"#18181a\"\n      down-color=\"#6600ff\"\n      left-color=\"#aa00ee\"\n      :momentum=\"13\"\n      right-color=\"#ff0066\"\n      up-color=\"#ff00aa\"/>\n    <FlutedGlass\n      :aberration=\"0.61\"\n      :frequency=\"8\"\n      :highlight=\"0.12\"\n      :highlight-softness=\"0\"\n      :light-angle=\"-90\"\n      :refraction=\"4\"\n      shape=\"rounded\"\n      :softness=\"1\"\n      :speed=\"0.15\"/>\n    <FilmGrain\n      :strength=\"0.05\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

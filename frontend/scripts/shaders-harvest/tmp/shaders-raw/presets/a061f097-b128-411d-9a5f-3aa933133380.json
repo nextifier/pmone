@@ -1,0 +1,25 @@
+{
+  "id": "a061f097-b128-411d-9a5f-3aa933133380",
+  "title": "Glass Halo 3",
+  "collection_id": "84df37ef-ce5b-4770-b5cf-acf432002340",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A sophisticated gradient shader effect featuring a vibrant purple-to-pink color transition across the entire background. The composition centers on a glossy, three-dimensional circular glass element with a smooth, organic blob-like interior. The glass ring exhibits realistic light refraction and fresnel effects, creating bright white highlights along its edges and a subtle luminous glow. The interior of the circle contains a flowing, amorphous blob shape with soft gradients transitioning from hot pink (#fa61ce) to light lavender (#caa6dc), with a warm yellow highlight (#ffe11a) positioned in the upper-left quadrant creating a three-dimensional lighting effect. The blob has organic, undulating edges with a deformation value of 0.5, giving it a fluid, living quality. The overall atmosphere is modern and ethereal, with soft focus and smooth blending using oklab color space. The background gradient shifts from deep purple (#a618ca) on the edges to lighter pink tones toward the center, creating depth and dimensionality. The glass element has minimal blur (0) but high refraction (2), producing crisp edge definition with subtle light bending effects. The entire composition has a soft, dreamy quality enhanced by the high softness value (1) on the blob and edge softness (0.15) on the glass.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/a061f097-b128-411d-9a5f-3aa933133380.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzL2EwNjFmMDk3LWIxMjgtNDExZC05YTVmLTNhYTkzMzEzMzM4MC5qcGciLCJpYXQiOjE3NzI5NDA2MjQsImV4cCI6MTgwNDQ3NjYyNH0.r8ciTUqLlTlI383mpiAyIw4cAPmAz68reRV3VPLpt7Y",
+  "import": "import {\n  Shader,\n  Blob,\n  Glass,\n  SolidColor\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  Glass,\n  SolidColor\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#a618ca\"/>\n    <Blob\n      blend-mode=\"normal-oklab\"\n      color-a=\"#fa61ce\"\n      color-b=\"#caa6dc\"\n      :seed=\"2\"\n      :size=\"0.65\"\n      :softness=\"1\"/>\n    <Glass\n      :aberration=\"0\"\n      :edge-softness=\"0.15\"\n      :fresnel-softness=\"0.56\"\n      :inner-zoom=\"0.5\"\n      :refraction=\"2\"\n      shape-sdf-url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/rc0tyyfP7vSZ_sdf.bin\"\n      :thickness=\"1\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    { "uri": "shaders://docs/guide/vue/quickstart", "label": "Vue quickstart guide" },
+    { "uri": "shaders://docs/guide/shape-effects", "label": "Shape effects guide" },
+    { "uri": "shaders://docs/guide/composing-effects", "label": "Composing effects guide" },
+    { "uri": "shaders://docs/guide/blending-masking", "label": "Blending & masking guide" },
+    { "uri": "shaders://docs/guide/transforms", "label": "Transforms guide" }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [ "shaders://docs/guide/shape-effects" ]
+  }
+}

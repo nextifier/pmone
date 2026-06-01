@@ -1,0 +1,30 @@
+{
+  "id": "e42b393b-57a9-491a-aff2-7b38cee262ab",
+  "title": "Geogrid 10",
+  "collection_id": "aaa0ef02-7a25-472a-9d7c-1b2442cc69ce",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A vibrant gradient background transitioning from deep purple (#7355fe) on the left side to cyan and light-green (#91e040) on the right side, creating a smooth diagonal color flow. The composition features geometric line patterns overlaid throughout: a fine diagonal crosshatch grid pattern in the upper left corner with thin cyan lines, and bold parallel diagonal lines in the center-left area creating a 3D perspective effect. These linear elements appear to be rendered with a glowing, neon-like quality with soft edges. The wave distortion effect creates subtle undulations across the geometric patterns, giving them a fluid, organic movement while maintaining their structured appearance. A grid distortion with wrapping edges adds subtle warping to the overall composition. The blend modes create additive lighting effects where elements overlap, particularly visible in the hardLight blending of the grid components. The overall atmosphere is modern, digital, and dynamic with a tech-forward aesthetic. The opacity and layering create depth, with the geometric patterns appearing to float above the gradient base. The color space uses OKLAB for smooth, perceptually uniform color transitions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/7c05194e-dc9c-4548-b2f9-0b05d5d40d60.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzdjMDUxOTRlLWRjOWMtNDU0OC1iMmY5LTBiMDVkNWQ0MGQ2MC5qcGciLCJpYXQiOjE3NzA3NTA1MjMsImV4cCI6MTgwMjI4NjUyM30.iuP_4C-UbDOeAAqQMnIiMUYXGbozXahvkX3HAmTabTM",
+  "import": "import {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Grid,\n  GridDistortion,\n  Swirl,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Swirl\n      :blend=\"18\"\n      color-a=\"#7355fe\"\n      color-b=\"#91e040\"\n      color-space=\"oklab\"\n      :detail=\"0.9\"\n      :speed=\"1.5\"/>\n    <WaveDistortion\n      :angle=\"235\"\n      blend-mode=\"linearDodge\"\n      edges=\"mirror\"\n      :frequency=\"0.7\"\n      :speed=\"0.5\"\n      :strength=\"0.8\"\n      wave-type=\"triangle\">\n      <Grid\n        blend-mode=\"hardLight\"\n        :cells=\"28\"\n        color=\"#00a2fa\"\n        :thickness=\"3.2\"\n        :transform=\"{\n          offsetX: -0.69,\n          scale: 0.75\n        }\"/>\n    </WaveDistortion>\n    <GridDistortion\n      :decay=\"1.8\"\n      edges=\"wrap\"\n      :grid-size=\"8\"\n      :intensity=\"5\"\n      :radius=\"1.75\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

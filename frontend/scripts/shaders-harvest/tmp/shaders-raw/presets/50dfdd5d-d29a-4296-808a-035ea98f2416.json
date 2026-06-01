@@ -1,0 +1,39 @@
+{
+  "id": "50dfdd5d-d29a-4296-808a-035ea98f2416",
+  "title": "Dither Logo 4",
+  "collection_id": "099df352-41e8-4298-ad10-74f792b3f539",
+  "collection_category": "logo",
+  "format": "vue",
+  "visual_description": "A vibrant gradient background transitioning from bright yellow in the top-left corner through warm orange tones in the center to golden-yellow in the top-right, creating a warm, energetic atmosphere. Overlaid on this background is a stylized logo composed of four geometric shapes arranged in a 2x2 grid pattern. The logo features cream/pale yellow colored outlines forming circular and rounded rectangular shapes. The shapes are filled with the radial gradient background (red to orange), creating a cohesive visual effect. A dynamic plasma effect with magenta and lime-green colors subtly animates through the logo shapes, visible as organic, flowing distortions. A fine dithering pattern with white pixels on a bayer8 pattern is applied with linear dodge blending, adding a grainy, textured quality that enhances the digital aesthetic. The overall composition has a modern, energetic feel with smooth color transitions and subtle animated distortions that suggest movement and vitality.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/50dfdd5d-d29a-4296-808a-035ea98f2416.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzUwZGZkZDVkLWQyOWEtNDI5Ni04MDhhLTAzNWVhOThmMjQxNi5qcGciLCJpYXQiOjE3NzI2NTc1MjUsImV4cCI6MTgwNDE5MzUyNX0.aPzvs61Uo-I2UBoAd1scRv61jMXXAOSrAJ0z8KYnMXg",
+  "import": "import {\n  Shader,\n  Dither,\n  ImageTexture,\n  Plasma,\n  RadialGradient\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  ImageTexture,\n  Plasma,\n  RadialGradient\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <ImageTexture\n      id=\"idmmaykb1vflvohydj1\"\n      object-fit=\"contain\"\n      :transform=\"{ scale: 0.6 }\"\n      url=\"https://data.shaders.com/storage/v1/object/public/user-uploaded-images/user_33nh0FG48zZa0rIUZuK7vgwPfZe/c42DCkk-W-da.svg\"\n      :visible=\"false\"/>\n    <RadialGradient\n      color-a=\"#fb150f\"\n      color-b=\"#ffa704\"\n      color-space=\"oklab\"/>\n    <Plasma\n      :balance=\"63\"\n      color-a=\"#f316e8\"\n      color-b=\"#93fa71\"\n      color-space=\"hsl\"\n      :contrast=\"2.6\"\n      :density=\"1.7\"\n      :intensity=\"3\"\n      mask-source=\"idmmaykb1vflvohydj1\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-mode=\"source\"\n      pattern=\"bayer8\"\n      :pixel-size=\"2\"\n      :threshold=\"0.96\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "collection_notes": "The logo for this shader can be replaced by updating the image texture that's used as a mask.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ],
+  "tag_guidance": {
+    "hints": [
+      "This collection is a logo shader. You will likely want to ask the user for an SVG file (code or public URI) and use the generate-sdf tool to create an SDF from the SVG, then reference the resulting .bin file as the shapeSdfUrl prop in the appropriate shape effect component(s)."
+    ],
+    "resources": [
+      "shaders://docs/guide/shape-effects"
+    ]
+  }
+}

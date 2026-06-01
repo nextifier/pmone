@@ -1,0 +1,82 @@
+{
+  "id": "4adfbf8d-3c5a-4a68-876c-0906d8a0f4ee",
+  "title": "Kiwi",
+  "collectionId": "65ff265d-8d5e-475d-a404-5adc13e93fab",
+  "category": "background",
+  "description": "A soft, organic gradient composition dominated by warm yellow and green tones. The image features a central blob-like shape with gentle, undulating edges that appears to be composed of overlapping organic forms. The primary mass is a warm golden-yellow (#fce656, #e9ac1e) positioned in the center-lower portion of the frame. Surrounding this central blob are softer, more diffuse green halos (#3dd812, #2bf07b) that fade into the yellow background, creating a luminous, glowing effect. The overall aesthetic is highly blurred and soft-focused with no sharp edges, suggesting multiple wave distortion effects layered together. The composition has a dreamy, ethereal quality with smooth color transitions and subtle undulations throughout. A fine film grain texture is visible across the entire surface, adding subtle noise and tactile quality. The kaleidoscopic structure creates subtle symmetrical patterns beneath the surface, though they are heavily obscured by the soft rendering. The spatial arrangement suggests depth with the yellow blob appearing closer and the green halos receding into the background. The mood is warm, organic, and meditative with a natural, almost biological appearance.",
+  "thumbnail": "/shaders/thumbnails/4adfbf8d-3c5a-4a68-876c-0906d8a0f4ee.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "colorA": "#3dd812",
+          "colorB": "#2bf03b",
+          "colorSpace": "oklch"
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 257,
+          "edges": "wrap",
+          "frequency": 1.6,
+          "strength": 0.1,
+          "transform": {
+            "scale": 1.3
+          }
+        },
+        "children": [
+          {
+            "type": "WaveDistortion",
+            "props": {
+              "angle": 73,
+              "edges": "mirror",
+              "frequency": 8.1,
+              "speed": 0.3,
+              "waveType": "sawtooth"
+            },
+            "children": [
+              {
+                "type": "Blob",
+                "props": {
+                  "center": {
+                    "x": 0.49,
+                    "y": 1
+                  },
+                  "colorA": "#fce656",
+                  "colorB": "#e9ac1e",
+                  "deformation": 0.7,
+                  "highlightColor": "#03b2ff",
+                  "highlightX": -0.5,
+                  "highlightY": -0.9,
+                  "highlightZ": -0.1,
+                  "size": 0.8,
+                  "softness": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Kaleidoscope",
+        "props": {
+          "center": {
+            "x": 0.5,
+            "y": 1
+          },
+          "segments": 17
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.4
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

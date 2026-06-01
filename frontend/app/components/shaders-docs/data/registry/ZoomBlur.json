@@ -1,0 +1,36 @@
+{
+  "name": "ZoomBlur",
+  "category": "Blurs",
+  "description": "Radial zoom blur expanding from a center point",
+  "requiresChild": true,
+  "requiresRTT": true,
+  "props": {
+    "intensity": {
+      "default": 30,
+      "description": "Intensity of the zoom blur effect",
+      "ui": {
+        "type": [
+          "range",
+          "map"
+        ],
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "label": "Intensity",
+        "group": "Effect"
+      }
+    },
+    "center": {
+      "default": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "description": "Center point of the zoom blur",
+      "ui": {
+        "type": "position",
+        "label": "Center",
+        "group": "Position"
+      }
+    }
+  }
+}

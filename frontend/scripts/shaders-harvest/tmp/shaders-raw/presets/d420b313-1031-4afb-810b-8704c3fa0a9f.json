@@ -1,0 +1,30 @@
+{
+  "id": "d420b313-1031-4afb-810b-8704c3fa0a9f",
+  "title": "Synthesis 6",
+  "collection_id": "dc41c9c0-086a-4708-ba20-c58fdfa66805",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic shader effect featuring a dark navy background (#0a1929) with two prominent animated sine wave components creating flowing, organic shapes. A cyan/light-blue wave (#00d9ff) positioned in the upper-left area flows at an angle of 144 degrees with moderate softness (0.55) and amplitude, creating a smooth, glowing ribbon effect. A vibrant magenta/pink wave (#ff006e) positioned in the lower-right area flows horizontally with higher amplitude (1.3) and softness (0.72), creating a thicker, more diffused band of color. Both waves are in constant motion with opposing speeds (-0.7 and 0.5 respectively), creating a sense of fluid, undulating movement. A subtle wave distortion effect with sine wave pattern at 228 degrees adds a gentle rippling quality to the entire composition, creating depth and movement. Fine film grain texture (0.12 strength) overlays the entire image, adding a subtle noise pattern that enhances the cinematic quality. The overall effect is a modern, tech-forward aesthetic with soft, blurred edges and a dreamy, atmospheric quality. Colors blend smoothly with normal blend mode, creating areas where cyan and magenta interact, producing subtle color shifts in the overlapping regions.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/400bceec-c3ee-490e-a37a-56220361db9f.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzQwMGJjZWVjLWMzZWUtNDkwZS1hMzdhLTU2MjIwMzYxZGI5Zi5qcGciLCJpYXQiOjE3NjM1MjYyNTYsImV4cCI6MTc5NTA2MjI1Nn0.UXVWBu3v8wUG1rzV1Hy-ZBv975eG67Btzp8T06NZtDg",
+  "import": "import {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  FilmGrain,\n  SineWave,\n  SolidColor,\n  WaveDistortion\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0a1929\"/>\n    <SineWave\n      :amplitude=\"1.1\"\n      :angle=\"144\"\n      color=\"#00d9ff\"\n      :frequency=\"0.52\"\n      :position=\"{\n        x: 0.25,\n        y: 0.75\n      }\"\n      :softness=\"0.55\"\n      :speed=\"-0.7\"\n      :thickness=\"1.08\"/>\n    <SineWave\n      :amplitude=\"1.3\"\n      color=\"#ff006e\"\n      :frequency=\"0.48\"\n      :position=\"{\n        x: 0.75,\n        y: 0.25\n      }\"\n      :softness=\"0.72\"\n      :speed=\"0.5\"\n      :thickness=\"1.46\"/>\n    <WaveDistortion\n      :angle=\"228\"\n      edges=\"mirror\"\n      :frequency=\"2.4\"\n      :speed=\"0.1\"\n      :strength=\"0.18\"/>\n    <FilmGrain\n      :strength=\"0.12\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

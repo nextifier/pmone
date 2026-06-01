@@ -1,0 +1,30 @@
+{
+  "id": "3acf38f9-bcc9-40e1-ba71-19e06dab6b5c",
+  "title": "Cascading Lines 3",
+  "collection_id": "d17005bf-bccc-4c3e-9860-97a0dc11858a",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A dynamic digital visualization featuring vertical falling lines that create a rain-like effect against a dark teal background. The composition uses a color gradient transitioning from cyan/turquoise on the right side to magenta/purple on the left side. The vertical lines vary in height and opacity, creating a wave-like pattern that suggests audio visualization or data representation. The lines are rendered with a soft glow effect, appearing to emit light against the dark background. A subtle dither pattern with a linear dodge blend mode adds texture and grain throughout, enhancing the digital aesthetic. The overall effect creates a sense of motion and flow, with the lines appearing to cascade downward at varying speeds. The color palette shifts smoothly across the canvas, with the brightest cyan tones in the center-right and deeper purple tones on the left edges. The atmosphere is modern, technological, and energetic, reminiscent of audio equalizers or real-time data visualization interfaces.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/3acf38f9-bcc9-40e1-ba71-19e06dab6b5c.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzNhY2YzOGY5LWJjYzktNDBlMS1iYTcxLTE5ZTA2ZGFiNmI1Yy5qcGciLCJpYXQiOjE3NzQwNTI1MzksImV4cCI6MTgwNTU4ODUzOX0.M-QEwAofuaBEyJl50PIPQ6hYET02j2pjFRHPbSYBFnc",
+  "import": "import {\n  Shader,\n  Dither,\n  FallingLines,\n  SineWave,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Dither,\n  FallingLines,\n  SineWave,\n  SolidColor,\n  Swirl\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <SolidColor\n      color=\"#0c2c36\"/>\n    <Swirl\n      :blend=\"35\"\n      color-a=\"#59ebe5\"\n      color-b=\"#9622f2\"\n      :detail=\"2\"\n      mask-source=\"idmmzanabwzt8f61fke\"/>\n    <FallingLines\n      id=\"idmmzanabwzt8f61fke\"\n      :density=\"60\"\n      :speed=\"0.1\"\n      :speed-variance=\"0.7\"\n      :stroke-width=\"0.66\"\n      :trail-length=\"{\n        type: 'map',\n        curve: -0.15,\n        source: 'idmmzaokw5nk6ntmihd',\n        channel: 'alpha',\n        inputMax: 1,\n        inputMin: 0,\n        outputMax: 1,\n        outputMin: 0.01\n      }\"\n      :visible=\"false\"/>\n    <SineWave\n      id=\"idmmzaokw5nk6ntmihd\"\n      :amplitude=\"0.4\"\n      :angle=\"26\"\n      :frequency=\"0.5\"\n      :softness=\"1\"\n      :speed=\"0.4\"\n      :thickness=\"1\"\n      :visible=\"false\"/>\n    <Dither\n      blend-mode=\"linearDodge\"\n      color-mode=\"source\"\n      :pixel-size=\"3\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}

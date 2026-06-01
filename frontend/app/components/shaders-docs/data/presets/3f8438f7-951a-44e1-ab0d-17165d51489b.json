@@ -1,0 +1,73 @@
+{
+  "id": "3f8438f7-951a-44e1-ab0d-17165d51489b",
+  "title": "Holographic Waves 3",
+  "collectionId": "e02b22a4-a103-4920-9eef-1e543daa3eb2",
+  "category": "background",
+  "description": "A dynamic gradient shader effect featuring diagonal parallel lines running from upper-left to lower-right across the entire composition. The lines create a strong sense of directional motion and depth. The color palette transitions smoothly from teal and light-green on the left edges, through warm golden-orange and tan tones in the upper-left quadrant, to a bright white and pale lavender center, then back to green and cyan on the right side. The central area features a bright white highlight that creates a focal point of maximum luminosity. The diagonal lines vary in thickness and color intensity, with some appearing as thin golden-yellow stripes while others blend into the pastel background. A subtle wave distortion effect creates undulating ripples across the linear pattern, particularly noticeable in the frequency of line spacing. The overall effect is smooth and polished with a slight film grain texture overlay that adds subtle noise without disrupting the clean gradient. The chromatic aberration effect is minimal but creates a slight color separation at high-contrast edges. The composition has a modern, digital aesthetic with a soft, almost iridescent quality reminiscent of light refracting through a prism or oil on water.",
+  "thumbnail": "/shaders/thumbnails/3f8438f7-951a-44e1-ab0d-17165d51489b.webp",
+  "config": {
+    "components": [
+      {
+        "type": "Swirl",
+        "props": {
+          "blend": 59,
+          "colorA": "#f2af1c",
+          "colorB": "#83c697",
+          "colorSpace": "oklch",
+          "detail": 4.1
+        }
+      },
+      {
+        "type": "Blob",
+        "props": {
+          "center": {
+            "x": 0.43,
+            "y": 0.65
+          },
+          "colorA": "#d5d7f8",
+          "colorB": "#02af86",
+          "colorSpace": "oklch",
+          "deformation": 1,
+          "highlightIntensity": 0.8,
+          "highlightZ": 0.8,
+          "size": 0.95,
+          "softness": 1,
+          "visible": true
+        }
+      },
+      {
+        "type": "WaveDistortion",
+        "props": {
+          "angle": 208,
+          "edges": "mirror",
+          "frequency": 30,
+          "speed": 4.9,
+          "strength": 0.7,
+          "visible": true,
+          "waveType": "triangle"
+        }
+      },
+      {
+        "type": "ChromaticAberration",
+        "props": {
+          "strength": 0.02,
+          "visible": true
+        }
+      },
+      {
+        "type": "Sharpness",
+        "props": {
+          "sharpness": 2
+        }
+      },
+      {
+        "type": "FilmGrain",
+        "props": {
+          "strength": 0.15
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

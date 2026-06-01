@@ -1,0 +1,86 @@
+{
+  "id": "548278c1-ec41-417b-bb4b-211aab786873",
+  "title": "Vertex Mesh 5",
+  "collectionId": "a13345f7-1203-449c-a719-9bedee3177b9",
+  "category": "background",
+  "description": "A dark, tech-forward shader effect featuring a deep navy-black background (#11131f) with a prominent grid-based distortion pattern. The composition shows a 3D perspective grid rendered in cyan (#42b7ff) with approximately 29 cells, creating a receding tunnel or wireframe landscape effect. The grid lines are thin (0.2 thickness) and appear to converge toward the right side of the frame, suggesting depth and dimensional space. A concentric spin distortion effect with 2 rings is applied, centered at coordinates (1, 1), creating a subtle vortex or warping sensation that pulls the grid inward. The GridDistortion component with a decay of 6.4 and radius of 3 adds organic wave-like undulations to the grid structure, making it appear as if the surface is rippling or breathing. A ChromaticAberration effect with red offset of -1 and blue offset of +1 introduces subtle color fringing along edges, creating a slight RGB separation that enhances the digital aesthetic. The overall mood is cyberpunk and futuristic, with a sense of motion and energy despite the static nature of the image. A circular mask centered at (1, 0) with radius 3.2 and softness of 1.2 constrains the effect to a specific region, creating a focal point on the right side of the composition. The atmosphere is cool, technical, and immersive, evoking digital space or virtual environments.",
+  "thumbnail": "/shaders/thumbnails/548278c1-ec41-417b-bb4b-211aab786873.webp",
+  "config": {
+    "components": [
+      {
+        "type": "SolidColor",
+        "props": {
+          "color": "#11131f",
+          "visible": true
+        }
+      },
+      {
+        "type": "Group",
+        "props": {
+          "maskSource": "idmm5st7oo9avp1hoem"
+        },
+        "children": [
+          {
+            "type": "SolidColor",
+            "props": {
+              "color": "#11131f",
+              "visible": true
+            }
+          },
+          {
+            "type": "Grid",
+            "props": {
+              "cells": 29,
+              "color": "#42b7ff",
+              "thickness": 0.2
+            }
+          },
+          {
+            "type": "ConcentricSpin",
+            "props": {
+              "center": {
+                "x": 1,
+                "y": 1
+              },
+              "intensity": 60,
+              "rings": 2,
+              "smoothness": 0,
+              "speed": -0.1,
+              "speedRandomness": 0.91
+            }
+          },
+          {
+            "type": "GridDistortion",
+            "props": {
+              "decay": 6.4,
+              "gridSize": 27,
+              "intensity": 5,
+              "radius": 3
+            }
+          },
+          {
+            "type": "ChromaticAberration",
+            "props": {
+              "strength": 0.15
+            }
+          }
+        ]
+      },
+      {
+        "type": "Circle",
+        "props": {
+          "id": "idmm5st7oo9avp1hoem",
+          "center": {
+            "x": 1,
+            "y": 0
+          },
+          "radius": 3.2,
+          "softness": 1.2,
+          "visible": false
+        }
+      }
+    ]
+  },
+  "colorSpace": "p3-linear",
+  "toneMapping": "aces"
+}

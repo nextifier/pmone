@@ -1,0 +1,30 @@
+{
+  "id": "281bf0d2-88b3-413f-8081-2c04cf75a9e2",
+  "title": "Afternoon Sunlight",
+  "collection_id": "7ba4f0d6-0d97-48da-bac9-b6d0d9b13e8f",
+  "collection_category": "background",
+  "format": "vue",
+  "visual_description": "A soft, minimalist shader effect displaying a subtle grayscale composition. The image features a light gray background (#c4c4c4) as the base layer, overlaid with delicate Worley noise patterns that create organic, cellular-like structures. The noise generates a subtle texture with variations between light taupe (#a69f9f) and off-white (#fcf8f0) tones, producing a gentle, cloud-like appearance. A linear blur effect at 36 degrees with high intensity (300) creates directional motion streaks that soften the entire composition, giving it a dreamy, ethereal quality. Chromatic aberration with minimal strength (0.15) introduces very subtle color fringing at the edges of the blur, with red offset at -1 and blue offset at 1, creating barely perceptible color separation. The overall effect is soft, diffused, and atmospheric with a muted, monochromatic palette dominated by grays and off-whites. The blur and noise work together to create a sense of gentle movement and organic flow across the canvas. The mood is calm, serene, and slightly abstract.",
+  "thumbnail_url": "https://data.shaders.com/storage/v1/object/sign/shader-thumbnails/presets/6a978e83-b0dd-4f25-be0b-603b5e0fb9a7.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8wZWYyOGU2OS01ZmEyLTRlNGUtOWEwYS0xMGU5MGE5ODM1MDAiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJzaGFkZXItdGh1bWJuYWlscy9wcmVzZXRzLzZhOTc4ZTgzLWIwZGQtNGYyNS1iZTBiLTYwM2I1ZTBmYjlhNy5qcGciLCJpYXQiOjE3Nzg0MzI4MTIsImV4cCI6MTgwOTk2ODgxMn0.SzKFNTltHJaf4TLyTpzgMbqh2FM1poR1E5uRfiwhQjM",
+  "import": "import {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  LinearBlur,\n  SolidColor,\n  WorleyNoise\n} from 'shaders/vue'",
+  "code": "<script setup lang=\"ts\">\nimport {\n  Shader,\n  Blob,\n  ChromaticAberration,\n  LinearBlur,\n  SolidColor,\n  WorleyNoise\n} from 'shaders/vue'\n</script>\n\n<template>\n  <Shader>\n    <Blob\n      id=\"idmozyext3ts4o5d9ra\"\n      :center=\"{\n        x: 0.26,\n        y: 0.07\n      }\"\n      color-a=\"#000000\"\n      color-b=\"#000000\"\n      :size=\"0.85\"\n      :softness=\"1.5\"\n      :speed=\"0.8\"\n      :visible=\"false\"/>\n    <SolidColor\n      color=\"#c4c4c4\"/>\n    <WorleyNoise\n      color-a=\"#a69f9f\"\n      color-b=\"#fcf8f0\"\n      :contrast=\"0.55\"\n      :lacunarity=\"2.3\"\n      mask-source=\"idmozyext3ts4o5d9ra\"\n      mode=\"f2MinusF1\"\n      :octaves=\"2\"\n      :persistence=\"1\"\n      :scale=\"3\"\n      :seed=\"33\"\n      :speed=\"3.3\"/>\n    <LinearBlur\n      :angle=\"36\"\n      :intensity=\"300\"\n      :visible=\"true\"/>\n    <ChromaticAberration\n      :strength=\"0.15\"\n      :visible=\"true\"/>\n  </Shader>\n</template>",
+  "usage": "The outer <Shader> component renders a <canvas> and needs explicit sizing. Typically it's positioned absolute behind content (e.g. inset: 0, position: absolute) as a background effect, or given explicit width/height. Apply style, class, and any layout attributes just like a normal HTML element.\nSSR: Wrap with <ClientOnly> in Nuxt, or use a v-if=\"isMounted\" guard. WebGPU requires the browser.",
+  "related_docs": [
+    {
+      "uri": "shaders://docs/guide/vue/quickstart",
+      "label": "Vue quickstart guide"
+    },
+    {
+      "uri": "shaders://docs/guide/composing-effects",
+      "label": "Composing effects guide"
+    },
+    {
+      "uri": "shaders://docs/guide/blending-masking",
+      "label": "Blending & masking guide"
+    },
+    {
+      "uri": "shaders://docs/guide/transforms",
+      "label": "Transforms guide"
+    }
+  ]
+}
