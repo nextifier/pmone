@@ -136,7 +136,7 @@
           <div class="flex items-center justify-between gap-4">
             <div>
               <Label for="is_global">Show to all users</Label>
-              <p class="text-muted-foreground mt-0.5 text-xs tracking-tight">
+              <p class="text-muted-foreground mt-0.5 text-xs">
                 When enabled, role and other targeting filters are bypassed.
               </p>
             </div>
@@ -152,7 +152,7 @@
                 placeholder="Pick one or more roles"
                 open-on-focus
               />
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p class="text-muted-foreground text-xs">
                 User must hold any of these roles to see the announcement.
               </p>
               <InputErrorMessage :errors="errors.target_roles" />
@@ -166,7 +166,7 @@
                 placeholder="Pick users to target"
                 open-on-focus
               />
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p class="text-muted-foreground text-xs">
                 Optional. Adds these users on top of role targeting.
               </p>
               <InputErrorMessage :errors="errors.target_user_ids" />
@@ -180,7 +180,7 @@
                 placeholder="Pick events to target"
                 open-on-focus
               />
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p class="text-muted-foreground text-xs">
                 Optional. Members of the selected events' projects will see it.
               </p>
               <InputErrorMessage :errors="errors.target_event_ids" />
@@ -194,7 +194,7 @@
                 placeholder="Pick projects to target"
                 open-on-focus
               />
-              <p class="text-muted-foreground text-xs tracking-tight">
+              <p class="text-muted-foreground text-xs">
                 Optional. Members of these projects will see the announcement.
               </p>
               <InputErrorMessage :errors="errors.target_project_ids" />
@@ -221,20 +221,23 @@
           <div
             v-for="(cta, idx) in form.cta_actions"
             :key="idx"
-            class="border-border space-y-3 rounded-lg border p-4"
+            class="bg-muted/30 space-y-4 rounded-lg border p-4"
           >
             <div class="flex items-center justify-between">
-              <Label>CTA {{ idx + 1 }}</Label>
-              <button
+              <span class="text-sm font-medium tracking-tight">CTA {{ idx + 1 }}</span>
+              <Button
                 type="button"
-                class="text-muted-foreground hover:text-destructive flex size-8 items-center justify-center rounded-md transition"
+                variant="ghost"
+                size="iconSm"
+                class="text-muted-foreground hover:text-destructive"
+                v-tippy="'Remove CTA'"
                 @click="removeCta(idx)"
               >
                 <Icon name="hugeicons:delete-01" class="size-4" />
-              </button>
+              </Button>
             </div>
 
-            <div class="grid grid-cols-2 gap-x-2 gap-y-6">
+            <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
               <div class="space-y-2">
                 <Label :for="`cta-label-${idx}`">Label</Label>
                 <Input
@@ -275,14 +278,16 @@
             </div>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
+            class="w-full border-dashed"
             @click="addCta"
-            class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
           >
             <Icon name="hugeicons:add-01" class="size-4" />
             Add CTA
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -298,7 +303,7 @@
           <div class="flex items-center justify-between gap-4">
             <div>
               <Label for="is_dismissible">Allow dismiss</Label>
-              <p class="text-muted-foreground mt-0.5 text-xs tracking-tight">
+              <p class="text-muted-foreground mt-0.5 text-xs">
                 Users can close this announcement permanently.
               </p>
             </div>
@@ -314,7 +319,7 @@
               min="0"
               placeholder="0"
             />
-            <p class="text-muted-foreground text-xs tracking-tight">
+            <p class="text-muted-foreground text-xs">
               Lower numbers appear first.
             </p>
             <InputErrorMessage :errors="errors.order_column" />

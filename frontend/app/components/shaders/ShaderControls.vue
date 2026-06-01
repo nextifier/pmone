@@ -4,6 +4,7 @@ import ColorPicker from "./ColorPicker.vue";
 import PositionPad from "./PositionPad.vue";
 import ShaderDriverConfig from "./ShaderDriverConfig.vue";
 import ShaderTextureInput from "./ShaderTextureInput.vue";
+import ShaderShapeInput from "./ShaderShapeInput.vue";
 import { AccordionRoot } from "reka-ui";
 import ShaderSection from "./ShaderSection.vue";
 import { Input } from "@/components/ui/input";
@@ -172,6 +173,13 @@ function toggleDynamic(key, def) {
             v-else-if="controlType(def) === 'image-upload' || controlType(def) === 'video-upload'"
             :model-value="String(valueOf(key, def) ?? '')"
             :kind="controlType(def) === 'video-upload' ? 'video' : 'image'"
+            @update:model-value="set(key, $event)"
+          />
+
+          <!-- custom shape (SVG/PNG → SDF upload) -->
+          <ShaderShapeInput
+            v-else-if="controlType(def) === 'shape-upload'"
+            :model-value="String(valueOf(key, def) ?? '')"
             @update:model-value="set(key, $event)"
           />
 

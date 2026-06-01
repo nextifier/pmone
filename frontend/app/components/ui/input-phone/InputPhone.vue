@@ -14,6 +14,7 @@
           <Button
             variant="outline"
             class="border-border flex h-9 gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
+            aria-label="Select country"
           >
             <Flag :country="inputValue" />
             <ChevronsUpDown class="h-4 w-4 opacity-50" />

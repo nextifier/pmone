@@ -3,7 +3,7 @@
     <img
       v-if="country"
       :src="flagUrl"
-      :alt="countryName"
+      :alt="countryName ?? ''"
       :title="countryName"
       class="size-full object-cover"
     />

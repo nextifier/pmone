@@ -16,6 +16,16 @@ for (const path in componentModules) {
   byName[record.name] = record;
 }
 
+// `shapeSdfUrl` ships from the extracted registry with no `ui` block (shaders.com
+// only exposes it via their own editor), so it would otherwise fall through to a
+// bare text input. Surface it as our upload control instead - applied here rather
+// than edited into the generated JSON so a re-harvest can't clobber it.
+const UI_OVERRIDES = {
+  shapeSdfUrl: {
+    ui: { type: "shape-upload", label: "Custom Shape", group: "Shape" },
+  },
+};
+
 /**
  * Offline source of truth for shader component prop schemas (defaults, ranges,
  * control types, groups) - drives the visual editor controls and the docs prop
@@ -39,7 +49,17 @@ export function useShaderRegistry() {
 
   /** The `{ propName: { default, description, ui } }` map for a component. */
   function propsFor(name) {
-    return byName[name]?.props ?? {};
+    const raw = byName[name]?.props ?? {};
+    let merged = raw;
+    for (const key in UI_OVERRIDES) {
+      if (key in raw && !raw[key].ui) {
+        if (merged === raw) {
+          merged = { ...raw };
+        }
+        merged[key] = { ...raw[key], ...UI_OVERRIDES[key] };
+      }
+    }
+    return merged;
   }
 
   /** Effects (filters/distortions) require a child generator; generators do not. */

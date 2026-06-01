@@ -7,7 +7,7 @@
     >
       <div
         v-if="item.image?.sm?.url"
-        class="size-12 shrink-0 overflow-hidden rounded-md"
+        class="size-10 shrink-0 overflow-hidden rounded-md"
       >
         <img
           :src="item.image.sm.url"
@@ -19,24 +19,24 @@
       <div
         v-else-if="item.icon"
         :class="[
-          'flex size-9 shrink-0 items-center justify-center rounded-md',
+          'flex size-10 shrink-0 items-center justify-center rounded-md',
           typeBgClass(item.type),
         ]"
       >
         <Icon :name="item.icon" :class="['size-5', typeIconClass(item.type)]" />
       </div>
 
-      <div class="flex min-w-0 flex-1 flex-col gap-1">
-        <p class="text-foreground tracking-tight font-medium text-pretty sm:text-sm">
+      <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+        <p class="text-foreground text-sm font-medium tracking-tight text-pretty sm:text-base">
           {{ item.title }}
         </p>
         <p
           v-if="item.description"
-          class="text-muted-foreground tracking-tight text-pretty sm:text-sm"
+          class="text-muted-foreground text-xs tracking-tight text-pretty sm:text-sm"
         >
           {{ item.description }}
         </p>
-        <div v-if="item.cta_actions?.length" class="mt-1 flex flex-wrap items-center gap-2">
+        <div v-if="item.cta_actions?.length" class="mt-1.5 flex flex-wrap items-center gap-2">
           <NuxtLink
             v-for="(cta, idx) in item.cta_actions"
             :key="idx"
@@ -49,13 +49,16 @@
         </div>
       </div>
 
-      <button
+      <Button
         v-if="item.is_dismissible"
-        class="text-muted-foreground/70 hover:text-foreground ml-auto flex size-5 shrink-0 translate-x-1 items-center justify-center rounded-full"
+        variant="ghost"
+        size="iconSm"
+        aria-label="Dismiss announcement"
+        class="text-muted-foreground/70 hover:text-foreground -mt-1 -mr-1 ml-auto size-7 shrink-0"
         @click="dismiss(item)"
       >
         <Icon name="lucide:x" class="size-3.5" />
-      </button>
+      </Button>
     </div>
   </div>
 </template>

@@ -1,14 +1,15 @@
 <template>
-  <div class="mx-auto flex max-w-2xl flex-col gap-y-5 pt-4 pb-16">
-    <div class="flex flex-col items-start gap-y-5">
+  <div class="mx-auto max-w-2xl space-y-6 pt-4 pb-16">
+    <div class="flex flex-col items-start gap-y-4">
       <ButtonBack destination="/announcements" />
 
-      <div class="flex flex-col">
+      <div class="flex items-center gap-x-2.5">
+        <Icon name="hugeicons:notification-02" class="size-5 shrink-0 sm:size-6" />
         <h1 class="page-title">Edit Announcement</h1>
-        <p v-if="initialData?.title" class="page-description mt-1.5">
-          {{ initialData.title }}
-        </p>
       </div>
+      <p v-if="initialData?.title" class="page-description">
+        {{ initialData.title }}
+      </p>
     </div>
 
     <div v-if="fetching" class="space-y-4">
