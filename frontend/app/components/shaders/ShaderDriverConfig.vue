@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import ShaderRangeControl from "./ShaderRangeControl.vue";
+import { SliderRuler } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -109,10 +109,10 @@ function set(key, value) {
           </SelectContent>
         </Select>
       </div>
-      <ShaderRangeControl label="Input min" :model-value="Number(d.inputMin ?? 0)" :min="0" :max="1" :step="0.01" @update:model-value="(v) => set('inputMin', v)" />
-      <ShaderRangeControl label="Input max" :model-value="Number(d.inputMax ?? 1)" :min="0" :max="1" :step="0.01" @update:model-value="(v) => set('inputMax', v)" />
-      <ShaderRangeControl label="Output min" :model-value="Number(d.outputMin ?? min)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMin', v)" />
-      <ShaderRangeControl label="Output max" :model-value="Number(d.outputMax ?? max)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMax', v)" />
+      <SliderRuler label="Input min" :model-value="Number(d.inputMin ?? 0)" :min="0" :max="1" :step="0.01" @update:model-value="(v) => set('inputMin', v)" />
+      <SliderRuler label="Input max" :model-value="Number(d.inputMax ?? 1)" :min="0" :max="1" :step="0.01" @update:model-value="(v) => set('inputMax', v)" />
+      <SliderRuler label="Output min" :model-value="Number(d.outputMin ?? min)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMin', v)" />
+      <SliderRuler label="Output max" :model-value="Number(d.outputMax ?? max)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMax', v)" />
     </template>
 
     <!-- mouse -->
@@ -126,8 +126,8 @@ function set(key, value) {
           </SelectContent>
         </Select>
       </div>
-      <ShaderRangeControl label="Output min" :model-value="Number(d.outputMin ?? min)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMin', v)" />
-      <ShaderRangeControl label="Output max" :model-value="Number(d.outputMax ?? max)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMax', v)" />
+      <SliderRuler label="Output min" :model-value="Number(d.outputMin ?? min)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMin', v)" />
+      <SliderRuler label="Output max" :model-value="Number(d.outputMax ?? max)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMax', v)" />
     </template>
 
     <!-- auto-animate -->
@@ -141,9 +141,9 @@ function set(key, value) {
           </SelectContent>
         </Select>
       </div>
-      <ShaderRangeControl label="Output min" :model-value="Number(d.outputMin ?? min)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMin', v)" />
-      <ShaderRangeControl label="Output max" :model-value="Number(d.outputMax ?? max)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMax', v)" />
-      <ShaderRangeControl label="Speed" :model-value="Number(d.speed ?? 1)" :min="0" :max="5" :step="0.1" @update:model-value="(v) => set('speed', v)" />
+      <SliderRuler label="Output min" :model-value="Number(d.outputMin ?? min)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMin', v)" />
+      <SliderRuler label="Output max" :model-value="Number(d.outputMax ?? max)" :min="min" :max="max" :step="step" @update:model-value="(v) => set('outputMax', v)" />
+      <SliderRuler label="Speed" :model-value="Number(d.speed ?? 1)" :min="0" :max="5" :step="0.1" @update:model-value="(v) => set('speed', v)" />
       <div class="space-y-1.5">
         <label class="text-muted-foreground block text-sm tracking-tight">Easing</label>
         <Select :model-value="d.easing" @update:model-value="(v) => set('easing', v)">

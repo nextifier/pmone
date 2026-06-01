@@ -2,12 +2,13 @@
 import { computed } from "vue";
 import ColorPicker from "./ColorPicker.vue";
 import PositionPad from "./PositionPad.vue";
-import ShaderRangeControl from "./ShaderRangeControl.vue";
 import ShaderDriverConfig from "./ShaderDriverConfig.vue";
 import ShaderTextureInput from "./ShaderTextureInput.vue";
+import { AccordionRoot } from "reka-ui";
+import ShaderSection from "./ShaderSection.vue";
 import { Input } from "@/components/ui/input";
+import { SliderRuler } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -90,13 +91,14 @@ function toggleDynamic(key, def) {
 </script>
 
 <template>
-  <Accordion type="multiple" :default-value="openGroups" class="w-full">
-    <AccordionItem v-for="group in groups" :key="group.name" :value="group.name">
-      <AccordionTrigger class="text-xs font-medium tracking-tight uppercase">
-        {{ group.name }}
-      </AccordionTrigger>
-      <AccordionContent class="space-y-4 pt-1">
-        <div v-for="{ key, def } in group.items" :key="key" class="space-y-1.5">
+  <AccordionRoot type="multiple" :default-value="openGroups" class="w-full">
+    <ShaderSection
+      v-for="group in groups"
+      :key="group.name"
+      :value="group.name"
+      :title="group.name"
+    >
+      <div v-for="{ key, def } in group.items" :key="key" class="space-y-1.5">
           <div class="flex items-center justify-between gap-x-2">
             <label class="text-muted-foreground text-sm tracking-tight">
               {{ def.ui?.label ?? key }}
@@ -135,7 +137,7 @@ function toggleDynamic(key, def) {
           />
 
           <!-- range: static -->
-          <ShaderRangeControl
+          <SliderRuler
             v-else-if="controlType(def) === 'range'"
             :model-value="Number(valueOf(key, def))"
             :min="def.ui?.min ?? 0"
@@ -192,7 +194,6 @@ function toggleDynamic(key, def) {
             {{ def.description }}
           </p>
         </div>
-      </AccordionContent>
-    </AccordionItem>
-  </Accordion>
+    </ShaderSection>
+  </AccordionRoot>
 </template>

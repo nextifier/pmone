@@ -1,15 +1,29 @@
 <script setup>
-import { ref, computed, watchEffect, onMounted } from "vue";
 import { useShaderPresets } from "@/components/shaders-docs/useShaderPresets";
-import CodeBlock from "@/components/ui-docs/CodeBlock.vue";
-import ShaderCanvas from "@/components/shaders/ShaderCanvas.vue";
-import ShaderControls from "@/components/shaders/ShaderControls.vue";
-import ShaderLayerProps from "@/components/shaders/ShaderLayerProps.vue";
-import ShaderLayerItem from "@/components/shaders/ShaderLayerItem.vue";
-import ShaderComponentBar from "@/components/shaders/ShaderComponentBar.vue";
 import FrameworkLogo from "@/components/shaders/FrameworkLogo.vue";
+import ShaderCanvas from "@/components/shaders/ShaderCanvas.vue";
+import ShaderComponentBar from "@/components/shaders/ShaderComponentBar.vue";
+import ShaderControls from "@/components/shaders/ShaderControls.vue";
+import ShaderLayerItem from "@/components/shaders/ShaderLayerItem.vue";
+import ShaderLayerProps from "@/components/shaders/ShaderLayerProps.vue";
+import CodeBlock from "@/components/ui-docs/CodeBlock.vue";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue";
 
 definePageMeta({ layout: "empty" });
 usePageMeta(null, { title: "Editor · Shaders" });
@@ -55,15 +69,19 @@ const title = ref("Untitled");
 
 onMounted(async () => {
   const presetId = route.query.preset;
-  if (!presetId) return;
-  const preset = await getPreset(presetId);
-  if (preset?.config?.components?.length) {
-    tree.value = assignIds(structuredClone(preset.config.components));
-    colorSpace.value = preset.colorSpace ?? "p3-linear";
-    toneMapping.value = preset.toneMapping ?? "aces";
-    activeId.value = tree.value[0]?.id ?? null;
-    title.value = preset.title ?? "Untitled";
+  if (presetId) {
+    const preset = await getPreset(presetId);
+    if (preset?.config?.components?.length) {
+      tree.value = assignIds(structuredClone(preset.config.components));
+      colorSpace.value = preset.colorSpace ?? "p3-linear";
+      toneMapping.value = preset.toneMapping ?? "aces";
+      activeId.value = tree.value[0]?.id ?? null;
+      title.value = preset.title ?? "Untitled";
+    }
   }
+  history.value = [JSON.stringify(tree.value)];
+  historyIndex.value = 0;
+  window.addEventListener("keydown", onEditorKeydown);
 });
 
 const config = computed(() => ({ components: tree.value }));
@@ -147,11 +165,85 @@ function addComponent(name) {
   activeId.value = node.id;
 }
 
+const childTarget = ref(null);
+const childPickerOpen = ref(false);
+
+function openAddChild(nodeId) {
+  childTarget.value = nodeId;
+  childPickerOpen.value = true;
+}
+
+function addChild(name) {
+  const parent = findNode(tree.value, childTarget.value);
+  if (parent) {
+    if (!parent.children) parent.children = [];
+    const child = { id: newId(), type: name, props: {} };
+    parent.children.push(child);
+    activeId.value = child.id;
+  }
+  childPickerOpen.value = false;
+}
+
+// --- Undo / redo: debounced JSON snapshots of the tree ---
+const history = ref([]);
+const historyIndex = ref(-1);
+const canUndo = computed(() => historyIndex.value > 0);
+const canRedo = computed(() => historyIndex.value < history.value.length - 1);
+
+let historyTimer;
+function recordHistory() {
+  clearTimeout(historyTimer);
+  historyTimer = setTimeout(() => {
+    const snap = JSON.stringify(tree.value);
+    if (snap === history.value[historyIndex.value]) return;
+    history.value = history.value.slice(0, historyIndex.value + 1);
+    history.value.push(snap);
+    if (history.value.length > 60) history.value.shift();
+    historyIndex.value = history.value.length - 1;
+  }, 250);
+}
+
+function applyHistory(json) {
+  tree.value = JSON.parse(json);
+  if (!findNode(tree.value, activeId.value)) activeId.value = tree.value[0]?.id ?? null;
+}
+
+function undo() {
+  if (!canUndo.value) return;
+  historyIndex.value -= 1;
+  applyHistory(history.value[historyIndex.value]);
+}
+
+function redo() {
+  if (!canRedo.value) return;
+  historyIndex.value += 1;
+  applyHistory(history.value[historyIndex.value]);
+}
+
+function onEditorKeydown(event) {
+  const tag = (event.target?.tagName || "").toLowerCase();
+  if (tag === "input" || tag === "textarea" || event.target?.isContentEditable) return;
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "z") return;
+  event.preventDefault();
+  if (event.shiftKey) {
+    redo();
+  } else {
+    undo();
+  }
+}
+
+watch(tree, recordHistory, { deep: true });
+
+onBeforeUnmount(() => {
+  clearTimeout(historyTimer);
+  window.removeEventListener("keydown", onEditorKeydown);
+});
+
 const { frameworks, generate } = useShaderCodegen();
 const framework = ref("vue");
 const exportedCode = ref("");
 const currentLanguage = computed(
-  () => frameworks.find((f) => f.value === framework.value)?.language ?? "vue",
+  () => frameworks.find((f) => f.value === framework.value)?.language ?? "vue"
 );
 
 const codeOpen = ref(false);
@@ -226,7 +318,9 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
       </div>
 
       <div class="flex items-center justify-between px-3 py-2.5">
-        <span class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Layers</span>
+        <span class="text-muted-foreground text-xs font-medium tracking-tight uppercase"
+          >Layers</span
+        >
         <span class="text-muted-foreground/60 text-xs tracking-tight">{{ flatLayers.length }}</span>
       </div>
       <div class="flex-1 overflow-y-auto px-2 pb-3">
@@ -237,6 +331,7 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
           @remove="removeLayer"
           @move="moveLayer"
           @duplicate="duplicateLayer"
+          @add-child="openAddChild"
         />
         <p
           v-if="!tree.length"
@@ -268,10 +363,16 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
                   :key="f.value"
                   v-tippy="f.label"
                   class="ring-border hover:bg-muted flex size-8 items-center justify-center rounded-lg transition"
-                  :class="framework === f.value ? 'bg-muted ring-1' : 'opacity-60 hover:opacity-100'"
+                  :class="
+                    framework === f.value ? 'bg-muted ring-1' : 'opacity-60 hover:opacity-100'
+                  "
                   @click="framework = f.value"
                 >
-                  <FrameworkLogo :name="f.value" class="size-4" />
+                  <Icon
+                    v-if="f.value === 'json'"
+                    name="hugeicons:source-code"
+                    class="size-4"
+                  /><FrameworkLogo v-else :name="f.value" class="size-4" />
                 </button>
               </div>
               <div class="max-h-[55vh] overflow-y-auto">
@@ -306,7 +407,9 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
                   <Select v-model="videoSeconds">
                     <SelectTrigger size="sm" class="w-20"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="s in ['3', '5', '10', '15']" :key="s" :value="s">{{ s }}s</SelectItem>
+                      <SelectItem v-for="s in ['3', '5', '10', '15']" :key="s" :value="s"
+                        >{{ s }}s</SelectItem
+                      >
                     </SelectContent>
                   </Select>
                   <Button
@@ -330,16 +433,24 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
             </PopoverContent>
           </Popover>
 
-          <div class="ml-auto flex items-center gap-x-0.5">
+          <div class="ml-auto flex items-center gap-x-1">
             <button
               v-for="f in frameworks"
               :key="f.value"
               v-tippy="f.label"
-              class="hover:bg-muted flex size-7 items-center justify-center rounded-md transition"
-              :class="framework === f.value ? 'bg-muted ring-border ring-1' : 'opacity-55 hover:opacity-100'"
+              class="flex size-5 items-center justify-center rounded-md transition"
+              :class="
+                framework === f.value
+                  ? 'bg-muted ring-border ring-1'
+                  : 'opacity-55 hover:opacity-100'
+              "
               @click="selectFramework(f.value)"
             >
-              <FrameworkLogo :name="f.value" class="size-4" />
+              <Icon
+                v-if="f.value === 'json'"
+                name="hugeicons:source-code"
+                class="size-full"
+              /><FrameworkLogo v-else :name="f.value" class="size-full" />
             </button>
           </div>
         </div>
@@ -349,25 +460,60 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
     <!-- Canvas stage -->
     <main class="bg-muted/30 flex min-w-0 flex-1 flex-col">
       <!-- Top bar -->
-      <div class="flex h-14 shrink-0 items-center justify-end gap-x-1.5 px-4">
-        <Select v-model="colorSpace">
-          <SelectTrigger size="sm" class="bg-card ring-border h-8 w-32 rounded-lg border-0 ring-1">
-            <Icon name="hugeicons:color-picker" class="text-muted-foreground size-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">{{ colorSpaceLabel(cs) }}</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select v-model="toneMapping">
-          <SelectTrigger size="sm" class="bg-card ring-border h-8 w-28 rounded-lg border-0 ring-1">
-            <Icon name="hugeicons:sun-03" class="text-muted-foreground size-3.5" />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="tm in TONE_MAPPINGS" :key="tm" :value="tm">{{ toneLabel(tm) }}</SelectItem>
-          </SelectContent>
-        </Select>
+      <div class="flex h-14 shrink-0 items-center justify-between gap-x-1.5 px-4">
+        <div class="flex items-center gap-x-0.5">
+          <Button
+            v-tippy="'Undo'"
+            variant="ghost"
+            size="iconSm"
+            class="text-muted-foreground"
+            :disabled="!canUndo"
+            @click="undo"
+          >
+            <Icon name="hugeicons:undo" />
+          </Button>
+          <Button
+            v-tippy="'Redo'"
+            variant="ghost"
+            size="iconSm"
+            class="text-muted-foreground"
+            :disabled="!canRedo"
+            @click="redo"
+          >
+            <Icon name="hugeicons:redo" />
+          </Button>
+        </div>
+        <div class="flex items-center gap-x-1.5">
+          <Select v-model="colorSpace">
+            <SelectTrigger
+              size="sm"
+              class="bg-card ring-border h-8 w-32 rounded-lg border-0 ring-1"
+            >
+              <Icon name="hugeicons:color-picker" class="text-muted-foreground size-3.5" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">{{
+                colorSpaceLabel(cs)
+              }}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select v-model="toneMapping">
+            <SelectTrigger
+              size="sm"
+              class="bg-card ring-border h-8 w-28 rounded-lg border-0 ring-1"
+            >
+              <Icon name="hugeicons:sun-03" class="text-muted-foreground size-3.5" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="tm in TONE_MAPPINGS" :key="tm" :value="tm">{{
+                toneLabel(tm)
+              }}</SelectItem>
+            </SelectContent>
+          </Select>
+          <ColorModeToggle />
+        </div>
       </div>
 
       <!-- Contained canvas artboard -->
@@ -411,5 +557,24 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
         </p>
       </div>
     </aside>
+
+    <!-- Add-child component picker -->
+    <CommandDialog v-model:open="childPickerOpen">
+      <CommandInput placeholder="Add component inside this layer…" />
+      <CommandList class="max-h-[60vh]">
+        <CommandEmpty>No component.</CommandEmpty>
+        <CommandGroup v-for="group in grouped" :key="group.category" :heading="group.category">
+          <CommandItem
+            v-for="comp in group.components"
+            :key="comp.name"
+            :value="comp.name"
+            class="tracking-tight"
+            @select="addChild(comp.name)"
+          >
+            {{ comp.name }}
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
   </div>
 </template>

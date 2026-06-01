@@ -5,6 +5,7 @@ import { useShaderPresets } from "@/components/shaders-docs/useShaderPresets";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Command,
   CommandEmpty,
@@ -80,6 +81,24 @@ const filtered = computed(() => {
     );
   });
 });
+
+const SORT_OPTIONS = [
+  { value: "curated", label: "Curated" },
+  { value: "name-asc", label: "Name A-Z" },
+  { value: "name-desc", label: "Name Z-A" },
+];
+const sortBy = ref("curated");
+
+const sorted = computed(() => {
+  const list = filtered.value;
+  if (sortBy.value === "name-asc") {
+    return [...list].sort((a, b) => a.title.localeCompare(b.title));
+  }
+  if (sortBy.value === "name-desc") {
+    return [...list].sort((a, b) => b.title.localeCompare(a.title));
+  }
+  return list;
+});
 </script>
 
 <template>
@@ -151,6 +170,18 @@ const filtered = computed(() => {
               </Command>
             </PopoverContent>
           </Popover>
+
+          <Select v-model="sortBy">
+            <SelectTrigger class="w-40">
+              <Icon name="hugeicons:arrow-up-down" class="text-muted-foreground size-4" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="opt in SORT_OPTIONS" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div class="flex flex-wrap gap-1.5">
@@ -219,19 +250,19 @@ const filtered = computed(() => {
       </div>
 
       <p class="text-muted-foreground mt-6 text-sm tracking-tight">
-        {{ filtered.length }} {{ filtered.length === 1 ? "preset" : "presets" }}
+        {{ sorted.length }} {{ sorted.length === 1 ? "preset" : "presets" }}
       </p>
 
       <div class="mt-4 grid gap-x-2 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <PresetCard
-          v-for="preset in filtered"
+          v-for="preset in sorted"
           :key="preset.id"
           :preset="preset"
         />
       </div>
 
       <div
-        v-if="!filtered.length"
+        v-if="!sorted.length"
         class="text-muted-foreground py-16 text-center text-sm tracking-tight"
       >
         No presets match your search.

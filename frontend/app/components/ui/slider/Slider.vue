@@ -1,16 +1,26 @@
 <script setup lang="ts">
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { reactiveOmit } from "@vueuse/core";
 import type { SliderRootEmits, SliderRootProps } from "reka-ui";
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-const props = defineProps<SliderRootProps & { class?: HTMLAttributes["class"] }>();
+const props = defineProps<
+  SliderRootProps & {
+    class?: HTMLAttributes["class"];
+    showTooltip?: boolean;
+    tooltipContent?: (value: number) => string;
+  }
+>();
 const emits = defineEmits<SliderRootEmits>();
 
-const delegatedProps = reactiveOmit(props, "class");
+const delegatedProps = reactiveOmit(props, "class", "showTooltip", "tooltipContent");
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const thumbClass =
+  "border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50";
 </script>
 
 <template>
@@ -35,11 +45,18 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       />
     </SliderTrack>
 
-    <SliderThumb
-      v-for="(_, key) in modelValue"
-      :key="key"
-      data-slot="slider-thumb"
-      class="border-primary bg-background ring-ring block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
-    />
+    <template v-for="(_, key) in modelValue" :key="key">
+      <TooltipProvider v-if="showTooltip" :delay-duration="0">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <SliderThumb data-slot="slider-thumb" :class="thumbClass" />
+          </TooltipTrigger>
+          <TooltipContent>
+            {{ tooltipContent ? tooltipContent(modelValue[key]) : modelValue[key] }}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <SliderThumb v-else data-slot="slider-thumb" :class="thumbClass" />
+    </template>
   </SliderRoot>
 </template>

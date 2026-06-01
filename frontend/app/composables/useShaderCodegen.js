@@ -17,6 +17,7 @@ const FRAMEWORKS = [
   { value: "svelte", label: "Svelte", language: "html" },
   { value: "solid", label: "Solid", language: "jsx" },
   { value: "js", label: "JavaScript", language: "javascript" },
+  { value: "json", label: "JSON", language: "json" },
 ];
 
 const LOADERS = {
@@ -55,6 +56,13 @@ export function useShaderCodegen() {
    */
   async function generate(config, opts = {}) {
     const { framework = "vue", colorSpace, toneMapping } = opts;
+    if (framework === "json") {
+      return JSON.stringify(
+        { components: config?.components ?? [], colorSpace, toneMapping },
+        null,
+        2,
+      );
+    }
     const loader = LOADERS[framework] ?? LOADERS.vue;
     moduleCache[framework] ??= loader();
     const mod = await moduleCache[framework];

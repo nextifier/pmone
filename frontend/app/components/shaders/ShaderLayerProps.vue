@@ -1,8 +1,9 @@
 <script setup>
 import { computed } from "vue";
-import ShaderRangeControl from "./ShaderRangeControl.vue";
+import { AccordionRoot } from "reka-ui";
+import ShaderSection from "./ShaderSection.vue";
+import { SliderRuler } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -124,12 +125,10 @@ function setTransformNumber(key, raw) {
 </script>
 
 <template>
-  <Accordion type="multiple" :default-value="['Layer', 'Mask', 'Transform']" class="w-full">
-    <AccordionItem value="Layer">
-      <AccordionTrigger class="text-xs font-medium tracking-tight uppercase">Layer</AccordionTrigger>
-      <AccordionContent class="space-y-4 pt-1">
+  <AccordionRoot type="multiple" :default-value="['Layer', 'Mask', 'Transform']" class="w-full">
+    <ShaderSection value="Layer" title="Layer">
         <!-- opacity -->
-        <ShaderRangeControl
+        <SliderRuler
           label="Opacity"
           :model-value="Number(opacity)"
           :min="0"
@@ -156,12 +155,9 @@ function setTransformNumber(key, raw) {
           <label class="text-muted-foreground text-sm tracking-tight">Visible</label>
           <Switch :model-value="visible" @update:model-value="setProp('visible', $event)" />
         </div>
-      </AccordionContent>
-    </AccordionItem>
+    </ShaderSection>
 
-    <AccordionItem value="Mask">
-      <AccordionTrigger class="text-xs font-medium tracking-tight uppercase">Mask</AccordionTrigger>
-      <AccordionContent class="space-y-4 pt-1">
+    <ShaderSection value="Mask" title="Mask">
         <!-- mask source -->
         <div class="space-y-1.5">
           <label class="text-muted-foreground text-sm tracking-tight">Source layer</label>
@@ -191,13 +187,10 @@ function setTransformNumber(key, raw) {
             </SelectContent>
           </Select>
         </div>
-      </AccordionContent>
-    </AccordionItem>
+    </ShaderSection>
 
-    <AccordionItem value="Transform">
-      <AccordionTrigger class="text-xs font-medium tracking-tight uppercase">Transform</AccordionTrigger>
-      <AccordionContent class="space-y-4 pt-1">
-        <ShaderRangeControl
+    <ShaderSection value="Transform" title="Transform">
+        <SliderRuler
           v-for="field in TRANSFORM_FIELDS"
           :key="field.key"
           :label="field.label"
@@ -223,7 +216,6 @@ function setTransformNumber(key, raw) {
             </SelectContent>
           </Select>
         </div>
-      </AccordionContent>
-    </AccordionItem>
-  </Accordion>
+    </ShaderSection>
+  </AccordionRoot>
 </template>

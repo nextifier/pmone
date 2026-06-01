@@ -19,7 +19,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["select", "remove", "move", "duplicate"]);
+const emit = defineEmits(["select", "remove", "move", "duplicate", "add-child"]);
 
 const { byName } = useShaderRegistry();
 
@@ -66,6 +66,13 @@ useSortableList(listRef, toRef(props, "nodes"));
         <div class="flex items-center opacity-0 transition group-hover:opacity-100">
           <button
             class="hover:bg-background text-muted-foreground hover:text-foreground rounded p-1"
+            title="Add inside"
+            @click.stop="emit('add-child', node.id)"
+          >
+            <Icon name="hugeicons:add-01" class="size-3.5" />
+          </button>
+          <button
+            class="hover:bg-background text-muted-foreground hover:text-foreground rounded p-1"
             title="Duplicate"
             @click.stop="emit('duplicate', node.id)"
           >
@@ -89,6 +96,7 @@ useSortableList(listRef, toRef(props, "nodes"));
         @remove="emit('remove', $event)"
         @move="(id, dir) => emit('move', id, dir)"
         @duplicate="emit('duplicate', $event)"
+        @add-child="emit('add-child', $event)"
       />
     </div>
   </div>
