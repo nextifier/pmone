@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed } from "vue";
+import { refDebounced } from "@vueuse/core";
 import { useShaderPresets } from "@/components/shaders-docs/useShaderPresets";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import PresetCard from "@/components/shaders/PresetCard.vue";
 
 definePageMeta({ layout: "empty" });
@@ -12,6 +14,8 @@ usePageMeta(null, {
 
 const { index } = useShaderPresets();
 
+const query = ref("");
+const debouncedQuery = refDebounced(query, 200);
 const activeCategory = ref("all");
 
 const formatCategory = (c) =>
@@ -23,9 +27,15 @@ const categories = computed(() => {
 });
 
 const filtered = computed(() => {
+  const q = debouncedQuery.value.trim().toLowerCase();
   return index.filter((preset) => {
     if (activeCategory.value !== "all" && preset.category !== activeCategory.value) return false;
-    return true;
+    if (!q) return true;
+    return (
+      preset.title.toLowerCase().includes(q) ||
+      (preset.description ?? "").toLowerCase().includes(q) ||
+      (preset.category ?? "").toLowerCase().includes(q)
+    );
   });
 });
 </script>
@@ -52,16 +62,25 @@ const filtered = computed(() => {
         </div>
       </div>
 
-      <div class="mt-12 flex flex-wrap gap-1.5">
-        <Button
-          v-for="category in categories"
-          :key="category"
-          size="sm"
-          :variant="activeCategory === category ? 'default' : 'outline'"
-          @click="activeCategory = category"
-        >
-          {{ formatCategory(category) }}
-        </Button>
+      <div class="mt-12 flex flex-col gap-4">
+        <InputGroup class="max-w-sm">
+          <InputGroupAddon>
+            <Icon name="hugeicons:search-01" />
+          </InputGroupAddon>
+          <InputGroupInput v-model="query" placeholder="Search presets…" />
+        </InputGroup>
+
+        <div class="flex flex-wrap gap-1.5">
+          <Button
+            v-for="category in categories"
+            :key="category"
+            size="sm"
+            :variant="activeCategory === category ? 'default' : 'outline'"
+            @click="activeCategory = category"
+          >
+            {{ formatCategory(category) }}
+          </Button>
+        </div>
       </div>
 
       <p class="text-muted-foreground mt-6 text-sm tracking-tight">
@@ -74,6 +93,13 @@ const filtered = computed(() => {
           :key="preset.id"
           :preset="preset"
         />
+      </div>
+
+      <div
+        v-if="!filtered.length"
+        class="text-muted-foreground py-16 text-center text-sm tracking-tight"
+      >
+        No presets match your search.
       </div>
     </main>
   </div>

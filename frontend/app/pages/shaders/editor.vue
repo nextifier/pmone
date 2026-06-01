@@ -15,7 +15,7 @@ usePageMeta(null, { title: "Editor · Shaders" });
 const route = useRoute();
 const { getPreset } = useShaderPresets();
 const { grouped } = useShaderRegistry();
-const { downloadImage } = useShaderExport();
+const { downloadImage, recordVideo } = useShaderExport();
 
 const COLOR_SPACES = ["p3-linear", "srgb"];
 const TONE_MAPPINGS = ["linear", "reinhard", "cineon", "aces", "agx", "neutral", "hable", "unreal"];
@@ -116,14 +116,37 @@ async function copyCode() {
 }
 
 const canvasRef = ref(null);
+
+const imageFormat = ref("jpeg");
 const downloading = ref(false);
-async function download() {
+async function downloadImg() {
   if (!canvasRef.value) return;
   downloading.value = true;
   try {
-    await downloadImage(canvasRef.value, { format: "jpeg", filename: title.value || "shader" });
+    await downloadImage(canvasRef.value, {
+      format: imageFormat.value,
+      filename: title.value || "shader",
+    });
   } finally {
     downloading.value = false;
+  }
+}
+
+const videoSeconds = ref("5");
+const recording = ref(false);
+const recordProgress = ref(0);
+async function recordClip() {
+  if (!canvasRef.value) return;
+  recording.value = true;
+  recordProgress.value = 0;
+  try {
+    await recordVideo(canvasRef.value, {
+      filename: title.value || "shader",
+      durationMs: Number(videoSeconds.value) * 1000,
+      onProgress: (f) => (recordProgress.value = f),
+    });
+  } finally {
+    recording.value = false;
   }
 }
 
@@ -152,10 +175,57 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
             <SelectItem v-for="tm in TONE_MAPPINGS" :key="tm" :value="tm">{{ tm }}</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" :disabled="downloading" @click="download">
-          <Icon :name="downloading ? 'hugeicons:loading-03' : 'hugeicons:image-download-02'" :class="downloading && 'animate-spin'" />
-          JPG
-        </Button>
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button variant="outline" size="sm">
+              <Icon name="hugeicons:download-04" />
+              Export
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" class="w-72 space-y-4 p-4">
+            <div class="space-y-2">
+              <p class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Image</p>
+              <div class="flex items-center gap-x-2">
+                <Select v-model="imageFormat">
+                  <SelectTrigger size="sm" class="w-24"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="jpeg">JPG</SelectItem>
+                    <SelectItem value="png">PNG</SelectItem>
+                    <SelectItem value="webp">WebP</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button size="sm" class="flex-1" :disabled="downloading" @click="downloadImg">
+                  <Icon
+                    :name="downloading ? 'hugeicons:loading-03' : 'hugeicons:image-download-02'"
+                    :class="downloading && 'animate-spin'"
+                  />
+                  {{ downloading ? "Rendering…" : "Download" }}
+                </Button>
+              </div>
+              <p class="text-muted-foreground text-xs tracking-tight">High-res, ~4K (3840px wide).</p>
+            </div>
+
+            <div class="space-y-2 border-t pt-4">
+              <p class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Video</p>
+              <div class="flex items-center gap-x-2">
+                <Select v-model="videoSeconds">
+                  <SelectTrigger size="sm" class="w-24"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="s in ['3', '5', '10', '15']" :key="s" :value="s">{{ s }}s</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button size="sm" class="flex-1" :disabled="recording" @click="recordClip">
+                  <Icon
+                    :name="recording ? 'hugeicons:record' : 'hugeicons:video-01'"
+                    :class="recording && 'animate-pulse'"
+                  />
+                  {{ recording ? `Recording ${Math.round(recordProgress * 100)}%` : "Record" }}
+                </Button>
+              </div>
+              <p class="text-muted-foreground text-xs tracking-tight">MP4 (H.264) · ~1080p · 60fps.</p>
+            </div>
+          </PopoverContent>
+        </Popover>
         <Button size="sm" @click="copyCode">
           <Icon :name="copied ? 'hugeicons:tick-02' : 'hugeicons:source-code'" />
           {{ copied ? "Copied" : "Copy code" }}

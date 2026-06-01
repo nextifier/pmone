@@ -54,6 +54,7 @@ defineExpose({
   captureScreenshot: (maxWidth) => shaderRef.value?.captureScreenshot(maxWidth),
   getCanvas: () => shaderRef.value?.getCanvas() ?? null,
   getPerformanceStats: () => shaderRef.value?.getPerformanceStats(),
+  beginRecordingResolution: (pixelRatio) => shaderRef.value?.beginRecordingResolution(pixelRatio),
 });
 </script>
 
