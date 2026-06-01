@@ -397,7 +397,7 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
           <p class="text-muted-foreground text-xs tracking-tight">Properties</p>
         </div>
         <div class="flex-1 overflow-y-auto px-4 py-3">
-          <ShaderControls :key="activeNode.id" :node="activeNode" />
+          <ShaderControls :key="activeNode.id" :node="activeNode" :layers="flatLayers" />
           <ShaderLayerProps
             :key="`layer-${activeNode.id}`"
             :node="activeNode"

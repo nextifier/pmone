@@ -3,6 +3,8 @@ import { computed } from "vue";
 import ColorPicker from "./ColorPicker.vue";
 import PositionPad from "./PositionPad.vue";
 import ShaderRangeControl from "./ShaderRangeControl.vue";
+import ShaderDriverConfig from "./ShaderDriverConfig.vue";
+import ShaderTextureInput from "./ShaderTextureInput.vue";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -19,6 +21,11 @@ const props = defineProps({
   node: {
     type: Object,
     required: true,
+  },
+  // Other layers ({ id, label }), used as map-driver sources.
+  layers: {
+    type: Array,
+    default: () => [],
   },
 });
 
@@ -54,6 +61,32 @@ function setNumber(key, raw) {
   const n = Number.parseFloat(raw);
   if (!Number.isNaN(n)) props.node.props[key] = n;
 }
+
+/** Range props flagged `["range","map"]` in the schema can be driven dynamically. */
+function isDynamicCapable(def) {
+  return Array.isArray(def.ui?.type) && def.ui.type.includes("map");
+}
+
+/** A driven prop holds a `{ type, ... }` object instead of a static number. */
+function isDynamic(key) {
+  const v = props.node.props[key];
+  return v != null && typeof v === "object" && typeof v.type === "string";
+}
+
+function toggleDynamic(key, def) {
+  if (isDynamic(key)) {
+    props.node.props[key] = def.default ?? def.ui?.min ?? 0;
+  } else {
+    props.node.props[key] = {
+      type: "auto-animate",
+      mode: "ping-pong",
+      outputMin: def.ui?.min ?? 0,
+      outputMax: def.ui?.max ?? 1,
+      speed: 1,
+      easing: "sine",
+    };
+  }
+}
 </script>
 
 <template>
@@ -64,9 +97,24 @@ function setNumber(key, raw) {
       </AccordionTrigger>
       <AccordionContent class="space-y-4 pt-1">
         <div v-for="{ key, def } in group.items" :key="key" class="space-y-1.5">
-          <label class="text-muted-foreground block text-sm tracking-tight">
-            {{ def.ui?.label ?? key }}
-          </label>
+          <div class="flex items-center justify-between gap-x-2">
+            <label class="text-muted-foreground text-sm tracking-tight">
+              {{ def.ui?.label ?? key }}
+            </label>
+            <button
+              v-if="isDynamicCapable(def)"
+              v-tippy="isDynamic(key) ? 'Dynamic driver on' : 'Drive this value dynamically'"
+              class="flex size-6 shrink-0 items-center justify-center rounded-md transition"
+              :class="
+                isDynamic(key)
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted'
+              "
+              @click="toggleDynamic(key, def)"
+            >
+              <Icon name="hugeicons:flash" class="size-3.5" />
+            </button>
+          </div>
 
           <!-- color -->
           <ColorPicker
@@ -75,7 +123,18 @@ function setNumber(key, raw) {
             @update:model-value="set(key, $event)"
           />
 
-          <!-- range -->
+          <!-- range: dynamic driver -->
+          <ShaderDriverConfig
+            v-else-if="controlType(def) === 'range' && isDynamic(key)"
+            :model-value="valueOf(key, def)"
+            :min="def.ui?.min ?? 0"
+            :max="def.ui?.max ?? 100"
+            :step="def.ui?.step ?? 1"
+            :layers="layers"
+            @update:model-value="set(key, $event)"
+          />
+
+          <!-- range: static -->
           <ShaderRangeControl
             v-else-if="controlType(def) === 'range'"
             :model-value="Number(valueOf(key, def))"
@@ -105,6 +164,14 @@ function setNumber(key, raw) {
               </SelectItem>
             </SelectContent>
           </Select>
+
+          <!-- texture source (image / video) -->
+          <ShaderTextureInput
+            v-else-if="controlType(def) === 'image-upload' || controlType(def) === 'video-upload'"
+            :model-value="String(valueOf(key, def) ?? '')"
+            :kind="controlType(def) === 'video-upload' ? 'video' : 'image'"
+            @update:model-value="set(key, $event)"
+          />
 
           <!-- checkbox -->
           <Switch
