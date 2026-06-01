@@ -3,6 +3,16 @@ import { ref, computed } from "vue";
 import { refDebounced } from "@vueuse/core";
 import { useShaderPresets } from "@/components/shaders-docs/useShaderPresets";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import PresetCard from "@/components/shaders/PresetCard.vue";
 
 definePageMeta({ layout: "empty" });
@@ -12,11 +22,41 @@ usePageMeta(null, {
   description: "A gallery of GPU-accelerated shader presets with a live editor, ready to drop into any project.",
 });
 
-const { index } = useShaderPresets();
+const { index, collections } = useShaderPresets();
 
 const query = ref("");
 const debouncedQuery = refDebounced(query, 200);
 const activeCategory = ref("all");
+const activeCollection = ref("all");
+const collectionOpen = ref(false);
+
+const sortedCollections = computed(() =>
+  [...collections].sort((a, b) => a.name.localeCompare(b.name)),
+);
+
+const activeCollectionName = computed(() =>
+  activeCollection.value === "all"
+    ? "All collections"
+    : (collections.find((c) => c.id === activeCollection.value)?.name ?? "All collections"),
+);
+
+function pickCollection(id) {
+  activeCollection.value = id;
+  collectionOpen.value = false;
+}
+
+const hasActiveFilters = computed(
+  () =>
+    Boolean(debouncedQuery.value.trim()) ||
+    activeCategory.value !== "all" ||
+    activeCollection.value !== "all",
+);
+
+function clearFilters() {
+  query.value = "";
+  activeCategory.value = "all";
+  activeCollection.value = "all";
+}
 
 const formatCategory = (c) =>
   c === "all" ? "All" : c.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
@@ -30,6 +70,8 @@ const filtered = computed(() => {
   const q = debouncedQuery.value.trim().toLowerCase();
   return index.filter((preset) => {
     if (activeCategory.value !== "all" && preset.category !== activeCategory.value) return false;
+    if (activeCollection.value !== "all" && preset.collectionId !== activeCollection.value)
+      return false;
     if (!q) return true;
     return (
       preset.title.toLowerCase().includes(q) ||
@@ -63,12 +105,53 @@ const filtered = computed(() => {
       </div>
 
       <div class="mt-12 flex flex-col gap-4">
-        <InputGroup class="max-w-sm">
-          <InputGroupAddon>
-            <Icon name="hugeicons:search-01" />
-          </InputGroupAddon>
-          <InputGroupInput v-model="query" placeholder="Search presets…" />
-        </InputGroup>
+        <div class="flex flex-wrap items-center gap-2">
+          <InputGroup class="max-w-sm flex-1">
+            <InputGroupAddon>
+              <Icon name="hugeicons:search-01" />
+            </InputGroupAddon>
+            <InputGroupInput v-model="query" placeholder="Search presets…" />
+          </InputGroup>
+
+          <Popover v-model:open="collectionOpen">
+            <PopoverTrigger as-child>
+              <Button variant="outline" class="w-56 justify-between">
+                <span class="truncate">{{ activeCollectionName }}</span>
+                <Icon name="hugeicons:unfold-more" class="text-muted-foreground shrink-0" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" class="w-64 p-0">
+              <Command>
+                <CommandInput placeholder="Search collections…" />
+                <CommandList class="max-h-72">
+                  <CommandEmpty>No collection.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem value="All collections" class="tracking-tight" @select="pickCollection('all')">
+                      All collections
+                      <Icon
+                        v-if="activeCollection === 'all'"
+                        name="hugeicons:tick-02"
+                        class="ml-auto shrink-0"
+                      />
+                    </CommandItem>
+                    <CommandItem
+                      v-for="collection in sortedCollections"
+                      :key="collection.id"
+                      :value="collection.name"
+                      class="tracking-tight"
+                      @select="pickCollection(collection.id)"
+                    >
+                      <span class="truncate">{{ collection.name }}</span>
+                      <span class="text-muted-foreground ml-auto shrink-0 pl-2 text-xs">
+                        {{ collection.presetCount }}
+                      </span>
+                    </CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
 
         <div class="flex flex-wrap gap-1.5">
           <Button
@@ -79,6 +162,58 @@ const filtered = computed(() => {
             @click="activeCategory = category"
           >
             {{ formatCategory(category) }}
+          </Button>
+        </div>
+
+        <div v-if="hasActiveFilters" class="flex flex-wrap items-center gap-2">
+          <Badge v-if="activeCategory !== 'all'" variant="secondary" class="gap-x-1 py-1 pr-1 pl-2">
+            {{ formatCategory(activeCategory) }}
+            <button
+              class="hover:bg-background/80 rounded-full p-0.5 transition"
+              aria-label="Clear category filter"
+              @click="activeCategory = 'all'"
+            >
+              <Icon name="hugeicons:cancel-01" class="size-3" />
+            </button>
+          </Badge>
+
+          <Badge
+            v-if="activeCollection !== 'all'"
+            variant="secondary"
+            class="gap-x-1 py-1 pr-1 pl-2"
+          >
+            {{ activeCollectionName }}
+            <button
+              class="hover:bg-background/80 rounded-full p-0.5 transition"
+              aria-label="Clear collection filter"
+              @click="activeCollection = 'all'"
+            >
+              <Icon name="hugeicons:cancel-01" class="size-3" />
+            </button>
+          </Badge>
+
+          <Badge
+            v-if="debouncedQuery.trim()"
+            variant="secondary"
+            class="gap-x-1 py-1 pr-1 pl-2"
+          >
+            “{{ debouncedQuery.trim() }}”
+            <button
+              class="hover:bg-background/80 rounded-full p-0.5 transition"
+              aria-label="Clear search"
+              @click="query = ''"
+            >
+              <Icon name="hugeicons:cancel-01" class="size-3" />
+            </button>
+          </Badge>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            class="text-muted-foreground h-auto px-2 py-1"
+            @click="clearFilters"
+          >
+            Clear all
           </Button>
         </div>
       </div>

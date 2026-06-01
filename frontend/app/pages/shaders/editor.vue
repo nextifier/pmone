@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watchEffect, onMounted } from "vue";
 import { useShaderPresets } from "@/components/shaders-docs/useShaderPresets";
-import { generateShaderCode } from "@/components/shaders/generateShaderCode";
+import CodeBlock from "@/components/ui-docs/CodeBlock.vue";
 import ShaderCanvas from "@/components/shaders/ShaderCanvas.vue";
 import ShaderControls from "@/components/shaders/ShaderControls.vue";
+import ShaderLayerProps from "@/components/shaders/ShaderLayerProps.vue";
 import ShaderLayerItem from "@/components/shaders/ShaderLayerItem.vue";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -76,6 +77,30 @@ function findContext(nodes, id) {
 
 const activeNode = computed(() => findNode(tree.value, activeId.value));
 
+const flatLayers = computed(() => {
+  const totals = {};
+  const countType = (nodes) => {
+    for (const node of nodes) {
+      totals[node.type] = (totals[node.type] ?? 0) + 1;
+      if (node.children?.length) countType(node.children);
+    }
+  };
+  countType(tree.value);
+
+  const out = [];
+  const running = {};
+  const walk = (nodes) => {
+    for (const node of nodes) {
+      running[node.type] = (running[node.type] ?? 0) + 1;
+      const label = totals[node.type] > 1 ? `${node.type} ${running[node.type]}` : node.type;
+      out.push({ id: node.id, type: node.type, label });
+      if (node.children?.length) walk(node.children);
+    }
+  };
+  walk(tree.value);
+  return out;
+});
+
 function removeLayer(id) {
   const ctx = findContext(tree.value, id);
   if (!ctx) return;
@@ -100,20 +125,25 @@ function addComponent(name) {
   pickerOpen.value = false;
 }
 
-const code = computed(() =>
-  generateShaderCode(config.value, { colorSpace: colorSpace.value, toneMapping: toneMapping.value }),
+const { frameworks, generate } = useShaderCodegen();
+const framework = ref("vue");
+const exportedCode = ref("");
+const currentLanguage = computed(
+  () => frameworks.find((f) => f.value === framework.value)?.language ?? "vue",
 );
 
-const copied = ref(false);
-async function copyCode() {
-  try {
-    await navigator.clipboard.writeText(code.value);
-    copied.value = true;
-    setTimeout(() => (copied.value = false), 1500);
-  } catch {
-    /* clipboard blocked */
-  }
-}
+watchEffect(async () => {
+  // Deep-clone the tree so this effect tracks nested prop edits. A plain
+  // `computed(() => ({ components: tree.value }))` only re-runs when the array
+  // identity changes, not when a prop deep inside a node mutates - serializing
+  // here walks every node so the effect re-fires on any edit and the generator
+  // receives plain objects.
+  const snapshot = { components: JSON.parse(JSON.stringify(tree.value)) };
+  const fw = framework.value;
+  const cs = colorSpace.value;
+  const tm = toneMapping.value;
+  exportedCode.value = await generate(snapshot, { framework: fw, colorSpace: cs, toneMapping: tm });
+});
 
 const canvasRef = ref(null);
 
@@ -226,10 +256,32 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
             </div>
           </PopoverContent>
         </Popover>
-        <Button size="sm" @click="copyCode">
-          <Icon :name="copied ? 'hugeicons:tick-02' : 'hugeicons:source-code'" />
-          {{ copied ? "Copied" : "Copy code" }}
-        </Button>
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button size="sm">
+              <Icon name="hugeicons:source-code" />
+              Code
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" class="w-[min(92vw,40rem)] space-y-3 p-3">
+            <div class="flex items-center justify-between gap-x-2">
+              <p class="text-muted-foreground text-xs font-medium tracking-tight uppercase">
+                Export code
+              </p>
+              <Select v-model="framework">
+                <SelectTrigger size="sm" class="w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="f in frameworks" :key="f.value" :value="f.value">
+                    {{ f.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="max-h-[60vh] overflow-y-auto">
+              <CodeBlock :code="exportedCode" :language="currentLanguage" />
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </header>
 
@@ -297,7 +349,14 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
           <p class="text-muted-foreground text-xs tracking-tight">Properties</p>
         </div>
         <div class="flex-1 overflow-y-auto px-4 py-3">
-          <ShaderControls v-if="activeNode" :key="activeNode.id" :node="activeNode" />
+          <template v-if="activeNode">
+            <ShaderControls :key="activeNode.id" :node="activeNode" />
+            <ShaderLayerProps
+              :key="`layer-${activeNode.id}`"
+              :node="activeNode"
+              :layers="flatLayers"
+            />
+          </template>
           <p v-else class="text-muted-foreground py-8 text-center text-xs tracking-tight">
             Select a layer to edit its properties.
           </p>

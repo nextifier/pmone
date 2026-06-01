@@ -97,7 +97,16 @@ export default defineNuxtConfig({
       // RegExp (run via transform middleware) overflow V8's regex stack
       // ("Maximum call stack size exceeded"). Excluded, it loads as small,
       // per-module ESM files which the filter handles fine.
-      exclude: ["shaders", "shaders/vue", "shaders/registry", "shaders/vue/codegen"],
+      exclude: [
+        "shaders",
+        "shaders/vue",
+        "shaders/registry",
+        "shaders/vue/codegen",
+        "shaders/react/codegen",
+        "shaders/svelte/codegen",
+        "shaders/solid/codegen",
+        "shaders/js/codegen",
+      ],
       include: [
         "nanoid",
         "embla-carousel-wheel-gestures",

@@ -21,7 +21,12 @@ function resolve(type) {
 
 <template>
   <template v-for="(node, index) in nodes" :key="node.id ?? `${node.type}-${index}`">
-    <component :is="resolve(node.type)" v-if="resolve(node.type)" v-bind="node.props">
+    <component
+      :is="resolve(node.type)"
+      v-if="resolve(node.type)"
+      :id="node.id"
+      v-bind="node.props"
+    >
       <ShaderTree v-if="node.children?.length" :nodes="node.children" :lib="lib" />
     </component>
   </template>

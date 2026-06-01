@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { useShaderPresets } from "@/components/shaders-docs/useShaderPresets";
 import { generateShaderCode } from "@/components/shaders/generateShaderCode";
 import ShaderCanvas from "@/components/shaders/ShaderCanvas.vue";
@@ -45,6 +45,69 @@ async function download() {
   }
 }
 
+// Fullscreen preview. Uses the native Fullscreen API where supported (desktop,
+// Android) and always falls back to a fixed inset-0 overlay so it still covers
+// the whole viewport on iOS Safari, which can't fullscreen arbitrary elements.
+const isFullscreen = ref(false);
+const previewRef = ref(null);
+
+async function enterFullscreen() {
+  isFullscreen.value = true;
+  await nextTick();
+  const el = previewRef.value;
+  try {
+    if (el?.requestFullscreen) {
+      await el.requestFullscreen();
+    } else if (el?.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    }
+  } catch {
+    /* overlay still covers the viewport where the API is unavailable */
+  }
+}
+
+async function exitFullscreen() {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else if (document.webkitFullscreenElement) {
+      document.webkitExitFullscreen?.();
+    }
+  } catch {
+    /* ignore */
+  }
+  isFullscreen.value = false;
+}
+
+function toggleFullscreen() {
+  if (isFullscreen.value) {
+    exitFullscreen();
+  } else {
+    enterFullscreen();
+  }
+}
+
+function syncFullscreen() {
+  const active = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+  if (!active && isFullscreen.value) isFullscreen.value = false;
+}
+
+function onKeydown(event) {
+  if (event.key === "Escape" && isFullscreen.value) exitFullscreen();
+}
+
+onMounted(() => {
+  document.addEventListener("fullscreenchange", syncFullscreen);
+  document.addEventListener("webkitfullscreenchange", syncFullscreen);
+  window.addEventListener("keydown", onKeydown);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener("fullscreenchange", syncFullscreen);
+  document.removeEventListener("webkitfullscreenchange", syncFullscreen);
+  window.removeEventListener("keydown", onKeydown);
+});
+
 usePageMeta(null, {
   title: computed(() => (preset.value ? `${preset.value.title} · Shaders` : "Shaders")),
   description: computed(() => preset.value?.description?.slice(0, 160) || ""),
@@ -84,15 +147,37 @@ usePageMeta(null, {
         </div>
       </div>
 
-      <div class="bg-muted ring-border mt-6 aspect-video overflow-hidden rounded-2xl ring-1">
-        <ShaderCanvas
-          ref="canvasRef"
-          :config="preset.config"
-          :color-space="preset.colorSpace"
-          :tone-mapping="preset.toneMapping"
-          class="size-full"
-        />
-      </div>
+      <Teleport to="body" :disabled="!isFullscreen">
+        <div
+          ref="previewRef"
+          :class="
+            isFullscreen
+              ? 'fixed inset-0 z-[100] bg-background'
+              : 'bg-muted ring-border relative mt-6 aspect-video overflow-hidden rounded-2xl ring-1'
+          "
+        >
+          <ShaderCanvas
+            ref="canvasRef"
+            :config="preset.config"
+            :color-space="preset.colorSpace"
+            :tone-mapping="preset.toneMapping"
+            class="size-full"
+          />
+          <Button
+            variant="secondary"
+            size="iconSm"
+            class="absolute top-3 right-3 z-10 opacity-80 transition hover:opacity-100"
+            :title="isFullscreen ? 'Exit fullscreen' : 'Fullscreen'"
+            @click="toggleFullscreen"
+          >
+            <Icon
+              :name="
+                isFullscreen ? 'hugeicons:square-arrow-shrink-02' : 'hugeicons:square-arrow-expand-02'
+              "
+            />
+          </Button>
+        </div>
+      </Teleport>
 
       <p v-if="preset.description" class="text-muted-foreground mt-6 max-w-3xl text-sm tracking-tight text-pretty sm:text-base">
         {{ preset.description }}
