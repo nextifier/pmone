@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from "vue";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
+import ShaderRangeControl from "./ShaderRangeControl.vue";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
@@ -130,35 +129,18 @@ function setTransformNumber(key, raw) {
       <AccordionTrigger class="text-xs font-medium tracking-tight uppercase">Layer</AccordionTrigger>
       <AccordionContent class="space-y-4 pt-1">
         <!-- opacity -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between gap-x-2">
-            <label class="text-sm font-medium tracking-tight">Opacity</label>
-            <span class="text-muted-foreground font-mono text-xs">{{ opacity }}</span>
-          </div>
-          <div class="flex items-center gap-x-3">
-            <Slider
-              :model-value="[Number(opacity)]"
-              :min="0"
-              :max="1"
-              :step="0.01"
-              class="flex-1"
-              @update:model-value="setProp('opacity', $event?.[0] ?? 1)"
-            />
-            <Input
-              :model-value="opacity"
-              type="number"
-              :min="0"
-              :max="1"
-              :step="0.01"
-              class="h-8 w-20 text-xs sm:text-sm"
-              @update:model-value="(v) => setProp('opacity', Number.parseFloat(v) || 0)"
-            />
-          </div>
-        </div>
+        <ShaderRangeControl
+          label="Opacity"
+          :model-value="Number(opacity)"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          @update:model-value="setProp('opacity', $event)"
+        />
 
         <!-- blend mode -->
         <div class="space-y-1.5">
-          <label class="text-sm font-medium tracking-tight">Blend mode</label>
+          <label class="text-muted-foreground text-sm tracking-tight">Blend mode</label>
           <Select :model-value="blendMode" @update:model-value="setProp('blendMode', $event)">
             <SelectTrigger class="h-9 w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -171,7 +153,7 @@ function setTransformNumber(key, raw) {
 
         <!-- visibility -->
         <div class="flex items-center justify-between gap-x-2">
-          <label class="text-sm font-medium tracking-tight">Visible</label>
+          <label class="text-muted-foreground text-sm tracking-tight">Visible</label>
           <Switch :model-value="visible" @update:model-value="setProp('visible', $event)" />
         </div>
       </AccordionContent>
@@ -182,7 +164,7 @@ function setTransformNumber(key, raw) {
       <AccordionContent class="space-y-4 pt-1">
         <!-- mask source -->
         <div class="space-y-1.5">
-          <label class="text-sm font-medium tracking-tight">Source layer</label>
+          <label class="text-muted-foreground text-sm tracking-tight">Source layer</label>
           <Select :model-value="maskSource" @update:model-value="setMaskSource($event)">
             <SelectTrigger class="h-9 w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -199,7 +181,7 @@ function setTransformNumber(key, raw) {
 
         <!-- mask type -->
         <div v-if="maskSource !== NONE" class="space-y-1.5">
-          <label class="text-sm font-medium tracking-tight">Mask type</label>
+          <label class="text-muted-foreground text-sm tracking-tight">Mask type</label>
           <Select :model-value="maskType" @update:model-value="setProp('maskType', $event)">
             <SelectTrigger class="h-9 w-full"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -215,35 +197,20 @@ function setTransformNumber(key, raw) {
     <AccordionItem value="Transform">
       <AccordionTrigger class="text-xs font-medium tracking-tight uppercase">Transform</AccordionTrigger>
       <AccordionContent class="space-y-4 pt-1">
-        <div v-for="field in TRANSFORM_FIELDS" :key="field.key" class="space-y-1.5">
-          <div class="flex items-center justify-between gap-x-2">
-            <label class="text-sm font-medium tracking-tight">{{ field.label }}</label>
-            <span class="text-muted-foreground font-mono text-xs">{{ transformVal(field.key) }}</span>
-          </div>
-          <div class="flex items-center gap-x-3">
-            <Slider
-              :model-value="[Number(transformVal(field.key))]"
-              :min="field.min"
-              :max="field.max"
-              :step="field.step"
-              class="flex-1"
-              @update:model-value="setTransform(field.key, $event?.[0] ?? 0)"
-            />
-            <Input
-              :model-value="transformVal(field.key)"
-              type="number"
-              :min="field.min"
-              :max="field.max"
-              :step="field.step"
-              class="h-8 w-20 text-xs sm:text-sm"
-              @update:model-value="(v) => setTransformNumber(field.key, v)"
-            />
-          </div>
-        </div>
+        <ShaderRangeControl
+          v-for="field in TRANSFORM_FIELDS"
+          :key="field.key"
+          :label="field.label"
+          :model-value="Number(transformVal(field.key))"
+          :min="field.min"
+          :max="field.max"
+          :step="field.step"
+          @update:model-value="setTransform(field.key, $event)"
+        />
 
         <!-- edges -->
         <div class="space-y-1.5">
-          <label class="text-sm font-medium tracking-tight">Edges</label>
+          <label class="text-muted-foreground text-sm tracking-tight">Edges</label>
           <Select
             :model-value="transformVal('edges')"
             @update:model-value="setTransform('edges', $event)"

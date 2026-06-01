@@ -45,14 +45,14 @@ function setAxis(axis, raw) {
   <div class="space-y-2">
     <div
       ref="pad"
-      class="bg-muted/50 border-input relative aspect-square w-full touch-none overflow-hidden rounded-md border [background-image:radial-gradient(var(--color-border)_1px,transparent_1px)] [background-size:12px_12px]"
+      class="bg-muted/40 border-input relative aspect-[3/2] w-full cursor-crosshair touch-none overflow-hidden rounded-lg border [background-image:radial-gradient(var(--color-muted-foreground)_1px,transparent_1px)] [background-size:14px_14px] [background-position:center]"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
     >
       <div
-        class="border-background bg-primary pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow"
+        class="border-background bg-primary ring-primary/30 pointer-events-none absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow-md ring-2"
         :style="{ left: `${clamp01(model.x ?? 0.5) * 100}%`, top: `${clamp01(model.y ?? 0.5) * 100}%` }"
       />
     </div>

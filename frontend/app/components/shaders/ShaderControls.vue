@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import ColorPicker from "./ColorPicker.vue";
 import PositionPad from "./PositionPad.vue";
+import ShaderRangeControl from "./ShaderRangeControl.vue";
 import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
@@ -64,15 +64,9 @@ function setNumber(key, raw) {
       </AccordionTrigger>
       <AccordionContent class="space-y-4 pt-1">
         <div v-for="{ key, def } in group.items" :key="key" class="space-y-1.5">
-          <div class="flex items-center justify-between gap-x-2">
-            <label class="text-sm font-medium tracking-tight">{{ def.ui?.label ?? key }}</label>
-            <span
-              v-if="controlType(def) === 'range'"
-              class="text-muted-foreground font-mono text-xs"
-            >
-              {{ valueOf(key, def) }}
-            </span>
-          </div>
+          <label class="text-muted-foreground block text-sm tracking-tight">
+            {{ def.ui?.label ?? key }}
+          </label>
 
           <!-- color -->
           <ColorPicker
@@ -82,25 +76,14 @@ function setNumber(key, raw) {
           />
 
           <!-- range -->
-          <div v-else-if="controlType(def) === 'range'" class="flex items-center gap-x-3">
-            <Slider
-              :model-value="[Number(valueOf(key, def))]"
-              :min="def.ui?.min ?? 0"
-              :max="def.ui?.max ?? 100"
-              :step="def.ui?.step ?? 1"
-              class="flex-1"
-              @update:model-value="set(key, $event?.[0] ?? 0)"
-            />
-            <Input
-              :model-value="valueOf(key, def)"
-              type="number"
-              :min="def.ui?.min"
-              :max="def.ui?.max"
-              :step="def.ui?.step"
-              class="h-8 w-20 text-xs sm:text-sm"
-              @update:model-value="setNumber(key, $event)"
-            />
-          </div>
+          <ShaderRangeControl
+            v-else-if="controlType(def) === 'range'"
+            :model-value="Number(valueOf(key, def))"
+            :min="def.ui?.min ?? 0"
+            :max="def.ui?.max ?? 100"
+            :step="def.ui?.step ?? 1"
+            @update:model-value="set(key, $event)"
+          />
 
           <!-- position -->
           <PositionPad

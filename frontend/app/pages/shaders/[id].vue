@@ -137,7 +137,7 @@ usePageMeta(null, {
         </div>
         <div class="flex items-center gap-x-2">
           <Button variant="outline" :disabled="downloading" @click="download">
-            <Icon :name="downloading ? 'hugeicons:loading-03' : 'hugeicons:image-download-02'" :class="downloading && 'animate-spin'" />
+            <Icon :name="downloading ? 'hugeicons:loading-03' : 'hugeicons:download-01'" :class="downloading && 'animate-spin'" />
             JPG
           </Button>
           <Button :to="`/shaders/editor?preset=${preset.id}`">

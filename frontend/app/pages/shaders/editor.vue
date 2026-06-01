@@ -6,8 +6,9 @@ import ShaderCanvas from "@/components/shaders/ShaderCanvas.vue";
 import ShaderControls from "@/components/shaders/ShaderControls.vue";
 import ShaderLayerProps from "@/components/shaders/ShaderLayerProps.vue";
 import ShaderLayerItem from "@/components/shaders/ShaderLayerItem.vue";
+import ShaderComponentBar from "@/components/shaders/ShaderComponentBar.vue";
+import FrameworkLogo from "@/components/shaders/FrameworkLogo.vue";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 definePageMeta({ layout: "empty" });
@@ -20,6 +21,20 @@ const { downloadImage, recordVideo } = useShaderExport();
 
 const COLOR_SPACES = ["p3-linear", "srgb"];
 const TONE_MAPPINGS = ["linear", "reinhard", "cineon", "aces", "agx", "neutral", "hable", "unreal"];
+
+const COLOR_SPACE_LABELS = { "p3-linear": "P3 Linear", srgb: "sRGB" };
+const TONE_LABELS = {
+  linear: "Linear",
+  reinhard: "Reinhard",
+  cineon: "Cineon",
+  aces: "ACES",
+  agx: "AgX",
+  neutral: "Neutral",
+  hable: "Hable",
+  unreal: "Unreal",
+};
+const colorSpaceLabel = (v) => COLOR_SPACE_LABELS[v] ?? v;
+const toneLabel = (v) => TONE_LABELS[v] ?? v;
 
 let idCounter = 0;
 const newId = () => `n${idCounter++}`;
@@ -117,12 +132,19 @@ function moveLayer(id, dir) {
   ctx.array.splice(target, 0, item);
 }
 
-const pickerOpen = ref(false);
+function duplicateLayer(id) {
+  const ctx = findContext(tree.value, id);
+  if (!ctx) return;
+  const clone = JSON.parse(JSON.stringify(ctx.array[ctx.index]));
+  assignIds([clone]);
+  ctx.array.splice(ctx.index + 1, 0, clone);
+  activeId.value = clone.id;
+}
+
 function addComponent(name) {
   const node = { id: newId(), type: name, props: {} };
   tree.value.push(node);
   activeId.value = node.id;
-  pickerOpen.value = false;
 }
 
 const { frameworks, generate } = useShaderCodegen();
@@ -131,6 +153,12 @@ const exportedCode = ref("");
 const currentLanguage = computed(
   () => frameworks.find((f) => f.value === framework.value)?.language ?? "vue",
 );
+
+const codeOpen = ref(false);
+function selectFramework(value) {
+  framework.value = value;
+  codeOpen.value = true;
+}
 
 watchEffect(async () => {
   // Deep-clone the tree so this effect tracks nested prop edits. A plain
@@ -184,154 +212,167 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
 </script>
 
 <template>
-  <div class="bg-background flex h-svh flex-col">
-    <!-- Toolbar -->
-    <header class="flex h-14 shrink-0 items-center gap-x-2 border-b px-3">
-      <Button to="/shaders" variant="ghost" size="iconSm" class="text-muted-foreground">
-        <Icon name="hugeicons:arrow-left-01" />
-      </Button>
-      <span class="max-w-40 truncate text-sm font-medium tracking-tight">{{ title }}</span>
+  <div class="bg-background flex h-svh overflow-hidden">
+    <!-- Sidebar: identity + layers + export -->
+    <aside class="bg-card flex w-64 shrink-0 flex-col border-r">
+      <div class="flex h-14 shrink-0 items-center gap-x-2 border-b px-3">
+        <Button to="/shaders" variant="ghost" size="iconSm" class="text-muted-foreground -ml-1">
+          <Icon name="hugeicons:arrow-left-01" />
+        </Button>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium tracking-tight">{{ title }}</p>
+          <p class="text-muted-foreground text-xs tracking-tight">Shader editor</p>
+        </div>
+      </div>
 
-      <div class="ml-auto flex items-center gap-x-2">
+      <div class="flex items-center justify-between px-3 py-2.5">
+        <span class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Layers</span>
+        <span class="text-muted-foreground/60 text-xs tracking-tight">{{ flatLayers.length }}</span>
+      </div>
+      <div class="flex-1 overflow-y-auto px-2 pb-3">
+        <ShaderLayerItem
+          :nodes="tree"
+          :active-id="activeId"
+          @select="activeId = $event"
+          @remove="removeLayer"
+          @move="moveLayer"
+          @duplicate="duplicateLayer"
+        />
+        <p
+          v-if="!tree.length"
+          class="text-muted-foreground px-2 py-6 text-center text-xs tracking-tight"
+        >
+          No layers yet. Add one from the toolbar.
+        </p>
+      </div>
+
+      <!-- Export footer -->
+      <div class="border-t p-2">
+        <div class="flex items-center gap-x-1">
+          <Popover v-model:open="codeOpen">
+            <PopoverTrigger as-child>
+              <Button variant="ghost" size="sm" class="gap-x-1.5 rounded-lg px-2">
+                <Icon name="hugeicons:file-export" />
+                Export
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              side="top"
+              align="start"
+              :side-offset="10"
+              class="w-[min(88vw,34rem)] space-y-3 p-3"
+            >
+              <div class="flex items-center gap-x-1">
+                <button
+                  v-for="f in frameworks"
+                  :key="f.value"
+                  v-tippy="f.label"
+                  class="ring-border hover:bg-muted flex size-8 items-center justify-center rounded-lg transition"
+                  :class="framework === f.value ? 'bg-muted ring-1' : 'opacity-60 hover:opacity-100'"
+                  @click="framework = f.value"
+                >
+                  <FrameworkLogo :name="f.value" class="size-4" />
+                </button>
+              </div>
+              <div class="max-h-[55vh] overflow-y-auto">
+                <CodeBlock :code="exportedCode" :language="currentLanguage" />
+              </div>
+
+              <div class="border-border/60 grid grid-cols-2 gap-2 border-t pt-3">
+                <div class="flex items-center gap-x-1.5">
+                  <Select v-model="imageFormat">
+                    <SelectTrigger size="sm" class="w-20"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="jpeg">JPG</SelectItem>
+                      <SelectItem value="png">PNG</SelectItem>
+                      <SelectItem value="webp">WebP</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    class="flex-1"
+                    :disabled="downloading"
+                    @click="downloadImg"
+                  >
+                    <Icon
+                      :name="downloading ? 'hugeicons:loading-03' : 'hugeicons:download-01'"
+                      :class="downloading && 'animate-spin'"
+                    />
+                    {{ downloading ? "…" : "Image" }}
+                  </Button>
+                </div>
+                <div class="flex items-center gap-x-1.5">
+                  <Select v-model="videoSeconds">
+                    <SelectTrigger size="sm" class="w-20"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="s in ['3', '5', '10', '15']" :key="s" :value="s">{{ s }}s</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    class="flex-1"
+                    :disabled="recording"
+                    @click="recordClip"
+                  >
+                    <Icon
+                      :name="recording ? 'hugeicons:record' : 'hugeicons:video-01'"
+                      :class="recording && 'animate-pulse'"
+                    />
+                    {{ recording ? `${Math.round(recordProgress * 100)}%` : "Video" }}
+                  </Button>
+                </div>
+              </div>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Image is ~4K. Video is MP4 (H.264), ~1080p, 60fps.
+              </p>
+            </PopoverContent>
+          </Popover>
+
+          <div class="ml-auto flex items-center gap-x-0.5">
+            <button
+              v-for="f in frameworks"
+              :key="f.value"
+              v-tippy="f.label"
+              class="hover:bg-muted flex size-7 items-center justify-center rounded-md transition"
+              :class="framework === f.value ? 'bg-muted ring-border ring-1' : 'opacity-55 hover:opacity-100'"
+              @click="selectFramework(f.value)"
+            >
+              <FrameworkLogo :name="f.value" class="size-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas stage -->
+    <main class="bg-muted/30 flex min-w-0 flex-1 flex-col">
+      <!-- Top bar -->
+      <div class="flex h-14 shrink-0 items-center justify-end gap-x-1.5 px-4">
         <Select v-model="colorSpace">
-          <SelectTrigger size="sm" class="hidden w-32 sm:flex"><SelectValue /></SelectTrigger>
+          <SelectTrigger size="sm" class="bg-card ring-border h-8 w-32 rounded-lg border-0 ring-1">
+            <Icon name="hugeicons:color-picker" class="text-muted-foreground size-3.5" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">{{ cs }}</SelectItem>
+            <SelectItem v-for="cs in COLOR_SPACES" :key="cs" :value="cs">{{ colorSpaceLabel(cs) }}</SelectItem>
           </SelectContent>
         </Select>
         <Select v-model="toneMapping">
-          <SelectTrigger size="sm" class="hidden w-28 sm:flex"><SelectValue /></SelectTrigger>
+          <SelectTrigger size="sm" class="bg-card ring-border h-8 w-28 rounded-lg border-0 ring-1">
+            <Icon name="hugeicons:sun-03" class="text-muted-foreground size-3.5" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="tm in TONE_MAPPINGS" :key="tm" :value="tm">{{ tm }}</SelectItem>
+            <SelectItem v-for="tm in TONE_MAPPINGS" :key="tm" :value="tm">{{ toneLabel(tm) }}</SelectItem>
           </SelectContent>
         </Select>
-        <Popover>
-          <PopoverTrigger as-child>
-            <Button variant="outline" size="sm">
-              <Icon name="hugeicons:download-04" />
-              Export
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" class="w-72 space-y-4 p-4">
-            <div class="space-y-2">
-              <p class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Image</p>
-              <div class="flex items-center gap-x-2">
-                <Select v-model="imageFormat">
-                  <SelectTrigger size="sm" class="w-24"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="jpeg">JPG</SelectItem>
-                    <SelectItem value="png">PNG</SelectItem>
-                    <SelectItem value="webp">WebP</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button size="sm" class="flex-1" :disabled="downloading" @click="downloadImg">
-                  <Icon
-                    :name="downloading ? 'hugeicons:loading-03' : 'hugeicons:image-download-02'"
-                    :class="downloading && 'animate-spin'"
-                  />
-                  {{ downloading ? "Rendering…" : "Download" }}
-                </Button>
-              </div>
-              <p class="text-muted-foreground text-xs tracking-tight">High-res, ~4K (3840px wide).</p>
-            </div>
-
-            <div class="space-y-2 border-t pt-4">
-              <p class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Video</p>
-              <div class="flex items-center gap-x-2">
-                <Select v-model="videoSeconds">
-                  <SelectTrigger size="sm" class="w-24"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="s in ['3', '5', '10', '15']" :key="s" :value="s">{{ s }}s</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button size="sm" class="flex-1" :disabled="recording" @click="recordClip">
-                  <Icon
-                    :name="recording ? 'hugeicons:record' : 'hugeicons:video-01'"
-                    :class="recording && 'animate-pulse'"
-                  />
-                  {{ recording ? `Recording ${Math.round(recordProgress * 100)}%` : "Record" }}
-                </Button>
-              </div>
-              <p class="text-muted-foreground text-xs tracking-tight">MP4 (H.264) · ~1080p · 60fps.</p>
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Popover>
-          <PopoverTrigger as-child>
-            <Button size="sm">
-              <Icon name="hugeicons:source-code" />
-              Code
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" class="w-[min(92vw,40rem)] space-y-3 p-3">
-            <div class="flex items-center justify-between gap-x-2">
-              <p class="text-muted-foreground text-xs font-medium tracking-tight uppercase">
-                Export code
-              </p>
-              <Select v-model="framework">
-                <SelectTrigger size="sm" class="w-32"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="f in frameworks" :key="f.value" :value="f.value">
-                    {{ f.label }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div class="max-h-[60vh] overflow-y-auto">
-              <CodeBlock :code="exportedCode" :language="currentLanguage" />
-            </div>
-          </PopoverContent>
-        </Popover>
       </div>
-    </header>
 
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Layers -->
-      <aside class="flex w-60 shrink-0 flex-col border-r">
-        <div class="flex items-center justify-between px-3 py-2">
-          <span class="text-muted-foreground text-xs font-medium tracking-tight uppercase">Layers</span>
-          <Popover v-model:open="pickerOpen">
-            <PopoverTrigger as-child>
-              <Button variant="ghost" size="iconSm" class="text-muted-foreground"><Icon name="hugeicons:add-01" /></Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" class="w-60 p-0">
-              <Command>
-                <CommandInput placeholder="Add component…" />
-                <CommandList class="max-h-72">
-                  <CommandEmpty>No component.</CommandEmpty>
-                  <CommandGroup v-for="group in grouped" :key="group.category" :heading="group.category">
-                    <CommandItem
-                      v-for="comp in group.components"
-                      :key="comp.name"
-                      :value="comp.name"
-                      class="tracking-tight"
-                      @select="addComponent(comp.name)"
-                    >
-                      {{ comp.name }}
-                    </CommandItem>
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div class="flex-1 overflow-y-auto px-2 pb-3">
-          <ShaderLayerItem
-            :nodes="tree"
-            :active-id="activeId"
-            @select="activeId = $event"
-            @remove="removeLayer"
-            @move="moveLayer"
-          />
-          <p v-if="!tree.length" class="text-muted-foreground px-2 py-6 text-center text-xs tracking-tight">
-            No layers. Add a component to begin.
-          </p>
-        </div>
-      </aside>
-
-      <!-- Canvas -->
-      <main class="bg-muted/30 flex flex-1 items-center justify-center overflow-hidden p-4 sm:p-8">
-        <div class="ring-border aspect-video w-full max-w-4xl overflow-hidden rounded-xl ring-1">
+      <!-- Contained canvas artboard -->
+      <div class="relative min-h-0 flex-1 px-4 pb-4">
+        <div class="ring-border size-full overflow-hidden rounded-xl ring-1">
           <ShaderCanvas
             ref="canvasRef"
             :config="config"
@@ -340,28 +381,35 @@ const formatName = (s) => s.replace(/-/g, " ").replace(/\b\w/g, (m) => m.toUpper
             class="size-full"
           />
         </div>
-      </main>
 
-      <!-- Controls -->
-      <aside class="flex w-80 shrink-0 flex-col border-l">
-        <div class="border-b px-4 py-2.5">
-          <p class="text-sm font-medium tracking-tight">{{ activeNode?.type ?? "No selection" }}</p>
+        <!-- Component palette -->
+        <div class="absolute bottom-8 left-1/2 z-30 -translate-x-1/2">
+          <ShaderComponentBar :groups="grouped" @add="addComponent" />
+        </div>
+      </div>
+    </main>
+
+    <!-- Properties (docked) -->
+    <aside class="bg-card flex w-80 shrink-0 flex-col border-l">
+      <template v-if="activeNode">
+        <div class="flex h-14 shrink-0 flex-col justify-center border-b px-4">
+          <p class="text-sm font-medium tracking-tight">{{ activeNode.type }}</p>
           <p class="text-muted-foreground text-xs tracking-tight">Properties</p>
         </div>
         <div class="flex-1 overflow-y-auto px-4 py-3">
-          <template v-if="activeNode">
-            <ShaderControls :key="activeNode.id" :node="activeNode" />
-            <ShaderLayerProps
-              :key="`layer-${activeNode.id}`"
-              :node="activeNode"
-              :layers="flatLayers"
-            />
-          </template>
-          <p v-else class="text-muted-foreground py-8 text-center text-xs tracking-tight">
-            Select a layer to edit its properties.
-          </p>
+          <ShaderControls :key="activeNode.id" :node="activeNode" />
+          <ShaderLayerProps
+            :key="`layer-${activeNode.id}`"
+            :node="activeNode"
+            :layers="flatLayers"
+          />
         </div>
-      </aside>
-    </div>
+      </template>
+      <div v-else class="flex flex-1 items-center justify-center p-6">
+        <p class="text-muted-foreground text-center text-sm tracking-tight">
+          Select a layer to edit its properties.
+        </p>
+      </div>
+    </aside>
   </div>
 </template>
