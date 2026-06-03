@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,8 +12,72 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $code
+ * @property int $promotion_rule_id
+ * @property int|null $usage_limit
+ * @property int|null $usage_limit_per_email
+ * @property int $usage_count
+ * @property Carbon|null $valid_from
+ * @property Carbon|null $valid_until
+ * @property bool $is_active
+ * @property string|null $issued_to_email
+ * @property array<array-key, mixed>|null $metadata
+ * @property int|null $event_id
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, AppliedAdjustment> $appliedAdjustments
+ * @property-read int|null $applied_adjustments_count
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Event|null $event
+ * @property-read PromotionRule|null $promotionRule
+ * @property-read User|null $updater
+ * @property-read Collection<int, PromoCodeUsage> $usages
+ * @property-read int|null $usages_count
+ *
+ * @method static Builder<static>|PromoCode active()
+ * @method static \Database\Factories\PromoCodeFactory factory($count = null, $state = [])
+ * @method static Builder<static>|PromoCode newModelQuery()
+ * @method static Builder<static>|PromoCode newQuery()
+ * @method static Builder<static>|PromoCode onlyTrashed()
+ * @method static Builder<static>|PromoCode query()
+ * @method static Builder<static>|PromoCode whereCode($value)
+ * @method static Builder<static>|PromoCode whereCreatedAt($value)
+ * @method static Builder<static>|PromoCode whereCreatedBy($value)
+ * @method static Builder<static>|PromoCode whereDeletedAt($value)
+ * @method static Builder<static>|PromoCode whereDeletedBy($value)
+ * @method static Builder<static>|PromoCode whereEventId($value)
+ * @method static Builder<static>|PromoCode whereId($value)
+ * @method static Builder<static>|PromoCode whereIsActive($value)
+ * @method static Builder<static>|PromoCode whereIssuedToEmail($value)
+ * @method static Builder<static>|PromoCode whereMetadata($value)
+ * @method static Builder<static>|PromoCode wherePromotionRuleId($value)
+ * @method static Builder<static>|PromoCode whereUlid($value)
+ * @method static Builder<static>|PromoCode whereUpdatedAt($value)
+ * @method static Builder<static>|PromoCode whereUpdatedBy($value)
+ * @method static Builder<static>|PromoCode whereUsageCount($value)
+ * @method static Builder<static>|PromoCode whereUsageLimit($value)
+ * @method static Builder<static>|PromoCode whereUsageLimitPerEmail($value)
+ * @method static Builder<static>|PromoCode whereValidFrom($value)
+ * @method static Builder<static>|PromoCode whereValidUntil($value)
+ * @method static Builder<static>|PromoCode withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|PromoCode withinWindow(?\Illuminate\Support\Carbon $at = null)
+ * @method static Builder<static>|PromoCode withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class PromoCode extends Model
 {
     use HasFactory;

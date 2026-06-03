@@ -465,6 +465,66 @@ class MediaController extends Controller
         }
     }
 
+    /**
+     * Reorder media within a single owner + collection.
+     *
+     * Generic, context-agnostic sibling to bulkDelete: works for any model's
+     * media (e.g. global Hotel gallery, event-scoped Room gallery) without a
+     * per-context route. All-or-nothing - the full coherent set is required so
+     * Spatie's setNewOrder does not interleave unrelated sequences.
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'media_ids' => ['required', 'array', 'min:1'],
+            'media_ids.*' => ['required', 'integer'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $mediaIds = $request->input('media_ids');
+        $media = Media::whereIn('id', $mediaIds)->get();
+
+        if ($media->count() !== count($mediaIds)) {
+            return response()->json([
+                'message' => 'One or more media not found',
+            ], 422);
+        }
+
+        $first = $media->first();
+
+        $isCoherent = $media->every(fn (Media $item): bool => $item->model_type === $first->model_type
+            && (int) $item->model_id === (int) $first->model_id
+            && $item->collection_name === $first->collection_name);
+
+        if (! $isCoherent) {
+            return response()->json([
+                'message' => 'All media must belong to the same model and collection',
+            ], 422);
+        }
+
+        foreach ($media as $item) {
+            if (! $this->authorizeDelete($item)) {
+                return response()->json([
+                    'message' => 'Unauthorized to reorder this media',
+                ], 403);
+            }
+        }
+
+        Media::setNewOrder($mediaIds);
+
+        $this->clearOwnerResponseCache($first);
+
+        return response()->json([
+            'message' => 'Order updated',
+        ]);
+    }
+
     public function download(int $mediaId): StreamedResponse|BinaryFileResponse
     {
         $media = Media::findOrFail($mediaId);
@@ -695,8 +755,32 @@ class MediaController extends Controller
             return true;
         }
 
-        // Admin can delete any media
+        // Users who can manage (update) the owning model may manage its media.
+        $manageAbility = $this->mediaOwnerManageAbility($media);
+        if ($manageAbility !== null && auth()->user()->can($manageAbility)) {
+            return true;
+        }
+
+        // Global media admin can manage any media
         return auth()->user()->can('admin.media');
+    }
+
+    /**
+     * The permission that lets a user manage (reorder/delete) the media owned
+     * by a given model. Mirrors the per-resource update gate used by the
+     * resource's own routes (e.g. hotels.update guards hotel media endpoints).
+     */
+    protected function mediaOwnerManageAbility(Media $media): ?string
+    {
+        return match ($media->model_type) {
+            Hotel::class, HotelTransferOption::class => 'hotels.update',
+            RoomType::class => 'room_types.update',
+            Brand::class, PromotionPost::class => 'brands.update',
+            Partner::class => 'partners.update',
+            Guest::class => 'guests.update',
+            Post::class => 'posts.update',
+            default => null,
+        };
     }
 
     /**

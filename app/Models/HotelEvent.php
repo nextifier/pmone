@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,14 +26,26 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Hotel|null $hotel
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
  * @property-read Event|null $event
+ * @property-read Hotel|null $hotel
  *
  * @method static Builder<static>|HotelEvent active()
- * @method static Builder<static>|HotelEvent ordered(string $direction = 'asc')
  * @method static Builder<static>|HotelEvent newModelQuery()
  * @method static Builder<static>|HotelEvent newQuery()
+ * @method static Builder<static>|HotelEvent ordered(string $direction = 'asc')
  * @method static Builder<static>|HotelEvent query()
+ * @method static Builder<static>|HotelEvent whereCreatedAt($value)
+ * @method static Builder<static>|HotelEvent whereCreatedBy($value)
+ * @method static Builder<static>|HotelEvent whereEventId($value)
+ * @method static Builder<static>|HotelEvent whereHotelId($value)
+ * @method static Builder<static>|HotelEvent whereId($value)
+ * @method static Builder<static>|HotelEvent whereIsActive($value)
+ * @method static Builder<static>|HotelEvent whereNotes($value)
+ * @method static Builder<static>|HotelEvent whereOrderColumn($value)
+ * @method static Builder<static>|HotelEvent whereUpdatedAt($value)
+ * @method static Builder<static>|HotelEvent whereUpdatedBy($value)
  *
  * @mixin \Eloquent
  */

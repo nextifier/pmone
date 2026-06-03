@@ -51,7 +51,7 @@ async function onFile(event) {
     shapeName.value = file.name.replace(/\.(svg|png)$/i, "");
     emit("update:modelValue", generatedUrl);
   } catch (e) {
-    error.value = e?.message || "Gagal mengonversi file.";
+    error.value = e?.message || "Failed to convert the file.";
   } finally {
     converting.value = false;
   }
@@ -114,7 +114,7 @@ function clearShape() {
       </Button>
       <Button
         v-if="hasShape"
-        v-tippy="'Hapus shape'"
+        v-tippy="'Remove shape'"
         variant="outline"
         size="iconSm"
         type="button"
@@ -132,10 +132,10 @@ function clearShape() {
     </div>
     <p v-if="error" class="text-destructive text-xs tracking-tight">{{ error }}</p>
     <p v-else-if="shapeName" class="text-muted-foreground text-xs tracking-tight">
-      Dikonversi dari {{ shapeName }}. Download .bin untuk dipakai saat export.
+      Converted from {{ shapeName }}. Download the .bin to use on export.
     </p>
     <p v-else class="text-muted-foreground text-xs tracking-tight">
-      Upload logo SVG/PNG (otomatis jadi SDF), atau tempel URL .bin yang sudah ada.
+      Upload an SVG/PNG logo (auto-converted to SDF), or paste an existing .bin URL.
     </p>
   </div>
 </template>

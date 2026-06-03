@@ -299,6 +299,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // SDF Converter - master & admin only
+  if (hasAnyRole(["master", "admin"])) {
+    toolsItems.push({
+      label: "SDF Converter",
+      path: "/tools/sdf-converter",
+      iconName: "hugeicons:exchange-01",
+    });
+  }
+
   // Forms - requires forms.read permission
   if (hasPermission("forms.read")) {
     toolsItems.push({

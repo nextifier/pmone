@@ -305,15 +305,14 @@
                 :max-file-size="'20MB'"
                 :accepted-file-types="['image/jpeg', 'image/png', 'image/webp']"
               />
-              <div v-if="editingRoom?.gallery?.length" class="grid grid-cols-4 gap-2 pt-2">
-                <div
-                  v-for="img in editingRoom.gallery"
-                  :key="img.id"
-                  class="bg-muted aspect-square overflow-hidden rounded"
-                >
-                  <img :src="img.sm || img.url" :alt="editingRoom.name" class="size-full object-cover" />
-                </div>
-              </div>
+              <GalleryManager
+                v-if="editGallery.length"
+                v-model:items="editGallery"
+                :can-delete="canDelete"
+                :alt="editingRoom?.name || 'Room'"
+                class="pt-2"
+                @changed="refresh"
+              />
             </div>
 
             <div class="flex flex-wrap gap-x-6 gap-y-3">
@@ -367,6 +366,7 @@
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Lightbox } from "@/components/ui/lightbox";
 import InputFile from "@/components/InputFile.vue";
+import GalleryManager from "@/components/GalleryManager.vue";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -414,6 +414,7 @@ const dialogOpen = ref(false);
 const editingRoom = ref(null);
 const saving = ref(false);
 const galleryFiles = ref([]);
+const editGallery = ref([]);
 
 const form = reactive({
   name: "",
@@ -448,6 +449,7 @@ const resetForm = () => {
     pricing_periods: [],
   });
   galleryFiles.value = [];
+  editGallery.value = [];
 };
 
 const addPricingPeriod = () => {
@@ -517,6 +519,7 @@ const openEditDialog = (room) => {
       : [],
   });
   galleryFiles.value = [];
+  editGallery.value = Array.isArray(room.gallery) ? room.gallery.map((image) => ({ ...image })) : [];
   dialogOpen.value = true;
 };
 

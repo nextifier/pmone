@@ -18,7 +18,6 @@ use Illuminate\Support\Str;
  * @property string $provider
  * @property string|null $label
  * @property string $mode
- * @property CheckoutMethod $checkout_method
  * @property bool $is_active
  * @property string|null $secret_key
  * @property string|null $public_key
@@ -29,6 +28,7 @@ use Illuminate\Support\Str;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property CheckoutMethod $checkout_method
  * @property-read User|null $creator
  * @property-read Project|null $project
  * @property-read User|null $updater
@@ -40,6 +40,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway whereCheckoutMethod($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway whereConfig($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectPaymentGateway whereCreatedBy($value)

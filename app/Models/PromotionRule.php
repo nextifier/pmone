@@ -7,6 +7,7 @@ use App\Enums\AdjustmentValueType;
 use App\Enums\PenaltyTriggerType;
 use App\Enums\StackingMode;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,8 +16,97 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property AdjustmentKind $kind
+ * @property AdjustmentValueType $value_type
+ * @property numeric $value
+ * @property array<array-key, mixed>|null $value_config
+ * @property numeric|null $max_discount_amount
+ * @property numeric|null $min_purchase_amount
+ * @property bool $applies_before_tax
+ * @property StackingMode $stacking_mode
+ * @property int $priority
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $ends_at
+ * @property bool $is_active
+ * @property array<array-key, mixed>|null $target_types
+ * @property array<array-key, mixed>|null $applicability
+ * @property PenaltyTriggerType $trigger_type
+ * @property array<array-key, mixed>|null $trigger_config
+ * @property bool $revert_usage_on_cancel
+ * @property bool $is_system_manual
+ * @property int|null $event_id
+ * @property int|null $project_id
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, AppliedAdjustment> $appliedAdjustments
+ * @property-read int|null $applied_adjustments_count
+ * @property-read Collection<int, PromoCode> $codes
+ * @property-read int|null $codes_count
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Event|null $event
+ * @property-read Project|null $project
+ * @property-read User|null $updater
+ *
+ * @method static Builder<static>|PromotionRule active()
+ * @method static \Database\Factories\PromotionRuleFactory factory($count = null, $state = [])
+ * @method static Builder<static>|PromotionRule newModelQuery()
+ * @method static Builder<static>|PromotionRule newQuery()
+ * @method static Builder<static>|PromotionRule ofKind(\App\Enums\AdjustmentKind|string $kind)
+ * @method static Builder<static>|PromotionRule onlyTrashed()
+ * @method static Builder<static>|PromotionRule query()
+ * @method static Builder<static>|PromotionRule whereApplicability($value)
+ * @method static Builder<static>|PromotionRule whereAppliesBeforeTax($value)
+ * @method static Builder<static>|PromotionRule whereCreatedAt($value)
+ * @method static Builder<static>|PromotionRule whereCreatedBy($value)
+ * @method static Builder<static>|PromotionRule whereDeletedAt($value)
+ * @method static Builder<static>|PromotionRule whereDeletedBy($value)
+ * @method static Builder<static>|PromotionRule whereDescription($value)
+ * @method static Builder<static>|PromotionRule whereEndsAt($value)
+ * @method static Builder<static>|PromotionRule whereEventId($value)
+ * @method static Builder<static>|PromotionRule whereId($value)
+ * @method static Builder<static>|PromotionRule whereIsActive($value)
+ * @method static Builder<static>|PromotionRule whereIsSystemManual($value)
+ * @method static Builder<static>|PromotionRule whereKind($value)
+ * @method static Builder<static>|PromotionRule whereMaxDiscountAmount($value)
+ * @method static Builder<static>|PromotionRule whereMinPurchaseAmount($value)
+ * @method static Builder<static>|PromotionRule whereName($value)
+ * @method static Builder<static>|PromotionRule wherePriority($value)
+ * @method static Builder<static>|PromotionRule whereProjectId($value)
+ * @method static Builder<static>|PromotionRule whereRevertUsageOnCancel($value)
+ * @method static Builder<static>|PromotionRule whereSlug($value)
+ * @method static Builder<static>|PromotionRule whereStackingMode($value)
+ * @method static Builder<static>|PromotionRule whereStartsAt($value)
+ * @method static Builder<static>|PromotionRule whereTargetTypes($value)
+ * @method static Builder<static>|PromotionRule whereTriggerConfig($value)
+ * @method static Builder<static>|PromotionRule whereTriggerType($value)
+ * @method static Builder<static>|PromotionRule whereUlid($value)
+ * @method static Builder<static>|PromotionRule whereUpdatedAt($value)
+ * @method static Builder<static>|PromotionRule whereUpdatedBy($value)
+ * @method static Builder<static>|PromotionRule whereValue($value)
+ * @method static Builder<static>|PromotionRule whereValueConfig($value)
+ * @method static Builder<static>|PromotionRule whereValueType($value)
+ * @method static Builder<static>|PromotionRule withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|PromotionRule withinWindow(?\Illuminate\Support\Carbon $at = null)
+ * @method static Builder<static>|PromotionRule withoutTrashed()
+ *
+ * @mixin \Eloquent
+ */
 class PromotionRule extends Model
 {
     use HasFactory;

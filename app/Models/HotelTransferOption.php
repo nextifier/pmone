@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -24,24 +25,25 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property string $label
  * @property TransferDirection $direction
  * @property string|null $vehicle_type
- * @property int $max_pax
+ * @property int|null $max_pax
  * @property numeric $price
  * @property bool $is_active
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $more_details
  * @property int|null $order_column
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \App\Models\Hotel|null $hotel
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Hotel|null $hotel
+ * @property-read User|null $updater
+ *
  * @method static Builder<static>|HotelTransferOption active()
  * @method static \Database\Factories\HotelTransferOptionFactory factory($count = null, $state = [])
  * @method static Builder<static>|HotelTransferOption newModelQuery()
@@ -69,6 +71,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|HotelTransferOption whereVehicleType($value)
  * @method static Builder<static>|HotelTransferOption withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|HotelTransferOption withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class HotelTransferOption extends Model implements Sortable

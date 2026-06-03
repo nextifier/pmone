@@ -73,15 +73,23 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property numeric $penalty_amount
+ * @property string|null $promo_code_applied
  * @property Carbon|null $magic_link_expires_at
- * @property int|null $payment_gateway_id
  * @property string|null $payment_channel
  * @property string|null $payment_destination
  * @property string|null $xendit_payment_id
+ * @property int|null $payment_gateway_id
+ * @property-read Collection<int, AppliedAdjustment> $activeAdjustments
+ * @property-read int|null $active_adjustments_count
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read Collection<int, AppliedAdjustment> $adjustments
+ * @property-read int|null $adjustments_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
+ * @property-read Collection<int, AppliedAdjustment> $discountAdjustments
+ * @property-read int|null $discount_adjustments_count
  * @property-read Event|null $event
  * @property-read Hotel|null $hotel
  * @property-read Collection<int, ReservationItem> $items
@@ -89,6 +97,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read ProjectPaymentGateway|null $paymentGateway
+ * @property-read Collection<int, AppliedAdjustment> $penaltyAdjustments
+ * @property-read int|null $penalty_adjustments_count
  * @property-read Collection<int, ReservationTransfer> $transfers
  * @property-read int|null $transfers_count
  * @property-read User|null $updater
@@ -129,7 +139,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Reservation wherePaymentGatewayId($value)
  * @method static Builder<static>|Reservation wherePaymentMethod($value)
  * @method static Builder<static>|Reservation wherePaymentUrl($value)
+ * @method static Builder<static>|Reservation wherePenaltyAmount($value)
  * @method static Builder<static>|Reservation whereProjectUsername($value)
+ * @method static Builder<static>|Reservation wherePromoCodeApplied($value)
  * @method static Builder<static>|Reservation whereRefundAmount($value)
  * @method static Builder<static>|Reservation whereRefundReason($value)
  * @method static Builder<static>|Reservation whereRefundedAt($value)

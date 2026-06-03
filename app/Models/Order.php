@@ -23,14 +23,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $brand_event_id
  * @property string $order_number
  * @property OperationalStatus $operational_status
- * @property PaymentStatus $payment_status
- * @property string|null $cancellation_reason
- * @property string|null $order_period
  * @property string|null $notes
- * @property numeric $subtotal
  * @property numeric $discount_amount
- * @property numeric $penalty_amount
- * @property string|null $promo_code_applied
+ * @property numeric $subtotal
  * @property numeric $tax_rate
  * @property numeric $tax_amount
  * @property numeric $total
@@ -40,12 +35,25 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property PaymentStatus $payment_status
+ * @property string|null $cancellation_reason
+ * @property string|null $order_period
+ * @property numeric $penalty_amount
+ * @property string|null $promo_code_applied
+ * @property-read Collection<int, AppliedAdjustment> $activeAdjustments
+ * @property-read int|null $active_adjustments_count
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read Collection<int, AppliedAdjustment> $adjustments
+ * @property-read int|null $adjustments_count
  * @property-read BrandEvent $brandEvent
  * @property-read User|null $creator
+ * @property-read Collection<int, AppliedAdjustment> $discountAdjustments
+ * @property-read int|null $discount_adjustments_count
  * @property-read Collection<int, OrderItem> $items
  * @property-read int|null $items_count
+ * @property-read Collection<int, AppliedAdjustment> $penaltyAdjustments
+ * @property-read int|null $penalty_adjustments_count
  * @property-read User|null $updater
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order byOperationalStatus(string $status)
@@ -54,6 +62,28 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereBrandEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCancellationReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereConfirmedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOperationalStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderPeriod($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaymentStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePenaltyAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePromoCodeApplied($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubmittedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedBy($value)
  *
  * @mixin \Eloquent
  */

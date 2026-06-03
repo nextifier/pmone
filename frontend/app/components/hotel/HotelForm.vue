@@ -267,32 +267,7 @@
               Multiple images for hotel detail page. Up to 20 files, max 20MB each.
             </p>
 
-            <div
-              v-if="existingGallery.length"
-              class="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5"
-            >
-              <div
-                v-for="item in existingGallery"
-                :key="item.id"
-                class="bg-muted relative aspect-square overflow-hidden rounded-lg border"
-              >
-                <img
-                  :src="item.sm || item.md || item.url"
-                  :alt="item.name || 'Gallery'"
-                  loading="lazy"
-                  class="size-full object-cover"
-                />
-                <button
-                  type="button"
-                  :disabled="deletingMediaId === item.id"
-                  class="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-black/55 text-white shadow-sm ring ring-white/20 backdrop-blur-sm transition hover:bg-black disabled:opacity-50"
-                  @click="removeGalleryItem(item)"
-                >
-                  <Spinner v-if="deletingMediaId === item.id" class="size-3.5" />
-                  <Icon v-else name="hugeicons:delete-01" class="size-3.5" />
-                </button>
-              </div>
-            </div>
+            <GalleryManager v-if="existingGallery.length" v-model:items="existingGallery" />
 
             <InputFile
               v-model="galleryFiles"
@@ -321,6 +296,7 @@
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import InputFile from "@/components/InputFile.vue";
 import InputFileImage from "@/components/InputFileImage.vue";
+import GalleryManager from "@/components/GalleryManager.vue";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -383,25 +359,6 @@ const featuredFiles = ref([]);
 const galleryFiles = ref([]);
 const initialFeatured = ref(null);
 const existingGallery = ref([]);
-const deletingMediaId = ref(null);
-
-const client = useSanctumClient();
-
-const removeGalleryItem = async (item) => {
-  if (!item?.id) return;
-  deletingMediaId.value = item.id;
-  try {
-    await client(`/api/media/${item.id}`, { method: "DELETE" });
-    existingGallery.value = existingGallery.value.filter((g) => g.id !== item.id);
-  } catch (err) {
-    const { toast } = await import("vue-sonner");
-    toast.error("Failed to remove image", {
-      description: err?.data?.message || err?.message,
-    });
-  } finally {
-    deletingMediaId.value = null;
-  }
-};
 
 const isIndonesia = computed(() => form.address.country === "Indonesia");
 

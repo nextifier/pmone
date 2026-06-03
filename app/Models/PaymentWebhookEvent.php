@@ -28,6 +28,27 @@ use Illuminate\Support\Str;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Project|null $project
+ *
+ * @method static \Database\Factories\PaymentWebhookEventFactory factory($count = null, $state = [])
+ * @method static Builder<static>|PaymentWebhookEvent forProvider(string $provider)
+ * @method static Builder<static>|PaymentWebhookEvent newModelQuery()
+ * @method static Builder<static>|PaymentWebhookEvent newQuery()
+ * @method static Builder<static>|PaymentWebhookEvent query()
+ * @method static Builder<static>|PaymentWebhookEvent whereCreatedAt($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereEventType($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereExternalId($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereHttpStatus($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereId($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereIpAddress($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereMessage($value)
+ * @method static Builder<static>|PaymentWebhookEvent wherePayload($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereProjectId($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereProvider($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereStatus($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereUlid($value)
+ * @method static Builder<static>|PaymentWebhookEvent whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
  */
 class PaymentWebhookEvent extends Model
 {

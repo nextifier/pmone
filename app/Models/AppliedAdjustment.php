@@ -9,8 +9,63 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property string $adjustable_type
+ * @property int $adjustable_id
+ * @property int|null $promotion_rule_id
+ * @property int|null $promo_code_id
+ * @property AdjustmentKind $kind
+ * @property string $label
+ * @property AdjustmentValueType $value_type
+ * @property numeric $value
+ * @property array<array-key, mixed>|null $value_config
+ * @property numeric $base_amount
+ * @property numeric $amount
+ * @property array<array-key, mixed>|null $line_breakdown
+ * @property array<array-key, mixed>|null $rule_snapshot
+ * @property string $applied_by
+ * @property Carbon|null $voided_at
+ * @property string|null $void_reason
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Model|\Eloquent $adjustable
+ * @property-read PromoCode|null $promoCode
+ * @property-read PromotionRule|null $promotionRule
+ * @property-read PromoCodeUsage|null $usage
+ *
+ * @method static Builder<static>|AppliedAdjustment active()
+ * @method static Builder<static>|AppliedAdjustment newModelQuery()
+ * @method static Builder<static>|AppliedAdjustment newQuery()
+ * @method static Builder<static>|AppliedAdjustment ofKind(\App\Enums\AdjustmentKind|string $kind)
+ * @method static Builder<static>|AppliedAdjustment query()
+ * @method static Builder<static>|AppliedAdjustment whereAdjustableId($value)
+ * @method static Builder<static>|AppliedAdjustment whereAdjustableType($value)
+ * @method static Builder<static>|AppliedAdjustment whereAmount($value)
+ * @method static Builder<static>|AppliedAdjustment whereAppliedBy($value)
+ * @method static Builder<static>|AppliedAdjustment whereBaseAmount($value)
+ * @method static Builder<static>|AppliedAdjustment whereCreatedAt($value)
+ * @method static Builder<static>|AppliedAdjustment whereId($value)
+ * @method static Builder<static>|AppliedAdjustment whereKind($value)
+ * @method static Builder<static>|AppliedAdjustment whereLabel($value)
+ * @method static Builder<static>|AppliedAdjustment whereLineBreakdown($value)
+ * @method static Builder<static>|AppliedAdjustment wherePromoCodeId($value)
+ * @method static Builder<static>|AppliedAdjustment wherePromotionRuleId($value)
+ * @method static Builder<static>|AppliedAdjustment whereRuleSnapshot($value)
+ * @method static Builder<static>|AppliedAdjustment whereUlid($value)
+ * @method static Builder<static>|AppliedAdjustment whereUpdatedAt($value)
+ * @method static Builder<static>|AppliedAdjustment whereValue($value)
+ * @method static Builder<static>|AppliedAdjustment whereValueConfig($value)
+ * @method static Builder<static>|AppliedAdjustment whereValueType($value)
+ * @method static Builder<static>|AppliedAdjustment whereVoidReason($value)
+ * @method static Builder<static>|AppliedAdjustment whereVoidedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class AppliedAdjustment extends Model
 {
     use HasFactory;

@@ -33,7 +33,6 @@ use Spatie\Tags\Tag;
  * @property string $slug
  * @property string $name
  * @property string|null $description
- * @property array<array-key, mixed>|null $address
  * @property string|null $contact_email
  * @property string|null $contact_phone
  * @property numeric $commission_rate
@@ -46,7 +45,6 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
- * @property int $event_id
  * @property int|null $star_rating
  * @property string|null $google_maps_link
  * @property string|null $google_maps_embed_src
@@ -54,17 +52,21 @@ use Spatie\Tags\Tag;
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $more_details
  * @property int|null $order_column
- * @property-read string|null $street
- * @property-read string|null $city
- * @property-read string|null $province
- * @property-read string|null $country
+ * @property array<array-key, mixed>|null $address
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, HotelEventAllotment> $allotments
  * @property-read int|null $allotments_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
- * @property-read Event|null $event
+ * @property-read Collection<int, Event> $events
+ * @property-read int|null $events_count
+ * @property-read string|null $city
+ * @property-read string|null $country
+ * @property-read string|null $province
+ * @property-read string|null $street
+ * @property-read Collection<int, HotelEvent> $hotelEvents
+ * @property-read int|null $hotel_events_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read Collection<int, Reservation> $reservations
@@ -78,6 +80,7 @@ use Spatie\Tags\Tag;
  * @property-read User|null $updater
  *
  * @method static Builder<static>|Hotel active()
+ * @method static Builder<static>|Hotel attachedToEvent(\App\Models\Event|int $event)
  * @method static \Database\Factories\HotelFactory factory($count = null, $state = [])
  * @method static Builder<static>|Hotel findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|Hotel newModelQuery()
@@ -95,7 +98,6 @@ use Spatie\Tags\Tag;
  * @method static Builder<static>|Hotel whereDeletedAt($value)
  * @method static Builder<static>|Hotel whereDeletedBy($value)
  * @method static Builder<static>|Hotel whereDescription($value)
- * @method static Builder<static>|Hotel whereEventId($value)
  * @method static Builder<static>|Hotel whereGoogleMapsEmbedSrc($value)
  * @method static Builder<static>|Hotel whereGoogleMapsLink($value)
  * @method static Builder<static>|Hotel whereId($value)

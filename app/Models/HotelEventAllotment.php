@@ -37,6 +37,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property array<array-key, mixed>|null $settings
  * @property array<array-key, mixed>|null $more_details
  * @property int|null $order_column
+ * @property numeric|null $base_rate_override
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read User|null $creator
@@ -53,6 +54,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|HotelEventAllotment ordered(string $direction = 'asc')
  * @method static Builder<static>|HotelEventAllotment overlapsRange(string $checkIn, string $checkOut)
  * @method static Builder<static>|HotelEventAllotment query()
+ * @method static Builder<static>|HotelEventAllotment whereBaseRateOverride($value)
  * @method static Builder<static>|HotelEventAllotment whereCreatedAt($value)
  * @method static Builder<static>|HotelEventAllotment whereCreatedBy($value)
  * @method static Builder<static>|HotelEventAllotment whereDeletedAt($value)

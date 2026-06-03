@@ -37,6 +37,11 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        // SVG/PNG -> SDF conversion is CPU-intensive; throttle tighter than the API.
+        RateLimiter::for('sdf-convert', function (Request $request) {
+            return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
+        });
+
         // Register observers
         ContactFormSubmission::observe(ContactFormSubmissionObserver::class);
         Project::observe(ProjectObserver::class);

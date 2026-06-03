@@ -7,8 +7,44 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $ulid
+ * @property int $promo_code_id
+ * @property int|null $applied_adjustment_id
+ * @property string $adjustable_type
+ * @property int $adjustable_id
+ * @property string $email
+ * @property int|null $user_id
+ * @property numeric $amount_discounted
+ * @property Carbon|null $voided_at
+ * @property Carbon $created_at
+ * @property-read Model|\Eloquent $adjustable
+ * @property-read AppliedAdjustment|null $appliedAdjustment
+ * @property-read PromoCode|null $promoCode
+ * @property-read User|null $user
+ *
+ * @method static Builder<static>|PromoCodeUsage active()
+ * @method static Builder<static>|PromoCodeUsage newModelQuery()
+ * @method static Builder<static>|PromoCodeUsage newQuery()
+ * @method static Builder<static>|PromoCodeUsage query()
+ * @method static Builder<static>|PromoCodeUsage whereAdjustableId($value)
+ * @method static Builder<static>|PromoCodeUsage whereAdjustableType($value)
+ * @method static Builder<static>|PromoCodeUsage whereAmountDiscounted($value)
+ * @method static Builder<static>|PromoCodeUsage whereAppliedAdjustmentId($value)
+ * @method static Builder<static>|PromoCodeUsage whereCreatedAt($value)
+ * @method static Builder<static>|PromoCodeUsage whereEmail($value)
+ * @method static Builder<static>|PromoCodeUsage whereId($value)
+ * @method static Builder<static>|PromoCodeUsage wherePromoCodeId($value)
+ * @method static Builder<static>|PromoCodeUsage whereUlid($value)
+ * @method static Builder<static>|PromoCodeUsage whereUserId($value)
+ * @method static Builder<static>|PromoCodeUsage whereVoidedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class PromoCodeUsage extends Model
 {
     use HasFactory;

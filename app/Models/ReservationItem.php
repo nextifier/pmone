@@ -22,10 +22,10 @@ use Illuminate\Support\Str;
  * @property string|null $guest_identity
  * @property numeric $rate_per_night
  * @property numeric $subtotal
- * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property array<array-key, mixed>|null $daily_breakdown
+ * @property string|null $notes
  * @property-read HotelEventAllotment|null $allotment
  * @property-read Reservation|null $reservation
  * @property-read RoomType|null $roomType
@@ -43,6 +43,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereGuestName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereNights($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereQty($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereRatePerNight($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ReservationItem whereReservationId($value)

@@ -63,6 +63,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property numeric $onsite_penalty_rate
  * @property string|null $badge_vip_info
  * @property array<array-key, mixed>|null $branding
+ * @property bool $hotel_reservation_enabled
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -88,6 +89,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read string|null $start_time
  * @property-read Collection<int, Guest> $guests
  * @property-read int|null $guests_count
+ * @property-read Collection<int, HotelEvent> $hotelEvents
+ * @property-read int|null $hotel_events_count
+ * @property-read Collection<int, Hotel> $hotels
+ * @property-read int|null $hotels_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read Collection<int, Order> $orders
@@ -120,6 +125,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Event whereEditionNumber($value)
  * @method static Builder<static>|Event whereEndDate($value)
  * @method static Builder<static>|Event whereHall($value)
+ * @method static Builder<static>|Event whereHotelReservationEnabled($value)
  * @method static Builder<static>|Event whereId($value)
  * @method static Builder<static>|Event whereIsActive($value)
  * @method static Builder<static>|Event whereLocation($value)

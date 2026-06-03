@@ -152,7 +152,7 @@ function loadImageFromFile(file) {
     image.onload = () => resolve({ image, revoke: () => URL.revokeObjectURL(url) });
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("File logo tidak bisa dibaca. Pastikan SVG atau PNG yang valid."));
+      reject(new Error("Could not read the file. Make sure it is a valid SVG or PNG."));
     };
     image.src = url;
   });
@@ -265,7 +265,7 @@ export async function imageFileToSdf(file, { size = SDF_SIZE, margin = 0.06, sup
   const hi = size * supersample;
   const { mask, insideCount } = await rasterizeToMask(file, hi, margin);
   if (insideCount === 0) {
-    throw new Error("Tidak ada bentuk yang terdeteksi. Gunakan logo dengan area solid atau latar transparan.");
+    throw new Error("No shape detected. Use a logo with a solid area or a transparent background.");
   }
   const sdfHi = maskToSignedSdf(mask, hi, hi);
   const sdf = supersample === 1 ? sdfHi : downsampleSdf(sdfHi, hi, size, supersample);
