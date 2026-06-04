@@ -34,7 +34,14 @@ class AppServiceProvider extends ServiceProvider
     {
         // Configure rate limiters
         RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Public short-link / slug resolution is read-only and high-traffic. Anonymous
+        // visitors on mobile carriers share one public IP via carrier-grade NAT, so a
+        // tight per-IP limit makes innocent users hit 429. Allow a higher ceiling here.
+        RateLimiter::for('short-link', function (Request $request) {
+            return Limit::perMinute(300)->by($request->user()?->id ?: $request->ip());
         });
 
         // SVG/PNG -> SDF conversion is CPU-intensive; throttle tighter than the API.

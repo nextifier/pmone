@@ -707,11 +707,11 @@ Route::prefix('projects')->group(function () {
 
 // Unified slug resolution (user profile or short link)
 Route::get('/resolve/{slug}', [ProfileController::class, 'resolveSlug'])
-    ->middleware(['throttle:api', CacheResponse::for(3600, 'short-links')]);
+    ->middleware(['throttle:short-link', CacheResponse::for(3600, 'short-links')]);
 
 // Short link resolution (public - backward compatibility)
 Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])
-    ->middleware('throttle:api');
+    ->middleware('throttle:short-link');
 
 // Tracking routes (public - can track anonymous visitors)
 Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
