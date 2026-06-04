@@ -14,12 +14,8 @@
         {{ error.statusMessage }}
       </h1>
 
-      <p v-if="error.message" class="mx-auto mt-1 max-w-2xl text-balance text-sm">
-        {{
-          error.statusCode === 404
-            ? "We couldn’t find the page you’re looking for. It might have moved, been renamed, or maybe it never existed in the first place."
-            : error.message
-        }}
+      <p v-if="description" class="mx-auto mt-1 max-w-2xl text-balance text-sm">
+        {{ description }}
       </p>
 
       <button
@@ -36,6 +32,17 @@
 <script setup>
 const props = defineProps({
   error: Object,
+});
+
+const description = computed(() => {
+  switch (props.error.statusCode) {
+    case 404:
+      return "We couldn’t find the page you’re looking for. It might have moved, been renamed, or maybe it never existed in the first place.";
+    case 429:
+      return "You’ve made too many requests in a short time. Please wait a moment and try again.";
+    default:
+      return props.error.message;
+  }
 });
 
 const handleError = () => clearError({ redirect: "/" });
