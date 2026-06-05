@@ -17,11 +17,11 @@
             class="text-muted-foreground w-16 text-right text-sm font-medium tracking-tight lg:w-auto lg:text-left"
             >Amount</label
           >
-          <Input
+          <InputNumber
             v-model="calculatorAmount"
-            type="number"
+            decimal
             placeholder="Enter amount"
-            @input="calculateConversion"
+            @update:model-value="calculateConversion"
           />
         </div>
 

@@ -91,36 +91,46 @@ it('listing gateways returns masked values only', function () {
     }
 });
 
-it('orders gateways live-first then test by created_at, ignoring active state', function () {
-    // The oldest gateway overall is an ACTIVE test one. Under the previous
-    // orderByDesc('is_active') it floated to the top and the order shifted on
-    // every toggle. The stable order keeps Live above Test and sorts each group
-    // oldest-first, so this active test gateway lands third — not first.
+it('orders gateways by provider, then live-first, then created_at, ignoring active state', function () {
+    // Created in a scrambled order on purpose. Xendit holds the oldest-created
+    // and the ACTIVE gateways, but ordering is provider-first (midtrans before
+    // xendit), then Live before Test, then oldest-created first — active state
+    // never floats a row, so toggling Active does not shift the list.
     ProjectPaymentGateway::factory()->for($this->project)->create([
-        'mode' => 'test', 'label' => 'mmm-active-test', 'is_active' => true,
-        'created_at' => now()->subDays(20),
+        'provider' => 'xendit', 'mode' => 'test', 'label' => 'xen-test-oldest-active',
+        'is_active' => true, 'created_at' => now()->subDays(30),
     ]);
     ProjectPaymentGateway::factory()->for($this->project)->create([
-        'mode' => 'live', 'label' => 'zzz-oldest-live', 'is_active' => false,
-        'created_at' => now()->subDays(10),
+        'provider' => 'midtrans', 'mode' => 'test', 'label' => 'mid-test-active',
+        'is_active' => true, 'created_at' => now()->subDays(20),
     ]);
     ProjectPaymentGateway::factory()->for($this->project)->create([
-        'mode' => 'test', 'label' => 'bbb-new-test', 'is_active' => false,
-        'created_at' => now()->subDays(2),
+        'provider' => 'xendit', 'mode' => 'live', 'label' => 'xen-live',
+        'is_active' => false, 'created_at' => now()->subDays(15),
     ]);
     ProjectPaymentGateway::factory()->for($this->project)->create([
-        'mode' => 'live', 'label' => 'aaa-newest-live', 'is_active' => false,
-        'created_at' => now()->subDays(1),
+        'provider' => 'midtrans', 'mode' => 'live', 'label' => 'mid-live-old',
+        'is_active' => false, 'created_at' => now()->subDays(10),
+    ]);
+    ProjectPaymentGateway::factory()->for($this->project)->create([
+        'provider' => 'xendit', 'mode' => 'test', 'label' => 'xen-test-new',
+        'is_active' => false, 'created_at' => now()->subDays(2),
+    ]);
+    ProjectPaymentGateway::factory()->for($this->project)->create([
+        'provider' => 'midtrans', 'mode' => 'live', 'label' => 'mid-live-new',
+        'is_active' => false, 'created_at' => now()->subDays(1),
     ]);
 
     $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways");
 
     $response->assertSuccessful();
     expect(collect($response->json('data'))->pluck('label')->all())->toBe([
-        'zzz-oldest-live',
-        'aaa-newest-live',
-        'mmm-active-test',
-        'bbb-new-test',
+        'mid-live-old',
+        'mid-live-new',
+        'mid-test-active',
+        'xen-live',
+        'xen-test-oldest-active',
+        'xen-test-new',
     ]);
 });
 

@@ -414,12 +414,11 @@
           <form class="mt-4 space-y-4" @submit.prevent="saveLimit">
             <div class="space-y-2">
               <Label for="promotion_post_limit">Post Limit</Label>
-              <Input
+              <InputNumber
                 id="promotion_post_limit"
-                v-model.number="postLimit"
-                type="number"
-                min="1"
-                max="100"
+                v-model="postLimit"
+                :min="1"
+                :max="100"
                 placeholder="1"
               />
               <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">

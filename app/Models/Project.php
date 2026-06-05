@@ -377,6 +377,11 @@ class Project extends Model implements HasMedia, Sortable
         return $this->hasMany(ProjectCustomField::class)->ordered();
     }
 
+    public function banners(): HasMany
+    {
+        return $this->hasMany(ProjectBanner::class);
+    }
+
     public function paymentGateways(): HasMany
     {
         return $this->hasMany(ProjectPaymentGateway::class);

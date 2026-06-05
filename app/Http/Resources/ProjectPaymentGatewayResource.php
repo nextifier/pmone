@@ -37,6 +37,7 @@ class ProjectPaymentGatewayResource extends JsonResource
             'config' => $this->config ?? [],
             'capabilities' => $this->resolveCapabilities(),
             'webhook_url' => $this->resolveWebhookUrl(),
+            'redirect_url' => $this->resolveRedirectUrl(),
             'last_used_at' => $this->last_used_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
@@ -54,6 +55,21 @@ class ProjectPaymentGatewayResource extends JsonResource
     private function resolveWebhookUrl(): ?string
     {
         return rtrim(config('app.url'), '/').'/api/webhooks/'.$this->provider;
+    }
+
+    /**
+     * Redirect (bouncer) URL the merchant must set in the provider dashboard so
+     * customers return to the right event website after paying. Only Midtrans
+     * needs this manually configured (Finish/Unfinish/Error Redirect URL);
+     * Xendit redirects are set per-invoice by PM One, so it returns null there.
+     */
+    private function resolveRedirectUrl(): ?string
+    {
+        if ($this->provider !== 'midtrans') {
+            return null;
+        }
+
+        return rtrim(config('app.url'), '/').'/payment/redirect';
     }
 
     /**

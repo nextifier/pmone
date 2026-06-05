@@ -46,7 +46,7 @@
             </div>
             <div class="space-y-2">
               <Label for="override_value">Override Value (optional)</Label>
-              <Input id="override_value" v-model.number="form.override_value" type="number" min="0" step="0.01" placeholder="Use rule's default" />
+              <InputNumber id="override_value" v-model="form.override_value" :min="0" decimal placeholder="Use rule's default" />
               <InputErrorMessage :errors="errors.override_value" />
             </div>
             <div class="space-y-2">
@@ -88,7 +88,19 @@
                   ({{ form.value_type === "percentage" ? "%" : "Rp" }})
                 </span>
               </Label>
-              <Input id="value" v-model.number="form.value" type="number" min="0" step="0.01" />
+              <InputGroup>
+                <InputNumber
+                  id="value"
+                  v-model="form.value"
+                  :min="0"
+                  decimal
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon :align="form.value_type === 'percentage' ? 'inline-end' : 'inline-start'">
+                  <InputGroupText>{{ form.value_type === "percentage" ? "%" : "Rp" }}</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <InputErrorMessage :errors="errors.value" />
             </div>
             <div class="space-y-2">

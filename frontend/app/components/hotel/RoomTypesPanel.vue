@@ -163,7 +163,7 @@
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label>Max Pax</Label>
-                <Input v-model.number="form.max_pax" type="number" min="1" required />
+                <InputNumber v-model="form.max_pax" :min="1" required />
               </div>
               <div class="space-y-2">
                 <Label>Bed Type</Label>
@@ -174,11 +174,22 @@
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label>Base Rate (IDR)</Label>
-                <Input v-model.number="form.base_rate" type="number" min="0" required />
+                <InputGroup>
+                  <InputNumber
+                    v-model="form.base_rate"
+                    :min="0"
+                    required
+                    data-slot="input-group-control"
+                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  />
+                  <InputGroupAddon>
+                    <InputGroupText>Rp</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
               </div>
               <div class="space-y-2">
                 <Label>Area (m²)</Label>
-                <Input v-model.number="form.area_sqm" type="number" step="0.01" min="0" />
+                <InputNumber v-model="form.area_sqm" :min="0" decimal />
               </div>
             </div>
 
@@ -243,7 +254,18 @@
                 <div class="grid grid-cols-2 gap-2">
                   <div class="space-y-1">
                     <Label class="text-xs sm:text-sm">Rate (IDR)</Label>
-                    <Input v-model.number="period.rate" type="number" min="0" required />
+                    <InputGroup>
+                      <InputNumber
+                        v-model="period.rate"
+                        :min="0"
+                        required
+                        data-slot="input-group-control"
+                        class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                      />
+                      <InputGroupAddon>
+                        <InputGroupText>Rp</InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
                   </div>
                   <div class="space-y-1">
                     <Label class="text-xs sm:text-sm">Label (optional)</Label>

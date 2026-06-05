@@ -228,11 +228,11 @@
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label for="quantity">Quantity</Label>
-                <Input id="quantity" v-model.number="bulkForm.quantity" type="number" min="1" max="10000" required />
+                <InputNumber id="quantity" v-model="bulkForm.quantity" :min="1" :max="10000" required />
               </div>
               <div class="space-y-2">
                 <Label for="length">Length</Label>
-                <Input id="length" v-model.number="bulkForm.length" type="number" min="4" max="40" />
+                <InputNumber id="length" v-model="bulkForm.length" :min="4" :max="40" />
               </div>
             </div>
             <div class="space-y-2">
@@ -242,11 +242,11 @@
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label for="usage_limit">Usage Limit per Code</Label>
-                <Input id="usage_limit" v-model.number="bulkForm.usage_limit" type="number" min="1" />
+                <InputNumber id="usage_limit" v-model="bulkForm.usage_limit" :min="1" />
               </div>
               <div class="space-y-2">
                 <Label for="usage_limit_per_email">Per Email</Label>
-                <Input id="usage_limit_per_email" v-model.number="bulkForm.usage_limit_per_email" type="number" min="1" />
+                <InputNumber id="usage_limit_per_email" v-model="bulkForm.usage_limit_per_email" :min="1" />
               </div>
             </div>
             <div class="flex justify-end gap-2 pt-2">

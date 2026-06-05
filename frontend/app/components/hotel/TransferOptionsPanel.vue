@@ -63,11 +63,22 @@
             <div class="grid grid-cols-2 gap-3">
               <div class="space-y-2">
                 <Label>Max Pax</Label>
-                <Input v-model.number="form.max_pax" type="number" min="1" required />
+                <InputNumber v-model="form.max_pax" :min="1" required />
               </div>
               <div class="space-y-2">
                 <Label>Price (IDR)</Label>
-                <Input v-model.number="form.price" type="number" min="0" required />
+                <InputGroup>
+                  <InputNumber
+                    v-model="form.price"
+                    :min="0"
+                    required
+                    data-slot="input-group-control"
+                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  />
+                  <InputGroupAddon>
+                    <InputGroupText>Rp</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
               </div>
             </div>
 

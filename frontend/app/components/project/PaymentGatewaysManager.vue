@@ -149,7 +149,7 @@
         </div>
 
         <dl
-          class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm tracking-tight sm:grid-cols-[8rem_minmax(0,1fr)]"
+          class="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3 gap-y-1 text-sm tracking-tight sm:grid-cols-[8rem_minmax(0,1fr)]"
         >
           <dt class="text-muted-foreground whitespace-nowrap">Secret key</dt>
           <dd class="min-w-0">
@@ -160,14 +160,16 @@
             </code>
           </dd>
 
-          <dt class="text-muted-foreground whitespace-nowrap">Webhook token</dt>
-          <dd class="min-w-0">
-            <code
-              class="bg-muted/60 inline-flex w-fit items-center rounded px-1.5 py-0.5 font-mono text-xs sm:text-sm"
-            >
-              {{ gateway.webhook_token_masked || "—" }}
-            </code>
-          </dd>
+          <template v-if="gateway.provider !== 'midtrans'">
+            <dt class="text-muted-foreground whitespace-nowrap">Webhook token</dt>
+            <dd class="min-w-0">
+              <code
+                class="bg-muted/60 inline-flex w-fit items-center rounded px-1.5 py-0.5 font-mono text-xs sm:text-sm"
+              >
+                {{ gateway.webhook_token_masked || "—" }}
+              </code>
+            </dd>
+          </template>
 
           <template v-if="gateway.webhook_url">
             <dt class="text-muted-foreground whitespace-nowrap">Webhook URL</dt>
@@ -178,6 +180,18 @@
                 {{ gateway.webhook_url }}
               </code>
               <ButtonCopy :text="gateway.webhook_url" />
+            </dd>
+          </template>
+
+          <template v-if="gateway.redirect_url">
+            <dt class="text-muted-foreground whitespace-nowrap">Redirect URL</dt>
+            <dd class="flex min-w-0 items-center gap-x-1.5">
+              <code
+                class="bg-muted/60 min-w-0 flex-1 truncate rounded px-1.5 py-0.5 font-mono text-xs sm:text-sm"
+              >
+                {{ gateway.redirect_url }}
+              </code>
+              <ButtonCopy :text="gateway.redirect_url" />
             </dd>
           </template>
         </dl>
@@ -274,6 +288,18 @@
             />
           </div>
 
+          <div v-if="isMidtrans" class="space-y-2">
+            <Label for="pg_client_key">Client Key</Label>
+            <Input
+              id="pg_client_key"
+              v-model="form.public_key"
+              placeholder="SB-Mid-client-… (optional)"
+              autocomplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+            />
+          </div>
+
           <div class="space-y-2">
             <Label for="pg_secret">{{ isMidtrans ? "Server Key" : "Secret API Key" }}</Label>
             <InputPassword
@@ -285,19 +311,7 @@
               data-1p-ignore
               data-lpignore="true"
             />
-          </div>
-
-          <div v-if="isMidtrans" class="space-y-2">
-            <Label for="pg_client_key">Client Key</Label>
-            <Input
-              id="pg_client_key"
-              v-model="form.public_key"
-              placeholder="SB-Mid-client-… (optional)"
-              autocomplete="off"
-              data-1p-ignore
-              data-lpignore="true"
-            />
-            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            <p v-if="isMidtrans" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
               Midtrans verifies webhooks with the Server Key (SHA512), so no separate webhook token is needed.
             </p>
           </div>

@@ -8,8 +8,12 @@
       </p>
     </div>
 
-    <div v-if="canCreate" class="flex items-center justify-end">
-      <Button size="sm" @click="manager?.openCreateDialog()">
+    <div class="flex items-center justify-end gap-x-2">
+      <Button to="/payment-gateways/guide" variant="outline" size="sm">
+        <Icon name="hugeicons:book-open-01" class="size-4 shrink-0" />
+        Panduan
+      </Button>
+      <Button v-if="canCreate" size="sm" @click="manager?.openCreateDialog()">
         <Icon name="hugeicons:add-01" class="size-4" />
         Add Gateway
         <KbdGroup>

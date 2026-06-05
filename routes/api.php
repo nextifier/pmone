@@ -50,12 +50,14 @@ use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectActivityController;
+use App\Http\Controllers\Api\ProjectBannerController;
 use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
 use App\Http\Controllers\Api\ProjectPaymentGatewayController;
 use App\Http\Controllers\Api\PromoCodeController;
 use App\Http\Controllers\Api\PromotionRuleController;
+use App\Http\Controllers\Api\Public\PublicBannerController;
 use App\Http\Controllers\Api\Public\PublicHotelController;
 use App\Http\Controllers\Api\Public\PublicPromoCodeController;
 use App\Http\Controllers\Api\Public\PublicReservationController;
@@ -232,6 +234,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/reorder', [ProjectCustomFieldController::class, 'reorder'])->name('projects.custom-fields.reorder');
         Route::put('/{id}', [ProjectCustomFieldController::class, 'update'])->name('projects.custom-fields.update');
         Route::delete('/{id}', [ProjectCustomFieldController::class, 'destroy'])->name('projects.custom-fields.destroy');
+    });
+
+    // Project banners endpoints (project-level website banners)
+    Route::prefix('projects/{project:username}/banners')->group(function () {
+        Route::get('/', [ProjectBannerController::class, 'index'])->name('projects.banners.index');
+        Route::post('/', [ProjectBannerController::class, 'store'])->name('projects.banners.store');
+        Route::post('/reorder', [ProjectBannerController::class, 'reorder'])->name('projects.banners.reorder');
+        Route::delete('/bulk-delete', [ProjectBannerController::class, 'bulkDelete'])->name('projects.banners.bulk-delete');
+        Route::get('/{banner}/analytics', [ProjectBannerController::class, 'analytics'])->name('projects.banners.analytics');
+        Route::put('/{banner}', [ProjectBannerController::class, 'update'])->name('projects.banners.update');
+        Route::patch('/{banner}/toggle', [ProjectBannerController::class, 'toggleActive'])->name('projects.banners.toggle');
     });
 
     // Project business categories endpoints
@@ -1205,6 +1218,8 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
 
 // Public Hotel Reservation API endpoints (API key authentication)
 Route::middleware(['api.key'])->prefix('public')->group(function () {
+    Route::get('/banners', [PublicBannerController::class, 'index'])
+        ->middleware(CacheResponse::for(3600, 'banners'));
     Route::get('/hotels', [PublicHotelController::class, 'index'])
         ->middleware(CacheResponse::for(3600, 'hotels'));
     Route::post('/hotels/availability', [PublicHotelController::class, 'availability'])

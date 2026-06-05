@@ -83,20 +83,39 @@
                   ({{ form.value_type === "percentage" ? "%" : "Rp" }})
                 </span>
               </Label>
-              <Input id="value" v-model.number="form.value" type="number" min="0" step="0.01" required />
+              <InputGroup>
+                <InputNumber
+                  id="value"
+                  v-model="form.value"
+                  :min="0"
+                  decimal
+                  required
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon :align="form.value_type === 'percentage' ? 'inline-end' : 'inline-start'">
+                  <InputGroupText>{{ form.value_type === "percentage" ? "%" : "Rp" }}</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <InputErrorMessage :errors="errors.value" />
             </div>
 
             <div class="space-y-2">
               <Label for="max_discount_amount">Max Discount Cap (Rp)</Label>
-              <Input
-                id="max_discount_amount"
-                v-model.number="form.max_discount_amount"
-                type="number"
-                min="0"
-                placeholder="Unlimited"
-                :disabled="form.value_type !== 'percentage' || form.kind !== 'discount'"
-              />
+              <InputGroup>
+                <InputNumber
+                  id="max_discount_amount"
+                  v-model="form.max_discount_amount"
+                  :min="0"
+                  placeholder="Unlimited"
+                  :disabled="form.value_type !== 'percentage' || form.kind !== 'discount'"
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon>
+                  <InputGroupText>Rp</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <p class="text-muted-foreground text-xs tracking-tight">Only used for percentage discounts.</p>
               <InputErrorMessage :errors="errors.max_discount_amount" />
             </div>
@@ -106,13 +125,13 @@
           <div v-if="form.value_type === 'buy_x_get_y'" class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
               <Label for="buy_qty">Buy quantity (X)</Label>
-              <Input id="buy_qty" v-model.number="form.value_config.buy_qty" type="number" min="1" step="1" />
+              <InputNumber id="buy_qty" v-model="form.value_config.buy_qty" :min="1" />
               <p class="text-muted-foreground text-xs tracking-tight">Customer must purchase this many units.</p>
               <InputErrorMessage :errors="errors['value_config.buy_qty']" />
             </div>
             <div class="space-y-2">
               <Label for="get_free_qty">Get free (Y)</Label>
-              <Input id="get_free_qty" v-model.number="form.value_config.get_free_qty" type="number" min="1" step="1" />
+              <InputNumber id="get_free_qty" v-model="form.value_config.get_free_qty" :min="1" />
               <p class="text-muted-foreground text-xs tracking-tight">Cheapest units are picked for the free slots.</p>
               <InputErrorMessage :errors="errors['value_config.get_free_qty']" />
             </div>
@@ -137,8 +156,20 @@
             <div class="space-y-2">
               <Label>Tiers</Label>
               <div v-for="(tier, idx) in form.value_config.tiers ?? []" :key="idx" class="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                <Input v-model.number="tier.min" type="number" min="0" placeholder="Min (qty/amount)" />
-                <Input v-model.number="tier.value" type="number" min="0" step="0.01" :placeholder="form.value_type === 'tiered_percentage' ? 'Percent (%)' : 'Amount (Rp)'" />
+                <InputNumber v-model="tier.min" :min="0" placeholder="Min (qty/amount)" />
+                <InputGroup>
+                  <InputNumber
+                    v-model="tier.value"
+                    :min="0"
+                    decimal
+                    :placeholder="form.value_type === 'tiered_percentage' ? 'Percent' : 'Amount'"
+                    data-slot="input-group-control"
+                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  />
+                  <InputGroupAddon :align="form.value_type === 'tiered_percentage' ? 'inline-end' : 'inline-start'">
+                    <InputGroupText>{{ form.value_type === "tiered_percentage" ? "%" : "Rp" }}</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
                 <Button type="button" variant="outline" size="sm" @click="removeTier(idx)">
                   <Icon name="lucide:x" class="size-4" />
                 </Button>
@@ -158,13 +189,25 @@
           <div v-if="form.value_type === 'bundle_price'" class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
               <Label for="bundle_qty">Bundle quantity</Label>
-              <Input id="bundle_qty" v-model.number="form.value_config.bundle_qty" type="number" min="1" step="1" />
+              <InputNumber id="bundle_qty" v-model="form.value_config.bundle_qty" :min="1" />
               <p class="text-muted-foreground text-xs tracking-tight">Every N units priced as a bundle.</p>
               <InputErrorMessage :errors="errors['value_config.bundle_qty']" />
             </div>
             <div class="space-y-2">
               <Label for="bundle_price">Bundle price (Rp)</Label>
-              <Input id="bundle_price" v-model.number="form.value_config.bundle_price" type="number" min="0" step="0.01" />
+              <InputGroup>
+                <InputNumber
+                  id="bundle_price"
+                  v-model="form.value_config.bundle_price"
+                  :min="0"
+                  decimal
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon>
+                  <InputGroupText>Rp</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <p class="text-muted-foreground text-xs tracking-tight">Fixed total for each bundle.</p>
               <InputErrorMessage :errors="errors['value_config.bundle_price']" />
             </div>
@@ -174,7 +217,7 @@
           <div v-if="form.value_type === 'free_addon'" class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
               <Label for="max_free_qty">Max free units</Label>
-              <Input id="max_free_qty" v-model.number="form.value_config.max_free_qty" type="number" min="1" step="1" placeholder="Unlimited" />
+              <InputNumber id="max_free_qty" v-model="form.value_config.max_free_qty" :min="1" placeholder="Unlimited" />
               <p class="text-muted-foreground text-xs tracking-tight">Limit how many add-ons can be free.</p>
               <InputErrorMessage :errors="errors['value_config.max_free_qty']" />
             </div>
@@ -196,19 +239,25 @@
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
               <Label for="min_purchase_amount">Minimum Purchase (Rp)</Label>
-              <Input
-                id="min_purchase_amount"
-                v-model.number="form.min_purchase_amount"
-                type="number"
-                min="0"
-                placeholder="No minimum"
-              />
+              <InputGroup>
+                <InputNumber
+                  id="min_purchase_amount"
+                  v-model="form.min_purchase_amount"
+                  :min="0"
+                  placeholder="No minimum"
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon>
+                  <InputGroupText>Rp</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <InputErrorMessage :errors="errors.min_purchase_amount" />
             </div>
 
             <div class="space-y-2">
               <Label for="priority">Priority</Label>
-              <Input id="priority" v-model.number="form.priority" type="number" min="0" max="32000" />
+              <InputNumber id="priority" v-model="form.priority" :min="0" :max="32000" />
               <p class="text-muted-foreground text-xs tracking-tight">Lower number applies first. Default 100.</p>
               <InputErrorMessage :errors="errors.priority" />
             </div>
@@ -360,7 +409,7 @@
               <Label for="trigger_days">
                 {{ form.trigger_type === "lead_time" ? "Max Days Before Check-In" : "Min Days Before Check-In" }}
               </Label>
-              <Input id="trigger_days" v-model.number="triggerDays" type="number" min="0" />
+              <InputNumber id="trigger_days" v-model="triggerDays" :min="0" />
             </div>
             <div class="space-y-2">
               <Label for="trigger_operator">Operator</Label>
@@ -431,12 +480,12 @@
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
               <Label for="appl_min_nights">Minimum Nights</Label>
-              <Input id="appl_min_nights" v-model.number="applicabilityForm.min_nights" type="number" min="0" placeholder="No minimum" />
+              <InputNumber id="appl_min_nights" v-model="applicabilityForm.min_nights" :min="0" placeholder="No minimum" />
               <p class="text-muted-foreground text-xs tracking-tight">Sum of nights across all items.</p>
             </div>
             <div class="space-y-2">
               <Label for="appl_min_qty">Minimum Quantity</Label>
-              <Input id="appl_min_qty" v-model.number="applicabilityForm.min_qty" type="number" min="0" placeholder="No minimum" />
+              <InputNumber id="appl_min_qty" v-model="applicabilityForm.min_qty" :min="0" placeholder="No minimum" />
               <p class="text-muted-foreground text-xs tracking-tight">Sum of qty across all items.</p>
             </div>
           </div>

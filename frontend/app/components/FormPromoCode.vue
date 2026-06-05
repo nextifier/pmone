@@ -47,14 +47,14 @@
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
           <div class="space-y-2">
             <Label for="usage_limit">Usage Limit (total)</Label>
-            <Input id="usage_limit" v-model.number="form.usage_limit" type="number" min="1" placeholder="Unlimited" />
+            <InputNumber id="usage_limit" v-model="form.usage_limit" :min="1" placeholder="Unlimited" />
             <p class="text-muted-foreground text-xs tracking-tight">Leave empty for unlimited.</p>
             <InputErrorMessage :errors="errors.usage_limit" />
           </div>
 
           <div class="space-y-2">
             <Label for="usage_limit_per_email">Per Email</Label>
-            <Input id="usage_limit_per_email" v-model.number="form.usage_limit_per_email" type="number" min="1" placeholder="1" />
+            <InputNumber id="usage_limit_per_email" v-model="form.usage_limit_per_email" :min="1" placeholder="1" />
             <p class="text-muted-foreground text-xs tracking-tight">Max times each email can use this code.</p>
             <InputErrorMessage :errors="errors.usage_limit_per_email" />
           </div>

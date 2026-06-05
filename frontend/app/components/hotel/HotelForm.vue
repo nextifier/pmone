@@ -188,40 +188,58 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
             <Label for="commission_rate">Commission Rate (%)</Label>
-            <Input
-              id="commission_rate"
-              v-model.number="form.commission_rate"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-            />
+            <InputGroup>
+              <InputNumber
+                id="commission_rate"
+                v-model="form.commission_rate"
+                :min="0"
+                :max="100"
+                decimal
+                data-slot="input-group-control"
+                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupText>%</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
             <InputErrorMessage :errors="errors.commission_rate" />
           </div>
 
           <div class="grid gap-4 lg:grid-cols-2">
             <div class="space-y-2">
               <Label for="tax_percentage">Tax (%)</Label>
-              <Input
-                id="tax_percentage"
-                v-model.number="form.tax_percentage"
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-              />
+              <InputGroup>
+                <InputNumber
+                  id="tax_percentage"
+                  v-model="form.tax_percentage"
+                  :min="0"
+                  :max="100"
+                  decimal
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon align="inline-end">
+                  <InputGroupText>%</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <InputErrorMessage :errors="errors.tax_percentage" />
             </div>
             <div class="space-y-2">
               <Label for="service_charge_percentage">Service Charge (%)</Label>
-              <Input
-                id="service_charge_percentage"
-                v-model.number="form.service_charge_percentage"
-                type="number"
-                step="0.01"
-                min="0"
-                max="100"
-              />
+              <InputGroup>
+                <InputNumber
+                  id="service_charge_percentage"
+                  v-model="form.service_charge_percentage"
+                  :min="0"
+                  :max="100"
+                  decimal
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon align="inline-end">
+                  <InputGroupText>%</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
               <InputErrorMessage :errors="errors.service_charge_percentage" />
             </div>
           </div>

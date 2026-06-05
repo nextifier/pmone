@@ -155,6 +155,12 @@ const isSettingsPage = computed(() => {
 const projectBase = computed(() => `/projects/${route.params.username}`);
 const projectTabs = computed(() => [
   { label: "Overview", icon: "hugeicons:dashboard-circle", to: projectBase.value, exact: true },
+  {
+    label: "Content",
+    icon: "hugeicons:note-01",
+    to: `${projectBase.value}/content`,
+    activeFor: [`${projectBase.value}/content`],
+  },
   { label: "Inquiries", icon: "hugeicons:mail-open-love", to: `${projectBase.value}/inquiries` },
   { label: "Analytics", icon: "hugeicons:analytics-01", to: `${projectBase.value}/analytics` },
   { label: "Activity", icon: "hugeicons:activity-03", to: `${projectBase.value}/activity` },

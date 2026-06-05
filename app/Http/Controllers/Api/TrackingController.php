@@ -11,6 +11,7 @@ use App\Models\LinkPage;
 use App\Models\LinkPageBanner;
 use App\Models\LinkPageItem;
 use App\Models\Project;
+use App\Models\ProjectBanner;
 use App\Models\ShortLink;
 use App\Models\User;
 use App\Models\Visit;
@@ -28,6 +29,7 @@ class TrackingController extends Controller
         Link::class,
         ShortLink::class,
         BrandEvent::class,
+        ProjectBanner::class,
     ];
 
     /**

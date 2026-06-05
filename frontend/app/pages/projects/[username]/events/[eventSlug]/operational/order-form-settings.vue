@@ -152,29 +152,39 @@
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
           <div class="space-y-2">
             <Label for="settings_tax_rate">Tax Rate (%)</Label>
-            <Input
-              id="settings_tax_rate"
-              v-model.number="form.settings.tax_rate"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              placeholder="11"
-            />
+            <InputGroup>
+              <InputNumber
+                id="settings_tax_rate"
+                v-model="form.settings.tax_rate"
+                :min="0"
+                :max="100"
+                placeholder="11"
+                data-slot="input-group-control"
+                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupText>%</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
             <p class="text-muted-foreground text-xs">Default: 11% (PPN)</p>
           </div>
 
           <div class="space-y-2">
             <Label for="onsite_penalty_rate">Onsite Penalty Rate (%)</Label>
-            <Input
-              id="onsite_penalty_rate"
-              v-model.number="form.onsite_penalty_rate"
-              type="number"
-              min="0"
-              max="100"
-              step="1"
-              placeholder="50"
-            />
+            <InputGroup>
+              <InputNumber
+                id="onsite_penalty_rate"
+                v-model="form.onsite_penalty_rate"
+                :min="0"
+                :max="100"
+                placeholder="50"
+                data-slot="input-group-control"
+                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupText>%</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
             <p class="text-muted-foreground text-xs">
               Percentage added to order total for onsite period orders. Default: 50%.
             </p>

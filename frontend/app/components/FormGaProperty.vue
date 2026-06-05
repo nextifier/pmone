@@ -78,12 +78,11 @@
         <div class="grid grid-cols-1 gap-y-6">
           <div class="space-y-2">
             <Label for="sync_frequency">Sync Frequency (minutes)</Label>
-            <Input
+            <InputNumber
               id="sync_frequency"
-              v-model.number="formData.sync_frequency"
-              type="number"
-              min="5"
-              max="60"
+              v-model="formData.sync_frequency"
+              :min="5"
+              :max="60"
               placeholder="10"
             />
             <InputErrorMessage :errors="errors.sync_frequency" />

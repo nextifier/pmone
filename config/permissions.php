@@ -19,6 +19,7 @@ use App\Models\Order;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Project;
+use App\Models\ProjectBanner;
 use App\Models\ProjectPaymentGateway;
 use App\Models\PromoCode;
 use App\Models\PromotionRule;
@@ -77,6 +78,12 @@ return [
             'label' => 'Projects',
             'description' => 'Manage projects',
             'model' => Project::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'banners' => [
+            'label' => 'Banners',
+            'description' => 'Manage project website banners',
+            'model' => ProjectBanner::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
         'short_links' => [

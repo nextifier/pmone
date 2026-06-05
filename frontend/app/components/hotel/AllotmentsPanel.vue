@@ -60,7 +60,7 @@
               </div>
               <div class="space-y-2">
                 <Label>Quantity</Label>
-                <Input v-model.number="form.quantity" type="number" min="1" required />
+                <InputNumber v-model="form.quantity" :min="1" required />
               </div>
             </div>
 
@@ -85,13 +85,19 @@
                   </template>
                 </Tippy>
               </div>
-              <Input
-                v-model.number="form.base_rate_override"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="Leave empty to use room type's default base rate"
-              />
+              <InputGroup>
+                <InputNumber
+                  v-model="form.base_rate_override"
+                  :min="0"
+                  decimal
+                  placeholder="Leave empty to use room type's default base rate"
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon>
+                  <InputGroupText>Rp</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
             </div>
 
             <div class="grid grid-cols-2 gap-x-2">
@@ -133,13 +139,19 @@
               </div>
               <div class="space-y-2">
                 <Label>Surcharge Amount</Label>
-                <Input
-                  v-model.number="form.surcharge_amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  :disabled="!form.surcharge_type"
-                />
+                <InputGroup>
+                  <InputNumber
+                    v-model="form.surcharge_amount"
+                    :min="0"
+                    decimal
+                    :disabled="!form.surcharge_type"
+                    data-slot="input-group-control"
+                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  />
+                  <InputGroupAddon :align="form.surcharge_type === 'percentage' ? 'inline-end' : 'inline-start'">
+                    <InputGroupText>{{ form.surcharge_type === "percentage" ? "%" : "Rp" }}</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
               </div>
             </div>
 

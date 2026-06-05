@@ -161,13 +161,11 @@
 
       <div class="space-y-2">
         <label for="response_limit" class="text-sm font-medium">Response Limit</label>
-        <input
+        <InputNumber
           id="response_limit"
-          v-model.number="formData.response_limit"
-          type="number"
-          min="0"
+          v-model="formData.response_limit"
+          :min="0"
           placeholder="Unlimited"
-          class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
           :class="{ 'border-destructive': errors.response_limit }"
         />
         <p v-if="errors.response_limit" class="text-destructive text-xs">

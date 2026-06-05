@@ -16,7 +16,7 @@
       </div>
       <div class="space-y-2">
         <Label for="edition_number">Edition Number</Label>
-        <Input id="edition_number" v-model.number="form.edition_number" type="number" min="1" />
+        <InputNumber id="edition_number" v-model="form.edition_number" :min="1" />
         <InputErrorMessage :errors="errors.edition_number" />
       </div>
     </div>
@@ -46,7 +46,7 @@
     <!-- Saleable Area -->
     <div class="space-y-2">
       <Label for="saleable_area">Saleable Area (m²)</Label>
-      <Input id="saleable_area" v-model.number="form.saleable_area" type="number" min="0" step="0.01" placeholder="e.g. 5000" />
+      <InputNumber id="saleable_area" v-model="form.saleable_area" :min="0" decimal placeholder="e.g. 5000" />
       <InputErrorMessage :errors="errors.saleable_area" />
     </div>
 

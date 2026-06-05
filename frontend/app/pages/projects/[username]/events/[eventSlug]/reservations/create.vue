@@ -149,7 +149,7 @@
             </div>
             <div class="space-y-2">
               <Label>Quantity</Label>
-              <Input v-model.number="item.qty" type="number" min="1" max="20" required />
+              <InputNumber v-model="item.qty" :min="1" :max="20" required />
             </div>
             <div class="space-y-2">
               <Label>Guest Name on Room (optional)</Label>
@@ -223,11 +223,22 @@
             </div>
             <div class="space-y-2">
               <Label>Pax</Label>
-              <Input v-model.number="t.pax_count" type="number" min="1" required />
+              <InputNumber v-model="t.pax_count" :min="1" required />
             </div>
             <div class="space-y-2">
               <Label>Price (IDR)</Label>
-              <Input v-model.number="t.price" type="number" min="0" required />
+              <InputGroup>
+                <InputNumber
+                  v-model="t.price"
+                  :min="0"
+                  required
+                  data-slot="input-group-control"
+                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                />
+                <InputGroupAddon>
+                  <InputGroupText>Rp</InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
             </div>
             <div class="space-y-2 sm:col-span-2">
               <Label>Notes (optional)</Label>

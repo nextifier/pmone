@@ -312,11 +312,10 @@
 
           <div class="space-y-2">
             <Label for="order_column">Order</Label>
-            <Input
+            <InputNumber
               id="order_column"
-              v-model.number="form.order_column"
-              type="number"
-              min="0"
+              v-model="form.order_column"
+              :min="0"
               placeholder="0"
             />
             <p class="text-muted-foreground text-xs">

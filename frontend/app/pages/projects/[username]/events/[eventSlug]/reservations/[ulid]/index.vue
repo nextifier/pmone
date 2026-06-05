@@ -614,12 +614,18 @@
               </div>
               <div class="space-y-2">
                 <Label>Refund Amount (override auto-calc)</Label>
-                <Input
-                  v-model.number="cancelForm.refund_amount"
-                  type="number"
-                  min="0"
-                  :placeholder="`Auto: Rp${formatRupiah(autoRefund)}`"
-                />
+                <InputGroup>
+                  <InputNumber
+                    v-model="cancelForm.refund_amount"
+                    :min="0"
+                    :placeholder="`Auto: Rp${formatRupiah(autoRefund)}`"
+                    data-slot="input-group-control"
+                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  />
+                  <InputGroupAddon>
+                    <InputGroupText>Rp</InputGroupText>
+                  </InputGroupAddon>
+                </InputGroup>
                 <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                   {{ refundPolicyText }}
                 </p>

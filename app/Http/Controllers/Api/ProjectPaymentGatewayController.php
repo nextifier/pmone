@@ -21,8 +21,10 @@ class ProjectPaymentGatewayController extends Controller
         $this->authorizeView();
 
         // Stable order that never shifts when a gateway is toggled active:
-        // Live (production) first, Test (sandbox) last, then oldest-created first.
+        // grouped by provider name (Midtrans, Xendit), then Live before Test,
+        // then oldest-created first.
         $gateways = $project->paymentGateways()
+            ->orderBy('provider')
             ->orderByRaw("CASE mode WHEN 'live' THEN 0 WHEN 'test' THEN 1 ELSE 2 END")
             ->orderBy('created_at')
             ->orderBy('id')
