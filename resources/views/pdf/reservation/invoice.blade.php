@@ -218,13 +218,13 @@
 <div class="mt-auto pt-10 text-center">
     <div class="text-[11px] text-gray-500 font-medium tracking-wider uppercase mb-3 whitespace-nowrap leading-[20px]">
         Secure checkout powered by
-        <img src="{{ public_path('images/payment-methods/xendit.svg') }}" alt="Xendit" class="inline-block h-5 align-middle ml-0 -mt-0.5">
+        <img src="{{ public_path('img/payment-methods/' . $paymentProvider['file']) }}" alt="{{ $paymentProvider['name'] }}" class="inline-block h-5 align-middle ml-0 -mt-0.5">
     </div>
     @php $rows = array_chunk($enabledPaymentLogos ?? [], 7); @endphp
     @foreach ($rows as $row)
         <div class="flex flex-wrap gap-1 justify-center-safe">
             @foreach ($row as $logo)
-                <img src="{{ public_path('images/payment-methods/' . $logo['file']) }}" alt="{{ $logo['alt'] }}" class="h-10 w-auto">
+                <img src="{{ public_path('img/payment-methods/' . $logo['file']) }}" alt="{{ $logo['alt'] }}" class="h-10 w-auto">
             @endforeach
         </div>
     @endforeach

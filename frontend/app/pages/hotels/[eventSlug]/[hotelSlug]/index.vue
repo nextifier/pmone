@@ -474,6 +474,10 @@ const ALLOWED_PAYMENT_HOSTS = [
   // Xendit Sessions (Payment Link) hosted checkout uses xen.to short links
   // (dev.xen.to in test mode). The endsWith check covers any *.xen.to host.
   "xen.to",
+  // Midtrans Snap hosted checkout (redirect_url host): app.sandbox.midtrans.com
+  // in sandbox, app.midtrans.com in production.
+  "app.midtrans.com",
+  "app.sandbox.midtrans.com",
 ];
 
 function isAllowedPaymentUrl(url) {

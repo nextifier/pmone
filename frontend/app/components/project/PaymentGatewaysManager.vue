@@ -22,14 +22,25 @@
       </p>
     </div>
 
-    <div
-      v-else
-      class="border-border divide-border bg-background divide-y rounded-xl border"
-      v-auto-animate
-    >
-      <div v-for="gateway in gateways" :key="gateway.id" class="space-y-3 px-4 py-4">
+    <div v-else class="space-y-3" v-auto-animate>
+      <div
+        v-for="gateway in gateways"
+        :key="gateway.id"
+        class="bg-card border-border space-y-3 rounded-xl border p-4 shadow-sm sm:p-5"
+      >
         <div class="flex items-center justify-between gap-3">
+          <!-- Brand wordmark, no container. Same dark-mode treatment as the
+               Payment column badge so the dark-ink logos read on a dark surface.
+               Both share one height; their SVG viewBoxes are tight so the
+               wordmarks line up. -->
+          <img
+            v-if="providerLogos[gateway.provider]"
+            :src="providerLogos[gateway.provider]"
+            :alt="gateway.provider"
+            class="h-6 w-auto shrink-0 object-contain dark:brightness-90 dark:contrast-200 dark:grayscale dark:invert-[75%]"
+          />
           <div
+            v-else
             class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg"
           >
             <Icon name="hugeicons:credit-card" class="size-4.5" />
@@ -175,7 +186,6 @@
           v-if="canViewBalance && gateway.capabilities?.includes('balance')"
           :project-username="projectUsername"
           :gateway-id="gateway.id"
-          class="-mx-3 -mb-3"
         />
       </div>
     </div>
@@ -207,6 +217,7 @@
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="xendit">Xendit</SelectItem>
+                  <SelectItem value="midtrans">Midtrans</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -225,7 +236,7 @@
             </div>
           </div>
 
-          <div class="space-y-2">
+          <div v-if="!isMidtrans" class="space-y-2">
             <Label for="pg_checkout_method">Checkout Method</Label>
             <Select v-model="form.checkout_method">
               <SelectTrigger id="pg_checkout_method">
@@ -264,7 +275,7 @@
           </div>
 
           <div class="space-y-2">
-            <Label for="pg_secret">Secret API Key</Label>
+            <Label for="pg_secret">{{ isMidtrans ? "Server Key" : "Secret API Key" }}</Label>
             <InputPassword
               id="pg_secret"
               v-model="form.secret_key"
@@ -276,7 +287,22 @@
             />
           </div>
 
-          <div class="space-y-2">
+          <div v-if="isMidtrans" class="space-y-2">
+            <Label for="pg_client_key">Client Key</Label>
+            <Input
+              id="pg_client_key"
+              v-model="form.public_key"
+              placeholder="SB-Mid-client-… (optional)"
+              autocomplete="off"
+              data-1p-ignore
+              data-lpignore="true"
+            />
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Midtrans verifies webhooks with the Server Key (SHA512), so no separate webhook token is needed.
+            </p>
+          </div>
+
+          <div v-if="!isMidtrans" class="space-y-2">
             <Label for="pg_webhook_token">Webhook Verification Token</Label>
             <InputPassword
               id="pg_webhook_token"
@@ -531,6 +557,14 @@ const modeMeta = {
   test: { label: "Test", variant: "warning", icon: "hugeicons:test-tube-01" },
 };
 
+// Provider brand wordmarks (SVGs in /public/img/payment-methods). Rendered on
+// a fixed light chip in the card header; a provider without a logo falls back to
+// the generic card icon.
+const providerLogos = {
+  xendit: "/img/payment-methods/xendit.svg",
+  midtrans: "/img/payment-methods/midtrans.svg",
+};
+
 const props = defineProps({
   projectUsername: { type: String, required: true },
 });
@@ -622,9 +656,15 @@ const form = reactive({
   mode: "live",
   checkout_method: "payment_link_sessions",
   secret_key: "",
+  public_key: "",
   webhook_token: "",
   config: {},
 });
+
+// Midtrans verifies webhooks with the Server Key (SHA512) and only offers the
+// Snap checkout, so the checkout-method + webhook-token fields are hidden and a
+// Client Key field is shown instead.
+const isMidtrans = computed(() => form.provider === "midtrans");
 
 // Checkout-method options. The backend is the source of truth — each gateway
 // resource ships `available_checkout_methods` — and this mirrors the
@@ -659,6 +699,7 @@ function resetForm() {
   form.mode = "live";
   form.checkout_method = "payment_link_sessions";
   form.secret_key = "";
+  form.public_key = "";
   form.webhook_token = "";
   form.config = {};
   checkoutMethodOptions.value = DEFAULT_CHECKOUT_METHODS;
@@ -690,7 +731,7 @@ async function runTestConnection() {
           provider: form.provider,
           mode: form.mode,
           secret_key: form.secret_key,
-          webhook_token: form.webhook_token || null,
+          ...(isMidtrans.value ? {} : { webhook_token: form.webhook_token || null }),
         },
       }
     );
@@ -729,6 +770,7 @@ function openEditDialog(gateway) {
   form.label = gateway.label || "";
   form.mode = gateway.mode;
   form.checkout_method = gateway.checkout_method || "payment_link_legacy";
+  form.public_key = gateway.public_key || "";
   form.config = { ...(gateway.config || {}) };
   if (gateway.available_checkout_methods?.length) {
     checkoutMethodOptions.value = gateway.available_checkout_methods;
@@ -743,14 +785,21 @@ async function saveGateway() {
     const body = {
       label: form.label || null,
       mode: form.mode,
-      checkout_method: form.checkout_method,
       config: form.config,
     };
+
+    if (!isMidtrans.value) {
+      body.checkout_method = form.checkout_method;
+    }
 
     if (form.secret_key) {
       body.secret_key = form.secret_key;
     }
-    if (form.webhook_token) {
+
+    if (isMidtrans.value) {
+      // Client Key is public; empty = keep existing on edit.
+      body.public_key = form.public_key || null;
+    } else if (form.webhook_token) {
       body.webhook_token = form.webhook_token;
     }
 

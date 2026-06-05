@@ -91,6 +91,39 @@ it('listing gateways returns masked values only', function () {
     }
 });
 
+it('orders gateways live-first then test by created_at, ignoring active state', function () {
+    // The oldest gateway overall is an ACTIVE test one. Under the previous
+    // orderByDesc('is_active') it floated to the top and the order shifted on
+    // every toggle. The stable order keeps Live above Test and sorts each group
+    // oldest-first, so this active test gateway lands third — not first.
+    ProjectPaymentGateway::factory()->for($this->project)->create([
+        'mode' => 'test', 'label' => 'mmm-active-test', 'is_active' => true,
+        'created_at' => now()->subDays(20),
+    ]);
+    ProjectPaymentGateway::factory()->for($this->project)->create([
+        'mode' => 'live', 'label' => 'zzz-oldest-live', 'is_active' => false,
+        'created_at' => now()->subDays(10),
+    ]);
+    ProjectPaymentGateway::factory()->for($this->project)->create([
+        'mode' => 'test', 'label' => 'bbb-new-test', 'is_active' => false,
+        'created_at' => now()->subDays(2),
+    ]);
+    ProjectPaymentGateway::factory()->for($this->project)->create([
+        'mode' => 'live', 'label' => 'aaa-newest-live', 'is_active' => false,
+        'created_at' => now()->subDays(1),
+    ]);
+
+    $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways");
+
+    $response->assertSuccessful();
+    expect(collect($response->json('data'))->pluck('label')->all())->toBe([
+        'zzz-oldest-live',
+        'aaa-newest-live',
+        'mmm-active-test',
+        'bbb-new-test',
+    ]);
+});
+
 it('keeps existing credentials when update payload omits them', function () {
     $gateway = ProjectPaymentGateway::factory()->for($this->project)->create([
         'secret_key' => 'xnd_initial_SECRET',
@@ -371,4 +404,71 @@ it('exposes available_checkout_methods with both options enabled', function () {
     expect($methods)->toHaveCount(2);
     expect($methods->firstWhere('value', 'payment_link_sessions')['available'])->toBeTrue();
     expect($methods->firstWhere('value', 'payment_link_legacy')['available'])->toBeTrue();
+});
+
+it('stores a midtrans gateway with the server key encrypted', function () {
+    $response = $this->postJson("/api/projects/{$this->project->username}/payment-gateways", [
+        'provider' => 'midtrans',
+        'mode' => 'test',
+        'secret_key' => 'SB-Mid-server-SECRETKEY1234567890',
+        'public_key' => 'SB-Mid-client-CLIENTKEY1234567890',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.provider', 'midtrans')
+        ->assertJsonMissing(['secret_key' => 'SB-Mid-server-SECRETKEY1234567890']);
+
+    $row = DB::table('project_payment_gateways')->where('provider', 'midtrans')->first();
+    expect(Crypt::decryptString($row->secret_key))->toBe('SB-Mid-server-SECRETKEY1234567890');
+});
+
+it('test-connection rejects a malformed midtrans server key without calling provider', function () {
+    Http::fake();
+
+    // A Client Key pasted where the Server Key belongs (no "Mid-server-").
+    $response = $this->postJson(
+        "/api/projects/{$this->project->username}/payment-gateways/test-connection",
+        ['provider' => 'midtrans', 'mode' => 'test', 'secret_key' => 'SB-Mid-client-WRONGKEYTYPE12345'],
+    );
+
+    $response->assertStatus(422)
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('error_code', 'PAYMENT_GATEWAY_MISCONFIGURED');
+
+    Http::assertNothingSent();
+});
+
+it('test-connection succeeds for a valid midtrans key (404 = order not found)', function () {
+    Http::fake(['api.sandbox.midtrans.com/v2/*' => Http::response(['status_code' => '404', 'status_message' => "Transaction doesn't exist."], 404)]);
+
+    $response = $this->postJson(
+        "/api/projects/{$this->project->username}/payment-gateways/test-connection",
+        ['provider' => 'midtrans', 'mode' => 'test', 'secret_key' => 'SB-Mid-server-VALIDKEY1234567890'],
+    );
+
+    $response->assertOk()->assertJsonPath('success', true);
+});
+
+it('test-connection maps a midtrans 401 to misconfigured', function () {
+    Http::fake(['api.sandbox.midtrans.com/v2/*' => Http::response(['status_code' => '401'], 401)]);
+
+    $response = $this->postJson(
+        "/api/projects/{$this->project->username}/payment-gateways/test-connection",
+        ['provider' => 'midtrans', 'mode' => 'test', 'secret_key' => 'SB-Mid-server-REVOKED1234567890'],
+    );
+
+    $response->assertStatus(422)
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('error_code', 'PAYMENT_GATEWAY_MISCONFIGURED');
+});
+
+it('a midtrans gateway exposes only invoicing capability and no checkout methods', function () {
+    $gateway = ProjectPaymentGateway::factory()->for($this->project)->midtrans()->create();
+
+    $response = $this->getJson("/api/projects/{$this->project->username}/payment-gateways/{$gateway->id}");
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.capabilities', ['invoicing', 'refunds', 'transactions', 'settlement'])
+        ->assertJsonPath('data.available_checkout_methods', [])
+        ->assertJsonPath('data.webhook_url', rtrim(config('app.url'), '/').'/api/webhooks/midtrans');
 });

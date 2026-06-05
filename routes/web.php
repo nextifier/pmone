@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PaymentRedirectController;
 use App\Mail\ContactFormSubmitted;
 use App\Mail\MagicLinkMail;
 use App\Models\ContactFormSubmission;
@@ -11,6 +12,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Payment provider browser-redirect bouncer: resolves order_id -> reservation ->
+// originating event-website domain, so account-global redirect URLs (e.g. the
+// Midtrans dashboard finish/unfinish/error) return guests to the right site.
+Route::get('/payment/redirect', PaymentRedirectController::class)->name('payment.redirect');
 
 // Include Fortify authentication routes
 require __DIR__.'/auth.php';

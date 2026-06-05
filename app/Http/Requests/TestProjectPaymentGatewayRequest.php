@@ -18,7 +18,7 @@ class TestProjectPaymentGatewayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'provider' => ['required', 'string', Rule::in(['xendit'])],
+            'provider' => ['required', 'string', Rule::in(['xendit', 'midtrans'])],
             'mode' => ['required', 'string', Rule::in(['live', 'test'])],
             'secret_key' => ['required', 'string', 'max:500'],
             'webhook_token' => ['nullable', 'string', 'max:500'],
@@ -29,7 +29,7 @@ class TestProjectPaymentGatewayRequest extends FormRequest
     {
         return [
             'secret_key.required' => 'Secret key is required for the test connection.',
-            'provider.in' => 'Provider not supported. Currently only "xendit" is allowed.',
+            'provider.in' => 'Provider not supported. Choose "xendit" or "midtrans".',
         ];
     }
 }

@@ -1,38 +1,80 @@
 <template>
   <div class="space-y-2">
     <div
-      v-if="canDelete && selectedCount > 0"
-      class="bg-muted/50 flex items-center justify-between gap-2 rounded-lg border px-3 py-2"
+      v-if="canReorder || canDelete"
+      class="flex items-center justify-between gap-2"
+      :class="{ 'min-h-7': !compactToolbar }"
     >
-      <div class="flex items-center gap-x-2">
-        <Checkbox
-          :model-value="selectAllState"
-          aria-label="Select all images"
-          @update:model-value="toggleSelectAll"
-        />
-        <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-          {{ selectedCount }} selected
-        </span>
+      <div class="flex items-center gap-2">
+        <template v-if="canDelete && selectedCount > 0">
+          <div class="bg-muted/50 flex items-center gap-x-2 rounded-lg border px-2.5 py-1.5">
+            <Checkbox
+              :model-value="selectAllState"
+              aria-label="Select all images"
+              @update:model-value="toggleSelectAll"
+            />
+            <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              {{ selectedCount }} selected
+            </span>
+          </div>
+          <Button type="button" variant="destructive" size="sm" @click="openDelete">
+            <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+            Delete ({{ selectedCount }})
+          </Button>
+        </template>
+        <slot name="toolbar-actions" />
       </div>
-      <Button type="button" variant="destructive" size="sm" @click="openDelete">
-        <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
-        Delete ({{ selectedCount }})
-      </Button>
+
+      <Transition
+        enter-from-class="opacity-0 translate-y-0.5"
+        enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
+        leave-to-class="opacity-0 translate-y-0.5"
+      >
+        <div
+          v-if="canReorder && saveStatus !== 'idle'"
+          role="status"
+          aria-live="polite"
+          class="text-muted-foreground inline-flex items-center gap-x-1.5 text-xs tracking-tight sm:text-sm"
+        >
+          <span class="relative inline-flex size-4 shrink-0 items-center justify-center">
+            <Spinner v-if="saveStatus === 'saving'" class="size-4" />
+            <Icon
+              v-else-if="saveStatus === 'saved'"
+              name="hugeicons:checkmark-circle-02"
+              class="text-success-foreground size-4"
+            />
+            <Icon v-else name="hugeicons:alert-circle" class="text-destructive size-4" />
+          </span>
+          <span>{{ statusLabel }}</span>
+        </div>
+      </Transition>
     </div>
 
-    <div ref="gridRef" class="grid" :class="columnsClass">
-      <div
-        v-for="(item, index) in localItems"
-        :key="item.id"
-        class="bg-muted relative aspect-square overflow-hidden rounded-lg border transition-colors"
-        :class="{ 'ring-primary ring-2': isSelected(item.id) }"
-      >
-        <Lightbox v-if="lightbox" :items="localItems" :alt="alt" :thumbnail-key="thumbnailKey">
-          <template #trigger="{ openAt }">
+    <slot v-if="!localItems.length" name="empty" />
+
+    <Lightbox v-else :items="localItems" :alt="alt" :thumbnail-key="thumbnailKey">
+      <template #trigger="{ openAt }">
+        <div ref="gridRef" class="grid" :class="columnsClass">
+          <div
+            v-for="(item, index) in localItems"
+            :key="item[idKey]"
+            class="gallery-tile bg-muted relative overflow-hidden rounded-lg border"
+            :class="[
+              tileAspectClass,
+              {
+                'ring-primary ring-2': isSelected(item[idKey]),
+                'is-leaving': leavingIds.has(item[idKey]),
+              },
+            ]"
+          >
             <button
               type="button"
-              class="block size-full cursor-zoom-in"
-              @click="openAt(index)"
+              class="block size-full"
+              :class="lightbox ? 'cursor-zoom-in' : 'cursor-default'"
+              @click="lightbox && openAt(index)"
             >
               <img
                 :src="item[thumbnailKey] || item.md || item.url"
@@ -43,36 +85,38 @@
                 class="size-full object-cover"
               />
             </button>
-          </template>
-        </Lightbox>
-        <img
-          v-else
-          :src="item[thumbnailKey] || item.md || item.url"
-          :alt="item.name || alt"
-          loading="lazy"
-          decoding="async"
-          draggable="false"
-          class="size-full object-cover"
-        />
 
-        <div v-if="canDelete" class="absolute top-1.5 left-1.5 z-10" @click.stop>
-          <Checkbox
-            :model-value="isSelected(item.id)"
-            :aria-label="`Select ${item.name || 'image'}`"
-            class="size-5 rounded-md border-white/70 bg-black/35 shadow-sm backdrop-blur-sm data-[state=checked]:border-primary data-[state=checked]:bg-primary"
-            @update:model-value="(value) => toggle(item.id, value)"
-          />
-        </div>
+            <div
+              v-if="canDelete || canReorder"
+              class="pointer-events-none absolute inset-x-0 top-0 h-11 bg-linear-to-b from-black/30 to-transparent"
+            />
 
-        <div
-          v-if="canReorder"
-          class="drag-handle absolute top-1.5 right-1.5 z-10 flex size-7 cursor-grab touch-none items-center justify-center rounded-full bg-black/35 text-white shadow-sm backdrop-blur-sm active:cursor-grabbing"
-          aria-label="Drag to reorder"
-        >
-          <Icon name="lucide:grip-vertical" class="size-4 shrink-0" />
+            <div v-if="canDelete" class="absolute top-1.5 left-1.5 z-10" @click.stop>
+              <Checkbox
+                :model-value="isSelected(item[idKey])"
+                :aria-label="`Select ${item.name || 'image'}`"
+                class="size-5 rounded-md border-white/80 bg-black/20 shadow-sm backdrop-blur-sm data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                @update:model-value="(value) => toggle(item[idKey], value)"
+              />
+            </div>
+
+            <button
+              v-if="canReorder"
+              type="button"
+              class="drag-handle absolute top-1.5 right-1.5 z-10 flex size-7 cursor-grab touch-none items-center justify-center rounded-md text-white/90 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none active:cursor-grabbing"
+              aria-label="Reorder image. Use arrow keys to move."
+              @keydown="(event) => onHandleKeydown(event, index)"
+            >
+              <Icon name="lucide:grip-vertical" class="size-4 shrink-0" />
+            </button>
+
+            <slot name="tile-overlay" :item="item" :index="index" />
+          </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </Lightbox>
+
+    <span class="sr-only" role="status" aria-live="polite">{{ announcement }}</span>
 
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
@@ -91,7 +135,12 @@
             >
               Cancel
             </Button>
-            <Button type="button" variant="destructive" :disabled="deletePending" @click="confirmDelete">
+            <Button
+              type="button"
+              variant="destructive"
+              :disabled="deletePending"
+              @click="confirmDelete"
+            >
               <Spinner v-if="deletePending" class="size-4" />
               <span>Delete</span>
             </Button>
@@ -103,13 +152,15 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import { Lightbox } from "@/components/ui/lightbox";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import { useGalleryReorder } from "@/composables/useGalleryReorder";
 
 const items = defineModel("items", { type: Array, default: () => [] });
 
@@ -120,40 +171,100 @@ const props = defineProps({
     type: String,
     default: "grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5",
   },
+  tileAspectClass: { type: String, default: "aspect-square" },
+  compactToolbar: { type: Boolean, default: false },
   thumbnailKey: { type: String, default: "sm" },
   lightbox: { type: Boolean, default: true },
   alt: { type: String, default: "Gallery" },
+  idKey: { type: String, default: "id" },
+  reorderEndpoint: { type: String, default: "/api/media/reorder" },
+  deleteEndpoint: { type: String, default: "/api/media/bulk-delete" },
 });
 
 const emit = defineEmits(["changed"]);
 
 const client = useSanctumClient();
+const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 const gridRef = ref(null);
+const idKey = computed(() => props.idKey);
+const getId = (media) => media[props.idKey];
+const leavingIds = ref(new Set());
 
 /**
- * Local writable working copy. SortableJS mutates its target array in place,
- * but the `items` model proxies a readonly prop, so splicing it directly is
- * blocked by Vue. We sort/delete on this copy and commit the result back to
- * the model via reassignment.
+ * Local writable working copy. SortableJS mutates its target array in place, but
+ * the `items` model proxies a readonly prop, so splicing it directly is blocked
+ * by Vue. We sort/delete on this copy and commit the result back to the model.
  */
 const localItems = ref([]);
+let suppressResync = false;
+
+function commit(ordered) {
+  suppressResync = true;
+  items.value = (ordered ?? localItems.value).map((media) => ({ ...media }));
+  nextTick(() => {
+    suppressResync = false;
+  });
+}
+
+const { saveStatus, scheduleSave, seedSaved } = useGalleryReorder({
+  items: localItems,
+  client,
+  endpoint: () => props.reorderEndpoint,
+  idKey,
+  onCommit: commit,
+  onChanged: () => emit("changed"),
+  onError: (e) => toast.error(e?.data?.message || "Failed to save order"),
+});
+
+const statusLabel = computed(
+  () => ({ saving: "Saving…", saved: "Saved", error: "Couldn't save" })[saveStatus.value] ?? "",
+);
 
 watch(
   items,
   (val) => {
-    const incoming = Array.isArray(val) ? val : [];
-    const sameOrder =
-      incoming.length === localItems.value.length &&
-      incoming.every((media, index) => media.id === localItems.value[index]?.id);
-    if (!sameOrder) {
-      localItems.value = incoming.map((media) => media);
+    if (suppressResync) {
+      return;
     }
+    const incoming = Array.isArray(val) ? val : [];
+    localItems.value = incoming.map((media) => ({ ...media }));
+    seedSaved(incoming);
   },
-  { immediate: true },
+  { immediate: true, deep: true },
 );
 
-function commit() {
-  items.value = localItems.value.map((media) => media);
+useSortableList(gridRef, localItems, {
+  enabled: computed(() => props.canReorder),
+  onReorder: scheduleSave,
+  sortableOptions: {
+    animation: reduceMotion.value ? 0 : 200,
+    ghostClass: "gallery-ghost",
+    chosenClass: "gallery-chosen",
+    dragClass: "gallery-drag",
+  },
+});
+
+const announcement = ref("");
+
+function onHandleKeydown(event, index) {
+  let target = null;
+  if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+    target = index - 1;
+  } else if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+    target = index + 1;
+  } else {
+    return;
+  }
+  event.preventDefault();
+  if (target < 0 || target >= localItems.value.length) {
+    return;
+  }
+  const next = localItems.value.slice();
+  const [moved] = next.splice(index, 1);
+  next.splice(target, 0, moved);
+  localItems.value = next;
+  announcement.value = `Moved to position ${target + 1} of ${next.length}`;
+  scheduleSave();
 }
 
 const selected = ref(new Set());
@@ -182,62 +293,16 @@ const selectAllState = computed(() => {
 });
 
 function toggleSelectAll(value) {
-  selected.value = value ? new Set(localItems.value.map((media) => media.id)) : new Set();
+  selected.value = value ? new Set(localItems.value.map(getId)) : new Set();
 }
 
 watch(localItems, (list) => {
-  const present = new Set(list.map((media) => media.id));
+  const present = new Set(list.map(getId));
   const filtered = new Set([...selected.value].filter((id) => present.has(id)));
   if (filtered.size !== selected.value.size) {
     selected.value = filtered;
   }
 });
-
-const reordering = ref(false);
-let dragStartKey = null;
-
-useSortableList(gridRef, localItems, {
-  enabled: computed(() => props.canReorder && !reordering.value),
-  onReorder: autoSaveOrder,
-  sortableOptions: {
-    ghostClass: "opacity-40",
-    onStart: () => {
-      dragStartKey = localItems.value.map((media) => media.id).join(",");
-    },
-  },
-});
-
-async function autoSaveOrder() {
-  if (!props.canReorder || localItems.value.length < 2) {
-    return;
-  }
-  const order = localItems.value.map((media) => media.id);
-  if (order.join(",") === dragStartKey) {
-    return;
-  }
-  reordering.value = true;
-  try {
-    await client("/api/media/reorder", {
-      method: "POST",
-      body: { media_ids: order },
-    });
-    commit();
-    toast.success("Order saved");
-    emit("changed");
-  } catch (e) {
-    if (dragStartKey) {
-      const byId = new Map(localItems.value.map((media) => [media.id, media]));
-      localItems.value = dragStartKey
-        .split(",")
-        .map((id) => byId.get(Number(id)))
-        .filter(Boolean);
-    }
-    toast.error(e?.data?.message || "Failed to save order");
-    emit("changed");
-  } finally {
-    reordering.value = false;
-  }
-}
 
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
@@ -255,7 +320,7 @@ async function confirmDelete() {
   }
   deletePending.value = true;
   try {
-    const response = await client("/api/media/bulk-delete", {
+    const response = await client(props.deleteEndpoint, {
       method: "DELETE",
       body: { media_ids: ids },
     });
@@ -263,11 +328,21 @@ async function confirmDelete() {
       ? response.deleted_media.map((media) => media.id)
       : ids;
     const removed = new Set(deletedIds);
-    localItems.value = localItems.value.filter((media) => !removed.has(media.id));
-    commit();
     selected.value = new Set();
     deleteDialogOpen.value = false;
+    if (!reduceMotion.value) {
+      leavingIds.value = new Set(removed);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    localItems.value = localItems.value.filter((media) => !removed.has(getId(media)));
+    leavingIds.value = new Set();
+    commit();
+    seedSaved(localItems.value);
     toast.success(`${removed.size} image${removed.size > 1 ? "s" : ""} deleted`);
+    const failedCount = response?.failed_deletes?.length ?? 0;
+    if (failedCount > 0) {
+      toast.warning(`${failedCount} image${failedCount > 1 ? "s" : ""} couldn't be deleted`);
+    }
     emit("changed");
   } catch (e) {
     toast.error(e?.data?.message || "Failed to delete images");
@@ -276,3 +351,31 @@ async function confirmDelete() {
   }
 }
 </script>
+
+<style>
+.gallery-tile {
+  transition: opacity 0.2s ease;
+}
+.gallery-tile.is-leaving {
+  opacity: 0;
+}
+.gallery-ghost {
+  opacity: 0.4;
+}
+.gallery-chosen {
+  box-shadow: var(--shadow-lg, 0 10px 25px -5px rgb(0 0 0 / 0.25));
+}
+.gallery-drag {
+  transform: scale(1.03);
+  opacity: 0.95;
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gallery-tile {
+    transition: none;
+  }
+  .gallery-drag {
+    transform: none;
+  }
+}
+</style>

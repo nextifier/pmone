@@ -58,6 +58,12 @@ class StorePublicReservationRequest extends FormRequest
             'accept_terms' => ['accepted'],
 
             'promo_code' => ['nullable', 'string', 'max:60'],
+
+            // Originating site URL (e.g. https://iicc.askindo.id), set server-side by
+            // the booking proxy from its own siteUrl. Used to redirect the guest back
+            // to the originating domain after payment. Validated against an allowlist
+            // in ReservationService; an untrusted value falls back to FRONTEND_URL.
+            'origin' => ['nullable', 'url', 'max:255'],
         ];
     }
 

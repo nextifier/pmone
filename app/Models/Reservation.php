@@ -226,6 +226,7 @@ class Reservation extends Model implements HasMedia, Purchasable
         'project_username',
         'ip_address',
         'user_agent',
+        'return_origin',
         'notes',
     ];
 

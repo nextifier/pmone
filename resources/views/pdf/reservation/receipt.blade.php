@@ -172,7 +172,7 @@
                             {{-- Size via a CSS class, not the HTML height attribute:
                                  Tailwind's preflight `img { height: auto }` overrides
                                  the attribute and the logo renders at its full size. --}}
-                            <img src="{{ public_path('images/payment-methods/' . $channelLogo) }}" alt="{{ $channelBadge['channel'] ?? '' }}" class="h-12 w-auto">
+                            <img src="{{ public_path('img/payment-methods/' . $channelLogo) }}" alt="{{ $channelBadge['channel'] ?? '' }}" class="h-12 w-auto">
                         @else
                             <div class="text-[14px] font-semibold text-black tracking-tight leading-tight">{{ $channelBadge['channel'] ?? $r->payment_method?->label() ?? '-' }}</div>
                         @endif
@@ -230,7 +230,7 @@
 <div class="mt-auto pt-10 text-center">
     <div class="text-[11px] text-gray-500 font-medium tracking-wider uppercase whitespace-nowrap leading-[20px]">
         Secure checkout powered by
-        <img src="{{ public_path('images/payment-methods/xendit.svg') }}" alt="Xendit" class="inline-block h-5 align-middle ml-2 -mt-0.5">
+        <img src="{{ public_path('img/payment-methods/' . $paymentProvider['file']) }}" alt="{{ $paymentProvider['name'] }}" class="inline-block h-5 align-middle ml-2 -mt-0.5">
     </div>
 </div>
 @endsection

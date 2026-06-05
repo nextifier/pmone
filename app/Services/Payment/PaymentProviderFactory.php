@@ -4,6 +4,7 @@ namespace App\Services\Payment;
 
 use App\Contracts\Payment\PaymentProvider;
 use App\Models\ProjectPaymentGateway;
+use App\Services\Midtrans\MidtransService;
 use App\Services\Xendit\XenditService;
 use InvalidArgumentException;
 
@@ -20,6 +21,7 @@ class PaymentProviderFactory
     {
         return match ($gateway->provider) {
             'xendit' => XenditService::forGateway($gateway),
+            'midtrans' => MidtransService::forGateway($gateway),
             default => throw new InvalidArgumentException(
                 "Unsupported payment provider: {$gateway->provider}"
             ),

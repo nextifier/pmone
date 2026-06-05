@@ -82,11 +82,100 @@
       />
     </div>
 
+    <!-- Banners -->
+    <section class="space-y-3 rounded-xl border p-4 sm:p-5">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <h2 class="text-base font-medium tracking-tighter sm:text-lg">Banners</h2>
+          <span
+            v-if="bannerTiles.length"
+            class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium tabular-nums"
+          >
+            {{ bannerTiles.length }}
+          </span>
+        </div>
+        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Promotional images shown at the top of the public page. 16:9 ratio.
+        </p>
+      </div>
+
+      <!-- Existing banners -->
+      <GalleryManager
+        v-if="bannerTiles.length"
+        v-model:items="bannerTiles"
+        :reorder-endpoint="bannerReorderEndpoint"
+        :delete-endpoint="bannerDeleteEndpoint"
+        alt="Banner"
+        tile-aspect-class="aspect-video"
+        columns-class="grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+        compact-toolbar
+        @changed="fetchLinkPage"
+      >
+        <template #tile-overlay="{ item }">
+          <span
+            v-if="!item._banner.is_active"
+            class="bg-background/85 text-muted-foreground absolute top-1.5 left-9 z-10 rounded-md px-1.5 py-0.5 text-xs font-medium tracking-tight backdrop-blur-sm"
+          >
+            Hidden
+          </span>
+
+          <div
+            class="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-linear-to-t from-black/65 to-transparent px-2.5 pt-8 pr-10 pb-2"
+          >
+            <Icon
+              v-if="item._banner.url"
+              name="lucide:link"
+              class="size-3.5 shrink-0 text-white/80"
+            />
+            <span class="truncate text-xs font-medium tracking-tight text-white/95 sm:text-sm">
+              {{ item._banner.caption || "Untitled banner" }}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            class="bg-background/85 text-foreground hover:bg-background absolute right-1.5 bottom-1.5 z-10 flex size-7 items-center justify-center rounded-md shadow-sm backdrop-blur-sm transition active:scale-95"
+            aria-label="Edit banner"
+            @click.stop="openBannerForm(item._banner)"
+          >
+            <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
+          </button>
+        </template>
+      </GalleryManager>
+
+      <!-- Upload -->
+      <InputFile
+        ref="bannerInputRef"
+        v-model="bannerFiles"
+        allow-multiple
+        :max-files="20"
+        :max-file-size="'20MB'"
+        :accepted-file-types="['image/jpeg', 'image/png', 'image/webp']"
+      />
+
+      <div v-if="pendingBannerFolders.length" class="flex justify-end">
+        <Button size="sm" :disabled="uploadingBanners" @click="uploadBanners">
+          <Spinner v-if="uploadingBanners" class="size-4" />
+          <Icon v-else name="hugeicons:add-01" class="size-4" />
+          Upload {{ pendingBannerFolders.length }} banner{{
+            pendingBannerFolders.length > 1 ? "s" : ""
+          }}
+        </Button>
+      </div>
+    </section>
+
     <!-- Form dialog -->
     <FormLinkPageItem
       v-model:open="itemFormOpen"
       :link-page-slug="slug"
       :item="editingItem"
+      @success="fetchLinkPage"
+    />
+
+    <FormLinkPageBanner
+      v-model:open="bannerFormOpen"
+      :link-page-slug="slug"
+      :banner="editingBanner"
       @success="fetchLinkPage"
     />
   </div>
@@ -95,6 +184,7 @@
 <script setup>
 import LinkPageItemCard from "@/components/link-page/LinkPageItemCard.vue";
 import FormLinkPageItem from "@/components/link-page/FormLinkPageItem.vue";
+import FormLinkPageBanner from "@/components/link-page/FormLinkPageBanner.vue";
 import { useSortableList } from "@/composables/useSortableList";
 import { toast } from "vue-sonner";
 
@@ -113,6 +203,21 @@ const loading = ref(true);
 const linkPage = ref(null);
 const items = ref([]);
 
+// Banners
+const bannerTiles = ref([]);
+const bannerFiles = ref([]);
+const bannerInputRef = ref(null);
+const uploadingBanners = ref(false);
+const bannerFormOpen = ref(false);
+const editingBanner = ref(null);
+
+const bannerReorderEndpoint = computed(() => `/api/link-pages/${slug.value}/banners/reorder`);
+const bannerDeleteEndpoint = computed(() => `/api/link-pages/${slug.value}/banners/bulk-delete`);
+
+const pendingBannerFolders = computed(() =>
+  (bannerFiles.value || []).filter((f) => typeof f === "string" && f.startsWith("tmp-"))
+);
+
 usePageMeta(null, {
   title: computed(() => (linkPage.value?.title ? `${linkPage.value.title} · Link Pages` : "Link Page")),
 });
@@ -127,12 +232,48 @@ const fetchLinkPage = async () => {
     const response = await client(`/api/link-pages/${slug.value}`);
     linkPage.value = response.data;
     items.value = response.data.items || [];
+    bannerTiles.value = (response.data.banners || []).map((banner) => ({
+      id: banner.id,
+      lqip: banner.image?.lqip,
+      sm: banner.image?.sm,
+      md: banner.image?.md,
+      lg: banner.image?.lg,
+      url: banner.image?.url,
+      name: banner.caption || "Banner",
+      _banner: banner,
+    }));
   } catch (err) {
     console.error("Failed to fetch link page:", err);
     toast.error("Failed to load link page");
   } finally {
     loading.value = false;
   }
+};
+
+const uploadBanners = async () => {
+  const folders = pendingBannerFolders.value;
+  if (!folders.length) return;
+
+  uploadingBanners.value = true;
+  try {
+    await client(`/api/link-pages/${slug.value}/banners`, {
+      method: "POST",
+      body: { tmp_images: folders },
+    });
+    bannerInputRef.value?.pond?.removeFiles?.();
+    bannerFiles.value = [];
+    toast.success(`${folders.length} banner${folders.length > 1 ? "s" : ""} added`);
+    await fetchLinkPage();
+  } catch (err) {
+    toast.error(err.response?._data?.message || err.message || "Failed to upload banners");
+  } finally {
+    uploadingBanners.value = false;
+  }
+};
+
+const openBannerForm = (banner) => {
+  editingBanner.value = banner;
+  bannerFormOpen.value = true;
 };
 
 onMounted(fetchLinkPage);

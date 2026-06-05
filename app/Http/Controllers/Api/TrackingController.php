@@ -8,6 +8,7 @@ use App\Models\BrandEvent;
 use App\Models\Click;
 use App\Models\Link;
 use App\Models\LinkPage;
+use App\Models\LinkPageBanner;
 use App\Models\LinkPageItem;
 use App\Models\Project;
 use App\Models\ShortLink;
@@ -23,6 +24,7 @@ class TrackingController extends Controller
         User::class,
         LinkPage::class,
         LinkPageItem::class,
+        LinkPageBanner::class,
         Link::class,
         ShortLink::class,
         BrandEvent::class,

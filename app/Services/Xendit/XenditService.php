@@ -2,6 +2,7 @@
 
 namespace App\Services\Xendit;
 
+use App\Contracts\Payment\CreatesCheckout;
 use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Payment\ProvidesBalance;
 use App\Contracts\Payment\ProvidesSettlements;
@@ -32,7 +33,7 @@ use Xendit\Invoice\InvoiceApi;
 use Xendit\Refund\CreateRefund;
 use Xendit\Refund\RefundApi;
 
-class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlements, ProvidesTransactions, SupportsCheckoutMethods
+class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance, ProvidesSettlements, ProvidesTransactions, SupportsCheckoutMethods
 {
     /**
      * Cache TTL for payment channel listings (24 hours).
@@ -48,7 +49,7 @@ class XenditService implements PaymentProvider, ProvidesBalance, ProvidesSettlem
 
     /**
      * Map Xendit `channel_code` (uppercase) to SVG asset under
-     * /public/images/payment-methods/ plus a human-readable label.
+     * /public/img/payment-methods/ plus a human-readable label.
      *
      * Channel codes here come from Xendit's `/payment_channels` response;
      * keep keys aligned with the values Xendit returns (PERMATA, BRI, OVO, ...).

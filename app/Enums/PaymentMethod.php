@@ -5,6 +5,7 @@ namespace App\Enums;
 enum PaymentMethod: string
 {
     case Xendit = 'xendit';
+    case Midtrans = 'midtrans';
     case ManualBankTransfer = 'manual_bank_transfer';
     case Complimentary = 'complimentary';
 
@@ -18,6 +19,10 @@ enum PaymentMethod: string
             // "Online Payment". The Status column already conveys whether
             // payment has happened.
             self::Xendit => null,
+            // Like Xendit, Midtrans is the gateway, not a guest-facing method.
+            // The reservation's channel (BCA, QRIS, GoPay, ...) identifies how
+            // payment happened; the field is left blank when no channel is known.
+            self::Midtrans => null,
             self::ManualBankTransfer => 'Manual Bank Transfer',
             self::Complimentary => 'Complimentary',
         };

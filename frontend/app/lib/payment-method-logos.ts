@@ -54,7 +54,7 @@ export function getPaymentLogoUrl(channel?: string | null): string | null {
   const key = normalize(channel);
   if (!key) return null;
   const entry = CHANNEL_LOGO_MAP[key];
-  return entry ? `/images/payment-methods/${entry.file}` : null;
+  return entry ? `/img/payment-methods/${entry.file}` : null;
 }
 
 export function getPaymentChannelLabel(channel?: string | null): string | null {

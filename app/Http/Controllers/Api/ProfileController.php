@@ -129,6 +129,8 @@ class ProfileController extends Controller
             ->where('is_active', true)
             ->with(['items' => function ($query) {
                 $query->active()->ordered();
+            }, 'banners' => function ($query) {
+                $query->active()->ordered()->with('media');
             }, 'user', 'media'])
             ->first();
 

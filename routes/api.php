@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\HotelController;
 use App\Http\Controllers\Api\HotelTransferOptionController;
 use App\Http\Controllers\Api\ImportProgressController;
 use App\Http\Controllers\Api\JobProgressController;
+use App\Http\Controllers\Api\LinkPageBannerController;
 use App\Http\Controllers\Api\LinkPageController;
 use App\Http\Controllers\Api\LinkPageItemController;
 use App\Http\Controllers\Api\LogController;
@@ -77,6 +78,7 @@ use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
@@ -663,6 +665,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{linkPage:slug}/items/trash', [LinkPageItemController::class, 'trash'])->name('link-pages.items.trash');
         Route::post('/{linkPage:slug}/items/trash/{id}/restore', [LinkPageItemController::class, 'restore'])->name('link-pages.items.restore');
         Route::delete('/{linkPage:slug}/items/trash/{id}', [LinkPageItemController::class, 'forceDestroy'])->name('link-pages.items.force-destroy');
+
+        // Banners (nested)
+        Route::get('/{linkPage:slug}/banners', [LinkPageBannerController::class, 'index'])->name('link-pages.banners.index');
+        Route::post('/{linkPage:slug}/banners', [LinkPageBannerController::class, 'store'])->name('link-pages.banners.store');
+        Route::post('/{linkPage:slug}/banners/reorder', [LinkPageBannerController::class, 'reorder'])->name('link-pages.banners.reorder');
+        Route::delete('/{linkPage:slug}/banners/bulk-delete', [LinkPageBannerController::class, 'bulkDelete'])->name('link-pages.banners.bulk-delete');
+        Route::put('/{linkPage:slug}/banners/{linkPageBanner}', [LinkPageBannerController::class, 'update'])->name('link-pages.banners.update');
+        Route::patch('/{linkPage:slug}/banners/{linkPageBanner}/toggle', [LinkPageBannerController::class, 'toggleActive'])->name('link-pages.banners.toggle');
     });
 
     // AI Chat endpoints
@@ -1261,3 +1271,14 @@ Route::post('/webhooks/xendit', [XenditWebhookController::class, 'invoiceGeneric
 Route::post('/webhooks/xendit/{segment}', [XenditWebhookController::class, 'invoiceWithSegment'])
     ->middleware('log-payment-webhook:xendit')
     ->name('webhooks.xendit.invoice');
+
+// Midtrans webhook (no auth - SHA512 signature verified inside the controller).
+// Midtrans posts HTTP notifications to a single "Payment Notification URL"; the
+// reservation is resolved from `order_id` in the payload. The `{segment}`
+// variant tolerates a dashboard misconfiguration (trailing path) by ignoring it.
+Route::post('/webhooks/midtrans', [MidtransWebhookController::class, 'handle'])
+    ->middleware('log-payment-webhook:midtrans')
+    ->name('webhooks.midtrans');
+Route::post('/webhooks/midtrans/{segment}', [MidtransWebhookController::class, 'handleWithSegment'])
+    ->middleware('log-payment-webhook:midtrans')
+    ->name('webhooks.midtrans.segment');

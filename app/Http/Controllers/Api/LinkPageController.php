@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateLinkPageRequest;
 use App\Http\Resources\LinkPageIndexResource;
 use App\Http\Resources\LinkPageResource;
 use App\Models\LinkPage;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -137,6 +138,9 @@ class LinkPageController extends Controller
             'user',
             'items' => function ($query) {
                 $query->ordered();
+            },
+            'banners' => function ($query) {
+                $query->ordered()->with('media');
             },
         ]);
 
@@ -457,8 +461,8 @@ class LinkPageController extends Controller
             $endDate = $dateRange['end'];
             $visitQuery->inDateRange($startDate, $endDate);
         } elseif ($request->has('start_date') && $request->has('end_date')) {
-            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
             $visitQuery->inDateRange($startDate, $endDate);
         } elseif ($request->has('days')) {
             $startDate = now()->subDays($request->days)->startOfDay();

@@ -12,6 +12,7 @@
     v-else-if="resolvedType === 'linkpage'"
     :link-page="linkPageData"
     @track-click="trackLinkPageItemClick"
+    @track-banner-click="trackLinkPageBannerClick"
   />
 
   <ProfileView
@@ -254,6 +255,23 @@ const trackLinkPageItemClick = (item) => {
     },
   }).catch((err) => {
     console.error("Failed to track link page item click:", err);
+  });
+};
+
+const trackLinkPageBannerClick = (banner) => {
+  if (!import.meta.client || !banner?.id) return;
+
+  $fetch("/api/track/click", {
+    method: "POST",
+    baseURL: useRuntimeConfig().public.apiUrl,
+    credentials: "include",
+    body: {
+      clickable_type: "App\\Models\\LinkPageBanner",
+      clickable_id: banner.id,
+      link_label: banner.caption || "Banner",
+    },
+  }).catch((err) => {
+    console.error("Failed to track link page banner click:", err);
   });
 };
 

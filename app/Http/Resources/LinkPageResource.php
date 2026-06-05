@@ -40,6 +40,10 @@ class LinkPageResource extends JsonResource
             'items' => $this->whenLoaded('items', function () {
                 return LinkPageItemResource::collection($this->items);
             }),
+
+            'banners' => $this->whenLoaded('banners', function () {
+                return LinkPageBannerResource::collection($this->banners);
+            }),
         ];
     }
 }

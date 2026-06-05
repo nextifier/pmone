@@ -49,4 +49,23 @@ class ProjectPaymentGatewayFactory extends Factory
     {
         return $this->state(['checkout_method' => CheckoutMethod::PaymentLinkLegacy]);
     }
+
+    /**
+     * A Midtrans gateway. Server/Client keys use the sandbox prefixes so
+     * isConfigured() passes (it requires the "Mid-server-" substring). Midtrans
+     * has no separate webhook token — signatures are verified with the Server
+     * Key — so webhook_token is null.
+     */
+    public function midtrans(): self
+    {
+        return $this->state([
+            'provider' => 'midtrans',
+            'mode' => 'test',
+            'secret_key' => 'SB-Mid-server-'.fake()->regexify('[A-Za-z0-9]{24}'),
+            'public_key' => 'SB-Mid-client-'.fake()->regexify('[A-Za-z0-9]{24}'),
+            'webhook_token' => null,
+            'checkout_method' => CheckoutMethod::PaymentLinkLegacy,
+            'config' => ['currency' => 'IDR'],
+        ]);
+    }
 }

@@ -16,6 +16,7 @@ use App\Models\Reservation;
 use App\Models\ReservationItem;
 use App\Models\RoomType;
 use App\Services\Payment\PaymentGatewayResolver;
+use App\Services\Payment\PaymentProviderFactory;
 use App\Services\Pricing\PricingService;
 use App\Services\Promotion\PenaltyService;
 use App\Services\Promotion\PromoCodeService;
@@ -149,13 +150,17 @@ class ReservationService
                 abort(422, 'Reservation must belong to an event with a project to generate payment.');
             }
 
-            $preferred = app()->environment('production') ? 'live' : 'test';
-            if (! $project->resolvePaymentGateway('xendit', $preferred)) {
-                abort(422, "No active Xendit gateway configured for project \"{$project->username}\". Setup di Settings → Payment Gateways.");
+            if (! $project->activePaymentGateway()) {
+                abort(422, "No active payment gateway configured for project \"{$project->username}\". Setup di Settings → Payment Gateways.");
             }
         }
 
-        $reservation = DB::transaction(function () use ($data) {
+        // Resolve the originating site URL once (validated against the allowlist),
+        // so both the stored reservation and the post-payment redirect use the
+        // domain the guest actually booked from, not a single global frontend.
+        $returnOrigin = $this->resolveReturnOrigin($data['origin'] ?? null);
+
+        $reservation = DB::transaction(function () use ($data, $returnOrigin) {
             $hotel = Hotel::query()->findOrFail($data['hotel_id']);
 
             if (empty($data['event_id'])) {
@@ -308,6 +313,7 @@ class ReservationService
                 'project_username' => $data['project_username'] ?? null,
                 'ip_address' => $data['ip_address'] ?? null,
                 'user_agent' => $data['user_agent'] ?? null,
+                'return_origin' => $returnOrigin,
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -402,15 +408,28 @@ class ReservationService
             SendBookingReceivedJob::dispatch($reservation->id);
         } elseif (($data['generate_xendit'] ?? true) === true) {
             try {
-                $xenditClient = $xendit ?? $this->xenditFor($reservation);
-                $frontendUrl = rtrim(config('app.frontend_url'), '/');
-                $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
-                $failureUrl = "{$frontendUrl}/hotels?failed=".$reservation->reservation_number;
-                // createCheckout() dispatches to the Sessions API (Payment Link
-                // mode) or the legacy Invoices API depending on the gateway's
-                // checkout_method. `xendit_invoice_id` therefore holds either
-                // an `inv-` invoice id or a `ps-` Payment Session id.
-                $checkout = $xenditClient->createCheckout(
+                // Resolve the project's single active gateway (any provider) and
+                // build the matching checkout client through the factory. The
+                // injected $xendit (admin/test escape hatch) still wins when
+                // present. Both XenditService and MidtransService satisfy the
+                // CreatesCheckout contract, so the call below is provider-agnostic.
+                $gateway = $reservation->event?->project?->activePaymentGateway();
+                $client = $xendit ?? ($gateway ? app(PaymentProviderFactory::class)->make($gateway) : null);
+
+                if (! $client) {
+                    throw new \RuntimeException("No active payment gateway configured for reservation {$reservation->reservation_number}.");
+                }
+
+                // Both providers redirect through the PaymentRedirectController
+                // bouncer, which resolves the stored origin + status and forwards
+                // the guest to the right event-website page (centralised so it
+                // stays consistent across providers and future products).
+                [$successUrl, $failureUrl] = $this->paymentRedirectUrls($reservation);
+                // createCheckout() is provider-agnostic. Xendit dispatches to the
+                // Sessions or legacy Invoices API; Midtrans creates a Snap
+                // transaction. `xendit_invoice_id` holds the returned reference
+                // (Xendit invoice/session id, or Midtrans Snap token).
+                $checkout = $client->createCheckout(
                     $reservation,
                     $successUrl,
                     $failureUrl,
@@ -418,12 +437,14 @@ class ReservationService
                 $reservation->update([
                     'xendit_invoice_id' => $checkout['reference'],
                     'payment_url' => $checkout['payment_url'],
-                    'payment_method' => PaymentMethod::Xendit,
-                    'payment_gateway_id' => $xenditClient->gateway()?->id,
+                    // Decide the method from the resolved DB gateway, never from
+                    // the client object — injected test mocks do not stub provider().
+                    'payment_method' => $gateway?->provider === 'midtrans' ? PaymentMethod::Midtrans : PaymentMethod::Xendit,
+                    'payment_gateway_id' => $client->gateway()?->id,
                 ]);
             } catch (\Throwable $e) {
                 $mapped = XenditErrorMapper::map($e);
-                Log::log($mapped['log_level'], 'Xendit invoice creation failed - reservation kept for retry', [
+                Log::log($mapped['log_level'], 'Payment link creation failed - reservation kept for retry', [
                     'reservation_id' => $reservation->id,
                     'reservation_number' => $reservation->reservation_number,
                     'error_code' => $mapped['error_code'],
@@ -464,24 +485,22 @@ class ReservationService
             abort(422, 'Only pending payments can be retried.');
         }
 
-        $xenditClient = $xendit ?? $this->xenditFor($reservation);
+        $gateway = $reservation->event?->project?->activePaymentGateway();
+        $client = $xendit ?? ($gateway ? app(PaymentProviderFactory::class)->make($gateway) : null);
 
-        if (! $xenditClient->gateway()) {
+        if (! $client || ! $client->gateway()) {
             abort(422, 'No active payment gateway is configured for this project.');
         }
 
-        $frontendUrl = rtrim(config('app.frontend_url'), '/');
-        $rawToken = $this->magicLinkTokenFor($reservation);
-        $successUrl = "{$frontendUrl}/hotels/success?ref={$reservation->reservation_number}&token={$rawToken}";
-        $failureUrl = "{$frontendUrl}/hotels?failed={$reservation->reservation_number}";
+        [$successUrl, $failureUrl] = $this->paymentRedirectUrls($reservation);
 
-        $checkout = $xenditClient->createCheckout($reservation, $successUrl, $failureUrl);
+        $checkout = $client->createCheckout($reservation, $successUrl, $failureUrl);
 
         $reservation->update([
             'xendit_invoice_id' => $checkout['reference'],
             'payment_url' => $checkout['payment_url'],
-            'payment_method' => PaymentMethod::Xendit,
-            'payment_gateway_id' => $xenditClient->gateway()?->id,
+            'payment_method' => $gateway?->provider === 'midtrans' ? PaymentMethod::Midtrans : PaymentMethod::Xendit,
+            'payment_gateway_id' => $client->gateway()?->id,
         ]);
 
         return $reservation->fresh();
@@ -530,7 +549,11 @@ class ReservationService
         // back to the generic "Xendit" string.
         $invoiceId = $payload['id'] ?? $reservation->xendit_invoice_id;
         $detail = null;
-        if (empty($update['payment_channel']) && $invoiceId && $reservation->paymentGateway) {
+        // The channel/brand backfill below calls Xendit's invoice API, so it must
+        // only run for Xendit reservations. Midtrans webhooks always carry the
+        // channel, and xenditFor() on a Midtrans reservation would mis-resolve.
+        $isXendit = $reservation->paymentGateway?->provider === 'xendit';
+        if ($isXendit && empty($update['payment_channel']) && $invoiceId && $reservation->paymentGateway) {
             $detail = $this->xenditFor($reservation)->fetchInvoiceDetail($invoiceId);
             if ($detail) {
                 if (! empty($detail['payment_channel'])) {
@@ -550,7 +573,7 @@ class ReservationService
         // Credit card payments all come back on the single CREDIT_CARD channel.
         // Resolve the actual network (Visa/Mastercard/Amex/JCB) from the card
         // charge so receipts and listings show the correct brand logo.
-        if (($update['payment_channel'] ?? null) === 'CREDIT_CARD' && $invoiceId && $reservation->paymentGateway) {
+        if ($isXendit && ($update['payment_channel'] ?? null) === 'CREDIT_CARD' && $invoiceId && $reservation->paymentGateway) {
             $chargeId = $payload['credit_card_charge_id'] ?? ($detail['credit_card_charge_id'] ?? null);
             if (! $chargeId) {
                 $detail ??= $this->xenditFor($reservation)->fetchInvoiceDetail($invoiceId);
@@ -923,5 +946,59 @@ class ReservationService
     private function magicLinkTokenForNumber(string $reservationNumber): string
     {
         return hash_hmac('sha256', 'hotel-reservation-magic:'.$reservationNumber, config('app.key'));
+    }
+
+    /**
+     * Build the provider-agnostic checkout redirect URLs. Both providers send the
+     * guest through the PaymentRedirectController bouncer, which resolves the
+     * stored origin + outcome and forwards to the right event-website page. Xendit
+     * picks the success vs failure URL itself; Midtrans uses the success URL as
+     * its callbacks.finish and the bouncer reads the appended transaction_status.
+     *
+     * @return array{0: string, 1: string} [successUrl, failureUrl]
+     */
+    private function paymentRedirectUrls(Reservation $reservation): array
+    {
+        $bouncer = rtrim((string) config('app.url'), '/').'/payment/redirect';
+        $order = urlencode($reservation->reservation_number);
+
+        return [
+            $bouncer.'?order_id='.$order.'&result=success',
+            $bouncer.'?order_id='.$order.'&result=failed',
+        ];
+    }
+
+    /**
+     * Resolve the validated originating site URL the guest booked from.
+     *
+     * The booking proxy sends its own siteUrl as `origin`. Only a value whose
+     * host is in config('payment.trusted_redirect_hosts') is honoured (and
+     * reduced to scheme://host to strip any path/query), preventing open-redirect
+     * abuse. Anything else falls back to the global FRONTEND_URL. The result is
+     * stored on the reservation and used to build the post-payment redirect for
+     * BOTH providers (Xendit success_redirect_url, Midtrans callbacks.finish).
+     */
+    public function resolveReturnOrigin(?string $origin): string
+    {
+        $fallback = rtrim((string) config('app.frontend_url'), '/');
+
+        if (! is_string($origin) || trim($origin) === '') {
+            return $fallback;
+        }
+
+        $host = parse_url($origin, PHP_URL_HOST);
+        $scheme = parse_url($origin, PHP_URL_SCHEME);
+
+        if (! $host || ! $scheme) {
+            return $fallback;
+        }
+
+        if (! in_array($host, (array) config('payment.trusted_redirect_hosts', []), true)) {
+            return $fallback;
+        }
+
+        $port = parse_url($origin, PHP_URL_PORT);
+
+        return strtolower($scheme).'://'.$host.($port ? ':'.$port : '');
     }
 }

@@ -12,6 +12,7 @@ use App\Http\Requests\Reservation\StoreManualReservationRequest;
 use App\Http\Requests\Reservation\UploadVoucherRequest;
 use App\Http\Resources\ReservationIndexResource;
 use App\Http\Resources\ReservationResource;
+use App\Jobs\Reservation\ProcessMidtransRefundJob;
 use App\Jobs\Reservation\ProcessXenditRefundJob;
 use App\Jobs\Reservation\SendCancellationJob;
 use App\Jobs\Reservation\SendHotelVoucherJob;
@@ -495,7 +496,11 @@ class ReservationController extends Controller
         ]);
 
         if (($data['process_refund'] ?? true) && $refundAmount > 0 && $reservation->xendit_invoice_id) {
-            ProcessXenditRefundJob::dispatch($reservation->id, (float) $refundAmount, $data['reason']);
+            if ($reservation->paymentGateway?->provider === 'midtrans') {
+                ProcessMidtransRefundJob::dispatch($reservation->id, (float) $refundAmount, $data['reason']);
+            } else {
+                ProcessXenditRefundJob::dispatch($reservation->id, (float) $refundAmount, $data['reason']);
+            }
         }
 
         SendCancellationJob::dispatch($reservation->id, (float) $refundAmount);

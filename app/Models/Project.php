@@ -418,6 +418,23 @@ class Project extends Model implements HasMedia, Sortable
         return $this->defaultPaymentGateway($provider, $fallback);
     }
 
+    /**
+     * The single active + configured gateway for this project, regardless of
+     * provider. ProjectPaymentGateway's boot::saved hook enforces at most one
+     * active gateway per project, so "the active gateway" is unambiguous. Used
+     * by the provider-agnostic reservation checkout path. Returns null when the
+     * active row lacks real credentials (isConfigured()=false), matching
+     * defaultPaymentGateway().
+     */
+    public function activePaymentGateway(): ?ProjectPaymentGateway
+    {
+        return $this->paymentGateways()
+            ->active()
+            ->orderByDesc('id')
+            ->get()
+            ->first(fn (ProjectPaymentGateway $gw) => $gw->isConfigured());
+    }
+
     public function hasActivePaymentGateway(): bool
     {
         return $this->paymentGateways()

@@ -7,6 +7,7 @@ use App\Models\Reservation;
 use App\Models\ReservationItem;
 use App\Models\RoomType;
 use App\Models\User;
+use App\Services\Reservation\DocumentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -82,6 +83,7 @@ function renderInvoiceHtml(Reservation $reservation): string
         'branding' => [],
         'invoiceNumber' => 'INV/TEST/0001',
         'enabledPaymentLogos' => [],
+        'paymentProvider' => app(DocumentService::class)->paymentProviderBadge($reservation),
     ])->render();
 }
 

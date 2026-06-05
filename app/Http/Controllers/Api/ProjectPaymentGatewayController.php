@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateProjectPaymentGatewayRequest;
 use App\Http\Resources\ProjectPaymentGatewayResource;
 use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
+use App\Services\Midtrans\MidtransService;
 use App\Services\Xendit\XenditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -19,10 +20,12 @@ class ProjectPaymentGatewayController extends Controller
     {
         $this->authorizeView();
 
+        // Stable order that never shifts when a gateway is toggled active:
+        // Live (production) first, Test (sandbox) last, then oldest-created first.
         $gateways = $project->paymentGateways()
-            ->orderByDesc('is_active')
-            ->orderBy('provider')
-            ->orderBy('mode')
+            ->orderByRaw("CASE mode WHEN 'live' THEN 0 WHEN 'test' THEN 1 ELSE 2 END")
+            ->orderBy('created_at')
+            ->orderBy('id')
             ->get();
 
         return ProjectPaymentGatewayResource::collection($gateways);
@@ -108,12 +111,11 @@ class ProjectPaymentGatewayController extends Controller
     public function testConnection(
         TestProjectPaymentGatewayRequest $request,
         Project $project,
-        XenditService $xendit,
     ): JsonResponse {
         $data = $request->validated();
 
-        // Quick structural pre-checks — fail fast before round-tripping to
-        // Xendit on obviously-wrong inputs so we don't burn rate limit.
+        // Quick structural pre-checks — fail fast before round-tripping to the
+        // provider on obviously-wrong inputs so we don't burn rate limit.
         if ($data['provider'] === 'xendit' && ! str_starts_with($data['secret_key'], 'xnd_')) {
             return response()->json([
                 'success' => false,
@@ -122,10 +124,21 @@ class ProjectPaymentGatewayController extends Controller
             ], 422);
         }
 
-        $result = $xendit->testCredentials(
-            secretKey: $data['secret_key'],
-            webhookToken: $data['webhook_token'] ?? null,
-        );
+        if ($data['provider'] === 'midtrans' && ! str_contains($data['secret_key'], 'Mid-server-')) {
+            return response()->json([
+                'success' => false,
+                'error_code' => 'PAYMENT_GATEWAY_MISCONFIGURED',
+                'message' => 'Midtrans server keys contain "Mid-server-". Make sure you pasted the Server Key, not the Client Key.',
+            ], 422);
+        }
+
+        $result = match ($data['provider']) {
+            'midtrans' => app(MidtransService::class)->testCredentials($data['secret_key'], $data['mode']),
+            default => app(XenditService::class)->testCredentials(
+                secretKey: $data['secret_key'],
+                webhookToken: $data['webhook_token'] ?? null,
+            ),
+        };
 
         $webhook = $data['webhook_token'] ?? null;
         if ($webhook !== null && trim($webhook) !== '') {

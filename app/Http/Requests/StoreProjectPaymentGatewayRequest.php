@@ -16,7 +16,7 @@ class StoreProjectPaymentGatewayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'provider' => ['required', 'string', Rule::in(['xendit'])],
+            'provider' => ['required', 'string', Rule::in(['xendit', 'midtrans'])],
             'label' => ['nullable', 'string', 'max:100'],
             'mode' => ['required', 'string', Rule::in(['live', 'test'])],
             // A "coming soon" method renders in the UI but is rejected here so
@@ -35,7 +35,7 @@ class StoreProjectPaymentGatewayRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'provider.in' => 'Provider not supported. Currently only "xendit" is allowed.',
+            'provider.in' => 'Provider not supported. Choose "xendit" or "midtrans".',
             'mode.in' => 'Mode must be "live" or "test".',
             'checkout_method.in' => 'That checkout method is not available yet.',
             'secret_key.required' => 'Secret key is required.',

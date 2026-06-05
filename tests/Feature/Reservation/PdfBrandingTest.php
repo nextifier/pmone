@@ -96,6 +96,7 @@ it('invoice view contains branding logo and footer note', function () {
         'branding' => $branding,
         'invoiceNumber' => 'INV/HTL/20260510/PDF',
         'enabledPaymentLogos' => [],
+        'paymentProvider' => $service->paymentProviderBadge($this->reservation),
     ])->render();
 
     // Header renders brand logo OR company name (mutually exclusive); logo is set.
@@ -113,6 +114,7 @@ it('receipt view renders channel badge SVG and destination for paid reservation'
         'receiptNumber' => 'RCP/HTL/20260510/PDF',
         'channelBadge' => $service->channelBadge('BCA'),
         'channelLogo' => $service->channelLogoFile('BCA'),
+        'paymentProvider' => $service->paymentProviderBadge($this->reservation),
     ])->render();
 
     expect($html)->toContain('BCA');

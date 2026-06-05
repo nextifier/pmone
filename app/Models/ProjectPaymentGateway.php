@@ -104,6 +104,12 @@ class ProjectPaymentGateway extends Model
             return strlen($secret) >= 30 && str_starts_with($secret, 'xnd_');
         }
 
+        if ($this->provider === 'midtrans') {
+            // Server keys look like "Mid-server-XXXX" (live) / "SB-Mid-server-XXXX"
+            // (sandbox). The substring check rejects a Client Key pasted by mistake.
+            return strlen($secret) >= 20 && str_contains($secret, 'Mid-server-');
+        }
+
         return strlen($secret) >= 20;
     }
 

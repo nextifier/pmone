@@ -295,7 +295,7 @@ const heroDescription = computed(() => {
     return "Thank you. Your payment has been received and your booking is confirmed.";
   }
   if (isPending.value) {
-    return "We're still confirming your payment with Xendit. This usually only takes a moment.";
+    return "We're still confirming your payment. This usually only takes a moment.";
   }
   return "Thank you. We've received your booking and will email a confirmation shortly.";
 });
@@ -348,7 +348,7 @@ const nextSteps = computed(() => [
     title: "Payment confirmed",
     description: isPaid.value
       ? "Your payment has been received and recorded."
-      : "We'll confirm payment status with Xendit within a few minutes.",
+      : "We'll confirm your payment status within a few minutes.",
     done: isPaid.value,
   },
   {

@@ -70,6 +70,11 @@ class LogPaymentWebhook
             return strtolower($event);
         }
 
+        $txStatus = $payload['transaction_status'] ?? null;
+        if (is_string($txStatus) && $txStatus !== '') {
+            return 'midtrans.'.strtolower($txStatus);
+        }
+
         $status = $payload['status'] ?? null;
         if (is_string($status) && $status !== '') {
             return 'invoice.'.strtolower($status);
@@ -84,6 +89,7 @@ class LogPaymentWebhook
     protected function extractExternalId(array $payload): ?string
     {
         $candidate = $payload['external_id']
+            ?? $payload['order_id']
             ?? $payload['invoice_id']
             ?? $payload['data']['invoice_id']
             ?? $payload['data']['reference_id']

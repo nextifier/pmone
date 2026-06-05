@@ -4,6 +4,7 @@ namespace App\Services\Reservation;
 
 use App\Models\AppSetting;
 use App\Models\Reservation;
+use App\Services\Midtrans\MidtransService;
 use App\Services\Xendit\XenditService;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,6 +75,7 @@ class DocumentService
             'branding' => $this->getBranding($reservation),
             'invoiceNumber' => $invoiceNumber,
             'enabledPaymentLogos' => $this->resolveEnabledPaymentLogos($reservation),
+            'paymentProvider' => $this->paymentProviderBadge($reservation),
         ])
             ->format('a4')
             ->name($invoiceNumber.'.pdf')
@@ -95,6 +97,7 @@ class DocumentService
             'receiptNumber' => $receiptNumber,
             'channelBadge' => $this->channelBadge($reservation->payment_channel),
             'channelLogo' => $this->channelLogoFile($reservation->payment_channel),
+            'paymentProvider' => $this->paymentProviderBadge($reservation),
         ])
             ->format('a4')
             ->name($receiptNumber.'.pdf')
@@ -181,23 +184,46 @@ class DocumentService
 
     /**
      * Resolve the list of payment-method logos to render in the invoice footer,
-     * scoped to the Xendit account tied to this reservation. Returns the static
-     * fallback list when the reservation has no gateway attached (rare — happens
-     * only for legacy/manually-created reservations without a payment_gateway_id).
+     * scoped to the gateway tied to this reservation. Midtrans and Xendit each
+     * surface their own enabled set, so the footer never advertises methods the
+     * customer's gateway can't accept. Returns the static Xendit fallback when no
+     * gateway is attached (rare — legacy/manually-created reservations).
      *
      * @return array<int, array{file: string, alt: string}>
      */
     public function resolveEnabledPaymentLogos(Reservation $reservation): array
     {
-        if (! $reservation->paymentGateway) {
-            return (new XenditService)->getEnabledPaymentChannels();
+        $gateway = $reservation->paymentGateway;
+
+        if ($gateway?->provider === 'midtrans') {
+            return MidtransService::forGateway($gateway)->getEnabledPaymentChannels();
         }
 
-        return XenditService::forGateway($reservation->paymentGateway)->getEnabledPaymentChannels();
+        if ($gateway) {
+            return XenditService::forGateway($gateway)->getEnabledPaymentChannels();
+        }
+
+        return (new XenditService)->getEnabledPaymentChannels();
     }
 
     /**
-     * Map a payment channel code to its logo filename in /public/images/payment-methods/.
+     * The payment-gateway brandmark for the "Secure checkout powered by …" line
+     * on the invoice/receipt. Provider-aware so a Midtrans reservation never
+     * advertises Xendit. Defaults to Xendit for reservations with no gateway
+     * (legacy/manual), matching the prior hard-coded behavior.
+     *
+     * @return array{file: string, name: string}
+     */
+    public function paymentProviderBadge(Reservation $reservation): array
+    {
+        return match ($reservation->paymentGateway?->provider) {
+            'midtrans' => ['file' => 'midtrans.svg', 'name' => 'Midtrans'],
+            default => ['file' => 'xendit.svg', 'name' => 'Xendit'],
+        };
+    }
+
+    /**
+     * Map a payment channel code to its logo filename in /public/img/payment-methods/.
      *
      * Returns null if no logo asset is available for the given channel.
      */

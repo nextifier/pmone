@@ -57,10 +57,43 @@ test('invoice view renders only the enabled payment channel logos for the gatewa
         'branding' => $service->getBranding($reservation),
         'invoiceNumber' => $service->buildInvoiceNumber($reservation),
         'enabledPaymentLogos' => $logos,
+        'paymentProvider' => $service->paymentProviderBadge($reservation->fresh(['paymentGateway'])),
     ])->render();
 
     expect($html)->toContain('bca.svg');
     expect($html)->toContain('qris.svg');
     expect($html)->not->toContain('payment-methods/bri.svg');
     expect($html)->not->toContain('payment-methods/mandiri.svg');
+});
+
+test('invoice for a midtrans gateway shows midtrans channels and brandmark, never xendit', function () {
+    $gateway = ProjectPaymentGateway::factory()->midtrans()->create(['project_id' => $this->project->id]);
+
+    $reservation = Reservation::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'payment_gateway_id' => $gateway->id,
+    ]);
+    ReservationItem::factory()->create([
+        'reservation_id' => $reservation->id,
+        'room_type_id' => $this->room->id,
+    ]);
+
+    $service = app(DocumentService::class);
+    $fresh = $reservation->fresh(['hotel', 'event', 'items.roomType', 'transfers', 'paymentGateway']);
+
+    $html = View::make('pdf.reservation.invoice', [
+        'r' => $fresh,
+        'branding' => $service->getBranding($reservation),
+        'invoiceNumber' => $service->buildInvoiceNumber($reservation),
+        'enabledPaymentLogos' => $service->resolveEnabledPaymentLogos($fresh),
+        'paymentProvider' => $service->paymentProviderBadge($fresh),
+    ])->render();
+
+    // "Secure checkout powered by" must show the Midtrans brandmark, never Xendit.
+    expect($html)->toContain('img/payment-methods/midtrans.svg');
+    expect($html)->not->toContain('xendit.svg');
+    // The footer "we accept" strip renders the curated Midtrans channel logos.
+    expect($html)->toContain('qris.svg');
+    expect($html)->toContain('gopay.svg');
 });

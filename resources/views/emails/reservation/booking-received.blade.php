@@ -3,10 +3,10 @@
     $project = $reservation->event?->project;
     $signature = $project?->name ?? 'PM One Team';
 
-    // For Xendit payments, the method itself ("Xendit") is the gateway, not
-    // a guest-facing label — the channel (BCA, QRIS, …) is what they
-    // recognize. For manual bank transfer / complimentary, the enum's own
-    // label is meaningful.
+    // For gateway payments (Xendit/Midtrans), the gateway itself isn't a
+    // guest-facing label — the channel (BCA, QRIS, …) is what they recognize.
+    // For manual bank transfer / complimentary, the enum's own label is
+    // meaningful.
     $methodLabel = $reservation->payment_method?->label();
     $paymentDisplay = $reservation->payment_channel ?: $methodLabel;
 
