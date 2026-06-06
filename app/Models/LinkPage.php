@@ -142,6 +142,11 @@ class LinkPage extends Model implements HasMedia
             if ($model->isForceDeleting()) {
                 $model->clearMediaCollection();
 
+                // Force-delete children per-instance so their media is removed;
+                // DB-level FK cascade bypasses model events and orphans media.
+                $model->items()->get()->each(fn ($child) => $child->forceDelete());
+                $model->banners()->get()->each(fn ($child) => $child->forceDelete());
+
                 return;
             }
             if (auth()->check()) {
@@ -262,6 +267,11 @@ class LinkPage extends Model implements HasMedia
 
         $this->addMediaConversion('lg')
             ->width(1200)
+            ->quality(90)
+            ->performOnCollections('cover_image');
+
+        $this->addMediaConversion('xl')
+            ->width(1500)
             ->quality(90)
             ->performOnCollections('cover_image');
     }

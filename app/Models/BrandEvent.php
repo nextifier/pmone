@@ -117,6 +117,18 @@ class BrandEvent extends Model implements HasMedia, Sortable
         'sort_when_creating' => true,
     ];
 
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function ($model) {
+            // Delete promotion posts per-instance so their media is removed.
+            // Parent Brand/Event force-deletes route brand events through here
+            // per-instance; the posts' DB FK cascade would otherwise orphan media.
+            $model->promotionPosts()->get()->each(fn ($child) => $child->delete());
+        });
+    }
+
     protected function boothNumber(): Attribute
     {
         return Attribute::make(

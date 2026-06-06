@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -29,13 +30,19 @@ class TemporaryUploadController extends Controller
             $filename
         );
 
+        // Downscale + compress the original before it ever reaches a media
+        // collection, so huge uploads don't waste disk. No-op for non-images
+        // and already-small files.
+        $absolutePath = Storage::disk('local')->path($path);
+        ImageOptimizer::compressInPlace($absolutePath);
+
         // Store metadata
         Storage::disk('local')->put(
             "tmp/uploads/{$folder}/metadata.json",
             json_encode([
                 'original_name' => $filename,
                 'mime_type' => $file->getMimeType(),
-                'size' => $file->getSize(),
+                'size' => @filesize($absolutePath) ?: $file->getSize(),
                 'uploaded_at' => now()->toISOString(),
             ])
         );

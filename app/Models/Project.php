@@ -238,6 +238,10 @@ class Project extends Model implements HasMedia, Sortable
             // Auto-cleanup media when project is force deleted
             if ($model->isForceDeleting()) {
                 $model->clearMediaCollection();
+
+                // Force-delete banners per-instance so their media is removed;
+                // DB-level FK cascade bypasses model events and orphans media.
+                $model->banners()->get()->each(fn ($child) => $child->forceDelete());
             }
         });
     }

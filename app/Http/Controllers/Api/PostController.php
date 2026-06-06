@@ -805,11 +805,15 @@ class PostController extends Controller
             $this->authorize('forceDelete', $post);
         }
 
-        $deletedCount = Post::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+        $deletedCount = 0;
+        foreach ($posts as $post) {
+            // Per-instance forceDelete so the model's deleting hooks fire and
+            // its media (featured + content_images) is removed, not orphaned.
+            $post->forceDelete();
+            $deletedCount++;
+        }
 
         if ($deletedCount > 0) {
-            // Builder-level mass force-delete bypasses Eloquent events, so the
-            // Post ClearsResponseCache trait never fires; bust manually.
             ResponseCache::clear(['blog-posts']);
 
             activity()

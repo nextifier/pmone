@@ -247,6 +247,10 @@ class Hotel extends Model implements HasMedia, Sortable
 
             if ($model->isForceDeleting()) {
                 $model->clearMediaCollection();
+
+                // Force-delete room types per-instance so their media is removed;
+                // DB-level FK cascade bypasses model events and orphans media.
+                $model->roomTypes()->get()->each(fn ($child) => $child->forceDelete());
             }
         });
     }

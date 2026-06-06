@@ -149,7 +149,12 @@ class LinkPageBanner extends Model implements HasMedia
             ->performOnCollections('image');
 
         $this->addMediaConversion('lg')
-            ->width(1920)
+            ->width(1440)
+            ->quality(90)
+            ->performOnCollections('image');
+
+        $this->addMediaConversion('xl')
+            ->width(1600)
             ->quality(90)
             ->performOnCollections('image');
     }

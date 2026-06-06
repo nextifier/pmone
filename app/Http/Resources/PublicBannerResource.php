@@ -33,6 +33,7 @@ class PublicBannerResource extends JsonResource
                 ...$common,
                 'adImage' => [
                     'src' => $image['md'] ?? $image['original'] ?? null,
+                    'srcset' => $this->buildImageSrcset(),
                     'srcFull' => $image['original'] ?? null,
                     'alt' => $this->title,
                     'caption' => data_get($this->settings, 'caption'),
@@ -56,5 +57,29 @@ class PublicBannerResource extends JsonResource
                 ]
                 : null,
         ];
+    }
+
+    /**
+     * Native <img srcset> built straight from the generated conversions (no
+     * NuxtImg/CDN re-transform). Only generated conversions are included so the
+     * srcset never carries duplicate URLs during the conversion queue window.
+     */
+    private function buildImageSrcset(): ?string
+    {
+        $media = $this->getFirstMedia('image');
+        if (! $media) {
+            return null;
+        }
+
+        $widths = ['sm' => 600, 'md' => 1200, 'lg' => 1440, 'xl' => 1600];
+        $parts = [];
+        foreach ($widths as $conversion => $width) {
+            if ($media->hasGeneratedConversion($conversion)) {
+                $parts[] = $media->getUrl($conversion).' '.$width.'w';
+            }
+        }
+        $parts[] = $media->getUrl().' '.((int) ($media->getCustomProperty('width') ?: 1920)).'w';
+
+        return implode(', ', $parts);
     }
 }

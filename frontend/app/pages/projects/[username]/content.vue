@@ -21,7 +21,11 @@ const contentArea = ref(null);
 
 const contentBase = computed(() => `/projects/${route.params.username}/content`);
 const contentTabs = computed(() => [
-  { label: "Banners", icon: "hugeicons:image-02", to: `${contentBase.value}/banners` },
+  {
+    label: "Banners",
+    icon: "hugeicons:carousel-horizontal-02",
+    to: `${contentBase.value}/banners`,
+  },
 ]);
 
 const projectTabs = inject("projectTabs", null);

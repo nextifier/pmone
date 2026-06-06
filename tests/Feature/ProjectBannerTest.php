@@ -178,6 +178,33 @@ test('store appends sort_order after existing banners', function () {
     expect($project->banners()->max('sort_order'))->toBe(6);
 });
 
+test('persists the placement chosen on the form', function () {
+    [$project, $user] = projectBannerMember();
+
+    $this->actingAs($user)->postJson("/api/projects/{$project->username}/banners", [
+        'type' => 'text',
+        'title' => 'Main CTA banner',
+        'placement' => 'main_cta',
+    ])->assertCreated()
+        ->assertJsonPath('data.placement', 'main_cta');
+
+    $this->assertDatabaseHas('project_banners', [
+        'project_id' => $project->id,
+        'placement' => 'main_cta',
+    ]);
+});
+
+test('defaults placement to hero when omitted', function () {
+    [$project, $user] = projectBannerMember();
+
+    $this->actingAs($user)->postJson("/api/projects/{$project->username}/banners", [
+        'type' => 'text',
+        'title' => 'No placement given',
+    ])->assertCreated();
+
+    expect($project->banners()->first()->placement)->toBe('hero');
+});
+
 // ─── Update ─────────────────────────────────────────────────────────
 
 test('can update banner metadata', function () {
@@ -337,6 +364,7 @@ test('public banners endpoint returns mapped active banners filtered by placemen
         ->assertJsonPath('data.1.cta.link', '/book-space');
 
     expect($response->json('data.0.adImage.srcFull'))->not->toBeNull();
+    expect($response->json('data.0.adImage.srcset'))->toContain('w'); // native <img srcset>
     expect($response->json('data.0.startTime'))->not->toBeNull();
     // text banner must not carry an adImage key
     expect($response->json('data.1'))->not->toHaveKey('adImage');

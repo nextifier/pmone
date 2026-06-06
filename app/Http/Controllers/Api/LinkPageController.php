@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateLinkPageRequest;
 use App\Http\Resources\LinkPageIndexResource;
 use App\Http\Resources\LinkPageResource;
 use App\Models\LinkPage;
+use App\Support\ImageOptimizer;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -159,6 +160,7 @@ class LinkPageController extends Controller
             $linkPage = LinkPage::create($data);
 
             if ($request->hasFile('cover_image')) {
+                ImageOptimizer::compressInPlace($request->file('cover_image')->getPathname());
                 $linkPage->addMediaFromRequest('cover_image')->toMediaCollection('cover_image');
             }
 
@@ -189,6 +191,7 @@ class LinkPageController extends Controller
             $linkPage->update($data);
 
             if ($request->hasFile('cover_image')) {
+                ImageOptimizer::compressInPlace($request->file('cover_image')->getPathname());
                 $linkPage->addMediaFromRequest('cover_image')->toMediaCollection('cover_image');
             }
 
@@ -434,7 +437,10 @@ class LinkPageController extends Controller
             $this->authorize('forceDelete', $linkPage);
         }
 
-        LinkPage::onlyTrashed()->whereIn('id', $request->ids)->forceDelete();
+        // Per-instance so deleting hooks fire and child media (items, banners) is cleared.
+        foreach ($linkPages as $linkPage) {
+            $linkPage->forceDelete();
+        }
 
         return response()->json([
             'message' => count($request->ids).' link page(s) permanently deleted',

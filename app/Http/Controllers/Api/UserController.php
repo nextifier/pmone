@@ -13,6 +13,8 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserIndexResource;
 use App\Http\Resources\UserResource;
 use App\Imports\UsersImport;
+use App\Models\Form;
+use App\Models\Task;
 use App\Models\User;
 use App\Notifications\UserRoleChangedNotification;
 use Illuminate\Database\QueryException;
@@ -1477,9 +1479,11 @@ class UserController extends Controller
         DB::table('task_user')->where('user_id', $userId)->delete();
         DB::table('brand_user')->where('user_id', $userId)->delete();
 
-        // Delete records where created_by is NOT NULL
-        DB::table('tasks')->where('created_by', $userId)->delete();
-        DB::table('forms')->where('created_by', $userId)->delete();
+        // Delete records where created_by is NOT NULL. Per-instance forceDelete
+        // (incl. trashed) so the models' deleting hooks fire and their media is
+        // removed instead of being orphaned by a builder-level delete.
+        Task::withTrashed()->where('created_by', $userId)->get()->each->forceDelete();
+        Form::withTrashed()->where('created_by', $userId)->get()->each->forceDelete();
 
         // Nullify foreign keys on audit columns (NO ACTION constraints)
         $nullifyTables = [

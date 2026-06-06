@@ -9,6 +9,27 @@
       </div>
 
       <form @submit.prevent="handleSubmit" class="mt-4 space-y-4">
+        <!-- Placement -->
+        <div class="space-y-2">
+          <Label for="banner-placement">Placement</Label>
+          <Select v-model="formData.placement">
+            <SelectTrigger id="banner-placement" class="w-full">
+              <SelectValue placeholder="Select placement" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="p in placementOptions" :key="p.value" :value="p.value">
+                {{ p.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            Where this banner appears on the event website.
+          </p>
+          <p v-if="errors.placement" class="text-destructive text-xs sm:text-sm">
+            {{ errors.placement[0] }}
+          </p>
+        </div>
+
         <!-- Type -->
         <div class="space-y-2">
           <Label for="banner-type">Type</Label>
@@ -196,7 +217,10 @@ const { metaSymbol } = useShortcuts();
 
 const aspectRatios = ["1:1", "16:9", "9:16", "4:5", "2:1", "4:1"];
 
+const placementOptions = [{ value: "hero", label: "Hero" }];
+
 const defaultForm = () => ({
+  placement: "hero",
   type: "image",
   title: "",
   description: "",
@@ -250,6 +274,7 @@ watch(isOpen, (val) => {
 
   if (props.banner) {
     formData.value = {
+      placement: props.banner.placement || "hero",
       type: props.banner.type || "image",
       title: props.banner.title || "",
       description: props.banner.description || "",
@@ -289,7 +314,7 @@ async function handleSubmit() {
 
     const body = {
       type: formData.value.type,
-      placement: "hero",
+      placement: formData.value.placement || "hero",
       title: formData.value.title || null,
       description,
       cta_label: showText.value ? formData.value.cta_label || null : null,

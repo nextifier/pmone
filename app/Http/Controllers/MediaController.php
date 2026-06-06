@@ -10,6 +10,7 @@ use App\Models\Partner;
 use App\Models\Post;
 use App\Models\PromotionPost;
 use App\Models\RoomType;
+use App\Support\ImageOptimizer;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -114,6 +115,9 @@ class MediaController extends Controller
             if ($this->isSingleFileCollection($model, $collection)) {
                 $model->clearMediaCollection($collection);
             }
+
+            // Cap + compress the original in place before it becomes media.
+            ImageOptimizer::compressInPlace($file->getPathname());
 
             // Upload the file with proper naming
             $mediaAdder = $model->addMediaFromRequest('file');
@@ -273,6 +277,9 @@ class MediaController extends Controller
             // Process each file
             foreach ($files as $index => $file) {
                 try {
+                    // Cap + compress the original in place before it becomes media.
+                    ImageOptimizer::compressInPlace($file->getPathname());
+
                     // Upload the file with proper naming
                     $mediaAdder = $model->addMediaFromRequest('files', $index);
 
@@ -1057,13 +1064,17 @@ class MediaController extends Controller
             $filename
         );
 
+        // Cap + compress the original before it is later moved into a collection.
+        $absolutePath = Storage::disk('local')->path($path);
+        ImageOptimizer::compressInPlace($absolutePath);
+
         // Store metadata
         Storage::disk('local')->put(
             "tmp/uploads/{$folder}/metadata.json",
             json_encode([
                 'original_name' => $filename,
                 'mime_type' => $file->getMimeType(),
-                'size' => $file->getSize(),
+                'size' => @filesize($absolutePath) ?: $file->getSize(),
                 'collection' => $collection,
                 'uploaded_at' => now()->toISOString(),
             ])

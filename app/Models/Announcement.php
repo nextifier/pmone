@@ -211,6 +211,11 @@ class Announcement extends Model implements HasMedia
             ->width(1200)
             ->quality(90)
             ->performOnCollections('image');
+
+        $this->addMediaConversion('xl')
+            ->width(1500)
+            ->quality(90)
+            ->performOnCollections('image');
     }
 
     public function getMediaCollections(): array

@@ -69,6 +69,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cleanup orphaned temporary media from content editor, run hourly
         $schedule->command('media:cleanup-temp --hours=24')->hourly();
 
+        // Weekly safety net: prune orphaned media files + records that no longer
+        // belong to any model (reclaims disk). Sunday 02:00 - lowest traffic.
+        // Catches orphans from cascade deletes / mass deletes that bypass model events.
+        $schedule->command('media:prune-orphans --force')
+            ->weeklyOn(0, '2:00')
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->environments(['production']);
+
         // Cleanup tracking data older than 5 years, run daily at 2 AM
         $schedule->command('tracking:cleanup')->dailyAt('02:00');
 

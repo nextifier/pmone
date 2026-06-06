@@ -248,6 +248,39 @@ test('permanently deleting a post deletes all images', function () {
     $this->assertDatabaseMissing('media', ['model_type' => Post::class, 'model_id' => $post->id]);
 });
 
+test('bulk permanently deleting posts deletes their images', function () {
+    Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    $this->user->assignRole('admin');
+
+    Storage::fake('public');
+
+    $posts = Post::factory()->count(2)->create(['created_by' => $this->user->id]);
+    $paths = [];
+    foreach ($posts as $post) {
+        $media = $post->addMedia(UploadedFile::fake()->image('featured.jpg'))->toMediaCollection('featured_image');
+        $paths[] = $media->getPathRelativeToRoot();
+        $post->delete();
+    }
+
+    foreach ($paths as $path) {
+        expect(Storage::disk('public')->exists($path))->toBeTrue();
+    }
+
+    $response = $this->deleteJson('/api/posts/trash/bulk', [
+        'ids' => $posts->pluck('id')->toArray(),
+    ]);
+
+    $response->assertSuccessful();
+
+    foreach ($posts as $post) {
+        $this->assertDatabaseMissing('posts', ['id' => $post->id]);
+        $this->assertDatabaseMissing('media', ['model_type' => Post::class, 'model_id' => $post->id]);
+    }
+    foreach ($paths as $path) {
+        expect(Storage::disk('public')->exists($path))->toBeFalse();
+    }
+});
+
 // Bulk Operations Tests
 test('user can bulk delete posts', function () {
     $posts = Post::factory()->count(3)->create(['created_by' => $this->user->id]);

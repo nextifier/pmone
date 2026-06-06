@@ -340,6 +340,14 @@ class Event extends Model implements HasMedia, Sortable
 
             if ($model->isForceDeleting()) {
                 $model->clearMediaCollection();
+
+                // Force-delete media-owning children per-instance. The DB-level FK
+                // cascade bypasses model events, which would orphan their media.
+                // Products first (in case a category->product cascade exists).
+                $model->eventProducts()->get()->each(fn ($child) => $child->delete());
+                $model->eventProductCategories()->get()->each(fn ($child) => $child->delete());
+                $model->eventDocuments()->get()->each(fn ($child) => $child->delete());
+                $model->brandEvents()->get()->each(fn ($child) => $child->delete());
             }
         });
 

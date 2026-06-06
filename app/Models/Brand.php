@@ -192,6 +192,10 @@ class Brand extends Model implements HasMedia, Sortable
 
             if ($model->isForceDeleting()) {
                 $model->clearMediaCollection();
+
+                // Force-delete brand events per-instance so their media (and their
+                // promotion posts' media) is removed; DB FK cascade bypasses events.
+                $model->brandEvents()->get()->each(fn ($child) => $child->delete());
             }
         });
     }
