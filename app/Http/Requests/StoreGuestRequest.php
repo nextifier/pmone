@@ -35,6 +35,11 @@ class StoreGuestRequest extends FormRequest
             'more_details' => ['nullable', 'array'],
             'settings' => ['nullable', 'array'],
 
+            'appearance_date' => ['nullable', 'array'],
+            'appearance_date.start' => ['nullable', 'date'],
+            'appearance_date.end' => ['nullable', 'date', 'after_or_equal:appearance_date.start'],
+            'transparent_background' => ['sometimes', 'boolean'],
+
             'links' => ['nullable', 'array', 'max:20'],
             'links.*.label' => ['required_with:links.*.url', 'string', 'max:100'],
             'links.*.url' => ['required_with:links.*.label', 'url:http,https', 'max:500'],

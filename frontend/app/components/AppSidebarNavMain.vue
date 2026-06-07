@@ -265,6 +265,13 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Lucky Draw - frontend-only tool (localStorage), available to all staff
+  toolsItems.push({
+    label: "Lucky Draw",
+    path: "/lucky-draw",
+    iconName: "hugeicons:dice",
+  });
+
   // Short Links & Dynamic QR Code - requires short_links.read permission
   if (hasPermission("short_links.read")) {
     toolsItems.push({

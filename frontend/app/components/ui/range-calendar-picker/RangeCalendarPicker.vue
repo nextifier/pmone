@@ -63,6 +63,7 @@ const props = withDefaults(
     modelValue?: DateRangeValue | null;
     disabled?: boolean;
     placeholder?: string;
+    placeholderDate?: Date | null;
     numberOfMonths?: number;
     min?: Date | null;
     max?: Date | null;
@@ -72,6 +73,7 @@ const props = withDefaults(
     modelValue: null,
     disabled: false,
     placeholder: "Pick a date range",
+    placeholderDate: null,
     numberOfMonths: 2,
     min: null,
     max: null,
@@ -112,9 +114,12 @@ const calendarMinValue = computed<DateValue | undefined>(() =>
 const calendarMaxValue = computed<DateValue | undefined>(() =>
   props.max ? dateToCalendarDate(props.max) : undefined
 );
-const calendarPlaceholder = computed<DateValue | undefined>(() =>
-  props.modelValue?.start ? dateToCalendarDate(props.modelValue.start) : undefined
-);
+// Which month the calendar opens on when there's no selection yet: the
+// selected start, else an explicit placeholderDate, else the min bound.
+const calendarPlaceholder = computed<DateValue | undefined>(() => {
+  const source = props.modelValue?.start ?? props.placeholderDate ?? props.min;
+  return source ? dateToCalendarDate(source) : undefined;
+});
 
 // Compact range label - the shared year is shown only once ("May 21 - Jun 5,
 // 2026") so the trigger stays narrow in tight filter bars.

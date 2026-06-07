@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
 import { Switch } from "@/components/ui/switch";
 import {
   TagsInput,
@@ -25,6 +26,8 @@ type ImageUrls = Record<string, string> & {
   original?: string;
 };
 
+type AppearanceDate = { start?: string | null; end?: string | null };
+
 type GuestPayload = {
   id?: number;
   name?: string;
@@ -34,6 +37,8 @@ type GuestPayload = {
   status?: "active" | "inactive";
   visibility?: "public" | "private";
   is_featured?: boolean;
+  appearance_date?: AppearanceDate | null;
+  transparent_background?: boolean;
   tags?: string[];
   links?: Link[];
   more_details?: Record<string, unknown>;
@@ -44,14 +49,38 @@ type GuestPayload = {
 const props = withDefaults(
   defineProps<{
     guest?: GuestPayload | null;
+    event?: { start_date?: string | null; end_date?: string | null } | null;
     loading?: boolean;
     errors?: Record<string, string[]>;
   }>(),
   {
     guest: null,
+    event: null,
     loading: false,
     errors: () => ({}),
   }
+);
+
+function parseISODate(value?: string | null): Date | null {
+  if (!value) return null;
+  const [y, m, d] = value.slice(0, 10).split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+function toISODate(date?: Date | null): string | null {
+  if (!date) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+const eventStart = computed(() =>
+  props.event?.start_date ? new Date(props.event.start_date) : null
+);
+const eventEnd = computed(() =>
+  props.event?.end_date ? new Date(props.event.end_date) : null
 );
 
 const emit = defineEmits<{
@@ -70,6 +99,11 @@ const form = ref({
   status: (props.guest?.status ?? "active") as "active" | "inactive",
   visibility: (props.guest?.visibility ?? "public") as "public" | "private",
   is_featured: props.guest?.is_featured ?? false,
+  transparent_background: props.guest?.transparent_background ?? false,
+  appearanceDate: {
+    start: parseISODate(props.guest?.appearance_date?.start),
+    end: parseISODate(props.guest?.appearance_date?.end),
+  } as { start: Date | null; end: Date | null },
   links: (props.guest?.links ?? []).map((l) => ({
     label: l.label || "",
     url: l.url || "",
@@ -110,6 +144,13 @@ function handleSubmit() {
     status: form.value.status,
     visibility: form.value.visibility,
     is_featured: form.value.is_featured,
+    transparent_background: form.value.transparent_background,
+    appearance_date: form.value.appearanceDate.start
+      ? {
+          start: toISODate(form.value.appearanceDate.start),
+          end: toISODate(form.value.appearanceDate.end ?? form.value.appearanceDate.start),
+        }
+      : null,
     links: form.value.links
       .filter((l) => l.url && l.label)
       .map((l) => ({ label: l.label, url: l.url })),
@@ -153,6 +194,18 @@ defineShortcuts({
       <InputErrorMessage :errors="errors.tmp_profile_image" />
     </div>
 
+    <div class="flex items-center justify-between gap-3">
+      <div class="space-y-1">
+        <Label for="guest-transparent" class="cursor-pointer">
+          Transparent background image
+        </Label>
+        <p class="text-muted-foreground text-sm tracking-tight">
+          Enable for cut-out PNG photos - adds a soft backdrop behind the image.
+        </p>
+      </div>
+      <Switch id="guest-transparent" v-model="form.transparent_background" />
+    </div>
+
     <div class="grid grid-cols-1 gap-x-3 gap-y-6 sm:grid-cols-2">
       <div class="space-y-2">
         <Label for="guest-name">Name</Label>
@@ -174,6 +227,22 @@ defineShortcuts({
         placeholder="e.g. CEO, Founder, Keynote Speaker"
       />
       <InputErrorMessage :errors="errors.title" />
+    </div>
+
+    <div class="space-y-2">
+      <Label>Appearance Date</Label>
+      <RangeCalendarPicker
+        v-model="form.appearanceDate"
+        :min="eventStart"
+        :max="eventEnd"
+        :number-of-months="1"
+        size="default"
+        placeholder="Select the day(s) this guest appears"
+      />
+      <p class="text-muted-foreground text-sm tracking-tight">
+        Event day(s) this guest appears - shown as a date badge on the website.
+      </p>
+      <InputErrorMessage :errors="errors.appearance_date" />
     </div>
 
     <div class="space-y-2">

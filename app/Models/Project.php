@@ -143,7 +143,7 @@ class Project extends Model implements HasMedia, Sortable
 
     protected static function responseCacheTags(): array
     {
-        return ['projects'];
+        return ['projects', 'faqs'];
     }
 
     public function getRouteKeyName(): string

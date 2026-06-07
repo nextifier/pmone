@@ -40,6 +40,39 @@ class GuestController extends Controller
         return $project->events()->where('slug', $eventSlug)->firstOrFail();
     }
 
+    /**
+     * Merge display-only attributes (appearance_date range, transparent_background)
+     * into the guest's more_details, preserving any other keys. Only keys present
+     * in the request are touched.
+     *
+     * @param  array<string, mixed>  $validated
+     * @param  array<string, mixed>  $existing
+     * @return array<string, mixed>
+     */
+    private function applyDisplayDetails(array $validated, array $existing): array
+    {
+        $more = $existing;
+
+        if (array_key_exists('appearance_date', $validated)) {
+            $range = $validated['appearance_date'];
+
+            if (is_array($range) && ! empty($range['start'])) {
+                $more['appearance_date'] = [
+                    'start' => $range['start'],
+                    'end' => $range['end'] ?? $range['start'],
+                ];
+            } else {
+                unset($more['appearance_date']);
+            }
+        }
+
+        if (array_key_exists('transparent_background', $validated)) {
+            $more['transparent_background'] = (bool) $validated['transparent_background'];
+        }
+
+        return $more;
+    }
+
     public function index(Request $request, string $username, string $eventSlug): JsonResponse
     {
         $project = $this->resolveProject($username);
@@ -112,11 +145,15 @@ class GuestController extends Controller
         $tmpProfileImage = $validated['tmp_profile_image'] ?? null;
         $deleteProfileImage = $validated['delete_profile_image'] ?? false;
 
+        $validated['more_details'] = $this->applyDisplayDetails($validated, $validated['more_details'] ?? []);
+
         unset(
             $validated['tags'],
             $validated['links'],
             $validated['tmp_profile_image'],
             $validated['delete_profile_image'],
+            $validated['appearance_date'],
+            $validated['transparent_background'],
         );
 
         $guest = $event->guests()->create($validated);
@@ -168,11 +205,15 @@ class GuestController extends Controller
         $tmpProfileImage = $validated['tmp_profile_image'] ?? null;
         $deleteProfileImage = $validated['delete_profile_image'] ?? false;
 
+        $validated['more_details'] = $this->applyDisplayDetails($validated, $guest->more_details ?? []);
+
         unset(
             $validated['tags'],
             $validated['links'],
             $validated['tmp_profile_image'],
             $validated['delete_profile_image'],
+            $validated['appearance_date'],
+            $validated['transparent_background'],
         );
 
         $guest->update($validated);

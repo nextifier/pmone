@@ -29,6 +29,7 @@ const contentTabs = computed(() => [
   { label: "Programs", icon: "hugeicons:presentation-bar-chart-01", to: `${contentBase.value}/programs` },
   { label: "FAQ", icon: "hugeicons:help-circle", to: `${contentBase.value}/faq` },
   { label: "Partners", icon: "hugeicons:agreement-01", to: `${contentBase.value}/partners` },
+  { label: "Media Coverage", icon: "hugeicons:news", to: `${contentBase.value}/media-coverage` },
   { label: "Gallery", icon: "hugeicons:image-02", to: `${contentBase.value}/gallery` },
 ]);
 

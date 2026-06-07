@@ -223,10 +223,13 @@ class Guest extends Model implements HasMedia, Sortable
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        // profile_image conversions (4:5 portrait ratio)
+        // profile_image conversions (4:5 portrait ratio).
+        // webp format keeps alpha transparency (e.g. cut-out cosplayer PNGs)
+        // and is smaller; the frontend already requests webp.
         $this->addMediaConversion('lqip')
             ->width(16)
             ->height(20)
+            ->format('webp')
             ->quality(10)
             ->blur(10)
             ->performOnCollections('profile_image')
@@ -235,6 +238,7 @@ class Guest extends Model implements HasMedia, Sortable
         $this->addMediaConversion('sm')
             ->width(240)
             ->height(300)
+            ->format('webp')
             ->quality(85)
             ->performOnCollections('profile_image')
             ->nonQueued();
@@ -242,18 +246,21 @@ class Guest extends Model implements HasMedia, Sortable
         $this->addMediaConversion('md')
             ->width(480)
             ->height(600)
+            ->format('webp')
             ->quality(90)
             ->performOnCollections('profile_image');
 
         $this->addMediaConversion('lg')
             ->width(800)
             ->height(1000)
+            ->format('webp')
             ->quality(90)
             ->performOnCollections('profile_image');
 
         $this->addMediaConversion('xl')
             ->width(1080)
             ->height(1350)
+            ->format('webp')
             ->quality(95)
             ->performOnCollections('profile_image');
 

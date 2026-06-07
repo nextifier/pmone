@@ -1,0 +1,2393 @@
+[
+  {
+    "event": "megabuild",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} akan diselenggarakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 진행돼요.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong> 在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiket?",
+          "ja": "チケットはどこで入手できますか？",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么买票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Free Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Langsung lewat website resmi kami. Klik tombol <a href=\"/ticket\">Dapatkan Tiket Gratis</a> dan ikuti proses registrasinya. E-ticket dikirim ke email dan WhatsApp kamu setelah pembayaran.</p>",
+          "ja": "<p>公式サイトからお求めいただけます。<a href=\"/ticket\">無料チケットを取得</a>ボタンをクリックして登録してください。購入後、EチケットがEmailとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 웹사이트에서 받을 수 있어요. <a href=\"/ticket\">무료 티켓 받기</a> 버튼을 클릭하고 등록하면 돼요. 전자 티켓은 Email과 WhatsApp으로 보내드려요.</p>",
+          "zh": "<p>在官方网站就可以。点 <a href=\"/ticket\">免费领取门票</a> 按钮，按流程注册。电子门票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットの料金はいくらですか？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information. Don't miss our early bird and pre-sale promotions for special discounts!</p>",
+          "id": "<p>Harga tiket tergantung jenis dan waktu pembelian. Cek halaman <a href=\"/ticket\">Tiket</a> untuk info harga terbaru. Manfaatkan promo early bird dan pre-sale supaya dapat harga spesial!</p>",
+          "ja": "<p>チケットの種類と購入時期によって異なります。最新の料金は<a href=\"/ticket\">チケットページ</a>をご確認ください。早割やプレセールの割引もあります。</p>",
+          "ko": "<p>티켓 종류와 구매 시기에 따라 달라요. 최신 가격은 <a href=\"/ticket\">티켓 페이지</a>에서 확인해 주세요. 얼리버드와 사전 판매 할인도 놓치지 마세요!</p>",
+          "zh": "<p>票价根据票种和购买时间有所不同。最新价格看 <a href=\"/ticket\">门票页面</a>。早鸟票和预售有优惠，别错过。</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Bisa refund kalau tidak jadi datang?",
+          "ja": "参加できなくなった場合、返金できますか？",
+          "ko": "참석 못 하면 환불 받을 수 있나요?",
+          "zh": "买了票不能去，可以退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua penjualan tiket bersifat final dan tidak bisa di-refund atau ditukar. Detailnya ada di <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund dan Pengembalian Tiket</a>.</p>",
+          "ja": "<p>チケット購入後の返金・交換は承っておりません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金・返品ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매 완료된 티켓은 환불이나 교환이 안 돼요. 자세한 내용은 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa saja yang perlu dibawa ke acara?",
+          "ja": "当日は何を持参すればいいですか？",
+          "ko": "행사장에 뭘 가져가야 하나요?",
+          "zh": "去现场需要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. We also recommend bringing business cards if you plan to network with exhibitors and other attendees.</p>",
+          "id": "<p>Bawa e-ticket kamu (digital atau print) untuk ditukar dengan badge atau wristband di meja registrasi. Jika ingin networking, bawa juga kartu nama.</p>",
+          "ja": "<p>Eチケット（スマートフォン画面または印刷）を受付でバッジまたはリストバンドと交換してください。ネットワーキングをお考えの方は名刺もお持ちください。</p>",
+          "ko": "<p>전자 티켓(디지털 또는 출력본)을 가져오시면 등록 데스크에서 배지 또는 입장 밴드로 교환해 드려요. 네트워킹할 계획이라면 명함도 챙겨오세요.</p>",
+          "zh": "<p>带上电子门票（手机出示或打印都行），到签到台换入场证。想跟参展商交流的话，建议带名片。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang boleh datang?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누가 참관할 수 있나요?",
+          "zh": "谁可以参加？"
+        },
+        "answer": {
+          "en": "<p>The event is open to anyone interested in building materials, architecture, construction, and interior design, from homeowners planning renovations to architects, contractors, developers, and design professionals.</p>",
+          "id": "<p>Semua kalangan dipersilakan hadir. Pemilik rumah yang sedang renovasi, arsitek, kontraktor, developer, maupun profesional desain, semuanya welcome.</p>",
+          "ja": "<p>はい、どなたでもご参加いただけます。リノベーションを検討中のオーナーから、建築家、コントラクター、デベロッパー、デザインの専門家まで歓迎しています。</p>",
+          "ko": "<p>누구나 참관할 수 있어요! 리모델링을 계획 중인 분부터 건축가, 시공사, 개발사, 디자인 전문가까지 모두 환영해요.</p>",
+          "zh": "<p>所有人都可以。准备装修的业主、建筑师、承包商、开发商、设计从业者，都欢迎来。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands will be exhibiting at the event?",
+          "id": "Brand apa saja yang ikut pameran?",
+          "ja": "どんなブランドが出展しますか？",
+          "ko": "어떤 브랜드가 참가하나요?",
+          "zh": "有哪些品牌参展？"
+        },
+        "answer": {
+          "en": "<p>We feature a diverse range of brands from building materials, architecture, construction, and interior design industries. You can view the list of exhibitors on our <a href=\"/brands\">Brands page</a>. The list will be updated as we get closer to the event date.</p>",
+          "id": "<p>Ada banyak brand dari industri material bangunan, arsitektur, konstruksi, dan desain interior. Cek daftar lengkapnya di halaman <a href=\"/brands\">Brands</a>. Listnya diupdate terus seiring mendekati tanggal acara.</p>",
+          "ja": "<p>建材、建築、施工、インテリアデザインの各分野から多数のブランドが出展します。<a href=\"/brands\">ブランドページ</a>で一覧をご確認ください。開催日に向けて随時更新されます。</p>",
+          "ko": "<p>건자재, 건축, 시공, 인테리어 디자인 업계의 다양한 브랜드가 참가해요. <a href=\"/brands\">브랜드 페이지</a>에서 확인할 수 있고, 행사일이 다가올수록 업데이트돼요.</p>",
+          "zh": "<p>建材、建筑、施工和室内设计领域的众多品牌都会来。完整名单看 <a href=\"/brands\">Brands 页面</a>，持续更新中。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Bagaimana cara ikut pameran sebagai exhibitor?",
+          "ja": "出展者になるにはどうすればいいですか？",
+          "ko": "전시 참가는 어떻게 하나요?",
+          "zh": "怎么报名参展？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor, please visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information about booth packages and availability.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Exhibitor Registration</a> atau hubungi tim kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> untuk info soal paket booth dan ketersediaannya.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>から申し込むか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>で担当チームにお問い合わせください。ブースのプランや空き状況をご案内します。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>를 방문하시거나, <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요. 부스 옵션과 가격을 안내해 드릴게요.</p>",
+          "zh": "<p>去 <a href=\"/book-space\">参展商报名页面</a>，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们了解展位方案和价格。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Are there any seminars or workshops at the event?",
+          "id": "Apakah ada seminar atau workshop?",
+          "ja": "セミナーやワークショップはありますか？",
+          "ko": "세미나나 워크숍도 있나요?",
+          "zh": "有讲座或工作坊吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize various seminars, conferences, workshops, and networking sessions throughout the exhibition. Check our <a href=\"/rundown\">Rundown page</a> for the complete schedule of activities and speaker sessions.</p>",
+          "id": "<p>Ada! Seminar, konferensi, workshop, dan sesi networking ada sepanjang pameran. Cek halaman <a href=\"/rundown\">Rundown</a> untuk jadwal lengkapnya.</p>",
+          "ja": "<p>はい。展示会期間中にセミナー、カンファレンス、ワークショップ、ネットワーキングセッションを開催します。スケジュールは<a href=\"/rundown\">Rundownページ</a>をご確認ください。</p>",
+          "ko": "<p>네! 전시 기간 동안 세미나, 컨퍼런스, 워크숍, 네트워킹 세션 등이 있어요. <a href=\"/rundown\">Rundown 페이지</a>에서 전체 일정을 확인해 보세요.</p>",
+          "zh": "<p>有。展会期间有多场研讨会、大会、工作坊和社交活动。完整日程看 <a href=\"/rundown\">Rundown 页面</a>。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Bagaimana cara menjadi sponsor atau media partner?",
+          "ja": "スポンサーやメディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너는 어떻게 되나요?",
+          "zh": "怎么成为赞助商或媒体合作伙伴？"
+        },
+        "answer": {
+          "en": "<p>We welcome sponsorship and media partnership opportunities. Please contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Kami terbuka untuk sponsorship dan media partnership. Hubungi kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau email ke <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> untuk diskusi paket kerjasama.</p>",
+          "ja": "<p>スポンサーシップやメディアパートナーシップのご相談を受け付けています。<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>までご連絡ください。</p>",
+          "ko": "<p>스폰서십과 미디어 파트너십을 열어두고 있어요. <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 문의해 주세요.</p>",
+          "zh": "<p>欢迎合作。通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们聊聊。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Apakah tersedia parkir di venue?",
+          "ja": "会場に駐車場はありますか？",
+          "ko": "행사장에 주차할 수 있나요?",
+          "zh": "展馆有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces may fill up quickly during peak hours. You may also consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Tapi datang lebih awal lebih baik karena parkir bisa cepat penuh pas jam ramai. Bisa juga naik transportasi umum atau pakai ride-sharing.</p>",
+          "ja": "<p>はい、駐車場があります。ピーク時は混雑しますので、早めのご来場をおすすめします。公共交通機関やライドシェアもご利用いただけます。</p>",
+          "ko": "<p>네, 주차 시설이 있어요. 피크 시간에는 일찍 오시는 게 좋아요. 대중교통이나 차량 호출 서비스를 이용하셔도 돼요.</p>",
+          "zh": "<p>有。不过高峰时段可能紧张，建议早到或打车过来。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video di acara?",
+          "ja": "会場で写真や動画を撮影してもいいですか？",
+          "ko": "행사장에서 사진이나 영상을 찍어도 되나요?",
+          "zh": "现场可以拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. However, professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Boleh, untuk keperluan pribadi. Untuk keperluan komersial atau profesional, perlu izin tertulis dari penyelenggara. Detailnya ada di <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>個人利用の撮影は可能です。商用撮影には主催者の書面による許可が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>をご確認ください。</p>",
+          "ko": "<p>개인용 촬영은 가능해요. 상업 목적의 촬영은 주최 측 사전 허가가 필요해요. 자세한 내용은 <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>个人用途的拍照录像没问题。商业用途需要提前拿到主办方书面许可。详情看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "What are the rules I need to follow at the event?",
+          "id": "Apa aturan yang harus dipatuhi?",
+          "ja": "守るべきルールはありますか？",
+          "ko": "행사장에서 지켜야 할 규칙이 있나요?",
+          "zh": "有什么需要注意的规定？"
+        },
+        "answer": {
+          "en": "<p>All attendees must comply with our event rules and regulations, including following instructions from event staff and security personnel. Please read our <a href=\"/event-policy\">Event Policy</a> before attending.</p>",
+          "id": "<p>Semua pengunjung wajib mengikuti arahan staff acara dan petugas keamanan. Baca <a href=\"/event-policy\">Event Policy</a> sebelum datang.</p>",
+          "ja": "<p>ご来場の皆さまにはイベントスタッフやセキュリティの指示に従っていただきます。ご来場前に<a href=\"/event-policy\">イベントポリシー</a>をお読みください。</p>",
+          "ko": "<p>모든 참관객은 행사 스태프와 보안 요원의 안내에 따라 주세요. 방문 전에 <a href=\"/event-policy\">행사 정책</a>을 읽어보시면 좋아요.</p>",
+          "zh": "<p>请配合现场工作人员和安保的指引。入场前先看看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana cara mendapatkan info terbaru soal event?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "행사 소식은 어떻게 받을 수 있나요?",
+          "zh": "怎么获取最新活动信息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> for the latest updates, announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a> for articles and updates.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> untuk update terbaru, pengumuman, dan konten eksklusif. Atau cek halaman <a href=\"/news\">News</a> untuk artikel dan info terkini.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>で最新情報をお届けしています。<a href=\"/news\">Newsページ</a>でも記事や更新情報を配信中です。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>을 팔로우하시면 최신 소식을 가장 먼저 받아볼 수 있어요. <a href=\"/news\">News 페이지</a>에서도 확인할 수 있어요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>，第一时间获取参展品牌、活动动态和优惠信息。也可以看 <a href=\"/news\">资讯页面</a> 的最新文章。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi panitia?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Bisa lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini untuk chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau kunjungi <a href=\"/help-center\">Help Center</a> untuk info lebih lengkap.</p>",
+          "ja": "<p>以下の方法でお問い合わせいただけます：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他の連絡方法は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅하기</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법과 정보를 찾을 수 있어요.</p>",
+          "zh": "<p>可以通过以下方式联系我们：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点这里开始聊天</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式和快捷入口在 <a href=\"/help-center\">Help Center</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "keramika",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} akan diselenggarakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} akan diadakan tanggal <strong>{{event_date}}</strong>, dari jam <strong>{{event_time}}</strong>, berlokasi di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 진행돼요.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong> 在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiket pameran keramik?",
+          "ja": "チケットはどうやって入手できますか？",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么获取门票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Free Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Tiket dapat diperoleh melalui website resmi kami. Cukup klik tombol <a href=\"/ticket\">Dapatkan Tiket Gratis</a> dan ikuti proses registrasinya. E-ticket akan langsung dikirim ke email dan WhatsApp Anda setelah pembelian.</p>",
+          "ja": "<p>公式サイトからお求めいただけます。<a href=\"/ticket\">無料チケットを取得</a>ボタンをクリックして、登録手続きを行ってください。購入後、EチケットがメールとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 웹사이트에서 받을 수 있어요. <a href=\"/ticket\">무료 티켓 받기</a> 버튼을 클릭하고 등록하면 돼요. 전자 티켓은 Email과 WhatsApp으로 보내드려요.</p>",
+          "zh": "<p>通过我们的官方网站就可以。点击 <a href=\"/ticket\">免费领取门票</a> 按钮，按流程完成注册。电子门票会发送到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットの料金はいくらですか？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information. Don't miss our early bird and pre-sale promotions for special discounts!</p>",
+          "id": "<p>Harga tiket berbeda-beda tergantung jenis tiket dan waktu pembeliannya. Untuk info harga terkini, silakan cek halaman <a href=\"/ticket\">Tiket</a> kami. Jangan lewatkan promo early bird dan pre-sale untuk mendapatkan harga spesial!</p>",
+          "ja": "<p>チケットの種類やキャンペーン時期によって異なります。最新の料金は<a href=\"/ticket\">チケットページ</a>をご確認ください。早割やプレセール期間は特別割引もあります。</p>",
+          "ko": "<p>티켓 종류와 판매 기간에 따라 달라요. 최신 가격은 <a href=\"/ticket\">티켓 페이지</a>에서 확인해 주세요. 얼리버드와 사전 판매 할인도 놓치지 마세요!</p>",
+          "zh": "<p>票价根据票种和购买时间有所不同。最新价格请查看 <a href=\"/ticket\">门票页面</a>。早鸟票和预售票有优惠，别错过！</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Apakah tiket bisa di-refund jika tidak bisa datang?",
+          "ja": "参加できなくなった場合、返金はできますか？",
+          "ko": "참석 못 하면 환불 받을 수 있나요?",
+          "zh": "买了票不能去，可以退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua penjualan tiket bersifat final. Tidak ada refund atau penukaran setelah pembelian. Untuk detail lebih lanjut, cek <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund dan Pengembalian Tiket</a> kami.</p>",
+          "ja": "<p>チケット購入後の返金・交換は承っておりません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金・返品ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매 완료된 티켓은 환불이나 교환이 안 돼요. 자세한 내용은 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情请查看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa saja yang perlu dibawa ke acara?",
+          "ja": "イベント当日は何を持参すればいいですか？",
+          "ko": "행사장에 뭘 가져가야 하나요?",
+          "zh": "去现场需要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. We also recommend bringing business cards if you plan to network with exhibitors and other attendees.</p>",
+          "id": "<p>Jangan lupa bawa e-ticket Anda (versi digital atau print) untuk ditukar dengan badge atau wristband di meja registrasi. Jika berencana networking dengan exhibitor dan pengunjung lainnya, ada baiknya membawa kartu nama juga.</p>",
+          "ja": "<p>Eチケット（スマートフォンまたは印刷）を受付でバッジかリストバンドと交換してください。出展者や他の来場者と交流される方は、名刺もお持ちいただくと便利です。</p>",
+          "ko": "<p>전자 티켓(화면 또는 출력본)을 가져오시면 등록 데스크에서 배지 또는 입장 밴드로 교환해 드려요. 네트워킹할 계획이라면 명함도 챙겨오세요.</p>",
+          "zh": "<p>带上你的电子门票（手机出示或打印均可），在签到台换取入场证。想和参展商交流的话，建议带上名片。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang bisa hadir?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누가 참관할 수 있나요?",
+          "zh": "谁可以参加？"
+        },
+        "answer": {
+          "en": "<p>The event is open to the public. Whether you're an architect, interior designer, contractor, property developer, or simply interested in ceramic products and home renovation, you're welcome to attend!</p>",
+          "id": "<p>Pameran ini terbuka untuk siapa saja. Baik Anda arsitek, desainer interior, kontraktor, developer properti, atau siapapun yang tertarik dengan produk keramik dan renovasi rumah, semua welcome untuk hadir!</p>",
+          "ja": "<p>はい、どなたでもご参加いただけます。建築家、インテリアデザイナー、施工業者、不動産デベロッパー、セラミクス製品やリフォームに興味のある方、どなたでも歓迎です。</p>",
+          "ko": "<p>누구나 참관할 수 있어요! 건축가, 인테리어 디자이너, 시공업자, 부동산 개발사, 세라믹 제품이나 리모델링에 관심 있는 분 모두 환영해요.</p>",
+          "zh": "<p>所有人都可以。建筑师、室内设计师、承包商、房产开发商，或者对陶瓷产品和装修感兴趣的朋友，都欢迎来。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands will be exhibiting at the event?",
+          "id": "Brand apa saja yang akan pameran?",
+          "ja": "どんなブランドが出展しますか？",
+          "ko": "어떤 브랜드가 참가하나요?",
+          "zh": "有哪些品牌参展？"
+        },
+        "answer": {
+          "en": "<p>We feature a diverse range of brands from the ceramics and building materials industry. You can view the list of exhibitors on our <a href=\"/brands\">Brands page</a>. The list will be updated as we get closer to the event date.</p>",
+          "id": "<p>Kami menghadirkan beragam brand dari industri keramik dan bahan bangunan. Lihat daftar exhibitor lengkapnya di halaman <a href=\"/brands\">Brands</a>. Daftarnya akan terus diperbarui mendekati tanggal acara.</p>",
+          "ja": "<p>セラミクスおよび建材業界から多彩なブランドが出展します。出展者一覧は<a href=\"/brands\">ブランドページ</a>でご確認ください。開催が近づくにつれ随時更新されます。</p>",
+          "ko": "<p>세라믹 및 건축자재 분야의 다양한 브랜드가 참가해요. <a href=\"/brands\">브랜드 페이지</a>에서 참가사 목록을 확인할 수 있고, 행사일이 가까워질수록 업데이트돼요.</p>",
+          "zh": "<p>陶瓷和建材行业的各类品牌都会参展。完整名单请查看 <a href=\"/brands\">Brands 页面</a>，会持续更新。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Bagaimana cara jadi exhibitor?",
+          "ja": "出展者になるにはどうすればいいですか？",
+          "ko": "전시 참가는 어떻게 하나요?",
+          "zh": "怎么报名成为参展商？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor, please visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information about booth packages and availability.</p>",
+          "id": "<p>Untuk jadi exhibitor, silakan kunjungi halaman <a href=\"/book-space\">Exhibitor Registration</a> kami atau hubungi tim kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> untuk info lebih lanjut tentang paket booth dan ketersediaannya.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>から申し込むか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>で担当チームにお問い合わせください。ブースのパッケージや空き状況をご案内いたします。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>를 방문하시거나, <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요. 부스 옵션과 가격 등 자세한 안내를 받으실 수 있어요.</p>",
+          "zh": "<p>请访问 <a href=\"/book-space\">参展商报名页面</a>，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们，了解展位方案和价格。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Are there any seminars or workshops at the event?",
+          "id": "Apakah ada seminar atau workshop?",
+          "ja": "カンファレンスやワークショップはありますか？",
+          "ko": "컨퍼런스나 워크숍도 있나요?",
+          "zh": "现场有讲座或工作坊吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize various conferences, seminars, workshops, and networking sessions. Check our <a href=\"/rundown\">Rundown page</a> for the complete schedule of activities and speaker sessions.</p>",
+          "id": "<p>Tentu ada! Kami menyelenggarakan berbagai konferensi, seminar, workshop, dan sesi networking. Cek halaman <a href=\"/rundown\">Rundown</a> untuk jadwal lengkap aktivitas dan sesi speaker.</p>",
+          "ja": "<p>はい。カンファレンス、セミナー、ワークショップ、ネットワーキングセッションなど多彩なプログラムがあります。詳細は<a href=\"/rundown\">Rundownページ</a>をご確認ください。</p>",
+          "ko": "<p>네! 컨퍼런스, 세미나, 워크숍, 네트워킹 세션 등 다양한 프로그램이 준비돼 있어요. <a href=\"/rundown\">Rundown 페이지</a>에서 전체 일정을 확인해 보세요.</p>",
+          "zh": "<p>有的！我们安排了行业会议、研讨会、工作坊和社交活动。完整日程请查看 <a href=\"/rundown\">Rundown 页面</a>。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Bagaimana cara jadi sponsor atau media partner?",
+          "ja": "スポンサーやメディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너는 어떻게 되나요?",
+          "zh": "怎么成为赞助商或媒体合作伙伴？"
+        },
+        "answer": {
+          "en": "<p>We welcome sponsorship and media partnership opportunities. Please contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Kami terbuka untuk sponsorship dan media partnership. Silakan hubungi kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> untuk diskusi paket kerjasama.</p>",
+          "ja": "<p>スポンサーシップとメディアパートナーシップのご相談を承っています。<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>までお気軽にご連絡ください。</p>",
+          "ko": "<p>스폰서십과 미디어 파트너십 기회가 열려 있어요. <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 문의해 주세요.</p>",
+          "zh": "<p>欢迎合作！请通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们聊聊。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Apakah tersedia parkir di venue?",
+          "ja": "会場に駐車場はありますか？",
+          "ko": "행사장에 주차할 수 있나요?",
+          "zh": "展馆有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces may fill up quickly during peak hours. You may also consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ya, venue menyediakan fasilitas parkir. Namun kami sarankan untuk datang lebih awal karena parkir bisa cepat penuh saat jam ramai. Anda juga bisa mempertimbangkan transportasi umum atau ride-sharing.</p>",
+          "ja": "<p>はい、会場に駐車場があります。ピーク時は満車になることもありますので、早めの来場をおすすめします。公共交通機関やライドシェアもご検討ください。</p>",
+          "ko": "<p>네, 행사장에 주차 시설이 있어요. 피크 시간에는 자리가 빨리 찰 수 있으니 일찍 오시는 걸 추천해요. 대중교통이나 차량 호출 서비스도 괜찮아요.</p>",
+          "zh": "<p>有的，展馆提供停车设施。高峰时段车位可能紧张，建议提早到达或打车来。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video di acara?",
+          "ja": "会場で写真や動画を撮影してもいいですか？",
+          "ko": "행사장에서 사진이나 영상을 촬영해도 되나요?",
+          "zh": "现场可以拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. However, professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Foto atau video untuk keperluan pribadi diperbolehkan. Namun, untuk rekaman profesional atau komersial, diperlukan izin tertulis dari penyelenggara. Untuk detailnya, silakan baca <a href=\"/event-policy\">Event Policy</a> kami.</p>",
+          "ja": "<p>個人利用の範囲での撮影は可能です。商用目的の撮影には主催者の書面による許可が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>をご確認ください。</p>",
+          "ko": "<p>개인 용도 촬영은 가능해요. 전문 촬영이나 상업 목적은 주최 측의 사전 허가가 필요해요. 자세한 내용은 <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>个人用途没问题。商业拍摄需要提前拿到主办方的书面许可。详情请查看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "What are the rules I need to follow at the event?",
+          "id": "Apa saja peraturan yang harus diikuti?",
+          "ja": "イベントで守るべきルールはありますか？",
+          "ko": "행사장에서 지켜야 할 규칙이 있나요?",
+          "zh": "有什么需要注意的规定？"
+        },
+        "answer": {
+          "en": "<p>All attendees must comply with our event rules and regulations, including following instructions from event staff and security personnel. Please read our <a href=\"/event-policy\">Event Policy</a> before attending.</p>",
+          "id": "<p>Semua pengunjung wajib mematuhi peraturan dan ketentuan acara, termasuk mengikuti arahan dari staff acara dan petugas keamanan. Silakan baca <a href=\"/event-policy\">Event Policy</a> kami sebelum hadir.</p>",
+          "ja": "<p>来場者の皆さまには、イベントスタッフやセキュリティの指示に従っていただきます。ご来場前に<a href=\"/event-policy\">イベントポリシー</a>をお読みください。</p>",
+          "ko": "<p>모든 참관객은 행사 규정을 준수해야 해요. 행사 스태프와 보안 요원의 안내에 따라 주세요. 방문 전에 <a href=\"/event-policy\">행사 정책</a>을 읽어보시면 좋아요.</p>",
+          "zh": "<p>所有参与者需遵守活动规定，配合现场工作人员和安保人员的指引。入场前请先看看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana cara mendapatkan info terbaru seputar pameran?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "행사 소식은 어떻게 받을 수 있나요?",
+          "zh": "怎么获取最新活动信息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> for the latest updates, announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a> for articles and updates.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> untuk mendapatkan update terbaru, pengumuman, dan konten eksklusif. Anda juga bisa kunjungi halaman <a href=\"/news\">News</a> untuk artikel dan info terkini.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>で最新情報や出展者発表をチェックしてください。<a href=\"/news\">Newsページ</a>でも記事や最新情報を配信しています。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>을 팔로우하면 최신 참가사 소식, 하이라이트, 독점 정보를 가장 먼저 받아볼 수 있어요. <a href=\"/news\">News 페이지</a>에서도 확인할 수 있어요.</p>",
+          "zh": "<p>关注我们的 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>，第一时间获取参展品牌、活动亮点和独家信息。也可以访问 <a href=\"/news\">资讯页面</a> 查看最新文章。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi organizer?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Silakan hubungi kami melalui:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini untuk chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Kunjungi <a href=\"/help-center\">Help Center</a> kami untuk opsi kontak lainnya dan akses cepat ke berbagai informasi.</p>",
+          "ja": "<p>以下の方法でお問い合わせいただけます：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他の連絡手段については<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅하기</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법과 유용한 정보를 찾을 수 있어요.</p>",
+          "zh": "<p>你可以通过以下方式联系我们：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点击这里开始聊天</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式和快捷入口请访问 <a href=\"/help-center\">Help Center</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "renex",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} diselenggarakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 진행돼요.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong> 在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiket?",
+          "ja": "チケットはどうやって入手できますか？",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么获取门票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Langsung lewat website ini. Klik tombol <a href=\"/ticket\">Get Ticket</a>, ikuti proses registrasinya, dan e-ticket akan dikirim ke email dan WhatsApp kamu.</p>",
+          "ja": "<p>公式サイトの<a href=\"/ticket\">チケット取得</a>ボタンから登録してください。Eチケットがメールと WhatsApp に届きます。</p>",
+          "ko": "<p>공식 웹사이트의 <a href=\"/ticket\">티켓 받기</a> 버튼을 클릭하고 등록하면 돼요. 전자 티켓이 Email과 WhatsApp으로 발송돼요.</p>",
+          "zh": "<p>在官网点击 <a href=\"/ticket\">领取门票</a> 按钮，完成注册即可。电子门票会发送到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットの料金は？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information. Don't miss our early bird and pre-sale promotions for special discounts!</p>",
+          "id": "<p>Tergantung jenis tiket dan periode pembelian. Cek halaman <a href=\"/ticket\">Tiket</a> untuk harga terkini. Jangan sampai terlewat promo early bird dan pre-sale!</p>",
+          "ja": "<p>チケットの種類や購入時期で異なります。最新価格は<a href=\"/ticket\">チケットページ</a>をご確認ください。早割・プレセール割引もあります。</p>",
+          "ko": "<p>티켓 종류와 구매 시기에 따라 달라요. <a href=\"/ticket\">티켓 페이지</a>에서 최신 가격을 확인하세요. 얼리버드 할인도 놓치지 마세요!</p>",
+          "zh": "<p>价格因票种和购买时间而异。最新价格请查看 <a href=\"/ticket\">门票页面</a>。早鸟票和预售票有折扣！</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Bisa refund kalau tidak jadi datang?",
+          "ja": "参加できなくなった場合、返金できますか？",
+          "ko": "못 가게 되면 환불 받을 수 있나요?",
+          "zh": "买了票去不了，能退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua pembelian tiket bersifat final dan tidak bisa di-refund atau ditukar. Detail lengkap ada di <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund Tiket</a>.</p>",
+          "ja": "<p>購入後のチケットの返金・交換はできません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매 완료된 티켓은 환불이나 교환이 안 돼요. <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情请查看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Perlu bawa apa ke acara ini?",
+          "ja": "当日は何を持っていけばいいですか？",
+          "ko": "행사장에 뭘 가져가야 하나요?",
+          "zh": "去现场需要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. We also recommend bringing business cards if you plan to network with exhibitors and other attendees.</p>",
+          "id": "<p>Bawa e-ticket kamu (di HP atau print) untuk ditukar badge atau wristband di meja registrasi. Berencana networking dengan exhibitor? Bawa kartu nama juga.</p>",
+          "ja": "<p>Eチケット（スマホ画面または印刷）を受付でバッジまたはリストバンドに交換します。名刺もお持ちいただくとネットワーキングに便利です。</p>",
+          "ko": "<p>전자 티켓(디지털 또는 출력본)을 등록 데스크에서 배지나 밴드로 교환해요. 네트워킹을 원하시면 명함도 챙기세요.</p>",
+          "zh": "<p>带上电子门票（手机出示或打印均可），在签到台换取入场证。想交流合作的话，带上名片更方便。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang boleh datang?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누가 참관할 수 있나요?",
+          "zh": "谁都可以来吗？"
+        },
+        "answer": {
+          "en": "<p>The event is open to the public. Whether you're a homeowner planning a renovation, an architect, interior designer, contractor, or simply interested in the latest trends in home improvement, you're welcome to attend!</p>",
+          "id": "<p>Semua kalangan boleh hadir! Pemilik rumah, arsitek, desainer interior, kontraktor, maupun yang sekadar mencari inspirasi renovasi, semuanya welcome.</p>",
+          "ja": "<p>はい、どなたでもご来場いただけます。リノベーションを検討中の方、建築家、デザイナー、施工業者、住まいに興味のある方、どなたも歓迎です。</p>",
+          "ko": "<p>누구나 환영해요! 리노베이션 계획 중인 분, 건축가, 인테리어 디자이너, 시공업자, 홈 인테리어에 관심 있는 분 모두 오세요.</p>",
+          "zh": "<p>当然！不管你是准备装修的业主、建筑师、设计师、施工方，还是对家居趋势感兴趣，都欢迎来。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands will be exhibiting at the event?",
+          "id": "Brand apa saja yang ikut pameran?",
+          "ja": "どんなブランドが出展しますか？",
+          "ko": "어떤 브랜드가 참가하나요?",
+          "zh": "有哪些品牌参展？"
+        },
+        "answer": {
+          "en": "<p>We feature a diverse range of brands from building materials, interior design, home furnishing, and renovation services. You can view the list of exhibitors on our <a href=\"/brands\">Brands page</a>. The list will be updated as we get closer to the event date.</p>",
+          "id": "<p>Ada banyak, mulai dari material bangunan, desain interior, perabot rumah, sampai jasa renovasi. Lihat daftar lengkapnya di halaman <a href=\"/brands\">Brands</a>. Terus di-update sampai hari H.</p>",
+          "ja": "<p>建材、インテリア、家具、リノベーションサービスなど幅広い分野のブランドが出展します。<a href=\"/brands\">ブランドページ</a>で最新の出展者リストをご確認ください。</p>",
+          "ko": "<p>건축자재, 인테리어, 가구, 리노베이션 서비스 등 다양한 분야의 브랜드가 참가해요. <a href=\"/brands\">브랜드 페이지</a>에서 최신 목록을 확인하세요.</p>",
+          "zh": "<p>涵盖建材、室内设计、家居用品、装修服务等多个领域。完整名单请查看 <a href=\"/brands\">品牌页面</a>，持续更新中。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Bagaimana cara ikut pameran sebagai exhibitor?",
+          "ja": "出展するにはどうすればいいですか？",
+          "ko": "전시 참가는 어떻게 하나요?",
+          "zh": "怎么报名参展？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor, please visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information about booth packages and availability.</p>",
+          "id": "<p>Langsung ke halaman <a href=\"/book-space\">Exhibitor Registration</a> atau hubungi tim kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> untuk info paket booth dan ketersediaan.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>からお申し込みいただくか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>で担当チームにお問い合わせください。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>에서 신청하시거나, <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요.</p>",
+          "zh": "<p>访问 <a href=\"/book-space\">参展商报名页面</a>，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们了解展位方案和价格。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Are there any seminars or workshops at the event?",
+          "id": "Ada seminar atau workshop?",
+          "ja": "セミナーやワークショップはありますか？",
+          "ko": "세미나나 워크숍도 있나요?",
+          "zh": "有讲座或工作坊吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize various seminars, brand talks, and workshop series covering design trends, home improvement techniques, and fengshui consultation. Check our <a href=\"/rundown\">Rundown page</a> for the complete schedule.</p>",
+          "id": "<p>Ada! Brand talks, workshop series, konsultasi desain dan fengshui. Jadwal lengkapnya bisa dicek di halaman <a href=\"/rundown\">Rundown</a>.</p>",
+          "ja": "<p>はい。ブランドトーク、ワークショップ、デザイン・風水コンサルテーションなど多彩なプログラムがあります。<a href=\"/rundown\">Rundownページ</a>でスケジュールをご確認ください。</p>",
+          "ko": "<p>네! 브랜드 토크, 워크숍, 디자인 & 풍수 상담 등 다양한 프로그램이 있어요. <a href=\"/rundown\">Rundown 페이지</a>에서 일정을 확인하세요.</p>",
+          "zh": "<p>有的！品牌分享、工作坊、设计和风水咨询等内容丰富。完整日程请查看 <a href=\"/rundown\">Rundown 页面</a>。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Bagaimana caranya jadi sponsor atau media partner?",
+          "ja": "スポンサーやメディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너는 어떻게 되나요?",
+          "zh": "怎么成为赞助商或媒体合作伙伴？"
+        },
+        "answer": {
+          "en": "<p>We welcome sponsorship and media partnership opportunities. Please contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Kami terbuka untuk sponsorship dan media partnership. Hubungi via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau email ke <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> untuk diskusi paket kerjasama.</p>",
+          "ja": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>にお問い合わせください。パートナーシップの詳細をご案内します。</p>",
+          "ko": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 문의해 주세요. 파트너십 상세를 안내해 드릴게요.</p>",
+          "zh": "<p>欢迎合作！通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们，聊聊合作方案。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Ada parkir di venue?",
+          "ja": "会場に駐車場はありますか？",
+          "ko": "행사장에 주차할 수 있나요?",
+          "zh": "展馆有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces may fill up quickly during peak hours. You may also consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Tapi pas jam ramai bisa cepat penuh, jadi usahakan datang lebih awal. Bisa juga pakai transportasi umum atau ojol.</p>",
+          "ja": "<p>はい。ただしピーク時は満車になることがあるため、早めの来場をおすすめします。公共交通機関の利用もご検討ください。</p>",
+          "ko": "<p>네. 다만 피크 시간에는 빨리 찰 수 있으니 일찍 오시는 걸 추천해요. 대중교통도 편리해요.</p>",
+          "zh": "<p>有。不过高峰时段可能满位，建议提早到或者打车来。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video di acara?",
+          "ja": "会場で撮影はできますか？",
+          "ko": "사진이나 영상 촬영이 가능한가요?",
+          "zh": "可以拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. However, professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Boleh, selama untuk keperluan pribadi. Kalau mau rekaman profesional atau komersial, perlu izin tertulis dari penyelenggara. Detail di <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>個人利用の写真・動画撮影は可能です。商用撮影は主催者の許可が必要です。<a href=\"/event-policy\">イベントポリシー</a>をご確認ください。</p>",
+          "ko": "<p>개인 용도의 촬영은 가능해요. 상업 촬영은 주최 측 허가가 필요해요. <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>个人拍照录像没问题。商业拍摄需要主办方书面许可。详情请查看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "What are the rules I need to follow at the event?",
+          "id": "Ada peraturan yang harus diikuti?",
+          "ja": "会場でのルールはありますか？",
+          "ko": "행사장에서 지켜야 할 규칙이 있나요?",
+          "zh": "有什么规定要注意？"
+        },
+        "answer": {
+          "en": "<p>All attendees must comply with our event rules and regulations, including following instructions from event staff and security personnel. Please read our <a href=\"/event-policy\">Event Policy</a> before attending.</p>",
+          "id": "<p>Semua pengunjung wajib ikuti aturan acara dan arahan dari staff serta petugas keamanan. Baca <a href=\"/event-policy\">Event Policy</a> sebelum datang.</p>",
+          "ja": "<p>スタッフやセキュリティの指示に従ってください。来場前に<a href=\"/event-policy\">イベントポリシー</a>をお読みください。</p>",
+          "ko": "<p>행사 스태프와 보안 요원의 안내를 따라 주세요. 방문 전 <a href=\"/event-policy\">행사 정책</a>을 읽어보시면 좋아요.</p>",
+          "zh": "<p>请配合现场工作人员和安保人员的指引。入场前建议先看看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana caranya mendapat info terbaru soal acara ini?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "행사 소식은 어떻게 받나요?",
+          "zh": "怎么获取最新消息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> for the latest updates, announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a> for articles and updates.</p>",
+          "id": "<p>Follow Instagram kami di <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> untuk update terbaru, pengumuman, dan konten eksklusif. Atau cek halaman <a href=\"/news\">News</a> untuk artikel terkini.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>をフォローしてください。<a href=\"/news\">Newsページ</a>でも最新記事を配信中です。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>을 팔로우하세요. <a href=\"/news\">News 페이지</a>에서도 최신 소식을 확인할 수 있어요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>，第一时间获取参展品牌、活动动态和专属福利。也可以看 <a href=\"/news\">资讯页面</a>。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi panitia?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Bisa lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau kunjungi <a href=\"/help-center\">Help Center</a> untuk opsi kontak lainnya.</p>",
+          "ja": "<p>以下からお問い合わせいただけます：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 정보를 찾을 수 있어요.</p>",
+          "zh": "<p>通过以下方式联系我们：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点击开始聊天</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式请访问 <a href=\"/help-center\">帮助中心</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "flei",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} diadakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 열려요.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong>，在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiketnya?",
+          "ja": "チケットはどこで入手できますか？",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么拿票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Lewat website resmi kami. Klik tombol <a href=\"/ticket\">Get Ticket</a>, ikuti proses registrasi, dan e-ticket langsung dikirim ke email dan WhatsApp kamu.</p>",
+          "ja": "<p>公式サイトから取得できます。<a href=\"/ticket\">チケットを取得</a>ボタンから登録手続きを行ってください。Eチケットは Email と WhatsApp に届きます。</p>",
+          "ko": "<p>공식 웹사이트에서 받을 수 있어요. <a href=\"/ticket\">티켓 받기</a> 버튼을 클릭하고 등록하면 전자 티켓이 Email과 WhatsApp으로 가요.</p>",
+          "zh": "<p>在官网点 <a href=\"/ticket\">领取门票</a>，按流程注册就行。电子票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットの料金は？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information. Don't miss our early bird and pre-sale promotions for special discounts!</p>",
+          "id": "<p>Tergantung jenis tiket dan periode pembelian. Cek halaman <a href=\"/ticket\">Tiket</a> untuk harga terkini. Manfaatkan promo early bird dan pre-sale untuk harga lebih murah!</p>",
+          "ja": "<p>チケットの種類や販売期間によって異なります。最新の料金は<a href=\"/ticket\">チケットページ</a>でご確認ください。早割・プレセール期間は特別価格です。</p>",
+          "ko": "<p>종류와 구매 시기에 따라 달라요. <a href=\"/ticket\">티켓 페이지</a>에서 최신 가격을 확인하세요. 얼리버드 할인도 놓치지 마세요!</p>",
+          "zh": "<p>票价看票种和购买时间。最新价格去 <a href=\"/ticket\">门票页面</a> 查。早鸟和预售有折扣，别错过。</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Bisa refund kalau tidak jadi datang?",
+          "ja": "チケットの返金はできますか？",
+          "ko": "못 가게 되면 환불 받을 수 있나요?",
+          "zh": "买了去不了，能退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Tiket yang sudah dibeli tidak bisa di-refund atau ditukar. Detail lengkapnya ada di <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund dan Pengembalian Tiket</a>.</p>",
+          "ja": "<p>購入後の返金・交換は承っておりません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매한 티켓은 환불이나 교환이 안 돼요. 자세한 내용은 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>买了就不退不换。详情看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa yang perlu dibawa ke acara?",
+          "ja": "当日は何を持っていけばいいですか？",
+          "ko": "행사장에 뭘 가져가야 하나요?",
+          "zh": "去现场带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. We also recommend bringing business cards if you plan to network with exhibitors and other attendees.</p>",
+          "id": "<p>Bawa e-ticket kamu (di HP atau print) untuk ditukar badge di meja registrasi. Kalau mau networking, bawa kartu nama juga.</p>",
+          "ja": "<p>Eチケット（スマートフォンまたは印刷）を受付でバッジと交換してください。ネットワーキングをされる方は、名刺もお持ちいただくと便利です。</p>",
+          "ko": "<p>전자 티켓(화면 또는 출력본)을 등록 데스크에서 배지로 교환하면 돼요. 네트워킹하려면 명함도 챙겨오세요.</p>",
+          "zh": "<p>带上电子票（手机出示或打印），到签到台换入场证。想交流的话，带上名片。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang boleh datang?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누가 참관할 수 있나요?",
+          "zh": "谁可以来？"
+        },
+        "answer": {
+          "en": "<p>The event is open to the public. Whether you're an aspiring entrepreneur, business owner, investor, or simply interested in exploring business opportunities, you're welcome to attend!</p>",
+          "id": "<p>Siapa saja boleh hadir. Calon pengusaha, pemilik bisnis, investor, atau yang sedang mencari peluang usaha, semuanya welcome.</p>",
+          "ja": "<p>はい。起業を考えている方、事業者、投資家、ビジネスチャンスを探している方、どなたでもご参加いただけます。</p>",
+          "ko": "<p>누구나 올 수 있어요. 예비 창업자, 사업주, 투자자, 사업 기회를 찾는 분이라면 누구든 환영해요.</p>",
+          "zh": "<p>谁都可以。想创业的、已经在做生意的、投资人、纯粹来看看有什么机会的，都欢迎。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands will be exhibiting at the event?",
+          "id": "Brand apa saja yang ikut pameran?",
+          "ja": "どのようなブランドが出展しますか？",
+          "ko": "어떤 브랜드가 참가하나요?",
+          "zh": "有哪些品牌参展？"
+        },
+        "answer": {
+          "en": "<p>We feature a diverse range of brands from various business categories. You can view the list of exhibitors on our <a href=\"/brands\">Brands page</a>. The list will be updated as we get closer to the event date.</p>",
+          "id": "<p>Ada banyak brand dari berbagai kategori bisnis. Lihat daftar lengkapnya di halaman <a href=\"/brands\">Brands</a>. Daftarnya terus di-update menjelang hari H.</p>",
+          "ja": "<p>さまざまな業種のブランドが出展します。<a href=\"/brands\">ブランドページ</a>で最新の出展者一覧をご確認ください。開催日が近づくにつれ更新されます。</p>",
+          "ko": "<p>여러 업종의 브랜드가 참가해요. <a href=\"/brands\">브랜드 페이지</a>에서 목록을 확인할 수 있고, 행사일이 가까워지면 업데이트돼요.</p>",
+          "zh": "<p>各行业的加盟和授权品牌都有。去 <a href=\"/brands\">品牌页面</a> 看完整名单，会持续更新。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Mau ikut pameran sebagai exhibitor, bagaimana caranya?",
+          "ja": "出展するにはどうすればいいですか？",
+          "ko": "전시 참가는 어떻게 하나요?",
+          "zh": "怎么报名参展？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor, please visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information about booth packages and availability.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Registrasi Exhibitor</a> atau hubungi tim kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> untuk info paket booth dan ketersediaannya.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>からお申し込みいただくか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>で担当チームにお問い合わせください。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>에서 신청하거나, <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요.</p>",
+          "zh": "<p>去 <a href=\"/book-space\">参展商报名页面</a>，或者通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们了解展位方案。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Are there any seminars or workshops at the event?",
+          "id": "Ada seminar atau workshop?",
+          "ja": "セミナーやワークショップはありますか？",
+          "ko": "세미나나 워크숍도 있나요?",
+          "zh": "有讲座或工作坊吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize various seminars, workshops, and networking sessions. Check our <a href=\"/rundown\">Rundown page</a> for the complete schedule of activities and speaker sessions.</p>",
+          "id": "<p>Ada! Seminar, workshop, dan sesi networking lengkap tersedia. Cek halaman <a href=\"/rundown\">Rundown</a> untuk jadwal lengkapnya.</p>",
+          "ja": "<p>はい。セミナー、ワークショップ、ネットワーキングセッションなどを開催します。<a href=\"/rundown\">スケジュールページ</a>で全日程をご確認ください。</p>",
+          "ko": "<p>네! 세미나, 워크숍, 네트워킹 세션 등이 준비돼 있어요. <a href=\"/rundown\">일정 페이지</a>에서 전체 프로그램을 확인하세요.</p>",
+          "zh": "<p>有。讲座、工作坊、社交活动都有安排。完整日程去 <a href=\"/rundown\">日程页面</a> 查。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Mau jadi sponsor atau media partner, hubungi siapa?",
+          "ja": "スポンサー・メディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너는 어떻게 되나요?",
+          "zh": "怎么成为赞助商或媒体合作伙伴？"
+        },
+        "answer": {
+          "en": "<p>We welcome sponsorship and media partnership opportunities. Please contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Hubungi kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau email ke <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> untuk diskusi paket kerjasama.</p>",
+          "ja": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>までご連絡ください。パートナーシップの詳細をご案内します。</p>",
+          "ko": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 연락해 주세요. 파트너십 내용을 안내해 드릴게요.</p>",
+          "zh": "<p>通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们，聊聊合作方案。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Ada parkir di venue?",
+          "ja": "駐車場はありますか？",
+          "ko": "주차할 수 있나요?",
+          "zh": "有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces may fill up quickly during peak hours. You may also consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Tapi kami sarankan datang lebih awal karena parkir bisa cepat penuh saat jam ramai. Bisa juga menggunakan transportasi umum atau ojek online.</p>",
+          "ja": "<p>会場に駐車場があります。ただしピーク時は混雑しますので、早めのご来場をおすすめします。公共交通機関やライドシェアもご検討ください。</p>",
+          "ko": "<p>행사장에 주차 시설이 있어요. 다만 피크 시간엔 빨리 찰 수 있으니 일찍 오시거나 대중교통을 이용하세요.</p>",
+          "zh": "<p>有。高峰时段可能紧张，建议早点到或者打车来。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video di acara?",
+          "ja": "写真・動画の撮影はできますか？",
+          "ko": "사진이나 영상 촬영해도 되나요?",
+          "zh": "能拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. However, professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Boleh, untuk keperluan pribadi. Untuk keperluan komersial atau profesional, perlu izin tertulis dari panitia. Baca selengkapnya di <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>個人利用の撮影は可能です。商用撮影には主催者の書面許可が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>をご覧ください。</p>",
+          "ko": "<p>개인 용도의 촬영은 가능해요. 상업 목적의 촬영은 주최 측 허가가 필요해요. <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>个人用途没问题。商业拍摄要提前拿主办方书面许可。详情看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "What are the rules I need to follow at the event?",
+          "id": "Peraturan apa saja yang harus diikuti?",
+          "ja": "来場時のルールはありますか？",
+          "ko": "행사장에서 지켜야 할 규칙이 있나요?",
+          "zh": "有什么规定要注意？"
+        },
+        "answer": {
+          "en": "<p>All attendees must comply with our event rules and regulations, including following instructions from event staff and security personnel. Please read our <a href=\"/event-policy\">Event Policy</a> before attending.</p>",
+          "id": "<p>Semua pengunjung wajib ikuti aturan acara dan arahan dari petugas. Baca <a href=\"/event-policy\">Event Policy</a> sebelum datang.</p>",
+          "ja": "<p>イベントスタッフやセキュリティの指示に従っていただきます。来場前に<a href=\"/event-policy\">イベントポリシー</a>をお読みください。</p>",
+          "ko": "<p>행사 스태프와 보안 요원의 안내에 따라주세요. 방문 전에 <a href=\"/event-policy\">행사 정책</a>을 한번 읽어보시면 좋아요.</p>",
+          "zh": "<p>配合现场工作人员和安保的指引就行。入场前建议看一下 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana supaya tidak ketinggalan info soal FLEI?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "행사 소식은 어디서 받을 수 있나요?",
+          "zh": "怎么跟进最新消息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a> for the latest updates, announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a> for articles and updates.</p>",
+          "id": "<p>Follow Instagram kami di <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>. Atau cek halaman <a href=\"/news\">News</a> untuk artikel dan update terbaru.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>をフォローしてください。<a href=\"/news\">ニュースページ</a>でも最新記事を掲載しています。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>을 팔로우하세요. <a href=\"/news\">뉴스 페이지</a>에서도 최신 소식을 확인할 수 있어요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>。也可以去 <a href=\"/news\">资讯页面</a> 看最新文章。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Mau hubungi panitia, lewat mana?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Bisa lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau kunjungi <a href=\"/help-center\">Help Center</a> untuk info lebih lengkap.</p>",
+          "ja": "<p>以下からお問い合わせいただけます：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他の連絡方法は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락하세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 정보를 찾을 수 있어요.</p>",
+          "zh": "<p>可以通过：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点这里聊</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式去 <a href=\"/help-center\">帮助中心</a> 看。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "cbe",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} diadakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 열려요.</p>",
+          "zh": "<p>{{event_title}} 在 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong>，地点是 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiket?",
+          "ja": "チケットはどうやって手に入れますか？",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么买票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Beli langsung lewat website resmi kami. Klik tombol <a href=\"/ticket\">Get Ticket</a> dan ikuti prosesnya. E-ticket langsung dikirim ke email dan WhatsApp kamu.</p>",
+          "ja": "<p>公式サイトから取得できます。<a href=\"/ticket\">チケットを取得</a>ボタンから登録をお進めください。購入後、EチケットがEmailとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 웹사이트에서 받을 수 있어요. <a href=\"/ticket\">티켓 받기</a> 버튼을 누르고 등록하면 돼요. 전자 티켓은 Email과 WhatsApp으로 보내드려요.</p>",
+          "zh": "<p>在官网点 <a href=\"/ticket\">Get Ticket</a>，按流程注册就行。电子门票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットはいくらですか？",
+          "ko": "티켓 가격이 어떻게 되나요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information. Don't miss our early bird and pre-sale promotions for special discounts!</p>",
+          "id": "<p>Tergantung jenis tiket dan periode pembelian. Cek halaman <a href=\"/ticket\">Tiket</a> buat info harga terbaru. Jangan lewatkan promo early bird dan pre-sale!</p>",
+          "ja": "<p>チケットの種類やキャンペーン時期によって異なります。最新の価格は<a href=\"/ticket\">チケットページ</a>をご確認ください。早割もありますよ。</p>",
+          "ko": "<p>티켓 종류와 구매 시기에 따라 달라요. <a href=\"/ticket\">티켓 페이지</a>에서 최신 가격을 확인해 주세요. 얼리버드 할인도 있으니 놓치지 마세요!</p>",
+          "zh": "<p>看票种和购买时间。最新价格在 <a href=\"/ticket\">门票页面</a>。早鸟票有优惠，别错过。</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Bisa refund kalau tidak jadi hadir?",
+          "ja": "行けなくなった場合、返金できますか？",
+          "ko": "못 가게 되면 환불 받을 수 있나요?",
+          "zh": "买了不能去，能退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua pembelian tiket bersifat final dan tidak bisa refund atau tukar. Selengkapnya baca di <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund Tiket</a>.</p>",
+          "ja": "<p>購入後のチケットは返金・交換ができません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金・返品ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매 완료된 티켓은 환불이나 교환이 안 돼요. <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>에서 자세한 내용을 확인해 주세요.</p>",
+          "zh": "<p>门票售出不退不换。详情看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa yang perlu dibawa ke venue?",
+          "ja": "当日は何を持っていけばいいですか？",
+          "ko": "행사장에 뭘 가져가면 되나요?",
+          "zh": "去现场带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. We also recommend bringing business cards if you plan to network with exhibitors and other attendees.</p>",
+          "id": "<p>Bawa e-ticket kamu (digital atau print) buat ditukar badge atau wristband di meja registrasi. Bawa kartu nama juga kalau mau networking.</p>",
+          "ja": "<p>Eチケット（スマートフォンまたは印刷）を受付でバッジかリストバンドに交換してください。ネットワーキング予定の方は、名刺があると便利です。</p>",
+          "ko": "<p>전자 티켓(디지털 또는 출력본)을 가져오시면 등록 데스크에서 배지나 입장 밴드로 교환해 드려요. 네트워킹할 계획이라면 명함도 챙겨오세요.</p>",
+          "zh": "<p>带电子门票（手机或打印件），在签到台换入场证。想跟参展商交流的话，带上名片。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang boleh datang?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누구나 참관할 수 있나요?",
+          "zh": "谁都能来吗？"
+        },
+        "answer": {
+          "en": "<p>The event is open to everyone! Whether you're a cafe owner, F&B entrepreneur, coffee enthusiast, food industry professional, or simply someone who loves exploring culinary trends, you're welcome to attend!</p>",
+          "id": "<p>Semua orang! Pemilik kafe, pengusaha F&B, coffee lover, profesional industri makanan, atau siapa pun yang suka explore dunia kuliner. Semuanya welcome.</p>",
+          "ja": "<p>はい、どなたでも歓迎です。カフェオーナー、F&Bの起業家、コーヒー好き、食品業界の方、食のトレンドに興味がある方、どなたでもお越しください。</p>",
+          "ko": "<p>네! 카페 사장님, F&B 사업가, 커피 애호가, 식품업계 종사자, 맛있는 트렌드가 궁금한 분 누구든 환영해요!</p>",
+          "zh": "<p>对，谁都能来。咖啡馆老板、F&B 创业者、咖啡爱好者、食品行业从业者，或者就是喜欢吃的人，都欢迎。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands and products will be showcased at the event?",
+          "id": "Brand dan produk apa saja yang dipamerkan?",
+          "ja": "どんなブランドが出展しますか？",
+          "ko": "어떤 브랜드와 제품이 전시되나요?",
+          "zh": "有哪些品牌参展？"
+        },
+        "answer": {
+          "en": "<p>We feature a diverse range of F&B brands, equipment suppliers, ingredient providers, and service companies. From coffee machines and cafe furniture to food ingredients and packaging solutions. You can view the list of exhibitors on our <a href=\"/brands\">Brands page</a>.</p>",
+          "id": "<p>Beragam, mulai dari brand F&B, supplier peralatan, penyedia bahan baku, sampai perusahaan jasa. Mesin kopi, furnitur kafe, bahan makanan, solusi packaging, semuanya ada. Cek daftar lengkapnya di <a href=\"/brands\">Brands</a>.</p>",
+          "ja": "<p>F&Bブランド、機器サプライヤー、原材料メーカー、サービス企業など多彩です。コーヒーマシン、カフェ家具、食品原料、パッケージまで。出展者一覧は<a href=\"/brands\">ブランドページ</a>でどうぞ。</p>",
+          "ko": "<p>F&B 브랜드, 장비 공급사, 원료 업체, 서비스 기업 등 다양해요. 커피 머신, 카페 가구부터 식재료, 패키징까지. <a href=\"/brands\">브랜드 페이지</a>에서 참가사 목록을 확인해 보세요.</p>",
+          "zh": "<p>F&B 品牌、设备商、原料商、服务商都有。咖啡机、咖啡馆家具、食品原料、包装方案……参展名单在 <a href=\"/brands\">Brands 页面</a>。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Mau ikut pameran, bagaimana caranya?",
+          "ja": "出展するにはどうしたらいいですか？",
+          "ko": "전시 참가는 어떻게 하나요?",
+          "zh": "怎么报名参展？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor and showcase your F&B products or services, please visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information about booth packages and availability.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Exhibitor Registration</a> atau hubungi tim kami lewat <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> buat info booth dan ketersediaan.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>からお申し込みいただくか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>で担当チームにお問い合わせください。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>에서 신청하시거나 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요. 부스 옵션과 가격을 안내해 드릴게요.</p>",
+          "zh": "<p>去 <a href=\"/book-space\">参展商报名页面</a> 填表，或者通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 找我们聊。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Will there be product sampling or tasting sessions?",
+          "id": "Ada tasting atau sampling produk tidak?",
+          "ja": "試飲・試食はできますか？",
+          "ko": "시음이나 시식이 있나요?",
+          "zh": "现场能试吃试喝吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! Many exhibitors offer product sampling and tasting sessions at their booths. This is a great opportunity to discover new products, ingredients, and flavors for your business or personal enjoyment.</p>",
+          "id": "<p>Ada! Banyak exhibitor sediakan tasting dan sampling di booth mereka. Kesempatan bagus untuk menemukan produk dan rasa baru.</p>",
+          "ja": "<p>はい。多くの出展者がブースで試飲・試食を提供しています。新しい商品や味に出会えるチャンスです。</p>",
+          "ko": "<p>네! 많은 참가사가 부스에서 제품 시음과 시식을 제공해요. 새로운 맛을 발견할 좋은 기회예요.</p>",
+          "zh": "<p>能。很多参展商在展位上提供品鉴。是发现新产品、新口味的好机会。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "Are there any seminars or workshops at the event?",
+          "id": "Ada seminar atau workshop?",
+          "ja": "セミナーやワークショップはありますか？",
+          "ko": "세미나나 워크숍도 있나요?",
+          "zh": "有讲座或工作坊吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize various seminars, workshops, and demo sessions covering topics like brewing techniques, food trends, business strategies, and industry insights. Check our <a href=\"/rundown\">Rundown page</a> for the complete schedule.</p>",
+          "id": "<p>Ada! Kami adakan seminar, workshop, dan demo soal teknik brewing, tren makanan, strategi bisnis, dan banyak lagi. Cek <a href=\"/rundown\">Rundown</a> buat jadwal lengkapnya.</p>",
+          "ja": "<p>はい。抽出テクニック、フードトレンド、ビジネス戦略など、さまざまなテーマで開催します。スケジュールは<a href=\"/rundown\">Rundownページ</a>をご確認ください。</p>",
+          "ko": "<p>네! 브루잉 테크닉, 푸드 트렌드, 비즈니스 전략 등 다양한 주제의 프로그램을 준비했어요. <a href=\"/rundown\">Rundown 페이지</a>에서 전체 일정을 확인해 보세요.</p>",
+          "zh": "<p>有。冲泡技术、美食趋势、商业策略、行业洞察，各种主题都有。完整日程在 <a href=\"/rundown\">Rundown 页面</a>。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Bagaimana caranya jadi sponsor atau media partner?",
+          "ja": "スポンサーやメディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너는 어떻게 되나요?",
+          "zh": "怎么成为赞助商或媒体伙伴？"
+        },
+        "answer": {
+          "en": "<p>We welcome sponsorship and media partnership opportunities. Please contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Hubungi kami lewat <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> buat diskusi paket kerjasama.</p>",
+          "ja": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>までお気軽にご連絡ください。</p>",
+          "ko": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 편하게 문의해 주세요.</p>",
+          "zh": "<p>通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们聊聊。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Ada parkir di venue?",
+          "ja": "会場に駐車場はありますか？",
+          "ko": "주차할 수 있나요?",
+          "zh": "有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces may fill up quickly during peak hours. You may also consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Tapi datang lebih awal karena parkir bisa penuh saat jam ramai. Bisa juga pakai transportasi umum atau ride-sharing.</p>",
+          "ja": "<p>はい、駐車場があります。ただし混雑時は満車になることもありますので、早めの来場か公共交通機関のご利用をおすすめします。</p>",
+          "ko": "<p>네, 행사장에 주차장이 있어요. 다만 피크 시간에는 자리가 빨리 찰 수 있으니 일찍 오시거나 대중교통을 이용하는 것도 좋아요.</p>",
+          "zh": "<p>有。不过高峰时段可能停满，建议早点到或者打车来。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video di venue?",
+          "ja": "写真や動画は撮れますか？",
+          "ko": "사진이나 영상 촬영해도 되나요?",
+          "zh": "能拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. However, professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Boleh, untuk keperluan pribadi. Untuk keperluan komersial, perlu izin tertulis dari panitia. Detail selengkapnya di <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>個人利用の撮影は問題ありません。商用撮影は主催者の許可が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>をご覧ください。</p>",
+          "ko": "<p>개인 용도로는 가능해요. 상업 목적 촬영은 주최 측의 사전 허가가 필요해요. <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>个人用途的随便拍。商用拍摄需要主办方书面许可。详情看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana caranya mendapatkan info terbaru?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "최신 소식은 어떻게 받나요?",
+          "zh": "怎么获取最新消息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> for the latest updates, announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a> for articles and updates.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> buat update, pengumuman, dan konten eksklusif. Atau kunjungi halaman <a href=\"/news\">News</a> kami.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>をフォローしてください。出展者情報や限定コンテンツをお届けしています。<a href=\"/news\">Newsページ</a>でも最新記事を掲載しています。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>을 팔로우하면 참가 브랜드 미리보기, 이벤트 소식을 먼저 받아볼 수 있어요. <a href=\"/news\">News 페이지</a>에서도 확인할 수 있어요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>，第一时间看参展品牌、福利、幕后内容。也可以在 <a href=\"/news\">资讯页面</a> 看最新文章。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara hubungi panitia?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Bisa lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau kunjungi <a href=\"/help-center\">Help Center</a> untuk opsi lainnya.</p>",
+          "ja": "<p>以下からお問い合わせください：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他の連絡方法は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 눌러 채팅하기</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법을 확인할 수 있어요.</p>",
+          "zh": "<p>可以通过：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点这里开聊</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式在 <a href=\"/help-center\">Help Center</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "morefood",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} akan diselenggarakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} bakal diadakan tanggal <strong>{{event_date}}</strong>, dari jam <strong>{{event_time}}</strong>, lokasinya di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 진행돼요.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong> 在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiket?",
+          "ja": "チケットの購入方法を教えてください。",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么买票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Kamu bisa beli tiket lewat website resmi kami. Cukup klik tombol <a href=\"/ticket\">Get Ticket</a> dan ikuti proses registrasinya. E-ticket akan langsung dikirim ke email dan WhatsApp kamu setelah pembayaran.</p>",
+          "ja": "<p>公式サイトからご購入いただけます。<a href=\"/ticket\">チケットを取得</a>ボタンをクリックして、登録手続きを行ってください。購入後、EチケットがEmailとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 웹사이트에서 받을 수 있어요. <a href=\"/ticket\">티켓 받기</a> 버튼을 클릭하고 등록하면 돼요. 전자 티켓은 Email과 WhatsApp으로 보내드려요.</p>",
+          "zh": "<p>在我们的官网就能买。点 <a href=\"/ticket\">领取门票</a> 按钮，按流程完成注册就行。电子门票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットはいくらですか？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information. Don't miss our early bird and pre-sale promotions for special discounts!</p>",
+          "id": "<p>Harga tiket berbeda-beda tergantung jenis tiket dan waktu pembeliannya. Untuk info harga terkini, langsung cek halaman <a href=\"/ticket\">Tiket</a> kami. Jangan sampai ketinggalan promo early bird dan pre-sale!</p>",
+          "ja": "<p>チケットの種類やキャンペーン時期によって料金が異なります。最新の料金は<a href=\"/ticket\">チケットページ</a>をご確認ください。早割やプレセール期間もありますので、お見逃しなく。</p>",
+          "ko": "<p>티켓 종류와 판매 기간에 따라 가격이 달라요. 최신 가격은 <a href=\"/ticket\">티켓 페이지</a>에서 확인해 주세요. 얼리버드와 사전 판매 할인도 놓치지 마세요!</p>",
+          "zh": "<p>价格根据票种和购买时间不同。最新价格请查看 <a href=\"/ticket\">门票页面</a>。早鸟票和预售票有优惠，别错过。</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Apakah bisa refund kalau tidak bisa hadir?",
+          "ja": "参加できなくなった場合、返金できますか？",
+          "ko": "참석 못 하면 환불 받을 수 있나요?",
+          "zh": "买了票不能去，可以退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua penjualan tiket bersifat final. Tidak ada refund atau penukaran setelah pembelian. Untuk detail lebih lanjut, cek <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund dan Pengembalian Tiket</a> kami.</p>",
+          "ja": "<p>購入後のチケットの返金・交換は承っておりません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金・返品ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매 완료된 티켓은 환불이나 교환이 안 돼요. 자세한 내용은 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情请查看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa saja yang perlu dibawa ke acara?",
+          "ja": "当日は何を持っていけばいいですか？",
+          "ko": "행사장에 뭘 가져가야 하나요?",
+          "zh": "去现场需要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. We also recommend bringing business cards if you plan to network with exhibitors and other attendees.</p>",
+          "id": "<p>Jangan lupa bawa e-ticket kamu (versi digital atau print) untuk ditukar dengan badge atau wristband di meja registrasi. Kalau kamu mau networking dengan exhibitor dan peserta lainnya, ada baiknya bawa kartu nama juga.</p>",
+          "ja": "<p>Eチケット（スマートフォン画面または印刷）を受付でバッジまたはリストバンドに交換します。出展者や来場者と名刺交換をされる方は、名刺もお持ちください。</p>",
+          "ko": "<p>전자 티켓(디지털 또는 출력본)을 가져오면 등록 데스크에서 배지 또는 입장 밴드로 교환해 드려요. 네트워킹할 계획이라면 명함도 챙겨오세요.</p>",
+          "zh": "<p>带上电子门票（手机出示或打印都行），在签到台换入场证。想跟展商聊聊的话，建议带上名片。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang bisa hadir?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누가 참관할 수 있나요?",
+          "zh": "谁可以来？"
+        },
+        "answer": {
+          "en": "<p>The event is open to everyone! Whether you're a cafe owner, F&B entrepreneur, coffee enthusiast, food industry professional, or simply someone who loves exploring culinary trends, you're welcome to attend!</p>",
+          "id": "<p>Semua orang boleh datang! Pemilik cafe, pengusaha F&B, pecinta makanan, profesional industri F&B, atau yang mau explore tren kuliner terbaru. Semuanya welcome.</p>",
+          "ja": "<p>はい、どなたでもご来場いただけます。カフェオーナー、F&B起業家、食品業界の方はもちろん、食のトレンドに興味がある方も大歓迎です。</p>",
+          "ko": "<p>누구나 참관할 수 있어요! 카페 오너, F&B 사업자, 식품업계 전문가, 미식 트렌드에 관심 있는 분이라면 누구든 환영해요.</p>",
+          "zh": "<p>所有人都可以。不管你是咖啡馆老板、F&B 创业者、食品行业从业者，还是单纯喜欢逛展的人，都欢迎来。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands and products will be showcased at the event?",
+          "id": "Brand dan produk apa saja yang dipamerkan?",
+          "ja": "どんなブランドや製品が展示されますか？",
+          "ko": "어떤 브랜드와 제품이 전시되나요?",
+          "zh": "有哪些品牌和产品参展？"
+        },
+        "answer": {
+          "en": "<p>We feature a diverse range of F&B brands, equipment suppliers, ingredient providers, and service companies. From coffee machines and cafe furniture to food ingredients and packaging solutions. You can view the list of exhibitors on our <a href=\"/brands\">Brands page</a>.</p>",
+          "id": "<p>Ada beragam brand F&B, supplier peralatan, penyedia bahan baku, dan perusahaan jasa. Mulai dari mesin kopi, furniture cafe, bahan makanan, sampai solusi packaging. Lihat daftar exhibitor di halaman <a href=\"/brands\">Brands</a>.</p>",
+          "ja": "<p>F&Bブランド、機器メーカー、食材サプライヤー、サービス企業など多彩な出展者が参加します。コーヒーマシンやカフェ家具から、食品原料やパッケージングまで幅広く揃います。出展者一覧は<a href=\"/brands\">ブランドページ</a>をご覧ください。</p>",
+          "ko": "<p>다양한 F&B 브랜드, 장비 공급사, 식재료 업체, 서비스 회사가 참가해요. 커피 머신과 카페 가구부터 식품 원료, 포장 솔루션까지. <a href=\"/brands\">브랜드 페이지</a>에서 전체 목록을 확인할 수 있어요.</p>",
+          "zh": "<p>各类 F&B 品牌、设备供应商、原料供应商和服务公司都有。从咖啡机、咖啡馆家具到食品原料和包装方案，应有尽有。完整名单请查看 <a href=\"/brands\">品牌页面</a>。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Bagaimana cara jadi exhibitor?",
+          "ja": "出展するにはどうすればいいですか？",
+          "ko": "전시 참가는 어떻게 하나요?",
+          "zh": "怎么报名参展？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor and showcase your F&B products or services, please visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information about booth packages and availability.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Exhibitor Registration</a> atau hubungi tim kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> untuk info soal paket booth dan ketersediaannya.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>からお申し込みいただくか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>で担当チームにお問い合わせください。ブースのプランや空き状況をご案内します。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>를 방문하시거나, <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요. 부스 옵션과 가격을 안내해 드릴게요.</p>",
+          "zh": "<p>访问 <a href=\"/book-space\">参展商报名页面</a>，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们了解展位方案和价格。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Will there be product sampling or tasting sessions?",
+          "id": "Apakah ada sesi sampling atau tasting produk?",
+          "ja": "試食・試飲はありますか？",
+          "ko": "제품 시식이 있나요?",
+          "zh": "现场有产品试吃吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! Many exhibitors offer product sampling and tasting sessions at their booths. This is a great opportunity to discover new products, ingredients, and flavors for your business or personal enjoyment.</p>",
+          "id": "<p>Banyak! Exhibitor biasanya menyediakan sampling dan tasting di booth mereka. Kesempatan bagus untuk menemukan produk baru, bahan baku, dan rasa-rasa yang belum pernah kamu coba.</p>",
+          "ja": "<p>はい。多くの出展者がブースで試食・試飲を提供しています。新しい製品や食材を実際に味わって、ビジネスの参考にしてください。</p>",
+          "ko": "<p>네! 많은 전시사가 부스에서 시식과 시음을 제공해요. 새로운 제품과 식재료를 직접 맛볼 수 있는 좋은 기회예요.</p>",
+          "zh": "<p>有。很多展商会在展位提供试吃和品鉴。发现新产品和新口味的好机会，别错过。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "Are there any seminars or workshops at the event?",
+          "id": "Apakah ada seminar atau workshop?",
+          "ja": "セミナーやワークショップはありますか？",
+          "ko": "세미나나 워크숍도 있나요?",
+          "zh": "有讲座或工作坊吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize various seminars, workshops, and demo sessions covering topics like brewing techniques, food trends, business strategies, and industry insights. Check our <a href=\"/rundown\">Rundown page</a> for the complete schedule.</p>",
+          "id": "<p>Ada! Kami mengadakan berbagai seminar, workshop, dan demo session soal teknik brewing, tren makanan, strategi bisnis, dan insight industri. Cek halaman <a href=\"/rundown\">Rundown</a> untuk jadwal lengkapnya.</p>",
+          "ja": "<p>はい。抽出テクニック、食品トレンド、ビジネス戦略、業界分析など、多彩なセミナーやワークショップを開催します。スケジュールは<a href=\"/rundown\">スケジュールページ</a>でご確認ください。</p>",
+          "ko": "<p>네! 브루잉 기술, 식품 트렌드, 비즈니스 전략, 업계 인사이트 등 다양한 세미나와 워크숍이 준비돼 있어요. <a href=\"/rundown\">일정 페이지</a>에서 전체 스케줄을 확인해 보세요.</p>",
+          "zh": "<p>有。我们安排了多场讲座、工作坊和现场演示，话题包括冲泡技术、食品趋势、商业策略和行业分析。完整日程请查看 <a href=\"/rundown\">日程页面</a>。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Bagaimana cara menjadi sponsor atau media partner?",
+          "ja": "スポンサーやメディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너는 어떻게 되나요?",
+          "zh": "怎么成为赞助商或媒体合作伙伴？"
+        },
+        "answer": {
+          "en": "<p>We welcome sponsorship and media partnership opportunities. Please contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Kami terbuka untuk sponsorship dan media partnership. Hubungi kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> untuk diskusi paket kerjasama.</p>",
+          "ja": "<p>スポンサーシップやメディアパートナーシップのご相談を承っています。<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>までお気軽にご連絡ください。</p>",
+          "ko": "<p>스폰서십과 미디어 파트너십 문의를 환영해요. <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 연락해 주세요.</p>",
+          "zh": "<p>欢迎合作。通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们聊聊合作方案。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Apakah ada parkir di venue?",
+          "ja": "会場に駐車場はありますか？",
+          "ko": "행사장에 주차할 수 있나요?",
+          "zh": "展馆有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces may fill up quickly during peak hours. You may also consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Venue menyediakan fasilitas parkir, tapi kami sarankan datang lebih awal karena parkir bisa cepat penuh saat jam ramai. Bisa juga pakai transportasi umum atau ojek online.</p>",
+          "ja": "<p>はい、駐車場があります。ただし混雑時は満車になることもありますので、早めのご来場をおすすめします。公共交通機関やライドシェアのご利用もご検討ください。</p>",
+          "ko": "<p>네, 주차 시설이 있어요. 다만 피크 시간에는 자리가 빨리 찰 수 있으니 일찍 오시는 걸 추천해요. 대중교통이나 차량 호출 서비스를 이용하셔도 좋아요.</p>",
+          "zh": "<p>有。不过高峰时段车位会紧张，建议早点到或者打车。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video di acara?",
+          "ja": "写真や動画の撮影はできますか？",
+          "ko": "행사장에서 사진이나 영상을 촬영해도 되나요?",
+          "zh": "现场可以拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. However, professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Boleh untuk keperluan pribadi. Kalau untuk komersial atau profesional, harus minta izin tertulis dari penyelenggara dulu. Detailnya bisa dibaca di <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>個人利用の範囲での撮影は可能です。商用目的の撮影は主催者の書面許可が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>をご確認ください。</p>",
+          "ko": "<p>개인 용도의 촬영은 가능해요. 상업적 촬영은 주최 측의 사전 허가가 필요해요. 자세한 내용은 <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>个人用途没问题。商业拍摄需要提前拿到主办方的书面许可。详情请查看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana cara mendapatkan info terbaru soal acara?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "행사 소식은 어떻게 받을 수 있나요?",
+          "zh": "怎么获取最新活动信息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a> for the latest updates, announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a> for articles and updates.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a> untuk mendapatkan update, pengumuman, dan konten eksklusif. Atau kunjungi halaman <a href=\"/news\">News</a> untuk artikel dan info terkini.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>で最新の出展者情報やお知らせを発信しています。<a href=\"/news\">ニュースページ</a>でも記事や更新情報を配信中です。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>을 팔로우하면 최신 참가사, 연사 발표, 프로모션 소식을 가장 먼저 받아볼 수 있어요. <a href=\"/news\">뉴스 페이지</a>에서도 확인할 수 있어요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{{'@'}}{{instagram}}</a>，参展品牌、嘉宾阵容和优惠信息都会第一时间发布。<a href=\"/news\">资讯页面</a>也会持续更新。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi organizer?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Kamu bisa hubungi kami lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini untuk chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Kunjungi <a href=\"/help-center\">Help Center</a> kami untuk opsi kontak lainnya.</p>",
+          "ja": "<p>以下の方法でお問い合わせいただけます：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他の連絡方法は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅하기</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법을 찾을 수 있어요.</p>",
+          "zh": "<p>可以通过以下方式联系我们：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点击这里开始聊天</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式请访问 <a href=\"/help-center\">帮助中心</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "ioe",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} diadakan?",
+          "ja": "{{event_title}}はいつ、どこで開催されますか？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 열립니다.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong> 在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara mendapatkan tiket?",
+          "ja": "チケットはどこで入手できますか？",
+          "ko": "티켓은 어떻게 받나요?",
+          "zh": "怎么获取门票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Klik tombol <a href=\"/ticket\">Get Ticket</a> di website kami dan ikuti langkah registrasinya. E-ticket akan dikirim ke email dan WhatsApp kamu.</p>",
+          "ja": "<p>公式サイトの<a href=\"/ticket\">チケット取得</a>ボタンから登録できます。購入後、EチケットがメールとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 웹사이트에서 <a href=\"/ticket\">티켓 받기</a> 버튼을 클릭하고 등록하면 됩니다. 전자 티켓은 Email과 WhatsApp으로 발송돼요.</p>",
+          "zh": "<p>在官网点击 <a href=\"/ticket\">领取门票</a> 按钮，按流程注册即可。电子门票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットはいくらですか？",
+          "ko": "티켓 가격이 얼마인가요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing information.</p>",
+          "id": "<p>Harga tiket bervariasi tergantung jenis dan periode pembelian. Cek halaman <a href=\"/ticket\">Tiket</a> untuk harga terkini.</p>",
+          "ja": "<p>チケットの種類や販売期間によって異なります。最新の料金は<a href=\"/ticket\">チケットページ</a>をご確認ください。</p>",
+          "ko": "<p>티켓 종류와 구매 시기에 따라 다릅니다. 최신 가격은 <a href=\"/ticket\">티켓 페이지</a>에서 확인해 주세요.</p>",
+          "zh": "<p>价格因票种和购买时间而异。最新价格请查看 <a href=\"/ticket\">门票页面</a>。</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Bisa refund kalau tidak bisa hadir?",
+          "ja": "参加できなくなった場合、返金できますか？",
+          "ko": "참석 못 하면 환불 가능한가요?",
+          "zh": "买了票去不了，能退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua pembelian tiket bersifat final. Tidak ada refund atau penukaran. Detail lengkapnya ada di <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund Tiket</a>.</p>",
+          "ja": "<p>購入済みチケットの返金・交換はできません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金ポリシー</a>をご覧ください。</p>",
+          "ko": "<p>구매한 티켓은 환불이나 교환이 불가합니다. 자세한 내용은 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情请查看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa yang perlu dibawa ke acara?",
+          "ja": "当日は何を持っていけばいいですか？",
+          "ko": "행사장에 뭘 가져가면 되나요?",
+          "zh": "去现场要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge at the registration counter. Bring business cards if you're looking to connect with corporate event vendors.</p>",
+          "id": "<p>Bawa e-ticket kamu (digital atau print) untuk ditukar badge di meja registrasi. Kalau ingin networking dengan vendor corporate event, bawa kartu nama.</p>",
+          "ja": "<p>Eチケット（スマホ画面または印刷）を受付でバッジと交換してください。法人向けサービスの商談をお考えの方は、名刺もお持ちください。</p>",
+          "ko": "<p>전자 티켓(디지털 또는 출력본)을 등록 데스크에서 배지로 교환합니다. 기업 행사 업체와 상담 예정이라면 명함도 준비해 오세요.</p>",
+          "zh": "<p>带上电子门票（手机出示或打印），在签到台换取入场证。如果计划和企业活动供应商洽谈，建议带上名片。</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang boleh datang?",
+          "ja": "誰でも参加できますか？",
+          "ko": "누구나 참관할 수 있나요?",
+          "zh": "谁都能参加吗？"
+        },
+        "answer": {
+          "en": "<p>Everyone is welcome. HR leaders, event organizers, corporate buyers, company representatives, communities, educational institutions, and the general public. Days 1-2 are focused on professionals and corporates, while Days 3-4 are open wider for communities and the public.</p>",
+          "id": "<p>Terbuka untuk semua orang. HR leaders, event organizer, corporate buyers, perwakilan perusahaan, komunitas, institusi pendidikan, dan pengunjung umum. Khusus Day 1-2 difokuskan untuk profesional dan korporat, Day 3-4 terbuka lebih luas untuk komunitas dan publik.</p>",
+          "ja": "<p>はい、どなたでもご来場いただけます。HRリーダー、イベントプランナー、法人バイヤー、企業担当者、コミュニティ、教育機関、一般の方まで幅広く歓迎します。1〜2日目は企業・法人向けのプログラムが中心、3〜4日目はコミュニティや一般来場者向けに広く開放されます。</p>",
+          "ko": "<p>네, 누구나 참관 가능합니다. HR 리더, 이벤트 기획자, 기업 바이어, 커뮤니티, 교육기관, 일반 방문객 모두 환영해요. 1~2일차는 전문가 및 기업 관계자 중심, 3~4일차는 커뮤니티와 일반 방문객까지 폭넓게 운영됩니다.</p>",
+          "zh": "<p>完全开放。HR 负责人、活动策划、企业采购、社区团体、教育机构、普通观众都欢迎。第1-2天侧重专业人士和企业对接，第3-4天面向社区和公众开放。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What brands and services will be showcased?",
+          "id": "Brand dan layanan apa saja yang ditampilkan?",
+          "ja": "どんなブランドやサービスが展示されますか？",
+          "ko": "어떤 브랜드와 서비스가 전시되나요?",
+          "zh": "展会涵盖哪些品牌和服务？"
+        },
+        "answer": {
+          "en": "<p>Five exhibitor categories: destinations & venues, event & experience providers, travel & transport, incentive & reward solutions, and entertainment & wellness. Visit our <a href=\"/brands\">Exhibitors page</a> for the full list.</p>",
+          "id": "<p>Lima kategori exhibitor: destinasi & venue, event & experience providers, travel & transportasi, incentive & reward solutions, serta entertainment & wellness. Cek halaman <a href=\"/brands\">Exhibitors</a> untuk daftar lengkap.</p>",
+          "ja": "<p>出展カテゴリーは5つ：観光地・会場・宿泊施設、イベント・体験・アクティベーションプロバイダー、旅行・交通・モビリティ、インセンティブ・リワード・法人ソリューション、エンターテインメント・ウェルネス・サポートサービス。<a href=\"/brands\">出展者ページ</a>で全リストをご覧ください。</p>",
+          "ko": "<p>5개 전시 카테고리가 있습니다: 여행지 & 행사장, 이벤트 & 체험 업체, 여행 & 교통, 인센티브 & 리워드 솔루션, 엔터테인먼트 & 웰니스. <a href=\"/brands\">참가사 페이지</a>에서 전체 목록을 확인하세요.</p>",
+          "zh": "<p>五大参展类别：目的地与场地、活动与体验服务、旅行与交通、激励与企业解决方案、文娱与配套服务。完整名单请查看 <a href=\"/brands\">参展商页面</a>。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "Can I book services directly at the event?",
+          "id": "Bisa langsung booking di lokasi?",
+          "ja": "会場でサービスの予約はできますか？",
+          "ko": "현장에서 바로 예약할 수 있나요?",
+          "zh": "现场能直接预订服务吗？"
+        },
+        "answer": {
+          "en": "<p>Yes. Many exhibitors offer exclusive event promotions and accept on-site bookings.</p>",
+          "id": "<p>Bisa. Banyak exhibitor memberikan promo eksklusif dan menerima booking langsung di tempat.</p>",
+          "ja": "<p>はい。多くの出展者が会場限定プロモーションやその場での予約受付を行っています。</p>",
+          "ko": "<p>네! 많은 참가사가 현장 한정 프로모션과 즉석 예약을 진행하고 있어요.</p>",
+          "zh": "<p>可以。很多参展商提供现场专属优惠和即时预订服务。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "How can I become an exhibitor?",
+          "id": "Bagaimana cara menjadi exhibitor?",
+          "ja": "出展するにはどうすればいいですか？",
+          "ko": "전시 참가는 어떻게 신청하나요?",
+          "zh": "怎么报名参展？"
+        },
+        "answer": {
+          "en": "<p>Visit our <a href=\"/book-space\">Exhibitor Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for booth information and pricing.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Registrasi Exhibitor</a> atau hubungi tim kami lewat <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> untuk info booth dan harga.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>から申し込むか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>でブース情報・料金についてお問い合わせください。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>를 방문하시거나 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요.</p>",
+          "zh": "<p>前往 <a href=\"/book-space\">参展商报名页面</a> 提交申请，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们了解展位详情。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "Are there conferences or seminars at the event?",
+          "id": "Ada seminar atau konferensi?",
+          "ja": "カンファレンスやセミナーはありますか？",
+          "ko": "세미나나 컨퍼런스 프로그램이 있나요?",
+          "zh": "有行业论坛或会议吗？"
+        },
+        "answer": {
+          "en": "<p>Yes. IOITE features four flagship programs: Inspiration Talk Series, Corporate Insights, Business Matching Lounge, and HR Forum & Future Talk. Topics range from employee engagement and people development to incentive strategy. Check the <a href=\"/rundown\">Rundown</a> for the schedule.</p>",
+          "id": "<p>Ada. IOITE punya empat program utama: Inspiration Talk Series, Corporate Insights, Business Matching Lounge, dan HR Forum & Future Talk. Topiknya mulai dari employee engagement, people development, sampai incentive strategy. Cek <a href=\"/rundown\">Rundown</a> untuk jadwalnya.</p>",
+          "ja": "<p>はい。IOITEでは4つの主要プログラムを開催します：Inspiration Talk Series、Corporate Insights、Business Matching Lounge、HR Forum & Future Talk。従業員エンゲージメントから人材開発、インセンティブ戦略まで幅広いテーマをカバーします。スケジュールは<a href=\"/rundown\">スケジュールページ</a>をご確認ください。</p>",
+          "ko": "<p>네. IOITE에는 네 가지 핵심 프로그램이 있습니다: Inspiration Talk Series, Corporate Insights, Business Matching Lounge, HR Forum & Future Talk. 직원 인게이지먼트, 인재 개발, 인센티브 전략 등 다양한 주제를 다룹니다. <a href=\"/rundown\">일정 페이지</a>에서 확인하세요.</p>",
+          "zh": "<p>有。IOITE 设有四大核心项目：Inspiration Talk Series、Corporate Insights、Business Matching Lounge 和 HR Forum & Future Talk，议题涵盖员工激励、人才发展和激励旅行策略。详细日程请查看 <a href=\"/rundown\">日程页面</a>。</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "What's the difference between Days 1-2 and Days 3-4?",
+          "id": "Apa bedanya Day 1-2 dan Day 3-4?",
+          "ja": "1〜2日目と3〜4日目の違いは何ですか？",
+          "ko": "1~2일차와 3~4일차는 어떻게 다른가요?",
+          "zh": "第1-2天和第3-4天有什么区别？"
+        },
+        "answer": {
+          "en": "<p>Days 1-2 (weekdays) are Business & Planning Days, focused on business discussions, conferences, and corporate networking. Days 3-4 (weekend) are Experience & Community Days, focused on live activations, program showcases, and wider engagement.</p>",
+          "id": "<p>Day 1-2 (hari kerja) adalah Business & Planning Days, fokus ke diskusi bisnis, konferensi, dan networking korporat. Day 3-4 (akhir pekan) adalah Experience & Community Days, fokus ke aktivasi langsung, showcase program, dan engagement lebih luas.</p>",
+          "ja": "<p>1〜2日目（平日）はBusiness & Planning Daysとして、商談、カンファレンス、企業ネットワーキングに重点を置きます。3〜4日目（週末）はExperience & Community Daysとして、体験型アクティベーション、プログラムの実演、幅広いコミュニティ交流を中心に展開します。</p>",
+          "ko": "<p>1~2일차(평일)는 Business & Planning Days로, 비즈니스 미팅과 컨퍼런스, 기업 네트워킹에 집중합니다. 3~4일차(주말)는 Experience & Community Days로, 현장 체험, 프로그램 쇼케이스, 폭넓은 커뮤니티 참여 프로그램이 진행됩니다.</p>",
+          "zh": "<p>第1-2天（工作日）是 Business & Planning Days，聚焦商务洽谈、行业论坛和企业对接。第3-4天（周末）是 Experience & Community Days，侧重现场活动体验、项目展示和更广泛的社区互动。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "How can I become a sponsor or media partner?",
+          "id": "Bagaimana cara menjadi sponsor atau media partner?",
+          "ja": "スポンサーやメディアパートナーになるには？",
+          "ko": "스폰서나 미디어 파트너가 되려면요?",
+          "zh": "怎么成为赞助商或媒体合作伙伴？"
+        },
+        "answer": {
+          "en": "<p>Contact us via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> or <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> to discuss partnership packages.</p>",
+          "id": "<p>Hubungi kami lewat <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> atau email ke <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> untuk diskusi paket kerjasama.</p>",
+          "ja": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>または<a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>にご連絡ください。パートナーシップパッケージについてご案内いたします。</p>",
+          "ko": "<p><a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 또는 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a>로 문의해 주세요.</p>",
+          "zh": "<p>通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 或发送邮件至 <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a> 联系我们，洽谈合作方案。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Ada parkir di venue?",
+          "ja": "会場に駐車場はありますか？",
+          "ko": "행사장에 주차할 수 있나요?",
+          "zh": "展馆有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes. NICE PIK 2 provides spacious parking facilities. We recommend arriving early as spaces may fill up during peak hours.</p>",
+          "id": "<p>Ada. NICE PIK 2 menyediakan area parkir yang luas. Tapi kami sarankan datang lebih awal karena parkir bisa cepat penuh saat jam ramai.</p>",
+          "ja": "<p>あります。NICE PIK 2には広い駐車スペースがございます。ただしピーク時は満車になることもあるので、早めの来場をおすすめします。</p>",
+          "ko": "<p>네, NICE PIK 2에 넓은 주차장이 있습니다. 다만 피크 시간에는 빨리 찰 수 있으니 일찍 도착하시는 걸 권장합니다.</p>",
+          "zh": "<p>有。NICE PIK 2 配备充足的停车区域，但高峰时段车位紧张，建议提前到场或乘坐公共交通。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto dan video di acara?",
+          "ja": "会場で写真や動画を撮ってもいいですか？",
+          "ko": "사진이나 영상을 찍어도 되나요?",
+          "zh": "能拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording for non-commercial purposes are allowed. Professional or commercial recording requires written permission from the organizer. Please refer to our <a href=\"/event-policy\">Event Policy</a> for more details.</p>",
+          "id": "<p>Boleh, untuk keperluan pribadi. Kalau untuk keperluan komersial, perlu izin tertulis dari penyelenggara. Selengkapnya baca <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>個人利用の撮影は可能です。商用撮影には主催者の書面許可が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>をご確認ください。</p>",
+          "ko": "<p>개인 용도 촬영은 가능합니다. 상업 목적 촬영은 주최 측의 사전 서면 허가가 필요합니다. <a href=\"/event-policy\">행사 정책</a>에서 자세히 확인하세요.</p>",
+          "zh": "<p>个人用途没问题。商业拍摄需取得主办方书面许可。详情请查看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana cara mendapatkan info terbaru?",
+          "ja": "最新情報はどこで確認できますか？",
+          "ko": "최신 소식은 어디서 확인하나요?",
+          "zh": "怎么获取最新活动消息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a> for the latest updates, exhibitor announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a>.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a> untuk update exhibitor, pengumuman, dan konten eksklusif. Atau kunjungi halaman <a href=\"/news\">News</a>.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a>で出展者情報や最新ニュースを配信しています。<a href=\"/news\">ニュースページ</a>もぜひご覧ください。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a>을 팔로우하면 참가사 소식, 행사 업데이트, 독점 콘텐츠를 바로 받아볼 수 있어요. <a href=\"/news\">뉴스 페이지</a>도 확인해 보세요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a>，第一时间获取参展商动态、活动预告和独家内容。也可以访问 <a href=\"/news\">资讯页面</a>。</p>"
+        }
+      },
+      {
+        "order": 16,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi penyelenggara?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options and quick links to useful information.</p>",
+          "id": "<p>Hubungi kami lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau kunjungi <a href=\"/help-center\">Help Center</a> untuk opsi kontak lainnya.</p>",
+          "ja": "<p>以下からお問い合わせいただけます：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">こちらからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他の連絡方法は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅하기</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법을 확인할 수 있어요.</p>",
+          "zh": "<p>可以通过以下方式联系我们：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点这里开始聊天</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式请查看 <a href=\"/help-center\">帮助中心</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "icc",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} diadakan?",
+          "ja": "{{event_title}}はいつ、どこで？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p><strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催します。</p>",
+          "ko": "<p><strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 열려요.</p>",
+          "zh": "<p><strong>{{event_date}}</strong>，<strong>{{event_time}}</strong>，在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara beli tiketnya?",
+          "ja": "チケットはどこで買えるの？",
+          "ko": "티켓은 어떻게 구매하나요?",
+          "zh": "怎么买票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Langsung melalui website ini. Klik tombol <a href=\"/ticket\">Get Ticket</a>, ikuti prosesnya, dan e-ticket akan dikirim ke email dan WhatsApp kamu.</p>",
+          "ja": "<p>公式サイトの<a href=\"/ticket\">チケット購入</a>ボタンから手続きできます。購入後、EチケットがEmailとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 웹사이트의 <a href=\"/ticket\">티켓 받기</a> 버튼을 눌러서 진행하면 돼요. 전자 티켓이 Email과 WhatsApp으로 발송돼요.</p>",
+          "zh": "<p>在官网点 <a href=\"/ticket\">领取门票</a>，按流程操作就行。电子门票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットはいくら？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type (one-day pass, full event pass, VIP, etc.) and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing. Don't miss our early bird promotions!</p>",
+          "id": "<p>Harga tergantung jenis tiket (one-day pass, full event pass, VIP, dll.) dan periode promo. Cek langsung di halaman <a href=\"/ticket\">Tiket</a> untuk harga terkini. Jangan lewatkan promo early bird!</p>",
+          "ja": "<p>チケットの種類（1日券、通し券、VIPなど）や時期によって異なります。最新価格は<a href=\"/ticket\">チケットページ</a>をチェック。早割がお得です！</p>",
+          "ko": "<p>티켓 종류(1일권, 전체 이용권, VIP 등)와 판매 기간에 따라 달라요. 최신 가격은 <a href=\"/ticket\">티켓 페이지</a>에서 확인하세요. 얼리버드 할인 놓치지 마세요!</p>",
+          "zh": "<p>价格根据票种（单日票、全程票、VIP 等）和购买时间不同。最新价格看 <a href=\"/ticket\">门票页面</a>。早鸟票更划算，别错过！</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Apakah tiket bisa direfund kalau tidak jadi datang?",
+          "ja": "行けなくなったら返金できる？",
+          "ko": "못 가게 되면 환불 받을 수 있나요?",
+          "zh": "买了不能去，能退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Semua penjualan tiket bersifat final. Tidak ada refund atau penukaran. Selengkapnya ada di <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund dan Pengembalian Tiket</a>.</p>",
+          "ja": "<p>購入後の返金・交換はできません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매 완료된 티켓은 환불이나 교환이 안 돼요. 자세한 건 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情看 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa saja yang perlu dibawa?",
+          "ja": "当日は何を持っていけばいい？",
+          "ko": "행사장에 뭘 가져가야 하나요?",
+          "zh": "去现场要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. Don't forget to bring your camera for photos with cosplayers and at photo spots!</p>",
+          "id": "<p>Bawa e-ticket kamu (di HP atau print) untuk ditukar jadi badge atau wristband di meja registrasi. Jangan lupa kamera untuk foto bersama cosplayer dan di photo spot!</p>",
+          "ja": "<p>Eチケット（スマホ画面or印刷）を受付でバッジまたはリストバンドと交換します。コスプレイヤーとの撮影用にカメラもお忘れなく！</p>",
+          "ko": "<p>전자 티켓(스마트폰 화면 또는 출력)을 가져오면 등록 데스크에서 배지나 입장 밴드로 교환해 드려요. 코스플레이어랑 사진 찍을 카메라도 챙겨오세요!</p>",
+          "zh": "<p>带上电子门票（手机出示或打印），到签到台换入场证。还有，别忘了带相机，跟 Cosplayer 合影、打卡拍照点！</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Is cosplay allowed at the event?",
+          "id": "Apakah boleh cosplay?",
+          "ja": "コスプレしてもいい？",
+          "ko": "코스프레해도 되나요?",
+          "zh": "可以 Cosplay 吗？"
+        },
+        "answer": {
+          "en": "<p>Absolutely! Cosplay is highly encouraged and welcomed. We love seeing creative costumes from your favorite characters. Please note that prop weapons must be peace-bonded and approved by security. Check our <a href=\"/event-policy\">Event Policy</a> for cosplay guidelines.</p>",
+          "id": "<p>Tentu boleh! Bahkan sangat disarankan. Kami sangat senang melihat kostum kreatif dari karakter favorit kalian. Satu hal: prop senjata harus di-peace bond dan lolos security check. Detail lengkap di <a href=\"/event-policy\">Event Policy</a>.</p>",
+          "ja": "<p>もちろん！むしろ大歓迎です。お気に入りキャラの衣装で来てください。ただし、武器の小道具はセキュリティチェックと安全処理が必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>へ。</p>",
+          "ko": "<p>물론이죠! 코스프레 적극 환영해요. 좋아하는 캐릭터 의상으로 오세요. 소품 무기는 안전 처리 후 보안 검사를 통과해야 해요. 자세한 건 <a href=\"/event-policy\">행사 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>当然！Cosplay 大力欢迎。穿上你最爱角色的战袍来吧。注意：道具武器要做安全处理，通过安检。详细规则看 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "Will there be cosplay competitions?",
+          "id": "Ada kompetisi cosplay?",
+          "ja": "コスプレ大会はある？",
+          "ko": "코스프레 대회도 있나요?",
+          "zh": "有 Cosplay 比赛吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize cosplay competitions with exciting prizes. Check our <a href=\"/rundown\">Rundown page</a> for competition schedules, registration deadlines, and categories.</p>",
+          "id": "<p>Tentu ada! Selalu ada kompetisi cosplay dengan hadiah keren. Jadwal, batas pendaftaran, dan kategori bisa kamu cek di halaman <a href=\"/rundown\">Rundown</a>.</p>",
+          "ja": "<p>あります！豪華賞品付きのコスプレ大会を開催。スケジュール、エントリー締切、カテゴリーは<a href=\"/rundown\">スケジュールページ</a>で確認してね。</p>",
+          "ko": "<p>네! 푸짐한 상품이 걸린 코스프레 대회가 있어요. 일정, 접수 마감, 부문별 정보는 <a href=\"/rundown\">일정 페이지</a>에서 확인하세요.</p>",
+          "zh": "<p>有！奖品丰厚的 Cosplay 比赛每次都有。比赛时间、报名截止和参赛类别看 <a href=\"/rundown\">日程页面</a>。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang bisa datang?",
+          "ja": "誰でも参加できる？",
+          "ko": "누구나 갈 수 있나요?",
+          "zh": "谁都能来吗？"
+        },
+        "answer": {
+          "en": "<p>Everyone is welcome! Whether you're a hardcore fan, casual enthusiast, collector, artist, or just curious about pop culture, anime, comics, and gaming, there's something for everyone at our event!</p>",
+          "id": "<p>Semua orang! Hardcore fan, casual enthusiast, kolektor, artist, atau yang baru penasaran dengan pop culture, anime, komik, dan gaming. Di sini ada sesuatu untuk semua orang.</p>",
+          "ja": "<p>誰でもウェルカム！ガチ勢もにわかも、コレクターもアーティストも。ポップカルチャー、アニメ、漫画、ゲームに少しでも興味があれば楽しめます。</p>",
+          "ko": "<p>누구나 환영해요! 하드코어 팬, 가볍게 즐기러 온 분, 컬렉터, 아티스트, 팝 컬처 궁금한 분 모두 즐길 수 있어요.</p>",
+          "zh": "<p>谁都能来！铁杆粉丝、休闲爱好者、收藏家、画师，或者就是好奇想来看看的，这里有适合每个人的东西。</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "What can I expect to find at the event?",
+          "id": "Apa saja yang ada di event?",
+          "ja": "会場ではどんなことができるの？",
+          "ko": "행사장에서 뭘 할 수 있나요?",
+          "zh": "现场有什么好玩的？"
+        },
+        "answer": {
+          "en": "<p>You'll find merchandise booths, artist alleys, gaming zones, photo opportunities, stage performances, meet & greets with special guests, cosplay competitions, and much more! Check our <a href=\"/brands\">Exhibitors page</a> for the full list.</p>",
+          "id": "<p>Booth merchandise, artist alley, gaming zone, photo spot, panggung live, meet & greet dengan guest spesial, kompetisi cosplay, dan masih banyak lagi. Cek halaman <a href=\"/brands\">Exhibitors</a> untuk daftar lengkapnya.</p>",
+          "ja": "<p>グッズ販売ブース、アーティストアレイ、ゲームゾーン、フォトスポット、ステージライブ、スペシャルゲストとのMeet & Greet、コスプレ大会など盛りだくさん！<a href=\"/brands\">出展者ページ</a>で全リストを確認できます。</p>",
+          "ko": "<p>굿즈 부스, Artist Alley, 게이밍 존, 포토존, 무대 공연, 스페셜 게스트 Meet & Greet, 코스프레 대회까지! 전체 목록은 <a href=\"/brands\">참가사 페이지</a>에서 확인하세요.</p>",
+          "zh": "<p>周边摊位、Artist Alley、游戏区、拍照打卡点、舞台演出、嘉宾 Meet & Greet、Cosplay 比赛，还有更多！完整名单看 <a href=\"/brands\">参展商页面</a>。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "Will there be special guests or celebrity appearances?",
+          "id": "Apakah ada guest spesial?",
+          "ja": "スペシャルゲストは来る？",
+          "ko": "스페셜 게스트가 오나요?",
+          "zh": "有嘉宾来吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We invite special guests including voice actors, artists, content creators, and industry professionals. Guest announcements will be made on our social media and <a href=\"/news\">News page</a>. Stay tuned!</p>",
+          "id": "<p>Pasti! Kami undang voice actor, artist, content creator, dan profesional industri. Pengumuman guest selalu lewat sosmed dan halaman <a href=\"/news\">News</a>. Stay tuned!</p>",
+          "ja": "<p>来ます！声優、アーティスト、クリエイター、業界プロなど特別ゲストを招待しています。ゲスト発表はSNSと<a href=\"/news\">Newsページ</a>で。お楽しみに！</p>",
+          "ko": "<p>네! 성우, 아티스트, 크리에이터, 업계 전문가 등 스페셜 게스트를 초청해요. 공개는 소셜 미디어와 <a href=\"/news\">News 페이지</a>에서! 기대해 주세요!</p>",
+          "zh": "<p>有！我们邀请了声优、画师、创作者和业内大咖。嘉宾阵容会在社交媒体和 <a href=\"/news\">资讯页面</a> 公布，敬请关注！</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "How can I become an exhibitor or artist?",
+          "id": "Bagaimana cara jadi exhibitor atau ikut artist alley?",
+          "ja": "出展者やアーティストとして参加するには？",
+          "ko": "전시 참가사나 아티스트로 참여하려면요?",
+          "zh": "怎么报名参展或当 Artist？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor or apply for the Artist Alley, please visit our <a href=\"/book-space\">Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Registrasi</a> atau hubungi tim kami lewat <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>.</p>",
+          "ja": "<p><a href=\"/book-space\">出展者登録ページ</a>から申し込むか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>でチームに連絡してください。</p>",
+          "ko": "<p><a href=\"/book-space\">전시 참가 신청 페이지</a>에서 신청하거나, <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요.</p>",
+          "zh": "<p>去 <a href=\"/book-space\">参展商报名页面</a> 提交申请，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Are there age restrictions for the event?",
+          "id": "Ada batasan umur?",
+          "ja": "年齢制限はある？",
+          "ko": "나이 제한이 있나요?",
+          "zh": "有年龄限制吗？"
+        },
+        "answer": {
+          "en": "<p>The event is family-friendly and open to all ages. Children under a certain age may enter free when accompanied by a paying adult. Please check our <a href=\"/ticket\">Ticket page</a> for specific age policies.</p>",
+          "id": "<p>Event ini family-friendly dan terbuka untuk semua umur. Anak-anak di bawah usia tertentu bisa masuk gratis jika bersama orang dewasa yang memiliki tiket. Detailnya di halaman <a href=\"/ticket\">Tiket</a>.</p>",
+          "ja": "<p>ファミリー向けイベントで年齢制限はありません。チケットを持つ保護者同伴のお子さまは無料入場も可能です。詳しくは<a href=\"/ticket\">チケットページ</a>へ。</p>",
+          "ko": "<p>가족 모두 즐길 수 있는 행사예요. 특정 나이 이하 어린이는 티켓 소지 보호자와 함께 무료 입장 가능해요. 자세한 건 <a href=\"/ticket\">티켓 페이지</a>에서 확인하세요.</p>",
+          "zh": "<p>全家都能来，没有年龄限制。特定年龄以下的小朋友在持票成人陪同下可免费入场。具体看 <a href=\"/ticket\">门票页面</a>。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Ada parkir di venue?",
+          "ja": "会場に駐車場はある？",
+          "ko": "주차 가능한가요?",
+          "zh": "有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces fill up quickly, especially on weekends. Consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Namun datanglah lebih awal, apalagi saat weekend, parkir bisa cepat penuh. Bisa juga menggunakan transportasi umum atau ride-sharing.</p>",
+          "ja": "<p>あります。ただし特に週末は混み合うので、早めに来るのがおすすめ。公共交通機関やライドシェアも便利です。</p>",
+          "ko": "<p>네, 주차 시설이 있어요. 다만 주말에는 자리가 빨리 차니까 일찍 오시는 걸 추천해요. 대중교통이나 택시 이용도 좋아요.</p>",
+          "zh": "<p>有。不过周末车位紧张，建议早点到。也可以打车或坐公共交通。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto atau video?",
+          "ja": "写真や動画は撮っていい？",
+          "ko": "사진이나 영상 찍어도 되나요?",
+          "zh": "可以拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording are allowed and encouraged! Please be respectful when photographing cosplayers and always ask for permission. Professional or commercial recording requires written permission from the organizer.</p>",
+          "id": "<p>Tentu boleh! Foto dan video pribadi sangat dianjurkan. Kalau mau foto cosplayer, minta izin terlebih dahulu. Untuk keperluan profesional atau komersial, diperlukan izin tertulis dari panitia.</p>",
+          "ja": "<p>個人利用なら大歓迎！コスプレイヤーの撮影は必ず許可をもらってね。商用目的の撮影には主催者の書面許可が必要です。</p>",
+          "ko": "<p>개인 촬영은 얼마든지! 코스플레이어 촬영 시에는 먼저 동의를 구해 주세요. 상업 목적 촬영은 주최 측 사전 허가가 필요해요.</p>",
+          "zh": "<p>个人拍照录像随便拍！拍 Cosplayer 记得先打招呼。商业拍摄需要主办方书面许可。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana cara mendapatkan update terbaru?",
+          "ja": "最新情報はどこで確認できる？",
+          "ko": "최신 소식은 어떻게 받나요?",
+          "zh": "怎么获取最新信息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a> for the latest updates, guest announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a>.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a> buat update, pengumuman guest, dan konten eksklusif. Atau cek halaman <a href=\"/news\">News</a>.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a>をフォロー。ゲスト発表や限定情報をいち早くゲットできます。<a href=\"/news\">Newsページ</a>もチェックしてね。</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a>을 팔로우하면 게스트 공개, 독점 콘텐츠를 먼저 받아볼 수 있어요. <a href=\"/news\">News 페이지</a>도 확인해 보세요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">{'@'}{{instagram}}</a>，第一时间获取嘉宾公布和独家内容。也可以看 <a href=\"/news\">资讯页面</a>。</p>"
+        }
+      },
+      {
+        "order": 16,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi panitia?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options.</p>",
+          "id": "<p>Bisa lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau cek <a href=\"/help-center\">Help Center</a> buat opsi lainnya.</p>",
+          "ja": "<p>こちらからどうぞ：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">チャットする</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>他の連絡手段は<a href=\"/help-center\">ヘルプセンター</a>へ。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법을 확인할 수 있어요.</p>",
+          "zh": "<p>通过以下方式联系：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点击聊天</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式看 <a href=\"/help-center\">帮助中心</a>。</p>"
+        }
+      }
+    ]
+  },
+  {
+    "event": "inacon",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where will {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} diadakan?",
+          "ja": "{{event_title}}はいつ、どこで開催？",
+          "ko": "{{event_title}}은(는) 언제, 어디서 열리나요?",
+          "zh": "{{event_title}} 什么时候、在哪里举办？"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} will be held on <strong>{{event_date}}</strong>, from <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "id": "<p>{{event_title}} diadakan tanggal <strong>{{event_date}}</strong>, jam <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>.</p>",
+          "ja": "<p>{{event_title}}は<strong>{{event_date}}</strong>、<strong>{{event_time}}</strong>に<a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>で開催されます。</p>",
+          "ko": "<p>{{event_title}}은(는) <strong>{{event_date}}</strong>, <strong>{{event_time}}</strong>에 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>에서 열려요.</p>",
+          "zh": "<p>{{event_title}} 将于 <strong>{{event_date}}</strong>，<strong>{{event_time}}</strong> 在 <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a> 举办。</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "How do I get tickets to attend the event?",
+          "id": "Bagaimana cara membeli tiket?",
+          "ja": "チケットの買い方は？",
+          "ko": "티켓은 어떻게 사나요?",
+          "zh": "怎么买票？"
+        },
+        "answer": {
+          "en": "<p>You can get your tickets through our official website. Simply click the <a href=\"/ticket\">Get Ticket</a> button and follow the registration process. E-tickets will be sent to your email and WhatsApp after purchase.</p>",
+          "id": "<p>Langsung ke website resmi kami dan klik <a href=\"/ticket\">Get Ticket</a>. Ikuti langkah registrasinya, dan e-ticket akan dikirim ke email serta WhatsApp kamu.</p>",
+          "ja": "<p>公式サイトの<a href=\"/ticket\">チケット購入</a>ボタンから登録してね。購入後、EチケットがEmailとWhatsAppに届きます。</p>",
+          "ko": "<p>공식 사이트에서 <a href=\"/ticket\">티켓 받기</a> 버튼을 클릭하고 등록하면 돼요. 전자 티켓은 Email과 WhatsApp으로 보내드려요.</p>",
+          "zh": "<p>在官网点 <a href=\"/ticket\">领取门票</a>，按步骤完成注册就行。电子门票会发到你的 Email 和 WhatsApp。</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How much does a ticket cost?",
+          "id": "Berapa harga tiketnya?",
+          "ja": "チケットはいくら？",
+          "ko": "티켓 가격이 얼마예요?",
+          "zh": "门票多少钱？"
+        },
+        "answer": {
+          "en": "<p>Ticket prices vary depending on the ticket type (one-day pass, full event pass, VIP, etc.) and promotional period. Please visit our <a href=\"/ticket\">Ticket page</a> for the most up-to-date pricing. Don't miss our early bird promotions!</p>",
+          "id": "<p>Tergantung jenis tiket (one-day pass, full event pass, VIP, dll.) dan periode pembelian. Cek halaman <a href=\"/ticket\">Tiket</a> untuk harga terbaru. Jangan lewatkan early bird!</p>",
+          "ja": "<p>チケットの種類（1日券、通し券、VIPなど）や時期によって異なります。最新価格は<a href=\"/ticket\">チケットページ</a>をチェック。早割もあるよ！</p>",
+          "ko": "<p>티켓 종류(1일권, 전일권, VIP 등)와 구매 시기에 따라 달라요. 최신 가격은 <a href=\"/ticket\">티켓 페이지</a>에서 확인하세요. 얼리버드 할인도 놓치지 마세요!</p>",
+          "zh": "<p>价格取决于票种（单日票、全程票、VIP 等）和购买时间。最新价格看 <a href=\"/ticket\">门票页面</a>。别错过早鸟优惠！</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "Can I get a refund if I can't attend?",
+          "id": "Apakah tiket bisa di-refund jika tidak jadi datang?",
+          "ja": "行けなくなったら返金できる？",
+          "ko": "못 가게 되면 환불돼요?",
+          "zh": "买了票去不了，能退吗？"
+        },
+        "answer": {
+          "en": "<p>All ticket sales are final. There are no refunds or exchanges once a ticket has been purchased. Please review our <a href=\"/ticket-refund-and-return-policy\">Ticket Refund and Return Policy</a> for more details.</p>",
+          "id": "<p>Tiket yang sudah dibeli tidak bisa di-refund atau ditukar. Lengkapnya, baca <a href=\"/ticket-refund-and-return-policy\">Kebijakan Refund Tiket</a>.</p>",
+          "ja": "<p>購入後の返金・交換はできません。詳しくは<a href=\"/ticket-refund-and-return-policy\">チケット返金ポリシー</a>をご確認ください。</p>",
+          "ko": "<p>구매한 티켓은 환불이나 교환이 안 돼요. 자세한 내용은 <a href=\"/ticket-refund-and-return-policy\">티켓 환불 정책</a>을 확인해 주세요.</p>",
+          "zh": "<p>门票售出后不退不换。详情见 <a href=\"/ticket-refund-and-return-policy\">退票政策</a>。</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What should I bring to the event?",
+          "id": "Apa yang harus dibawa ke event?",
+          "ja": "当日は何を持っていけばいい？",
+          "ko": "행사장에 뭘 가져가야 해요?",
+          "zh": "去现场要带什么？"
+        },
+        "answer": {
+          "en": "<p>Please bring your e-ticket (digital or printed) to be exchanged for a badge or wristband at the registration counter. Don't forget to bring your camera for photos with cosplayers and at photo spots!</p>",
+          "id": "<p>Bawa e-ticket kamu (digital atau print) untuk ditukar menjadi badge atau wristband di meja registrasi. Jangan lupa bawa kamera untuk foto bersama cosplayer!</p>",
+          "ja": "<p>Eチケット（スマホ画面か印刷）を受付でバッジかリストバンドに交換してね。コスプレイヤーとの撮影用にカメラもお忘れなく！</p>",
+          "ko": "<p>전자 티켓(화면 또는 출력)을 등록 데스크에서 배지나 밴드로 교환하면 돼요. 코스플레이어랑 사진 찍을 카메라도 챙기세요!</p>",
+          "zh": "<p>带上电子门票（手机出示或打印），在签到台换入场证。别忘了带相机，和 Cosplayer 合影、在拍照点打卡！</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Is cosplay allowed at the event?",
+          "id": "Apakah boleh cosplay?",
+          "ja": "コスプレしていい？",
+          "ko": "코스프레 해도 되나요?",
+          "zh": "能 Cosplay 吗？"
+        },
+        "answer": {
+          "en": "<p>Absolutely! Cosplay is highly encouraged and welcomed. We love seeing creative costumes from your favorite characters. Please note that prop weapons must be peace-bonded and approved by security. Check our <a href=\"/event-policy\">Event Policy</a> for cosplay guidelines.</p>",
+          "id": "<p>Wajib malah! Cosplay sangat dianjurkan di sini. Tampilkan karakter favorit kamu. Satu hal: prop senjata harus di-peace bond dan lolos security check. Cek <a href=\"/event-policy\">Event Policy</a> untuk detailnya.</p>",
+          "ja": "<p>もちろん！コスプレ大歓迎です。好きなキャラの衣装で来てね。武器プロップはピースボンド処理とセキュリティチェックが必要です。詳しくは<a href=\"/event-policy\">イベントポリシー</a>で。</p>",
+          "ko": "<p>당연하죠! 코스프레 대환영이에요. 좋아하는 캐릭터 의상으로 와주세요. 소품 무기는 Peace Bond 처리 후 보안팀 승인을 받아야 해요. 자세한 규칙은 <a href=\"/event-policy\">행사 정책</a>에서 확인하세요.</p>",
+          "zh": "<p>当然！Cosplay 超级欢迎！穿上你最爱角色的服装来吧。注意：道具武器要经过 Peace Bond 处理，并通过安保审核。具体规则见 <a href=\"/event-policy\">活动政策</a>。</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "Will there be cosplay competitions?",
+          "id": "Ada kompetisi cosplay?",
+          "ja": "コスプレ大会はある？",
+          "ko": "코스프레 대회도 있어요?",
+          "zh": "有 Cosplay 比赛吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We organize cosplay competitions with exciting prizes. Check our <a href=\"/rundown\">Rundown page</a> for competition schedules, registration deadlines, and categories.</p>",
+          "id": "<p>Pasti ada! Hadiahnya pun tidak main-main. Cek jadwal, deadline registrasi, dan kategori di halaman <a href=\"/rundown\">Rundown</a>.</p>",
+          "ja": "<p>あるよ！豪華賞品付きのコスプレ大会を開催。スケジュールや参加方法は<a href=\"/rundown\">タイムテーブル</a>をチェック。</p>",
+          "ko": "<p>있어요! 푸짐한 상품도 준비됐어요. 대회 일정과 접수 정보는 <a href=\"/rundown\">타임테이블</a>에서 확인하세요.</p>",
+          "zh": "<p>有！奖品丰厚。比赛时间、报名截止、分组信息看 <a href=\"/rundown\">活动日程</a>。</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "Who can attend the event?",
+          "id": "Siapa saja yang boleh datang?",
+          "ja": "誰でも来れる？",
+          "ko": "누구나 갈 수 있어요?",
+          "zh": "谁都能来吗？"
+        },
+        "answer": {
+          "en": "<p>Everyone is welcome! Whether you're a hardcore fan, casual enthusiast, collector, artist, or just curious about pop culture, anime, comics, and gaming, there's something for everyone at our event!</p>",
+          "id": "<p>Semua orang! Hardcore otaku, casual anime fans, kolektor, artist, atau yang baru mengenal dunia anime dan pop culture. Semua pasti menemukan sesuatu yang seru.</p>",
+          "ja": "<p>誰でも大歓迎！コアなオタクもライトファンも、コレクターもクリエイターも。アニメやマンガ、ゲームが少しでも気になるなら、きっと楽しめるよ。</p>",
+          "ko": "<p>네, 누구나 환영해요! 하드코어 오타쿠도, 가벼운 팬도, 컬렉터도, 아티스트도. 애니메나 만화, 게임에 관심이 조금이라도 있다면 즐길 거리가 가득해요!</p>",
+          "zh": "<p>谁都欢迎！硬核宅、轻度爱好者、收藏家、创作者，或者只是对动漫、漫画、游戏好奇，这里都有适合你的内容！</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "What can I expect to find at the event?",
+          "id": "Apa saja yang ada di event?",
+          "ja": "会場では何が楽しめる？",
+          "ko": "행사장에서 뭘 할 수 있어요?",
+          "zh": "现场有什么好逛好玩的？"
+        },
+        "answer": {
+          "en": "<p>You'll find merchandise booths, artist alleys, gaming zones, photo opportunities, stage performances, meet & greets with special guests, cosplay competitions, and much more! Check our <a href=\"/brands\">Exhibitors page</a> for the full list.</p>",
+          "id": "<p>Booth merchandise, artist alley, gaming zone, photo spot, panggung live, meet & greet guest spesial, kompetisi cosplay, dan banyak lagi. Cek <a href=\"/brands\">halaman Exhibitors</a> untuk daftar lengkapnya.</p>",
+          "ja": "<p>グッズブース、アーティストアレイ、ゲームゾーン、フォトスポット、ステージライブ、ゲストMeet & Greet、コスプレ大会など盛りだくさん！出展者一覧は<a href=\"/brands\">こちら</a>。</p>",
+          "ko": "<p>굿즈 부스, 아티스트 앨리, 게임존, 포토존, 무대 공연, 스페셜 게스트 Meet & Greet, 코스프레 대회 등 다양해요! 전체 목록은 <a href=\"/brands\">참가사 페이지</a>에서 확인하세요.</p>",
+          "zh": "<p>周边摊位、Artist Alley、游戏区、拍照打卡、舞台表演、嘉宾 Meet & Greet、Cosplay 比赛……太多了。完整名单看 <a href=\"/brands\">参展商页面</a>。</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "Will there be special guests or celebrity appearances?",
+          "id": "Ada guest spesial atau selebriti?",
+          "ja": "スペシャルゲストは来る？",
+          "ko": "스페셜 게스트가 오나요?",
+          "zh": "会有特邀嘉宾或明星来吗？"
+        },
+        "answer": {
+          "en": "<p>Yes! We invite special guests including voice actors, artists, content creators, and industry professionals. Guest announcements will be made on our social media and <a href=\"/news\">News page</a>. Stay tuned!</p>",
+          "id": "<p>Ada! Kami undang voice actor, mangaka, content creator, dan figur ternama dari industri anime dan pop culture. Guest announcement ada di media sosial kami dan halaman <a href=\"/news\">News</a>. Stay tuned!</p>",
+          "ja": "<p>はい！声優、イラストレーター、コンテンツクリエイター、業界関係者など。ゲスト発表はSNSと<a href=\"/news\">ニュースページ</a>で。お楽しみに！</p>",
+          "ko": "<p>네! 성우, 일러스트레이터, 콘텐츠 크리에이터, 업계 전문가 등을 초청해요. 게스트 공개는 소셜 미디어와 <a href=\"/news\">뉴스 페이지</a>에서. 기대해 주세요!</p>",
+          "zh": "<p>会！我们邀请了声优、插画师、内容创作者和行业大咖。嘉宾公布看社交媒体和 <a href=\"/news\">资讯页面</a>。敬请关注！</p>"
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "How can I become an exhibitor or artist?",
+          "id": "Bagaimana caranya menjadi exhibitor atau masuk artist alley?",
+          "ja": "出展者やアーティストとして参加するには？",
+          "ko": "참가사나 아티스트로 참여하려면?",
+          "zh": "怎么报名当参展商或创作者？"
+        },
+        "answer": {
+          "en": "<p>To become an exhibitor or apply for the Artist Alley, please visit our <a href=\"/book-space\">Registration page</a> or contact our team via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> for more information.</p>",
+          "id": "<p>Kunjungi halaman <a href=\"/book-space\">Registrasi</a> atau hubungi tim kami via <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>.</p>",
+          "ja": "<p><a href=\"/book-space\">登録ページ</a>から申し込むか、<a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>でお問い合わせください。</p>",
+          "ko": "<p><a href=\"/book-space\">등록 페이지</a>에서 신청하거나 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a>으로 문의해 주세요.</p>",
+          "zh": "<p>去 <a href=\"/book-space\">报名页面</a> 提交申请，或通过 <a href=\"{{whatsapp_link}}\" target=\"_blank\">WhatsApp</a> 联系我们。</p>"
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "Are there age restrictions for the event?",
+          "id": "Ada batasan umur?",
+          "ja": "年齢制限はある？",
+          "ko": "나이 제한이 있나요?",
+          "zh": "有年龄限制吗？"
+        },
+        "answer": {
+          "en": "<p>The event is family-friendly and open to all ages. Children under a certain age may enter free when accompanied by a paying adult. Please check our <a href=\"/ticket\">Ticket page</a> for specific age policies.</p>",
+          "id": "<p>Tidak ada. Event ini family-friendly, terbuka untuk semua umur. Anak-anak di bawah umur tertentu bisa masuk gratis jika ditemani orang dewasa yang memiliki tiket. Detail lengkap ada di halaman <a href=\"/ticket\">Tiket</a>.</p>",
+          "ja": "<p>ファミリー向けイベントなので年齢制限なし。お子さまはチケットを持つ大人の同伴で無料入場できる場合があります。詳しくは<a href=\"/ticket\">チケットページ</a>で。</p>",
+          "ko": "<p>전 연령 환영하는 가족 행사예요. 일정 나이 미만 어린이는 유료 성인과 함께하면 무료 입장할 수 있어요. 자세한 건 <a href=\"/ticket\">티켓 페이지</a>에서 확인하세요.</p>",
+          "zh": "<p>没有，全家都能来。符合条件的儿童在成人陪同下可免费入场。具体年龄规则看 <a href=\"/ticket\">门票页面</a>。</p>"
+        }
+      },
+      {
+        "order": 13,
+        "question": {
+          "en": "Is there parking available at the venue?",
+          "id": "Ada parkir di venue?",
+          "ja": "駐車場はある？",
+          "ko": "주차할 수 있나요?",
+          "zh": "有停车位吗？"
+        },
+        "answer": {
+          "en": "<p>Yes, the venue provides parking facilities. However, we recommend arriving early as parking spaces fill up quickly, especially on weekends. Consider using public transportation or ride-sharing services.</p>",
+          "id": "<p>Ada. Sebaiknya datang lebih awal karena parkir cepat penuh, terutama di akhir pekan. Bisa juga menggunakan transportasi umum atau ride-sharing.</p>",
+          "ja": "<p>あります。ただし週末は混みやすいので、早めの来場がおすすめ。公共交通機関やライドシェアも便利です。</p>",
+          "ko": "<p>네, 주차 시설이 있어요. 주말에는 빨리 찰 수 있으니 일찍 오시는 게 좋아요. 대중교통이나 차량 호출 서비스도 편리해요.</p>",
+          "zh": "<p>有。不过周末容易满，建议早到。也可以考虑打车或坐公共交通。</p>"
+        }
+      },
+      {
+        "order": 14,
+        "question": {
+          "en": "Can I take photos or videos at the event?",
+          "id": "Boleh foto dan video di event?",
+          "ja": "写真や動画を撮ってもいい？",
+          "ko": "사진이나 영상 촬영해도 되나요?",
+          "zh": "可以拍照录像吗？"
+        },
+        "answer": {
+          "en": "<p>Personal photography and video recording are allowed and encouraged! Please be respectful when photographing cosplayers and always ask for permission. Professional or commercial recording requires written permission from the organizer.</p>",
+          "id": "<p>Tentu boleh! Foto dan video untuk keperluan pribadi sangat dianjurkan. Jika ingin memotret cosplayer, bersikaplah sopan dan minta izin terlebih dahulu. Untuk keperluan komersial, wajib minta izin tertulis dari penyelenggara.</p>",
+          "ja": "<p>個人的な撮影は大歓迎！コスプレイヤーを撮るときは必ず声をかけてね。商用撮影は主催者の書面許可が必要です。</p>",
+          "ko": "<p>개인 촬영 대환영이에요! 코스플레이어 촬영 시 꼭 동의를 구해 주세요. 상업 목적 촬영은 주최 측의 사전 서면 허가가 필요해요.</p>",
+          "zh": "<p>可以，大力鼓励！拍 Cosplayer 时请先征得同意。商业用途拍摄需要主办方书面许可。</p>"
+        }
+      },
+      {
+        "order": 15,
+        "question": {
+          "en": "How can I stay updated about the event?",
+          "id": "Bagaimana caranya mendapatkan info terbaru?",
+          "ja": "最新情報はどこでチェック？",
+          "ko": "최신 소식은 어디서 확인해요?",
+          "zh": "怎么获取最新消息？"
+        },
+        "answer": {
+          "en": "<p>Follow us on Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> for the latest updates, guest announcements, and exclusive content. You can also check our <a href=\"/news\">News page</a>.</p>",
+          "id": "<p>Follow Instagram kami <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a> untuk update terbaru, guest reveal, dan konten eksklusif. Atau cek halaman <a href=\"/news\">News</a>.</p>",
+          "ja": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>をフォローしてね。ゲスト発表や限定情報を配信中。<a href=\"/news\">ニュースページ</a>もチェック！</p>",
+          "ko": "<p>Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>을 팔로우하면 게스트 공개, 독점 콘텐츠 등을 가장 먼저 볼 수 있어요. <a href=\"/news\">뉴스 페이지</a>도 확인해 보세요.</p>",
+          "zh": "<p>关注 Instagram <a href=\"https://www.instagram.com/{{instagram}}\" target=\"_blank\">@{{instagram}}</a>，第一时间获取嘉宾公布、独家内容等。也可以看 <a href=\"/news\">资讯页面</a>。</p>"
+        }
+      },
+      {
+        "order": 16,
+        "question": {
+          "en": "How do I contact the organizer?",
+          "id": "Bagaimana cara menghubungi panitia?",
+          "ja": "主催者への連絡方法は？",
+          "ko": "주최 측에 어떻게 연락하나요?",
+          "zh": "怎么联系主办方？"
+        },
+        "answer": {
+          "en": "<p>You can reach us through:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Click here to chat</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Visit our <a href=\"/help-center\">Help Center</a> for more contact options.</p>",
+          "id": "<p>Bisa lewat:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">Klik di sini</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>Atau kunjungi <a href=\"/help-center\">Help Center</a> kami.</p>",
+          "ja": "<p>こちらからどうぞ：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">ここからチャット</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>その他は<a href=\"/help-center\">ヘルプセンター</a>をご覧ください。</p>",
+          "ko": "<p>아래 방법으로 연락해 주세요:</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">여기를 클릭해서 채팅</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p><a href=\"/help-center\">고객센터</a>에서 더 많은 연락 방법을 확인할 수 있어요.</p>",
+          "zh": "<p>这些方式都行：</p><ul><li>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">点这里开始聊</a></li><li>Email: <a href=\"mailto:{{contact_email}}\">{{contact_email}}</a></li></ul><p>更多联系方式见 <a href=\"/help-center\">帮助中心</a>。</p>"
+        }
+      }
+    ]
+  }
+]

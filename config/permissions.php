@@ -10,14 +10,17 @@ use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventProduct;
 use App\Models\EventProductCategory;
+use App\Models\Faq;
 use App\Models\Form;
 use App\Models\Guest;
 use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use App\Models\LinkPage;
+use App\Models\MediaCoverage;
 use App\Models\Order;
 use App\Models\Partner;
 use App\Models\Post;
+use App\Models\Program;
 use App\Models\Project;
 use App\Models\ProjectBanner;
 use App\Models\ProjectPaymentGateway;
@@ -174,6 +177,24 @@ return [
             'label' => 'Guests & Speakers',
             'description' => 'Manage event guests and speakers',
             'model' => Guest::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
+        'programs' => [
+            'label' => 'Programs',
+            'description' => 'Manage event main programs',
+            'model' => Program::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
+        'faqs' => [
+            'label' => 'FAQ',
+            'description' => 'Manage event FAQ',
+            'model' => Faq::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
+        'media_coverages' => [
+            'label' => 'Media Coverage',
+            'description' => 'Manage event media coverage / press',
+            'model' => MediaCoverage::class,
             'actions' => ['create', 'read', 'update', 'delete', 'restore'],
         ],
         'forms' => [

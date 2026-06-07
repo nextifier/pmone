@@ -233,7 +233,13 @@ class Event extends Model implements HasMedia, Sortable
 
     protected static function responseCacheTags(): array
     {
-        return ['events'];
+        // Public website data is resolved per project's active event (is_active).
+        // Changing an event (esp. is_active) must bust every section whose active
+        // resolution is cached server-side, so the site reflects the new active
+        // event. 'brands' is resolved+cached server-side (activeBrands); rundown/
+        // programs re-resolve via the cached events/active ('events') so they
+        // follow automatically. 'faqs' also embeds event context tokens.
+        return ['events', 'faqs', 'brands', 'gallery'];
     }
 
     public function getEditionNumberWithOrdinalAttribute(): ?string
@@ -437,6 +443,27 @@ class Event extends Model implements HasMedia, Sortable
             ->width(1500)
             ->quality(95)
             ->performOnCollections('description_images');
+
+        // Gallery conversions — only 3 variants (lqip/sm/xl) to save space, and
+        // width-only (no height / no crop) so each photo keeps its native aspect
+        // ratio (16:9, 4:5, 1:1, etc.).
+        $this->addMediaConversion('lqip')
+            ->width(32)
+            ->quality(10)
+            ->blur(10)
+            ->performOnCollections('gallery')
+            ->nonQueued();
+
+        $this->addMediaConversion('sm')
+            ->width(600)
+            ->quality(80)
+            ->performOnCollections('gallery')
+            ->nonQueued();
+
+        $this->addMediaConversion('xl')
+            ->width(1600)
+            ->quality(82)
+            ->performOnCollections('gallery');
     }
 
     public function getMediaCollections(): array
@@ -458,6 +485,11 @@ class Event extends Model implements HasMedia, Sortable
             'visitor_eguide' => [
                 'single_file' => true,
                 'mime_types' => ['application/pdf'],
+                'max_size' => 20480,
+            ],
+            'gallery' => [
+                'single_file' => false,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
                 'max_size' => 20480,
             ],
         ];
@@ -539,6 +571,21 @@ class Event extends Model implements HasMedia, Sortable
     public function guests(): HasMany
     {
         return $this->hasMany(Guest::class)->ordered();
+    }
+
+    public function programs(): HasMany
+    {
+        return $this->hasMany(Program::class)->ordered();
+    }
+
+    public function faqs(): HasMany
+    {
+        return $this->hasMany(Faq::class)->ordered();
+    }
+
+    public function mediaCoverages(): HasMany
+    {
+        return $this->hasMany(MediaCoverage::class)->ordered();
     }
 
     public function eventProductCategories(): HasMany

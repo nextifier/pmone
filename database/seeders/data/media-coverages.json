@@ -1,0 +1,833 @@
+[
+  {
+    "event": "megabuild",
+    "items": [
+      {
+        "order": 1,
+        "title": "Megabuild Indonesia 2026 diselenggarakan pada 4 Juni di PIK 2",
+        "url": "https://www.antaranews.com/berita/5304004/megabuild-indonesia-2026-diselenggarakan-pada-4-juni-di-pik-2?utm_source=antaranews&utm_medium=mobile&utm_campaign=latest_category",
+        "published_at": "2025-12-14T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "Megabuild Indonesia 2026 Dorong Akselerasi Pertumbuhan Industri Bahan Bangunan",
+        "url": "https://www.republika.co.id/berita/t78j9c456/megabuild-indonesia-2026-dorong-akselerasi-pertumbuhan-industri-bahan-bangunan",
+        "published_at": "2025-12-14T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "Pameran Konstruksi dan Arsitektur Berskala Internasional Siap Digelar, Catat Tanggalnya",
+        "url": "https://www.liputan6.com/bisnis/read/6235241/pameran-konstruksi-dan-arsitektur-berskala-internasional-siap-digelar-catat-tanggalnya",
+        "published_at": "2025-12-12T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Megabuild Indonesia 2026 Target Dorong Percepatan Pertumbuhan Rantai Industri Bahan Bangunan",
+        "url": "https://www.merdeka.com/peristiwa/megabuild-indonesia-2026-target-dorong-percepatan-pertumbuhan-rantai-industri-bahan-bangunan-506624-mvk.html",
+        "published_at": "2025-11-27T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Raksasa Industri Bangunan Turun Gunung! MEGABUILD 2026 Jadi Pusat Pertarungan Brand Besar",
+        "url": "https://akuratnews.co/raksasa-industri-bangunan-turun-gunung-megabuild-2026-jadi-pusat-pertarungan-brand-besar/",
+        "published_at": "2025-12-11T10:00:00"
+      },
+      {
+        "order": 6,
+        "title": "2026年6月印尼雅加达建筑建材展览会 将在雅加达NICE PIK 2举行",
+        "url": "https://huanqiuribao.com/?p=18942",
+        "published_at": "2025-12-14T10:00:00"
+      },
+      {
+        "order": 7,
+        "title": "MEGABUILD Indonesia 2026 Jadi Katalis Utama Percepatan Industri Bahan Bangunan dan Desain",
+        "url": "https://ekbis.sindonews.com/read/1654463/34/megabuild-indonesia-2026-jadi-katalis-utama-percepatan-industri-bahan-bangunan-dan-desain-1765440768",
+        "published_at": "2025-12-10T10:00:00"
+      },
+      {
+        "order": 8,
+        "title": "Megabuild Indonesia 2026 Siap Digelar: Dua Kali Lebih Besar, Sinergi Bahan Bangunan dan Keramika Indonesia",
+        "url": "https://propertiterkini.com/megabuild-indonesia-2026-siap-digelar-dua-kali-lebih-besar-sinergi-bahan-bangunan-dan-keramika-indonesia/",
+        "published_at": "2025-12-10T10:00:00"
+      },
+      {
+        "order": 9,
+        "title": "MEGABUILD Indonesia 2026 Hadir dengan Skala Dua Kali Lebih Besar, Dorong Pertumbuhan Industri Bahan Bangunan",
+        "url": "https://wartaekonomi.co.id/read593190/megabuild-indonesia-2026-hadir-dengan-skala-dua-kali-lebih-besar-dorong-pertumbuhan-industri-bahan-bangunan",
+        "published_at": "2025-12-10T10:00:00"
+      },
+      {
+        "order": 10,
+        "title": "Megabuild Digelar di NICE PIK2 (PANI CBDK)",
+        "url": "https://investor.id/business/421019/megabuild-digelar-di-nice-pik2-pani-cbdk",
+        "published_at": "2025-12-10T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "keramika",
+    "items": [
+      {
+        "order": 1,
+        "title": "Daya Saing Keramik Nasional Kian Menguat di Pasar Dunia",
+        "url": "https://www.detik.com/properti/berita/d-8231653/daya-saing-keramik-nasional-kian-menguat-di-pasar-dunia",
+        "published_at": "2025-11-27T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "Keramika Indonesia 2026 Resmi Diluncurkan",
+        "url": "https://mediaindonesia.com/humaniora/834580/keramika-indonesia-2026-resmi-diluncurkan",
+        "published_at": "2025-11-27T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "Pameran Keramika Indonesia 2026 Hadir NICE PIK2",
+        "url": "https://www.jpnn.com/news/pameran-keramika-indonesia-2026-hadir-nice-pik2",
+        "published_at": "2025-11-27T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Pameran Industri Keramik Regional akan Digelar Tahun Depan di NICE PIK 2",
+        "url": "https://www.jawapos.com/jabodetabek/016887781/pameran-industri-keramik-regional-akan-digelar-tahun-depan-di-nice-pik-2",
+        "published_at": "2025-11-27T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Pameran Keramik 2026 Bakal Digelar di Jakarta",
+        "url": "https://www.medcom.id/properti/news-properti/Gbm0RPPN-pameran-keramik-2026-bakal-digelar-di-jakarta",
+        "published_at": "2025-11-27T10:00:00"
+      },
+      {
+        "order": 6,
+        "title": "Industri Keramik Kian Menguat, Pameran KERAMIKA Indonesia Siap Digelar Tahun Depan",
+        "url": "https://industri.kontan.co.id/news/industri-keramik-kian-menguat-pameran-keramika-indonesia-siap-digelar-tahun-depan",
+        "published_at": "2025-11-28T10:00:00"
+      },
+      {
+        "order": 7,
+        "title": "Ekspor Terus Menggeliat, Ini Strategi ASAKI Genjot Industri Keramik Nasional",
+        "url": "https://www.tribunnews.com/bisnis/7760841/ekspor-terus-menggeliat-ini-strategi-asaki-genjot-industri-keramik-nasional",
+        "published_at": "2025-11-29T10:00:00"
+      },
+      {
+        "order": 8,
+        "title": "2026年KERAMIKA Indonesia展览会 成为东盟陶瓷业务战略交汇点",
+        "url": "https://www.shangbaoindonesia.com/read/2025/11/28/economy-1764343634",
+        "published_at": "2025-11-28T10:00:00"
+      },
+      {
+        "order": 9,
+        "title": "Keramika Indonesia Siap Jadi Titik Temu Strategis Bisnis Keramik di ASEAN",
+        "url": "https://swa.co.id/read/466703/keramika-indonesia-siap-jadi-titik-temu-strategis-bisnis-keramik-di-asean",
+        "published_at": "2025-11-29T10:00:00"
+      },
+      {
+        "order": 10,
+        "title": "Industri Keramik RI Bidik Momentum Ekspansi Regional",
+        "url": "https://money.kompas.com/read/2025/12/01/121845526/industri-keramik-ri-bidik-momentum-ekspansi-regional",
+        "published_at": "2025-12-01T10:00:00"
+      },
+      {
+        "order": 11,
+        "title": "2026年6月印尼陶瓷展览会 将在NICE PIK 2举办",
+        "url": "https://huanqiuribao.com/?p=17687",
+        "published_at": "2025-11-27T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "renex",
+    "items": [
+      {
+        "order": 1,
+        "title": "Megabuild Indonesia 2025 Kembali Hadir dengan Rebranding dan Fokus pada Inovasi Keberlanjutan",
+        "url": "https://bisnisreview.com/megabuild-indonesia-2025-kembali-hadir-dengan-rebranding-dan-fokus-pada-inovasi-keberlanjutan/",
+        "published_at": "2024-10-16T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "Pameran Megabuild akan di gelar 2 kali tahun depan",
+        "url": "https://industri.kontan.co.id/news/pameran-megabuild-akan-digelar-2-kali-tahun-depan",
+        "published_at": "2024-10-17T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "Megabuild 2025, Hadir dengan rebranding dan fokus pada inovasi berkelanjutan",
+        "url": "https://www.jawapos.com/properti/015206646/megabuild-2025-hadir-dengan-rebranding-dan-fokus-pada-inovasi-keberlanjutan",
+        "published_at": "2024-10-17T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Pameran material bangunan hingga konstruksi ramah lingkungan bakal di gelar",
+        "url": "https://www.medcom.id/properti/news-properti/MkMOM6vN-pameran-material-bangunan-hingga-konstruksi-ramah-lingkungan-bakal-digelar",
+        "published_at": "2024-10-17T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Ajang Mendorong perkembangan dunia infrastruktur Indonesia",
+        "url": "https://ekbis.sindonews.com/read/1474133/34/ajang-mendorong-perkembangan-dunia-infrastruktur-indonesia-1729138243",
+        "published_at": "2024-10-17T10:00:00"
+      },
+      {
+        "order": 6,
+        "title": "Pacu Pertumbuhan Ekonomi, HDII dan IAI Dorong Geliat Sektor Konstruksi Tanah Air",
+        "url": "https://tribunnews.com/properti/2024/10/17/pacu-pertumbuhan-ekonomi-hdii-dan-iai-dorong-geliat-sektor-konstruksi-tanah-air",
+        "published_at": "2024-10-17T10:00:00"
+      },
+      {
+        "order": 7,
+        "title": "Indonesia jadi negara layak investasi, dunia usaha makin menggeliat",
+        "url": "https://www.liputan6.com/bisnis/read/5752871/indonesia-jadi-negara-layak-investasi-dunia-usaha-makin-menggeliat",
+        "published_at": "2024-10-19T10:00:00"
+      },
+      {
+        "order": 8,
+        "title": "Inovasi Ramah Lingkungan Jadi Sorotan di Megabuild Indonesia 2025",
+        "url": "https://www.jpnn.com/news/inovasi-ramah-lingkungan-jadi-sorotan-di-megabuild-indonesia-2025",
+        "published_at": "2025-01-17T10:00:00"
+      },
+      {
+        "order": 9,
+        "title": "Megabuild Indonesia 2025 Hadirkan Teknologi Hijau dan Praktik Efisien Untuk Pembangunan infrastruktur berkelanjutan",
+        "url": "https://athome.id/megabuild-indonesia-2025-hadirkan-teknologi-hijau-dan-praktik-efisien-untuk-pembangunan-infrastruktur-berkelanjutan/",
+        "published_at": "2025-01-17T10:00:00"
+      },
+      {
+        "order": 10,
+        "title": "Megabuild Indonesia Dorong Inovasi dan Pembangunan Berkelanjutan Melalui Kampanye #IndonesiaEcoCon",
+        "url": "https://bisnistoday.com/2025/01/17/megabuild-indonesia-dorong-inovasi-dan-pembangunan-berkelanjutan-melalui-kampanye-indonesiaecocon",
+        "published_at": "2025-01-17T10:00:00"
+      },
+      {
+        "order": 11,
+        "title": "Pemanfaatan Energi Surya dan Teknologi Rumah Pintar Didorong untuk Pembangunan Berkelanjutan",
+        "url": "https://www.tribunnews.com/bisnis/2025/01/18/pemanfaatan-energi-surya-dan-teknologi-rumah-pintar-didorong-untuk-pembangunan-berkelanjutan",
+        "published_at": "2025-01-18T10:00:00"
+      },
+      {
+        "order": 12,
+        "title": "Megabuild Umumkan Kolaborasi Strategis dengan Synergy",
+        "url": "https://investor.id/business/387425/megabuild-umumkan-kolaborasi-strategis-dengan-synergy",
+        "published_at": "2025-01-24T10:00:00"
+      },
+      {
+        "order": 13,
+        "title": "Megabuild-Synergy Inarkos hadirkan paviliun bertema inovasi teknologi",
+        "url": "https://www.antaranews.com/berita/4607854/megabuild-synergy-inarkos-hadirkan-paviliun-bertema-inovasi-teknologi",
+        "published_at": "2025-01-25T10:00:00"
+      },
+      {
+        "order": 14,
+        "title": "Pameran Megabuild Indonesia Siap Mendorong Inovasi dan Pembangunan Berkelanjutan",
+        "url": "https://industri.kontan.co.id/news/pameran-megabuild-indonesia-siap-mendorong-inovasi-dan-pembangunan-berkelanjutan",
+        "published_at": "2025-01-26T10:00:00"
+      },
+      {
+        "order": 15,
+        "title": "Produsen Bahan Bangunan Ngumpul di JICC, Konsep Hijau Jadi Sorotan",
+        "url": "https://www.detik.com/properti/berita/d-7752169/produsen-bahan-bangunan-ngumpul-di-jicc-konsep-hijau-jadi-sorotan",
+        "published_at": "2025-01-27T10:00:00"
+      },
+      {
+        "order": 16,
+        "title": "Instalasi Green Haven, Wujudkan Impian Hunian Sehat Berkelanjutan di Tahun Ular Kayu",
+        "url": "https://www.liputan6.com/health/read/5897338/instalasi-green-haven-wujudkan-impian-hunian-sehat-berkelanjutan-di-tahun-ular-kayu",
+        "published_at": "2025-01-27T10:00:00"
+      },
+      {
+        "order": 17,
+        "title": "Dukung Implementasi SDG's, Megabuild 2025 Hadirkan Instalasi Rumah Green Haven",
+        "url": "https://www.merdeka.com/jakarta/dukung-implementasi-sdgs-megabuild-2025-hadirkan-instalasi-rumah-green-haven-307080-mvk.html",
+        "published_at": "2025-02-03T10:00:00"
+      },
+      {
+        "order": 18,
+        "title": "MEGABUILD 2025 Hadirkan Green Haven, Instalasi Rumah Berkelanjutan Pertama di Pameran Bahan Bangunan Indonesia",
+        "url": "https://wartaekonomi.co.id/read557055/megabuild-2025-hadirkan-green-haven-instalasi-rumah-berkelanjutan-pertama-di-pameran-bahan-bangunan-indonesia",
+        "published_at": "2025-02-06T10:00:00"
+      },
+      {
+        "order": 19,
+        "title": "Instalasi Rumah Berkelanjutan Ramaikan Pameran Bahan Bangunan Indonesia",
+        "url": "https://mediaindonesia.com/ekonomi/741559/instalasi-rumah-berkelanjutan-ramaikan-pameran-bahan-bangunan-indonesia",
+        "published_at": "2025-02-06T10:00:00"
+      },
+      {
+        "order": 20,
+        "title": "Megabuild Indonesia Dukung Industri Konstruksi Ramah Lingkungan",
+        "url": "https://money.kompas.com/read/2025/02/09/224654926/megabuild-indonesia-dukung-industri-konstruksi-ramah-lingkungan",
+        "published_at": "2025-02-09T10:00:00"
+      },
+      {
+        "order": 21,
+        "title": "Megabuild Indonesia 2025 Tampilkan Instalasi Rumah Berkelanjutan Green Haven",
+        "url": "https://swa.co.id/read/456243/megabuild-indonesia-2025-tampilkan-instalasi-rumah-berkelanjutan-green-haven",
+        "published_at": "2025-02-10T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "flei",
+    "items": [
+      {
+        "order": 1,
+        "title": "FLEI 2025 Digelar, Waralaba Jadi Opsi di Tengah Lesunya Bisnis",
+        "url": "https://finance.detik.com/berita-ekonomi-bisnis/d-7972140/flei-2025-digelar-waralaba-jadi-opsi-di-tengah-lesunya-bisnis",
+        "published_at": "2025-06-19T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "Minat Bisnis Waralaba yang Tinggi Bantu Genjot Pertumbuhan Ekonomi",
+        "url": "https://swa.co.id/read/460787/minat-bisnis-waralaba-yang-tinggi-bantu-genjot-pertumbuhan-ekonomi",
+        "published_at": "2025-06-19T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "FLEI Business Show Edisi ke-25 Siap Digelar di NICE, PIK 2: Lokasi Strategis, Pasar Baru, dan Potensi Lebih Besar",
+        "url": "https://mediaindonesia.com/ekonomi/783825/flei-business-show-edisi-ke-25-siap-digelar-di-nice-pik-2---lokasi-strategis-pasar-baru-dan-potensi-lebih-besar-",
+        "published_at": "2025-06-19T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Franchise Jadi Jalan Pintas Anak Muda Menuju Dunia Usaha",
+        "url": "https://www.suara.com/bisnis/2025/06/20/073238/franchise-jadi-jalan-pintas-anak-muda-menuju-dunia-usaha",
+        "published_at": "2025-06-19T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Bisnis Waralaba Makin Diminati Generasi Muda, Ini Alasannya",
+        "url": "https://www.liputan6.com/bisnis/read/6056915/bisnis-waralaba-makin-diminati-generasi-muda-ini-alasannya",
+        "published_at": "2025-06-19T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "morefood",
+    "items": [
+      {
+        "order": 1,
+        "title": "The Food & Beverage Industry is Growing Rapidly, MoreFood Expo is Ready to Seize the Opportunity",
+        "url": "https://industri.kontan.co.id/news/industri-mamin-tumbuh-pesat-morefood-expo-siap-sambut-peluang",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 2,
+        "title": "The 2026 MoreFood F&B Expo Will Be Held in Jakarta, Opening a Gateway to the Domestic Market",
+        "url": "https://www.shangbaoindonesia.com/read/2025/07/30/economy-1753879407",
+        "published_at": "2025-07-30"
+      },
+      {
+        "order": 3,
+        "title": "The Food Business is Promising, MoreFood Expo Becomes a Strategic Platform",
+        "url": "https://investor.id/trade-industry/404249/bisnis-makananmenggiurkan-morefood-expo-jadi-platform-strategis",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 4,
+        "title": "Foodservice Industry Valued at IDR 1.01 Trillion by 2025, MoreFood Expo Bridges Local F&B to Global Markets",
+        "url": "https://swa.co.id/read/461935/industri-layanan-makanan-senilai-rp101-triliun-di-2025-morefood-expo-menjembatani-industri-fb-lokal-ke-pasar-global",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 5,
+        "title": "MoreFood Expo 2026 Officially Launched, Becomes the Gateway to Indonesia's Food and Halal Industry",
+        "url": "https://wartaekonomi.co.id/read576123/morefood-expo-2026-resmi-diluncurkan-jadi-gerbang-industri-pangan-dan-pasar-halal-indonesia",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 6,
+        "title": "MoreFood Expo 2026 Drives the Expansion of the National Halal Market",
+        "url": "https://www.marketeers.com/morefood-expo-2026-dorong-ekspansi-pasar-halal-nasional/",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 7,
+        "title": "Targeting 1,200 Exhibitors, This Expo Helps the F&B Industry Expand Export Markets",
+        "url": "https://infobanknews.com/targetkan-1-200-eksibitor-pameran-ini-bantu-industri-fb-perluas-pasar-ekspor/",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 8,
+        "title": "MoreFood Expo 2026 Officially Launched: A Strategic Gateway to Indonesia's Food and Halal Market",
+        "url": "https://www.industry.co.id/read/143503/morefood-expo-2026-resmi-diluncurkan-gerbang-strategis-menuju-pasar-makanan-dan-halal-indonesia",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 9,
+        "title": "MoreFood Expo Indonesia 2026 to be Held at JIExpo Jakarta, Becomes a Strategic Gateway to Indonesia's Food Market",
+        "url": "https://huanqiuribao.com/?p=3675",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 10,
+        "title": "MoreFood Expo 2026 Elevates the Halal Industry to the Next Level",
+        "url": "https://mediaindonesia.com/ekonomi/794705/morefood-expo-2026-dorong-industri-halal-naik-kelas#goog_rewarded",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 11,
+        "title": "MoreFood Expo Officially Launched with a Focus on the Halal Food Sector",
+        "url": "https://www.yukmakan.com/post/morefood-expo-2026-resmi-diluncurkan-yang-berfokus-pada-sektor-pangan-halal",
+        "published_at": "2025-07-28"
+      },
+      {
+        "order": 12,
+        "title": "What's On: MoreFood Expo 2026, The Gateway to Indonesia's Food and Halal Market",
+        "url": "https://www.vemmedaily.com/2025/07/25/morefood-expo-2026-gerbang-menuju-pasar-makanan-dan-halal-indonesia/",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 13,
+        "title": "A Strategic Gateway to Indonesia's Halal Food Market",
+        "url": "https://freemagz.id/2025/07/24/gerbang-strategis-menuju-pasar-makanan-halal-di-indonesia/",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 14,
+        "title": "MoreFood Expo 2026 Brings the Latest Halal Food Industry Trends to Jakarta",
+        "url": "https://vakansi.co/morefood-expo-2026-hadirkan-tren-terbaru-industri-makanan-halal-di-jakarta/",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 15,
+        "title": "MoreFood Expo 2026 Becomes a Strategic Gateway to Indonesia's Food and Halal Market",
+        "url": "https://marketplus.id/2025/07/24/morefood-expo-2026-jadi-gerbang-strategis-menuju-pasar-makanan-dan-halal-indonesia/",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 16,
+        "title": "MoreFood Expo 2026 is Ready to Shake Up the Halal Industry! A Gateway for Local Food Exports to the World?",
+        "url": "https://herstory.co.id/read157940/morefood-expo-2026-siap-guncang-industri-halal-jadi-gerbang-ekspor-makanan-lokal-ke-dunia",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 17,
+        "title": "MoreFood Expo 2026 Set to Energize Indonesia's Food and Beverage Exhibition Scene",
+        "url": "https://venuemagz.com/event/morefood-expo-2026-siap-meramaikan-pameran-makanan-dan-minuman-tanah-air/",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 18,
+        "title": "Supporting the Growth of the Halal Industry, MoreFood Expo 2026 is Set to Be Held — Save the Date!",
+        "url": "https://wartakota.tribunnews.com/2025/07/28/dukung-pertumbuhan-industri-halal-morefood-expo-2026-siap-digelar-catat-jadwalnya",
+        "published_at": "2025-07-28"
+      },
+      {
+        "order": 19,
+        "title": "Indonesia's Food and Beverage Industry: Growing Rapidly, Poised to Become a National Economic Driver",
+        "url": "https://ekbis.sindonews.com/read/1597209/34/industri-makanan-dan-minuman-indonesia-melaju-pesat-siap-jadi-lokomotif-ekonomi-nasional-1753358859",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 20,
+        "title": "Still Under the Radar: Indonesia's Halal Industry is Dominated by MSMEs",
+        "url": "https://finance.detik.com/berita-ekonomi-bisnis/d-8027271/belum-banyak-yang-sadar-industri-halal-ri-dikuasai-umkm",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 21,
+        "title": "Indonesia Confident to Become a Global Halal Hub — But Are We Ready?",
+        "url": "https://finance.detik.com/berita-ekonomi-bisnis/d-8027164/ri-pede-mau-jadi-pusat-halal-dunia-tapi-apa-sudah-siap",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 22,
+        "title": "Why Haven't Indonesia's Halal Products Become Kings in Their Own Country?",
+        "url": "https://finance.detik.com/berita-ekonomi-bisnis/d-8027117/kenapa-produk-halal-ri-belum-jadi-raja-di-negeri-sendiri",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 23,
+        "title": "Indonesia Has a 'Hidden Treasure' Desired by Europe, But It's Still Overlooked",
+        "url": "https://finance.detik.com/berita-ekonomi-bisnis/d-8027409/ri-punya-harta-karun-yang-terlupakan-padahal-sangat-dilirik-eropa",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 24,
+        "title": "From Local Kitchens to Global Markets: Unveiling the Potential of Indonesia's Food Industry",
+        "url": "https://www.kompas.com/parapuan/read/534279288/dari-dapur-lokal-ke-pasar-global-menguak-potensi-industri-makanan-indonesia?utm_source=Whatsapp&utm_medium=Referral&utm_campaign=Top_Mobile",
+        "published_at": "2025-07-30"
+      },
+      {
+        "order": 25,
+        "title": "Demand for Halal-Certified Products is Rising, Indonesia Becomes the Largest Market in the World",
+        "url": "https://www.merdeka.com/uang/permintaan-produk-bersertifikat-halal-makin-banyak-ri-jadi-pasar-terbesar-di-dunia-443919-mvk.html",
+        "published_at": "2025-07-26"
+      },
+      {
+        "order": 26,
+        "title": "Indonesia Becomes the World's Largest Halal Industry Market",
+        "url": "https://www.liputan6.com/bisnis/read/6115316/indonesia-jadi-pasar-industri-halal-terbesar-di-dunia",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 27,
+        "title": "Market Value Reaches IDR 1.01 Trillion, MoreFood Expo Bridges Local F&B Industry to Global Markets",
+        "url": "https://www.suara.com/bisnis/2025/07/24/163922/nilai-pasar-tembus-rp-101-triliun-morefood-expo-jembatani-industri-fb-lokal-ke-pasar-global",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 28,
+        "title": "MoreFood Expo 2026, A Strategic Gateway to Indonesia's Food and Halal Market",
+        "url": "https://www.jpnn.com/news/morefood-expo-2026-gerbang-strategis-menuju-pasar-makanan-halal-indonesia",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 29,
+        "title": "To Avoid Being Just a Market, Indonesia Needs to Build a Full Halal Ecosystem from Upstream to Downstream",
+        "url": "https://m.tribunnews.com/amp/bisnis/2025/07/25/agar-tak-hanya-jadi-pasarindonesia-perlu-bangun-ekosistem-halal-dari-hulu-ke-hilir",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 30,
+        "title": "MoreFood Expo 2026: A Giant Exhibition Targeting Indonesia's Booming Halal Market",
+        "url": "https://www.beritasatu.com/network/beritakotaid/632490/morefood-expo-2026-pameran-raksasa-bidik-pasar-halal-indonesia-yang-booming",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 31,
+        "title": "Spices are the Strength of Local Cuisine — So Why Haven't They Dominated the Global Market?",
+        "url": "https://lifestyle.viva.co.id/kuliner/3320-rempah-jadi-andalan-kuliner-lokal-kenapa-belum-bisa-merajai-global",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 32,
+        "title": "MoreFood Expo 2026: Heading Toward the Food and Halal Market in Indonesia",
+        "url": "https://www.medcom.id/gaya/kuliner/MkMOWLwN-morefood-expo-2026-menuju-pasar-makanan-dan-halal-indonesia",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 33,
+        "title": "MoreFood Expo 2026 Held to Meet the Growing Demand for Halal Products",
+        "url": "https://www.antaranews.com/berita/4989845/morefood-expo-2026-digelar-untuk-penuhi-naiknya-kebutuhan-produk-halal",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 34,
+        "title": "Halal Tourism is a Promising Attraction for Niche Travelers",
+        "url": "https://www.antaranews.com/berita/4990241/wisata-halal-jadi-tawaran-menarik-bagi-wisatawan-berminat-khusus",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 35,
+        "title": "MoreFood Expo Indonesia Introduces the International Food Industry",
+        "url": "https://www.jawapos.com/image/detail/17891/morefood-expo-indonesia-kenalkan-industri-makanan-luar-negeri",
+        "published_at": "2025-07-26"
+      },
+      {
+        "order": 36,
+        "title": "MoreFood Expo 2026: A Strategic Gateway to Indonesia's Food and Halal Market",
+        "url": "https://rm.id/baca-berita/ekonomi-bisnis/274412/morefood-expo-2026-gerbang-strategis-menuju-pasar-makanan-dan-halal-indonesia",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 37,
+        "title": "Jakarta Ready to Host MoreFood Expo 2026: Indonesia's Premier International Food Exhibition",
+        "url": "https://foto.okezone.com/view/2025/07/24/1/101753/jakarta-siap-sambut-morefood-expo-2026-pameran-makanan-internasional-perdana",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 38,
+        "title": "MoreFood Expo Indonesia Introduces the Global Food Industry",
+        "url": "https://www.akurat.co/image/detail/17865/morefood-expo-indonesia-kenalkan-industri-makanan-luar-negri",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 39,
+        "title": "Ahead of MoreFood Expo 2026",
+        "url": "https://foto.bisnis.com/view/20250724/1896581/jelang-morefood-expo-2026",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 40,
+        "title": "MoreFood Expo 2026: A Giant Exhibition Targeting Indonesia's Booming Halal Market",
+        "url": "https://beritakota.id/morefood-expo-2026-pameran-raksasa-bidik-pasar-halal-indonesia-yang-booming/",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 41,
+        "title": "MoreFood Expo Set to Launch, Targeting Indonesia's Food and Halal Market Potential",
+        "url": "https://www.tajuknews.com/2025/07/more-food-expo-siap-diluncurkan-bisnis.html",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 42,
+        "title": "MoreFood Expo 2026 Ready to Shake Up Indonesia's F&B Market! Here Are 3 Reasons Why Industry Players Must Attend",
+        "url": "https://www.bisnismarket.com/morefood-expo-2026-siap-guncang-pasar-fb-indonesia-ini-3-alasan-pelaku-usaha-wajib-hadir",
+        "published_at": "2025-07-24"
+      },
+      {
+        "order": 43,
+        "title": "Officially Launched, MoreFood Expo 2026 Becomes a Strategic Gateway to Indonesia's Food and Halal Market",
+        "url": "https://lingkarbisnis.com/resmi-diluncurkan-morefood-expo-2026-menjadi-gerbang-strategis-menuju-pasar-makanan-dan-halal-indonesia/",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 44,
+        "title": "MoreFood Expo 2026 Officially Launched: A Strategic Gateway to Indonesia's Food and Halal Market",
+        "url": "https://bisnistoday.com/2025/07/25/morefood-expo-2026-resmi-diluncurkan-gerbang-strategis-menuju-pasar-makanan-dan-halal-indonesia",
+        "published_at": "2025-07-25"
+      },
+      {
+        "order": 45,
+        "title": "Becoming the Gateway to Indonesia's Food and Halal Industry, MoreFood Expo 2026 Officially Launched",
+        "url": "https://olenka.id/jadi-gerbang-industri-pangan-dan-pasar-halal-indonesia-morefood-expo-2026-resmi-diluncurkan/all",
+        "published_at": "2025-07-25"
+      }
+    ]
+  },
+  {
+    "event": "icc",
+    "items": [
+      {
+        "order": 1,
+        "title": "INACON dan Indonesia Comic Con 2025 Usung Tema Futuristik dan Semarak Cahaya Neon",
+        "url": "https://www.liputan6.com/lifestyle/read/5936079/inacon-dan-indonesia-comic-con-2025-usung-tema-futuristik-dan-semarak-cahaya-neon",
+        "published_at": "2025-02-26T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "LAUNCHING INDONESIA ANIME CON & INDONESIA COMIC CON 2025: Saatnya Kolaborasi dan Inovasi Pelaku Industri Kreatif",
+        "url": "https://lewatlensa.com/2025/02/26/launching-indonesia-anime-con-indonesia-comic-con-2025-saatnya-kolaborasi-dan-inovasi-pelaku-industri-kreatif/",
+        "published_at": "2025-02-26T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "Indonesia Anime Con dan Indonesia Comic Con 2025 Hadir Lagi, Ini Agendanya",
+        "url": "https://www.detik.com/pop/culture/d-7798348/indonesia-anime-con-dan-indonesia-comic-con-2025-hadir-lagi-ini-agendanya",
+        "published_at": "2025-02-27T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Launching Indonesia Anime Con dan Indonesia Comic Con 2025",
+        "url": "https://www.revivaltv.id/berita/icc-inacon-2025-83187921865",
+        "published_at": "2025-02-27T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Indonesia Anime Con dan Indonesia Comic Con 2025 Diresmikan, Siap Guncang 2025",
+        "url": "https://www.upstation.media/article/indonesia-anime-con-indonesia-comic-con-2025",
+        "published_at": "2025-02-27T10:00:00"
+      },
+      {
+        "order": 6,
+        "title": "Nantikan Indonesia Anime Con dan Indonesia Comic Con 2025!",
+        "url": "https://www.kaorinusantara.or.id/newsline/222741/indonesia-anime-con-dan-indonesia-comic-con-2025",
+        "published_at": "2025-02-28T10:00:00"
+      },
+      {
+        "order": 7,
+        "title": "Indonesia Anime Con dan Indonesia Comic Con 2025!",
+        "url": "https://unicornfantasian.com/posts/indonesia-anime-con-dan-indonesia-comic-con-2025/",
+        "published_at": "2025-03-02T10:00:00"
+      },
+      {
+        "order": 8,
+        "title": "INACON dan ICC Dilangsungkan pada Tahun Ini, Hadirkan Konsep Futuristik dan Semarak Cahaya Neon",
+        "url": "https://inforemaja.id/posts/512394/inacon-dan-icc-dilangsungkan-pada-tahun-ini-hadirkan-konsep-futuristik-dan-semarak-cahaya-neon",
+        "published_at": "2025-03-05T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "inacon",
+    "items": [
+      {
+        "order": 1,
+        "title": "INACON dan Indonesia Comic Con 2025 Usung Tema Futuristik dan Semarak Cahaya Neon",
+        "url": "https://www.liputan6.com/lifestyle/read/5936079/inacon-dan-indonesia-comic-con-2025-usung-tema-futuristik-dan-semarak-cahaya-neon",
+        "published_at": "2025-02-26T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "LAUNCHING INDONESIA ANIME CON & INDONESIA COMIC CON 2025: Saatnya Kolaborasi dan Inovasi Pelaku Industri Kreatif",
+        "url": "https://lewatlensa.com/2025/02/26/launching-indonesia-anime-con-indonesia-comic-con-2025-saatnya-kolaborasi-dan-inovasi-pelaku-industri-kreatif/",
+        "published_at": "2025-02-26T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "Indonesia Anime Con dan Indonesia Comic Con 2025 Hadir Lagi, Ini Agendanya",
+        "url": "https://www.detik.com/pop/culture/d-7798348/indonesia-anime-con-dan-indonesia-comic-con-2025-hadir-lagi-ini-agendanya",
+        "published_at": "2025-02-27T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Launching Indonesia Anime Con dan Indonesia Comic Con 2025",
+        "url": "https://www.revivaltv.id/berita/icc-inacon-2025-83187921865",
+        "published_at": "2025-02-27T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Indonesia Anime Con dan Indonesia Comic Con 2025 Diresmikan, Siap Guncang 2025",
+        "url": "https://www.upstation.media/article/indonesia-anime-con-indonesia-comic-con-2025",
+        "published_at": "2025-02-27T10:00:00"
+      },
+      {
+        "order": 6,
+        "title": "Nantikan Indonesia Anime Con dan Indonesia Comic Con 2025!",
+        "url": "https://www.kaorinusantara.or.id/newsline/222741/indonesia-anime-con-dan-indonesia-comic-con-2025",
+        "published_at": "2025-02-28T10:00:00"
+      },
+      {
+        "order": 7,
+        "title": "Indonesia Anime Con dan Indonesia Comic Con 2025!",
+        "url": "https://unicornfantasian.com/posts/indonesia-anime-con-dan-indonesia-comic-con-2025/",
+        "published_at": "2025-03-02T10:00:00"
+      },
+      {
+        "order": 8,
+        "title": "INACON dan ICC Dilangsungkan pada Tahun Ini, Hadirkan Konsep Futuristik dan Semarak Cahaya Neon",
+        "url": "https://inforemaja.id/posts/512394/inacon-dan-icc-dilangsungkan-pada-tahun-ini-hadirkan-konsep-futuristik-dan-semarak-cahaya-neon",
+        "published_at": "2025-03-05T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "globalaiexpo",
+    "items": [
+      {
+        "order": 1,
+        "title": "Global AI Expo 2026 to bring 100+ AI startups and a USD 100K prize pool to Jakarta",
+        "url": "https://techcrunch.com/2025/12/15/global-ai-expo-2026-jakarta-startups-prize-pool/",
+        "published_at": "2025-12-15T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "Inside Global AI Expo 2026: four conference tracks, sixty sessions, one roof",
+        "url": "https://www.theverge.com/2026/01/22/global-ai-expo-2026-conference-tracks-sentul-city",
+        "published_at": "2026-01-22T09:30:00"
+      },
+      {
+        "order": 3,
+        "title": "Indonesia targets 30+ countries for first Global AI Expo at Sentul City",
+        "url": "https://www.reuters.com/technology/indonesia-targets-30-countries-first-global-ai-expo-sentul-city-2026-02-04/",
+        "published_at": "2026-02-04T14:15:00"
+      },
+      {
+        "order": 4,
+        "title": "Global AI Expo 2026 siap digelar di Sentul City pada November",
+        "url": "https://www.antaranews.com/berita/5388112/global-ai-expo-2026-siap-digelar-di-sentul-city-pada-november",
+        "published_at": "2025-12-09T08:45:00"
+      },
+      {
+        "order": 5,
+        "title": "Global AI Expo 2026 dorong adopsi AI di sektor enterprise dan kesehatan",
+        "url": "https://tekno.kompas.com/read/2026/01/14/global-ai-expo-2026-dorong-adopsi-ai-enterprise-kesehatan",
+        "published_at": "2026-01-14T11:20:00"
+      },
+      {
+        "order": 6,
+        "title": "Pameran AI berskala internasional pertama di Indonesia hadir 20-22 November 2026",
+        "url": "https://www.liputan6.com/tekno/read/6312587/pameran-ai-berskala-internasional-pertama-di-indonesia-hadir-20-22-november-2026",
+        "published_at": "2025-12-19T13:00:00"
+      },
+      {
+        "order": 7,
+        "title": "100 startup AI siap unjuk gigi di Global AI Expo 2026, total hadiah USD 100 ribu",
+        "url": "https://www.cnbcindonesia.com/tech/20260208104530-37-512903/100-startup-ai-siap-unjuk-gigi-di-global-ai-expo-2026-hadiah-usd-100-ribu",
+        "published_at": "2026-02-08T10:45:00"
+      },
+      {
+        "order": 8,
+        "title": "Global AI Expo 2026 targetkan 50 ribu pengunjung dari 30 negara",
+        "url": "https://inet.detik.com/cyberlife/d-7892341/global-ai-expo-2026-targetkan-50-ribu-pengunjung-dari-30-negara",
+        "published_at": "2026-02-26T15:10:00"
+      },
+      {
+        "order": 9,
+        "title": "Sentul City jadi tuan rumah Global AI Expo 2026, hadirkan business matching lintas industri",
+        "url": "https://www.republika.co.id/berita/t91k2x778/sentul-city-jadi-tuan-rumah-global-ai-expo-2026-business-matching-lintas-industri",
+        "published_at": "2026-03-04T09:00:00"
+      },
+      {
+        "order": 10,
+        "title": "Global AI Expo 2026 unveils robotics, healthcare AI, and policy tracks",
+        "url": "https://venturebeat.com/ai/global-ai-expo-2026-unveils-robotics-healthcare-ai-policy-tracks/",
+        "published_at": "2026-03-12T16:40:00"
+      },
+      {
+        "order": 11,
+        "title": "2026年全球人工智能博览会将于11月在印尼茂物举行",
+        "url": "https://huanqiuribao.com/?p=21458",
+        "published_at": "2025-12-22T10:00:00"
+      }
+    ]
+  },
+  {
+    "event": "ioe",
+    "items": [
+      {
+        "order": 1,
+        "title": "Panorama Media Luncurkan Indonesia Outing Expo (IOE) 2025",
+        "url": "https://www.tempo.co/prelude/panorama-media-luncurkan-indonesia-outing-expo-ioe-2025-1725505",
+        "published_at": "2025-06-17T10:00:00"
+      },
+      {
+        "order": 2,
+        "title": "Panorama Media Luncurkan Pameran Industri Outing dan Team Building 'Indonesia Outing Expo 2025",
+        "url": "https://wartaekonomi.co.id/read571356/panorama-media-luncurkan-pameran-industri-outing-dan-team-building-indonesia-outing-expo-2025",
+        "published_at": "2025-06-17T10:00:00"
+      },
+      {
+        "order": 3,
+        "title": "Hadirkan Panggung Bisnis Bagi Pelaku Industri Outing, Panorama Media Siap Gelar Indonesia Outing Expo 2025",
+        "url": "https://marketplus.id/2025/06/17/hadirkan-panggung-bisnis-bagi-pelaku-industri-outing-panorama-media-siap-gelar-indonesia-outing-expo-2025/",
+        "published_at": "2025-06-17T10:00:00"
+      },
+      {
+        "order": 4,
+        "title": "Outing Tak Sekadar Jalan-jalan Ada Pembelajaran Yang Bisa Diambil",
+        "url": "https://travel.detik.com/travel-news/d-7969013/outing-tak-sekadar-jalan-jalan-ada-pembelajaran-yang-bisa-diambil",
+        "published_at": "2025-06-17T10:00:00"
+      },
+      {
+        "order": 5,
+        "title": "Tren Outing Korporat Meningkat, Panorama Media Gelar Indonesia Outing Expo 2025",
+        "url": "https://mediaindonesia.com/ekonomi/783289/tren-outing-korporat-meningkat-panorama-media-gelar-indonesia-outing-expo-2025#goog_rewarded",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 6,
+        "title": "Indonesia Outing Expo 2025 Pertama Bakal Digelar, Catat Tanggalnya",
+        "url": "https://www.liputan6.com/bisnis/read/6055592/indonesia-outing-expo-2025-pertama-bakal-digelar-catat-tanggalnya?page=3",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 7,
+        "title": "Panorama Media Luncurkan Indonesia Outing Expo 2025, Wadah Baru Industri Outing dan Event",
+        "url": "https://thephrase.id/panorama-media-luncurkan-indonesia-outing-expo-2025-wadah-baru-industri-outing-dan-event",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 8,
+        "title": "Pameran Pertama untuk Industri Outing 'Indonesia Outing Expo 2025' Bakal Digelar, Catat Tanggalnya",
+        "url": "https://wartakota.tribunnews.com/2025/06/18/pameran-pertama-untuk-industri-outing-indonesia-outing-expo-2025-bakal-digelar-catat-tanggalnya",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 9,
+        "title": "Mengapa Outing dan Team Building Jadi Strategi Kunci SDM? Inilah Sorotan dari Indonesia Outing Expo 2025",
+        "url": "https://urbanvibes.id/index.php/2025/06/18/mengapa-outing-dan-team-building-jadi-strategi-kunci-sdm-inilah-sorotan-dari-indonesia-outing-expo-2025/",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 10,
+        "title": "Indonesia Outing Expo 2025 Resmi Diluncurkan",
+        "url": "https://www.republika.co.id/berita/sy1rtf456/indonesia-outing-expo-2025-resmi-diluncurkan",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 11,
+        "title": "Panorama Media Resmi Luncurkan Indonesia Outing Expo 2025: Panggung Bisnis Baru Bagi Pelaku Industri Outing & Dunia Event",
+        "url": "https://protimes.co/12579/panorama-media-resmi-luncurkan-indonesia-outing-expo-2025-panggung-bisnis-baru-bagi-pelaku-industri-outing-dunia-event/",
+        "published_at": "2025-06-18T10:00:00"
+      },
+      {
+        "order": 12,
+        "title": "Indonesia Outing Expo Menggaungkan Laju Industri Outing",
+        "url": "https://swa.co.id/read/460749/indonesia-outing-expo-menggaungkan-laju-industri-outing",
+        "published_at": "2025-06-18T10:00:00"
+      }
+    ]
+  }
+]

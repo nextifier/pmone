@@ -31,6 +31,9 @@ class GuestResource extends JsonResource
             'is_featured' => (bool) $this->is_featured,
             'order_column' => $this->order_column,
 
+            'appearance_date' => $this->more_details['appearance_date'] ?? null,
+            'transparent_background' => $this->more_details['transparent_background'] ?? false,
+
             'profile_image' => $this->when(
                 $this->relationLoaded('media') || $this->hasMedia('profile_image'),
                 fn () => $this->getMediaUrls('profile_image')

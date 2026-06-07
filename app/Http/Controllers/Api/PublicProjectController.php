@@ -7,7 +7,11 @@ use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
 use App\Http\Resources\EventIndexResource;
 use App\Http\Resources\EventResource;
+use App\Http\Resources\FaqPublicResource;
+use App\Http\Resources\GalleryPublicResource;
 use App\Http\Resources\GuestPublicResource;
+use App\Http\Resources\MediaCoveragePublicResource;
+use App\Http\Resources\ProgramPublicResource;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Http\Resources\PublicBrandDetailResource;
@@ -421,6 +425,122 @@ class PublicProjectController extends Controller
                 ],
             ],
         ]);
+    }
+
+    /**
+     * List active main programs for an event, ordered.
+     * Returns translated content based on `?locale=` query param (default: en).
+     *
+     * Fallback: if the (active) event has no programs yet, use the most recent
+     * other event in the same project that does, so a freshly-created event
+     * still shows programs until its own are added.
+     */
+    public function programs(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        $source = $event->programs()->where('is_active', true)->exists()
+            ? $event
+            : ($this->fallbackEventWithItems($event, 'programs') ?? $event);
+
+        $programs = $source->programs()
+            ->with('media')
+            ->where('is_active', true)
+            ->get();
+
+        return response()->json([
+            'data' => ProgramPublicResource::collection($programs),
+        ]);
+    }
+
+    public function mediaCoverages(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $source = $event->mediaCoverages()->where('is_active', true)->exists()
+            ? $event
+            : ($this->fallbackEventWithItems($event, 'mediaCoverages') ?? $event);
+
+        $items = $source->mediaCoverages()
+            ->where('is_active', true)
+            ->get();
+
+        return response()->json([
+            'data' => MediaCoveragePublicResource::collection($items),
+        ]);
+    }
+
+    /**
+     * List active FAQ items for an event, ordered. Returns translated content
+     * (`?locale=`) with {{tokens}} resolved against the event/project context.
+     *
+     * Fallback: if the (active) event has no FAQ yet, use the most recent other
+     * event in the same project that does. Tokens still resolve against the
+     * CURRENT event so a borrowed template shows the current event's details.
+     */
+    public function faqs(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+        $event->loadMissing('project.links');
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        $source = $event->faqs()->where('is_active', true)->exists()
+            ? $event
+            : ($this->fallbackEventWithItems($event, 'faqs') ?? $event);
+
+        $faqs = $source->faqs()
+            ->where('is_active', true)
+            ->get()
+            ->each(fn ($faq) => $faq->setRelation('event', $event));
+
+        return response()->json([
+            'data' => FaqPublicResource::collection($faqs),
+        ]);
+    }
+
+    /**
+     * List active gallery photos for an event (Spatie media collection).
+     *
+     * Fallback: if the (active) event has no gallery photos yet, use the most
+     * recent other event in the same project that does — so a freshly-created
+     * event still shows a gallery (e.g. last edition's photos) until its own
+     * are uploaded.
+     */
+    public function gallery(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $source = $event->hasMedia('gallery')
+            ? $event
+            : ($this->fallbackEventWithItems(
+                $event,
+                'media',
+                fn ($q) => $q->where('collection_name', 'gallery')
+            ) ?? $event);
+
+        return response()->json([
+            'data' => GalleryPublicResource::collection($source->getMedia('gallery')),
+        ]);
+    }
+
+    /**
+     * Most recent other event in the same project that has items for the given
+     * relation. Used as a content fallback for programs/faqs (default: active
+     * items) and gallery (constraint: media in the `gallery` collection).
+     */
+    private function fallbackEventWithItems(Event $event, string $relation, ?\Closure $constraint = null): ?Event
+    {
+        return $event->project
+            ->events()
+            ->where('id', '!=', $event->id)
+            ->whereHas($relation, $constraint ?? fn ($q) => $q->where('is_active', true))
+            ->orderByDesc('start_date')
+            ->first();
     }
 
     /**

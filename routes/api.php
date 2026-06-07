@@ -22,9 +22,11 @@ use App\Http\Controllers\Api\EventProductCategoryController;
 use App\Http\Controllers\Api\EventProductController;
 use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\ExhibitorDashboardController;
+use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
 use App\Http\Controllers\Api\FormResponseController;
+use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\GoogleAnalyticsController;
 use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\HotelController;
@@ -35,6 +37,7 @@ use App\Http\Controllers\Api\LinkPageBannerController;
 use App\Http\Controllers\Api\LinkPageController;
 use App\Http\Controllers\Api\LinkPageItemController;
 use App\Http\Controllers\Api\LogController;
+use App\Http\Controllers\Api\MediaCoverageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderAdjustmentController;
 use App\Http\Controllers\Api\OrderController;
@@ -49,6 +52,7 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\ProjectActivityController;
 use App\Http\Controllers\Api\ProjectBannerController;
 use App\Http\Controllers\Api\ProjectBusinessCategoryController;
@@ -316,6 +320,68 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{id}', [GuestController::class, 'show'])->name('guests.show');
         Route::put('/{id}', [GuestController::class, 'update'])->name('guests.update');
         Route::delete('/{id}', [GuestController::class, 'destroy'])->name('guests.destroy');
+    });
+
+    // Program management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/programs')->group(function () {
+        Route::get('/', [ProgramController::class, 'index'])->name('programs.index');
+        Route::post('/', [ProgramController::class, 'store'])->name('programs.store');
+        Route::post('/reorder', [ProgramController::class, 'reorder'])->name('programs.reorder');
+        Route::get('/trash', [ProgramController::class, 'trash'])->name('programs.trash');
+        Route::post('/trash/restore-bulk', [ProgramController::class, 'bulkRestore'])->name('programs.bulk-restore');
+        Route::delete('/trash/force-bulk', [ProgramController::class, 'bulkForceDestroy'])->name('programs.bulk-force-destroy');
+        Route::post('/trash/{id}/restore', [ProgramController::class, 'restore'])->name('programs.restore');
+        Route::delete('/trash/{id}', [ProgramController::class, 'forceDestroy'])->name('programs.force-destroy');
+        Route::delete('/bulk', [ProgramController::class, 'bulkDestroy'])->name('programs.bulk-destroy');
+        Route::patch('/bulk', [ProgramController::class, 'bulkUpdate'])->name('programs.bulk-update');
+        Route::get('/{id}', [ProgramController::class, 'show'])->name('programs.show');
+        Route::put('/{id}', [ProgramController::class, 'update'])->name('programs.update');
+        Route::delete('/{id}', [ProgramController::class, 'destroy'])->name('programs.destroy');
+    });
+
+    // FAQ management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/faqs')->group(function () {
+        Route::get('/', [FaqController::class, 'index'])->name('faqs.index');
+        Route::post('/', [FaqController::class, 'store'])->name('faqs.store');
+        Route::post('/reorder', [FaqController::class, 'reorder'])->name('faqs.reorder');
+        Route::get('/source-events', [FaqController::class, 'sourceEvents'])->name('faqs.source-events');
+        Route::post('/copy-from-event', [FaqController::class, 'copyFromEvent'])->name('faqs.copy-from-event');
+        Route::get('/trash', [FaqController::class, 'trash'])->name('faqs.trash');
+        Route::post('/trash/restore-bulk', [FaqController::class, 'bulkRestore'])->name('faqs.bulk-restore');
+        Route::delete('/trash/force-bulk', [FaqController::class, 'bulkForceDestroy'])->name('faqs.bulk-force-destroy');
+        Route::post('/trash/{id}/restore', [FaqController::class, 'restore'])->name('faqs.restore');
+        Route::delete('/trash/{id}', [FaqController::class, 'forceDestroy'])->name('faqs.force-destroy');
+        Route::delete('/bulk', [FaqController::class, 'bulkDestroy'])->name('faqs.bulk-destroy');
+        Route::patch('/bulk', [FaqController::class, 'bulkUpdate'])->name('faqs.bulk-update');
+        Route::get('/{id}', [FaqController::class, 'show'])->name('faqs.show');
+        Route::put('/{id}', [FaqController::class, 'update'])->name('faqs.update');
+        Route::delete('/{id}', [FaqController::class, 'destroy'])->name('faqs.destroy');
+    });
+
+    // Media Coverage management endpoints (nested under events)
+    Route::prefix('projects/{username}/events/{eventSlug}/media-coverages')->group(function () {
+        Route::get('/', [MediaCoverageController::class, 'index'])->name('media-coverages.index');
+        Route::post('/', [MediaCoverageController::class, 'store'])->name('media-coverages.store');
+        Route::post('/reorder', [MediaCoverageController::class, 'reorder'])->name('media-coverages.reorder');
+        Route::get('/source-events', [MediaCoverageController::class, 'sourceEvents'])->name('media-coverages.source-events');
+        Route::post('/copy-from-event', [MediaCoverageController::class, 'copyFromEvent'])->name('media-coverages.copy-from-event');
+        Route::get('/trash', [MediaCoverageController::class, 'trash'])->name('media-coverages.trash');
+        Route::post('/trash/restore-bulk', [MediaCoverageController::class, 'bulkRestore'])->name('media-coverages.bulk-restore');
+        Route::delete('/trash/force-bulk', [MediaCoverageController::class, 'bulkForceDestroy'])->name('media-coverages.bulk-force-destroy');
+        Route::post('/trash/{id}/restore', [MediaCoverageController::class, 'restore'])->name('media-coverages.restore');
+        Route::delete('/trash/{id}', [MediaCoverageController::class, 'forceDestroy'])->name('media-coverages.force-destroy');
+        Route::delete('/bulk', [MediaCoverageController::class, 'bulkDestroy'])->name('media-coverages.bulk-destroy');
+        Route::patch('/bulk', [MediaCoverageController::class, 'bulkUpdate'])->name('media-coverages.bulk-update');
+        Route::get('/{id}', [MediaCoverageController::class, 'show'])->name('media-coverages.show');
+        Route::put('/{id}', [MediaCoverageController::class, 'update'])->name('media-coverages.update');
+        Route::delete('/{id}', [MediaCoverageController::class, 'destroy'])->name('media-coverages.destroy');
+    });
+
+    // Gallery management endpoints (nested under events). Reorder + bulk-delete
+    // use the generic /api/media/* endpoints (GalleryManager defaults).
+    Route::prefix('projects/{username}/events/{eventSlug}/gallery')->group(function () {
+        Route::get('/', [GalleryController::class, 'index'])->name('gallery.index');
+        Route::post('/', [GalleryController::class, 'store'])->name('gallery.store');
     });
 
     // Rundown item management endpoints (nested under events)
@@ -1194,6 +1260,14 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(3600, 'promotion-posts'));
     Route::get('/{username}/events/{eventSlug}/rundown', [PublicProjectController::class, 'rundown'])
         ->middleware(CacheResponse::for(86400, 'rundown'));
+    Route::get('/{username}/events/{eventSlug}/programs', [PublicProjectController::class, 'programs'])
+        ->middleware(CacheResponse::for(86400, 'programs'));
+    Route::get('/{username}/events/{eventSlug}/faqs', [PublicProjectController::class, 'faqs'])
+        ->middleware(CacheResponse::for(86400, 'faqs'));
+    Route::get('/{username}/events/{eventSlug}/media-coverages', [PublicProjectController::class, 'mediaCoverages'])
+        ->middleware(CacheResponse::for(86400, 'media-coverages'));
+    Route::get('/{username}/events/{eventSlug}/gallery', [PublicProjectController::class, 'gallery'])
+        ->middleware(CacheResponse::for(86400, 'gallery'));
     Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
         ->middleware(CacheResponse::for(86400, 'website-settings'));
     Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])

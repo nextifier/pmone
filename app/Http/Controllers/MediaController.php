@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\Event;
 use App\Models\Guest;
 use App\Models\Hotel;
 use App\Models\HotelTransferOption;
@@ -559,6 +560,7 @@ class MediaController extends Controller
             PromotionPost::class => ['brands', 'promotion-posts'],
             Partner::class => ['partners'],
             Guest::class => ['guests'],
+            Event::class => ['gallery'],
             Post::class => ['blog-posts'],
             default => [],
         };
@@ -785,6 +787,7 @@ class MediaController extends Controller
             Brand::class, PromotionPost::class => 'brands.update',
             Partner::class => 'partners.update',
             Guest::class => 'guests.update',
+            Event::class => 'events.update',
             Post::class => 'posts.update',
             default => null,
         };

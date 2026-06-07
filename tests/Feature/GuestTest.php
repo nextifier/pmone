@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Resources\GuestPublicResource;
 use App\Models\Event;
 use App\Models\Guest;
 use App\Models\Project;
@@ -404,4 +405,89 @@ it('exposes only public+active guests via the public endpoint', function () {
     $response->assertSuccessful()
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('meta.featured_count', 1);
+});
+
+it('formats appearance_date range and exposes transparent_background in the public resource', function () {
+    $range = Guest::factory()->create([
+        'event_id' => $this->event->id,
+        'more_details' => [
+            'appearance_date' => ['start' => '2025-10-25', 'end' => '2025-10-26'],
+            'transparent_background' => true,
+        ],
+    ]);
+    $single = Guest::factory()->create([
+        'event_id' => $this->event->id,
+        'more_details' => ['appearance_date' => ['start' => '2025-10-25', 'end' => '2025-10-25']],
+    ]);
+    $none = Guest::factory()->create([
+        'event_id' => $this->event->id,
+        'more_details' => [],
+    ]);
+
+    $a = (new GuestPublicResource($range))->toArray(request());
+    $b = (new GuestPublicResource($single))->toArray(request());
+    $c = (new GuestPublicResource($none))->toArray(request());
+
+    expect($a['appearance_date'])->toBe(['date' => '25-26', 'month' => 'Oct']);
+    expect($a['transparent_background'])->toBeTrue();
+    expect($b['appearance_date'])->toBe(['date' => '25', 'month' => 'Oct']);
+    expect($c['appearance_date'])->toBeNull();
+    expect($c['transparent_background'])->toBeFalse();
+});
+
+it('persists appearance_date range and transparent_background on store', function () {
+    $response = $this->postJson($this->apiBase, [
+        'name' => 'Cosplay Star',
+        'appearance_date' => ['start' => '2025-10-25', 'end' => '2025-10-26'],
+        'transparent_background' => true,
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('data.appearance_date.start', '2025-10-25')
+        ->assertJsonPath('data.appearance_date.end', '2025-10-26')
+        ->assertJsonPath('data.transparent_background', true);
+
+    $guest = Guest::where('name', 'Cosplay Star')->first();
+    expect($guest->more_details['appearance_date'])->toBe(['start' => '2025-10-25', 'end' => '2025-10-26']);
+    expect($guest->more_details['transparent_background'])->toBeTrue();
+});
+
+it('defaults appearance_date end to start when only start is given', function () {
+    $this->postJson($this->apiBase, [
+        'name' => 'One Day Guest',
+        'appearance_date' => ['start' => '2025-10-26'],
+    ])->assertCreated();
+
+    $guest = Guest::where('name', 'One Day Guest')->first();
+    expect($guest->more_details['appearance_date'])->toBe(['start' => '2025-10-26', 'end' => '2025-10-26']);
+});
+
+it('merges appearance_date into more_details without losing other keys on update', function () {
+    $guest = Guest::factory()->create([
+        'event_id' => $this->event->id,
+        'more_details' => ['transparent_background' => true, 'custom' => 'keep'],
+    ]);
+
+    $this->putJson("{$this->apiBase}/{$guest->id}", [
+        'appearance_date' => ['start' => '2025-10-26', 'end' => '2025-10-26'],
+    ])->assertSuccessful();
+
+    $guest->refresh();
+    expect($guest->more_details['appearance_date'])->toBe(['start' => '2025-10-26', 'end' => '2025-10-26']);
+    expect($guest->more_details['transparent_background'])->toBeTrue();
+    expect($guest->more_details['custom'])->toBe('keep');
+});
+
+it('clears appearance_date when null is sent', function () {
+    $guest = Guest::factory()->create([
+        'event_id' => $this->event->id,
+        'more_details' => ['appearance_date' => ['start' => '2025-10-25', 'end' => '2025-10-26']],
+    ]);
+
+    $this->putJson("{$this->apiBase}/{$guest->id}", [
+        'appearance_date' => null,
+    ])->assertSuccessful();
+
+    $guest->refresh();
+    expect($guest->more_details['appearance_date'] ?? null)->toBeNull();
 });

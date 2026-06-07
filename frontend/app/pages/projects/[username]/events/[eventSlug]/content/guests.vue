@@ -452,6 +452,7 @@
             <FormGuest
               :key="formKey"
               :guest="editingGuest"
+              :event="event"
               :loading="formSaving"
               :errors="formErrors"
               @submit="handleSave"
