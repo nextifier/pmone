@@ -20,7 +20,14 @@ const emit = defineEmits(["update:qty", "update:notes"]);
 
 const DEFAULT_MAX = 20;
 
+// A populated `preview.error` means the availability probe ran but failed
+// (e.g. dynamic pricing has no rate configured for the selected nights). Treat
+// that room as unbookable rather than freely selectable, otherwise the guest
+// could add it and only hit the rejection at confirm.
+const probeFailed = computed(() => !!props.preview?.error);
+
 const maxQty = computed(() => {
+  if (probeFailed.value) return 0;
   if (props.available == null) return DEFAULT_MAX;
   return Math.max(0, Math.min(DEFAULT_MAX, Number(props.available)));
 });
@@ -47,6 +54,7 @@ const avgPerNight = computed(() => {
 });
 
 const availabilityState = computed(() => {
+  if (probeFailed.value) return { label: "Unavailable for these dates", tone: "destructive" };
   if (props.available == null) return null;
   if (props.available === 0) return { label: "Sold out", tone: "destructive" };
   if (props.available <= 3) return { label: `Only ${props.available} left`, tone: "warning" };

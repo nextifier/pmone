@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
@@ -32,15 +35,16 @@ use Spatie\Tags\Tag;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read mixed $next_sync_at
- * @property-read \App\Models\Project|null $project
+ * @property-read Project|null $project
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty active()
  * @method static \Database\Factories\GaPropertyFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty inactive()
@@ -70,6 +74,7 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GaProperty withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class GaProperty extends Model implements HasMedia
@@ -80,6 +85,7 @@ class GaProperty extends Model implements HasMedia
     use HasMediaManager;
     use HasTags;
     use InteractsWithMedia;
+    use LogsActivity;
     use SoftDeletes;
 
     /**
@@ -106,6 +112,26 @@ class GaProperty extends Model implements HasMedia
         'last_synced_at' => 'datetime',
         'sync_frequency' => 'integer',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'name',
+                'property_id',
+                'is_active',
+                'sync_frequency',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
+    }
 
     /**
      * Scope a query to only include active properties.

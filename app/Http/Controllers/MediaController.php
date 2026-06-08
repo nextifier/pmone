@@ -590,16 +590,32 @@ class MediaController extends Controller
                 'file_name' => $media->file_name,
             ];
 
+            $owner = ($media->model_type && $media->model_id && class_exists($media->model_type))
+                ? ($media->model_type)::find($media->model_id)
+                : null;
+
             $media->delete();
 
             // Media ops bypass the owner's Eloquent events; bust its public cache.
             $this->clearOwnerResponseCache($media);
 
-            activity()
+            $properties = $mediaInfo;
+            if ($owner !== null) {
+                if ($projectId = $owner->project_id ?? $owner->event?->project_id) {
+                    $properties['project_id'] = $projectId;
+                }
+            }
+
+            $activity = activity()
                 ->causedBy(auth()->user())
                 ->event('media_deleted')
-                ->withProperties($mediaInfo)
-                ->log("Media deleted: {$mediaInfo['file_name']}");
+                ->withProperties($properties);
+
+            if ($owner !== null) {
+                $activity->performedOn($owner);
+            }
+
+            $activity->log("Media deleted: {$mediaInfo['file_name']}");
 
             return response()->json([
                 'message' => 'Media deleted successfully',

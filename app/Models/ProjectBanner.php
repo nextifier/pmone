@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
@@ -50,7 +53,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  */
 class ProjectBanner extends Model implements HasMedia
 {
-    use ClearsResponseCache, HasFactory, HasMediaManager, InteractsWithMedia, SoftDeletes;
+    use ClearsResponseCache, HasFactory, HasMediaManager, InteractsWithMedia, LogsActivity, SoftDeletes;
 
     protected $fillable = [
         'project_id',
@@ -80,6 +83,30 @@ class ProjectBanner extends Model implements HasMedia
             'more_details' => 'array',
             'settings' => 'array',
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'placement',
+                'type',
+                'title',
+                'link',
+                'is_active',
+                'sort_order',
+                'start_time',
+                'end_time',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
     }
 
     protected static function boot(): void

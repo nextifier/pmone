@@ -216,6 +216,13 @@ class Guest extends Model implements HasMedia, Sortable
             ->dontSubmitEmptyLogs();
     }
 
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
+    }
+
     public function registerMediaCollections(): void
     {
         $this->registerDynamicMediaCollections();

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
@@ -102,6 +103,13 @@ class Faq extends Model implements Sortable
             ->logOnly(['question', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
     }
 
     public function buildSortQuery(): Builder

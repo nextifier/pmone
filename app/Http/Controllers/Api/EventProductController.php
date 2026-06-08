@@ -199,6 +199,7 @@ class EventProductController extends Controller
         $filename = 'products_'.now()->format('Y-m-d_His').'.xlsx';
 
         activity()
+            ->performedOn($event)
             ->causedBy($request->user())
             ->event('exported')
             ->withProperties([

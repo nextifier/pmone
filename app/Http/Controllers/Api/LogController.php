@@ -5,11 +5,22 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\BrandEvent;
 use App\Models\Event;
+use App\Models\EventDocument;
 use App\Models\EventProduct;
+use App\Models\EventProductCategory;
+use App\Models\Faq;
+use App\Models\Guest;
+use App\Models\HotelEvent;
+use App\Models\MediaCoverage;
 use App\Models\Order;
+use App\Models\PartnerCategory;
+use App\Models\Program;
+use App\Models\ProjectBanner;
+use App\Models\ProjectCustomField;
 use App\Models\ProjectPaymentGateway;
 use App\Models\PromotionPost;
 use App\Models\Reservation;
+use App\Models\RundownItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -205,6 +216,17 @@ class LogController extends Controller
                     Reservation::class => ['event.project'],
                     Order::class => ['brandEvent.event.project'],
                     ProjectPaymentGateway::class => ['project'],
+                    EventProductCategory::class => ['event.project'],
+                    PartnerCategory::class => ['event.project'],
+                    Faq::class => ['event.project'],
+                    Program::class => ['event.project'],
+                    Guest::class => ['event.project'],
+                    RundownItem::class => ['event.project'],
+                    MediaCoverage::class => ['event.project'],
+                    EventDocument::class => ['event.project'],
+                    HotelEvent::class => ['hotel', 'event.project'],
+                    ProjectBanner::class => ['project'],
+                    ProjectCustomField::class => ['project'],
                 ]);
             },
         ]);
@@ -330,8 +352,21 @@ class LogController extends Controller
             'PromotionRule' => $subject->ulid ? "/promotion-rules/{$subject->ulid}/show" : null,
             'PromoCode' => $subject->ulid ? "/promo-codes/{$subject->ulid}/show" : null,
             'ProjectPaymentGateway' => self::getPaymentGatewayUrl($subject),
-            'Hotel' => $subject->slug ? "/hotels?search={$subject->slug}" : null,
+            'Hotel' => $subject->slug ? "/hotels-master/{$subject->slug}" : null,
             'GaProperty' => '/web-analytics',
+            'Form' => $subject->slug ? "/forms/{$subject->slug}" : null,
+            'ApiConsumer' => $subject->id ? "/api-consumers/{$subject->id}/edit" : null,
+            'ProjectBanner' => self::getProjectBannerUrl($subject),
+            'ProjectCustomField' => self::getProjectCustomFieldUrl($subject),
+            'Faq' => self::getEventContentTabUrl($subject, 'faq'),
+            'Program' => self::getEventContentTabUrl($subject, 'programs'),
+            'Guest' => self::getEventContentTabUrl($subject, 'guests'),
+            'RundownItem' => self::getEventContentTabUrl($subject, 'rundown'),
+            'MediaCoverage' => self::getEventContentTabUrl($subject, 'media-coverage'),
+            'PartnerCategory' => self::getEventContentTabUrl($subject, 'partners'),
+            'EventProductCategory' => self::getEventProductUrl($subject),
+            'EventDocument' => self::getEventDocumentUrl($subject),
+            'HotelEvent' => self::getHotelEventUrl($subject),
             default => null,
         };
     }
@@ -415,6 +450,60 @@ class LogController extends Controller
         }
 
         return "/projects/{$project->username}/events/{$subject->slug}";
+    }
+
+    private static function getEventContentTabUrl(mixed $subject, string $tab): ?string
+    {
+        $event = $subject->event;
+        $project = $event?->project;
+        if (! $event?->slug || ! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/content/{$tab}";
+    }
+
+    private static function getEventDocumentUrl(mixed $subject): ?string
+    {
+        $event = $subject->event;
+        $project = $event?->project;
+        if (! $event?->slug || ! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/operational/order-form-settings";
+    }
+
+    private static function getHotelEventUrl(mixed $subject): ?string
+    {
+        $event = $subject->event;
+        $hotel = $subject->hotel;
+        $project = $event?->project;
+        if (! $event?->slug || ! $hotel?->slug || ! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/events/{$event->slug}/hotels/{$hotel->slug}";
+    }
+
+    private static function getProjectBannerUrl(mixed $subject): ?string
+    {
+        $project = $subject->project;
+        if (! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/content/banners";
+    }
+
+    private static function getProjectCustomFieldUrl(mixed $subject): ?string
+    {
+        $project = $subject->project;
+        if (! $project?->username) {
+            return null;
+        }
+
+        return "/projects/{$project->username}/settings/brand-fields";
     }
 
     private static function generateHumanDescription(Activity $activity): string
@@ -518,25 +607,25 @@ class LogController extends Controller
 
             case 'bulk_deleted':
                 $count = $activity->properties['deleted_count'] ?? 0;
-                $modelType = $activity->properties['model_type'] ?? 'record';
+                $modelType = self::humanizeModelName($activity->properties['model_type'] ?? 'record');
 
                 return "{$userName} bulk deleted {$count} {$modelType}(s)";
 
             case 'bulk_restored':
                 $count = $activity->properties['restored_count'] ?? 0;
-                $modelType = $activity->properties['model_type'] ?? 'record';
+                $modelType = self::humanizeModelName($activity->properties['model_type'] ?? 'record');
 
                 return "{$userName} bulk restored {$count} {$modelType}(s)";
 
             case 'bulk_force_deleted':
                 $count = $activity->properties['deleted_count'] ?? 0;
-                $modelType = $activity->properties['model_type'] ?? 'record';
+                $modelType = self::humanizeModelName($activity->properties['model_type'] ?? 'record');
 
                 return "{$userName} permanently deleted {$count} {$modelType}(s)";
 
             case 'bulk_status_updated':
                 $count = $activity->properties['updated_count'] ?? 0;
-                $modelType = $activity->properties['model_type'] ?? 'record';
+                $modelType = self::humanizeModelName($activity->properties['model_type'] ?? 'record');
                 $status = $activity->properties['new_status'] ?? 'unknown';
 
                 return "{$userName} changed status to \"{$status}\" for {$count} {$modelType}(s)";
@@ -698,6 +787,50 @@ class LogController extends Controller
                     ? "{$userName} reset password for {$subjectName}"
                     : "{$userName} changed password for {$subjectName}";
 
+            case 'registered':
+                if ($isSelf) {
+                    return "{$userName} registered a new account";
+                }
+
+                return $subjectName
+                    ? "New account registered: \"{$subjectName}\""
+                    : 'New account registered';
+
+            case 'force_deleted':
+                $modelLabel = $subjectType ? self::humanizeModelName($subjectType) : 'record';
+                $name = $activity->properties['reservation_number'] ?? $subjectName;
+
+                return $name
+                    ? "{$userName} permanently deleted {$modelLabel} \"{$name}\""
+                    : "{$userName} permanently deleted a {$modelLabel}";
+
+            case 'reservation_marked_paid_manual':
+                $channel = $activity->properties['payment_channel'] ?? null;
+                $channelLabel = $channel ? " via {$channel}" : '';
+
+                return $subjectName
+                    ? "{$userName} manually marked reservation \"{$subjectName}\" as paid{$channelLabel}"
+                    : "{$userName} manually marked a reservation as paid{$channelLabel}";
+
+            case 'refund_completed_manual':
+                $amount = $activity->properties['refund_amount'] ?? null;
+                $amountLabel = $amount ? ' ('.self::formatCurrency($amount).')' : '';
+
+                return $subjectName
+                    ? "{$userName} completed manual refund for reservation \"{$subjectName}\"{$amountLabel}"
+                    : "{$userName} completed a manual refund{$amountLabel}";
+
+            case 'payment_gateway_test_connection':
+                $provider = $activity->properties['provider'] ?? 'gateway';
+                $mode = $activity->properties['mode'] ?? null;
+                $modeLabel = $mode ? " ({$mode})" : '';
+                $resultLabel = '';
+                if (isset($activity->properties['success'])) {
+                    $resultLabel = $activity->properties['success'] ? ' - success' : ' - failed';
+                }
+
+                return "{$userName} tested {$provider}{$modeLabel} connection{$resultLabel}";
+
             default:
                 $aliases = [
                     'Magic link requested' => 'requested a magic link',
@@ -793,6 +926,15 @@ class LogController extends Controller
             'PromotionPost' => 'promotion post',
             'EventProduct' => 'event product',
             'ProjectCustomField' => 'custom field',
+            'ApiConsumer' => 'API consumer',
+            'PromoCode' => 'promo code',
+            'PromotionRule' => 'promotion rule',
+            'RundownItem' => 'rundown item',
+            'MediaCoverage' => 'media coverage',
+            'EventProductCategory' => 'product category',
+            'PartnerCategory' => 'partner category',
+            'GaProperty' => 'analytics property',
+            'ProjectBanner' => 'banner',
         ];
 
         return $map[$className] ?? strtolower(preg_replace('/(?<!^)[A-Z]/', ' $0', $className));

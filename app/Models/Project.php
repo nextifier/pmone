@@ -254,6 +254,11 @@ class Project extends Model implements HasMedia, Sortable
             ->dontSubmitEmptyLogs();
     }
 
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        $activity->properties = $activity->properties->put('project_id', $this->id);
+    }
+
     public function registerMediaCollections(): void
     {
         $this->registerDynamicMediaCollections();

@@ -265,13 +265,6 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Lucky Draw - frontend-only tool (localStorage), available to all staff
-  toolsItems.push({
-    label: "Lucky Draw",
-    path: "/lucky-draw",
-    iconName: "hugeicons:dice",
-  });
-
   // Short Links & Dynamic QR Code - requires short_links.read permission
   if (hasPermission("short_links.read")) {
     toolsItems.push({
@@ -297,24 +290,6 @@ const navMainGroups = computed(() => {
     iconName: "hugeicons:qr-code",
   });
 
-  // Print Test - master & admin only
-  if (hasAnyRole(["master", "admin"])) {
-    toolsItems.push({
-      label: "Print Test",
-      path: "/print-test",
-      iconName: "hugeicons:printer",
-    });
-  }
-
-  // SDF Converter - master & admin only
-  if (hasAnyRole(["master", "admin"])) {
-    toolsItems.push({
-      label: "SDF Converter",
-      path: "/tools/sdf-converter",
-      iconName: "hugeicons:exchange-01",
-    });
-  }
-
   // Forms - requires forms.read permission
   if (hasPermission("forms.read")) {
     toolsItems.push({
@@ -324,6 +299,13 @@ const navMainGroups = computed(() => {
       badgeLabel: "Coming Soon",
     });
   }
+
+  // Lucky Draw - frontend-only tool (localStorage), available to all staff
+  toolsItems.push({
+    label: "Lucky Draw",
+    path: "/lucky-draw",
+    iconName: "hugeicons:dice",
+  });
 
   // Posts - requires posts.read permission
   if (hasPermission("posts.read")) {
@@ -522,6 +504,22 @@ const navMainGroups = computed(() => {
       iconName: "hugeicons:money-exchange-02",
     },
   ];
+
+  // Print Test - master & admin only
+  if (hasAnyRole(["master", "admin"])) {
+    otherItems.push(
+      {
+        label: "Print Test",
+        path: "/print-test",
+        iconName: "hugeicons:printer",
+      },
+      {
+        label: "SDF Converter",
+        path: "/tools/sdf-converter",
+        iconName: "hugeicons:exchange-01",
+      }
+    );
+  }
 
   groups.push({
     label: "Others",

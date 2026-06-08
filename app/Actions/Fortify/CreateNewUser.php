@@ -52,6 +52,8 @@ class CreateNewUser implements CreatesNewUsers
         // Log activity
         activity()
             ->performedOn($user)
+            ->causedBy($user)
+            ->event('registered')
             ->withProperties(['ip' => request()->ip()])
             ->log('User registered');
 

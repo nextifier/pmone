@@ -122,6 +122,42 @@ test('public availability returns subtotal for dynamic pricing room', function (
     expect($response->json('data.daily_breakdown'))->toHaveCount(2);
 });
 
+test('public availability returns zero (not a pricing error) for unallotted dynamic room', function () {
+    // Regression: a dynamic-priced room with no allotment AND no pricing period
+    // covering the requested nights. checkAvailability() returns 0, but pricing
+    // resolution would throw a 422. The endpoint must surface the truthful
+    // availability=0 instead of leaking the pricing error, otherwise the
+    // frontend treats the failed probe as "unknown" and offers an unbookable room.
+    $dynRoom = RoomType::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'base_rate' => 1300000,
+        'pricing_type' => PricingType::Dynamic,
+    ]);
+    RoomTypePricingPeriod::factory()->for($dynRoom)->create([
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-05',
+        'rate' => 1300000,
+    ]);
+    // No allotment for $dynRoom, and the requested dates (Jun 20-21) fall
+    // outside the only pricing period above.
+
+    $response = $this->postJson('/api/public/hotels/availability', [
+        'hotel_id' => $this->hotel->id,
+        'event_id' => $this->event->id,
+        'event_slug' => $this->event->slug,
+        'room_type_id' => $dynRoom->id,
+        'check_in_date' => '2026-06-20',
+        'check_out_date' => '2026-06-21',
+        'qty' => 1,
+    ], $this->headers);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.available', 0)
+        ->assertJsonPath('data.is_available', false)
+        ->assertJsonPath('data.pricing_type', 'dynamic')
+        ->assertJsonPath('data.subtotal', 0);
+});
+
 test('public booking creates reservation with correct dynamic subtotal', function () {
     Queue::fake();
 

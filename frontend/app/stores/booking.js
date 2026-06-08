@@ -334,8 +334,10 @@ export const useBookingStore = defineStore("booking", {
         );
         const availability = {};
         const previews = {};
+        const errored = {};
         for (const r of results) {
           availability[r.id] = r.available;
+          errored[r.id] = !!r.error;
           previews[r.id] = {
             subtotal: r.subtotal,
             pricing_type: r.pricing_type,
@@ -347,10 +349,17 @@ export const useBookingStore = defineStore("booking", {
         this.roomPreviews = previews;
         this.lastAvailabilityCheck = Date.now();
 
-        // Clamp selected quantities to remaining availability
+        // Clamp selected quantities to remaining availability. A failed probe
+        // (errored) means the room can't be priced/booked for these dates, so
+        // drop any selected qty rather than carry an unbookable room forward.
         const next = { ...this.rooms };
         let changed = false;
         for (const [id, qty] of Object.entries(next)) {
+          if (errored[id]) {
+            delete next[id];
+            changed = true;
+            continue;
+          }
           const avail = availability[id];
           if (avail != null && Number(qty) > avail) {
             next[id] = Math.max(0, avail);

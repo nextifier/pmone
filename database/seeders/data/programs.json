@@ -1810,5 +1810,114 @@
         }
       }
     ]
+  },
+  {
+    "event": "globalaiexpo",
+    "items": [
+      {
+        "order": 1,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "AI Robotics",
+          "id": "AI Robotics"
+        },
+        "description": {
+          "en": "Industrial arms, humanoids, warehouse automation, and edge robotics. Live demo runs scheduled across all three days.",
+          "id": "Lengan industri, robot humanoid, otomasi gudang, dan robotika edge. Sesi demo dijadwalkan tiap hari."
+        }
+      },
+      {
+        "order": 2,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "Healthcare AI",
+          "id": "Healthcare AI"
+        },
+        "description": {
+          "en": "Diagnostics, drug discovery, hospital operations, and patient-facing tools from teams already deployed in clinical settings.",
+          "id": "Diagnostik, penemuan obat, operasional rumah sakit, dan tools untuk pasien dari tim yang sudah deploy di klinis."
+        }
+      },
+      {
+        "order": 3,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "Fintech AI",
+          "id": "Fintech AI"
+        },
+        "description": {
+          "en": "Risk scoring, fraud detection, KYC automation, and AI-native trading. Built for banks, insurers, and digital lenders.",
+          "id": "Risk scoring, fraud detection, otomasi KYC, dan trading berbasis AI. Dirancang untuk bank, asuransi, dan digital lender."
+        }
+      },
+      {
+        "order": 4,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "Smart City AI",
+          "id": "Smart City AI"
+        },
+        "description": {
+          "en": "Traffic, public safety, utilities, and citizen services. The zone hosts municipal delegations across the three-day run.",
+          "id": "Lalu lintas, keamanan publik, utilitas, dan layanan warga. Zona ini menjadi tempat delegasi pemerintah daerah selama tiga hari."
+        }
+      },
+      {
+        "order": 5,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "Manufacturing AI",
+          "id": "Manufacturing AI"
+        },
+        "description": {
+          "en": "Predictive maintenance, quality inspection, supply chain forecasting, and factory floor copilots from system integrators.",
+          "id": "Predictive maintenance, quality inspection, forecasting supply chain, dan copilot lantai pabrik dari system integrator."
+        }
+      },
+      {
+        "order": 6,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "Autonomous Vehicles",
+          "id": "Autonomous Vehicles"
+        },
+        "description": {
+          "en": "AV stacks, sensor suites, simulation platforms, and fleet operations. Test rides scheduled with selected exhibitors.",
+          "id": "AV stack, sensor suite, platform simulasi, dan operasional armada. Test ride bisa diatur dengan exhibitor terpilih."
+        }
+      },
+      {
+        "order": 7,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "AI and Energy",
+          "id": "AI dan Energi"
+        },
+        "description": {
+          "en": "Grid optimization, renewables forecasting, asset monitoring, and AI for oil and gas operations.",
+          "id": "Optimasi jaringan listrik, forecasting energi terbarukan, asset monitoring, dan AI untuk operasi minyak dan gas."
+        }
+      },
+      {
+        "order": 8,
+        "icon": null,
+        "image": null,
+        "title": {
+          "en": "AI and Agriculture",
+          "id": "AI dan Agrikultur"
+        },
+        "description": {
+          "en": "Precision farming, satellite analytics, livestock monitoring, and post-harvest logistics for ASEAN scale operations.",
+          "id": "Precision farming, analitik satelit, monitoring ternak, dan logistik pasca panen untuk skala ASEAN."
+        }
+      }
+    ]
   }
 ]

@@ -227,6 +227,13 @@ class PromotionRule extends Model
             ->dontSubmitEmptyLogs();
     }
 
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->project_id ?? $this->loadMissing('event')->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
+    }
+
     public function codes(): HasMany
     {
         return $this->hasMany(PromoCode::class);

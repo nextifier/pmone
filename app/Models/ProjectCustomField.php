@@ -27,7 +27,8 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\Project|null $project
+ * @property-read Project|null $project
+ *
  * @method static Builder<static>|ProjectCustomField newModelQuery()
  * @method static Builder<static>|ProjectCustomField newQuery()
  * @method static Builder<static>|ProjectCustomField ordered(string $direction = 'asc')
@@ -42,6 +43,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|ProjectCustomField whereProjectId($value)
  * @method static Builder<static>|ProjectCustomField whereType($value)
  * @method static Builder<static>|ProjectCustomField whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class ProjectCustomField extends Model implements Sortable
@@ -65,6 +67,13 @@ class ProjectCustomField extends Model implements Sortable
             ->logOnly(['label', 'type', 'is_required'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
     }
 
     public array $sortable = [

@@ -38,6 +38,34 @@ class PruneOrphanMedia extends Command
         $diskName = $this->option('disk') ?: config('media-library.disk_name', 'public');
         $tag = $apply ? '' : '[DRY RUN] ';
 
+        // ── SAFETY GUARD: never DELETE from a remote disk outside production ──
+        // The catastrophic failure mode is running this with a NON-production
+        // database while the target disk points at the PRODUCTION cloud bucket
+        // (e.g. --disk=r2 or MEDIA_DISK=r2 on a local machine). Every cloud file
+        // absent from the local database is then treated as an orphan and deleted.
+        // Deletes against any non-local disk are therefore restricted to the
+        // production environment, where the database and the bucket always match.
+        if ($apply) {
+            $driver = config("filesystems.disks.{$diskName}.driver");
+            if ($driver !== 'local' && ! app()->environment('production')) {
+                $this->error("Refusing to delete from remote disk \"{$diskName}\" (driver: {$driver}) while APP_ENV=".app()->environment().'.');
+                $this->line('A non-production database here would flag production files as orphans and delete them.');
+                $this->line('Run this on the production server, or inspect safely without --force (dry run).');
+
+                return self::FAILURE;
+            }
+
+            // Defense in depth: surface what is about to be modified. A live-media
+            // count far below the disk's real file count is the tell-tale sign of a
+            // database/disk mismatch — abort instinct for whoever is watching.
+            $this->warn(sprintf(
+                'Deleting orphans on disk "%s" via DB connection "%s". Live media records on this disk: %d.',
+                $diskName,
+                config('database.default'),
+                Media::query()->where('disk', $diskName)->count(),
+            ));
+        }
+
         // ── Phase A: orphaned records (model gone) ──────────────────────
         if (! $this->option('skip-records')) {
             $this->info($tag.'Cleaning orphaned media records (model deleted)...');

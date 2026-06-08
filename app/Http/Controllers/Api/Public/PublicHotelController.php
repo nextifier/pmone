@@ -194,6 +194,33 @@ class PublicHotelController extends Controller
         $checkOut = Carbon::parse($data['check_out_date']);
         $qty = (int) $data['qty'];
 
+        $pricingType = $roomType->pricing_type instanceof PricingType
+            ? $roomType->pricing_type->value
+            : (string) $roomType->pricing_type;
+
+        // Short-circuit when nothing is bookable for these dates. Pricing is
+        // resolved AFTER availability below, and resolveNightlyRates() throws a
+        // 422 for dynamic rooms with no pricing period covering the stay. Without
+        // this guard, a sold-out / unallotted room whose pricing also happens to
+        // be unconfigured for the chosen dates would surface that pricing error
+        // instead of the truthful "0 available", and the frontend would then
+        // treat the failed probe as "unknown" and let the guest select an
+        // unbookable room, only to be rejected at confirm.
+        if ($available <= 0) {
+            return response()->json([
+                'data' => (new AvailabilityResource([
+                    'available' => 0,
+                    'qty' => $qty,
+                    'rate_per_night' => 0,
+                    'all_in_per_night' => 0,
+                    'subtotal' => 0,
+                    'estimated_total' => 0,
+                    'pricing_type' => $pricingType,
+                    'daily_breakdown' => [],
+                ]))->resolve(),
+            ]);
+        }
+
         $allotment = HotelEventAllotment::query()
             ->active()
             ->where('hotel_id', $hotel->id)
@@ -218,9 +245,7 @@ class PublicHotelController extends Controller
                 'all_in_per_night' => $allInPerNight,
                 'subtotal' => $preview['subtotal'],
                 'estimated_total' => $estimatedTotal,
-                'pricing_type' => $roomType->pricing_type instanceof PricingType
-                    ? $roomType->pricing_type->value
-                    : (string) $roomType->pricing_type,
+                'pricing_type' => $pricingType,
                 'daily_breakdown' => $preview['daily_breakdown'],
             ]))->resolve(),
         ]);

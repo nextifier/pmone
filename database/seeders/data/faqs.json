@@ -2389,5 +2389,257 @@
         }
       }
     ]
+  },
+  {
+    "event": "askindo",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "What is IICC?",
+          "id": "Apa itu IICC?"
+        },
+        "answer": {
+          "en": "Indonesia International Cocoa Conference (IICC) is an international cocoa conference organized by the Indonesian Cocoa Association (ASKINDO). Since its inception, IICC has become the premier platform for cocoa industry stakeholders from around the world to meet, discuss, and forge partnerships. 2026 will mark the 9th edition of this conference.",
+          "id": "Indonesia International Cocoa Conference (IICC) adalah konferensi kakao internasional yang diselenggarakan oleh Asosiasi Kakao Indonesia (ASKINDO). Sejak pertama kali diadakan, IICC telah menjadi platform utama bagi pelaku industri kakao dari seluruh dunia untuk bertemu, berdiskusi, dan menjalin kemitraan. Tahun 2026 akan menjadi edisi ke-9 dari konferensi ini."
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "When and where is the 9th IICC held?",
+          "id": "Kapan dan di mana IICC ke-9 diadakan?"
+        },
+        "answer": {
+          "en": "The 9th IICC will be held on July 22-24, 2026 in Yogyakarta, Indonesia. Yogyakarta stands out as an ideal location for the Indonesia International Cocoa Conference due to its strategic position near cocoa-producing regions, vibrant local artisan chocolate industry, strong academic research presence, and commitment to sustainable cocoa farming. Additionally, as the cultural heart of Java, Yogyakarta offers delegates a unique blend of tradition and hospitality, with convenient access from major Asian cities via an international airport located just 20 minutes from the city center.",
+          "id": "IICC ke-9 berlangsung tanggal 22-24 Juli 2026 di Yogyakarta, Indonesia. Kenapa Yogyakarta? Lokasinya dekat dengan sentra produksi kakao, punya komunitas artisan chocolate yang aktif, dan didukung riset akademis yang kuat di bidang kakao. Yogyakarta juga dikenal sebagai pusat budaya Jawa, jadi selain konferensi, peserta bisa merasakan langsung tradisi dan keramahan khas kota ini. Soal akses, bandara internasional Yogyakarta cuma 20 menit dari pusat kota, dengan koneksi penerbangan dari kota-kota besar di Asia."
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "Who should attend IICC?",
+          "id": "Siapa yang sebaiknya menghadiri IICC?"
+        },
+        "answer": {
+          "en": "IICC is open to all parties involved in the cocoa industry, including farmers and cocoa cooperatives, traders and exporters, processors and grinders, chocolate makers, banks and investors, service providers (logistics, machinery, insurance), government and NGOs, as well as researchers and academics.",
+          "id": "IICC terbuka untuk semua pihak yang terlibat dalam industri kakao, termasuk petani dan koperasi kakao, trader dan eksportir, pengolah dan grinder, produsen cokelat, bank dan investor, penyedia jasa (logistik, mesin, asuransi), pemerintah dan NGO, serta peneliti dan akademisi."
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "What types of tickets are available?",
+          "id": "Jenis tiket apa saja yang tersedia?"
+        },
+        "answer": {
+          "en": "There are 4 types of tickets available: (1) Conference Only - access to all conference sessions for 2 days, (2) Dinner Only - access to the exclusive IICC gala dinner, (3) Conference + Dinner - complete package for conference and gala dinner, (4) Table Dinner (8 Pax) - VIP table for 8 people at the gala dinner with company branding.",
+          "id": "Tersedia 4 jenis tiket: (1) Conference Only - akses ke semua sesi konferensi selama 2 hari, (2) Dinner Only - akses ke gala dinner eksklusif IICC, (3) Conference + Dinner - paket lengkap konferensi dan gala dinner, (4) Table Dinner (8 Pax) - meja VIP untuk 8 orang di gala dinner dengan branding perusahaan."
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "Is there an early bird discount?",
+          "id": "Apakah ada diskon early bird?"
+        },
+        "answer": {
+          "en": "Yes! We offer early bird discounts of up to 17% for registrations before March 31, 2026. Early bird prices: Conference Only USD 500, Dinner Only USD 300, Conference + Dinner USD 750, and Table Dinner USD 2,500.",
+          "id": "Ya! Kami menawarkan diskon early bird hingga 17% untuk pendaftaran sebelum 31 Maret 2026. Harga early bird: Conference Only USD 500, Dinner Only USD 300, Conference + Dinner USD 750, dan Table Dinner USD 2,500."
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "How do I register?",
+          "id": "Bagaimana cara mendaftar?"
+        },
+        "answer": {
+          "en": "You can register through our official website by clicking the Register button on this page. You will be directed to the registration page to select your ticket type and make payment.",
+          "id": "Anda dapat mendaftar melalui website resmi kami dengan mengklik tombol Daftar di halaman ini. Anda akan diarahkan ke halaman registrasi untuk memilih jenis tiket dan melakukan pembayaran."
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "What language will be used during the conference?",
+          "id": "Bahasa apa yang digunakan selama konferensi?"
+        },
+        "answer": {
+          "en": "The conference will use English as the primary language to accommodate international participants from 30+ countries. Some sessions may provide Indonesian translation.",
+          "id": "Konferensi akan menggunakan Bahasa Inggris sebagai bahasa utama untuk memfasilitasi peserta internasional dari 30+ negara. Beberapa sesi mungkin menyediakan terjemahan ke Bahasa Indonesia."
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "What is included in the Conference ticket?",
+          "id": "Apa saja yang termasuk dalam tiket Conference?"
+        },
+        "answer": {
+          "en": "The Conference ticket includes access to all sessions and panel discussions for 2 days, networking sessions with participants from around the world, digital conference materials, lunch for all 2 conference days, coffee breaks, and certificate of attendance (for Conference + Dinner package).",
+          "id": "Tiket Conference mencakup akses ke semua sesi dan panel diskusi selama 2 hari, sesi networking dengan peserta dari seluruh dunia, materi konferensi dalam format digital, makan siang selama 2 hari konferensi, coffee break, dan sertifikat kehadiran (untuk paket Conference + Dinner)."
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Is accommodation included in the ticket?",
+          "id": "Apakah akomodasi termasuk dalam tiket?"
+        },
+        "answer": {
+          "en": "No, accommodation is not included in the ticket price. However, Yogyakarta offers a wide range of hotels for all budgets, from 5-star hotels to budget accommodations. We will provide a list of recommended hotels near the conference venue to registered participants.",
+          "id": "Tidak, akomodasi tidak termasuk dalam harga tiket. Namun, Yogyakarta menawarkan berbagai pilihan hotel untuk semua budget, dari hotel bintang 5 hingga penginapan ekonomis. Kami akan menyediakan daftar hotel rekomendasi yang dekat dengan venue konferensi kepada peserta yang sudah terdaftar."
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "Is there a dress code?",
+          "id": "Apakah ada dress code?"
+        },
+        "answer": {
+          "en": "For conference sessions, we recommend business casual or comfortable semi-formal attire. For the gala dinner, the dress code is smart casual or formal. Given Yogyakarta's tropical climate, light and comfortable clothing is highly recommended.",
+          "id": "Untuk sesi konferensi, kami menyarankan business casual atau pakaian semi-formal yang nyaman. Untuk gala dinner, dress code adalah smart casual atau formal. Mengingat Yogyakarta beriklim tropis, pakaian yang ringan dan nyaman sangat dianjurkan."
+        }
+      },
+      {
+        "order": 11,
+        "question": {
+          "en": "How can I become a sponsor or partner?",
+          "id": "Bagaimana jika saya ingin menjadi sponsor atau partner?"
+        },
+        "answer": {
+          "en": "We welcome partnerships and sponsorships! Various sponsorship packages are available with different benefits, including branding, exhibition booths, and speaking opportunities. Please contact our team through the Contact page for more information.",
+          "id": "Kami menyambut baik kemitraan dan sponsorship! Berbagai paket sponsorship tersedia dengan benefit yang berbeda-beda, termasuk branding, booth exhibition, dan kesempatan berbicara. Silakan hubungi tim kami melalui halaman Kontak untuk informasi lebih lanjut."
+        }
+      },
+      {
+        "order": 12,
+        "question": {
+          "en": "What is the refund policy?",
+          "id": "Bagaimana kebijakan refund?"
+        },
+        "answer": {
+          "en": "All ticket purchases are final and non-refundable. However, tickets can be transferred to another person with prior notice to the organizer.",
+          "id": "Semua pembelian tiket bersifat final dan tidak dapat di-refund. Namun, tiket dapat ditransfer ke orang lain dengan pemberitahuan terlebih dahulu kepada penyelenggara."
+        }
+      }
+    ]
+  },
+  {
+    "event": "globalaiexpo",
+    "items": [
+      {
+        "order": 1,
+        "question": {
+          "en": "When and where does {{event_title}} take place?",
+          "id": "Kapan dan di mana {{event_title}} berlangsung?"
+        },
+        "answer": {
+          "en": "<p>{{event_title}} runs <strong>{{event_date}}</strong>, daily hours <strong>{{event_time}}</strong>, at <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>. Exact dates are confirmed once the venue contract closes.</p>",
+          "id": "<p>{{event_title}} digelar <strong>{{event_date}}</strong>, jam operasional <strong>{{event_time}}</strong>, di <a href=\"{{location_link}}\" target=\"_blank\">{{event_location}}</a>. Tanggal pasti dikonfirmasi setelah kontrak venue selesai.</p>"
+        }
+      },
+      {
+        "order": 2,
+        "question": {
+          "en": "Who should attend?",
+          "id": "Siapa yang sebaiknya datang?"
+        },
+        "answer": {
+          "en": "<p>Enterprise teams sourcing AI, founders raising or selling, investors scouting, policy and academic delegations, and engineers who want to see live deployments. The event is built for B2B and B2G traffic, not consumer entertainment.</p>",
+          "id": "<p>Tim enterprise yang sedang sourcing AI, founder yang sedang fundraising atau berjualan, investor yang scouting, delegasi pemerintah dan akademisi, serta engineer yang ingin melihat deployment langsung. Event ini fokus B2B dan B2G, bukan hiburan konsumen.</p>"
+        }
+      },
+      {
+        "order": 3,
+        "question": {
+          "en": "How do I get a visitor pass?",
+          "id": "Bagaimana cara dapat tiket pengunjung?"
+        },
+        "answer": {
+          "en": "<p>Visitor registration opens September 2026 on the <a href=\"/ticket\">Ticket page</a>. Passes are sent by email and WhatsApp once payment clears.</p>",
+          "id": "<p>Pendaftaran pengunjung dibuka September 2026 di <a href=\"/ticket\">halaman Ticket</a>. Pass dikirim lewat email dan WhatsApp setelah pembayaran terverifikasi.</p>"
+        }
+      },
+      {
+        "order": 4,
+        "question": {
+          "en": "What does an exhibitor booth cost?",
+          "id": "Berapa harga booth exhibitor?"
+        },
+        "answer": {
+          "en": "<p>Standard booth: USD 5,000. Premium booth: USD 12,000. Pavilion booth: USD 30,000. Pricing covers the three-day run. Sales will share floor plans and zone availability after you submit a request.</p>",
+          "id": "<p>Booth Standard: USD 5.000. Premium: USD 12.000. Pavilion: USD 30.000. Harga mencakup tiga hari penyelenggaraan. Tim sales akan membagikan denah dan ketersediaan zona setelah Anda mengirim permintaan.</p>"
+        }
+      },
+      {
+        "order": 5,
+        "question": {
+          "en": "What sponsorship tiers are available?",
+          "id": "Tier sponsorship apa saja yang tersedia?"
+        },
+        "answer": {
+          "en": "<p>Silver USD 50,000, Gold USD 150,000, Platinum USD 300,000, Title Sponsor USD 1,000,000. Each tier includes branded zones, stage time, and curated business matching. Decks are shared after a short qualification call.</p>",
+          "id": "<p>Silver USD 50.000, Gold USD 150.000, Platinum USD 300.000, Title Sponsor USD 1.000.000. Tiap tier mencakup branded zone, slot panggung, dan akses business matching. Deck dikirim setelah panggilan kualifikasi singkat.</p>"
+        }
+      },
+      {
+        "order": 6,
+        "question": {
+          "en": "Which industry zones are on the floor?",
+          "id": "Zona industri apa saja di lantai pameran?"
+        },
+        "answer": {
+          "en": "<p>Eight zones: AI Robotics, Healthcare AI, Fintech AI, Smart City AI, Manufacturing AI, Autonomous Vehicles, AI and Energy, AI and Agriculture. Exhibitors pick their zone at booking.</p>",
+          "id": "<p>Delapan zona: AI Robotics, Healthcare AI, Fintech AI, Smart City AI, Manufacturing AI, Autonomous Vehicles, AI dan Energi, AI dan Agrikultur. Exhibitor memilih zona saat booking.</p>"
+        }
+      },
+      {
+        "order": 7,
+        "question": {
+          "en": "How does the Innovation Competition work?",
+          "id": "Bagaimana mekanisme Innovation Competition?"
+        },
+        "answer": {
+          "en": "<p>USD 100,000 total prize pool across four categories: Best AI Startup, Best AI Application, AI for Social Impact, and AI Robotics Innovation. Applications open mid 2026 with judging during the expo.</p>",
+          "id": "<p>Total hadiah USD 100.000 untuk empat kategori: Best AI Startup, Best AI Application, AI for Social Impact, dan AI Robotics Innovation. Pendaftaran dibuka pertengahan 2026, penjurian berlangsung selama event.</p>"
+        }
+      },
+      {
+        "order": 8,
+        "question": {
+          "en": "How is business matching organized?",
+          "id": "Bagaimana sistem business matching bekerja?"
+        },
+        "answer": {
+          "en": "<p>Pre-vetted buyers and suppliers fill out a profile in advance. The matching team books 30-minute meetings during the event. Visitor and exhibitor passes both unlock access.</p>",
+          "id": "<p>Buyer dan supplier mengisi profil terlebih dahulu. Tim matching menjadwalkan pertemuan 30 menit selama event. Pass pengunjung dan exhibitor sama-sama membuka akses.</p>"
+        }
+      },
+      {
+        "order": 9,
+        "question": {
+          "en": "Where do I stay, and how do I get to the venue?",
+          "id": "Di mana menginap dan bagaimana akses ke venue?"
+        },
+        "answer": {
+          "en": "<p>Sentul City is around 50 km south of central Jakarta. Hotel partner rates and airport transfer details ship with your confirmation email. Public transport options are listed on the <a href=\"/help-center\">Help Center</a>.</p>",
+          "id": "<p>Sentul City berjarak sekitar 50 km dari pusat Jakarta. Tarif hotel partner dan transfer dari bandara dikirim bersama email konfirmasi. Opsi transportasi umum tersedia di <a href=\"/help-center\">Pusat Bantuan</a>.</p>"
+        }
+      },
+      {
+        "order": 10,
+        "question": {
+          "en": "How do I reach the organizer?",
+          "id": "Bagaimana cara menghubungi penyelenggara?"
+        },
+        "answer": {
+          "en": "<p>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">tap to chat</a>. Email: <a href=\"mailto:{email}\">{email}</a>. For press, use the media accreditation form on the <a href=\"/partners\">Partners page</a>.</p>",
+          "id": "<p>WhatsApp: <a href=\"{{whatsapp_link}}\" target=\"_blank\">klik untuk chat</a>. Email: <a href=\"mailto:{email}\">{email}</a>. Untuk pers, gunakan formulir akreditasi media di <a href=\"/partners\">halaman Partners</a>.</p>"
+        }
+      }
+    ]
   }
 ]

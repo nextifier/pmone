@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
@@ -25,11 +28,12 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\Event|null $event
- * @property-read Collection<int, \App\Models\Partner> $partners
+ * @property-read User|null $creator
+ * @property-read Event|null $event
+ * @property-read Collection<int, Partner> $partners
  * @property-read int|null $partners_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static Builder<static>|PartnerCategory findSimilarSlugs(string $attribute, array $config, string $slug)
  * @method static Builder<static>|PartnerCategory newModelQuery()
  * @method static Builder<static>|PartnerCategory newQuery()
@@ -46,6 +50,7 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|PartnerCategory whereUpdatedAt($value)
  * @method static Builder<static>|PartnerCategory whereUpdatedBy($value)
  * @method static Builder<static>|PartnerCategory withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ *
  * @mixin \Eloquent
  */
 class PartnerCategory extends Model implements Sortable
@@ -53,6 +58,7 @@ class PartnerCategory extends Model implements Sortable
     use ClearsResponseCache;
     use HasFactory;
     use HasSlug;
+    use LogsActivity;
     use SortableTrait;
 
     protected $fillable = [
@@ -109,6 +115,24 @@ class PartnerCategory extends Model implements Sortable
     public function buildSortQuery(): Builder
     {
         return static::query()->where('event_id', $this->event_id);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'name',
+                'slug',
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
+
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
     }
 
     protected static function boot(): void

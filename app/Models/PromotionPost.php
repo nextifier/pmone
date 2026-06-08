@@ -79,6 +79,13 @@ class PromotionPost extends Model implements HasMedia, Sortable
             ->dontSubmitEmptyLogs();
     }
 
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->loadMissing('brandEvent.event')->brandEvent?->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
+    }
+
     public array $sortable = [
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,

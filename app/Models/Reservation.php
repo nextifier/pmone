@@ -320,6 +320,13 @@ class Reservation extends Model implements HasMedia, Purchasable
             ->dontSubmitEmptyLogs();
     }
 
+    public function tapActivity(Activity $activity, string $eventName): void
+    {
+        if ($projectId = $this->loadMissing('event')->event?->project_id) {
+            $activity->properties = $activity->properties->put('project_id', $projectId);
+        }
+    }
+
     public function registerMediaCollections(): void
     {
         $this->registerDynamicMediaCollections();

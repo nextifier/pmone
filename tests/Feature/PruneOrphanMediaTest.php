@@ -89,6 +89,33 @@ it('is idempotent — a second --force run finds nothing new', function () {
     expect(Storage::disk('public')->exists("{$this->mediaDir}/old-orphan.jpg"))->toBeFalse();
 });
 
+it('refuses to delete from a remote disk outside production (DB/disk mismatch guard)', function () {
+    // Simulate pointing at a production cloud bucket from a non-production env.
+    config()->set('filesystems.disks.r2test', ['driver' => 's3', 'root' => '']);
+    config()->set('media-library.disk_name', 'r2test');
+    Storage::fake('r2test');
+
+    // A real production file the (test) database knows nothing about.
+    Storage::disk('r2test')->put('posts/featured_image/1/real-prod-file.jpg', 'x');
+
+    $this->artisan('media:prune-orphans', ['--force' => true])
+        ->expectsOutputToContain('Refusing to delete from remote disk')
+        ->assertExitCode(1);
+
+    expect(Storage::disk('r2test')->exists('posts/featured_image/1/real-prod-file.jpg'))->toBeTrue();
+});
+
+it('still allows a read-only dry run against a remote disk', function () {
+    config()->set('filesystems.disks.r2test', ['driver' => 's3', 'root' => '']);
+    config()->set('media-library.disk_name', 'r2test');
+    Storage::fake('r2test');
+    Storage::disk('r2test')->put('posts/featured_image/1/real-prod-file.jpg', 'x');
+
+    $this->artisan('media:prune-orphans', ['--skip-records' => true])->assertExitCode(0);
+
+    expect(Storage::disk('r2test')->exists('posts/featured_image/1/real-prod-file.jpg'))->toBeTrue();
+});
+
 it('removes orphaned media records whose model is gone (phase A)', function () {
     $ghost = User::factory()->create(['email_verified_at' => now()]);
     $ghostMedia = $ghost->addMedia(UploadedFile::fake()->image('ghost.jpg', 300, 300))
