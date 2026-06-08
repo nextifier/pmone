@@ -83,7 +83,11 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
 <template>
   <div
     class="bg-card overflow-hidden rounded-2xl border transition-colors"
-    :class="qty > 0 ? 'border-primary/40 ring-primary/10 ring-2' : 'border-border'"
+    :class="
+      qty > 0
+        ? 'border-transparent ring-2 ring-primary ring-offset-2 ring-offset-background'
+        : 'border-border'
+    "
   >
     <div class="grid gap-0 sm:grid-cols-[10rem_1fr]">
       <Lightbox
@@ -193,7 +197,7 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
                 :model-value="qty"
                 :max-length="2"
                 :disabled="maxQty === 0"
-                class="h-9 !w-14 text-center font-mono"
+                class="h-9 !w-14 text-center"
                 :aria-label="`Quantity for ${room.name}`"
                 @update:model-value="handleQtyInput"
               />
@@ -229,8 +233,8 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
       </div>
     </div>
 
-    <div v-if="qty > 0" class="border-border space-y-1.5 border-t bg-muted/30 px-3 py-2.5 sm:px-4">
-      <Label class="text-muted-foreground text-xs tracking-tight">
+    <div v-if="qty > 0" class="border-border space-y-1.5 border-t bg-muted/30 p-3 sm:p-4">
+      <Label class="text-muted-foreground text-xs tracking-tight sm:text-sm">
         Notes for this room (optional)
       </Label>
       <Textarea

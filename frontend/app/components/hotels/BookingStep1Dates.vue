@@ -207,9 +207,10 @@ watch(
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              class="z-50 max-h-[85vh] w-auto max-w-[95vw] overflow-auto border-0 bg-transparent p-0 shadow-none"
+              class="z-50 max-h-[var(--reka-popover-content-available-height,85vh)] w-auto max-w-[95vw] overflow-auto overscroll-contain border-0 bg-transparent p-0 shadow-none"
               align="start"
               :side-offset="6"
+              :collision-padding="8"
             >
               <PricingCalendar
                 :model-value="rangeValue"
@@ -231,7 +232,7 @@ watch(
             <Input
               :model-value="guestCount"
               :max-length="2"
-              class="h-9 !w-14 text-center font-mono"
+              class="h-9 !w-14 text-center"
               aria-label="Number of guests"
               @update:model-value="handleGuestInputChange"
             />
@@ -274,18 +275,20 @@ watch(
         </span>
       </div>
 
-      <BookingStep1RoomCard
-        v-for="room in roomTypes"
-        :key="room.id"
-        :room="room"
-        :qty="rooms[room.id] ?? 0"
-        :notes="roomNotes[room.id] ?? ''"
-        :available="availability[room.id] ?? null"
-        :preview="roomPreviews[room.id] ?? null"
-        :nights="nights"
-        @update:qty="(qty) => emit('update:roomQty', { roomId: room.id, qty })"
-        @update:notes="(notes) => emit('update:roomNotes', { roomId: room.id, notes })"
-      />
+      <div class="space-y-5">
+        <BookingStep1RoomCard
+          v-for="room in roomTypes"
+          :key="room.id"
+          :room="room"
+          :qty="rooms[room.id] ?? 0"
+          :notes="roomNotes[room.id] ?? ''"
+          :available="availability[room.id] ?? null"
+          :preview="roomPreviews[room.id] ?? null"
+          :nights="nights"
+          @update:qty="(qty) => emit('update:roomQty', { roomId: room.id, qty })"
+          @update:notes="(notes) => emit('update:roomNotes', { roomId: room.id, notes })"
+        />
+      </div>
     </section>
   </div>
 </template>

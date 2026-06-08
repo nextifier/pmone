@@ -42,7 +42,7 @@ const showSkeleton = computed(() => !!loading?.value && !cell.value);
       cn(
         buttonVariants({ variant: 'ghost' }),
         'group p-0 font-normal data-[selected]:opacity-100',
-        '[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground',
+        '[&[data-today]:not([data-selected])]:bg-muted [&[data-today]:not([data-selected])]:text-foreground',
         // Every selected cell — endpoints AND the middle of the range — paints
         // a solid primary background so the range reads as one continuous bar.
         // Without this the middle cells would only inherit the cell-wrapper's

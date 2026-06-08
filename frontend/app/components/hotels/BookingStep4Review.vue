@@ -400,7 +400,7 @@ watch(promoError, (val) => {
         <Input
           v-model="promoInput"
           placeholder="ENTER CODE"
-          class="flex-1 uppercase font-mono"
+          class="flex-1 uppercase"
           maxlength="60"
           :disabled="promoApplying || !!appliedPromo"
           @keydown.enter.prevent="!appliedPromo && promoInput?.trim() && !promoApplying && applyPromo()"

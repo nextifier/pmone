@@ -51,6 +51,7 @@ const delegatedProps = reactiveOmit(
   "pricingData",
   "isLoading",
   "isDateDisabled",
+  "numberOfMonths",
   "goodPriceThreshold"
 );
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
@@ -80,6 +81,49 @@ const isDateDisabledMerged = (date: DateValue) => {
 
 const internalPlaceholder = ref<DateValue | undefined>(props.placeholder);
 
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+function monthHasPickableDate(year: number, month: number): boolean {
+  const lastDay = new Date(year, month, 0).getDate();
+  for (let day = 1; day <= lastDay; day++) {
+    const cell = props.pricingData[`${year}-${pad2(month)}-${pad2(day)}`];
+    if (cell && cell.available > 0 && cell.rate != null) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Trim trailing months that have no pickable date, so an event whose available
+// dates all fall within a single month doesn't render an empty second month.
+// Only trims when the first (placeholder) month actually has pickable dates,
+// which keeps the requested count for not-yet-loaded data / fully sold-out cases.
+//
+// Anchored to `props.placeholder` (the stable event/initial month) rather than
+// `internalPlaceholder`: reka-ui moves the live placeholder onto whichever date
+// the user selects (RangeCalendarRoot calls onPlaceholderChange on the start
+// value), so anchoring the trim there would collapse the view when a date in the
+// second month is picked.
+const effectiveNumberOfMonths = computed(() => {
+  const base = props.numberOfMonths ?? 2;
+  const start = props.placeholder ?? internalPlaceholder.value;
+  if (base <= 1 || !start) {
+    return base;
+  }
+  if (!monthHasPickableDate(start.year, start.month)) {
+    return base;
+  }
+  let count = base;
+  while (count > 1) {
+    const last = start.add({ months: count - 1 });
+    if (monthHasPickableDate(last.year, last.month)) {
+      break;
+    }
+    count--;
+  }
+  return count;
+});
+
 watch(
   () => props.placeholder,
   (v) => {
@@ -100,10 +144,10 @@ function emitMonthChange(start: DateValue, monthsVisible: number) {
 }
 
 watch(
-  internalPlaceholder,
-  (cur) => {
+  [internalPlaceholder, effectiveNumberOfMonths],
+  ([cur, months]) => {
     if (!cur) return;
-    emitMonthChange(cur, props.numberOfMonths ?? 2);
+    emitMonthChange(cur, months);
   },
   { immediate: true }
 );
@@ -117,7 +161,7 @@ watch(
     weekday-format="short"
     :weekStartsOn="1"
     :is-date-disabled="isDateDisabledMerged"
-    :number-of-months="numberOfMonths"
+    :number-of-months="effectiveNumberOfMonths"
     :class="cn('rounded-md border p-3', props.class)"
     v-bind="forwarded"
   >
