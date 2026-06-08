@@ -165,7 +165,7 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
           {{ room.description }}
         </p>
 
-        <div class="mt-auto flex items-center justify-between gap-3 pt-1">
+        <div class="mt-auto flex items-end justify-between gap-3 pt-1">
           <div
             v-if="availabilityState"
             class="inline-flex items-center gap-x-1 text-xs tracking-tight"
@@ -187,36 +187,44 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
           </div>
           <div v-else />
 
-          <ButtonGroup>
-            <Input
-              :model-value="qty"
-              :max-length="2"
-              :disabled="maxQty === 0"
-              class="h-9 !w-14 text-center font-mono"
-              :aria-label="`Quantity for ${room.name}`"
-              @update:model-value="handleQtyInput"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              type="button"
-              :aria-label="`Decrement ${room.name}`"
-              :disabled="qty <= 0 || maxQty === 0"
-              @click="adjustQty(-1)"
+          <div class="flex flex-col items-end gap-1">
+            <ButtonGroup>
+              <Input
+                :model-value="qty"
+                :max-length="2"
+                :disabled="maxQty === 0"
+                class="h-9 !w-14 text-center font-mono"
+                :aria-label="`Quantity for ${room.name}`"
+                @update:model-value="handleQtyInput"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                :aria-label="`Decrement ${room.name}`"
+                :disabled="qty <= 0 || maxQty === 0"
+                @click="adjustQty(-1)"
+              >
+                <Icon name="hugeicons:minus-sign" class="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                type="button"
+                :aria-label="`Increment ${room.name}`"
+                :disabled="qty >= maxQty || maxQty === 0"
+                @click="adjustQty(1)"
+              >
+                <Icon name="hugeicons:plus-sign" class="size-4" />
+              </Button>
+            </ButtonGroup>
+            <span
+              v-if="room.max_pax"
+              class="text-muted-foreground text-xs tracking-tight whitespace-nowrap"
             >
-              <Icon name="hugeicons:minus-sign" class="size-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              type="button"
-              :aria-label="`Increment ${room.name}`"
-              :disabled="qty >= maxQty || maxQty === 0"
-              @click="adjustQty(1)"
-            >
-              <Icon name="hugeicons:plus-sign" class="size-4" />
-            </Button>
-          </ButtonGroup>
+              Max {{ room.max_pax }} guest{{ room.max_pax > 1 ? "s" : "" }} / room
+            </span>
+          </div>
         </div>
       </div>
     </div>
