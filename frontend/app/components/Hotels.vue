@@ -237,8 +237,9 @@ const rateTooltip = (est) => {
   return `<span class="inline-flex items-center gap-2 whitespace-nowrap text-base font-medium tracking-tight">${flagHtml(country)}<span>${estimateUnit(est)}</span><span class="opacity-60">=</span>${flagHtml("id")}<span>${estimateIdr(est)}</span></span>`;
 };
 
-// Suppress the tooltip when there is no estimate (rateTooltip returns "").
-const showTooltipIfContent = (instance) => instance.props.content !== "";
+// Suppress the tooltip when there is no estimate. vue-tippy coerces empty
+// content to null, so check truthiness rather than comparing to "".
+const showTooltipIfContent = (instance) => Boolean(instance.props.content);
 
 const formatEventDates = (ev) => {
   const fmt = (d) =>
