@@ -87,6 +87,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\WhatsAppWebhookController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
+use App\Http\Controllers\Api\WhatsAppTestController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 use Spatie\ResponseCache\Middlewares\CacheResponse;
@@ -1160,6 +1161,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/system/permissions/sync', [SyncPermissionsController::class, 'sync'])
         ->middleware('can:admin.settings')
         ->name('system.permissions.sync');
+
+    // Send a test WhatsApp template message (admin/master tool; role gate in the
+    // form request). Verifies the Meta Cloud API setup without a real reservation.
+    Route::post('/system/whatsapp/test', [WhatsAppTestController::class, 'send'])
+        ->middleware('throttle:6,1')
+        ->name('system.whatsapp.test');
 
     // Event Branding (per-event override)
     Route::get('/events/{event}/branding', [EventBrandingController::class, 'show'])->name('events.branding.show');

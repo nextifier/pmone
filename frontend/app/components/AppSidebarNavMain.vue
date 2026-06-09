@@ -517,6 +517,11 @@ const navMainGroups = computed(() => {
         label: "SDF Converter",
         path: "/tools/sdf-converter",
         iconName: "hugeicons:exchange-01",
+      },
+      {
+        label: "WhatsApp Tester",
+        path: "/tools/whatsapp-tester",
+        iconName: "hugeicons:whatsapp",
       }
     );
   }
