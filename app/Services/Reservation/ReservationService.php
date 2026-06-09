@@ -7,6 +7,7 @@ use App\Enums\PricingType;
 use App\Enums\ReservationSource;
 use App\Enums\ReservationStatus;
 use App\Jobs\Reservation\SendBookingReceivedJob;
+use App\Jobs\Reservation\SendReservationWhatsAppJob;
 use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\HotelEvent;
@@ -598,6 +599,13 @@ class ReservationService
 
         if ($updated > 0) {
             SendBookingReceivedJob::dispatch($reservation->id);
+
+            // Gated by a feature flag so it stays dormant until the Meta account
+            // is production-ready and the template is approved. A WhatsApp failure
+            // never affects the reservation: it is a queued, isolated side effect.
+            if (config('services.whatsapp.enabled')) {
+                SendReservationWhatsAppJob::dispatch($reservation->id);
+            }
         }
     }
 

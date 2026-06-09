@@ -85,6 +85,7 @@ use App\Http\Controllers\Api\TemporaryUploadController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
+use App\Http\Controllers\Api\Webhook\WhatsAppWebhookController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
@@ -1371,3 +1372,12 @@ Route::post('/webhooks/midtrans', [MidtransWebhookController::class, 'handle'])
 Route::post('/webhooks/midtrans/{segment}', [MidtransWebhookController::class, 'handleWithSegment'])
     ->middleware('log-payment-webhook:midtrans')
     ->name('webhooks.midtrans.segment');
+
+// WhatsApp Cloud API webhook (Meta). No auth - GET verifies the subscription
+// handshake, POST receives event delivery. The X-Hub-Signature-256 HMAC is
+// verified inside the controller (raw body keyed with the Meta App Secret).
+// Callback URL to register in Meta: https://{domain}/api/webhooks/whatsapp
+Route::get('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])
+    ->name('webhooks.whatsapp.verify');
+Route::post('/webhooks/whatsapp', [WhatsAppWebhookController::class, 'handle'])
+    ->name('webhooks.whatsapp');

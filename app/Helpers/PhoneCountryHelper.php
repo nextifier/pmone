@@ -270,4 +270,16 @@ class PhoneCountryHelper
 
         return $cleaned;
     }
+
+    /**
+     * Format a phone number for the WhatsApp Cloud API: digits only, no '+'.
+     *
+     * WhatsApp's `to` field expects the full international number without a
+     * leading plus (e.g. 628123456789). Reuses normalizePhoneNumber() to handle
+     * the 08xxx -> +628xxx / 62xxx / +62xxx cases, then strips every non-digit.
+     */
+    public static function toWhatsAppNumber(string $phone): string
+    {
+        return (string) preg_replace('/\D+/', '', self::normalizePhoneNumber($phone));
+    }
 }
