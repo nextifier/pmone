@@ -52,7 +52,9 @@ class OAuthController extends Controller
 
             return redirect()->to(config('app.frontend_url').'/dashboard');
 
-        } catch (\Exception $e) {
+        } catch (\DomainException $e) {
+            return $this->redirectToLoginWithError($e->getMessage());
+        } catch (\Throwable $e) {
             logger()->error('OAuth authentication failed', [
                 'provider' => $provider,
                 'error' => $e->getMessage(),
@@ -92,10 +94,20 @@ class OAuthController extends Controller
             ->first();
 
         if ($oauthProvider) {
-            // Update existing OAuth provider data
-            $this->updateOAuthProvider($oauthProvider, $socialiteUser);
+            $linkedUser = $oauthProvider->user()->withTrashed()->first();
 
-            return $oauthProvider->user;
+            if ($linkedUser?->trashed()) {
+                throw new \DomainException('This account is no longer active.');
+            }
+
+            if ($linkedUser) {
+                $this->updateOAuthProvider($oauthProvider, $socialiteUser);
+
+                return $linkedUser;
+            }
+
+            // Linked user was hard-deleted: drop the orphaned record and re-link below.
+            $oauthProvider->delete();
         }
 
         // Find or create user by email

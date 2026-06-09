@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Post;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use ZipArchive;
 
 class PostExportService
@@ -51,7 +52,7 @@ class PostExportService
 
         // Create temporary directory for export
         $timestamp = now()->format('Y-m-d_His');
-        $tempBaseDir = storage_path('app/temp');
+        $tempBaseDir = storage_path('app/tmp/post-exports');
         $exportDir = "{$tempBaseDir}/posts_export_{$timestamp}";
 
         try {
@@ -105,7 +106,7 @@ class PostExportService
 
             // Create ZIP file
             $zipFilename = "posts_images_{$timestamp}.zip";
-            $zipPath = storage_path("app/temp/{$zipFilename}");
+            $zipPath = "{$tempBaseDir}/{$zipFilename}";
 
             $result = $this->createZipArchive($exportDir, $zipPath);
 
@@ -447,7 +448,7 @@ class PostExportService
         foreach ($posts as $post) {
             // Truncate content to 500 characters for preview
             $contentPreview = $post->content
-                ? \Illuminate\Support\Str::limit(strip_tags($post->content), 500)
+                ? Str::limit(strip_tags($post->content), 500)
                 : '';
 
             $row = [

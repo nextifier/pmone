@@ -22,11 +22,7 @@ See `~/Frontend/pmone-events/CLAUDE.md` for the event websites monorepo document
 
 Returns 404 with `error_code: HOTEL_RESERVATION_DISABLED`. Magic-link endpoints (existing reservation receipt/voucher) are NOT gated so customers can still access historical bookings. `GET /public/hotels` listing filters via `whereHas events.hotel_reservation_enabled = true`.
 
-**Data seeding:** `database/seeders/JakartaHotelsSeeder` (20 hotels with rooms + transfers) + `database/seeders/JakartaHotelsPhotosSeeder` (~190 photos from `database/seeders/hotel-photos/` committed to git, no external CDN at runtime). Both idempotent via `firstOrCreate` + media existence check.
-
 **Reservation creation:** Requires explicit `event_id` in payload. `ReservationService::createReservation` validates `HotelEvent` pivot exists + active. Public form `StorePublicReservationRequest` enforces `event_id => required|exists`.
-
-See `DEPLOY.md` for production deploy + seeder runbook.
 
 <laravel-boost-guidelines>
 === foundation rules ===

@@ -111,7 +111,7 @@ trait HasSlug
             'source' => null,
             'separator' => '-',
             'unique' => true,
-            'includeTrashed' => false,
+            'includeTrashed' => true,
             'onUpdate' => false,
             'maxLength' => null,
             'maxLengthKeepWords' => true,
@@ -287,6 +287,9 @@ trait HasSlug
 
         $query->withUniqueSlugConstraints($model, $attribute, $config, $slug);
 
+        // Soft-deleted rows still occupy the slug column's unique index, so they
+        // must be considered when generating a unique slug to avoid duplicate-key
+        // violations on insert. This is why includeTrashed defaults to true.
         if ($config['includeTrashed'] && method_exists($model, 'bootSoftDeletes')) {
             $query->withTrashed();
         }

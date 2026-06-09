@@ -192,6 +192,29 @@ it('checks trashed records for Brand slug uniqueness', function () {
     expect($newBrand->slug)->toBe('trashed-brand-1');
 });
 
+it('checks trashed records by default for soft-deleting models without explicit config', function () {
+    $post = Post::create([
+        'title' => 'Trashed Slug',
+        'content' => 'Content',
+        'status' => 'draft',
+        'content_format' => 'html',
+        'visibility' => 'public',
+        'source' => 'native',
+    ]);
+    $post->delete();
+
+    $second = Post::create([
+        'title' => 'Trashed Slug',
+        'content' => 'Content',
+        'status' => 'draft',
+        'content_format' => 'html',
+        'visibility' => 'public',
+        'source' => 'native',
+    ]);
+
+    expect($second->slug)->toBe('trashed-slug-1');
+});
+
 // ─── Slug not regenerated on update when onUpdate=false ──────────────
 
 it('does not change slug when title changes and onUpdate is false', function () {

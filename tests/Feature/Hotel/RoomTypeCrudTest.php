@@ -110,6 +110,24 @@ test('room type slug is auto-appended when name duplicates', function () {
         ->assertJsonPath('data.slug', fn (string $slug) => str_starts_with($slug, 'deluxe-'));
 });
 
+test('can recreate a room type with the same name after the original was soft-deleted', function () {
+    $room = RoomType::factory()->create([
+        'hotel_id' => $this->hotel->id,
+        'name' => 'Deluxe Pool Access',
+        'slug' => 'deluxe-pool-access',
+    ]);
+    $room->delete();
+
+    $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
+        'name' => 'Deluxe Pool Access',
+        'max_pax' => 2,
+        'base_rate' => 1000000,
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.slug', fn (string $slug) => $slug !== 'deluxe-pool-access' && str_starts_with($slug, 'deluxe-pool-access-'));
+});
+
 test('admin can create room type with dynamic pricing periods', function () {
     $response = $this->postJson("/api/events/{$this->event->id}/hotels/{$this->hotel->slug}/room-types", [
         'name' => 'Dynamic King',

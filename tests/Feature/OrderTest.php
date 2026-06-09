@@ -236,6 +236,24 @@ it('staff can view order detail', function () {
         ->assertJsonPath('data.ulid', $order->ulid);
 });
 
+it('staff can view order detail when the brand was soft-deleted', function () {
+    $this->actingAs($this->staff);
+
+    $order = Order::factory()->create([
+        'brand_event_id' => $this->brandEvent->id,
+    ]);
+
+    $this->brand->delete();
+
+    $response = $this->getJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}"
+    );
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.ulid', $order->ulid);
+    expect($response->json('data.brand_event.brand'))->toBeNull();
+});
+
 it('staff can update operational status', function () {
     $this->actingAs($this->staff);
 

@@ -52,12 +52,15 @@ class OrderResource extends JsonResource
                 'booth_number' => $this->brandEvent->booth_number,
                 'booth_type' => $this->brandEvent->booth_type?->value,
                 'booth_type_label' => $this->brandEvent->booth_type?->label(),
-                'brand' => $this->when($this->brandEvent->relationLoaded('brand'), fn () => [
-                    'id' => $this->brandEvent->brand->id,
-                    'name' => $this->brandEvent->brand->name,
-                    'slug' => $this->brandEvent->brand->slug,
-                    'company_name' => $this->brandEvent->brand->company_name,
-                ]),
+                'brand' => $this->when(
+                    $this->brandEvent->relationLoaded('brand') && $this->brandEvent->brand !== null,
+                    fn () => [
+                        'id' => $this->brandEvent->brand->id,
+                        'name' => $this->brandEvent->brand->name,
+                        'slug' => $this->brandEvent->brand->slug,
+                        'company_name' => $this->brandEvent->brand->company_name,
+                    ]
+                ),
             ]),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'created_at' => $this->created_at,

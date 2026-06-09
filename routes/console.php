@@ -4,6 +4,7 @@ use App\Jobs\Hotel\ReleaseExpiredAllotmentsJob;
 use App\Jobs\Reservation\ExpireUnpaidReservationsJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -19,16 +20,21 @@ Schedule::command('backup:clean')->daily()->at('02:00')->environments(['producti
 Schedule::command('backup:run --only-db')->daily()->at('03:00')->environments(['production']);
 Schedule::command('backup:monitor')->daily()->at('04:00')->environments(['production']);
 
-// Clean up temporary export files older than 1 hour
+// Clean up temporary export artifacts older than 1 hour
 Schedule::call(function () {
-    $directory = storage_path('app/tmp/exports');
-    if (! is_dir($directory)) {
-        return;
-    }
-    $files = glob($directory.'/*.xlsx');
-    foreach ($files as $file) {
-        if (filemtime($file) < now()->subHour()->timestamp) {
-            unlink($file);
+    $cutoff = now()->subHour()->timestamp;
+    $patterns = [
+        storage_path('app/tmp/exports').'/*.xlsx',
+        storage_path('app/tmp/post-exports').'/*.zip',
+        storage_path('app/tmp/post-exports').'/*.part',
+        storage_path('app/tmp/post-exports').'/posts_export_*',
+    ];
+    foreach ($patterns as $pattern) {
+        foreach (glob($pattern) ?: [] as $path) {
+            if (filemtime($path) >= $cutoff) {
+                continue;
+            }
+            is_dir($path) ? File::deleteDirectory($path) : @unlink($path);
         }
     }
 })->hourly();

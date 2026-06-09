@@ -11,9 +11,8 @@ use Illuminate\Http\JsonResponse;
 
 /**
  * Admin tool to send a one-off test WhatsApp template message, used to verify the
- * Meta Cloud API setup (token, phone number ID, approved templates) without
- * waiting for a real reservation. Bypasses the WHATSAPP_ENABLED reservation gate
- * by calling the service directly.
+ * Meta Cloud API setup (token, phone number ID, approved templates). This is the
+ * only WhatsApp surface in the app - it calls WhatsAppService directly.
  */
 class WhatsAppTestController extends Controller
 {
