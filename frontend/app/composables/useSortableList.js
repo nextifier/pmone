@@ -21,9 +21,16 @@ export function useSortableList(elementRef, data, options = {}) {
     ghostClass: "sortable-ghost",
     chosenClass: "sortable-chosen",
     dragClass: "sortable-drag",
+    // Touch: require a short long-press before a drag starts, so a normal swipe
+    // scrolls the page instead of accidentally reordering. Mouse stays instant
+    // (delayOnTouchOnly); moving the finger >8px during the delay cancels the drag.
+    delay: 200,
+    delayOnTouchOnly: true,
+    touchStartThreshold: 8,
     disabled: enabled ? !unref(enabled) : false,
     ...sortableOptions,
     onStart: (evt) => {
+      if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(15);
       if (sortableOptions.onStart) sortableOptions.onStart(evt);
     },
     onEnd: async (evt) => {

@@ -77,7 +77,7 @@
         <!-- Management toolbar (revealed on hover; floats just above the box so it
              never overlaps the partner tiles or their top-right detach buttons) -->
         <div
-          class="bg-background absolute right-3 bottom-full z-20 mb-1 flex items-center gap-0.5 rounded-lg border p-0.5 opacity-0 shadow-xs transition group-hover/cat:opacity-100"
+          class="bg-background absolute right-3 bottom-full z-20 mb-1 flex items-center gap-0.5 rounded-lg border p-0.5 opacity-0 shadow-xs transition group-hover/cat:opacity-100 pointer-coarse:opacity-100"
         >
           <button
             type="button"
@@ -152,8 +152,8 @@
             <button
               type="button"
               @click.stop="handleRemovePartner(category, partner)"
-              @mousedown.stop
-              class="bg-background absolute -top-2 -right-2 z-30 inline-flex size-6 items-center justify-center rounded-full border opacity-0 shadow-xs transition group-hover/logo:opacity-100"
+              @pointerdown.stop
+              class="bg-background absolute -top-2 -right-2 z-30 inline-flex size-6 items-center justify-center rounded-full border opacity-0 shadow-xs transition group-hover/logo:opacity-100 pointer-coarse:opacity-100"
               v-tippy="`Remove ${partner.name}`"
             >
               <Icon name="lucide:x" class="text-destructive size-3" />
@@ -485,6 +485,14 @@ const initPartnerSortables = () => {
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
+      // Touch: long-press to reorder so swiping over the logos scrolls instead of
+      // accidentally dragging. Mouse stays instant (delayOnTouchOnly).
+      delay: 200,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 8,
+      onStart: () => {
+        if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(15);
+      },
       onEnd: async () => {
         // Read new order from DOM
         const items = el.querySelectorAll("[data-pivot-id]");
