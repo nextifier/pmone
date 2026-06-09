@@ -602,6 +602,44 @@ class Project extends Model implements HasMedia, Sortable
     }
 
     /**
+     * Foreign-currency estimate configuration for the public Hotels listing.
+     *
+     * Returns null (estimate hidden) when the toggle is off, no currency is
+     * chosen, the target is IDR, or no exchange rate is available. Otherwise
+     * returns the IDR→currency multiplier so the frontend can convert any
+     * nightly rate for display. This is a non-binding estimate; bookings are
+     * always charged in IDR.
+     *
+     * @return array{currency_code: string, rate_per_idr: float, is_stale: bool}|null
+     */
+    public function getHotelEstimatedPriceConfig(?ExchangeRate $rate): ?array
+    {
+        $hotels = data_get($this->settings, 'website_settings.hotels', []);
+
+        if (! ($hotels['show_estimated_price_in_foreign_currency'] ?? false)) {
+            return null;
+        }
+
+        $code = strtoupper((string) ($hotels['estimated_price_currency'] ?? ''));
+
+        if ($code === '' || $code === 'IDR' || $rate === null) {
+            return null;
+        }
+
+        $perIdr = $rate->convertBetween(1, 'IDR', $code);
+
+        if ($perIdr === null) {
+            return null;
+        }
+
+        return [
+            'currency_code' => $code,
+            'rate_per_idr' => $perIdr,
+            'is_stale' => $rate->isStale(),
+        ];
+    }
+
+    /**
      * Per-email-type subject templates that admins can override from
      * Website Settings. Resolution: if an entry exists at
      * `website_settings.email_subjects.{$key}` and is a non-empty string,

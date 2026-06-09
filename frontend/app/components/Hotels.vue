@@ -134,13 +134,21 @@
             <p class="text-muted-foreground self-start truncate text-xs tracking-tight sm:text-sm">
               {{ [hotel.city].filter(Boolean).join(", ") }}
             </p>
-            <p class="text-muted-foreground self-start truncate text-xs tracking-tight sm:text-sm">
+            <p class="text-muted-foreground self-start text-xs tracking-tight sm:text-sm">
               <template v-if="cheapestRate(hotel)">
-                <span>From </span>
-                <span class="text-foreground text-sm font-semibold tracking-tighter sm:text-base">
-                  Rp{{ formatRupiah(cheapestRate(hotel)) }}
+                <span
+                  v-tippy="{ content: rateTooltip(hotel.estimated_price), allowHTML: true, theme: 'invert', arrow: true, onShow: showTooltipIfContent }"
+                  :class="{ 'cursor-help': hotel.estimated_price }"
+                >
+                  <span>From </span>
+                  <span class="text-foreground text-sm font-semibold tracking-tighter sm:text-base">Rp{{ formatRupiah(cheapestRate(hotel)) }}</span>
+                  <template v-if="formatEstimate(cheapestRate(hotel), hotel.estimated_price)">
+                    <span> (≈ <span class="text-foreground text-sm font-semibold tracking-tighter sm:text-base">{{
+                      formatEstimate(cheapestRate(hotel), hotel.estimated_price)
+                    }}</span>)</span>
+                  </template>
+                  <span> / night</span>
                 </span>
-                <span> / night</span>
               </template>
             </p>
           </NuxtLink>
@@ -191,6 +199,46 @@ const cheapestRate = (hotel) => {
 const eventVenue = (ev) => [ev.location, ev.hall].filter(Boolean).join(" · ");
 
 const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
+
+const formatEstimate = (idrAmount, est) => {
+  if (!est?.currency_code || !est?.rate_per_idr || !idrAmount) {
+    return null;
+  }
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: est.currency_code,
+    maximumFractionDigits: 0,
+  }).format(Number(idrAmount) * Number(est.rate_per_idr));
+};
+
+const estimateUnit = (est) =>
+  est?.currency_code
+    ? new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: est.currency_code,
+        maximumFractionDigits: 0,
+      }).format(1)
+    : "";
+
+const estimateIdr = (est) =>
+  est?.rate_per_idr ? `Rp${formatRupiah(Math.round(1 / Number(est.rate_per_idr)))}` : "";
+
+const flagHtml = (country) =>
+  `<span class="inline-flex aspect-3/2 h-4 shrink-0 overflow-hidden rounded-sm align-middle"><img src="/flags/${country}.png" class="size-full object-cover" alt="" /></span>`;
+
+// Built as an HTML string (not a Vue slot) so Tippy renders it lazily inside
+// the popper. The component-slot approach flashes the flags inline on load
+// because vue-tippy briefly shows the slot before moving it into the popper.
+const rateTooltip = (est) => {
+  if (!est?.currency_code || !est?.rate_per_idr) {
+    return "";
+  }
+  const country = est.currency_code.slice(0, 2).toLowerCase();
+  return `<span class="inline-flex items-center gap-2 whitespace-nowrap text-base font-medium tracking-tight">${flagHtml(country)}<span>${estimateUnit(est)}</span><span class="opacity-60">=</span>${flagHtml("id")}<span>${estimateIdr(est)}</span></span>`;
+};
+
+// Suppress the tooltip when there is no estimate (rateTooltip returns "").
+const showTooltipIfContent = (instance) => instance.props.content !== "";
 
 const formatEventDates = (ev) => {
   const fmt = (d) =>

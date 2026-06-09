@@ -190,6 +190,17 @@ class ExchangeRateController extends Controller
     ];
 
     /**
+     * All supported ISO 4217 currency codes. Used by other features
+     * (e.g. hotel foreign-currency estimate) to validate a chosen currency.
+     *
+     * @return list<string>
+     */
+    public static function supportedCurrencyCodes(): array
+    {
+        return array_keys(self::CURRENCY_META);
+    }
+
+    /**
      * Get all exchange rates with metadata
      */
     public function index(Request $request): JsonResponse

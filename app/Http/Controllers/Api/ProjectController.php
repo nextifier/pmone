@@ -281,7 +281,7 @@ class ProjectController extends Controller
         // save touching settings must also bust the dependent public-cache tags,
         // mirroring updateWebsiteSettings().
         if (array_key_exists('settings', $validated)) {
-            ResponseCache::clear(['rundown', 'events', 'website-settings']);
+            ResponseCache::clear(['rundown', 'events', 'website-settings', 'hotels']);
         }
 
         if (isset($validated['member_ids'])) {
@@ -352,6 +352,11 @@ class ProjectController extends Controller
             'brands.show_brand_preview_on_home_page' => ['sometimes', 'boolean'],
             'hotels' => ['sometimes', 'array'],
             'hotels.show_hotel_section_on_home_page' => ['sometimes', 'boolean'],
+            'hotels.show_estimated_price_in_foreign_currency' => ['sometimes', 'boolean'],
+            'hotels.estimated_price_currency' => [
+                'sometimes', 'nullable', 'string', 'size:3',
+                Rule::in(array_diff(ExchangeRateController::supportedCurrencyCodes(), ['IDR'])),
+            ],
             'hotels.notification_email' => ['sometimes', 'array'],
             'hotels.notification_email.to' => ['sometimes', 'array'],
             'hotels.notification_email.to.*' => ['nullable', 'email'],
@@ -390,7 +395,7 @@ class ProjectController extends Controller
         // `website_settings` from the owning project. The Project model only
         // clears the 'projects' tag on save, so explicitly invalidate the
         // dependent caches here.
-        ResponseCache::clear(['rundown', 'events', 'website-settings']);
+        ResponseCache::clear(['rundown', 'events', 'website-settings', 'hotels']);
 
         return response()->json([
             'message' => 'Website settings updated successfully',

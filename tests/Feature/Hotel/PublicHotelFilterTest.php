@@ -2,6 +2,7 @@
 
 use App\Models\ApiConsumer;
 use App\Models\Event;
+use App\Models\ExchangeRate;
 use App\Models\Hotel;
 use App\Models\HotelTransferOption;
 use App\Models\Project;
@@ -128,6 +129,67 @@ test('index exposes event venue, hall, poster and hotel transfer options', funct
         ->assertJsonStructure([
             'data' => [['transfer_options', 'event' => ['location', 'location_link', 'hall', 'poster']]],
         ]);
+});
+
+test('index attaches estimated_price when the project enabled the foreign-currency estimate', function () {
+    ExchangeRate::create([
+        'base_currency' => 'USD',
+        'rates' => ['USD' => 1, 'IDR' => 16000],
+        'api_updated_at' => now(),
+        'fetched_at' => now(),
+    ]);
+
+    $this->projectB->update([
+        'settings' => [
+            'website_settings' => [
+                'hotels' => [
+                    'show_estimated_price_in_foreign_currency' => true,
+                    'estimated_price_currency' => 'USD',
+                ],
+            ],
+        ],
+    ]);
+
+    $response = $this->getJson('/api/public/hotels?project_slug=askindo', $this->headers);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.0.estimated_price.currency_code', 'USD')
+        ->assertJsonPath('data.0.estimated_price.is_stale', false);
+
+    expect($response->json('data.0.estimated_price.rate_per_idr'))
+        ->toEqualWithDelta(1 / 16000, 1e-9);
+});
+
+test('index omits estimated_price when the toggle is off', function () {
+    ExchangeRate::create([
+        'base_currency' => 'USD',
+        'rates' => ['USD' => 1, 'IDR' => 16000],
+        'api_updated_at' => now(),
+        'fetched_at' => now(),
+    ]);
+
+    $response = $this->getJson('/api/public/hotels?project_slug=askindo', $this->headers);
+
+    $response->assertSuccessful();
+    expect($response->json('data.0.estimated_price'))->toBeNull();
+});
+
+test('index estimated_price is null when no exchange rate is available', function () {
+    $this->projectB->update([
+        'settings' => [
+            'website_settings' => [
+                'hotels' => [
+                    'show_estimated_price_in_foreign_currency' => true,
+                    'estimated_price_currency' => 'USD',
+                ],
+            ],
+        ],
+    ]);
+
+    $response = $this->getJson('/api/public/hotels?project_slug=askindo', $this->headers);
+
+    $response->assertSuccessful();
+    expect($response->json('data.0.estimated_price'))->toBeNull();
 });
 
 test('hotels hidden when project gateway secret_key is placeholder', function () {

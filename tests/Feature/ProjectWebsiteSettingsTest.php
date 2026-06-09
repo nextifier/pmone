@@ -312,3 +312,42 @@ it('rejects invalid hotel notification recipient emails', function () {
         ],
     ])->assertUnprocessable();
 });
+
+it('persists the foreign-currency estimate settings', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'show_estimated_price_in_foreign_currency' => true,
+            'estimated_price_currency' => 'USD',
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.website_settings.hotels.show_estimated_price_in_foreign_currency', true)
+        ->assertJsonPath('data.website_settings.hotels.estimated_price_currency', 'USD');
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.hotels.show_estimated_price_in_foreign_currency'))->toBeTrue();
+    expect(data_get($this->project->settings, 'website_settings.hotels.estimated_price_currency'))->toBe('USD');
+});
+
+it('rejects an unknown estimated-price currency code', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'estimated_price_currency' => 'ZZZ',
+        ],
+    ])->assertUnprocessable();
+});
+
+it('rejects IDR as the estimated-price currency', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'hotels' => [
+            'estimated_price_currency' => 'IDR',
+        ],
+    ])->assertUnprocessable();
+});

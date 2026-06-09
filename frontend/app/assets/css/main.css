@@ -576,6 +576,63 @@
       &[data-theme~="primary"] {
         @apply bg-primary text-primary-foreground ring-primary;
       }
+      &[data-theme~="invert"] {
+        @apply bg-foreground text-background px-3 py-2 ring-transparent;
+      }
+
+      /* Arrow — only rendered when `arrow: true` is passed to tippy. The
+         triangle color follows the box background via currentColor. */
+      & > .tippy-arrow {
+        @apply text-background;
+        width: 16px;
+        height: 16px;
+      }
+      &[data-theme~="primary"] > .tippy-arrow {
+        @apply text-primary;
+      }
+      &[data-theme~="invert"] > .tippy-arrow {
+        @apply text-foreground;
+      }
+      & > .tippy-arrow::before {
+        content: "";
+        position: absolute;
+        border-color: transparent;
+        border-style: solid;
+      }
+      &[data-placement^="top"] > .tippy-arrow {
+        bottom: 0;
+      }
+      &[data-placement^="top"] > .tippy-arrow::before {
+        bottom: -7px;
+        left: 0;
+        border-width: 8px 8px 0;
+        border-top-color: currentColor;
+      }
+      &[data-placement^="bottom"] > .tippy-arrow {
+        top: 0;
+      }
+      &[data-placement^="bottom"] > .tippy-arrow::before {
+        top: -7px;
+        left: 0;
+        border-width: 0 8px 8px;
+        border-bottom-color: currentColor;
+      }
+      &[data-placement^="left"] > .tippy-arrow {
+        right: 0;
+      }
+      &[data-placement^="left"] > .tippy-arrow::before {
+        right: -7px;
+        border-width: 8px 0 8px 8px;
+        border-left-color: currentColor;
+      }
+      &[data-placement^="right"] > .tippy-arrow {
+        left: 0;
+      }
+      &[data-placement^="right"] > .tippy-arrow::before {
+        left: -7px;
+        border-width: 8px 8px 8px 0;
+        border-right-color: currentColor;
+      }
     }
   }
 }

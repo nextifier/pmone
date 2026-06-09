@@ -58,97 +58,115 @@
       </div>
     </div>
 
-    <!-- Category sections -->
-    <div v-else ref="categoriesContainer" class="space-y-4">
+    <!-- Category sections (styled like the public Credits section) -->
+    <div v-else ref="categoriesContainer" class="flex w-full flex-wrap gap-x-2 gap-y-8">
       <div
         v-for="category in categories"
         :key="category.id"
-        class="border-border rounded-xl border"
+        class="group/cat bg-pattern-diagonal border-border relative flex grow flex-col items-center justify-center gap-y-4 rounded-xl border px-4 py-6 sm:px-6"
       >
-        <!-- Category header -->
-        <div class="flex items-center gap-x-2 border-b px-4 py-3">
-          <Icon name="hugeicons:drag-drop" class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab active:cursor-grabbing" />
+        <!-- Floating category badge (matches Credits) -->
+        <span
+          class="text-primary bg-background absolute top-0 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center gap-x-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
+        >
+          <span class="truncate">{{ category.name }}</span>
+          <span v-if="category.no_container" class="text-muted-foreground font-normal">full-width</span>
+          <span class="text-muted-foreground tabular-nums font-normal">{{ category.partners?.length || 0 }}</span>
+        </span>
 
-          <div class="flex min-w-0 grow items-center gap-x-2">
-            <h3 class="truncate font-medium tracking-tight">{{ category.name }}</h3>
-            <span
-              v-if="category.no_container"
-              class="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs tracking-tight"
-            >
-              No container
-            </span>
-            <span class="text-muted-foreground text-xs tracking-tight tabular-nums">
-              {{ category.partners?.length || 0 }}
-            </span>
-          </div>
+        <!-- Management toolbar (revealed on hover; floats just above the box so it
+             never overlaps the partner tiles or their top-right detach buttons) -->
+        <div
+          class="bg-background absolute right-3 bottom-full z-20 mb-1 flex items-center gap-0.5 rounded-lg border p-0.5 opacity-0 shadow-xs transition group-hover/cat:opacity-100"
+        >
+          <button
+            type="button"
+            class="category-drag-handle text-muted-foreground hover:bg-muted inline-flex size-7 cursor-grab items-center justify-center rounded-md active:cursor-grabbing"
+            v-tippy="'Drag to reorder'"
+          >
+            <Icon name="hugeicons:drag-drop" class="size-4" />
+          </button>
+          <button
+            type="button"
+            @click="openAddPartner(category)"
+            class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+            v-tippy="'Add partner'"
+          >
+            <Icon name="lucide:plus" class="size-4" />
+          </button>
+          <button
+            type="button"
+            @click="openEditCategory(category)"
+            class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
+            v-tippy="'Edit category'"
+          >
+            <Icon name="lucide:pencil" class="size-4" />
+          </button>
+          <button
+            type="button"
+            @click="handleDeleteCategory(category)"
+            class="hover:bg-destructive/10 inline-flex size-7 items-center justify-center rounded-md"
+            v-tippy="'Delete category'"
+          >
+            <Icon name="lucide:trash" class="text-destructive size-4" />
+          </button>
+        </div>
 
-          <div class="flex shrink-0 items-center gap-1">
-            <button
-              @click="openAddPartner(category)"
-              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md"
-              v-tippy="'Add partner'"
+        <!-- Logos grid (matches Credits) -->
+        <div
+          v-if="category.partners?.length"
+          :ref="(el) => setPartnerContainerRef(category.id, el)"
+          class="flex w-full flex-wrap items-center justify-evenly gap-x-0 gap-y-2"
+        >
+          <div
+            v-for="partner in category.partners"
+            :key="partner.pivot_id"
+            :data-pivot-id="partner.pivot_id"
+            class="drag-handle group/logo relative flex cursor-grab items-center justify-center rounded-xl active:cursor-grabbing dark:hover:bg-white"
+            :class="{
+              'w-full max-w-48 p-3 xl:max-w-56': category.no_container,
+              'aspect-3/2': !category.no_container,
+              'h-20 xl:h-24': category.partners.length <= 10,
+              'h-18 xl:h-20': category.partners.length > 10,
+            }"
+          >
+            <img
+              v-if="partner.partner_logo?.sm || partner.partner_logo?.original"
+              :src="partner.partner_logo?.sm || partner.partner_logo?.original"
+              :alt="partner.name"
+              width="300"
+              height="200"
+              loading="lazy"
+              decoding="async"
+              draggable="false"
+              class="pointer-events-none max-h-full w-auto max-w-full object-contain select-none dark:brightness-90 dark:contrast-200 dark:grayscale dark:invert-[75%] dark:group-hover/logo:filter-none"
+            />
+            <div
+              v-else
+              class="bg-muted text-muted-foreground pointer-events-none flex size-10 items-center justify-center rounded-lg text-sm font-medium"
             >
-              <Icon name="lucide:plus" class="size-4" />
-            </button>
+              {{ partner.name?.charAt(0)?.toUpperCase() }}
+            </div>
+
+            <!-- Detach -->
             <button
-              @click="openEditCategory(category)"
-              class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md"
-              v-tippy="'Edit category'"
+              type="button"
+              @click.stop="handleRemovePartner(category, partner)"
+              @mousedown.stop
+              class="bg-background absolute -top-2 -right-2 z-30 inline-flex size-6 items-center justify-center rounded-full border opacity-0 shadow-xs transition group-hover/logo:opacity-100"
+              v-tippy="`Remove ${partner.name}`"
             >
-              <Icon name="lucide:pencil" class="size-4" />
-            </button>
-            <button
-              @click="handleDeleteCategory(category)"
-              class="hover:bg-destructive/10 inline-flex size-8 items-center justify-center rounded-md"
-              v-tippy="'Delete category'"
-            >
-              <Icon name="lucide:trash" class="text-destructive size-4" />
+              <Icon name="lucide:x" class="text-destructive size-3" />
             </button>
           </div>
         </div>
 
-        <!-- Partners grid -->
-        <div class="p-4">
-          <div
-            v-if="category.partners?.length"
-            :ref="(el) => setPartnerContainerRef(category.id, el)"
-            class="flex flex-wrap items-center gap-2"
-          >
-            <div
-              v-for="partner in category.partners"
-              :key="partner.pivot_id"
-              :data-pivot-id="partner.pivot_id"
-              class="group border-border relative flex items-center gap-x-2 rounded-lg border px-3 py-2"
-            >
-              <Icon name="hugeicons:drag-drop" class="drag-handle text-muted-foreground size-3.5 shrink-0 cursor-grab opacity-0 transition group-hover:opacity-100 active:cursor-grabbing" />
-
-              <img
-                v-if="partner.partner_logo?.sm || partner.partner_logo?.original"
-                :src="partner.partner_logo?.sm || partner.partner_logo?.original"
-                :alt="partner.name"
-                class="h-8 w-auto max-w-16 object-contain"
-              />
-              <div
-                v-else
-                class="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded text-xs font-medium"
-              >
-                {{ partner.name?.charAt(0)?.toUpperCase() }}
-              </div>
-
-              <span class="max-w-32 truncate text-sm tracking-tight">{{ partner.name }}</span>
-
-              <button
-                @click="handleRemovePartner(category, partner)"
-                class="hover:bg-destructive/10 -mr-1 inline-flex size-6 items-center justify-center rounded-md opacity-0 transition group-hover:opacity-100"
-              >
-                <Icon name="lucide:x" class="text-destructive size-3.5" />
-              </button>
-            </div>
-          </div>
-          <div v-else class="text-muted-foreground py-4 text-center text-sm tracking-tight">
-            No partners in this category.
-            <button @click="openAddPartner(category)" class="text-primary hover:underline">Add one</button>
-          </div>
+        <!-- Empty category -->
+        <div v-else class="text-muted-foreground py-4 text-center text-sm tracking-tight">
+          No partners yet.
+          <button @click="openAddPartner(category)" class="text-primary hover:underline">
+            Add one
+          </button>
         </div>
       </div>
     </div>
@@ -438,6 +456,7 @@ useSortableList(categoriesContainer, categories, {
       toast.error("Failed to update category order");
     }
   },
+  sortableOptions: { handle: ".category-drag-handle" },
 });
 
 // --- Partner sortable within categories ---
@@ -600,6 +619,12 @@ const openAddPartner = (category) => {
 // Debounced search
 let searchTimeout;
 watch(partnerSearchTerm, (term) => {
+  // Selecting an item from the autocomplete sets the term to the partner's name.
+  // Keep the selection in that case; otherwise it would be treated as a brand-new
+  // partner and create a duplicate on submit.
+  if (selectedPartner.value && selectedPartner.value.name === term) {
+    return;
+  }
   selectedPartner.value = null;
   clearTimeout(searchTimeout);
   if (!term || term.trim().length < 1) {

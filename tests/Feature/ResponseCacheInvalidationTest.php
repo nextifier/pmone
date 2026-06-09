@@ -279,7 +279,7 @@ test('updating a project with settings busts website-settings, rundown and event
         'settings' => ['contact_form' => ['enabled' => true]],
     ])->assertOk();
 
-    $spy->shouldHaveReceived('clear')->with(['rundown', 'events', 'website-settings']);
+    $spy->shouldHaveReceived('clear')->with(['rundown', 'events', 'website-settings', 'hotels']);
 });
 
 // ---------------------------------------------------------------------------

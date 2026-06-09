@@ -60,6 +60,7 @@ class PublicHotelResource extends JsonResource
                 'md' => $media->hasGeneratedConversion('md') ? $media->getUrl('md') : $media->getUrl(),
                 'lg' => $media->hasGeneratedConversion('lg') ? $media->getUrl('lg') : $media->getUrl(),
             ])->values(),
+            'estimated_price' => $this->estimated_price ?? null,
             'room_types' => PublicRoomTypeResource::collection($this->whenLoaded('roomTypes')),
             'transfer_options' => $this->whenLoaded('transferOptions', fn () => $this->transferOptions->map(fn ($opt) => [
                 'id' => $opt->id,

@@ -41,14 +41,15 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
  * @property-read array|null $partner_logo
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read Collection<int, \App\Models\PartnerCategory> $partnerCategories
+ * @property-read Collection<int, PartnerCategory> $partnerCategories
  * @property-read int|null $partner_categories_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner byStatus(string $status)
  * @method static \Database\Factories\PartnerFactory factory($count = null, $state = [])
@@ -76,6 +77,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Partner extends Model implements HasMedia, Sortable
@@ -170,38 +172,16 @@ class Partner extends Model implements HasMedia, Sortable
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('lqip')
-            ->width(20)
-            ->height(20)
-            ->quality(10)
-            ->blur(10)
-            ->performOnCollections('partner_logo')
-            ->nonQueued();
+        if ($media?->mime_type === 'image/svg+xml') {
+            return;
+        }
 
         $this->addMediaConversion('sm')
-            ->width(200)
-            ->height(200)
+            ->width(240)
+            ->format('webp')
             ->quality(85)
             ->performOnCollections('partner_logo')
             ->nonQueued();
-
-        $this->addMediaConversion('md')
-            ->width(400)
-            ->height(400)
-            ->quality(90)
-            ->performOnCollections('partner_logo');
-
-        $this->addMediaConversion('lg')
-            ->width(800)
-            ->height(800)
-            ->quality(90)
-            ->performOnCollections('partner_logo');
-
-        $this->addMediaConversion('xl')
-            ->width(1080)
-            ->height(1080)
-            ->quality(95)
-            ->performOnCollections('partner_logo');
     }
 
     public function getMediaCollections(): array

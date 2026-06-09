@@ -233,6 +233,7 @@ import PartnerImportDialog from "@/components/partner/PartnerImportDialog.vue";
 import PartnerTableItem from "@/components/partner/TableItem.vue";
 import { TableData } from "@/components/ui/table-data";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import InputFileImage from "@/components/InputFileImage.vue";
 import { Input } from "@/components/ui/input";
@@ -413,16 +414,14 @@ const columns = computed(() => [
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.getValue("status");
-      const classes = {
-        active: "text-success-foreground",
-        inactive: "text-muted-foreground",
-      };
       return h(
-        "span",
+        Badge,
         {
-          class: `inline-flex items-center text-sm tracking-tight capitalize ${classes[status] || "text-muted-foreground"}`,
+          variant: status === "active" ? "success" : "muted",
+          withIcon: true,
+          plain: true,
         },
-        status
+        { default: () => (status === "active" ? "Active" : "Inactive") }
       );
     },
     size: 100,

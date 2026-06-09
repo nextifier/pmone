@@ -10,6 +10,7 @@ use App\Http\Requests\PublicReservation\DailyAvailabilityRequest;
 use App\Http\Resources\AvailabilityResource;
 use App\Http\Resources\PublicHotelResource;
 use App\Models\Event;
+use App\Models\ExchangeRate;
 use App\Models\Hotel;
 use App\Models\HotelEventAllotment;
 use App\Models\RoomType;
@@ -18,6 +19,7 @@ use App\Services\Reservation\ReservationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class PublicHotelController extends Controller
@@ -50,7 +52,7 @@ class PublicHotelController extends Controller
                         $q->whereHas('project', fn ($p) => $p->where('username', $projectSlug));
                     }
                 },
-                'events.project:id,username,name',
+                'events.project:id,username,name,settings',
                 'events.project.paymentGateways',
                 'events.media',
                 'media',
@@ -98,6 +100,8 @@ class PublicHotelController extends Controller
                 ->values();
         }
 
+        $this->attachEstimatedPrice($hotels);
+
         return response()->json([
             'data' => PublicHotelResource::collection($hotels)->resolve(),
         ]);
@@ -113,7 +117,7 @@ class PublicHotelController extends Controller
                 ->where('hotel_event.is_active', true))
             ->with([
                 'events' => fn ($q) => $q->where('events.slug', $eventSlug),
-                'events.project:id,username,name',
+                'events.project:id,username,name,settings',
                 'media',
                 'tags',
                 'roomTypes' => fn ($q) => $q->active()->with([
@@ -127,9 +131,28 @@ class PublicHotelController extends Controller
 
         $hotel->roomTypes->each(fn ($r) => $r->setRelation('hotel', $hotel));
 
+        $this->attachEstimatedPrice(collect([$hotel]));
+
         return response()->json([
             'data' => (new PublicHotelResource($hotel))->resolve(),
         ]);
+    }
+
+    /**
+     * Attach the per-hotel foreign-currency estimate (or null) based on each
+     * hotel's owning project settings. The exchange rate is resolved once for
+     * the whole batch. The estimate is informational; bookings stay in IDR.
+     *
+     * @param  Collection<int, Hotel>  $hotels
+     */
+    private function attachEstimatedPrice(Collection $hotels): void
+    {
+        $rate = ExchangeRate::getLatest();
+
+        $hotels->each(function (Hotel $hotel) use ($rate) {
+            $project = $hotel->events->first()?->project;
+            $hotel->setAttribute('estimated_price', $project?->getHotelEstimatedPriceConfig($rate));
+        });
     }
 
     public function dailyAvailability(

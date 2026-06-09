@@ -285,6 +285,7 @@ watch(
           :available="availability[room.id] ?? null"
           :preview="roomPreviews[room.id] ?? null"
           :nights="nights"
+          :estimated-price="hotel?.estimated_price ?? null"
           @update:qty="(qty) => emit('update:roomQty', { roomId: room.id, qty })"
           @update:notes="(notes) => emit('update:roomNotes', { roomId: room.id, notes })"
         />

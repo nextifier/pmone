@@ -14,6 +14,7 @@ const props = defineProps({
   available: { type: [Number, null], default: null },
   preview: { type: Object, default: null },
   nights: { type: Number, default: 0 },
+  estimatedPrice: { type: Object, default: null },
 });
 
 const emit = defineEmits(["update:qty", "update:notes"]);
@@ -78,6 +79,43 @@ const heroImage = computed(() => {
 });
 
 const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
+
+const formatEstimate = (idrAmount, est) => {
+  if (!est?.currency_code || !est?.rate_per_idr || !idrAmount) {
+    return null;
+  }
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: est.currency_code,
+    maximumFractionDigits: 0,
+  }).format(Number(idrAmount) * Number(est.rate_per_idr));
+};
+
+const estimateUnit = (est) =>
+  est?.currency_code
+    ? new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: est.currency_code,
+        maximumFractionDigits: 0,
+      }).format(1)
+    : "";
+
+const estimateIdr = (est) =>
+  est?.rate_per_idr ? `Rp${fmtRupiah(Math.round(1 / Number(est.rate_per_idr)))}` : "";
+
+const flagHtml = (country) =>
+  `<span class="inline-flex aspect-3/2 h-4 shrink-0 overflow-hidden rounded-sm align-middle"><img src="/flags/${country}.png" class="size-full object-cover" alt="" /></span>`;
+
+const rateTooltip = (est) => {
+  if (!est?.currency_code || !est?.rate_per_idr) {
+    return "";
+  }
+  const country = est.currency_code.slice(0, 2).toLowerCase();
+  return `<span class="inline-flex items-center gap-2 whitespace-nowrap text-base font-medium tracking-tight">${flagHtml(country)}<span>${estimateUnit(est)}</span><span class="opacity-60">=</span>${flagHtml("id")}<span>${estimateIdr(est)}</span></span>`;
+};
+
+// Suppress the tooltip when there is no estimate (rateTooltip returns "").
+const showTooltipIfContent = (instance) => instance.props.content !== "";
 </script>
 
 <template>
@@ -139,8 +177,18 @@ const fmtRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
             </div>
           </div>
           <div class="text-right tracking-tight">
-            <div class="text-sm font-semibold tabular-nums sm:text-base">
-              Rp{{ fmtRupiah(avgPerNight) }}
+            <div class="text-sm sm:text-base">
+              <span
+                v-tippy="{ content: rateTooltip(estimatedPrice), allowHTML: true, theme: 'invert', arrow: true, onShow: showTooltipIfContent }"
+                :class="{ 'cursor-help': estimatedPrice }"
+              >
+                <span class="font-semibold">Rp{{ fmtRupiah(avgPerNight) }}</span>
+                <template v-if="formatEstimate(avgPerNight, estimatedPrice)">
+                  <span class="text-muted-foreground font-normal"> (≈ <span class="text-foreground font-semibold">{{
+                    formatEstimate(avgPerNight, estimatedPrice)
+                  }}</span>)</span>
+                </template>
+              </span>
             </div>
             <div class="text-muted-foreground text-xs tracking-tight">per night</div>
           </div>
