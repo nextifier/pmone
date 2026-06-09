@@ -18,7 +18,7 @@
           </div>
         </div>
         <div
-          class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]"
+          class="grid grid-cols-2 justify-center gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fit,minmax(200px,240px))]"
         >
           <div v-for="j in 4" :key="j" class="row-span-5 grid grid-rows-subgrid gap-y-1">
             <Skeleton class="aspect-19/20 w-full rounded-2xl" />
@@ -96,7 +96,7 @@
         </div>
 
         <div
-          class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]"
+          class="grid grid-cols-2 justify-center gap-x-2 gap-y-4 sm:grid-cols-[repeat(auto-fit,minmax(200px,240px))]"
         >
           <NuxtLink
             v-for="hotel in group.hotels"
