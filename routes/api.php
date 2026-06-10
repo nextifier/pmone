@@ -14,7 +14,6 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\EventBrandingController;
 use App\Http\Controllers\Api\EventConjunctionController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventDocumentController;
@@ -55,6 +54,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\ProjectActivityController;
 use App\Http\Controllers\Api\ProjectBannerController;
+use App\Http\Controllers\Api\ProjectBrandingController;
 use App\Http\Controllers\Api\ProjectBusinessCategoryController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCustomFieldController;
@@ -227,6 +227,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{username}', [ProjectController::class, 'show'])->name('projects.show');
         Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
         Route::patch('/{username}/website-settings', [ProjectController::class, 'updateWebsiteSettings'])->name('projects.website-settings');
+        Route::patch('/{username}/hotel-reservation-toggle', [ProjectController::class, 'toggleHotelReservation'])->name('projects.hotel-reservation-toggle');
         Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     });
 
@@ -286,7 +287,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{eventSlug}', [EventController::class, 'show'])->name('events.show');
         Route::put('/{eventSlug}', [EventController::class, 'update'])->name('events.update');
         Route::post('/{eventSlug}/set-active', [EventController::class, 'setActive'])->name('events.set-active');
-        Route::patch('/{eventSlug}/hotel-reservation-toggle', [EventController::class, 'toggleHotelReservation'])->name('events.hotel-reservation-toggle');
         Route::delete('/{eventSlug}', [EventController::class, 'destroy'])->name('events.destroy');
     });
 
@@ -1170,11 +1170,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         ->middleware('throttle:6,1')
         ->name('system.whatsapp.test');
 
-    // Event Branding (per-event override)
-    Route::get('/events/{event}/branding', [EventBrandingController::class, 'show'])->name('events.branding.show');
-    Route::put('/events/{event}/branding', [EventBrandingController::class, 'update'])
+    // Project Branding (per-project PDF branding override)
+    Route::get('/projects/{project}/branding', [ProjectBrandingController::class, 'show'])->name('projects.branding.show');
+    Route::put('/projects/{project}/branding', [ProjectBrandingController::class, 'update'])
         ->middleware('can:events.update_branding')
-        ->name('events.branding.update');
+        ->name('projects.branding.update');
 
     // Project payment gateways (Xendit, etc.) - credentials encrypted at rest, masked in API
     Route::prefix('projects/{project:username}/payment-gateways')->group(function () {

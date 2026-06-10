@@ -9,9 +9,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Blocks hotel/reservation-related endpoints when the event's
- * `hotel_reservation_enabled` flag is off OR the event's project has no
- * active payment gateway configured. Both conditions must pass.
+ * Blocks hotel/reservation-related endpoints when the project's
+ * `hotel_reservation_enabled` flag is off OR the project has no active
+ * payment gateway configured. Both conditions must pass. The project is
+ * resolved through the event the request targets.
  *
  * Resolves the event from one of these sources, in order:
  *   - route param `event` (admin event-scoped routes)
@@ -36,15 +37,8 @@ class EnsureHotelReservationEnabled
             return $next($request);
         }
 
-        if (! $event->hotel_reservation_enabled) {
-            return response()->json([
-                'message' => 'Hotel reservation is not enabled for this event.',
-                'error_code' => 'HOTEL_RESERVATION_DISABLED',
-            ], 404);
-        }
-
         $project = $event->project;
-        if (! $project || ! $project->hasActivePaymentGateway()) {
+        if (! $project || ! $project->hotel_reservation_enabled || ! $project->hasActivePaymentGateway()) {
             return response()->json([
                 'message' => 'Hotel reservation is not available for this event.',
                 'error_code' => 'HOTEL_RESERVATION_DISABLED',

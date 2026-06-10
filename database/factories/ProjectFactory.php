@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Project>
+ * @extends Factory<Project>
  */
 class ProjectFactory extends Factory
 {
@@ -23,6 +24,15 @@ class ProjectFactory extends Factory
             'status' => 'active',
             'visibility' => 'public',
             'email' => fake()->companyEmail(),
+            'hotel_reservation_enabled' => true,
         ];
+    }
+
+    /**
+     * Factory state for projects with hotel reservation explicitly disabled.
+     */
+    public function withoutHotelReservation(): static
+    {
+        return $this->state(fn () => ['hotel_reservation_enabled' => false]);
     }
 }

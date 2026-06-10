@@ -62,8 +62,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $onsite_order_closes_at
  * @property numeric $onsite_penalty_rate
  * @property string|null $badge_vip_info
- * @property array<array-key, mixed>|null $branding
- * @property bool $hotel_reservation_enabled
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -115,7 +113,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Event published()
  * @method static Builder<static>|Event query()
  * @method static Builder<static>|Event whereBadgeVipInfo($value)
- * @method static Builder<static>|Event whereBranding($value)
  * @method static Builder<static>|Event whereCreatedAt($value)
  * @method static Builder<static>|Event whereCreatedBy($value)
  * @method static Builder<static>|Event whereCustomFields($value)
@@ -125,7 +122,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Event whereEditionNumber($value)
  * @method static Builder<static>|Event whereEndDate($value)
  * @method static Builder<static>|Event whereHall($value)
- * @method static Builder<static>|Event whereHotelReservationEnabled($value)
  * @method static Builder<static>|Event whereId($value)
  * @method static Builder<static>|Event whereIsActive($value)
  * @method static Builder<static>|Event whereLocation($value)
@@ -181,10 +177,8 @@ class Event extends Model implements HasMedia, Sortable
         'status',
         'is_active',
         'visibility',
-        'hotel_reservation_enabled',
         'settings',
         'custom_fields',
-        'branding',
         'order_form_content',
         'order_form_deadline',
         'promotion_post_deadline',
@@ -214,7 +208,6 @@ class Event extends Model implements HasMedia, Sortable
         return [
             'settings' => 'array',
             'custom_fields' => 'array',
-            'branding' => 'array',
             'start_date' => 'datetime',
             'end_date' => 'datetime',
             'edition_number' => 'integer',
@@ -225,7 +218,6 @@ class Event extends Model implements HasMedia, Sortable
             'onsite_order_closes_at' => 'datetime',
             'onsite_penalty_rate' => 'decimal:2',
             'is_active' => 'boolean',
-            'hotel_reservation_enabled' => 'boolean',
             'order_form_deadline' => 'datetime',
             'promotion_post_deadline' => 'datetime',
         ];
@@ -362,7 +354,7 @@ class Event extends Model implements HasMedia, Sortable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['title', 'slug', 'status', 'visibility', 'hotel_reservation_enabled'])
+            ->logOnly(['title', 'slug', 'status', 'visibility'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -472,10 +464,6 @@ class Event extends Model implements HasMedia, Sortable
                 'single_file' => false,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
                 'max_size' => 20480,
-            ],
-            'branding_logo' => [
-                'single_file' => true,
-                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
             ],
             'visitor_eguide' => [
                 'single_file' => true,

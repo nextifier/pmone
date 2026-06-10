@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\ReservationStatus;
 use App\Exports\ProjectsExport;
 use App\Exports\ProjectsTemplateExport;
 use App\Helpers\LinkNormalizer;
@@ -11,6 +12,7 @@ use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserMinimalResource;
 use App\Imports\ProjectsImport;
 use App\Models\Project;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Notifications\ProjectMemberAddedNotification;
 use App\Notifications\ProjectMemberRemovedNotification;
@@ -403,6 +405,66 @@ class ProjectController extends Controller
                 'website_settings' => data_get($project->settings, 'website_settings', []),
             ],
         ]);
+    }
+
+    public function toggleHotelReservation(Request $request, string $username): JsonResponse
+    {
+        $project = Project::where('username', $username)->firstOrFail();
+
+        $this->authorize('update', $project);
+
+        $validated = $request->validate([
+            'enabled' => ['required', 'boolean'],
+            'force' => ['nullable', 'boolean'],
+        ]);
+
+        if ($validated['enabled'] && ! $project->hasActivePaymentGateway()) {
+            return response()->json([
+                'message' => 'Hotel reservation requires at least one active payment gateway on the project.',
+                'error_code' => 'PAYMENT_GATEWAY_REQUIRED',
+                'payment_gateways_url' => "/projects/{$project->username}/settings/payment-gateways",
+            ], 422);
+        }
+
+        // Block disable if there are active future reservations and caller did
+        // not pass `force = true`. Active = pending_payment / paid / voucher_sent
+        // AND at least one item still upcoming.
+        if (! $validated['enabled'] && ! $request->boolean('force')) {
+            $activeCount = $this->countActiveFutureReservations($project);
+            if ($activeCount > 0) {
+                return response()->json([
+                    'message' => "There are {$activeCount} active reservation(s) with upcoming stays. Disabling will hide them from staff UI and block customers from completing payment.",
+                    'error_code' => 'ACTIVE_RESERVATIONS_EXIST',
+                    'active_reservations_count' => $activeCount,
+                ], 409);
+            }
+        }
+
+        $project->update(['hotel_reservation_enabled' => $validated['enabled']]);
+
+        ResponseCache::clear(['hotels', 'events']);
+
+        return response()->json([
+            'message' => $validated['enabled']
+                ? 'Hotel reservation enabled for this project.'
+                : 'Hotel reservation disabled for this project.',
+            'data' => [
+                'hotel_reservation_enabled' => $project->hotel_reservation_enabled,
+            ],
+        ]);
+    }
+
+    private function countActiveFutureReservations(Project $project): int
+    {
+        return Reservation::query()
+            ->whereHas('event', fn ($q) => $q->where('project_id', $project->id))
+            ->whereIn('status', [
+                ReservationStatus::PendingPayment,
+                ReservationStatus::Paid,
+                ReservationStatus::VoucherSent,
+            ])
+            ->whereHas('items', fn ($q) => $q->whereDate('check_out_date', '>=', now()->toDateString()))
+            ->count();
     }
 
     public function destroy(string $username): JsonResponse

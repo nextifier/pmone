@@ -9,10 +9,15 @@ use App\Models\ProjectPaymentGateway;
 use App\Models\RoomType;
 use App\Services\Xendit\XenditService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    // Fixture dates are hardcoded to early June 2026; freeze the clock so
+    // "check-in cannot be in the past" validation stays deterministic.
+    Carbon::setTestNow('2026-05-20 10:00:00');
+
     $this->consumer = ApiConsumer::create([
         'name' => 'Test',
         'website_url' => 'https://test.com',

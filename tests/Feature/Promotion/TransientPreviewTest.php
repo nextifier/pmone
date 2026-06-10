@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('preview uses allotment base_rate_override + surcharge for transient subtotal', function () {
-    $event = Event::factory()->create(['hotel_reservation_enabled' => true]);
+    $event = Event::factory()->create();
     $hotel = Hotel::factory()->withEvent($event)->create([
         'tax_percentage' => 0,
         'service_charge_percentage' => 0,
@@ -58,7 +58,7 @@ it('preview uses allotment base_rate_override + surcharge for transient subtotal
 });
 
 it('event_scoped promo applicability passes in preview when event_id is forwarded', function () {
-    $event = Event::factory()->create(['hotel_reservation_enabled' => true]);
+    $event = Event::factory()->create();
     $hotel = Hotel::factory()->withEvent($event)->create([
         'tax_percentage' => 0,
         'service_charge_percentage' => 0,

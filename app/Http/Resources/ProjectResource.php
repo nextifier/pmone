@@ -73,6 +73,7 @@ class ProjectResource extends JsonResource
                 app()->environment('production') ? 'live' : 'test'
             ) !== null,
             'has_active_payment_gateway' => $this->hasActivePaymentGateway(),
+            'hotel_reservation_enabled' => (bool) $this->hotel_reservation_enabled,
             'xendit_setup_url' => "/projects/{$this->username}/settings/payment-gateways",
             'payment_gateways_url' => "/projects/{$this->username}/settings/payment-gateways",
             'created_at' => $this->created_at,

@@ -3,6 +3,7 @@
 use App\Enums\ReservationStatus;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\Project;
 use App\Models\Reservation;
 use App\Models\ReservationItem;
 use App\Models\RoomType;
@@ -12,7 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->event = Event::factory()->create([
+    $project = Project::factory()->create([
         'branding' => [
             'logo_url' => 'https://cdn.example.com/logo-test.png',
             'company_name' => 'Test Brand Inc.',
@@ -29,6 +30,7 @@ beforeEach(function () {
             ],
         ],
     ]);
+    $this->event = Event::factory()->create(['project_id' => $project->id]);
     $this->hotel = Hotel::factory()->withEvent($this->event)->create();
     $room = RoomType::factory()->for($this->hotel)->create(['name' => 'Deluxe Room']);
 

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Enums\OperationalStatus;
-use App\Enums\ReservationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
@@ -12,7 +11,6 @@ use App\Http\Resources\EventResource;
 use App\Models\Event;
 use App\Models\Order;
 use App\Models\Project;
-use App\Models\Reservation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -449,65 +447,6 @@ class EventController extends Controller
             'message' => 'Event set as active edition successfully',
             'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
         ]);
-    }
-
-    public function toggleHotelReservation(Request $request, string $username, string $eventSlug): JsonResponse
-    {
-        $project = $this->resolveProject($username);
-        $event = $this->resolveEvent($project, $eventSlug);
-
-        $this->authorize('update', $event);
-
-        $validated = $request->validate([
-            'enabled' => ['required', 'boolean'],
-            'force' => ['nullable', 'boolean'],
-        ]);
-
-        if ($validated['enabled'] && ! $project->hasActivePaymentGateway()) {
-            return response()->json([
-                'message' => 'Hotel reservation requires at least one active payment gateway on the project.',
-                'error_code' => 'PAYMENT_GATEWAY_REQUIRED',
-                'payment_gateways_url' => "/projects/{$project->username}/settings/payment-gateways",
-            ], 422);
-        }
-
-        // Block disable if there are active future reservations and caller did
-        // not pass `force = true`. Active = pending_payment / paid / voucher_sent
-        // AND at least one item still upcoming.
-        if (! $validated['enabled'] && ! $request->boolean('force')) {
-            $activeCount = $this->countActiveFutureReservations($event);
-            if ($activeCount > 0) {
-                return response()->json([
-                    'message' => "There are {$activeCount} active reservation(s) with upcoming stays. Disabling will hide them from staff UI and block customers from completing payment.",
-                    'error_code' => 'ACTIVE_RESERVATIONS_EXIST',
-                    'active_reservations_count' => $activeCount,
-                ], 409);
-            }
-        }
-
-        $event->update(['hotel_reservation_enabled' => $validated['enabled']]);
-
-        ResponseCache::clear(['hotels', 'events']);
-
-        return response()->json([
-            'message' => $validated['enabled']
-                ? 'Hotel reservation enabled for this event.'
-                : 'Hotel reservation disabled for this event.',
-            'data' => new EventResource($event->load(['creator', 'updater', 'media'])),
-        ]);
-    }
-
-    private function countActiveFutureReservations(Event $event): int
-    {
-        return Reservation::query()
-            ->where('event_id', $event->id)
-            ->whereIn('status', [
-                ReservationStatus::PendingPayment,
-                ReservationStatus::Paid,
-                ReservationStatus::VoucherSent,
-            ])
-            ->whereHas('items', fn ($q) => $q->whereDate('check_out_date', '>=', now()->toDateString()))
-            ->count();
     }
 
     public function forceDestroy(string $username, int $id): JsonResponse

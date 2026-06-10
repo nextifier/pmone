@@ -36,16 +36,18 @@ class EventFactory extends Factory
             'hall' => fake()->optional(0.5)->randomElement(['Hall A', 'Hall B', 'Hall A1-A2', 'Hall C']),
             'status' => 'draft',
             'visibility' => 'private',
-            'hotel_reservation_enabled' => true,
         ];
     }
 
     /**
-     * Factory state for events with hotel reservation feature explicitly disabled.
+     * Factory state for events whose project has the hotel reservation
+     * feature explicitly disabled (the flag lives on the project).
      */
     public function withoutHotelReservation(): static
     {
-        return $this->state(fn () => ['hotel_reservation_enabled' => false]);
+        return $this->afterCreating(function (Event $event) {
+            $event->project?->update(['hotel_reservation_enabled' => false]);
+        });
     }
 
     public function published(): static
@@ -98,8 +100,8 @@ class EventFactory extends Factory
 
     /**
      * Auto-seed an active payment gateway on the parent project when the
-     * event is created with hotel_reservation_enabled. Hotel reservation
-     * routes are gated by both the flag AND project gateway availability
+     * project has hotel_reservation_enabled. Hotel reservation routes are
+     * gated by both the flag AND project gateway availability
      * (EnsureHotelReservationEnabled middleware), so factories produce
      * test fixtures that match the runtime invariant.
      */
@@ -109,7 +111,7 @@ class EventFactory extends Factory
             $skip = self::$skipGatewaySeed;
             self::$skipGatewaySeed = false;
 
-            if ($skip || ! $event->hotel_reservation_enabled) {
+            if ($skip || ! $event->project?->hotel_reservation_enabled) {
                 return;
             }
 

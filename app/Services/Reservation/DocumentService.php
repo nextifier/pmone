@@ -108,9 +108,9 @@ class DocumentService
     public function getBranding(?Reservation $reservation = null): array
     {
         $global = AppSetting::get('branding') ?? [];
-        $eventOverride = $reservation?->event?->branding ?? [];
+        $projectOverride = $reservation?->event?->project?->branding ?? [];
 
-        $merged = array_merge($global, $eventOverride ?: []);
+        $merged = array_merge($global, $projectOverride ?: []);
 
         // Browsershot launches a headless Chrome that may not be able to reach the
         // app's `http://localhost:8000/storage/...` URL (e.g. on Forge the Node
@@ -131,12 +131,13 @@ class DocumentService
     {
         $candidates = [];
 
-        // Event override media takes precedence — that's what BrandingForm uploads to.
-        if ($reservation?->event && $reservation->event->getFirstMedia('branding_logo')) {
-            $candidates[] = $reservation->event->getFirstMedia('branding_logo');
+        // Project override media takes precedence — that's what BrandingForm uploads to.
+        $project = $reservation?->event?->project;
+        if ($project && $project->getFirstMedia('branding_logo')) {
+            $candidates[] = $project->getFirstMedia('branding_logo');
         }
 
-        // Global branding fallback — only used when the event has no custom logo.
+        // Global branding fallback — only used when the project has no custom logo.
         if (! $candidates) {
             $appSetting = AppSetting::query()->where('key', 'branding')->first();
             if ($appSetting && $appSetting->getFirstMedia('branding_logo')) {

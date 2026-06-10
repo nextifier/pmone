@@ -26,7 +26,7 @@ beforeEach(function () {
 
     // Both projects need an active configured gateway for public hotel listing
     // to surface their events; absence triggers the same hidden-feature path
-    // as `hotel_reservation_enabled = false`.
+    // as `projects.hotel_reservation_enabled = false`.
     ProjectPaymentGateway::factory()->create(['project_id' => $this->projectA->id, 'is_active' => true]);
     ProjectPaymentGateway::factory()->create(['project_id' => $this->projectB->id, 'is_active' => true]);
 
@@ -75,6 +75,22 @@ test('event_slug filter returns only hotels from specific event', function () {
 
     expect($names)->toContain('Hotel ActiveA');
     expect($names)->not->toContain('Hotel ActiveB');
+});
+
+test('hotels hidden when project hotel_reservation_enabled is false', function () {
+    $project = Project::factory()->withoutHotelReservation()->create(['status' => 'active', 'username' => 'flag-off']);
+    ProjectPaymentGateway::factory()->create(['project_id' => $project->id, 'is_active' => true]);
+    $event = Event::factory()->create([
+        'project_id' => $project->id,
+        'is_active' => true,
+    ]);
+    Hotel::factory()->withEvent($event)->create(['name' => 'Hotel FlagOff']);
+
+    $names = collect($this->getJson('/api/public/hotels', $this->headers)->json('data'))
+        ->pluck('name')
+        ->all();
+
+    expect($names)->not->toContain('Hotel FlagOff');
 });
 
 test('hotels hidden when project has no active payment gateway', function () {

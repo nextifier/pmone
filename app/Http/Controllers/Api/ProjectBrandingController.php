@@ -3,24 +3,24 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Event;
+use App\Models\Project;
 use App\Traits\HandlesTmpMediaUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class EventBrandingController extends Controller
+class ProjectBrandingController extends Controller
 {
     use HandlesTmpMediaUpload;
 
-    public function show(Event $event): JsonResponse
+    public function show(Project $project): JsonResponse
     {
         return response()->json([
-            'event_id' => $event->id,
-            'branding' => $event->branding,
+            'project_id' => $project->id,
+            'branding' => $project->branding,
         ]);
     }
 
-    public function update(Request $request, Event $event): JsonResponse
+    public function update(Request $request, Project $project): JsonResponse
     {
         if (! auth()->user()?->can('events.update_branding')) {
             abort(403);
@@ -44,23 +44,23 @@ class EventBrandingController extends Controller
 
         if ($branding !== null) {
             if ($request->boolean('delete_logo')) {
-                $event->clearMediaCollection('branding_logo');
+                $project->clearMediaCollection('branding_logo');
                 $branding['logo_url'] = null;
             }
 
             if ($tmp = $request->input('tmp_logo')) {
-                $this->moveTempToMediaCollection($event, $tmp, 'branding_logo');
-                $branding['logo_url'] = $event->getFirstMediaUrl('branding_logo');
+                $this->moveTempToMediaCollection($project, $tmp, 'branding_logo');
+                $branding['logo_url'] = $project->getFirstMediaUrl('branding_logo');
             }
         } else {
-            $event->clearMediaCollection('branding_logo');
+            $project->clearMediaCollection('branding_logo');
         }
 
-        $event->update(['branding' => $branding]);
+        $project->update(['branding' => $branding]);
 
         return response()->json([
-            'event_id' => $event->id,
-            'branding' => $event->branding,
+            'project_id' => $project->id,
+            'branding' => $project->branding,
             'message' => 'Branding updated',
         ]);
     }

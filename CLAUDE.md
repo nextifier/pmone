@@ -14,13 +14,13 @@ See `~/Frontend/pmone-events/CLAUDE.md` for the event websites monorepo document
 
 **Architecture:** Hotel (global, no event_id) → `hotel_event` pivot → Event. Per-event allotments + pricing via `hotel_event_allotments.base_rate_override`. Mirror BrandEvent pattern.
 
-**Feature toggle:** `events.hotel_reservation_enabled` boolean (default false). Toggle UI at `/projects/{u}/events/{e}/details`. Enabling requires the project to have at least one active payment gateway (`Project::hasActivePaymentGateway()`). Disabling with active future reservations returns 409 `ACTIVE_RESERVATIONS_EXIST` and requires `force=true` to override.
+**Feature toggle (PROJECT-level):** `projects.hotel_reservation_enabled` boolean (default false). All hotel reservation config lives in one settings tab: `/projects/{u}/settings/hotel-reservations` (enable toggle, website display, notification emails, email subjects, PDF branding). Toggle endpoint `PATCH /api/projects/{username}/hotel-reservation-toggle`. Enabling requires an active payment gateway (`Project::hasActivePaymentGateway()`). Disabling with active future reservations (counted across ALL events in the project) returns 409 `ACTIVE_RESERVATIONS_EXIST` and requires `force=true`. `EventResource` still exposes `hotel_reservation_enabled` (derived from the project) so event websites need no changes. PDF branding is also project-level: `projects.branding` JSON + `branding_logo` media collection, endpoints `GET/PUT /api/projects/{project}/branding` (permission key stays `events.update_branding`). Per-event disable: deactivate `hotel_event.is_active` pivots for that event.
 
-**API guards:** Middleware alias `hotel-reservation-enabled` (class `EnsureHotelReservationEnabled`) gates:
+**API guards:** Middleware alias `hotel-reservation-enabled` (class `EnsureHotelReservationEnabled`) resolves the Event from the request, then checks the PROJECT's flag + active gateway. Gates:
 - Admin: `events/{event}/hotels/*` and `events/{event}/reservations/*` (entire group)
 - Public: `POST /public/hotels/availability`, `POST /public/reservations`, `POST /public/reservations/preview-pricing`, `GET /public/events/{slug}/hotels/{slug}` + daily-availability variants
 
-Returns 404 with `error_code: HOTEL_RESERVATION_DISABLED`. Magic-link endpoints (existing reservation receipt/voucher) are NOT gated so customers can still access historical bookings. `GET /public/hotels` listing filters via `whereHas events.hotel_reservation_enabled = true`.
+Returns 404 with `error_code: HOTEL_RESERVATION_DISABLED`. Magic-link endpoints (existing reservation receipt/voucher) are NOT gated so customers can still access historical bookings. `GET /public/hotels` listing filters via `whereHas project (hotel_reservation_enabled = true)` + `events.is_active` + `hotel_event.is_active`.
 
 **Reservation creation:** Requires explicit `event_id` in payload. `ReservationService::createReservation` validates `HotelEvent` pivot exists + active. Public form `StorePublicReservationRequest` enforces `event_id => required|exists`.
 

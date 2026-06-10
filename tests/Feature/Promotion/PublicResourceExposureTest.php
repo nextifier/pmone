@@ -18,7 +18,7 @@ uses(RefreshDatabase::class);
 it('PublicReservationResource exposes discount + surcharge + promo_code_applied', function () {
     Queue::fake();
 
-    $event = Event::factory()->create(['hotel_reservation_enabled' => true]);
+    $event = Event::factory()->create();
     $hotel = Hotel::factory()->withEvent($event)->create([
         'tax_percentage' => 11,
         'service_charge_percentage' => 0,

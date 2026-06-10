@@ -318,10 +318,10 @@ return [
             ],
         ],
         'event_branding' => [
-            'label' => 'Event Branding',
-            'description' => 'Override branding per event (used in invoices and receipts)',
+            'label' => 'PDF Branding',
+            'description' => 'Override branding per project (used in invoices and receipts)',
             'permissions' => [
-                'events.update_branding' => 'Update event branding settings',
+                'events.update_branding' => 'Update project PDF branding settings',
             ],
         ],
         'promotions' => [

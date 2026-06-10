@@ -14,7 +14,7 @@ use App\Models\RoomType;
 /**
  * Spin up a project + event + hotel + room + allotment + active Xendit gateway
  * mirroring the production prerequisite stated in PROMOTION_QA_PROMPT.md:
- * payment_gateways.is_active=true and events.hotel_reservation_enabled=true.
+ * payment_gateways.is_active=true and projects.hotel_reservation_enabled=true.
  *
  * @return array{project: Project, event: Event, hotel: Hotel, room: RoomType, allotment: HotelEventAllotment}
  */
@@ -31,7 +31,6 @@ function qaScenario(array $overrides = []): array
 
     $event = Event::factory()->create([
         'project_id' => $project->id,
-        'hotel_reservation_enabled' => true,
         'is_active' => true,
     ]);
 

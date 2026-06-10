@@ -37,6 +37,8 @@ use Spatie\Permission\Exceptions\RoleDoesNotExist;
  * @property array<array-key, mixed> $more_details
  * @property string $status
  * @property string $visibility
+ * @property bool $hotel_reservation_enabled
+ * @property array<array-key, mixed>|null $branding
  * @property string|null $email
  * @property array<array-key, mixed>|null $phone
  * @property int|null $order_column
@@ -123,6 +125,8 @@ class Project extends Model implements HasMedia, Sortable
         'more_details',
         'status',
         'visibility',
+        'hotel_reservation_enabled',
+        'branding',
         'email',
         'phone',
     ];
@@ -138,6 +142,8 @@ class Project extends Model implements HasMedia, Sortable
             'settings' => 'array',
             'more_details' => 'array',
             'phone' => 'array',
+            'hotel_reservation_enabled' => 'boolean',
+            'branding' => 'array',
         ];
     }
 
@@ -249,7 +255,7 @@ class Project extends Model implements HasMedia, Sortable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'username', 'status', 'visibility'])
+            ->logOnly(['name', 'username', 'status', 'visibility', 'hotel_reservation_enabled'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -372,6 +378,10 @@ class Project extends Model implements HasMedia, Sortable
                 'single_file' => false,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'],
                 'max_size' => 20480,
+            ],
+            'branding_logo' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
             ],
         ];
     }

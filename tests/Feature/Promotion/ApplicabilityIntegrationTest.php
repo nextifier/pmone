@@ -17,7 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->event = Event::factory()->create(['hotel_reservation_enabled' => true]);
+    $this->event = Event::factory()->create();
     $this->hotel = Hotel::factory()->withEvent($this->event)->create([
         'tax_percentage' => 0,
         'service_charge_percentage' => 0,

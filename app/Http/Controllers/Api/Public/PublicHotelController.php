@@ -41,8 +41,8 @@ class PublicHotelController extends Controller
                 'events' => function ($q) use ($eventSlug, $projectSlug, $includeInactive) {
                     if (! $includeInactive) {
                         $q->where('events.is_active', true)
-                            ->where('events.hotel_reservation_enabled', true)
                             ->where('hotel_event.is_active', true)
+                            ->whereHas('project', fn ($p) => $p->where('hotel_reservation_enabled', true))
                             ->whereHas('project.paymentGateways', fn ($p) => $p->where('is_active', true));
                     }
                     if ($eventSlug) {
@@ -66,8 +66,8 @@ class PublicHotelController extends Controller
             ->whereHas('events', function ($q) use ($eventSlug, $projectSlug, $includeInactive) {
                 if (! $includeInactive) {
                     $q->where('events.is_active', true)
-                        ->where('events.hotel_reservation_enabled', true)
                         ->where('hotel_event.is_active', true)
+                        ->whereHas('project', fn ($p) => $p->where('hotel_reservation_enabled', true))
                         ->whereHas('project.paymentGateways', fn ($p) => $p->where('is_active', true));
                 }
                 if ($eventSlug) {
