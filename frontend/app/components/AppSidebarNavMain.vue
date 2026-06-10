@@ -505,31 +505,34 @@ const navMainGroups = computed(() => {
     },
   ];
 
-  // Print Test - master & admin only
-  if (hasAnyRole(["master", "admin"])) {
-    otherItems.push(
-      {
-        label: "Print Test",
-        path: "/print-test",
-        iconName: "hugeicons:printer",
-      },
-      {
-        label: "SDF Converter",
-        path: "/tools/sdf-converter",
-        iconName: "hugeicons:exchange-01",
-      },
-      {
-        label: "WhatsApp Tester",
-        path: "/tools/whatsapp-tester",
-        iconName: "hugeicons:whatsapp",
-      }
-    );
-  }
-
   groups.push({
     label: "Others",
     items: otherItems,
   });
+
+  // Admin Tools - master & admin only
+  if (hasAnyRole(["master", "admin"])) {
+    groups.push({
+      label: "Admin Tools",
+      items: [
+        {
+          label: "Print Test",
+          path: "/tools/print-test",
+          iconName: "hugeicons:printer",
+        },
+        {
+          label: "SDF Converter",
+          path: "/tools/sdf-converter",
+          iconName: "hugeicons:exchange-01",
+        },
+        {
+          label: "WhatsApp Tester",
+          path: "/tools/whatsapp-tester",
+          iconName: "hugeicons:whatsapp",
+        },
+      ],
+    });
+  }
 
   return groups;
 });
