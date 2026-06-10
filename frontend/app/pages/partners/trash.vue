@@ -11,7 +11,7 @@
           to="/partners"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
-          <Icon name="hugeicons:agreement-02" class="size-4 shrink-0" />
+          <Icon name="hugeicons:dim-sum-02" class="size-4 shrink-0" />
           <span>All Partners</span>
         </NuxtLink>
       </div>
@@ -150,8 +150,8 @@
 
 <script setup>
 import PartnerTrashRowActions from "@/components/partner/TrashRowActions.vue";
-import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TableData } from "@/components/ui/table-data";
 import { resolveComponent, resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
 
@@ -208,7 +208,7 @@ const {
 
 const data = computed(() => partnersResponse.value?.data || []);
 const meta = computed(
-  () => partnersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 },
+  () => partnersResponse.value?.meta || { current_page: 1, last_page: 1, per_page: 15, total: 0 }
 );
 
 watch([columnFilters, sorting, pagination], () => fetchPartners(), { deep: true });
@@ -217,8 +217,12 @@ const onPaginationUpdate = (newValue) => {
   pagination.value.pageIndex = newValue.pageIndex;
   pagination.value.pageSize = newValue.pageSize;
 };
-const onSortingUpdate = (newValue) => { sorting.value = newValue; };
-const onColumnFiltersUpdate = (newValue) => { columnFilters.value = newValue; };
+const onSortingUpdate = (newValue) => {
+  sorting.value = newValue;
+};
+const onColumnFiltersUpdate = (newValue) => {
+  columnFilters.value = newValue;
+};
 
 const refresh = fetchPartners;
 
@@ -226,7 +230,9 @@ const tableRef = ref();
 const hasSelectedRows = computed(() => {
   return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
 });
-const clearSelection = () => { if (tableRef.value) tableRef.value.resetRowSelection(); };
+const clearSelection = () => {
+  if (tableRef.value) tableRef.value.resetRowSelection();
+};
 
 // Bulk restore
 const restoreDialogOpen = ref(false);
@@ -317,7 +323,7 @@ const columns = [
             ? h(
                 "p",
                 { class: "text-muted-foreground truncate text-xs tracking-tight" },
-                partner.website_url.replace(/^https?:\/\//, ""),
+                partner.website_url.replace(/^https?:\/\//, "")
               )
             : null,
         ]),
@@ -340,7 +346,7 @@ const columns = [
         {
           class: `inline-flex items-center text-sm tracking-tight capitalize ${classes[status] || "text-muted-foreground"}`,
         },
-        status,
+        status
       );
     },
     size: 100,
@@ -363,7 +369,7 @@ const columns = [
       if (!date) return h("span", { class: "text-muted-foreground text-sm" }, "-");
       return withDirectives(
         h("div", { class: "text-muted-foreground text-sm tracking-tight" }, $dayjs(date).fromNow()),
-        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]],
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
       );
     },
     size: 100,

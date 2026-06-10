@@ -4,7 +4,7 @@
       class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
     >
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:agreement-02" class="size-5 sm:size-6" />
+        <Icon name="hugeicons:dim-sum-02" class="size-5 sm:size-6" />
         <h1 class="page-title">Partners</h1>
       </div>
 
@@ -28,7 +28,7 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>{{ totalActiveFilters > 0 ? 'Export Selected' : 'Export All' }}</span>
+          <span>{{ totalActiveFilters > 0 ? "Export Selected" : "Export All" }}</span>
         </button>
 
         <NuxtLink
@@ -138,9 +138,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">
-                Are you sure?
-              </div>
+              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will move {{ selectedRows.length }} partner(s) to trash.
               </p>
@@ -148,11 +146,20 @@
               <div v-if="deleteJob.processing.value" class="mt-3 space-y-2">
                 <div class="flex items-center justify-between text-sm tracking-tight">
                   <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
-                  <span class="font-medium tabular-nums">{{ deleteJob.progress.value?.percentage ?? 0 }}%</span>
+                  <span class="font-medium tabular-nums"
+                    >{{ deleteJob.progress.value?.percentage ?? 0 }}%</span
+                  >
                 </div>
-                <Progress :model-value="deleteJob.progress.value?.percentage ?? 0" indicator-class="bg-destructive" />
-                <p v-if="deleteJob.progress.value?.total > 0" class="text-muted-foreground text-xs sm:text-sm tracking-tight tabular-nums">
-                  {{ deleteJob.progress.value?.processed ?? 0 }} / {{ deleteJob.progress.value?.total ?? 0 }}
+                <Progress
+                  :model-value="deleteJob.progress.value?.percentage ?? 0"
+                  indicator-class="bg-destructive"
+                />
+                <p
+                  v-if="deleteJob.progress.value?.total > 0"
+                  class="text-muted-foreground text-xs tracking-tight tabular-nums sm:text-sm"
+                >
+                  {{ deleteJob.progress.value?.processed ?? 0 }} /
+                  {{ deleteJob.progress.value?.total ?? 0 }}
                 </p>
               </div>
 
@@ -190,8 +197,9 @@
             <div class="space-y-2">
               <div class="space-y-1">
                 <Label>Logo</Label>
-                <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-                  Format PNG dengan background transparan, ukuran 600x400px. Jangan pakai logo warna putih karena tidak terlihat di background terang.
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  Format PNG dengan background transparan, ukuran 600x400px. Jangan pakai logo warna
+                  putih karena tidak terlihat di background terang.
                 </p>
               </div>
               <InputFileImage
@@ -207,11 +215,17 @@
 
             <div class="space-y-2">
               <Label>Website URL</Label>
-              <Input v-model="createForm.website_url" placeholder="https://example.com" type="url" />
+              <Input
+                v-model="createForm.website_url"
+                placeholder="https://example.com"
+                type="url"
+              />
             </div>
 
             <div class="flex justify-end gap-2">
-              <Button variant="outline" type="button" @click="formDialogOpen = false">Cancel</Button>
+              <Button variant="outline" type="button" @click="formDialogOpen = false"
+                >Cancel</Button
+              >
               <Button type="submit" :disabled="createSaving">
                 <Icon v-if="createSaving" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
                 Create Partner
@@ -229,18 +243,17 @@
 </template>
 
 <script setup>
+import InputFileImage from "@/components/InputFileImage.vue";
 import PartnerImportDialog from "@/components/partner/PartnerImportDialog.vue";
 import PartnerTableItem from "@/components/partner/TableItem.vue";
-import { TableData } from "@/components/ui/table-data";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import InputFileImage from "@/components/InputFileImage.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import { TableData } from "@/components/ui/table-data";
 import { PopoverClose } from "reka-ui";
 import { defineComponent, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
@@ -546,7 +559,7 @@ watch(
       });
       deleteJob.reset();
     }
-  },
+  }
 );
 
 const handleDeleteRows = async (selectedRows) => {

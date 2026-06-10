@@ -24,11 +24,18 @@ const contentBase = computed(
 );
 const contentTabs = computed(() => [
   { label: "Rundown", icon: "hugeicons:time-schedule", to: `${contentBase.value}/rundown` },
-  { label: "Guests / Speakers", icon: "hugeicons:user-multiple-02", to: `${contentBase.value}/guests` },
-  { label: "Tickets", icon: "hugeicons:ticket-01", to: `${contentBase.value}/tickets` },
-  { label: "Programs", icon: "hugeicons:presentation-bar-chart-01", to: `${contentBase.value}/programs` },
+  {
+    label: "Guests / Speakers",
+    icon: "hugeicons:user-multiple-02",
+    to: `${contentBase.value}/guests`,
+  },
+  {
+    label: "Programs",
+    icon: "hugeicons:presentation-bar-chart-01",
+    to: `${contentBase.value}/programs`,
+  },
   { label: "FAQ", icon: "hugeicons:help-circle", to: `${contentBase.value}/faq` },
-  { label: "Partners", icon: "hugeicons:agreement-01", to: `${contentBase.value}/partners` },
+  { label: "Partners", icon: "hugeicons:dim-sum-02", to: `${contentBase.value}/partners` },
   { label: "Media Coverage", icon: "hugeicons:news", to: `${contentBase.value}/media-coverage` },
   { label: "Gallery", icon: "hugeicons:image-02", to: `${contentBase.value}/gallery` },
 ]);
