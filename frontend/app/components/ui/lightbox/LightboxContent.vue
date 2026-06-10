@@ -42,9 +42,9 @@ function onKeyDown(event: KeyboardEvent) {
   } else if (event.key === "End") {
     event.preventDefault();
     state.goTo(state.items.value.length - 1);
-  } else if (event.key === " " && state.props.zoomable) {
+  } else if (event.key === " ") {
     event.preventDefault();
-    state.toggleZoom();
+    state.toggleControls();
   }
 }
 

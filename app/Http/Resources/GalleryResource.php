@@ -23,6 +23,7 @@ class GalleryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'caption' => $this->getCustomProperty('caption'),
             'order_column' => $this->order_column,
             'url' => $this->getUrl(),
             'lqip' => $this->hasGeneratedConversion('lqip') ? $this->getUrl('lqip') : null,

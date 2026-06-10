@@ -78,7 +78,7 @@
             >
               <img
                 :src="item[thumbnailKey] || item.md || item.url"
-                :alt="item.name || alt"
+                :alt="item.caption || item.name || alt"
                 loading="lazy"
                 decoding="async"
                 draggable="false"
@@ -109,6 +109,61 @@
             >
               <Icon name="lucide:grip-vertical" class="size-4 shrink-0" />
             </button>
+
+            <template v-if="canEditCaption">
+              <div
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-11 bg-linear-to-t from-black/35 to-transparent"
+              />
+              <Popover
+                :open="openCaptionId === item[idKey]"
+                @update:open="(open) => toggleCaption(item, open)"
+              >
+                <PopoverTrigger as-child>
+                  <button
+                    type="button"
+                    class="absolute bottom-1.5 left-1.5 z-10 flex max-w-[calc(100%-0.75rem)] items-center gap-x-1 rounded-md px-1.5 py-1 text-white/90 backdrop-blur-sm transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:outline-none"
+                    :class="item.caption ? 'bg-primary/80' : 'bg-black/30'"
+                    :aria-label="item.caption ? 'Edit caption' : 'Add caption'"
+                    @click.stop
+                  >
+                    <Icon name="lucide:pencil" class="size-3.5 shrink-0" />
+                    <span class="truncate text-xs tracking-tight">
+                      {{ item.caption || "Caption" }}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  class="w-72 space-y-2"
+                  @click.stop
+                  @pointerdown.stop
+                  @keydown.stop
+                >
+                  <p class="text-muted-foreground text-xs tracking-tight">
+                    Caption / alt text for this photo.
+                  </p>
+                  <Textarea
+                    v-model="draftCaptions[item[idKey]]"
+                    placeholder="Describe this photo…"
+                    rows="3"
+                    class="resize-none"
+                  />
+                  <div class="flex justify-end gap-2">
+                    <Button type="button" variant="ghost" size="sm" @click="cancelCaption(item)">
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      :disabled="savingCaptionId === item[idKey]"
+                      @click="saveCaption(item)"
+                    >
+                      <Spinner v-if="savingCaptionId === item[idKey]" class="size-4" />
+                      <span>Save</span>
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </template>
 
             <slot name="tile-overlay" :item="item" :index="index" />
           </div>
@@ -152,13 +207,15 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, reactive, ref, watch } from "vue";
 import { useMediaQuery } from "@vueuse/core";
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Spinner } from "@/components/ui/spinner";
 import { Lightbox } from "@/components/ui/lightbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { useGalleryReorder } from "@/composables/useGalleryReorder";
 
@@ -179,7 +236,11 @@ const props = defineProps({
   idKey: { type: String, default: "id" },
   reorderEndpoint: { type: String, default: "/api/media/reorder" },
   deleteEndpoint: { type: String, default: "/api/media/bulk-delete" },
+  editableCaption: { type: Boolean, default: false },
+  captionEndpoint: { type: Function, default: (id) => `/api/media/${id}` },
 });
+
+const canEditCaption = computed(() => props.editableCaption);
 
 const emit = defineEmits(["changed"]);
 
@@ -348,6 +409,52 @@ async function confirmDelete() {
     toast.error(e?.data?.message || "Failed to delete images");
   } finally {
     deletePending.value = false;
+  }
+}
+
+// --- Caption editing (opt-in via `editableCaption`) ----------------------
+const openCaptionId = ref(null);
+const draftCaptions = reactive({});
+const savingCaptionId = ref(null);
+
+function toggleCaption(item, open) {
+  const id = getId(item);
+  if (open) {
+    draftCaptions[id] = item.caption || "";
+    openCaptionId.value = id;
+  } else if (openCaptionId.value === id) {
+    openCaptionId.value = null;
+  }
+}
+
+function cancelCaption(item) {
+  if (openCaptionId.value === getId(item)) {
+    openCaptionId.value = null;
+  }
+}
+
+async function saveCaption(item) {
+  const id = getId(item);
+  const value = (draftCaptions[id] ?? "").trim();
+  savingCaptionId.value = id;
+  try {
+    const response = await client(props.captionEndpoint(id), {
+      method: "PATCH",
+      body: { caption: value },
+    });
+    const caption = response?.data?.caption ?? (value || null);
+    const index = localItems.value.findIndex((media) => getId(media) === id);
+    if (index !== -1) {
+      localItems.value[index] = { ...localItems.value[index], caption };
+      commit();
+      seedSaved(localItems.value);
+    }
+    openCaptionId.value = null;
+    toast.success("Caption saved");
+  } catch (e) {
+    toast.error(e?.data?.message || "Failed to save caption");
+  } finally {
+    savingCaptionId.value = null;
   }
 }
 </script>

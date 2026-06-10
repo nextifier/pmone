@@ -24,7 +24,12 @@ import LightboxShare from "./LightboxShare.vue";
 import LightboxThumbnails from "./LightboxThumbnails.vue";
 import LightboxVideo from "./LightboxVideo.vue";
 import type { LightboxEmblaPlugin, LightboxImageSource } from "./interface";
-import { createAutoplayPlugin, isVideoItem, useLightbox } from "./useLightbox";
+import {
+  createAutoplayPlugin,
+  isVideoItem,
+  pickCaption,
+  useLightbox,
+} from "./useLightbox";
 
 const props = defineProps<{
   showClose?: boolean;
@@ -41,6 +46,13 @@ const props = defineProps<{
 const state = useLightbox();
 const { items, close, props: lightboxProps } = state;
 const { $wheelGesturesPlugin } = useNuxtApp();
+
+// Only reserve caption space when the current item actually has one, so
+// caption-less photos give that room back to the image.
+const currentCaption = computed(() => {
+  const item = state.current.value;
+  return item ? pickCaption(item) : "";
+});
 
 const autoplayDelay = computed(() =>
   typeof lightboxProps.autoplay === "number" ? lightboxProps.autoplay : 0,
@@ -246,10 +258,22 @@ const dragStyle = computed(() => {
   };
 });
 
-const overlayStyle = computed(() => ({
-  opacity: dragOpacity.value,
-  transition: dragging.value ? "none" : "opacity 200ms ease-out",
-}));
+const overlayStyle = computed(() => {
+  // Only force inline opacity while a pull-to-close drag is in progress, so the
+  // chrome show/hide transition (which animates opacity via class) isn't
+  // overridden by an always-present inline opacity when idle.
+  if (!dragging.value && dragY.value === 0) {
+    return {};
+  }
+  return {
+    opacity: dragOpacity.value,
+    transition: dragging.value ? "none" : "opacity 200ms ease-out",
+  };
+});
+
+const controlsVisible = computed(() => state.controlsVisible.value);
+// Stringified for the [data-open] CSS hooks (Vue drops `false` boolean attrs).
+const dataOpen = computed(() => (controlsVisible.value ? "true" : "false"));
 
 const autoplayProgressVisible = computed(
   () => !!autoplayDelay.value && state.open.value,
@@ -284,8 +308,9 @@ const autoplayProgressVisible = computed(
     </div>
 
     <div
-      class="relative z-20 flex items-center justify-between gap-2 px-3 pt-3 sm:px-5 sm:pt-4"
-      :style="overlayStyle"
+      class="t-panel-slide relative z-20 flex items-center justify-between gap-2 px-3 pt-3 sm:px-5 sm:pt-4 lg:absolute lg:inset-x-0 lg:top-0 lg:bg-linear-to-b lg:from-black/55 lg:via-black/15 lg:to-transparent lg:pb-10"
+      :data-open="dataOpen"
+      :style="[overlayStyle, { '--panel-translate-y': '-0.75rem' }]"
     >
       <div class="flex items-center gap-2">
         <slot name="counter">
@@ -303,7 +328,8 @@ const autoplayProgressVisible = computed(
     </div>
 
     <div
-      class="relative flex flex-1 items-center justify-center overflow-hidden"
+      class="t-pt relative flex flex-1 items-center justify-center overflow-hidden"
+      :class="controlsVisible ? 'lg:pt-2' : ''"
       :style="overlayStyle"
       @click="onViewportBackdropClick"
     >
@@ -325,35 +351,63 @@ const autoplayProgressVisible = computed(
           </div>
         </div>
       </div>
+
+      <!-- lg+ nav: edge-aligned, vertically centred over the image so the main
+           image can use the full height (mobile/tablet keep the bottom row). -->
+      <div
+        v-if="showNavButtons && state.isMultiple.value"
+        class="pointer-events-none absolute inset-y-0 right-5 left-5 z-20 hidden items-center justify-between lg:flex"
+        :style="overlayStyle"
+      >
+        <span class="t-panel-slide" :data-open="dataOpen" :style="{ '--panel-translate-y': '0px' }">
+          <slot name="previous">
+            <LightboxPrevious />
+          </slot>
+        </span>
+        <span class="t-panel-slide" :data-open="dataOpen" :style="{ '--panel-translate-y': '0px' }">
+          <slot name="next">
+            <LightboxNext />
+          </slot>
+        </span>
+      </div>
     </div>
 
-    <div v-if="showCaption" class="px-4 pt-3 sm:pt-4" :style="overlayStyle">
-      <slot name="caption">
-        <LightboxCaption />
-      </slot>
-    </div>
+    <!-- Bottom cluster (caption + thumbnails + mobile nav), each with its own
+         dedicated space. Toggling the chrome collapses the cluster's height
+         (t-collapse → the image grows into the freed space) while its contents
+         fade + slide out (t-panel-slide). -->
+    <div class="t-collapse" :data-open="dataOpen">
+      <div>
+        <div
+          class="t-panel-slide"
+          :data-open="dataOpen"
+          :style="[overlayStyle, { '--panel-translate-y': '1rem' }]"
+        >
+          <div v-if="showCaption && currentCaption" class="px-4 pt-2 sm:pt-3">
+            <slot name="caption">
+              <LightboxCaption />
+            </slot>
+          </div>
 
-    <div
-      v-if="showNavButtons && state.isMultiple.value"
-      class="flex items-center justify-center gap-x-2 px-4 pt-3"
-      :style="overlayStyle"
-    >
-      <slot name="previous">
-        <LightboxPrevious />
-      </slot>
-      <slot name="next">
-        <LightboxNext />
-      </slot>
-    </div>
+          <div
+            v-if="showNavButtons && state.isMultiple.value"
+            class="flex items-center justify-center gap-x-2 px-4 pt-3 lg:hidden"
+          >
+            <slot name="previous">
+              <LightboxPrevious />
+            </slot>
+            <slot name="next">
+              <LightboxNext />
+            </slot>
+          </div>
 
-    <div
-      v-if="showThumbnails"
-      class="px-2 pt-3 pb-4 sm:pb-6"
-      :style="overlayStyle"
-    >
-      <slot name="thumbnails">
-        <LightboxThumbnails />
-      </slot>
+          <div v-if="showThumbnails" class="px-2 pt-2 pb-3 sm:pb-4">
+            <slot name="thumbnails">
+              <LightboxThumbnails />
+            </slot>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

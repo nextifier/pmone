@@ -40,15 +40,16 @@ function onError() {
 
 function onClick(event: MouseEvent) {
   event.stopPropagation();
-  if (!isActive.value) return;
-  if (!state.isMultiple.value) return;
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  if (x < rect.width / 2) {
-    state.prev();
-  } else {
-    state.next();
+  if (!isActive.value) {
+    return;
   }
+  // Zoomed → click zooms back out; otherwise toggle the lightbox controls
+  // (top bar, caption, thumbnails, nav) so the image can use the full space.
+  if (isZoomed.value) {
+    state.resetZoom();
+    return;
+  }
+  state.toggleControls();
 }
 
 const isZoomed = computed(() => state.isZoomed.value && isActive.value);
@@ -92,7 +93,7 @@ const isZoomed = computed(() => state.isZoomed.value && isActive.value);
             ? 'opacity-100 scale-100'
             : 'opacity-0 scale-[0.98]',
           isZoomed && 'cursor-zoom-out scale-[1.6]',
-          !isZoomed && isActive && state.isMultiple.value && 'cursor-pointer',
+          !isZoomed && isActive && 'cursor-pointer',
         )
       "
       @load="onLoad"

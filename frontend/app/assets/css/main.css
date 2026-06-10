@@ -1241,3 +1241,77 @@ label:has(+ .base-phone-input input:required)::after {
 }
 /* Vue JSON Pretty - End */
 
+/* transitions-dev — Lightbox chrome show/hide + image resize.
+   Card resize (01) + Panel reveal (07) tokens. */
+:root {
+  --resize-dur: 300ms;
+  --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --panel-open-dur: 400ms;
+  --panel-close-dur: 350ms;
+  --panel-translate-y: 100px;
+  --panel-blur: 2px;
+  --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Panel reveal (transitions-dev 07) — verbatim. */
+.t-panel-slide {
+  transform: translateY(var(--panel-translate-y));
+  opacity: 0;
+  filter: blur(var(--panel-blur));
+  pointer-events: none;
+  transition:
+    transform var(--panel-close-dur) var(--panel-ease),
+    opacity var(--panel-close-dur) var(--panel-ease),
+    filter var(--panel-close-dur) var(--panel-ease);
+  will-change: transform, opacity, filter;
+}
+.t-panel-slide[data-open="true"] {
+  transform: translateY(0);
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+  transition:
+    transform var(--panel-open-dur) var(--panel-ease),
+    opacity var(--panel-open-dur) var(--panel-ease),
+    filter var(--panel-open-dur) var(--panel-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-panel-slide {
+    transition: none !important;
+  }
+}
+
+/* Card resize (transitions-dev 01) adapted for auto height via the grid-rows
+   1fr/0fr technique, so a collapsing in-flow region animates its height (and
+   lets a flex sibling grow) without a measured pixel height. Uses the
+   card-resize duration/ease tokens. */
+.t-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--resize-dur) var(--resize-ease);
+  will-change: grid-template-rows;
+}
+.t-collapse[data-open="false"] {
+  grid-template-rows: 0fr;
+}
+.t-collapse > * {
+  min-height: 0;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-collapse {
+    transition: none !important;
+  }
+}
+
+/* Animates the image viewport's top inset (8px when controls are shown, 0 when
+   hidden) in step with the card-resize collapse, using the same tokens. */
+.t-pt {
+  transition: padding-top var(--resize-dur) var(--resize-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-pt {
+    transition: none !important;
+  }
+}
+

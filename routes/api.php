@@ -141,6 +141,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/bulk-delete', [MediaController::class, 'bulkDelete']);
         Route::post('/reorder', [MediaController::class, 'reorder']);
         Route::get('/{media}/download', [MediaController::class, 'download']);
+        Route::patch('/{media}', [MediaController::class, 'update']);
         Route::delete('/{media}', [MediaController::class, 'delete']);
     });
 

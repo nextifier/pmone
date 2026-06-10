@@ -22,13 +22,16 @@ class GalleryPublicResource extends JsonResource
     {
         $full = $this->hasGeneratedConversion('xl') ? $this->getUrl('xl') : $this->getUrl();
 
+        $caption = $this->getCustomProperty('caption');
+
         return [
             'id' => $this->id,
             'lqip' => $this->hasGeneratedConversion('lqip') ? $this->getUrl('lqip') : null,
             'sm' => $this->hasGeneratedConversion('sm') ? $this->getUrl('sm') : $this->getUrl(),
             'xl' => $full,
             'url' => $full,
-            'alt' => $this->getCustomProperty('alt') ?? $this->name,
+            'caption' => $caption,
+            'alt' => $caption ?? $this->getCustomProperty('alt') ?? $this->name,
             'width' => $this->getCustomProperty('width'),
             'height' => $this->getCustomProperty('height'),
         ];

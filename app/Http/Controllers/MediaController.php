@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -123,9 +124,13 @@ class MediaController extends Controller
             // Upload the file with proper naming
             $mediaAdder = $model->addMediaFromRequest('file');
 
-            // Set custom file name to avoid collisions
+            // Set a human-readable display name plus a guaranteed-unique disk
+            // file name. The collection-based path generator stores every file
+            // of a collection in one folder, so two uploads sharing an original
+            // name would otherwise overwrite each other on disk.
             $sanitizedName = $this->sanitizeFileName($file->getClientOriginalName());
             $mediaAdder->usingName($sanitizedName);
+            $mediaAdder->usingFileName($this->uniqueFileName($file->getClientOriginalName()));
 
             // Add metadata including dimensions
             $customProperties = [
@@ -143,7 +148,9 @@ class MediaController extends Controller
 
             $mediaAdder->withCustomProperties($customProperties);
 
-            $media = $mediaAdder->toMediaCollection($collection);
+            // Serialize order_column assignment per model+collection so
+            // concurrent uploads can't read the same "highest order" and collide.
+            $media = $this->withOrderLock($modelType, $modelId, $collection, fn () => $mediaAdder->toMediaCollection($collection));
 
             // Get media URLs including conversions
             $mediaUrls = $this->getMediaResponse($media, $model, $collection);
@@ -284,9 +291,12 @@ class MediaController extends Controller
                     // Upload the file with proper naming
                     $mediaAdder = $model->addMediaFromRequest('files', $index);
 
-                    // Set custom file name to avoid collisions
+                    // Human-readable display name + unique disk file name (the
+                    // collection-based path generator keeps a whole collection in
+                    // one folder, so duplicate original names would clobber).
                     $sanitizedName = $this->sanitizeFileName($file->getClientOriginalName());
                     $mediaAdder->usingName($sanitizedName);
+                    $mediaAdder->usingFileName($this->uniqueFileName($file->getClientOriginalName()));
 
                     // Add metadata including dimensions
                     $customProperties = [
@@ -306,7 +316,8 @@ class MediaController extends Controller
 
                     $mediaAdder->withCustomProperties($customProperties);
 
-                    $media = $mediaAdder->toMediaCollection($collection);
+                    // Serialize order_column assignment to avoid concurrent collisions.
+                    $media = $this->withOrderLock($modelType, $modelId, $collection, fn () => $mediaAdder->toMediaCollection($collection));
 
                     // Get media URLs including conversions
                     $uploadedMedia[] = $this->getMediaResponse($media, $model, $collection);
@@ -533,6 +544,46 @@ class MediaController extends Controller
         ]);
     }
 
+    /**
+     * Update editable metadata for a single media item. Currently the caption
+     * (also used as the image alt text on public pages). Generic across any
+     * owner that uses GalleryManager.
+     */
+    public function update(Request $request, int $mediaId): JsonResponse
+    {
+        try {
+            $media = Media::findOrFail($mediaId);
+
+            if (! $this->authorizeDelete($media)) {
+                return response()->json([
+                    'message' => 'Unauthorized to update this media',
+                ], 403);
+            }
+
+            $validated = $request->validate([
+                'caption' => ['nullable', 'string', 'max:1000'],
+            ]);
+
+            $caption = isset($validated['caption']) ? trim((string) $validated['caption']) : '';
+            $media->setCustomProperty('caption', $caption !== '' ? $caption : null);
+            $media->save();
+
+            $this->clearOwnerResponseCache($media);
+
+            return response()->json([
+                'message' => 'Media updated',
+                'data' => [
+                    'id' => $media->id,
+                    'caption' => $media->getCustomProperty('caption'),
+                ],
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => 'Media not found',
+            ], 404);
+        }
+    }
+
     public function download(int $mediaId): StreamedResponse|BinaryFileResponse
     {
         $media = Media::findOrFail($mediaId);
@@ -741,6 +792,37 @@ class MediaController extends Controller
         $extension = $pathInfo['extension'] ?? '';
 
         return $name.($extension ? '.'.$extension : '');
+    }
+
+    /**
+     * Build a collision-proof, still-readable disk file name. Keeps the slugged
+     * base name and appends a short random token + the original extension.
+     */
+    protected function uniqueFileName(string $originalName): string
+    {
+        $sanitized = $this->sanitizeFileName($originalName);
+        $extension = pathinfo($sanitized, PATHINFO_EXTENSION);
+        $base = pathinfo($sanitized, PATHINFO_FILENAME) ?: 'file';
+
+        return $base.'-'.Str::lower(Str::random(6)).($extension ? '.'.$extension : '');
+    }
+
+    /**
+     * Serialize order_column assignment for a model+collection. Spatie reads the
+     * current highest order then writes +1 without a DB lock, so two concurrent
+     * uploads to the same collection can land on the same order_column. An atomic
+     * cache lock around the insert keeps the read-then-write race-free.
+     *
+     * @template T
+     *
+     * @param  callable():T  $callback
+     * @return T
+     */
+    protected function withOrderLock(string $modelType, int $modelId, string $collection, callable $callback)
+    {
+        $key = 'media-order:'.md5($modelType.'|'.$modelId.'|'.$collection);
+
+        return Cache::lock($key, 15)->block(10, $callback);
     }
 
     /**

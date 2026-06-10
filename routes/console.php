@@ -15,6 +15,9 @@ Schedule::command('telescope:prune --hours=48')->daily();
 
 Schedule::command('posts:publish-scheduled')->everyMinute();
 
+// Prune temp uploads (FilePond) that were never attached to a model.
+Schedule::command('uploads:cleanup-temp')->daily()->at('02:30');
+
 Schedule::command('activitylog:clean --force')->daily()->at('01:00')->environments(['production']);
 Schedule::command('backup:clean')->daily()->at('02:00')->environments(['production']);
 Schedule::command('backup:run --only-db')->daily()->at('03:00')->environments(['production']);

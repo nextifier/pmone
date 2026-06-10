@@ -69,7 +69,10 @@ export function pickAlt(item: LightboxItem, fallback?: string): string {
 }
 
 export function pickCaption(item: LightboxItem): string {
-  return item.caption || item.name || "";
+  // Caption is an explicit, human-written label. Never fall back to `item.name`,
+  // which for Spatie media is the (often ugly) file name. Alt text and the
+  // download file name still use `name` via their own pickers.
+  return item.caption || "";
 }
 
 function filenameFromUrl(url: string): string {
@@ -160,6 +163,14 @@ const [useProvideLightbox, useInjectLightbox] = createInjectionState(
     const isZoomed = ref(false);
     const isFullscreen = ref(false);
 
+    // Immersive toggle: tapping the image (or pressing Space) hides every
+    // control (top bar, caption, thumbnails, nav) except the image itself, and
+    // lets the image grow into the freed space. Reset whenever the lightbox opens.
+    const controlsVisible = ref(true);
+    function toggleControls() {
+      controlsVisible.value = !controlsVisible.value;
+    }
+
     const counterFormat = computed<LightboxCounterFormat>(
       () => props.counterFormat || defaultCounterFormat,
     );
@@ -171,6 +182,12 @@ const [useProvideLightbox, useInjectLightbox] = createInjectionState(
     watch(items, (next) => {
       if (index.value > Math.max(0, next.length - 1)) {
         index.value = Math.max(0, next.length - 1);
+      }
+    });
+
+    watch(open, (isOpen) => {
+      if (isOpen) {
+        controlsVisible.value = true;
       }
     });
 
@@ -290,6 +307,8 @@ const [useProvideLightbox, useInjectLightbox] = createInjectionState(
       canNext,
       isZoomed,
       isFullscreen,
+      controlsVisible,
+      toggleControls,
       counterLabel,
       setCanScroll,
       emitChange,
