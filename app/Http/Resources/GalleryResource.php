@@ -10,6 +10,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * Admin resource for a single gallery photo (Spatie Media in the `gallery`
  * collection). Shape matches what GalleryManager expects: `sm` thumbnail, `xl`
  * lightbox, `lqip` placeholder, plus natural `width`/`height` for no-CLS layout.
+ * The gallery only generates `lqip`/`sm` conversions, so `xl` (lightbox) is the
+ * stored original.
  *
  * @mixin Media
  */
@@ -28,7 +30,7 @@ class GalleryResource extends JsonResource
             'url' => $this->getUrl(),
             'lqip' => $this->hasGeneratedConversion('lqip') ? $this->getUrl('lqip') : null,
             'sm' => $this->hasGeneratedConversion('sm') ? $this->getUrl('sm') : $this->getUrl(),
-            'xl' => $this->hasGeneratedConversion('xl') ? $this->getUrl('xl') : $this->getUrl(),
+            'xl' => $this->getUrl(),
             'width' => $this->getCustomProperty('width'),
             'height' => $this->getCustomProperty('height'),
         ];

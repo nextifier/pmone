@@ -77,13 +77,14 @@
               :class="lightbox ? 'cursor-zoom-in' : 'cursor-default'"
               @click="lightbox && openAt(index)"
             >
-              <img
+              <BlurImage
                 :src="item[thumbnailKey] || item.md || item.url"
+                :lqip="item.lqip"
                 :alt="item.caption || item.name || alt"
                 loading="lazy"
                 decoding="async"
                 draggable="false"
-                class="size-full object-cover"
+                image-class="size-full object-cover"
               />
             </button>
 
@@ -232,6 +233,7 @@
 import { computed, nextTick, reactive, ref, watch } from "vue";
 import { useMediaQuery } from "@vueuse/core";
 import { toast } from "vue-sonner";
+import { BlurImage } from "@/components/ui/blur-image";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";

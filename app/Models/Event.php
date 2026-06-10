@@ -444,9 +444,9 @@ class Event extends Model implements HasMedia, Sortable
             ->quality(95)
             ->performOnCollections('description_images');
 
-        // Gallery conversions — only 3 variants (lqip/sm/xl) to save space, and
-        // width-only (no height / no crop) so each photo keeps its native aspect
-        // ratio (16:9, 4:5, 1:1, etc.).
+        // Gallery conversions — only lqip + sm (the full image uses the stored
+        // original) to save space, and width-only (no height / no crop) so each
+        // photo keeps its native aspect ratio (16:9, 4:5, 1:1, etc.).
         $this->addMediaConversion('lqip')
             ->width(32)
             ->quality(10)
@@ -459,11 +459,6 @@ class Event extends Model implements HasMedia, Sortable
             ->quality(80)
             ->performOnCollections('gallery')
             ->nonQueued();
-
-        $this->addMediaConversion('xl')
-            ->width(1600)
-            ->quality(82)
-            ->performOnCollections('gallery');
     }
 
     public function getMediaCollections(): array

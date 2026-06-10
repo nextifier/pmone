@@ -10,6 +10,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * Public resource for a single gallery photo. Shape mirrors what the
  * pmone-events `Gallery.vue` / Lightbox expects: `sm` thumbnail, `xl` (also
  * `url`) full image, `lqip` placeholder, `alt`, and natural `width`/`height`.
+ * The gallery only generates `lqip`/`sm` conversions, so the full image (`xl`)
+ * is the stored original.
  *
  * @mixin Media
  */
@@ -20,7 +22,7 @@ class GalleryPublicResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $full = $this->hasGeneratedConversion('xl') ? $this->getUrl('xl') : $this->getUrl();
+        $full = $this->getUrl();
 
         $caption = $this->getCustomProperty('caption');
 
