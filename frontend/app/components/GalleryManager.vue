@@ -63,12 +63,13 @@
             :key="item[idKey]"
             class="gallery-tile bg-muted relative overflow-hidden rounded-lg border"
             :class="[
-              tileAspectClass,
+              tileAspectStyle ? '' : tileAspectClass,
               {
                 'ring-primary ring-2': isSelected(item[idKey]),
                 'is-leaving': leavingIds.has(item[idKey]),
               },
             ]"
+            :style="tileAspectStyle ? { aspectRatio: tileAspectStyle } : null"
           >
             <button
               type="button"
@@ -173,7 +174,7 @@
 
     <span class="sr-only" role="status" aria-live="polite">{{ announcement }}</span>
 
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <DialogResponsive :open="deleteDialogOpen" @update:open="onDeleteDialogOpenChange">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-primary text-lg font-semibold tracking-tighter">Delete images?</div>
@@ -181,11 +182,32 @@
             {{ selectedCount }} selected image{{ selectedCount > 1 ? "s" : "" }} will be permanently
             deleted. This action can't be undone.
           </p>
+
+          <div v-if="deleteJob.processing.value" class="mt-4 space-y-2">
+            <div class="flex items-center justify-between text-sm tracking-tight">
+              <span class="text-muted-foreground">{{ deleteJob.progress.value?.message }}</span>
+              <span class="font-medium tabular-nums">
+                {{ deleteJob.progress.value?.percentage ?? 0 }}%
+              </span>
+            </div>
+            <Progress
+              :model-value="deleteJob.progress.value?.percentage ?? 0"
+              indicator-class="bg-destructive"
+            />
+            <p
+              v-if="(deleteJob.progress.value?.total ?? 0) > 0"
+              class="text-muted-foreground text-xs tracking-tight tabular-nums sm:text-sm"
+            >
+              {{ deleteJob.progress.value?.processed ?? 0 }} /
+              {{ deleteJob.progress.value?.total ?? 0 }}
+            </p>
+          </div>
+
           <div class="mt-4 flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              :disabled="deletePending"
+              :disabled="deletePending || deleteJob.processing.value"
               @click="deleteDialogOpen = false"
             >
               Cancel
@@ -193,10 +215,10 @@
             <Button
               type="button"
               variant="destructive"
-              :disabled="deletePending"
+              :disabled="deletePending || deleteJob.processing.value"
               @click="confirmDelete"
             >
-              <Spinner v-if="deletePending" class="size-4" />
+              <Spinner v-if="deletePending || deleteJob.processing.value" class="size-4" />
               <span>Delete</span>
             </Button>
           </div>
@@ -212,6 +234,7 @@ import { useMediaQuery } from "@vueuse/core";
 import { toast } from "vue-sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import { Lightbox } from "@/components/ui/lightbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -229,6 +252,7 @@ const props = defineProps({
     default: "grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5",
   },
   tileAspectClass: { type: String, default: "aspect-square" },
+  tileAspectStyle: { type: String, default: "" },
   compactToolbar: { type: Boolean, default: false },
   thumbnailKey: { type: String, default: "sm" },
   lightbox: { type: Boolean, default: true },
@@ -238,6 +262,14 @@ const props = defineProps({
   deleteEndpoint: { type: String, default: "/api/media/bulk-delete" },
   editableCaption: { type: Boolean, default: false },
   captionEndpoint: { type: Function, default: (id) => `/api/media/${id}` },
+  /**
+   * Opt-in: route large bulk deletes through a queued job with server-side
+   * progress instead of the synchronous generic media endpoint. Selections at
+   * or below the threshold still delete synchronously (instant, no polling).
+   */
+  queuedDelete: { type: Boolean, default: false },
+  queuedDeleteEndpoint: { type: String, default: "" },
+  queuedDeleteThreshold: { type: Number, default: 20 },
 });
 
 const canEditCaption = computed(() => props.editableCaption);
@@ -368,6 +400,19 @@ watch(localItems, (list) => {
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
 
+// Queued bulk delete (opt-in). Large selections dispatch a job and poll its
+// progress; small ones fall through to the synchronous path below.
+const deleteJob = useJobProgress();
+const useQueuedDelete = (count) =>
+  props.queuedDelete && props.queuedDeleteEndpoint && count > props.queuedDeleteThreshold;
+
+function onDeleteDialogOpenChange(open) {
+  if (!open && deleteJob.processing.value) {
+    return;
+  }
+  deleteDialogOpen.value = open;
+}
+
 function openDelete() {
   if (selectedCount.value > 0) {
     deleteDialogOpen.value = true;
@@ -379,6 +424,19 @@ async function confirmDelete() {
   if (!ids.length) {
     return;
   }
+
+  if (useQueuedDelete(ids.length)) {
+    try {
+      await deleteJob.startJob(props.queuedDeleteEndpoint, {
+        method: "POST",
+        body: { media_ids: ids },
+      });
+    } catch (e) {
+      toast.error(e?.data?.message || "Failed to delete images");
+    }
+    return;
+  }
+
   deletePending.value = true;
   try {
     const response = await client(props.deleteEndpoint, {
@@ -411,6 +469,28 @@ async function confirmDelete() {
     deletePending.value = false;
   }
 }
+
+// Commit the result of a queued bulk delete once the job finishes.
+watch(
+  () => deleteJob.progress.value?.status,
+  (status) => {
+    if (status === "completed") {
+      const data = deleteJob.progress.value;
+      const removed = new Set(data?.deleted_ids ?? []);
+      selected.value = new Set();
+      deleteDialogOpen.value = false;
+      localItems.value = localItems.value.filter((media) => !removed.has(getId(media)));
+      commit();
+      seedSaved(localItems.value);
+      toast.success(data?.message || `${removed.size} image${removed.size > 1 ? "s" : ""} deleted`);
+      emit("changed");
+      deleteJob.reset();
+    } else if (status === "failed") {
+      toast.error(deleteJob.progress.value?.error_message || "Failed to delete images");
+      deleteJob.reset();
+    }
+  }
+);
 
 // --- Caption editing (opt-in via `editableCaption`) ----------------------
 const openCaptionId = ref(null);

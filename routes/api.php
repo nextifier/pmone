@@ -384,6 +384,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('projects/{username}/events/{eventSlug}/gallery')->group(function () {
         Route::get('/', [GalleryController::class, 'index'])->name('gallery.index');
         Route::post('/', [GalleryController::class, 'store'])->name('gallery.store');
+        Route::post('/bulk-delete', [GalleryController::class, 'bulkDelete'])->name('gallery.bulk-delete');
+        Route::patch('/settings', [GalleryController::class, 'updateSettings'])->name('gallery.settings.update');
     });
 
     // Rundown item management endpoints (nested under events)

@@ -1,10 +1,13 @@
 <?php
 
+use App\Jobs\BulkDeleteMedia;
 use App\Models\Event;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -169,4 +172,93 @@ it('forbids caption update without manage permission', function () {
     $this->user->syncPermissions(['events.read']);
 
     $this->patchJson("/api/media/{$media->id}", ['caption' => 'nope'])->assertForbidden();
+});
+
+it('saves the gallery aspect ratio and merges into existing settings', function () {
+    $this->event->update(['settings' => ['tax_rate' => 11]]);
+
+    $this->patchJson("{$this->apiBase}/settings", ['aspect_ratio' => '4:5'])
+        ->assertSuccessful()
+        ->assertJsonPath('data.aspect_ratio', '4:5');
+
+    $settings = $this->event->fresh()->settings;
+    expect($settings['gallery_aspect_ratio'])->toBe('4:5');
+    expect($settings['tax_rate'])->toBe(11);
+});
+
+it('accepts a custom aspect ratio', function () {
+    $this->patchJson("{$this->apiBase}/settings", ['aspect_ratio' => '21:9'])
+        ->assertSuccessful();
+
+    expect($this->event->fresh()->settings['gallery_aspect_ratio'])->toBe('21:9');
+});
+
+it('rejects an invalid aspect ratio', function (string $ratio) {
+    $this->patchJson("{$this->apiBase}/settings", ['aspect_ratio' => $ratio])
+        ->assertStatus(422);
+})->with(['0:5', '4:0', 'abc', '4-5', '4:', ':5', '1000:9']);
+
+it('forbids aspect ratio update without events.update permission', function () {
+    $this->user->removeRole('master');
+    $this->user->syncPermissions(['events.read']);
+
+    $this->patchJson("{$this->apiBase}/settings", ['aspect_ratio' => '1:1'])->assertForbidden();
+});
+
+it('queues a bulk delete and returns a job id scoped to the event gallery', function () {
+    Queue::fake();
+
+    $a = ($this->addPhoto)($this->event, 'a.jpg');
+    $b = ($this->addPhoto)($this->event, 'b.jpg');
+
+    $other = Event::factory()->create(['project_id' => $this->project->id]);
+    $foreign = ($this->addPhoto)($other, 'c.jpg');
+
+    $response = $this->postJson("{$this->apiBase}/bulk-delete", [
+        'media_ids' => [$a->id, $b->id, $foreign->id],
+    ])->assertSuccessful();
+
+    $jobId = $response->json('job_id');
+    expect($jobId)->not->toBeNull();
+    expect(Cache::get("job:{$jobId}")['total'])->toBe(2); // foreign id dropped
+
+    Queue::assertPushed(BulkDeleteMedia::class, function (BulkDeleteMedia $job) use ($a, $b, $jobId) {
+        return $job->jobId === $jobId
+            && $job->mediaIds === [$a->id, $b->id]
+            && $job->responseCacheTags === ['gallery'];
+    });
+});
+
+it('rejects a bulk delete with no matching gallery photos', function () {
+    $other = Event::factory()->create(['project_id' => $this->project->id]);
+    $foreign = ($this->addPhoto)($other, 'c.jpg');
+
+    $this->postJson("{$this->apiBase}/bulk-delete", ['media_ids' => [$foreign->id]])
+        ->assertStatus(422);
+});
+
+it('forbids bulk delete without events.update permission', function () {
+    $media = ($this->addPhoto)($this->event, 'a.jpg');
+    $this->user->removeRole('master');
+    $this->user->syncPermissions(['events.read']);
+
+    $this->postJson("{$this->apiBase}/bulk-delete", ['media_ids' => [$media->id]])->assertForbidden();
+});
+
+it('deletes media and reports progress when the job runs', function () {
+    $a = ($this->addPhoto)($this->event, 'a.jpg');
+    $b = ($this->addPhoto)($this->event, 'b.jpg');
+
+    $jobId = 'test-job-id';
+    Cache::put("job:{$jobId}", ['status' => 'pending', 'total' => 2, 'processed' => 0], now()->addMinutes(30));
+
+    (new BulkDeleteMedia($jobId, [$a->id, $b->id], $this->user->id, ['gallery']))->handle();
+
+    expect($this->event->fresh()->getMedia('gallery'))->toHaveCount(0);
+
+    $progress = Cache::get("job:{$jobId}");
+    expect($progress['status'])->toBe('completed');
+    expect($progress['percentage'])->toBe(100);
+    expect($progress['deleted_count'])->toBe(2);
+    expect($progress['deleted_ids'])->toBe([$a->id, $b->id]);
 });

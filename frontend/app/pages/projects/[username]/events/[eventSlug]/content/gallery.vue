@@ -14,10 +14,58 @@
           {{ gallery.length }}
         </span>
       </div>
+
+      <!-- Aspect ratio: how each tile is cropped on the public site (and previewed below). -->
+      <div class="flex flex-wrap items-center gap-2">
+        <Label class="text-muted-foreground shrink-0 text-sm tracking-tight">
+          Aspect ratio
+        </Label>
+        <Select v-model="aspectMode">
+          <SelectTrigger class="w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1:1">1:1 (Square)</SelectItem>
+            <SelectItem value="4:5">4:5 (Portrait)</SelectItem>
+            <SelectItem value="16:9">16:9 (Wide)</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+        <div v-if="aspectMode === 'custom'" class="flex items-center gap-x-1.5">
+          <Input
+            v-model.number="customW"
+            type="number"
+            min="1"
+            max="999"
+            aria-label="Aspect ratio width"
+            class="w-16"
+          />
+          <span class="text-muted-foreground tracking-tight">:</span>
+          <Input
+            v-model.number="customH"
+            type="number"
+            min="1"
+            max="999"
+            aria-label="Aspect ratio height"
+            class="w-16"
+          />
+        </div>
+        <Spinner v-if="savingRatio" class="text-muted-foreground size-4" />
+      </div>
     </div>
 
     <!-- Uploader -->
     <div class="space-y-2">
+      <!-- Progress stays ABOVE FilePond so it remains visible while many queued
+           file rows expand the uploader downward. -->
+      <div v-if="showProgress" class="space-y-1.5">
+        <div class="flex items-center justify-between text-sm tracking-tight">
+          <span class="text-foreground">{{ uploadLabel }}</span>
+          <span class="text-muted-foreground tabular-nums">{{ uploadPercent }}%</span>
+        </div>
+        <Progress :model-value="uploadPercent" />
+      </div>
+
       <InputFile
         ref="uploader"
         allow-multiple
@@ -28,9 +76,9 @@
         @complete="onUploadComplete"
         @progress="onProgress"
       />
-      <p class="text-muted-foreground text-xs tracking-tight">
-        Photos keep their original aspect ratio. Up to 100 files, max 20MB each.
-        <span v-if="uploadLabel" class="text-foreground">{{ uploadLabel }}</span>
+      <p class="text-muted-foreground text-sm tracking-tight">
+        Up to 100 files, max 20MB each. Tiles are cropped to the selected aspect ratio on
+        the public site.
       </p>
     </div>
 
@@ -80,6 +128,10 @@
         v-else
         v-model:items="gallery"
         :alt="event?.title || 'Gallery'"
+        :tile-aspect-style="aspectStyle"
+        queued-delete
+        :queued-delete-endpoint="`${apiBase}/bulk-delete`"
+        :queued-delete-threshold="20"
         thumbnail-key="sm"
         editable-caption
       />
@@ -100,6 +152,17 @@
 import GalleryManager from "@/components/GalleryManager.vue";
 import InputFile from "@/components/InputFile.vue";
 import { Spinner } from "@/components/ui/spinner";
+import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useDebounceFn } from "@vueuse/core";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -113,6 +176,47 @@ const apiBase = `/api/projects/${username}/events/${eventSlug}/gallery`;
 
 const gallery = ref([]);
 const loading = ref(true);
+
+// --- Aspect ratio setting ------------------------------------------------
+// Controls how tiles are cropped on the public event website (and previewed
+// here). Stored per-event in settings.gallery_aspect_ratio; default 1:1.
+const aspectPresets = ["1:1", "4:5", "16:9"];
+const stored = props.event?.settings?.gallery_aspect_ratio || "1:1";
+const [storedW, storedH] = stored.split(":");
+const aspectMode = ref(aspectPresets.includes(stored) ? stored : "custom");
+const customW = ref(Number(storedW) || 4);
+const customH = ref(Number(storedH) || 3);
+const savingRatio = ref(false);
+
+const ratioPattern = /^[1-9]\d{0,2}:[1-9]\d{0,2}$/;
+const effectiveRatio = computed(() =>
+  aspectMode.value === "custom" ? `${customW.value}:${customH.value}` : aspectMode.value
+);
+// Keep the preview stable while a custom value is mid-edit (e.g. an empty field).
+const aspectStyle = computed(() =>
+  ratioPattern.test(effectiveRatio.value) ? effectiveRatio.value.replace(":", " / ") : "1 / 1"
+);
+
+const saveRatio = useDebounceFn(async () => {
+  const ratio = effectiveRatio.value;
+  if (!ratioPattern.test(ratio)) return;
+  savingRatio.value = true;
+  try {
+    await client(`${apiBase}/settings`, {
+      method: "PATCH",
+      body: { aspect_ratio: ratio },
+    });
+    toast.success("Aspect ratio updated");
+  } catch (err) {
+    toast.error("Failed to update aspect ratio", {
+      description: err?.data?.message || err?.message,
+    });
+  } finally {
+    savingRatio.value = false;
+  }
+}, 500);
+
+watch(effectiveRatio, saveRatio);
 
 const fetchGallery = async () => {
   try {
@@ -151,6 +255,18 @@ const uploadLabel = computed(() => {
   }
   return "";
 });
+
+const uploadPercent = computed(() => {
+  if (uploading.value) {
+    return saving.total ? Math.round((saving.done / saving.total) * 100) : 0;
+  }
+  if (receiving.total > 0) {
+    return Math.round((receiving.done / receiving.total) * 100);
+  }
+  return 0;
+});
+
+const showProgress = computed(() => uploadLabel.value !== "");
 
 const onProgress = ({ done, total }) => {
   receiving.done = done ?? 0;

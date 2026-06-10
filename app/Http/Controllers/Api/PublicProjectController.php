@@ -525,6 +525,9 @@ class PublicProjectController extends Controller
 
         return response()->json([
             'data' => GalleryPublicResource::collection($source->getMedia('gallery')),
+            'meta' => [
+                'aspect_ratio' => data_get($event->settings, 'gallery_aspect_ratio', '1:1'),
+            ],
         ]);
     }
 

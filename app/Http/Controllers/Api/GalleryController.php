@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\GalleryResource;
+use App\Jobs\BulkDeleteMedia;
 use App\Models\Event;
 use App\Models\Project;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -70,6 +72,75 @@ class GalleryController extends Controller
             'failed_count' => $failed,
             'data' => GalleryResource::collection($event->fresh()->getMedia('gallery')),
         ], 201);
+    }
+
+    /**
+     * Update gallery display settings for an event. Merges into the event's
+     * `settings` JSON so other settings keys are preserved. The aspect ratio
+     * drives how the public event website crops each gallery tile.
+     */
+    public function updateSettings(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+        $this->authorize('update', $event);
+
+        $validated = $request->validate([
+            'aspect_ratio' => ['required', 'string', 'regex:/^[1-9]\d{0,2}:[1-9]\d{0,2}$/'],
+        ]);
+
+        $settings = $event->settings ?? [];
+        $settings['gallery_aspect_ratio'] = $validated['aspect_ratio'];
+        $event->update(['settings' => $settings]);
+
+        ResponseCache::clear(['gallery']);
+
+        return response()->json([
+            'message' => 'Gallery settings updated',
+            'data' => ['aspect_ratio' => $validated['aspect_ratio']],
+        ]);
+    }
+
+    /**
+     * Queue a bulk delete of gallery photos and return a job id the client can
+     * poll for progress. Used for large selections so the request returns
+     * immediately; small selections keep using the synchronous generic media
+     * endpoint. Ids are scoped to this event's gallery collection.
+     */
+    public function bulkDelete(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+        $this->authorize('update', $event);
+
+        $validated = $request->validate([
+            'media_ids' => ['required', 'array', 'min:1'],
+            'media_ids.*' => ['required', 'integer'],
+        ]);
+
+        $ids = $event->getMedia('gallery')
+            ->whereIn('id', $validated['media_ids'])
+            ->pluck('id')
+            ->all();
+
+        if (empty($ids)) {
+            return response()->json(['message' => 'No matching gallery photos.'], 422);
+        }
+
+        $jobId = Str::uuid()->toString();
+
+        Cache::put("job:{$jobId}", [
+            'status' => 'pending',
+            'total' => count($ids),
+            'processed' => 0,
+            'percentage' => 0,
+            'message' => 'Preparing to delete photos...',
+            'error_message' => null,
+        ], now()->addMinutes(30));
+
+        BulkDeleteMedia::dispatch($jobId, $ids, auth()->id(), ['gallery']);
+
+        return response()->json(['job_id' => $jobId]);
     }
 
     private function attachTempImage(Event $event, string $tmpFolder): bool

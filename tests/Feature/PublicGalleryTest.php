@@ -80,3 +80,22 @@ test('returns empty when no event in the project has a gallery', function () {
         ->assertOk()
         ->assertJsonCount(0, 'data');
 });
+
+test('exposes the configured gallery aspect ratio in meta', function () {
+    ($this->addPhoto)($this->event, 'a.jpg');
+    $this->event->update(['settings' => ['gallery_aspect_ratio' => '16:9']]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_gallery'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonPath('meta.aspect_ratio', '16:9');
+});
+
+test('defaults the gallery aspect ratio to 1:1 when unset', function () {
+    ($this->addPhoto)($this->event, 'a.jpg');
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_gallery'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonPath('meta.aspect_ratio', '1:1');
+});
