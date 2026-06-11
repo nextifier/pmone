@@ -6,6 +6,8 @@ use App\Models\PartnerCategory;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -234,6 +236,39 @@ test('staff can add a new partner by name to a category', function () {
         ->assertJsonPath('data.name', 'Brand New Partner');
 
     $this->assertDatabaseHas('partners', ['name' => 'Brand New Partner']);
+    expect($category->partners()->count())->toBe(1);
+});
+
+test('staff can add a new partner with a logo to a category', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+
+    $category = PartnerCategory::create([
+        'event_id' => $this->event->id,
+        'name' => 'Sponsors',
+    ]);
+
+    $folder = uniqid('tmp-', true);
+    $file = UploadedFile::fake()->image('logo.png', 600, 400);
+    Storage::disk('local')->putFileAs("tmp/uploads/{$folder}", $file, 'logo.png');
+    Storage::disk('local')->put("tmp/uploads/{$folder}/metadata.json", json_encode([
+        'original_name' => 'logo.png',
+        'mime_type' => 'image/png',
+        'size' => 1000,
+        'uploaded_at' => now()->toISOString(),
+    ]));
+
+    $response = $this->postJson("{$this->categoryBase}/{$category->slug}/partners", [
+        'partner_name' => 'Logo Partner',
+        'tmp_partner_logo' => $folder,
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.name', 'Logo Partner');
+
+    $partner = Partner::where('name', 'Logo Partner')->first();
+    expect($partner)->not->toBeNull();
+    expect($partner->getMedia('partner_logo'))->toHaveCount(1);
     expect($category->partners()->count())->toBe(1);
 });
 

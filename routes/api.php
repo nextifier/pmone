@@ -669,6 +669,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/users/{username}/tasks', [TaskController::class, 'userTasks'])->name('tasks.user');
 
     // Form builder endpoints
+    Route::get('/form-templates', [FormController::class, 'templates'])->name('forms.templates');
+
     Route::prefix('forms')->group(function () {
         Route::get('/', [FormController::class, 'index'])->name('forms.index');
         Route::post('/', [FormController::class, 'store'])->name('forms.store');
@@ -678,6 +680,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{form:slug}', [FormController::class, 'show'])->name('forms.show');
         Route::put('/{form:slug}', [FormController::class, 'update'])->name('forms.update');
         Route::delete('/{form:slug}', [FormController::class, 'destroy'])->name('forms.destroy');
+        Route::get('/{form:slug}/analytics', [FormController::class, 'analytics'])->name('forms.analytics');
+        Route::post('/{form:slug}/duplicate', [FormController::class, 'duplicate'])->name('forms.duplicate');
 
         // Fields (nested)
         Route::get('/{form:slug}/fields', [FormFieldController::class, 'index'])->name('forms.fields.index');
@@ -692,6 +696,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/{form:slug}/responses/bulk-status', [FormResponseController::class, 'bulkUpdateStatus'])->name('forms.responses.bulk-status');
         Route::delete('/{form:slug}/responses/bulk', [FormResponseController::class, 'bulkDestroy'])->name('forms.responses.bulk-destroy');
         Route::delete('/{form:slug}/responses/{ulid}', [FormResponseController::class, 'destroy'])->name('forms.responses.destroy');
+        Route::get('/{form:slug}/responses/{ulid}/files/{fieldUlid}', [FormResponseController::class, 'downloadFile'])->name('forms.responses.file');
     });
 
     // Log management endpoints (permission-based)
@@ -812,11 +817,21 @@ Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->m
 
 // Public form endpoints (no auth, rate limited)
 Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
-    Route::get('/{slug}', [PublicFormController::class, 'show'])->name('public.forms.show');
-    Route::post('/{slug}/submit', [PublicFormController::class, 'submit'])->name('public.forms.submit');
-    Route::post('/{slug}/upload', [PublicFormController::class, 'upload'])->name('public.forms.upload');
-    Route::delete('/{slug}/upload', [PublicFormController::class, 'revert'])->name('public.forms.upload.revert');
-    Route::get('/{slug}/check', [PublicFormController::class, 'checkDuplicate'])->name('public.forms.check');
+    Route::get('/{slug}', [PublicFormController::class, 'show'])
+        ->middleware(CacheResponse::for(120, 'forms-public'))
+        ->name('public.forms.show');
+    Route::post('/{slug}/submit', [PublicFormController::class, 'submit'])
+        ->middleware('throttle:form-submit')
+        ->name('public.forms.submit');
+    Route::post('/{slug}/upload', [PublicFormController::class, 'upload'])
+        ->middleware('throttle:form-upload')
+        ->name('public.forms.upload');
+    Route::delete('/{slug}/upload', [PublicFormController::class, 'revert'])
+        ->middleware('throttle:form-upload')
+        ->name('public.forms.upload.revert');
+    Route::get('/{slug}/check', [PublicFormController::class, 'checkDuplicate'])
+        ->middleware('throttle:form-upload')
+        ->name('public.forms.check');
 });
 
 // Google Sheets integration (token-based auth)

@@ -7,6 +7,7 @@ use App\Http\Resources\PartnerCategoryResource;
 use App\Models\Event;
 use App\Models\Partner;
 use App\Models\Project;
+use App\Traits\HandlesTmpMediaUpload;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,8 @@ use Spatie\ResponseCache\Facades\ResponseCache;
 
 class PartnerCategoryController extends Controller
 {
+    use HandlesTmpMediaUpload;
+
     /**
      * Resolve project by username.
      */
@@ -162,6 +165,7 @@ class PartnerCategoryController extends Controller
             'partner_id' => ['required_without:partner_name', 'integer', 'exists:partners,id'],
             'partner_name' => ['required_without:partner_id', 'string', 'max:255'],
             'website_url' => ['nullable', 'string', 'url', 'max:500'],
+            'tmp_partner_logo' => ['nullable', 'string'],
         ]);
 
         if (! empty($validated['partner_id'])) {
@@ -172,6 +176,10 @@ class PartnerCategoryController extends Controller
                 'name' => $validated['partner_name'],
                 'website_url' => $validated['website_url'] ?? null,
             ]);
+
+            if (! empty($validated['tmp_partner_logo'])) {
+                $this->moveTempToMediaCollection($partner, $validated['tmp_partner_logo'], 'partner_logo');
+            }
         }
 
         // Get the next order_column

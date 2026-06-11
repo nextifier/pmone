@@ -49,6 +49,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Public form submissions are anonymous writes; keep them tight per IP.
+        // Uploads get their own (larger) bucket so a multi-file form does not
+        // exhaust the submit allowance before the final submit happens.
+        RateLimiter::for('form-submit', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        RateLimiter::for('form-upload', function (Request $request) {
+            return Limit::perMinute(40)->by($request->ip());
+        });
+
         // Register observers
         ContactFormSubmission::observe(ContactFormSubmissionObserver::class);
         Project::observe(ProjectObserver::class);

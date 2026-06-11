@@ -162,6 +162,7 @@
           </PopoverContent>
         </Popover>
         <button
+          v-if="allowImages"
           type="button"
           @click="triggerImageUpload"
           class="toolbar-button"
@@ -265,6 +266,10 @@ const props = defineProps({
   minHeight: {
     type: String,
     default: "350px",
+  },
+  allowImages: {
+    type: Boolean,
+    default: true,
   },
 });
 

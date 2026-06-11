@@ -3,8 +3,8 @@
     <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Cover Image -->
       <div class="space-y-2">
-        <label class="text-sm font-medium">Cover Image</label>
-        <p class="text-muted-foreground text-xs">1500x500 pixels recommended</p>
+        <Label>Cover Image</Label>
+        <p class="text-muted-foreground text-xs sm:text-sm">1500x500 pixels recommended</p>
         <InputFileImage
           ref="coverImageInputRef"
           v-model="imageFiles.cover_image"
@@ -12,58 +12,50 @@
           v-model:delete-flag="deleteFlags.cover_image"
           container-class="relative isolate aspect-[3/1] max-w-full"
         />
-        <p v-if="errors.tmp_cover_image" class="text-destructive text-xs">
-          {{ errors.tmp_cover_image[0] }}
-        </p>
+        <InputErrorMessage :errors="errors.tmp_cover_image" />
       </div>
 
       <div class="space-y-2">
-        <label for="title" class="text-sm font-medium">Title</label>
-        <input
+        <Label for="title">Title</Label>
+        <Input
           id="title"
           v-model="formData.title"
-          type="text"
           required
           placeholder="My Form"
-          class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
           :class="{ 'border-destructive': errors.title }"
         />
-        <p v-if="errors.title" class="text-destructive text-xs">{{ errors.title[0] }}</p>
+        <InputErrorMessage :errors="errors.title" />
       </div>
 
       <!-- Description with TipTapEditor -->
       <div class="space-y-2">
-        <label for="description" class="text-sm font-medium">Description</label>
+        <Label for="description">Description</Label>
         <TipTapEditor
           v-model="formData.description"
           placeholder="Describe your form"
           :sticky="false"
           min-height="150px"
         />
-        <p v-if="errors.description" class="text-destructive text-xs">
-          {{ errors.description[0] }}
-        </p>
+        <InputErrorMessage :errors="errors.description" />
       </div>
 
       <div class="space-y-2">
-        <label for="slug" class="text-sm font-medium">Slug</label>
-        <input
+        <Label for="slug">Slug</Label>
+        <Input
           id="slug"
           v-model="formData.slug"
-          type="text"
           placeholder="auto-generated"
-          class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
           :class="{ 'border-destructive': errors.slug }"
         />
-        <p v-if="errors.slug" class="text-destructive text-xs">{{ errors.slug[0] }}</p>
-        <p class="text-muted-foreground text-xs">Leave empty to auto-generate from title</p>
+        <p class="text-muted-foreground text-xs sm:text-sm">Leave empty to auto-generate from title</p>
+        <InputErrorMessage :errors="errors.slug" />
       </div>
 
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
         <div class="space-y-2">
-          <label for="status" class="text-sm font-medium">Status</label>
+          <Label for="status">Status</Label>
           <Select v-model="formData.status">
-            <SelectTrigger id="status">
+            <SelectTrigger id="status" class="w-full">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
@@ -72,12 +64,12 @@
               <SelectItem value="closed">Closed</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.status" class="text-destructive text-xs">{{ errors.status[0] }}</p>
+          <InputErrorMessage :errors="errors.status" />
         </div>
 
         <!-- Project with Avatar -->
         <div class="space-y-2">
-          <label for="project_id" class="text-sm font-medium">Project</label>
+          <Label for="project_id">Project</Label>
           <Select v-model="formData.project_id">
             <SelectTrigger class="w-full">
               <template #default>
@@ -109,15 +101,24 @@
               </SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.project_id" class="text-destructive text-xs">
-            {{ errors.project_id[0] }}
-          </p>
+          <InputErrorMessage :errors="errors.project_id" />
         </div>
+      </div>
+
+      <!-- Active: only meaningful once the form is published -->
+      <div v-if="formData.status === 'published'" class="space-y-1.5">
+        <div class="flex items-center gap-2">
+          <Switch id="is_active" v-model="formData.is_active" />
+          <Label for="is_active">Active</Label>
+        </div>
+        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Pause or resume accepting responses without changing the status.
+        </p>
       </div>
 
       <!-- Tags -->
       <div class="space-y-2">
-        <label class="text-sm font-medium">Tags</label>
+        <Label>Tags</Label>
         <TagsInput v-model="formData.tags" class="text-sm">
           <TagsInputItem v-for="tag in formData.tags" :key="tag" :value="tag">
             <TagsInputItemText />
@@ -125,134 +126,161 @@
           </TagsInputItem>
           <TagsInputInput placeholder="Add tag..." />
         </TagsInput>
-        <p class="text-muted-foreground text-xs">Press Enter to add a tag</p>
+        <p class="text-muted-foreground text-xs sm:text-sm">Press Enter to add a tag</p>
       </div>
 
-      <div class="flex items-center gap-2">
-        <Switch id="is_active" v-model="formData.is_active" />
-        <label for="is_active" class="text-sm font-medium">Active</label>
+      <!-- Schedule & limit -->
+      <div class="frame">
+        <div class="frame-header">
+          <h3 class="frame-title">Availability</h3>
+          <p class="frame-description">Control when this form accepts responses.</p>
+        </div>
+        <div class="frame-panel space-y-6">
+          <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="opens_at">Opens At</Label>
+              <DatePicker with-time
+                v-model="formData.opens_at"
+                placeholder="Select open date"
+                :default-hour="0"
+                :default-minute="0"
+              />
+              <InputErrorMessage :errors="errors.opens_at" />
+            </div>
+
+            <div class="space-y-2">
+              <Label for="closes_at">Closes At</Label>
+              <DatePicker with-time
+                v-model="formData.closes_at"
+                placeholder="Select close date"
+                :default-hour="23"
+                :default-minute="59"
+              />
+              <InputErrorMessage :errors="errors.closes_at" />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="response_limit">Response Limit</Label>
+            <InputNumber
+              id="response_limit"
+              v-model="formData.response_limit"
+              :min="0"
+              placeholder="Unlimited"
+              :class="{ 'border-destructive': errors.response_limit }"
+            />
+            <p class="text-muted-foreground text-xs sm:text-sm">
+              Maximum number of responses. Leave empty for unlimited.
+            </p>
+            <InputErrorMessage :errors="errors.response_limit" />
+          </div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div class="space-y-2">
-          <label for="opens_at" class="text-sm font-medium">Opens At</label>
-          <DatePicker with-time
-            v-model="formData.opens_at"
-            placeholder="Select open date"
-            :default-hour="0"
-            :default-minute="0"
-          />
-          <p v-if="errors.opens_at" class="text-destructive text-xs">{{ errors.opens_at[0] }}</p>
+      <!-- Submission settings -->
+      <div class="frame">
+        <div class="frame-header">
+          <h3 class="frame-title">Submission Settings</h3>
+          <p class="frame-description">What happens when someone submits a response.</p>
         </div>
+        <div class="frame-panel space-y-6">
+          <div class="space-y-2">
+            <Label for="confirmation_message">Confirmation Message</Label>
+            <Textarea
+              id="confirmation_message"
+              v-model="formData.settings.confirmation_message"
+              :rows="2"
+              placeholder="Thank you for your response!"
+            />
+          </div>
 
-        <div class="space-y-2">
-          <label for="closes_at" class="text-sm font-medium">Closes At</label>
-          <DatePicker with-time
-            v-model="formData.closes_at"
-            placeholder="Select close date"
-            :default-hour="23"
-            :default-minute="59"
-          />
-          <p v-if="errors.closes_at" class="text-destructive text-xs">
-            {{ errors.closes_at[0] }}
-          </p>
-        </div>
-      </div>
+          <div class="space-y-2">
+            <Label for="closed_message">Closed Message</Label>
+            <Textarea
+              id="closed_message"
+              v-model="formData.settings.closed_message"
+              :rows="2"
+              placeholder="This form is no longer accepting responses."
+            />
+            <p class="text-muted-foreground text-xs sm:text-sm">
+              Shown when the form is closed or has reached its response limit.
+            </p>
+          </div>
 
-      <div class="space-y-2">
-        <label for="response_limit" class="text-sm font-medium">Response Limit</label>
-        <InputNumber
-          id="response_limit"
-          v-model="formData.response_limit"
-          :min="0"
-          placeholder="Unlimited"
-          :class="{ 'border-destructive': errors.response_limit }"
-        />
-        <p v-if="errors.response_limit" class="text-destructive text-xs">
-          {{ errors.response_limit[0] }}
-        </p>
-        <p class="text-muted-foreground text-xs">
-          Maximum number of responses. Leave empty for unlimited.
-        </p>
-      </div>
+          <div class="space-y-2">
+            <Label for="redirect_url">Redirect URL</Label>
+            <InputLink id="redirect_url" v-model="formData.settings.redirect_url" />
+            <p class="text-muted-foreground text-xs sm:text-sm">
+              Redirect to this URL after form submission (optional)
+            </p>
+          </div>
 
-      <!-- Settings Section -->
-      <div class="border-border space-y-4 rounded-lg border p-4">
-        <h3 class="text-sm font-semibold tracking-tight">Settings</h3>
+          <div class="space-y-6">
+            <div class="space-y-1">
+              <Label>Notification Emails</Label>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                Each new response is emailed to these recipients.
+              </p>
+            </div>
+            <EmailRecipientsInput
+              v-model="formData.settings.notification_emails.to"
+              label="To (Recipients)"
+              description="Primary recipients for new responses"
+              add-label="Add To Email"
+            />
+            <EmailRecipientsInput
+              v-model="formData.settings.notification_emails.cc"
+              label="CC (Carbon Copy)"
+              description="Optional CC recipients"
+              add-label="Add CC Email"
+            />
+            <EmailRecipientsInput
+              v-model="formData.settings.notification_emails.bcc"
+              label="BCC (Blind Carbon Copy)"
+              description="Optional BCC recipients"
+              add-label="Add BCC Email"
+            />
+            <InputErrorMessage :errors="errors['settings.notification_emails.to']" />
+          </div>
 
-        <div class="space-y-2">
-          <label for="confirmation_message" class="text-sm font-medium">
-            Confirmation Message
-          </label>
-          <textarea
-            id="confirmation_message"
-            v-model="formData.settings.confirmation_message"
-            rows="2"
-            placeholder="Thank you for your response!"
-            class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
-          />
-        </div>
+          <div class="flex items-center gap-2">
+            <Switch id="require_email" v-model="formData.settings.require_email" />
+            <Label for="require_email">Require Email</Label>
+          </div>
 
-        <div class="space-y-2">
-          <label for="redirect_url" class="text-sm font-medium">Redirect URL</label>
-          <input
-            id="redirect_url"
-            v-model="formData.settings.redirect_url"
-            type="url"
-            placeholder="https://example.com/thank-you"
-            class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
-          />
-          <p class="text-muted-foreground text-xs">
-            Redirect to this URL after form submission (optional)
-          </p>
-        </div>
+          <div class="flex items-center gap-2">
+            <Switch id="prevent_duplicate" v-model="formData.settings.prevent_duplicate" />
+            <Label for="prevent_duplicate">Prevent Duplicate Submissions</Label>
+          </div>
 
-        <div class="flex items-center gap-2">
-          <Switch id="require_email" v-model="formData.settings.require_email" />
-          <label for="require_email" class="text-sm font-medium">Require Email</label>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <Switch id="prevent_duplicate" v-model="formData.settings.prevent_duplicate" />
-          <label for="prevent_duplicate" class="text-sm font-medium">Prevent Duplicate</label>
-        </div>
-
-        <div v-if="formData.settings.prevent_duplicate" class="space-y-2">
-          <label for="prevent_duplicate_by" class="text-sm font-medium">
-            Prevent Duplicate By
-          </label>
-          <Select v-model="formData.settings.prevent_duplicate_by">
-            <SelectTrigger id="prevent_duplicate_by">
-              <SelectValue placeholder="Select method" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="fingerprint">Browser Fingerprint</SelectItem>
-              <SelectItem value="both">Both</SelectItem>
-            </SelectContent>
-          </Select>
+          <div v-if="formData.settings.prevent_duplicate" class="space-y-2">
+            <Label for="prevent_duplicate_by">Prevent Duplicate By</Label>
+            <Select v-model="formData.settings.prevent_duplicate_by">
+              <SelectTrigger id="prevent_duplicate_by" class="w-full">
+                <SelectValue placeholder="Select method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="fingerprint">Browser Fingerprint</SelectItem>
+                <SelectItem value="both">Both</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       <div class="flex gap-2">
-        <button
-          type="submit"
-          :disabled="loading"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-2 rounded-md px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="submit" :disabled="loading">
           <Spinner v-if="loading" class="size-4" />
           <span>{{ loading ? loadingText : submitText }}</span>
           <KbdGroup>
             <Kbd>{{ metaSymbol }}</Kbd>
             <Kbd>S</Kbd>
           </KbdGroup>
-        </button>
-        <nuxt-link
-          to="/forms"
-          class="border-border hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-        >
-          Cancel
-        </nuxt-link>
+        </Button>
+        <Button variant="outline" as-child>
+          <nuxt-link to="/forms">Cancel</nuxt-link>
+        </Button>
       </div>
     </form>
   </div>
@@ -262,6 +290,13 @@
 
 import { toLocalDateTimeString } from "@/lib/utils";
 import InputFileImage from "@/components/InputFileImage.vue";
+import { Button } from "@/components/ui/button";
+import { EmailRecipientsInput } from "@/components/ui/email-recipients-input";
+import { Input } from "@/components/ui/input";
+import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { InputLink } from "@/components/ui/input-link";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import {
   Select,
@@ -290,6 +325,14 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  prefill: {
+    type: Object,
+    default: null,
+  },
+  templateKey: {
+    type: String,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["saved"]);
@@ -310,10 +353,12 @@ const formData = ref({
   tags: [],
   settings: {
     confirmation_message: "",
+    closed_message: "",
     redirect_url: "",
     require_email: false,
     prevent_duplicate: false,
-    prevent_duplicate_by: "email",
+    prevent_duplicate_by: "fingerprint",
+    notification_emails: { to: [], cc: [], bcc: [] },
   },
 });
 
@@ -346,6 +391,32 @@ const selectedProject = computed(() => {
   return projects.value.find((p) => String(p.id) === String(formData.value.project_id));
 });
 
+// Apply template prefill on the create page (title/description only;
+// fields are created server-side from the template key)
+watch(
+  () => props.prefill,
+  (prefill) => {
+    if (props.mode !== "create") return;
+    if (prefill) {
+      formData.value.title = prefill.title || "";
+      formData.value.description = prefill.description || "";
+    }
+  },
+  { immediate: true }
+);
+
+// Notification emails support a legacy flat array (to-only) and the new {to,cc,bcc} object.
+const normalizeNotificationEmails = (value) => {
+  if (Array.isArray(value)) {
+    return { to: [...value], cc: [], bcc: [] };
+  }
+  return {
+    to: value?.to ?? [],
+    cc: value?.cc ?? [],
+    bcc: value?.bcc ?? [],
+  };
+};
+
 // Populate form when editing
 watch(
   () => props.form,
@@ -365,10 +436,12 @@ watch(
         tags: newForm.tags || [],
         settings: {
           confirmation_message: settings.confirmation_message || "",
+          closed_message: settings.closed_message || "",
           redirect_url: settings.redirect_url || "",
           require_email: settings.require_email || false,
           prevent_duplicate: settings.prevent_duplicate || false,
-          prevent_duplicate_by: settings.prevent_duplicate_by || "email",
+          prevent_duplicate_by: settings.prevent_duplicate_by || "fingerprint",
+          notification_emails: normalizeNotificationEmails(settings.notification_emails),
         },
       };
       initialCoverImage.value = newForm.cover_image || null;
@@ -399,12 +472,29 @@ async function handleSubmit() {
       body.project_id = null;
     }
 
+    // Trim and drop empty notification email rows (clone settings to avoid mutating live state)
+    const cleanEmails = (list) =>
+      Array.isArray(list) ? list.map((email) => email.trim()).filter(Boolean) : [];
+    const notificationEmails = body.settings?.notification_emails || {};
+    body.settings = {
+      ...body.settings,
+      notification_emails: {
+        to: cleanEmails(notificationEmails.to),
+        cc: cleanEmails(notificationEmails.cc),
+        bcc: cleanEmails(notificationEmails.bcc),
+      },
+    };
+
     // Handle cover image
     const coverValue = imageFiles.value.cover_image?.[0];
     if (coverValue && coverValue.startsWith("tmp-")) {
       body.tmp_cover_image = coverValue;
     } else if (deleteFlags.value.cover_image && !coverValue) {
       body.delete_cover_image = true;
+    }
+
+    if (props.mode === "create" && props.templateKey) {
+      body.template = props.templateKey;
     }
 
     const response = await sanctumFetch(endpoint, {

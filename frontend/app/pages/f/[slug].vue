@@ -1,117 +1,198 @@
 <template>
-  <div class="min-h-screen">
-    <div class="mx-auto max-w-xl px-4 py-8 sm:py-16">
+  <div class="min-h-dvh bg-muted/30 dark:bg-background">
+    <!-- Theme toggle -->
+    <div v-if="!isEmbed" class="mx-auto flex w-full max-w-2xl justify-end px-4 pt-4">
+      <ColorModeToggle />
+    </div>
+
+    <div
+      class="mx-auto w-full max-w-2xl px-4"
+      :class="isEmbed ? 'py-4' : 'pt-6 pb-12 sm:pt-8 sm:pb-16'"
+    >
       <!-- Skeleton loading -->
       <template v-if="isLoading">
-        <div class="mb-8 text-center">
-          <Skeleton class="mx-auto mb-2 h-7 w-3/5" />
-          <Skeleton class="mx-auto h-4 w-4/5" />
-        </div>
-        <div class="space-y-6">
-          <div v-for="i in 3" :key="i" class="space-y-2">
-            <Skeleton class="h-4 w-24" />
-            <Skeleton class="h-10 w-full" />
+        <div class="bg-card overflow-hidden rounded-2xl border shadow-sm">
+          <div class="space-y-8 p-6 sm:p-8">
+            <div class="space-y-2.5">
+              <Skeleton class="h-8 w-3/5" />
+              <Skeleton class="h-4 w-4/5" />
+            </div>
+            <div class="space-y-6">
+              <div v-for="i in 3" :key="i" class="space-y-2">
+                <Skeleton class="h-4 w-32" />
+                <Skeleton class="h-11 w-full" />
+              </div>
+              <Skeleton class="h-11 w-full rounded-lg" />
+            </div>
           </div>
-          <Skeleton class="h-10 w-full rounded-md" />
         </div>
       </template>
 
-      <!-- Error states -->
-      <div v-else-if="errorState" class="py-20 text-center">
-        <Icon name="lucide:alert-circle" class="text-muted-foreground mx-auto size-12" />
-        <h2 class="mt-4 text-lg font-semibold tracking-tight">{{ errorState.title }}</h2>
-        <p class="text-muted-foreground mt-2 text-sm">{{ errorState.message }}</p>
+      <!-- Error state -->
+      <div
+        v-else-if="errorState"
+        class="bg-card rounded-2xl border p-8 text-center shadow-sm sm:p-12"
+      >
+        <div
+          class="bg-muted text-muted-foreground mx-auto flex size-14 items-center justify-center rounded-full"
+        >
+          <Icon name="lucide:alert-circle" class="size-7" />
+        </div>
+        <h2 class="mt-5 text-lg font-semibold tracking-tight sm:text-xl">{{ errorState.title }}</h2>
+        <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
+          {{ errorState.message }}
+        </p>
       </div>
 
       <!-- Success state -->
-      <div v-else-if="submitted" class="py-20 text-center">
-        <Icon name="lucide:check-circle-2" class="mx-auto size-12 text-green-500" />
-        <h2 class="mt-4 text-lg font-semibold tracking-tight">{{ successTitle }}</h2>
-        <p class="text-muted-foreground mt-2 text-sm">{{ successMessage }}</p>
+      <div
+        v-else-if="submitted"
+        class="bg-card rounded-2xl border p-8 text-center shadow-sm sm:p-12"
+      >
+        <div
+          class="bg-success/10 text-success mx-auto flex size-14 items-center justify-center rounded-full"
+        >
+          <Icon name="lucide:check" class="size-7" />
+        </div>
+        <h2 class="mt-5 text-lg font-semibold tracking-tight sm:text-xl">{{ successTitle }}</h2>
+        <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
+          {{ successMessage }}
+        </p>
       </div>
 
       <!-- Already submitted state -->
-      <template v-else-if="alreadySubmitted && form">
-        <div class="mb-8 text-center">
-          <h1 class="text-2xl font-bold tracking-tight">{{ form.title }}</h1>
+      <div
+        v-else-if="alreadySubmitted && form"
+        class="bg-card rounded-2xl border p-8 text-center shadow-sm sm:p-12"
+      >
+        <div
+          class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
+        >
+          <Icon name="lucide:check-circle-2" class="size-7" />
         </div>
-        <div class="">
-          <div class="flex flex-col items-center text-center">
-            <div class="bg-primary/10 flex size-14 items-center justify-center rounded-full">
-              <Icon name="lucide:check-circle-2" class="text-primary size-7" />
-            </div>
-            <h2 class="mt-4 text-lg font-semibold tracking-tight">You're All Set!</h2>
-            <p class="text-muted-foreground mt-1.5 max-w-xs text-sm">
-              We've received your response. This form only accepts one submission per person.
-            </p>
-          </div>
-        </div>
-      </template>
+        <h2 class="mt-5 text-lg font-semibold tracking-tight sm:text-xl">You're all set</h2>
+        <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
+          We've received your response. This form only accepts one submission per person.
+        </p>
+      </div>
 
       <!-- Form -->
       <template v-else-if="form">
-        <div class="mb-8">
+        <div class="bg-card overflow-hidden rounded-2xl border shadow-sm">
           <img
-            v-if="form.cover_image?.xl"
+            v-if="form.cover_image?.xl && !isEmbed"
             :src="form.cover_image.xl"
             :alt="form.title"
-            class="mb-6 aspect-[3/1] w-full rounded-lg object-cover"
+            class="aspect-[3/1] w-full object-cover"
           />
-          <div class="text-center">
-            <h1 class="text-2xl font-bold tracking-tight">{{ form.title }}</h1>
-            <div
-              v-if="form.description"
-              class="prose prose-sm text-muted-foreground mx-auto mt-2 text-sm"
-              v-html="form.description"
-            />
+          <div class="p-6 sm:p-8">
+            <!-- Header -->
+            <div class="space-y-2">
+              <h1 class="text-2xl font-semibold tracking-tighter text-balance sm:text-3xl">
+                {{ form.title }}
+              </h1>
+              <div
+                v-if="form.description"
+                class="prose prose-sm text-muted-foreground max-w-none text-sm tracking-tight sm:text-base"
+                v-html="form.description"
+              />
+            </div>
+
+            <div class="bg-border my-6 h-px sm:my-8" />
+
+            <form @submit.prevent="handleSubmit" class="space-y-7">
+              <!-- General error -->
+              <div
+                v-if="formErrors._general"
+                class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm tracking-tight"
+              >
+                {{ formErrors._general }}
+              </div>
+
+              <!-- Honeypot: invisible to humans, bots tend to fill it -->
+              <div
+                class="absolute top-auto -left-[9999px] h-px w-px overflow-hidden"
+                aria-hidden="true"
+              >
+                <label for="hp_website">Website</label>
+                <input
+                  id="hp_website"
+                  v-model="honeypotWebsite"
+                  type="text"
+                  name="website"
+                  tabindex="-1"
+                  autocomplete="off"
+                />
+              </div>
+
+              <!-- Email field (if require_email) -->
+              <div v-if="form.settings?.require_email" class="space-y-1.5">
+                <Label for="respondent_email" class="text-sm sm:text-base">
+                  Email
+                  <span class="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="respondent_email"
+                  v-model="respondentEmail"
+                  type="email"
+                  placeholder="your@email.com"
+                  :class="{ 'border-destructive': formErrors.respondent_email }"
+                  @blur="checkDuplicate"
+                />
+                <p v-if="formErrors.respondent_email" class="text-destructive text-sm tracking-tight">
+                  {{ formErrors.respondent_email }}
+                </p>
+              </div>
+
+              <!-- Dynamic fields -->
+              <PublicFieldRenderer
+                v-for="field in sortedFields"
+                :key="field.ulid"
+                :data-field-error="formErrors[`responses.${field.ulid}`] ? field.ulid : undefined"
+                :field="field"
+                :model-value="responses[field.ulid]"
+                :error="firstFieldError(field)"
+                :form-slug="slug"
+                @update:model-value="responses[field.ulid] = $event"
+                @uploading="handleUploading"
+              />
+
+              <Button
+                type="submit"
+                :disabled="submitting || uploadsInProgress > 0"
+                class="w-full"
+                size="lg"
+              >
+                <Spinner v-if="submitting" class="size-4" />
+                <span>
+                  {{
+                    uploadsInProgress > 0
+                      ? "Uploading files..."
+                      : submitting
+                        ? "Submitting..."
+                        : "Submit"
+                  }}
+                </span>
+              </Button>
+            </form>
           </div>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="space-y-6">
-          <!-- General error -->
-          <div
-            v-if="formErrors._general"
-            class="bg-destructive/10 text-destructive rounded-md px-4 py-3 text-sm"
+        <!-- Footer -->
+        <p
+          v-if="!isEmbed"
+          class="text-muted-foreground mt-6 text-center text-sm tracking-tight"
+        >
+          Powered by
+          <a
+            href="https://pmone.id"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-foreground font-medium underline-offset-2 hover:underline"
           >
-            {{ formErrors._general }}
-          </div>
-
-          <!-- Email field (if require_email) -->
-          <div v-if="form.settings?.require_email" class="space-y-1.5">
-            <Label for="respondent_email"> Email</Label>
-            <Input
-              id="respondent_email"
-              v-model="respondentEmail"
-              type="email"
-              placeholder="your@email.com"
-              :class="{ 'border-destructive': formErrors.respondent_email }"
-              @blur="checkDuplicate"
-            />
-            <p v-if="formErrors.respondent_email" class="text-destructive text-xs">
-              {{ formErrors.respondent_email }}
-            </p>
-          </div>
-
-          <!-- Dynamic fields -->
-          <PublicFieldRenderer
-            v-for="field in sortedFields"
-            :key="field.ulid"
-            :field="field"
-            :model-value="responses[field.ulid]"
-            :error="formErrors[`responses.${field.ulid}`]"
-            :form-slug="slug"
-            @update:model-value="responses[field.ulid] = $event"
-          />
-
-          <button
-            type="submit"
-            :disabled="submitting"
-            class="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-x-2 rounded-md px-4 py-2.5 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Spinner v-if="submitting" class="size-4" />
-            <span>{{ submitting ? "Submitting..." : "Submit" }}</span>
-          </button>
-        </form>
+            PM One
+          </a>
+        </p>
       </template>
     </div>
   </div>
@@ -119,9 +200,12 @@
 
 <script setup>
 import PublicFieldRenderer from "@/components/form-builder/PublicFieldRenderer.vue";
+import { Button } from "@/components/ui/button";
+import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { defaultValueFor, supportsPrefill } from "@/lib/formFieldTypes";
 
 definePageMeta({
   layout: "empty",
@@ -130,6 +214,8 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 const apiUrl = useRuntimeConfig().public.apiUrl;
+
+const isEmbed = computed(() => ["1", "true"].includes(String(route.query.embed)));
 
 // Fetch form
 const {
@@ -180,6 +266,83 @@ const successMessage = ref("");
 const successTitle = ref("Thank You!");
 const alreadySubmitted = ref(false);
 const duplicateCheckDone = ref(false);
+const uploadsInProgress = ref(0);
+
+const handleUploading = (active) => {
+  uploadsInProgress.value = Math.max(0, uploadsInProgress.value + (active ? 1 : -1));
+};
+
+// Honeypot anti-spam: hidden field stays empty, token proves a human-paced fill
+const honeypotWebsite = ref("");
+const honeypotToken = ref("");
+
+const generateHoneypotToken = () => {
+  const rand = () => Math.random().toString(16).slice(2, 10);
+  return btoa(`${rand()}_${Math.floor(Date.now() / 1000)}_${rand()}`);
+};
+
+// Prefill a field from URL query params (?{ulid}=value or ?{param_key}=value)
+const prefillValueFor = (field) => {
+  if (!supportsPrefill(field.type)) return undefined;
+
+  const raw = route.query[field.ulid] ?? (field.settings?.param_key && route.query[field.settings.param_key]);
+  if (raw === undefined || raw === null || raw === false || raw === "") return undefined;
+
+  const value = String(Array.isArray(raw) ? raw[0] : raw);
+  const optionValues = (field.options || []).map((o) => String(o.value ?? o));
+
+  switch (field.type) {
+    case "multi_select":
+    case "checkbox_group": {
+      const values = value.split(",").map((v) => v.trim()).filter(Boolean);
+      const valid = values.filter((v) => optionValues.includes(v));
+      return valid.length ? valid : undefined;
+    }
+    case "tags":
+      return value.split(",").map((v) => v.trim()).filter(Boolean);
+    case "select":
+    case "radio":
+      return optionValues.includes(value) ? value : undefined;
+    case "checkbox":
+    case "switch":
+      return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+    case "number":
+    case "slider":
+    case "rating":
+    case "linear_scale": {
+      const number = Number(value);
+      return Number.isNaN(number) ? undefined : number;
+    }
+    case "date_range": {
+      const [start, end] = value.split(",").map((v) => v.trim());
+      return start && end ? { start, end } : undefined;
+    }
+    default:
+      return value;
+  }
+};
+
+// Initialize default values per field type once the form loads
+watch(
+  sortedFields,
+  (fields) => {
+    for (const field of fields) {
+      if (field.type !== "section" && responses.value[field.ulid] === undefined) {
+        responses.value[field.ulid] = prefillValueFor(field) ?? defaultValueFor(field);
+      }
+    }
+  },
+  { immediate: true }
+);
+
+// First error for a field, including nested keys (date_range start/end, array items)
+const firstFieldError = (field) => {
+  const prefix = `responses.${field.ulid}`;
+  const exact = formErrors.value[prefix];
+  if (exact) return exact;
+  const nestedKey = Object.keys(formErrors.value).find((key) => key.startsWith(`${prefix}.`));
+  return nestedKey ? formErrors.value[nestedKey] : null;
+};
 
 // Browser fingerprint
 const visitorId = ref(null);
@@ -195,6 +358,8 @@ const isLoading = computed(() => {
 });
 
 onMounted(async () => {
+  honeypotToken.value = generateHoneypotToken();
+
   try {
     const FingerprintJS = await import("@fingerprintjs/fingerprintjs");
     const fp = await FingerprintJS.load();
@@ -280,6 +445,8 @@ const handleSubmit = async () => {
       responses: responses.value,
       respondent_email: respondentEmail.value || null,
       browser_fingerprint: visitorId.value,
+      website: honeypotWebsite.value,
+      _token_time: honeypotToken.value,
     };
 
     const result = await $fetch(`${apiUrl}/api/public/forms/${slug.value}/submit`, {
@@ -311,6 +478,7 @@ const handleSubmit = async () => {
       if (unmapped.length) {
         formErrors.value._general = unmapped.join(". ");
       }
+      scrollToFirstError();
     } else if (err.status === 409) {
       alreadySubmitted.value = true;
     } else {
@@ -319,6 +487,13 @@ const handleSubmit = async () => {
   } finally {
     submitting.value = false;
   }
+};
+
+// Scroll the first invalid field into view after server-side validation
+const scrollToFirstError = async () => {
+  await nextTick();
+  const target = document.querySelector("[data-field-error]") || document.querySelector("form");
+  target?.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
 // Watch email for duplicate check

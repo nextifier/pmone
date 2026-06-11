@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SubmitFormResponseRequest;
 use App\Http\Resources\PublicFormResource;
+use App\Jobs\ProcessFormResponseNotification;
 use App\Models\Form;
+use App\Models\FormField;
 use App\Models\FormResponse;
+use App\Notifications\FormResponseReceivedNotification;
+use App\Support\FormFieldTypes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class PublicFormController extends Controller
 {
@@ -28,12 +33,14 @@ class PublicFormController extends Controller
             return response()->json(['message' => 'Form is not yet open'], 403);
         }
 
+        $closedMessage = $form->settings['closed_message'] ?? null;
+
         if ($form->closes_at && $form->closes_at->isPast()) {
-            return response()->json(['message' => 'Form is closed'], 403);
+            return response()->json(['message' => $closedMessage ?? 'Form is closed'], 403);
         }
 
         if ($form->isResponseLimitReached()) {
-            return response()->json(['message' => 'Form has reached its response limit'], 403);
+            return response()->json(['message' => $closedMessage ?? 'Form has reached its response limit'], 403);
         }
 
         return response()->json([
@@ -47,12 +54,20 @@ class PublicFormController extends Controller
             ->with(['fields'])
             ->firstOrFail();
 
+        $closedMessage = $form->settings['closed_message'] ?? null;
+
         if (! $form->isOpen()) {
-            return response()->json(['message' => 'Form is not accepting responses'], 403);
+            return response()->json(['message' => $closedMessage ?? 'Form is not accepting responses'], 403);
         }
 
         if ($form->isResponseLimitReached()) {
-            return response()->json(['message' => 'Form has reached its response limit'], 403);
+            return response()->json(['message' => $closedMessage ?? 'Form has reached its response limit'], 403);
+        }
+
+        $settings = $form->settings ?? [];
+
+        if (! empty($settings['require_email'])) {
+            $request->validate(['respondent_email' => ['required', 'email', 'max:255']]);
         }
 
         // Dynamic per-field validation
@@ -78,7 +93,7 @@ class PublicFormController extends Controller
 
         $formResponse = FormResponse::create([
             'form_id' => $form->id,
-            'response_data' => $request->input('responses'),
+            'response_data' => $this->onlyKnownFieldValues($form, $request->input('responses', [])),
             'respondent_email' => $request->input('respondent_email'),
             'browser_fingerprint' => $request->input('browser_fingerprint'),
             'ip_address' => $request->ip(),
@@ -88,7 +103,19 @@ class PublicFormController extends Controller
         // Handle file fields - move from tmp
         $this->processFileFields($form, $formResponse);
 
-        $settings = $form->settings ?? [];
+        if (! empty(array_filter($settings['notification_emails'] ?? []))) {
+            ProcessFormResponseNotification::dispatch($formResponse);
+        }
+
+        collect([$form->user, $form->creator])
+            ->filter()
+            ->unique('id')
+            ->each
+            ->notify(new FormResponseReceivedNotification($formResponse));
+
+        if ($form->response_limit) {
+            ResponseCache::clear(['forms-public']);
+        }
 
         return response()->json([
             'message' => $settings['confirmation_message'] ?? 'Thank you for your response!',
@@ -103,9 +130,30 @@ class PublicFormController extends Controller
             ->where('is_active', true)
             ->firstOrFail();
 
-        $request->validate([
-            'file' => ['required', 'file', 'max:20480'],
-        ]);
+        $fileRules = ['required', 'file', 'max:20480'];
+
+        if ($fieldUlid = $request->input('field')) {
+            $field = $form->fields()
+                ->where('ulid', $fieldUlid)
+                ->where('type', FormField::TYPE_FILE)
+                ->firstOrFail();
+
+            $validation = $field->validation ?? [];
+
+            if (! empty($validation['max_file_size'])) {
+                $fileRules[] = 'max:'.min((int) $validation['max_file_size'], 20480);
+            }
+
+            if (! empty($validation['allowed_file_types'])) {
+                $extensions = array_map(
+                    fn ($ext) => strtolower(ltrim((string) $ext, '.')),
+                    $validation['allowed_file_types']
+                );
+                $fileRules[] = 'extensions:'.implode(',', $extensions);
+            }
+        }
+
+        $request->validate(['file' => $fileRules]);
 
         $file = $request->file('file');
         $folder = uniqid('form-', true);
@@ -145,7 +193,10 @@ class PublicFormController extends Controller
 
     public function checkDuplicate(Request $request, string $slug): JsonResponse
     {
-        $form = Form::where('slug', $slug)->firstOrFail();
+        $form = Form::where('slug', $slug)
+            ->where('status', Form::STATUS_PUBLISHED)
+            ->where('is_active', true)
+            ->firstOrFail();
 
         $duplicateConfig = $form->getPreventDuplicateConfig();
 
@@ -173,49 +224,24 @@ class PublicFormController extends Controller
 
         foreach ($form->fields as $field) {
             $key = 'responses.'.$field->ulid;
-            $fieldRules = [];
-            $validation = $field->validation ?? [];
 
-            if (! empty($validation['required'])) {
-                $fieldRules[] = 'required';
-            } else {
-                $fieldRules[] = 'nullable';
-            }
-
-            // Type-based validation
-            switch ($field->type) {
-                case 'email':
-                    $fieldRules[] = 'email';
-                    break;
-                case 'number':
-                    $fieldRules[] = 'numeric';
-                    break;
-                case 'url':
-                    $fieldRules[] = 'url';
-                    break;
-                case 'date':
-                    $fieldRules[] = 'date';
-                    break;
-                case 'multi_select':
-                case 'checkbox_group':
-                    $fieldRules[] = 'array';
-                    break;
-            }
-
-            if (isset($validation['min'])) {
-                $fieldRules[] = 'min:'.$validation['min'];
-            }
-            if (isset($validation['max'])) {
-                $fieldRules[] = 'max:'.$validation['max'];
-            }
-
-            if (! empty($fieldRules)) {
-                $rules[$key] = $fieldRules;
-                $attributes[$key] = $field->label;
+            foreach (FormFieldTypes::rulesFor($field, $key) as $ruleKey => $fieldRules) {
+                $rules[$ruleKey] = $fieldRules;
+                $attributes[$ruleKey] = $field->label;
             }
         }
 
         return ['rules' => $rules, 'attributes' => $attributes];
+    }
+
+    private function onlyKnownFieldValues(Form $form, array $responses): array
+    {
+        $allowedUlids = $form->fields
+            ->reject(fn (FormField $field) => $field->type === FormField::TYPE_SECTION)
+            ->pluck('ulid')
+            ->all();
+
+        return array_intersect_key($responses, array_flip($allowedUlids));
     }
 
     private function checkDuplicateSubmission(Form $form, ?string $by, ?string $email, ?string $fingerprint): bool
@@ -237,42 +263,66 @@ class PublicFormController extends Controller
         $updated = false;
 
         foreach ($form->fields as $field) {
-            if ($field->type !== 'file') {
+            if ($field->type !== FormField::TYPE_FILE) {
                 continue;
             }
 
-            $folder = $responseData[$field->ulid] ?? null;
-            if (! $folder || ! Str::startsWith($folder, 'form-')) {
+            $value = $responseData[$field->ulid] ?? null;
+            if (! $value) {
                 continue;
             }
 
-            $metadataPath = "tmp/uploads/{$folder}/metadata.json";
-            if (! Storage::disk('local')->exists($metadataPath)) {
-                continue;
+            $isMultiple = is_array($value);
+            $folders = $isMultiple ? $value : [$value];
+            $permanentPaths = [];
+
+            foreach ($folders as $folder) {
+                $permanentPath = $this->moveUploadedFile($form, $formResponse, $folder);
+
+                if ($permanentPath !== null) {
+                    $permanentPaths[] = $permanentPath;
+                }
             }
 
-            $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
-            $filename = $metadata['original_name'];
-            $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
-
-            if (! Storage::disk('local')->exists($tempFilePath)) {
-                continue;
+            if ($permanentPaths) {
+                $responseData[$field->ulid] = $isMultiple ? $permanentPaths : $permanentPaths[0];
+                $updated = true;
             }
-
-            // Move to permanent storage
-            $permanentPath = "form-uploads/{$form->id}/{$formResponse->id}/{$filename}";
-            Storage::disk('local')->move($tempFilePath, $permanentPath);
-
-            // Update response data with permanent path
-            $responseData[$field->ulid] = $permanentPath;
-            $updated = true;
-
-            // Clean up temp
-            Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
         }
 
         if ($updated) {
             $formResponse->update(['response_data' => $responseData]);
         }
+    }
+
+    private function moveUploadedFile(Form $form, FormResponse $formResponse, mixed $folder): ?string
+    {
+        if (! is_string($folder) || ! Str::startsWith($folder, 'form-') || Str::contains($folder, ['/', '..'])) {
+            return null;
+        }
+
+        $metadataPath = "tmp/uploads/{$folder}/metadata.json";
+        if (! Storage::disk('local')->exists($metadataPath)) {
+            return null;
+        }
+
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
+        $filename = basename($metadata['original_name'] ?? '');
+        $tempFilePath = "tmp/uploads/{$folder}/{$filename}";
+
+        if (! $filename || ! Storage::disk('local')->exists($tempFilePath)) {
+            return null;
+        }
+
+        $permanentPath = "form-uploads/{$form->id}/{$formResponse->id}/{$filename}";
+
+        if (Storage::disk('local')->exists($permanentPath)) {
+            $permanentPath = "form-uploads/{$form->id}/{$formResponse->id}/".Str::random(6).'-'.$filename;
+        }
+
+        Storage::disk('local')->move($tempFilePath, $permanentPath);
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
+
+        return $permanentPath;
     }
 }

@@ -145,6 +145,7 @@
 </template>
 
 <script setup>
+import FormTableItem from "@/components/form-builder/FormTableItem.vue";
 import { TableData } from "@/components/ui/table-data";
 import { TableSwitch } from "@/components/ui/table-switch";
 import { Badge } from "@/components/ui/badge";
@@ -273,17 +274,17 @@ const handleToggleStatus = async (form) => {
   }
 };
 
-// Status badge variant
-const statusVariant = (status) => {
+// Status badge variant + icon
+const statusBadge = (status) => {
   switch (status) {
-    case "draft":
-      return "muted";
     case "published":
-      return "default";
+      return { variant: "success", icon: "hugeicons:checkmark-circle-02" };
+    case "draft":
+      return { variant: "info", icon: "hugeicons:information-circle" };
     case "closed":
-      return "destructive";
+      return { variant: "destructive", icon: "hugeicons:cancel-circle" };
     default:
-      return "outline";
+      return { variant: "outline", icon: "hugeicons:information-circle" };
   }
 };
 
@@ -312,18 +313,8 @@ const columns = [
   {
     header: "Title",
     accessorKey: "title",
-    cell: ({ row }) => {
-      const form = row.original;
-      return h(
-        resolveComponent("NuxtLink"),
-        {
-          to: `/forms/${form.slug}`,
-          class: "text-sm font-medium tracking-tight hover:underline",
-        },
-        { default: () => form.title }
-      );
-    },
-    size: 250,
+    cell: ({ row }) => h(FormTableItem, { form: row.original }),
+    size: 320,
     enableHiding: false,
     filterFn: (row, columnId, filterValue) => {
       const searchValue = filterValue.toLowerCase();
@@ -332,17 +323,38 @@ const columns = [
     },
   },
   {
+    header: "Project",
+    accessorKey: "project",
+    cell: ({ row }) => {
+      const project = row.original.project;
+      if (!project?.name) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      }
+      return h(
+        resolveComponent("NuxtLink"),
+        {
+          to: `/projects/${project.username}`,
+          class: "text-muted-foreground text-sm tracking-tight transition hover:underline",
+        },
+        { default: () => project.name }
+      );
+    },
+    size: 150,
+    enableSorting: false,
+  },
+  {
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
       const status = row.getValue("status");
+      const badge = statusBadge(status);
       return h(
         Badge,
-        { variant: statusVariant(status) },
+        { variant: badge.variant, icon: badge.icon },
         { default: () => status.charAt(0).toUpperCase() + status.slice(1) }
       );
     },
-    size: 100,
+    size: 110,
     filterFn: (row, columnId, filterValue) => {
       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
       return filterValue.includes(row.getValue(columnId));
@@ -471,6 +483,26 @@ const handleFilterChange = (columnId, { checked, value }) => {
   }
 };
 
+// Duplicate handler
+const handleDuplicate = async (form) => {
+  try {
+    const client = useSanctumClient();
+    const response = await client(`/api/forms/${form.slug}/duplicate`, { method: "POST" });
+
+    toast.success("Form duplicated");
+
+    if (response.data?.slug) {
+      navigateTo(`/forms/${response.data.slug}`);
+    } else {
+      await refresh();
+    }
+  } catch (error) {
+    toast.error("Failed to duplicate form", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
 // Delete handlers
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
@@ -585,6 +617,30 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
+                      canCreate.value
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "button",
+                                  {
+                                    class:
+                                      "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                    onClick: () => handleDuplicate(props.form),
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "lucide:copy",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Duplicate"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
                       props.form.can_delete
                         ? h(
                             PopoverClose,

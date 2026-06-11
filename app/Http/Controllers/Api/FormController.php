@@ -9,6 +9,8 @@ use App\Http\Resources\FormIndexResource;
 use App\Http\Resources\FormResource;
 use App\Models\Form;
 use App\Models\ShortLink;
+use App\Services\FormAnalyticsService;
+use App\Support\FormTemplates;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,7 +59,7 @@ class FormController extends Controller
         $this->authorize('create', Form::class);
 
         $data = $request->validated();
-        unset($data['tmp_cover_image'], $data['delete_cover_image'], $data['tags']);
+        unset($data['tmp_cover_image'], $data['delete_cover_image'], $data['tags'], $data['template']);
 
         $form = Form::create([
             ...$data,
@@ -67,6 +69,12 @@ class FormController extends Controller
 
         $this->handleTemporaryUpload($request, $form);
         $form->syncTagsWithType($request->input('tags', []), 'form');
+
+        if (($templateKey = $request->input('template')) && ($template = FormTemplates::get($templateKey))) {
+            foreach (array_values($template['fields']) as $index => $field) {
+                $form->fields()->create($field + ['order_column' => $index + 1]);
+            }
+        }
 
         if ($form->status === Form::STATUS_PUBLISHED) {
             $this->createOrUpdateShortLink($form);
@@ -128,6 +136,60 @@ class FormController extends Controller
 
         return response()->json([
             'message' => 'Form deleted successfully',
+        ]);
+    }
+
+    public function duplicate(Request $request, Form $form): JsonResponse
+    {
+        $this->authorize('view', $form);
+        $this->authorize('create', Form::class);
+
+        $copy = $form->replicate(['ulid', 'slug', 'deleted_at', 'deleted_by', 'updated_by']);
+        $copy->title = Str::limit($form->title.' (copy)', 255, '');
+        $copy->slug = null;
+        $copy->ulid = null;
+        $copy->status = Form::STATUS_DRAFT;
+        $copy->user_id = $request->user()->id;
+        $copy->created_by = $request->user()->id;
+        $copy->save();
+
+        foreach ($form->fields as $field) {
+            $newField = $field->replicate(['ulid']);
+            $newField->ulid = null;
+            $newField->form_id = $copy->id;
+            $newField->save();
+        }
+
+        return response()->json([
+            'message' => 'Form duplicated successfully',
+            'data' => new FormResource($copy->load(['fields', 'creator', 'project', 'media', 'tags'])),
+        ], 201);
+    }
+
+    public function templates(): JsonResponse
+    {
+        $this->authorize('create', Form::class);
+
+        $templates = collect(FormTemplates::all())->map(fn (array $template, string $key) => [
+            'key' => $key,
+            'title' => $template['title'],
+            'description' => $template['description'] ?? null,
+            'field_count' => count($template['fields']),
+        ])->values();
+
+        return response()->json(['data' => $templates]);
+    }
+
+    public function analytics(Request $request, Form $form, FormAnalyticsService $analyticsService): JsonResponse
+    {
+        $this->authorize('view', $form);
+
+        $request->validate([
+            'period' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        return response()->json([
+            'data' => $analyticsService->analyze($form, $request->input('period', '30')),
         ]);
     }
 
@@ -260,7 +322,7 @@ class FormController extends Controller
         $frontendUrl = config('app.frontend_url', 'https://pmone.id');
         $destinationUrl = rtrim($frontendUrl, '/').'/f/'.$form->slug;
 
-        $existing = ShortLink::where('destination_url', 'like', '%/f/'.$form->slug)->first();
+        $existing = $form->shortLink();
 
         if ($existing) {
             $existing->update([

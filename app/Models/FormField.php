@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Support\FormFieldTypes;
+use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -24,7 +27,8 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int $order_column
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read \App\Models\Form|null $form
+ * @property-read Form|null $form
+ *
  * @method static Builder<static>|FormField newModelQuery()
  * @method static Builder<static>|FormField newQuery()
  * @method static Builder<static>|FormField ordered(string $direction = 'asc')
@@ -42,11 +46,22 @@ use Spatie\EloquentSortable\SortableTrait;
  * @method static Builder<static>|FormField whereUlid($value)
  * @method static Builder<static>|FormField whereUpdatedAt($value)
  * @method static Builder<static>|FormField whereValidation($value)
+ *
  * @mixin \Eloquent
  */
 class FormField extends Model implements Sortable
 {
+    use ClearsResponseCache;
+    use HasFactory;
     use SortableTrait;
+
+    /**
+     * @return string[]
+     */
+    protected static function responseCacheTags(): array
+    {
+        return ['forms-public'];
+    }
 
     protected $fillable = [
         'ulid',
@@ -107,26 +122,27 @@ class FormField extends Model implements Sortable
 
     public const TYPE_LINEAR_SCALE = 'linear_scale';
 
+    public const TYPE_RICH_TEXT = 'rich_text';
+
+    public const TYPE_TAGS = 'tags';
+
+    public const TYPE_DATETIME = 'datetime';
+
+    public const TYPE_DATE_RANGE = 'date_range';
+
+    public const TYPE_SWITCH = 'switch';
+
+    public const TYPE_SLIDER = 'slider';
+
+    public const TYPE_SECTION = 'section';
+
+    public const TYPE_COLOR = 'color';
+
+    public const TYPE_COUNTRY = 'country';
+
     public static function allowedTypes(): array
     {
-        return [
-            self::TYPE_TEXT,
-            self::TYPE_TEXTAREA,
-            self::TYPE_EMAIL,
-            self::TYPE_NUMBER,
-            self::TYPE_PHONE,
-            self::TYPE_URL,
-            self::TYPE_DATE,
-            self::TYPE_TIME,
-            self::TYPE_SELECT,
-            self::TYPE_MULTI_SELECT,
-            self::TYPE_CHECKBOX,
-            self::TYPE_CHECKBOX_GROUP,
-            self::TYPE_RADIO,
-            self::TYPE_FILE,
-            self::TYPE_RATING,
-            self::TYPE_LINEAR_SCALE,
-        ];
+        return FormFieldTypes::all();
     }
 
     protected static function boot(): void

@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -20,7 +22,8 @@ use Illuminate\Support\Str;
  * @property Carbon $submitted_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read \App\Models\Form|null $form
+ * @property-read Form|null $form
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse query()
@@ -36,10 +39,13 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class FormResponse extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'ulid',
         'form_id',
@@ -81,10 +87,31 @@ class FormResponse extends Model
                 $model->submitted_at = now();
             }
         });
+
+        static::deleted(function ($model) {
+            Storage::disk('local')->deleteDirectory("form-uploads/{$model->form_id}/{$model->id}");
+        });
     }
 
     public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);
+    }
+
+    /**
+     * Search respondent email always; answer contents only on PostgreSQL
+     * (the response_data::text cast is not portable to SQLite).
+     */
+    public function scopeSearch($query, string $search)
+    {
+        $term = '%'.strtolower($search).'%';
+
+        return $query->where(function ($q) use ($term) {
+            $q->whereRaw('LOWER(respondent_email) LIKE ?', [$term]);
+
+            if ($q->getConnection()->getDriverName() === 'pgsql') {
+                $q->orWhereRaw('LOWER(response_data::text) LIKE ?', [$term]);
+            }
+        });
     }
 }

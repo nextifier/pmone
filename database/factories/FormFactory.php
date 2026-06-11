@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Form;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Form>
+ * @extends Factory<Form>
  */
 class FormFactory extends Factory
 {
@@ -24,6 +25,8 @@ class FormFactory extends Factory
             'closes_at' => null,
             'response_limit' => null,
             'project_id' => null,
+            'user_id' => User::factory(),
+            'created_by' => fn (array $attributes) => $attributes['user_id'],
         ];
     }
 

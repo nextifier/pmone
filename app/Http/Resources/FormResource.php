@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Form;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,6 +24,14 @@ class FormResource extends JsonResource
             'closes_at' => $this->closes_at,
             'response_limit' => $this->response_limit,
             'responses_count' => $this->whenCounted('responses'),
+            'short_link' => $this->when($this->status === Form::STATUS_PUBLISHED, function () {
+                $link = $this->shortLink();
+
+                return $link ? [
+                    'slug' => $link->slug,
+                    'url' => rtrim(config('app.frontend_url', 'https://pmone.id'), '/').'/'.$link->slug,
+                ] : null;
+            }),
             'cover_image' => $this->getMediaUrls('cover_image'),
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->pluck('name')),
 

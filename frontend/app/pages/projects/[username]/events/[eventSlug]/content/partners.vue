@@ -12,16 +12,16 @@
       <div class="flex shrink-0 gap-2">
         <button
           @click="copyDialogOpen = true"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98"
+          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-2.5 py-1.5 text-sm tracking-tight transition-[transform,background-color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
         >
           <Icon name="hugeicons:copy-01" class="size-4 shrink-0" />
           <span>Copy from Event</span>
         </button>
         <button
           @click="addCategoryDialogOpen = true"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium tracking-tight transition-[transform,background-color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
         >
-          <Icon name="lucide:plus" class="size-4 shrink-0" />
+          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
           <span>Add Category</span>
         </button>
       </div>
@@ -53,7 +53,8 @@
       <div class="space-y-1">
         <h3 class="font-semibold tracking-tight">No partner categories yet</h3>
         <p class="text-muted-foreground max-w-sm text-sm tracking-tight">
-          Create categories like "Supported by", "Media Partners", etc. then add partners to each category.
+          Create categories like "Supported by", "Media Partners", etc. then add partners to each
+          category.
         </p>
       </div>
     </div>
@@ -63,58 +64,92 @@
       <div
         v-for="category in categories"
         :key="category.id"
-        class="group/cat bg-pattern-diagonal border-border relative flex grow flex-col items-center justify-center gap-y-4 rounded-xl border px-4 py-6 sm:px-6"
+        class="group/cat hover:bg-pattern-diagonal border-border relative flex grow flex-col items-center justify-center gap-y-4 rounded-xl border px-4 py-10 [--pattern-fg:var(--color-primary)]/3 sm:px-6 dark:[--pattern-fg:var(--color-primary)]/10"
+        @dragenter.prevent="onZoneDragEnter(category, $event)"
+        @dragover.prevent
+        @dragleave="onZoneDragLeave(category)"
+        @drop.prevent="onZoneDrop(category, $event)"
       >
         <!-- Floating category badge (matches Credits) -->
         <span
-          class="text-primary bg-background absolute top-0 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center gap-x-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
+          class="text-primary bg-background xs:text-sm absolute top-0 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
         >
           <span class="truncate">{{ category.name }}</span>
-          <span v-if="category.no_container" class="text-muted-foreground font-normal">full-width</span>
-          <span class="text-muted-foreground tabular-nums font-normal">{{ category.partners?.length || 0 }}</span>
         </span>
 
-        <!-- Management toolbar (revealed on hover; floats just above the box so it
-             never overlaps the partner tiles or their top-right detach buttons) -->
-        <div
-          class="bg-background absolute right-3 bottom-full z-20 mb-1 flex items-center gap-0.5 rounded-lg border p-0.5 opacity-0 shadow-xs transition group-hover/cat:opacity-100 pointer-coarse:opacity-100"
+        <!-- Drag handle (top-left, always visible) -->
+        <button
+          type="button"
+          class="category-drag-handle bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 left-1 z-20 inline-flex size-7 cursor-grab items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-95 active:cursor-grabbing motion-reduce:transition-none"
+          v-tippy="'Drag to reorder'"
         >
-          <button
-            type="button"
-            class="category-drag-handle text-muted-foreground hover:bg-muted inline-flex size-7 cursor-grab items-center justify-center rounded-md active:cursor-grabbing"
-            v-tippy="'Drag to reorder'"
+          <Icon name="hugeicons:drag-drop" class="size-4" />
+        </button>
+
+        <!-- Actions menu (top-right, always visible) -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <button
+              type="button"
+              class="bg-background text-muted-foreground hover:bg-muted hover:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground absolute top-1 right-1 z-20 inline-flex size-7 items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-95 motion-reduce:transition-none"
+              v-tippy="'Options'"
+            >
+              <Icon name="hugeicons:more-vertical" class="size-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-44">
+            <DropdownMenuItem @click="openAddPartner(category)">
+              <Icon name="hugeicons:add-01" class="size-4" />
+              <span>Add Partner</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="openEditCategory(category)">
+              <Icon name="hugeicons:edit-02" class="size-4" />
+              <span>Edit Category</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="text-destructive" @click="handleDeleteCategory(category)">
+              <Icon name="hugeicons:delete-02" class="size-4" />
+              <span>Delete Category</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <!-- Total item count (bottom-right, aligned with the top-right actions trigger) -->
+        <span
+          class="squircle bg-background text-muted-foreground absolute right-1 bottom-1 z-10 flex size-7 shrink-0 items-center justify-center border text-center text-xs font-semibold tracking-tight"
+        >
+          {{ category.partners?.length || 0 }}
+        </span>
+
+        <!-- Drag-over overlay (drop image logos to bulk-add partners) -->
+        <Transition
+          enter-active-class="transition-opacity duration-150 ease-out motion-reduce:transition-none"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-150 ease-in motion-reduce:transition-none"
+          leave-to-class="opacity-0"
+        >
+          <div
+            v-if="dropZones[category.id]?.over"
+            class="border-primary bg-background/80 text-primary pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center gap-y-2 rounded-xl border-2 border-dashed backdrop-blur-sm"
           >
-            <Icon name="hugeicons:drag-drop" class="size-4" />
-          </button>
-          <button
-            type="button"
-            @click="openAddPartner(category)"
-            class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
-            v-tippy="'Add partner'"
-          >
-            <Icon name="lucide:plus" class="size-4" />
-          </button>
-          <button
-            type="button"
-            @click="openEditCategory(category)"
-            class="hover:bg-muted inline-flex size-7 items-center justify-center rounded-md"
-            v-tippy="'Edit category'"
-          >
-            <Icon name="lucide:pencil" class="size-4" />
-          </button>
-          <button
-            type="button"
-            @click="handleDeleteCategory(category)"
-            class="hover:bg-destructive/10 inline-flex size-7 items-center justify-center rounded-md"
-            v-tippy="'Delete category'"
-          >
-            <Icon name="lucide:trash" class="text-destructive size-4" />
-          </button>
+            <Icon name="hugeicons:image-add-02" class="size-6" />
+            <p class="text-sm font-medium tracking-tight">Drop logos to add partners</p>
+          </div>
+        </Transition>
+
+        <!-- Upload progress overlay -->
+        <div
+          v-if="dropZones[category.id]?.busy"
+          class="bg-background/85 text-muted-foreground absolute inset-0 z-40 flex flex-col items-center justify-center gap-y-2 rounded-xl backdrop-blur-sm"
+        >
+          <Icon name="svg-spinners:ring-resize" class="text-primary size-6" />
+          <p class="text-sm font-medium tracking-tight">
+            Adding {{ dropZones[category.id].done }}/{{ dropZones[category.id].total }}…
+          </p>
         </div>
 
         <!-- Logos grid (matches Credits) -->
         <div
-          v-if="category.partners?.length"
           :ref="(el) => setPartnerContainerRef(category.id, el)"
           class="flex w-full flex-wrap items-center justify-evenly gap-x-0 gap-y-2"
         >
@@ -122,7 +157,7 @@
             v-for="partner in category.partners"
             :key="partner.pivot_id"
             :data-pivot-id="partner.pivot_id"
-            class="drag-handle group/logo relative flex cursor-grab items-center justify-center rounded-xl active:cursor-grabbing dark:hover:bg-white"
+            class="drag-handle group/logo relative flex cursor-grab items-center justify-center rounded-xl transition-colors duration-200 ease-out active:cursor-grabbing motion-reduce:transition-none dark:hover:bg-white"
             :class="{
               'w-full max-w-48 p-3 xl:max-w-56': category.no_container,
               'aspect-3/2': !category.no_container,
@@ -139,7 +174,7 @@
               loading="lazy"
               decoding="async"
               draggable="false"
-              class="pointer-events-none max-h-full w-auto max-w-full object-contain select-none dark:brightness-90 dark:contrast-200 dark:grayscale dark:invert-[75%] dark:group-hover/logo:filter-none"
+              class="pointer-events-none max-h-full w-auto max-w-full object-contain transition-[filter] duration-200 ease-out select-none motion-reduce:transition-none dark:brightness-90 dark:contrast-200 dark:grayscale dark:invert-[75%] dark:group-hover/logo:filter-none"
             />
             <div
               v-else
@@ -148,24 +183,32 @@
               {{ partner.name?.charAt(0)?.toUpperCase() }}
             </div>
 
-            <!-- Detach -->
+            <!-- Remove from category (revealed on hover) -->
             <button
               type="button"
               @click.stop="handleRemovePartner(category, partner)"
               @pointerdown.stop
-              class="bg-background absolute -top-2 -right-2 z-30 inline-flex size-6 items-center justify-center rounded-full border opacity-0 shadow-xs transition group-hover/logo:opacity-100 pointer-coarse:opacity-100"
+              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border bg-destructive border-destructive absolute top-0 right-0 z-30 inline-flex size-6 items-center justify-center rounded-md border text-white opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
               v-tippy="`Remove ${partner.name}`"
             >
-              <Icon name="lucide:x" class="text-destructive size-3" />
+              <Icon name="hugeicons:cancel-01" class="size-3.5" />
             </button>
           </div>
-        </div>
 
-        <!-- Empty category -->
-        <div v-else class="text-muted-foreground py-4 text-center text-sm tracking-tight">
-          No partners yet.
-          <button @click="openAddPartner(category)" class="text-primary hover:underline">
-            Add one
+          <!-- Add partner tile (same size as a logo tile) -->
+          <button
+            type="button"
+            @click="openAddPartner(category)"
+            v-tippy="'Add partner'"
+            class="border-primary/20 text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-muted/50 flex items-center justify-center rounded-xl border border-dashed transition-[transform,background-color,border-color,color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
+            :class="{
+              'w-full max-w-48 p-3 xl:max-w-56': category.no_container,
+              'aspect-3/2': !category.no_container,
+              'h-20 xl:h-24': (category.partners?.length || 0) <= 10,
+              'h-18 xl:h-20': (category.partners?.length || 0) > 10,
+            }"
+          >
+            <Icon name="hugeicons:add-01" class="size-5 shrink-0" />
           </button>
         </div>
       </div>
@@ -181,11 +224,16 @@
           <form @submit.prevent="handleSaveCategory" class="mt-4 space-y-4">
             <div class="space-y-2">
               <Label>Name</Label>
-              <Input v-model="categoryForm.name" placeholder="e.g. Media Partners" auto-focus required />
+              <Input
+                v-model="categoryForm.name"
+                placeholder="e.g. Media Partners"
+                auto-focus
+                required
+              />
             </div>
-            <div class="flex items-center gap-x-2">
+            <div v-if="editingCategory" class="flex items-center gap-x-2">
               <Switch v-model="categoryForm.no_container" />
-              <Label class="cursor-pointer">No container (full-width logo)</Label>
+              <Label class="cursor-pointer">Full-width logo</Label>
             </div>
             <div class="flex justify-end gap-2">
               <button
@@ -210,76 +258,128 @@
     </DialogResponsive>
 
     <!-- Add Partner to Category Dialog -->
-    <DialogResponsive v-model:open="addPartnerDialogOpen" dialog-max-width="28rem" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="addPartnerDialogOpen"
+      dialog-max-width="28rem"
+      :overflow-content="true"
+    >
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Add Partner</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-            Search for an existing partner or create a new one.
+            {{
+              partnerMode === "create"
+                ? "Add a new partner with its logo."
+                : "Search for an existing partner, or create a new one."
+            }}
           </p>
 
-          <form @submit.prevent="handleAddPartner" class="mt-4 space-y-4">
+          <!-- Search mode: pick an existing partner -->
+          <form
+            v-if="partnerMode === 'search'"
+            @submit.prevent="handleAddExisting"
+            class="mt-4 space-y-4"
+          >
             <div class="space-y-2">
-              <Label>Partner Name</Label>
-              <AutocompleteRoot v-model="partnerSearchTerm" :ignore-filter="true">
-                <AutocompleteAnchor as-child>
-                  <AutocompleteInput
-                    placeholder="Type to search partners..."
-                    autocomplete="off"
-                    class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
-                    auto-focus
+              <Label>Partner</Label>
+
+              <!-- Selected partner -->
+              <div
+                v-if="selectedPartner"
+                class="border-border flex items-center gap-3 rounded-md border p-2"
+              >
+                <div
+                  class="bg-background flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border"
+                >
+                  <img
+                    v-if="
+                      selectedPartner.partner_logo?.sm || selectedPartner.partner_logo?.original
+                    "
+                    :src="
+                      selectedPartner.partner_logo?.sm || selectedPartner.partner_logo?.original
+                    "
+                    class="max-h-full w-auto max-w-full object-contain"
+                    alt=""
                   />
-                </AutocompleteAnchor>
-                <AutocompletePortal>
-                  <AutocompleteContent
-                    position="popper"
-                    :side-offset="4"
-                    hide-when-empty
-                    class="bg-popover text-popover-foreground z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border shadow-md"
+                  <span v-else class="text-muted-foreground text-sm font-medium">
+                    {{ selectedPartner.name.charAt(0).toUpperCase() }}
+                  </span>
+                </div>
+                <span class="text-sm font-medium tracking-tight">{{ selectedPartner.name }}</span>
+                <button
+                  type="button"
+                  v-tippy="'Change partner'"
+                  class="text-muted-foreground hover:bg-muted hover:text-foreground ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md"
+                  @click="clearSelectedPartner"
+                >
+                  <Icon name="hugeicons:cancel-01" class="size-4" />
+                </button>
+              </div>
+
+              <!-- Combobox search -->
+              <Combobox v-else :ignore-filter="true">
+                <ComboboxAnchor class="w-full">
+                  <ComboboxInput
+                    v-model="partnerSearchTerm"
+                    placeholder="Search partners..."
+                    autocomplete="off"
+                    auto-focus
+                    class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+                  />
+                </ComboboxAnchor>
+                <ComboboxList
+                  class="z-100 max-h-72 w-(--reka-combobox-trigger-width) overflow-y-auto p-1"
+                >
+                  <ComboboxEmpty
+                    class="text-muted-foreground px-2 py-6 text-center text-sm tracking-tight"
                   >
-                    <AutocompleteViewport class="max-h-48 p-1">
-                      <AutocompleteItem
-                        v-for="p in partnerResults"
-                        :key="p.id"
-                        :value="p.name"
-                        class="data-[highlighted]:bg-muted flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left outline-none select-none"
-                        @select="selectedPartner = p"
+                    {{
+                      partnerSearchTerm.trim() ? "No partners found." : "Type to search partners."
+                    }}
+                  </ComboboxEmpty>
+                  <ComboboxGroup>
+                    <ComboboxItem
+                      v-for="p in partnerResults"
+                      :key="p.id"
+                      :value="p.name"
+                      class="data-highlighted:bg-muted flex w-full cursor-default items-center gap-3 rounded-md px-2 py-2 outline-none select-none"
+                      @select="selectPartner(p)"
+                    >
+                      <div
+                        class="bg-background flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border"
                       >
                         <img
-                          v-if="p.partner_logo?.sm"
-                          :src="p.partner_logo.sm"
-                          class="size-6 rounded object-cover"
+                          v-if="p.partner_logo?.sm || p.partner_logo?.original"
+                          :src="p.partner_logo?.sm || p.partner_logo?.original"
+                          class="max-h-full w-auto max-w-full object-contain"
                           alt=""
                         />
-                        <div
-                          v-else
-                          class="text-muted-foreground bg-muted flex size-6 items-center justify-center rounded text-xs font-medium"
-                        >
+                        <span v-else class="text-muted-foreground text-sm font-medium">
                           {{ p.name.charAt(0).toUpperCase() }}
-                        </div>
-                        <span class="text-sm">{{ p.name }}</span>
-                        <Icon
-                          v-if="selectedPartner?.id === p.id"
-                          name="lucide:check"
-                          class="ml-auto size-4"
-                        />
-                      </AutocompleteItem>
-                      <AutocompleteEmpty
-                        v-if="partnerSearchTerm.trim()"
-                        class="text-muted-foreground px-2 py-4 text-center text-sm"
-                      >
-                        No partners found. A new one will be created.
-                      </AutocompleteEmpty>
-                    </AutocompleteViewport>
-                  </AutocompleteContent>
-                </AutocompletePortal>
-              </AutocompleteRoot>
+                        </span>
+                      </div>
+                      <span class="text-sm tracking-tight">{{ p.name }}</span>
+                      <Icon
+                        v-if="selectedPartner?.id === p.id"
+                        name="hugeicons:tick-02"
+                        class="ml-auto size-4 shrink-0"
+                      />
+                    </ComboboxItem>
+                  </ComboboxGroup>
+                </ComboboxList>
+              </Combobox>
             </div>
 
-            <div v-if="!selectedPartner && partnerSearchTerm.trim()" class="space-y-2">
-              <Label>Website URL</Label>
-              <Input v-model="newPartnerUrl" placeholder="https://example.com" type="url" />
-            </div>
+            <!-- Create new partner CTA -->
+            <button
+              v-if="!selectedPartner"
+              type="button"
+              class="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-x-1.5 rounded-md border border-dashed py-2 text-sm tracking-tight active:scale-99"
+              @click="switchToCreateMode"
+            >
+              <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+              <span>Create a new partner</span>
+            </button>
 
             <div class="flex justify-end gap-2">
               <button
@@ -291,11 +391,65 @@
               </button>
               <button
                 type="submit"
-                :disabled="addPartnerSaving || (!selectedPartner && !partnerSearchTerm.trim())"
+                :disabled="addPartnerSaving || !selectedPartner"
                 class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Spinner v-if="addPartnerSaving" class="size-4" />
-                <span v-else>Add</span>
+                <span v-else>Add Partner</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Create mode: brand-new partner with logo -->
+          <form v-else @submit.prevent="handleCreatePartner" class="mt-4 space-y-4">
+            <div class="space-y-2">
+              <div class="space-y-1">
+                <Label>Logo</Label>
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  Format PNG dengan background transparan, ukuran 600x400px. Jangan pakai logo warna
+                  putih karena tidak terlihat di background terang.
+                </p>
+              </div>
+              <InputFileImage
+                v-model="createPartnerLogo"
+                container-class="relative isolate aspect-3/2 max-w-40"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <Label>Name</Label>
+              <Input
+                v-model="createPartnerForm.name"
+                placeholder="Partner name"
+                auto-focus
+                required
+              />
+            </div>
+
+            <div class="space-y-2">
+              <Label>Website URL</Label>
+              <Input
+                v-model="createPartnerForm.website_url"
+                placeholder="https://example.com"
+                type="url"
+              />
+            </div>
+
+            <div class="flex justify-end gap-2">
+              <button
+                type="button"
+                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                @click="partnerMode = 'search'"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                :disabled="addPartnerSaving || !createPartnerForm.name.trim()"
+                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Spinner v-if="addPartnerSaving" class="size-4" />
+                <span v-else>Create &amp; Add</span>
               </button>
             </div>
           </form>
@@ -316,7 +470,10 @@
             <div v-if="eventsLoading" class="flex justify-center py-4">
               <Spinner class="size-5" />
             </div>
-            <div v-else-if="!availableEvents.length" class="text-muted-foreground py-4 text-center text-sm tracking-tight">
+            <div
+              v-else-if="!availableEvents.length"
+              class="text-muted-foreground py-4 text-center text-sm tracking-tight"
+            >
               No other events have partners configured.
             </div>
             <div v-else class="space-y-2">
@@ -326,11 +483,7 @@
                   <SelectValue placeholder="Select an event" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem
-                    v-for="ev in availableEvents"
-                    :key="ev.id"
-                    :value="String(ev.id)"
-                  >
+                  <SelectItem v-for="ev in availableEvents" :key="ev.id" :value="String(ev.id)">
                     {{ ev.title }} ({{ ev.partner_categories_count }} categories)
                   </SelectItem>
                 </SelectContent>
@@ -365,7 +518,8 @@
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-lg font-semibold tracking-tight">Delete category?</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
-            This will delete "{{ deletingCategory?.name }}" and remove all partner associations in this category.
+            This will delete "{{ deletingCategory?.name }}" and remove all partner associations in
+            this category.
           </p>
           <div class="mt-3 flex justify-end gap-2">
             <button
@@ -386,13 +540,58 @@
         </div>
       </template>
     </DialogResponsive>
+
+    <!-- Remove Partner Confirm Dialog -->
+    <DialogResponsive v-model:open="removePartnerDialogOpen" dialog-max-width="24rem">
+      <template #default>
+        <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="text-lg font-semibold tracking-tight">Remove partner?</div>
+          <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+            This removes "{{ removingPartner?.partner?.name }}" from "{{
+              removingPartner?.category?.name
+            }}".
+          </p>
+          <div class="mt-3 flex justify-end gap-2">
+            <button
+              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+              @click="removePartnerDialogOpen = false"
+            >
+              Cancel
+            </button>
+            <button
+              @click="confirmRemovePartner"
+              :disabled="removePartnerSaving"
+              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="removePartnerSaving" class="size-4 text-white" />
+              <span v-else>Remove</span>
+            </button>
+          </div>
+        </div>
+      </template>
+    </DialogResponsive>
   </div>
 </template>
 
 <script setup>
+import InputFileImage from "@/components/InputFileImage.vue";
+import {
+  Combobox,
+  ComboboxAnchor,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -400,18 +599,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useSortableList } from "@/composables/useSortableList";
+import { ComboboxInput } from "reka-ui";
 import Sortable from "sortablejs";
-import {
-  AutocompleteAnchor,
-  AutocompleteContent,
-  AutocompleteEmpty,
-  AutocompleteInput,
-  AutocompleteItem,
-  AutocompletePortal,
-  AutocompleteRoot,
-  AutocompleteViewport,
-} from "reka-ui";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -426,12 +617,19 @@ const apiBase = `/api/projects/${username}/events/${eventSlug}/partner-categorie
 // --- Data ---
 const categories = ref([]);
 const loading = ref(true);
+// Per-category drag-and-drop upload state, keyed by category id.
+const dropZones = reactive({});
 
 const fetchCategories = async () => {
   try {
     loading.value = true;
     const response = await client(apiBase);
     categories.value = response.data;
+    for (const c of categories.value) {
+      if (!dropZones[c.id]) {
+        dropZones[c.id] = { over: false, depth: 0, busy: false, done: 0, total: 0 };
+      }
+    }
   } catch (err) {
     console.error("Failed to load partner categories:", err);
   } finally {
@@ -440,6 +638,85 @@ const fetchCategories = async () => {
 };
 
 onMounted(fetchCategories);
+
+// --- Drop image logos onto a category to bulk-create partners ---
+const hasFiles = (event) => [...(event.dataTransfer?.types || [])].includes("Files");
+
+const onZoneDragEnter = (category, event) => {
+  if (!hasFiles(event) || dropZones[category.id]?.busy) return;
+  const z = dropZones[category.id];
+  if (!z) return;
+  z.depth += 1;
+  z.over = true;
+};
+
+const onZoneDragLeave = (category) => {
+  const z = dropZones[category.id];
+  if (!z) return;
+  z.depth = Math.max(0, z.depth - 1);
+  if (!z.depth) z.over = false;
+};
+
+const onZoneDrop = async (category, event) => {
+  const z = dropZones[category.id];
+  if (z) {
+    z.depth = 0;
+    z.over = false;
+  }
+  if (z?.busy) return;
+  const files = [...(event.dataTransfer?.files || [])].filter((f) => f.type?.startsWith("image/"));
+  if (files.length) await uploadPartnerLogos(category, files);
+};
+
+const fileToPartnerName = (filename) =>
+  filename
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim() || "Partner";
+
+const uploadOnePartner = async (category, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const upload = await client("/api/tmp-upload", { method: "POST", body: formData });
+  if (!upload?.folder) throw new Error("Upload failed");
+  await client(`${apiBase}/${category.slug}/partners`, {
+    method: "POST",
+    body: { partner_name: fileToPartnerName(file.name), tmp_partner_logo: upload.folder },
+  });
+};
+
+const uploadPartnerLogos = async (category, files) => {
+  const z = dropZones[category.id];
+  z.busy = true;
+  z.done = 0;
+  z.total = files.length;
+  let ok = 0;
+  // Serial so partners append in the dropped order.
+  for (const file of files) {
+    try {
+      await uploadOnePartner(category, file);
+      ok += 1;
+    } catch (_) {
+      // counted via z.done below
+    } finally {
+      z.done += 1;
+    }
+  }
+  await fetchCategories();
+  z.busy = false;
+  z.done = 0;
+  z.total = 0;
+  if (ok === files.length) {
+    toast.success(`${ok} partner${ok === 1 ? "" : "s"} added`);
+  } else if (ok) {
+    toast.warning(`${ok} of ${files.length} partners added`, {
+      description: "Some logos couldn't be processed.",
+    });
+  } else {
+    toast.error("Failed to add partners");
+  }
+};
 
 // --- Category sortable ---
 const categoriesContainer = ref(null);
@@ -482,6 +759,7 @@ const initPartnerSortables = () => {
     partnerSortableInstances[category.id] = Sortable.create(el, {
       animation: 200,
       handle: ".drag-handle",
+      draggable: "[data-pivot-id]",
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
@@ -501,9 +779,9 @@ const initPartnerSortables = () => {
         // Update local state
         const cat = categories.value.find((c) => c.id === category.id);
         if (cat) {
-          cat.partners = order.map((pivotId) =>
-            cat.partners.find((p) => p.pivot_id === pivotId)
-          ).filter(Boolean);
+          cat.partners = order
+            .map((pivotId) => cat.partners.find((p) => p.pivot_id === pivotId))
+            .filter(Boolean);
         }
 
         try {
@@ -525,7 +803,7 @@ watch(
     await nextTick();
     initPartnerSortables();
   },
-  { deep: false },
+  { deep: false }
 );
 
 onUnmounted(() => {
@@ -608,28 +886,49 @@ const confirmDeleteCategory = async () => {
 
 // --- Add Partner to Category ---
 const addPartnerDialogOpen = ref(false);
+const partnerMode = ref("search"); // "search" | "create"
 const targetCategory = ref(null);
 const partnerSearchTerm = ref("");
 const selectedPartner = ref(null);
-const newPartnerUrl = ref("");
 const addPartnerSaving = ref(false);
 const partnerResults = ref([]);
+const createPartnerForm = reactive({ name: "", website_url: "" });
+const createPartnerLogo = ref([]);
 
 const openAddPartner = (category) => {
   targetCategory.value = category;
+  partnerMode.value = "search";
   partnerSearchTerm.value = "";
   selectedPartner.value = null;
-  newPartnerUrl.value = "";
   partnerResults.value = [];
+  createPartnerForm.name = "";
+  createPartnerForm.website_url = "";
+  createPartnerLogo.value = [];
   addPartnerDialogOpen.value = true;
+};
+
+const selectPartner = (partner) => {
+  selectedPartner.value = partner;
+};
+
+const clearSelectedPartner = () => {
+  selectedPartner.value = null;
+  partnerSearchTerm.value = "";
+  partnerResults.value = [];
+};
+
+const switchToCreateMode = () => {
+  createPartnerForm.name = partnerSearchTerm.value.trim();
+  createPartnerForm.website_url = "";
+  createPartnerLogo.value = [];
+  partnerMode.value = "create";
 };
 
 // Debounced search
 let searchTimeout;
 watch(partnerSearchTerm, (term) => {
-  // Selecting an item from the autocomplete sets the term to the partner's name.
-  // Keep the selection in that case; otherwise it would be treated as a brand-new
-  // partner and create a duplicate on submit.
+  // Selecting an item sets the term to the partner's name; keep the selection in
+  // that case so editing the field is what clears it.
   if (selectedPartner.value && selectedPartner.value.name === term) {
     return;
   }
@@ -649,17 +948,13 @@ watch(partnerSearchTerm, (term) => {
   }, 300);
 });
 
-const handleAddPartner = async () => {
-  if (!targetCategory.value) return;
+const handleAddExisting = async () => {
+  if (!targetCategory.value || !selectedPartner.value) return;
   addPartnerSaving.value = true;
   try {
-    const body = selectedPartner.value
-      ? { partner_id: selectedPartner.value.id }
-      : { partner_name: partnerSearchTerm.value.trim(), website_url: newPartnerUrl.value || null };
-
     await client(`${apiBase}/${targetCategory.value.slug}/partners`, {
       method: "POST",
-      body,
+      body: { partner_id: selectedPartner.value.id },
     });
     toast.success("Partner added");
     addPartnerDialogOpen.value = false;
@@ -673,20 +968,98 @@ const handleAddPartner = async () => {
   }
 };
 
+const handleCreatePartner = async () => {
+  if (!targetCategory.value || !createPartnerForm.name.trim()) return;
+  addPartnerSaving.value = true;
+  try {
+    const body = {
+      partner_name: createPartnerForm.name.trim(),
+      website_url: createPartnerForm.website_url || null,
+    };
+    const logo = createPartnerLogo.value?.[0];
+    if (logo && logo.startsWith("tmp-")) {
+      body.tmp_partner_logo = logo;
+    }
+
+    await client(`${apiBase}/${targetCategory.value.slug}/partners`, {
+      method: "POST",
+      body,
+    });
+    toast.success("Partner created and added");
+    addPartnerDialogOpen.value = false;
+    await fetchCategories();
+  } catch (err) {
+    toast.error("Failed to create partner", {
+      description: err?.data?.message || err?.message,
+    });
+  } finally {
+    addPartnerSaving.value = false;
+  }
+};
+
 // --- Remove Partner ---
-const handleRemovePartner = async (category, partner) => {
+const removePartnerDialogOpen = ref(false);
+const removingPartner = ref(null); // { category, partner }
+const removePartnerSaving = ref(false);
+
+const handleRemovePartner = (category, partner) => {
+  removingPartner.value = { category, partner };
+  removePartnerDialogOpen.value = true;
+};
+
+const confirmRemovePartner = async () => {
+  if (!removingPartner.value) return;
+  const { category, partner } = removingPartner.value;
+  removePartnerSaving.value = true;
+
+  const cat = categories.value.find((c) => c.id === category.id);
+  const index = cat ? cat.partners.findIndex((p) => p.pivot_id === partner.pivot_id) : -1;
+
   try {
     await client(`${apiBase}/${category.slug}/partners/${partner.pivot_id}`, {
       method: "DELETE",
     });
     // Optimistic removal
-    const cat = categories.value.find((c) => c.id === category.id);
     if (cat) {
       cat.partners = cat.partners.filter((p) => p.pivot_id !== partner.pivot_id);
     }
-    toast.success("Partner removed");
+    toast.success("Partner removed", {
+      action: {
+        label: "Undo",
+        onClick: () => undoRemovePartner(category, partner, index),
+      },
+    });
+    removePartnerDialogOpen.value = false;
   } catch (err) {
     toast.error("Failed to remove partner", {
+      description: err?.data?.message || err?.message,
+    });
+  } finally {
+    removePartnerSaving.value = false;
+  }
+};
+
+const undoRemovePartner = async (category, partner, index) => {
+  try {
+    await client(`${apiBase}/${category.slug}/partners`, {
+      method: "POST",
+      body: { partner_id: partner.id },
+    });
+    // Re-adding appends to the end, so restore the partner's original position.
+    await fetchCategories();
+    const cat = categories.value.find((c) => c.id === category.id);
+    const restored = cat?.partners.find((p) => p.id === partner.id);
+    if (cat && restored && index >= 0) {
+      cat.partners = cat.partners.filter((p) => p.id !== partner.id);
+      cat.partners.splice(Math.min(index, cat.partners.length), 0, restored);
+      await client(`${apiBase}/${category.slug}/partners/update-order`, {
+        method: "POST",
+        body: { order: cat.partners.map((p) => p.pivot_id) },
+      });
+    }
+    toast.success("Partner restored");
+  } catch (err) {
+    toast.error("Failed to restore partner", {
       description: err?.data?.message || err?.message,
     });
   }

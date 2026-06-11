@@ -10,6 +10,7 @@ use App\Models\Form;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class FormFieldController extends Controller
 {
@@ -78,7 +79,7 @@ class FormFieldController extends Controller
         $params = [];
 
         foreach ($validated['orders'] as $orderData) {
-            $cases[] = 'WHEN id = ? THEN ?::integer';
+            $cases[] = 'WHEN id = ? THEN CAST(? AS INTEGER)';
             $params[] = $orderData['id'];
             $params[] = $orderData['order'];
             $ids[] = $orderData['id'];
@@ -91,6 +92,8 @@ class FormFieldController extends Controller
             "UPDATE form_fields SET order_column = CASE {$casesString} END WHERE id IN ({$idsString}) AND form_id = ?",
             [...$params, $form->id]
         );
+
+        ResponseCache::clear(['forms-public']);
 
         return response()->json([
             'message' => 'Field order updated successfully',

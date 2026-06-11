@@ -1,22 +1,38 @@
 <template>
-  <div class="space-y-4">
-    <div v-for="group in fieldGroups" :key="group.label">
-      <h4 class="text-muted-foreground mb-2 text-xs font-medium">{{ group.label }}</h4>
-      <div class="grid grid-cols-3 gap-2">
+  <div class="space-y-5">
+    <div v-for="group in groups" :key="group.key">
+      <h4 class="text-muted-foreground mb-2 text-xs font-medium tracking-tight">
+        {{ group.label }}
+      </h4>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <button
           v-for="type in group.types"
           :key="type.value"
           type="button"
           @click="$emit('select', type.value)"
-          class="flex flex-col items-center gap-y-1 rounded-lg border p-3 text-xs tracking-tight transition"
+          class="flex flex-col gap-y-2 rounded-xl border p-2 text-center transition-colors"
           :class="
             selected === type.value
-              ? 'border-primary bg-primary/5 text-primary'
-              : 'border-border hover:bg-muted'
+              ? 'border-primary bg-primary/5'
+              : 'border-border hover:bg-muted/60'
           "
         >
-          <Icon :name="type.icon" class="size-5" />
-          <span>{{ type.label }}</span>
+          <div
+            class="flex h-20 items-center justify-center overflow-hidden rounded-lg border p-3"
+            :class="
+              selected === type.value
+                ? 'border-primary/30 bg-primary/5'
+                : 'border-border/60 bg-muted/40'
+            "
+          >
+            <FieldIllustration :type="type.value" />
+          </div>
+          <span
+            class="text-xs font-medium tracking-tight sm:text-sm"
+            :class="selected === type.value ? 'text-primary' : ''"
+          >
+            {{ type.label }}
+          </span>
         </button>
       </div>
     </div>
@@ -24,48 +40,19 @@
 </template>
 
 <script setup>
+import FieldIllustration from "@/components/form-builder/FieldIllustration.vue";
+import { FIELD_GROUPS, FIELD_TYPES } from "@/lib/formFieldTypes";
+
 defineProps({
   selected: { type: String, default: null },
 });
 
 defineEmits(["select"]);
 
-const fieldGroups = [
-  {
-    label: "Text",
-    types: [
-      { value: "text", label: "Text", icon: "lucide:type" },
-      { value: "textarea", label: "Textarea", icon: "lucide:align-left" },
-      { value: "email", label: "Email", icon: "lucide:mail" },
-      { value: "number", label: "Number", icon: "lucide:hash" },
-      { value: "phone", label: "Phone", icon: "lucide:phone" },
-      { value: "url", label: "URL", icon: "lucide:link" },
-    ],
-  },
-  {
-    label: "Date / Time",
-    types: [
-      { value: "date", label: "Date", icon: "lucide:calendar" },
-      { value: "time", label: "Time", icon: "lucide:clock" },
-    ],
-  },
-  {
-    label: "Selection",
-    types: [
-      { value: "select", label: "Select", icon: "lucide:chevrons-up-down" },
-      { value: "multi_select", label: "Multi Select", icon: "lucide:list-checks" },
-      { value: "checkbox", label: "Checkbox", icon: "lucide:square-check" },
-      { value: "checkbox_group", label: "Checkboxes", icon: "lucide:list-checks" },
-      { value: "radio", label: "Radio", icon: "lucide:circle-dot" },
-    ],
-  },
-  {
-    label: "Other",
-    types: [
-      { value: "file", label: "File", icon: "lucide:paperclip" },
-      { value: "rating", label: "Rating", icon: "lucide:star" },
-      { value: "linear_scale", label: "Scale", icon: "lucide:sliders-horizontal" },
-    ],
-  },
-];
+const groups = FIELD_GROUPS.map((group) => ({
+  ...group,
+  types: Object.entries(FIELD_TYPES)
+    .filter(([, config]) => config.group === group.key)
+    .map(([value, config]) => ({ value, label: config.label, icon: config.icon })),
+})).filter((group) => group.types.length);
 </script>

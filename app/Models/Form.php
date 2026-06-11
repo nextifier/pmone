@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Collection;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -45,19 +47,20 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read Collection<int, \App\Models\FormField> $fields
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Collection<int, FormField> $fields
  * @property-read int|null $fields_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\Project|null $project
- * @property-read Collection<int, \App\Models\FormResponse> $responses
+ * @property-read Project|null $project
+ * @property-read Collection<int, FormResponse> $responses
  * @property-read int|null $responses_count
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
- * @property-read \App\Models\User|null $user
+ * @property-read User|null $updater
+ * @property-read User|null $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form byStatus(array|string $status)
  * @method static \Database\Factories\FormFactory factory($count = null, $state = [])
@@ -97,10 +100,12 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Form withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Form extends Model implements HasMedia
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
     use HasSlug;
@@ -108,6 +113,14 @@ class Form extends Model implements HasMedia
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
+
+    /**
+     * @return string[]
+     */
+    protected static function responseCacheTags(): array
+    {
+        return ['forms-public'];
+    }
 
     protected $fillable = [
         'ulid',
@@ -188,7 +201,9 @@ class Form extends Model implements HasMedia
         });
 
         static::deleting(function ($model) {
-            if ($model->isForceDeleting() === false && auth()->check()) {
+            if ($model->isForceDeleting()) {
+                Storage::disk('local')->deleteDirectory("form-uploads/{$model->id}");
+            } elseif (auth()->check()) {
                 $model->deleted_by = auth()->id();
                 $model->saveQuietly();
             }
@@ -348,6 +363,11 @@ class Form extends Model implements HasMedia
         }
 
         return $this->responses()->count() >= $this->response_limit;
+    }
+
+    public function shortLink(): ?ShortLink
+    {
+        return ShortLink::where('destination_url', 'like', '%/f/'.$this->slug)->first();
     }
 
     /**

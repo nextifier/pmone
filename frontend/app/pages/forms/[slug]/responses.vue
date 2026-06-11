@@ -9,18 +9,65 @@
       </div>
 
       <div v-if="!hasSelectedRows" class="ml-auto flex items-center gap-1 sm:gap-2">
-        <button
-          @click="handleExport"
-          :disabled="exportPending || !data.length"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Spinner v-if="exportPending" class="size-4 shrink-0" />
-          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export</span>
-        </button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              :disabled="exportPending || !data.length"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="exportPending" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+              <span>Export</span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" class="w-44 p-1">
+            <div class="flex flex-col">
+              <PopoverClose v-for="format in exportFormats" :key="format.value" asChild>
+                <button
+                  @click="handleExport(format.value)"
+                  class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+                >
+                  <Icon :name="format.icon" class="size-4 shrink-0" />
+                  <span>{{ format.label }}</span>
+                </button>
+              </PopoverClose>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+        <!-- Export selected -->
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              :disabled="exportPending"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Spinner v-if="exportPending" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+              <span>Export</span>
+              <span
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+              >
+                {{ selectedRowIds.length }}
+              </span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" class="w-44 p-1">
+            <div class="flex flex-col">
+              <PopoverClose v-for="format in exportFormats" :key="format.value" asChild>
+                <button
+                  @click="handleExport(format.value, selectedRowIds)"
+                  class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+                >
+                  <Icon :name="format.icon" class="size-4 shrink-0" />
+                  <span>{{ format.label }}</span>
+                </button>
+              </PopoverClose>
+            </div>
+          </PopoverContent>
+        </Popover>
         <!-- Bulk status update -->
         <Popover>
           <PopoverTrigger asChild>
@@ -119,7 +166,8 @@
       :error="error"
       model="responses"
       label="Response"
-      :searchable="false"
+      search-column="respondent_email"
+      search-placeholder="Search responses"
       :column-toggle="false"
       :show-add-button="false"
       :initial-pagination="pagination"
@@ -159,14 +207,24 @@
         </Popover>
       </template>
     </TableData>
+
+    <ResponseDetailDialog
+      v-model:open="detailOpen"
+      :response="detailResponse"
+      :form="form"
+      :status-options="statusOptions"
+      @update-status="handleDetailStatusChange"
+    />
   </div>
 </template>
 
 <script setup>
+import ResponseDetailDialog from "@/components/form-builder/ResponseDetailDialog.vue";
 import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatResponseValue as formatFieldValue } from "@/lib/formFieldTypes";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -184,9 +242,9 @@ const slug = computed(() => route.params.slug);
 
 // Status config
 const statusOptions = [
-  { value: "new", label: "New", icon: "lucide:circle", color: "text-blue-500" },
+  { value: "new", label: "New", icon: "lucide:circle", color: "text-info" },
   { value: "read", label: "Read", icon: "lucide:check", color: "text-muted-foreground" },
-  { value: "starred", label: "Starred", icon: "lucide:star", color: "text-amber-500" },
+  { value: "starred", label: "Starred", icon: "lucide:star", color: "text-warning" },
   { value: "spam", label: "Spam", icon: "lucide:shield-alert", color: "text-destructive" },
 ];
 
@@ -211,6 +269,11 @@ const buildQueryParams = () => {
   const statusFilter = columnFilters.value.find((f) => f.id === "status");
   if (statusFilter?.value?.length) {
     params.append("filter_status", statusFilter.value.join(","));
+  }
+
+  const searchFilter = columnFilters.value.find((f) => f.id === "respondent_email");
+  if (searchFilter?.value) {
+    params.append("filter_search", searchFilter.value);
   }
 
   return params.toString();
@@ -254,16 +317,39 @@ const onSortingUpdate = (newValue) => {
 };
 const onColumnFiltersUpdate = (newValue) => {
   columnFilters.value = newValue;
+  pagination.value.pageIndex = 0;
 };
 
 const refresh = fetchResponses;
 
-// Format response value
-const formatResponseValue = (value) => {
-  if (value == null) return "-";
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
+// Response detail dialog
+const detailOpen = ref(false);
+const detailResponse = ref(null);
+
+const openDetail = (response) => {
+  detailResponse.value = response;
+  detailOpen.value = true;
+
+  if (response.status === "new") {
+    markAsRead(response);
+  }
+};
+
+const markAsRead = async (response) => {
+  try {
+    await client(`/api/forms/${slug.value}/responses/bulk-status`, {
+      method: "PUT",
+      body: { ids: [response.id], status: "read" },
+    });
+    response.status = "read";
+  } catch {
+    // Non-blocking; the row keeps its current status on failure.
+  }
+};
+
+const handleDetailStatusChange = async (response, status) => {
+  await handleUpdateStatus(response, status);
+  response.status = status;
 };
 
 // Build dynamic columns
@@ -297,18 +383,26 @@ const columns = computed(() => {
   const sortedFields = [...fields].sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
 
   for (const field of sortedFields) {
+    if (field.type === "section") continue;
     cols.push({
       id: `field_${field.ulid}`,
-      header: field.label,
+      header: () =>
+        withDirectives(
+          h("span", { class: "block truncate" }, field.label),
+          [[resolveDirective("tippy"), field.label]]
+        ),
       accessorFn: (row) => row.response_data?.[field.ulid],
-      cell: ({ getValue }) => {
-        const val = getValue();
-        return h(
-          "span",
-          { class: "text-sm tracking-tight max-w-[200px] truncate block" },
-          formatResponseValue(val)
-        );
-      },
+      cell: ({ row, getValue }) =>
+        h(
+          "button",
+          {
+            type: "button",
+            class:
+              "text-sm tracking-tight max-w-[200px] truncate block text-left cursor-pointer",
+            onClick: () => openDetail(row.original),
+          },
+          formatFieldValue(field, getValue())
+        ),
       size: 160,
       enableSorting: false,
     });
@@ -421,20 +515,36 @@ const handleFilterChange = (columnId, { checked, value }) => {
 
 // Export
 const exportPending = ref(false);
-const handleExport = async () => {
+
+const exportFormats = [
+  { value: "xlsx", label: "Export as XLSX", icon: "lucide:file-spreadsheet" },
+  { value: "csv", label: "Export as CSV", icon: "lucide:file-text" },
+];
+
+const exportMimeTypes = {
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  csv: "text/csv",
+};
+
+const handleExport = async (format = "xlsx", ids = null) => {
   try {
     exportPending.value = true;
-    const response = await client(`/api/forms/${slug.value}/responses/export`, {
-      responseType: "blob",
-    });
 
-    const blob = new Blob([response], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+    const params = new URLSearchParams({ format });
+    if (ids?.length) {
+      params.append("ids", ids.join(","));
+    }
+
+    const response = await client(
+      `/api/forms/${slug.value}/responses/export?${params.toString()}`,
+      { responseType: "blob" }
+    );
+
+    const blob = new Blob([response], { type: exportMimeTypes[format] });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `${props.form.slug}-responses-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    link.download = `${props.form.slug}-responses-${new Date().toISOString().slice(0, 10)}.${format}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -561,6 +671,30 @@ const RowActions = defineComponent({
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
+                      // View details
+                      h(
+                        PopoverClose,
+                        { asChild: true },
+                        {
+                          default: () =>
+                            h(
+                              "button",
+                              {
+                                class:
+                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                onClick: () => openDetail(actionProps.response),
+                              },
+                              [
+                                h(resolveComponent("Icon"), {
+                                  name: "lucide:eye",
+                                  class: "size-4 shrink-0",
+                                }),
+                                h("span", {}, "View details"),
+                              ]
+                            ),
+                        }
+                      ),
+                      h("div", { class: "border-border my-1 border-t" }),
                       // Status submenu
                       ...statusOptions.map((s) =>
                         h(

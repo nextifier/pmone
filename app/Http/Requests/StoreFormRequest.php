@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\Form;
+use App\Support\FormTemplates;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreFormRequest extends FormRequest
 {
@@ -20,10 +22,18 @@ class StoreFormRequest extends FormRequest
             'slug' => ['nullable', 'string', 'max:255', 'unique:forms,slug'],
             'settings' => ['nullable', 'array'],
             'settings.confirmation_message' => ['nullable', 'string', 'max:1000'],
+            'settings.closed_message' => ['nullable', 'string', 'max:1000'],
             'settings.redirect_url' => ['nullable', 'url', 'max:2048'],
             'settings.require_email' => ['nullable', 'boolean'],
             'settings.prevent_duplicate' => ['nullable', 'boolean'],
             'settings.prevent_duplicate_by' => ['nullable', 'string', 'in:email,fingerprint,both'],
+            'settings.notification_emails' => ['nullable', 'array'],
+            'settings.notification_emails.to' => ['nullable', 'array', 'max:20'],
+            'settings.notification_emails.to.*' => ['email', 'max:255'],
+            'settings.notification_emails.cc' => ['nullable', 'array', 'max:20'],
+            'settings.notification_emails.cc.*' => ['email', 'max:255'],
+            'settings.notification_emails.bcc' => ['nullable', 'array', 'max:20'],
+            'settings.notification_emails.bcc.*' => ['email', 'max:255'],
             'status' => ['sometimes', 'string', 'in:'.implode(',', Form::allowedStatuses())],
             'is_active' => ['sometimes', 'boolean'],
             'opens_at' => ['nullable', 'date'],
@@ -34,6 +44,7 @@ class StoreFormRequest extends FormRequest
             'delete_cover_image' => ['nullable', 'boolean'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:50'],
+            'template' => ['nullable', 'string', Rule::in(FormTemplates::keys())],
         ];
     }
 
