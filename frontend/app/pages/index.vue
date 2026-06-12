@@ -55,7 +55,10 @@
         >
           <!-- Text column -->
           <div class="flex max-w-xl shrink-0 flex-col items-start lg:w-1/2">
-            <p class="section-subtitle">{{ feature.subtitle }}</p>
+            <div class="flex flex-wrap items-center gap-2">
+              <p class="section-subtitle">{{ feature.subtitle }}</p>
+              <Badge v-if="feature.comingSoon" variant="muted">Coming soon</Badge>
+            </div>
             <h2 class="section-title mt-2 leading-[1.2]!">{{ feature.title }}</h2>
             <p class="section-description mt-3">{{ feature.description }}</p>
 
@@ -79,7 +82,7 @@
               </div>
             </div>
 
-            <Button variant="link" :to="feature.link" class="group mt-6 gap-1.5 px-0">
+            <Button v-if="feature.link" variant="link" :to="feature.link" class="group mt-6 gap-1.5 px-0">
               {{ feature.linkText }}
               <Icon
                 name="hugeicons:arrow-right-01"
@@ -91,40 +94,6 @@
           <!-- Video column -->
           <div class="flex-1">
             <BrowserMockup :title="feature.mockupUrl" />
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Coming Soon -->
-    <section>
-      <div class="container">
-        <div class="mb-12 text-center lg:mb-16">
-          <p class="section-subtitle text-sm">Coming soon</p>
-          <h2 class="section-title mt-3">More on the way.</h2>
-          <p class="section-description mx-auto mt-4">
-            These features are in active development. They will roll out over the coming months.
-          </p>
-        </div>
-
-        <div class="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <div
-            v-for="item in comingSoon"
-            :key="item.title"
-            class="bg-card ring-border rounded-xl p-6 ring-1"
-          >
-            <Badge variant="muted">Coming soon</Badge>
-            <div class="bg-muted mt-4 flex size-10 items-center justify-center rounded-lg">
-              <Icon :name="item.icon" class="text-muted-foreground size-5" />
-            </div>
-            <h3 class="text-foreground mt-4 text-lg font-medium tracking-tighter">
-              {{ item.title }}
-            </h3>
-            <p
-              class="text-muted-foreground mt-2 text-sm leading-relaxed tracking-tight sm:text-base"
-            >
-              {{ item.description }}
-            </p>
           </div>
         </div>
       </div>
@@ -323,6 +292,33 @@ const features = [
     linkText: "Explore content",
   },
   {
+    id: "websites",
+    subtitle: "Event websites",
+    title: "Your event website feeds itself.",
+    description:
+      "Update a speaker, a program, or the rundown once in PM One and every page that uses it follows. The same engine already runs Megabuild, Global AI Expo, and nine more live event sites.",
+    highlights: [
+      {
+        icon: "hugeicons:layout-table-01",
+        title: "Programs & rundown",
+        description: "Schedules and session details, edited in one place.",
+      },
+      {
+        icon: "lucide:images",
+        title: "Speakers, FAQ & gallery",
+        description: "Profiles, answers, and photos served straight to the site.",
+      },
+      {
+        icon: "lucide:languages",
+        title: "Five languages",
+        description: "Content translates once and ships to every locale.",
+      },
+    ],
+    mockupUrl: "megabuild.co.id",
+    link: "/projects",
+    linkText: "Explore projects",
+  },
+  {
     id: "contacts",
     subtitle: "Contacts & CRM",
     title: "Every contact, one searchable place.",
@@ -381,27 +377,54 @@ const features = [
     subtitle: "Form builder",
     title: "Build forms, collect responses, export the data.",
     description:
-      "Drag and drop fields to create any form. Publish it with a short link. Responses land in your inbox with read/unread tracking and export to Excel.",
+      "Build any form with 25 field types and drag and drop ordering. Responses land in your inbox with read tracking, email notifications, and per-form analytics, plus export to Excel.",
     highlights: [
       {
         icon: "hugeicons:task-add-01",
-        title: "Drag & drop fields",
-        description: "Text, email, dropdown, file upload, checkbox, and more.",
-      },
-      {
-        icon: "hugeicons:link-forward",
-        title: "Public links",
-        description: "Each form gets its own URL and short link.",
+        title: "25 field types",
+        description: "Text, dropdowns, uploads, ratings, phone, links, and more.",
       },
       {
         icon: "hugeicons:inbox",
-        title: "Response inbox",
-        description: "Filter, export, and track submission status in one place.",
+        title: "One inbox",
+        description: "Submissions and contact messages with read and unread tracking.",
+      },
+      {
+        icon: "hugeicons:link-forward",
+        title: "Analytics & notifications",
+        description: "Completion stats per form, and an email when answers come in.",
       },
     ],
     mockupUrl: "pmone.id/forms",
     link: "/forms",
     linkText: "Explore forms",
+  },
+  {
+    id: "hotels",
+    subtitle: "Hotel reservations",
+    title: "Hotel bookings, with the payment part solved.",
+    description:
+      "Manage room inventory and rates per event, take reservations from your event site, and collect payment through Xendit or Midtrans. Guests get a proper voucher PDF without anyone touching a spreadsheet.",
+    highlights: [
+      {
+        icon: "lucide:bed-double",
+        title: "Allotments per event",
+        description: "Room blocks and nightly rates, set for each event.",
+      },
+      {
+        icon: "lucide:credit-card",
+        title: "Payments built in",
+        description: "Xendit and Midtrans checkout with automatic status updates.",
+      },
+      {
+        icon: "hugeicons:file-01",
+        title: "Voucher & receipt PDFs",
+        description: "Branded documents sent to guests automatically.",
+      },
+    ],
+    mockupUrl: "pmone.id/hotels",
+    link: "/hotels",
+    linkText: "Explore hotel reservations",
   },
   {
     id: "analytics",
@@ -457,27 +480,83 @@ const features = [
     link: "/projects",
     linkText: "Explore tasks",
   },
-];
-
-// Coming soon features
-const comingSoon = [
   {
-    title: "Ticket sales",
-    icon: "hugeicons:ticket-01",
+    id: "tickets",
+    subtitle: "Ticket sales",
+    comingSoon: true,
+    title: "Sell tickets straight from your event site.",
     description:
-      "Attendees buy tickets from your event website. Seat selection, pricing tiers, and payment processing.",
+      "Attendees pick a tier, apply a promo code, and pay without leaving your website. Orders, quotas, and revenue tracking live in the same dashboard as everything else.",
+    highlights: [
+      {
+        icon: "hugeicons:ticket-01",
+        title: "Pricing tiers",
+        description: "Early bird, regular, VIP, each with its own quota and window.",
+      },
+      {
+        icon: "hugeicons:tags",
+        title: "Promo codes",
+        description: "Discounts with rules, quotas, and expiry dates.",
+      },
+      {
+        icon: "lucide:credit-card",
+        title: "Payment built in",
+        description: "The same gateways that already power hotel bookings.",
+      },
+    ],
+    mockupUrl: "pmone.id/tickets",
   },
   {
-    title: "Check-in & redeem",
-    icon: "hugeicons:barcode-scan",
+    id: "redeem",
+    subtitle: "Check-in & redeem",
+    comingSoon: true,
+    title: "One QR at the door, attendance counted live.",
     description:
-      "Scan QR codes at the door. A real-time dashboard shows who arrived and who has not.",
+      "Every ticket comes with a QR code. Staff scan it at the gate, the system flags reuse, and the dashboard shows who is inside while the doors are still open.",
+    highlights: [
+      {
+        icon: "hugeicons:barcode-scan",
+        title: "Fast scanning",
+        description: "Works from any phone camera, no special hardware.",
+      },
+      {
+        icon: "hugeicons:qr-code",
+        title: "One-time codes",
+        description: "Each ticket redeems once. Duplicates get stopped at the gate.",
+      },
+      {
+        icon: "hugeicons:activity-01",
+        title: "Live attendance",
+        description: "Real-time counts per gate, session, and ticket tier.",
+      },
+    ],
+    mockupUrl: "pmone.id/check-in",
   },
   {
-    title: "Business matching",
-    icon: "hugeicons:agreement-02",
+    id: "bizmatch",
+    subtitle: "Business matching",
+    comingSoon: true,
+    title: "Match visitors with the right booths.",
     description:
-      "Match exhibitors with attendees by interest and category. Meetings scheduled before the event starts.",
+      "Visitors and exhibitors fill in their interests, PM One pairs them up, and meetings get booked before the doors open. Exhibitors walk away with a contact list, not a fishbowl of name cards.",
+    highlights: [
+      {
+        icon: "hugeicons:agreement-02",
+        title: "Interest matching",
+        description: "Pairings based on category, product, and buying intent.",
+      },
+      {
+        icon: "hugeicons:clock-01",
+        title: "Meeting scheduling",
+        description: "Time slots agreed before the event starts.",
+      },
+      {
+        icon: "hugeicons:user-check-01",
+        title: "Qualified leads",
+        description: "Exhibitors get a clean list of who they met and why.",
+      },
+    ],
+    mockupUrl: "pmone.id/matching",
   },
 ];
 
