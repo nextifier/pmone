@@ -1,54 +1,29 @@
 <template>
   <div class="mx-auto max-w-6xl space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex items-center gap-x-2.5">
-        <h2 class="text-base font-semibold tracking-tight">Responses</h2>
-        <span class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium">
+      <div class="flex items-center gap-x-2">
+        <h2 class="text-base font-semibold tracking-tighter">Responses</h2>
+        <span
+          class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium tabular-nums"
+        >
           {{ meta.total || 0 }}
         </span>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex items-center gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <!-- Export (all or selected) -->
         <Popover>
           <PopoverTrigger asChild>
             <button
-              :disabled="exportPending || !data.length"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Spinner v-if="exportPending" class="size-4 shrink-0" />
-              <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-              <span>Export</span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" class="w-44 p-1">
-            <div class="flex flex-col">
-              <PopoverClose v-for="format in exportFormats" :key="format.value" asChild>
-                <button
-                  @click="handleExport(format.value)"
-                  class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight"
-                >
-                  <Icon :name="format.icon" class="size-4 shrink-0" />
-                  <span>{{ format.label }}</span>
-                </button>
-              </PopoverClose>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <!-- Export selected -->
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              :disabled="exportPending"
+              :disabled="exportPending || (!data.length && !selectedRowIds.length)"
               class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Spinner v-if="exportPending" class="size-4 shrink-0" />
               <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
               <span>Export</span>
               <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+                v-if="selectedRowIds.length"
+                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-xs font-medium tabular-nums"
               >
                 {{ selectedRowIds.length }}
               </span>
@@ -58,7 +33,7 @@
             <div class="flex flex-col">
               <PopoverClose v-for="format in exportFormats" :key="format.value" asChild>
                 <button
-                  @click="handleExport(format.value, selectedRowIds)"
+                  @click="handleExport(format.value, selectedRowIds.length ? selectedRowIds : null)"
                   class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight"
                 >
                   <Icon :name="format.icon" class="size-4 shrink-0" />
@@ -68,92 +43,72 @@
             </div>
           </PopoverContent>
         </Popover>
-        <!-- Bulk status update -->
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-            >
-              <Icon name="lucide:tag" class="size-4 shrink-0" />
-              <span>Status</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-              >
-                {{ selectedRowIds.length }}
-              </span>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent align="end" class="w-40 p-1">
-            <div class="flex flex-col">
-              <PopoverClose
-                v-for="s in statusOptions"
-                :key="s.value"
-                asChild
-              >
-                <button
-                  @click="handleBulkStatus(s.value)"
-                  class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight"
-                >
-                  <Icon :name="s.icon" class="size-4 shrink-0" :class="s.color" />
-                  <span>{{ s.label }}</span>
-                </button>
-              </PopoverClose>
-            </div>
-          </PopoverContent>
-        </Popover>
 
-        <!-- Bulk delete -->
-        <DialogResponsive v-model:open="deleteDialogOpen">
-          <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span>Delete</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
+        <template v-if="hasSelectedRows">
+          <!-- Bulk status update -->
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
               >
-                {{ selectedRowIds.length }}
-              </span>
-            </button>
-          </template>
-          <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
-              <p class="text-body mt-1.5 text-sm tracking-tight">
-                This action can't be undone. This will permanently delete
-                {{ selectedRowIds.length }} selected
-                {{ selectedRowIds.length === 1 ? "response" : "responses" }}.
-              </p>
-              <div class="mt-3 flex justify-end gap-2">
-                <button
-                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                  @click="deleteDialogOpen = false"
-                  :disabled="deletePending"
+                <Icon name="lucide:tag" class="size-4 shrink-0" />
+                <span>Status</span>
+                <span
+                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-xs font-medium tabular-nums"
                 >
-                  Cancel
-                </button>
-                <button
-                  @click="handleBulkDelete"
-                  :disabled="deletePending"
-                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Spinner v-if="deletePending" class="size-4 text-white" />
-                  <span v-else>Delete</span>
-                </button>
+                  {{ selectedRowIds.length }}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" class="w-40 p-1">
+              <div class="flex flex-col">
+                <PopoverClose v-for="s in RESPONSE_STATUS_OPTIONS" :key="s.value" asChild>
+                  <button
+                    @click="handleBulkStatus(s.value)"
+                    class="hover:bg-muted flex items-center gap-x-2 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+                  >
+                    <Icon :name="s.icon" class="size-4 shrink-0" :class="s.color" />
+                    <span>{{ s.label }}</span>
+                  </button>
+                </PopoverClose>
               </div>
-            </div>
-          </template>
-        </DialogResponsive>
+            </PopoverContent>
+          </Popover>
 
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear</span>
-        </button>
+          <!-- Bulk delete -->
+          <ConfirmDialog
+            v-model:open="deleteDialogOpen"
+            title="Delete selected responses?"
+            :description="bulkDeleteDescription"
+            confirm-label="Delete"
+            variant="destructive"
+            :pending="deletePending"
+            @confirm="handleBulkDelete"
+          >
+            <template #trigger="{ open }">
+              <button
+                class="hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+                @click="open()"
+              >
+                <Icon name="lucide:trash" class="size-4 shrink-0" />
+                <span>Delete</span>
+                <span
+                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-xs font-medium tabular-nums"
+                >
+                  {{ selectedRowIds.length }}
+                </span>
+              </button>
+            </template>
+          </ConfirmDialog>
+
+          <button
+            @click="clearSelection"
+            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+          >
+            <Icon name="lucide:x" class="size-4 shrink-0" />
+            <span>Clear</span>
+          </button>
+        </template>
       </div>
     </div>
 
@@ -178,7 +133,7 @@
       @update:column-filters="onColumnFiltersUpdate"
       @refresh="refresh"
     >
-      <template #filters="{ table }">
+      <template #filters>
         <Popover>
           <PopoverTrigger asChild>
             <button
@@ -188,7 +143,7 @@
               <span class="hidden sm:flex">Filter</span>
               <span
                 v-if="selectedStatusFilters.length > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
+                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4.5 translate-x-1/2 -translate-y-1/2 items-center justify-center text-xs font-medium tracking-tight tabular-nums"
               >
                 {{ selectedStatusFilters.length }}
               </span>
@@ -196,7 +151,7 @@
           </PopoverTrigger>
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="space-y-4">
-              <FilterSection
+              <TableFilterSection
                 title="Status"
                 :options="statusFilterOptions"
                 :selected="selectedStatusFilters"
@@ -212,18 +167,20 @@
       v-model:open="detailOpen"
       :response="detailResponse"
       :form="form"
-      :status-options="statusOptions"
       @update-status="handleDetailStatusChange"
     />
   </div>
 </template>
 
 <script setup>
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import TableFilterSection from "@/components/TableFilterSection.vue";
 import ResponseDetailDialog from "@/components/form-builder/ResponseDetailDialog.vue";
+import ResponseRowActions from "@/components/form-builder/ResponseRowActions.vue";
 import { TableData } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RESPONSE_STATUS_OPTIONS, responseStatusDisplay } from "@/lib/formBuilderStatus";
 import { formatResponseValue as formatFieldValue } from "@/lib/formFieldTypes";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
@@ -240,20 +197,10 @@ const route = useRoute();
 const client = useSanctumClient();
 const slug = computed(() => route.params.slug);
 
-// Status config
-const statusOptions = [
-  { value: "new", label: "New", icon: "lucide:circle", color: "text-info" },
-  { value: "read", label: "Read", icon: "lucide:check", color: "text-muted-foreground" },
-  { value: "starred", label: "Starred", icon: "lucide:star", color: "text-warning" },
-  { value: "spam", label: "Spam", icon: "lucide:shield-alert", color: "text-destructive" },
-];
-
-const statusFilterOptions = statusOptions.map((s) => ({ label: s.label, value: s.value }));
-
-const statusDisplay = (status) => {
-  const found = statusOptions.find((s) => s.value === status);
-  return found || { value: status, label: status, icon: "lucide:circle", color: "text-muted-foreground" };
-};
+const statusFilterOptions = RESPONSE_STATUS_OPTIONS.map((s) => ({
+  label: s.label,
+  value: s.value,
+}));
 
 // Table state
 const columnFilters = ref([]);
@@ -304,8 +251,8 @@ const meta = computed(
     }
 );
 
-// Watch for changes and refetch
-watch([columnFilters, sorting, pagination], () => fetchResponses(), { deep: true });
+// Refetch on filter/pagination changes (sorting is not sent to the API)
+watch([columnFilters, pagination], () => fetchResponses(), { deep: true });
 
 // Update handlers
 const onPaginationUpdate = (newValue) => {
@@ -423,7 +370,7 @@ const columns = computed(() => {
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      const s = statusDisplay(row.getValue("status"));
+      const s = responseStatusDisplay(row.getValue("status"));
       return h("div", { class: "flex items-center gap-x-1.5" }, [
         h(resolveComponent("Icon"), { name: s.icon, class: `size-3.5 shrink-0 ${s.color}` }),
         h("span", { class: "text-sm tracking-tight capitalize" }, s.label),
@@ -436,10 +383,11 @@ const columns = computed(() => {
     },
   });
 
-  // Submitted at
+  // Submitted at (API always returns newest first; column sorting is not supported)
   cols.push({
     header: "Submitted",
     accessorKey: "submitted_at",
+    enableSorting: false,
     cell: ({ getValue }) => {
       const date = getValue();
       if (!date) return h("span", { class: "text-muted-foreground text-sm" }, "-");
@@ -449,11 +397,19 @@ const columns = computed(() => {
         {
           default: () =>
             withDirectives(
-              h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
+              h(
+                "div",
+                { class: "text-sm text-muted-foreground tracking-tight tabular-nums" },
+                $dayjs(date).fromNow()
+              ),
               [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
             ),
           fallback: () =>
-            h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).format("MMM D, YYYY")),
+            h(
+              "div",
+              { class: "text-sm text-muted-foreground tracking-tight tabular-nums" },
+              $dayjs(date).format("MMM D, YYYY")
+            ),
         }
       );
     },
@@ -464,7 +420,13 @@ const columns = computed(() => {
   cols.push({
     id: "actions",
     header: () => h("span", { class: "sr-only" }, "Actions"),
-    cell: ({ row }) => h(RowActions, { response: row.original }),
+    cell: ({ row }) =>
+      h(ResponseRowActions, {
+        response: row.original,
+        onView: openDetail,
+        onSetStatus: handleUpdateStatus,
+        onDelete: handleDeleteSingle,
+      }),
     size: 60,
     enableHiding: false,
   });
@@ -563,11 +525,12 @@ const handleExport = async (format = "xlsx", ids = null) => {
 // Bulk status update
 const handleBulkStatus = async (status) => {
   try {
+    const count = selectedRowIds.value.length;
     await client(`/api/forms/${slug.value}/responses/bulk-status`, {
       method: "PUT",
       body: { ids: selectedRowIds.value, status },
     });
-    toast.success(`${selectedRowIds.value.length} response(s) marked as ${status}`);
+    toast.success(`${count} ${count === 1 ? "response" : "responses"} marked as ${status}`);
     clearSelection();
     await fetchResponses();
   } catch (error) {
@@ -581,14 +544,20 @@ const handleBulkStatus = async (status) => {
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);
 
+const bulkDeleteDescription = computed(() => {
+  const count = selectedRowIds.value.length;
+  return `This action can't be undone. ${count} selected ${count === 1 ? "response" : "responses"} will be permanently deleted.`;
+});
+
 const handleBulkDelete = async () => {
   try {
     deletePending.value = true;
+    const count = selectedRowIds.value.length;
     await client(`/api/forms/${slug.value}/responses/bulk`, {
       method: "DELETE",
       body: { ids: selectedRowIds.value },
     });
-    toast.success(`${selectedRowIds.value.length} response(s) deleted`);
+    toast.success(`${count} ${count === 1 ? "response" : "responses"} deleted`);
     deleteDialogOpen.value = false;
     clearSelection();
     await fetchResponses();
@@ -633,219 +602,4 @@ const handleUpdateStatus = async (response, status) => {
     });
   }
 };
-
-// Row Actions Component
-const RowActions = defineComponent({
-  props: {
-    response: { type: Object, required: true },
-  },
-  setup(actionProps) {
-    const dialogOpen = ref(false);
-    const singleDeletePending = ref(false);
-
-    return () =>
-      h("div", { class: "flex justify-end" }, [
-        h(
-          Popover,
-          {},
-          {
-            default: () => [
-              h(
-                PopoverTrigger,
-                { asChild: true },
-                {
-                  default: () =>
-                    h(
-                      "button",
-                      {
-                        class:
-                          "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
-                      },
-                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
-                    ),
-                }
-              ),
-              h(
-                PopoverContent,
-                { align: "end", class: "w-44 p-1" },
-                {
-                  default: () =>
-                    h("div", { class: "flex flex-col" }, [
-                      // View details
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class:
-                                  "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => openDetail(actionProps.response),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:eye",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "View details"),
-                              ]
-                            ),
-                        }
-                      ),
-                      h("div", { class: "border-border my-1 border-t" }),
-                      // Status submenu
-                      ...statusOptions.map((s) =>
-                        h(
-                          PopoverClose,
-                          { asChild: true, key: s.value },
-                          {
-                            default: () =>
-                              h(
-                                "button",
-                                {
-                                  class:
-                                    "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                  onClick: () => handleUpdateStatus(actionProps.response, s.value),
-                                },
-                                [
-                                  h(resolveComponent("Icon"), {
-                                    name: s.icon,
-                                    class: `size-4 shrink-0 ${s.color}`,
-                                  }),
-                                  h("span", {}, s.label),
-                                ]
-                              ),
-                          }
-                        )
-                      ),
-                      // Separator
-                      h("div", { class: "border-border my-1 border-t" }),
-                      // Delete
-                      h(
-                        PopoverClose,
-                        { asChild: true },
-                        {
-                          default: () =>
-                            h(
-                              "button",
-                              {
-                                class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
-                                onClick: () => (dialogOpen.value = true),
-                              },
-                              [
-                                h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
-                                  class: "size-4 shrink-0",
-                                }),
-                                h("span", {}, "Delete"),
-                              ]
-                            ),
-                        }
-                      ),
-                    ]),
-                }
-              ),
-            ],
-          }
-        ),
-        h(
-          DialogResponsive,
-          {
-            open: dialogOpen.value,
-            "onUpdate:open": (value) => (dialogOpen.value = value),
-          },
-          {
-            default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
-                h(
-                  "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
-                  "Are you sure?"
-                ),
-                h(
-                  "p",
-                  { class: "text-body mt-1.5 text-sm tracking-tight" },
-                  "This action can't be undone. This will permanently delete this response."
-                ),
-                h("div", { class: "mt-3 flex justify-end gap-2" }, [
-                  h(
-                    "button",
-                    {
-                      class:
-                        "border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98",
-                      onClick: () => (dialogOpen.value = false),
-                      disabled: singleDeletePending.value,
-                    },
-                    "Cancel"
-                  ),
-                  h(
-                    "button",
-                    {
-                      class:
-                        "bg-destructive text-white hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50",
-                      disabled: singleDeletePending.value,
-                      onClick: async () => {
-                        singleDeletePending.value = true;
-                        try {
-                          await handleDeleteSingle(actionProps.response);
-                          dialogOpen.value = false;
-                        } finally {
-                          singleDeletePending.value = false;
-                        }
-                      },
-                    },
-                    singleDeletePending.value
-                      ? h(resolveComponent("Spinner"), { class: "size-4 text-white" })
-                      : "Delete"
-                  ),
-                ]),
-              ]),
-          }
-        ),
-      ]);
-  },
-});
-
-// Filter Section Component
-const FilterSection = defineComponent({
-  props: {
-    title: String,
-    options: Array,
-    selected: Array,
-  },
-  emits: ["change"],
-  setup(filterProps, { emit: filterEmit }) {
-    return () =>
-      h("div", { class: "space-y-2" }, [
-        h("div", { class: "text-muted-foreground text-xs font-medium" }, filterProps.title),
-        h(
-          "div",
-          { class: "space-y-2" },
-          filterProps.options.map((option, i) => {
-            const value = typeof option === "string" ? option : option.value;
-            const label = typeof option === "string" ? option : option.label;
-            return h("div", { key: value, class: "flex items-center gap-2" }, [
-              h(Checkbox, {
-                id: `${filterProps.title}-${i}`,
-                modelValue: filterProps.selected.includes(value),
-                "onUpdate:modelValue": (checked) =>
-                  filterEmit("change", { checked: !!checked, value }),
-              }),
-              h(
-                Label,
-                {
-                  for: `${filterProps.title}-${i}`,
-                  class: "grow cursor-pointer font-normal tracking-tight capitalize",
-                },
-                { default: () => label }
-              ),
-            ]);
-          })
-        ),
-      ]);
-  },
-});
 </script>

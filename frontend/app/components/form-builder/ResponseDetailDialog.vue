@@ -2,14 +2,33 @@
   <DialogResponsive v-model:open="isOpen" dialog-max-width="600px" :overflow-content="true">
     <template #default>
       <div v-if="response" class="px-4 pb-10 md:px-6 md:py-5">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="text-primary text-lg font-semibold tracking-tight">Response Detail</h3>
-          <Select :model-value="response.status" @update:model-value="$emit('update-status', response, $event)">
-            <SelectTrigger class="h-8 w-36">
+        <!-- Header: title + meta on the left, status away from the close button -->
+        <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 md:pe-9">
+          <div class="min-w-0">
+            <h3 class="text-primary text-lg font-semibold tracking-tighter">Response details</h3>
+            <div
+              class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tracking-tight tabular-nums sm:text-sm"
+            >
+              <span v-if="response.submitted_at" class="flex items-center gap-x-1">
+                <Icon name="lucide:clock" class="size-3.5" />
+                {{ $dayjs(response.submitted_at).format("MMMM D, YYYY [at] h:mm A") }}
+              </span>
+              <span v-if="response.ip_address" class="flex items-center gap-x-1">
+                <Icon name="lucide:network" class="size-3.5" />
+                {{ response.ip_address }}
+              </span>
+            </div>
+          </div>
+
+          <Select
+            :model-value="response.status"
+            @update:model-value="$emit('update-status', response, $event)"
+          >
+            <SelectTrigger class="h-8 w-32" aria-label="Response status">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="s in statusOptions" :key="s.value" :value="s.value">
+              <SelectItem v-for="s in RESPONSE_STATUS_OPTIONS" :key="s.value" :value="s.value">
                 <div class="flex items-center gap-x-1.5">
                   <Icon :name="s.icon" class="size-3.5 shrink-0" :class="s.color" />
                   <span>{{ s.label }}</span>
@@ -19,40 +38,39 @@
           </Select>
         </div>
 
-        <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tracking-tight">
-          <span v-if="response.submitted_at" class="flex items-center gap-x-1">
-            <Icon name="lucide:clock" class="size-3.5" />
-            {{ $dayjs(response.submitted_at).format("MMMM D, YYYY [at] h:mm A") }}
-          </span>
-          <span v-if="response.ip_address" class="flex items-center gap-x-1">
-            <Icon name="lucide:network" class="size-3.5" />
-            {{ response.ip_address }}
-          </span>
-        </div>
-
-        <div class="mt-5 space-y-4">
+        <!-- Answers as a divided list so each Q&A reads as one row -->
+        <div class="divide-border/70 mt-5 divide-y rounded-xl border">
           <!-- Respondent email -->
-          <div v-if="response.respondent_email" class="space-y-1">
-            <div class="text-muted-foreground text-xs font-medium tracking-tight">Email</div>
+          <div v-if="response.respondent_email" class="space-y-1 px-4 py-3">
+            <div
+              class="text-muted-foreground flex items-center gap-x-1.5 text-xs font-medium tracking-tight sm:text-sm"
+            >
+              <Icon name="lucide:mail" class="size-3.5" />
+              Email
+            </div>
             <a
               :href="`mailto:${response.respondent_email}`"
-              class="text-primary text-sm tracking-tight underline-offset-2 hover:underline"
+              class="text-primary block truncate ps-5 text-sm tracking-tight underline-offset-2 hover:underline"
             >
               {{ response.respondent_email }}
             </a>
           </div>
 
           <!-- Answers -->
-          <div v-for="field in answerFields" :key="field.ulid" class="space-y-1">
-            <div class="text-muted-foreground flex items-center gap-x-1.5 text-xs font-medium tracking-tight">
+          <div v-for="field in answerFields" :key="field.ulid" class="space-y-1 px-4 py-3">
+            <div
+              class="text-muted-foreground flex items-center gap-x-1.5 text-xs font-medium tracking-tight sm:text-sm"
+            >
               <Icon :name="getTypeIcon(field.type)" class="size-3.5" />
               {{ field.label }}
             </div>
 
+            <!-- Value, indented to line up with the label text (icon width + gap) -->
+            <div class="ps-5">
             <!-- Rich text -->
             <div
               v-if="field.type === 'rich_text' && valueOf(field)"
-              class="prose prose-sm bg-muted/50 max-w-none rounded-md border px-3 py-2 text-sm tracking-tight"
+              class="prose prose-sm max-w-none text-sm tracking-tight"
               v-html="sanitizeHtml(valueOf(field))"
             />
 
@@ -99,9 +117,18 @@
               </button>
             </div>
 
+            <!-- Empty answer -->
+            <div
+              v-else-if="displayValue(field) === '-'"
+              class="text-muted-foreground/60 text-sm tracking-tight"
+            >
+              No answer
+            </div>
+
             <!-- Default -->
-            <div v-else class="text-sm tracking-tight whitespace-pre-wrap">
-              {{ formatResponseValue(field, valueOf(field)) }}
+            <div v-else class="text-sm tracking-tight tabular-nums whitespace-pre-wrap">
+              {{ displayValue(field) }}
+            </div>
             </div>
           </div>
         </div>
@@ -120,13 +147,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatResponseValue, getTypeIcon } from "@/lib/formFieldTypes";
+import { RESPONSE_STATUS_OPTIONS } from "@/lib/formBuilderStatus";
+import { fileName, formatResponseValue, getTypeIcon } from "@/lib/formFieldTypes";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
   response: { type: Object, default: null },
   form: { type: Object, required: true },
-  statusOptions: { type: Array, required: true },
 });
 
 defineEmits(["update-status"]);
@@ -145,13 +172,13 @@ const answerFields = computed(() =>
 
 const valueOf = (field) => props.response?.response_data?.[field.ulid] ?? null;
 
+const displayValue = (field) => formatResponseValue(field, valueOf(field));
+
 const filePaths = (field) => {
   const value = valueOf(field);
   if (!value) return [];
   return Array.isArray(value) ? value : [value];
 };
-
-const fileName = (path) => String(path).split("/").pop();
 
 const countryCode = (name) => countries.find((c) => c.label === name)?.value || null;
 

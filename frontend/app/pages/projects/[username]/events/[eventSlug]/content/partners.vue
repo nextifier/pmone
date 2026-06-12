@@ -236,21 +236,13 @@
               <Label class="cursor-pointer">Full-width logo</Label>
             </div>
             <div class="flex justify-end gap-2">
-              <button
-                type="button"
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="addCategoryDialogOpen = false"
-              >
+              <Button variant="outline" type="button" @click="addCategoryDialogOpen = false">
                 Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="categorySaving"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              </Button>
+              <Button type="submit" :disabled="categorySaving">
                 <Spinner v-if="categorySaving" class="size-4" />
                 <span v-else>{{ editingCategory ? "Save" : "Create" }}</span>
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -374,7 +366,7 @@
             <button
               v-if="!selectedPartner"
               type="button"
-              class="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-x-1.5 rounded-md border border-dashed py-2 text-sm tracking-tight active:scale-99"
+              class="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-x-1.5 rounded-md border border-dashed py-2 text-sm tracking-tight transition-[transform,background-color,border-color,color] duration-150 ease-out active:scale-99 motion-reduce:transition-none"
               @click="switchToCreateMode"
             >
               <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
@@ -382,21 +374,13 @@
             </button>
 
             <div class="flex justify-end gap-2">
-              <button
-                type="button"
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="addPartnerDialogOpen = false"
-              >
+              <Button variant="outline" type="button" @click="addPartnerDialogOpen = false">
                 Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="addPartnerSaving || !selectedPartner"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              </Button>
+              <Button type="submit" :disabled="addPartnerSaving || !selectedPartner">
                 <Spinner v-if="addPartnerSaving" class="size-4" />
                 <span v-else>Add Partner</span>
-              </button>
+              </Button>
             </div>
           </form>
 
@@ -436,21 +420,11 @@
             </div>
 
             <div class="flex justify-end gap-2">
-              <button
-                type="button"
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="partnerMode = 'search'"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                :disabled="addPartnerSaving || !createPartnerForm.name.trim()"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-              >
+              <Button variant="outline" type="button" @click="partnerMode = 'search'">Back</Button>
+              <Button type="submit" :disabled="addPartnerSaving || !createPartnerForm.name.trim()">
                 <Spinner v-if="addPartnerSaving" class="size-4" />
                 <span v-else>Create &amp; Add</span>
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -491,21 +465,15 @@
             </div>
 
             <div class="flex justify-end gap-2">
-              <button
+              <Button variant="outline" type="button" @click="copyDialogOpen = false">Cancel</Button>
+              <Button
                 type="button"
-                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="copyDialogOpen = false"
-              >
-                Cancel
-              </button>
-              <button
-                @click="handleCopyFromEvent"
                 :disabled="!selectedSourceEventId || copySaving"
-                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                @click="handleCopyFromEvent"
               >
                 <Spinner v-if="copySaving" class="size-4" />
                 <span v-else>Copy</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -522,20 +490,18 @@
             this category.
           </p>
           <div class="mt-3 flex justify-end gap-2">
-            <button
-              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-              @click="deleteCategoryDialogOpen = false"
-            >
+            <Button variant="outline" type="button" @click="deleteCategoryDialogOpen = false">
               Cancel
-            </button>
-            <button
-              @click="confirmDeleteCategory"
+            </Button>
+            <Button
+              variant="destructive"
+              type="button"
               :disabled="deleteCategorySaving"
-              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              @click="confirmDeleteCategory"
             >
-              <Spinner v-if="deleteCategorySaving" class="size-4 text-white" />
+              <Spinner v-if="deleteCategorySaving" class="size-4" />
               <span v-else>Delete</span>
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -552,20 +518,18 @@
             }}".
           </p>
           <div class="mt-3 flex justify-end gap-2">
-            <button
-              class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-              @click="removePartnerDialogOpen = false"
-            >
+            <Button variant="outline" type="button" @click="removePartnerDialogOpen = false">
               Cancel
-            </button>
-            <button
-              @click="confirmRemovePartner"
+            </Button>
+            <Button
+              variant="destructive"
+              type="button"
               :disabled="removePartnerSaving"
-              class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+              @click="confirmRemovePartner"
             >
-              <Spinner v-if="removePartnerSaving" class="size-4 text-white" />
+              <Spinner v-if="removePartnerSaving" class="size-4" />
               <span v-else>Remove</span>
-            </button>
+            </Button>
           </div>
         </div>
       </template>
@@ -575,6 +539,7 @@
 
 <script setup>
 import InputFileImage from "@/components/InputFileImage.vue";
+import { Button } from "@/components/ui/button";
 import {
   Combobox,
   ComboboxAnchor,
@@ -668,22 +633,27 @@ const onZoneDrop = async (category, event) => {
   if (files.length) await uploadPartnerLogos(category, files);
 };
 
-const fileToPartnerName = (filename) =>
-  filename
+const fileToPartnerName = (filename) => {
+  const base = filename
     .replace(/\.[^/.]+$/, "")
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")
-    .trim() || "Partner";
+    .trim();
+  if (!base) return "Partner";
+  // Capitalize plain lowercase words, but leave acronyms / mixed-case (BBSP, iD) untouched.
+  return base
+    .split(" ")
+    .map((w) => (w === w.toLowerCase() ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
+};
 
-const uploadOnePartner = async (category, file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  const upload = await client("/api/tmp-upload", { method: "POST", body: formData });
-  if (!upload?.folder) throw new Error("Upload failed");
-  await client(`${apiBase}/${category.slug}/partners`, {
-    method: "POST",
-    body: { partner_name: fileToPartnerName(file.name), tmp_partner_logo: upload.folder },
-  });
+const findExistingPartner = async (name) => {
+  try {
+    const res = await client(`/api/partners/search?q=${encodeURIComponent(name)}`);
+    return (res.data || []).find((p) => (p.name || "").toLowerCase() === name.toLowerCase()) || null;
+  } catch {
+    return null;
+  }
 };
 
 const uploadPartnerLogos = async (category, files) => {
@@ -691,14 +661,41 @@ const uploadPartnerLogos = async (category, files) => {
   z.busy = true;
   z.done = 0;
   z.total = files.length;
-  let ok = 0;
+  let added = 0;
+  let skipped = 0;
+  let failed = 0;
+  // Names already in this category (also catches duplicates within the same batch).
+  const seen = new Set((category.partners || []).map((p) => (p.name || "").toLowerCase()));
   // Serial so partners append in the dropped order.
   for (const file of files) {
+    const name = fileToPartnerName(file.name);
+    const key = name.toLowerCase();
     try {
-      await uploadOnePartner(category, file);
-      ok += 1;
+      if (seen.has(key)) {
+        skipped += 1;
+        continue;
+      }
+      const existing = await findExistingPartner(name);
+      if (existing) {
+        // Reuse the existing global partner instead of creating a duplicate.
+        await client(`${apiBase}/${category.slug}/partners`, {
+          method: "POST",
+          body: { partner_id: existing.id },
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("file", file);
+        const upload = await client("/api/tmp-upload", { method: "POST", body: formData });
+        if (!upload?.folder) throw new Error("Upload failed");
+        await client(`${apiBase}/${category.slug}/partners`, {
+          method: "POST",
+          body: { partner_name: name, tmp_partner_logo: upload.folder },
+        });
+      }
+      seen.add(key);
+      added += 1;
     } catch (_) {
-      // counted via z.done below
+      failed += 1;
     } finally {
       z.done += 1;
     }
@@ -707,14 +704,23 @@ const uploadPartnerLogos = async (category, files) => {
   z.busy = false;
   z.done = 0;
   z.total = 0;
-  if (ok === files.length) {
-    toast.success(`${ok} partner${ok === 1 ? "" : "s"} added`);
-  } else if (ok) {
-    toast.warning(`${ok} of ${files.length} partners added`, {
-      description: "Some logos couldn't be processed.",
-    });
-  } else {
-    toast.error("Failed to add partners");
+
+  const summary = [
+    added ? `${added} partner${added === 1 ? "" : "s"} added` : null,
+    skipped ? `${skipped} skipped (already in category)` : null,
+    failed ? `${failed} failed` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  if (failed && !added) {
+    toast.error(summary || "Failed to add partners");
+  } else if (failed) {
+    toast.warning(summary, { description: "Some logos couldn't be processed." });
+  } else if (skipped && !added) {
+    toast.info(summary);
+  } else if (added) {
+    toast.success(summary);
   }
 };
 

@@ -1,10 +1,8 @@
 <template>
-  <div class="space-y-10">
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+  <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Cover Image -->
       <div class="space-y-2">
-        <Label>Cover Image</Label>
-        <p class="text-muted-foreground text-xs sm:text-sm">1500x500 pixels recommended</p>
+        <Label>Cover image</Label>
         <InputFileImage
           ref="coverImageInputRef"
           v-model="imageFiles.cover_image"
@@ -12,6 +10,7 @@
           v-model:delete-flag="deleteFlags.cover_image"
           container-class="relative isolate aspect-[3/1] max-w-full"
         />
+        <p class="text-muted-foreground text-xs sm:text-sm">1500x500 pixels recommended</p>
         <InputErrorMessage :errors="errors.tmp_cover_image" />
       </div>
 
@@ -138,7 +137,7 @@
         <div class="frame-panel space-y-6">
           <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
             <div class="space-y-2">
-              <Label for="opens_at">Opens At</Label>
+              <Label for="opens_at">Opens at</Label>
               <DatePicker with-time
                 v-model="formData.opens_at"
                 placeholder="Select open date"
@@ -149,7 +148,7 @@
             </div>
 
             <div class="space-y-2">
-              <Label for="closes_at">Closes At</Label>
+              <Label for="closes_at">Closes at</Label>
               <DatePicker with-time
                 v-model="formData.closes_at"
                 placeholder="Select close date"
@@ -161,7 +160,7 @@
           </div>
 
           <div class="space-y-2">
-            <Label for="response_limit">Response Limit</Label>
+            <Label for="response_limit">Response limit</Label>
             <InputNumber
               id="response_limit"
               v-model="formData.response_limit"
@@ -180,12 +179,12 @@
       <!-- Submission settings -->
       <div class="frame">
         <div class="frame-header">
-          <h3 class="frame-title">Submission Settings</h3>
+          <h3 class="frame-title">Submission settings</h3>
           <p class="frame-description">What happens when someone submits a response.</p>
         </div>
         <div class="frame-panel space-y-6">
           <div class="space-y-2">
-            <Label for="confirmation_message">Confirmation Message</Label>
+            <Label for="confirmation_message">Confirmation message</Label>
             <Textarea
               id="confirmation_message"
               v-model="formData.settings.confirmation_message"
@@ -195,7 +194,7 @@
           </div>
 
           <div class="space-y-2">
-            <Label for="closed_message">Closed Message</Label>
+            <Label for="closed_message">Closed message</Label>
             <Textarea
               id="closed_message"
               v-model="formData.settings.closed_message"
@@ -217,7 +216,7 @@
 
           <div class="space-y-6">
             <div class="space-y-1">
-              <Label>Notification Emails</Label>
+              <Label>Notification emails</Label>
               <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                 Each new response is emailed to these recipients.
               </p>
@@ -245,16 +244,16 @@
 
           <div class="flex items-center gap-2">
             <Switch id="require_email" v-model="formData.settings.require_email" />
-            <Label for="require_email">Require Email</Label>
+            <Label for="require_email">Require email</Label>
           </div>
 
           <div class="flex items-center gap-2">
             <Switch id="prevent_duplicate" v-model="formData.settings.prevent_duplicate" />
-            <Label for="prevent_duplicate">Prevent Duplicate Submissions</Label>
+            <Label for="prevent_duplicate">Prevent duplicate submissions</Label>
           </div>
 
           <div v-if="formData.settings.prevent_duplicate" class="space-y-2">
-            <Label for="prevent_duplicate_by">Prevent Duplicate By</Label>
+            <Label for="prevent_duplicate_by">Prevent duplicate by</Label>
             <Select v-model="formData.settings.prevent_duplicate_by">
               <SelectTrigger id="prevent_duplicate_by" class="w-full">
                 <SelectValue placeholder="Select method" />
@@ -282,8 +281,7 @@
           <nuxt-link to="/forms">Cancel</nuxt-link>
         </Button>
       </div>
-    </form>
-  </div>
+  </form>
 </template>
 
 <script setup>

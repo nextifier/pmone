@@ -28,51 +28,22 @@
         </div>
       </template>
 
-      <!-- Error state -->
+      <!-- Status card (error / success / already submitted) -->
       <div
-        v-else-if="errorState"
-        class="bg-card rounded-2xl border p-8 text-center shadow-sm sm:p-12"
+        v-else-if="statusCard"
+        class="bg-card animate-in fade-in slide-in-from-bottom-2 rounded-2xl border p-8 text-center shadow-sm duration-500 sm:p-12"
       >
         <div
-          class="bg-muted text-muted-foreground mx-auto flex size-14 items-center justify-center rounded-full"
+          class="mx-auto flex size-14 items-center justify-center rounded-full"
+          :class="statusCard.iconClass"
         >
-          <Icon name="lucide:alert-circle" class="size-7" />
+          <Icon :name="statusCard.icon" class="size-7" />
         </div>
-        <h2 class="mt-5 text-lg font-semibold tracking-tight sm:text-xl">{{ errorState.title }}</h2>
+        <h2 class="mt-5 text-lg font-semibold tracking-tighter text-balance sm:text-xl">
+          {{ statusCard.title }}
+        </h2>
         <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
-          {{ errorState.message }}
-        </p>
-      </div>
-
-      <!-- Success state -->
-      <div
-        v-else-if="submitted"
-        class="bg-card rounded-2xl border p-8 text-center shadow-sm sm:p-12"
-      >
-        <div
-          class="bg-success/10 text-success mx-auto flex size-14 items-center justify-center rounded-full"
-        >
-          <Icon name="lucide:check" class="size-7" />
-        </div>
-        <h2 class="mt-5 text-lg font-semibold tracking-tight sm:text-xl">{{ successTitle }}</h2>
-        <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
-          {{ successMessage }}
-        </p>
-      </div>
-
-      <!-- Already submitted state -->
-      <div
-        v-else-if="alreadySubmitted && form"
-        class="bg-card rounded-2xl border p-8 text-center shadow-sm sm:p-12"
-      >
-        <div
-          class="bg-primary/10 text-primary mx-auto flex size-14 items-center justify-center rounded-full"
-        >
-          <Icon name="lucide:check-circle-2" class="size-7" />
-        </div>
-        <h2 class="mt-5 text-lg font-semibold tracking-tight sm:text-xl">You're all set</h2>
-        <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
-          We've received your response. This form only accepts one submission per person.
+          {{ statusCard.message }}
         </p>
       </div>
 
@@ -126,7 +97,7 @@
               </div>
 
               <!-- Email field (if require_email) -->
-              <div v-if="form.settings?.require_email" class="space-y-1.5">
+              <div v-if="form.settings?.require_email" class="space-y-2">
                 <Label for="respondent_email" class="text-sm sm:text-base">
                   Email
                   <span class="text-destructive">*</span>
@@ -243,12 +214,41 @@ const errorState = computed(() => {
   const message = err.data?.message || err.message;
 
   if (statusCode === 404) {
-    return { title: "Form Not Found", message: message || "This form does not exist." };
+    return { title: "Form not found", message: message || "This form does not exist." };
   }
   if (statusCode === 403) {
-    return { title: "Form Unavailable", message: message || "This form is not available." };
+    return { title: "Form unavailable", message: message || "This form is not available." };
   }
-  return { title: "Error", message: message || "Failed to load form." };
+  return { title: "Something went wrong", message: message || "Failed to load form." };
+});
+
+// One shared card for error / success / already-submitted states
+const statusCard = computed(() => {
+  if (errorState.value) {
+    return {
+      icon: "lucide:alert-circle",
+      iconClass: "bg-muted text-muted-foreground",
+      title: errorState.value.title,
+      message: errorState.value.message,
+    };
+  }
+  if (submitted.value) {
+    return {
+      icon: "lucide:check",
+      iconClass: "bg-success/10 text-success",
+      title: successTitle.value,
+      message: successMessage.value,
+    };
+  }
+  if (alreadySubmitted.value && form.value) {
+    return {
+      icon: "lucide:check-circle-2",
+      iconClass: "bg-primary/10 text-primary",
+      title: "You're all set",
+      message: "We've received your response. This form only accepts one submission per person.",
+    };
+  }
+  return null;
 });
 
 // Page meta
@@ -263,7 +263,7 @@ const formErrors = ref({});
 const submitting = ref(false);
 const submitted = ref(false);
 const successMessage = ref("");
-const successTitle = ref("Thank You!");
+const successTitle = ref("Thank you");
 const alreadySubmitted = ref(false);
 const duplicateCheckDone = ref(false);
 const uploadsInProgress = ref(0);

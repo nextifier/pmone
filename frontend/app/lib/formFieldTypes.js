@@ -223,7 +223,7 @@ const stripHtml = (html) =>
     .replace(/\s+/g, " ")
     .trim();
 
-const fileName = (path) => String(path).split("/").pop();
+export const fileName = (path) => String(path).split("/").pop();
 
 export const formatResponseValue = (field, value) => {
   if (value === null || value === undefined || value === "") return "-";

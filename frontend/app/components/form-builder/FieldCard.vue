@@ -40,26 +40,29 @@
       <button
         type="button"
         v-tippy="'Duplicate'"
+        aria-label="Duplicate field"
         @click="$emit('duplicate', field)"
-        class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5 transition-colors"
+        class="text-muted-foreground hover:text-foreground hover:bg-muted flex size-7 items-center justify-center rounded-md transition-colors"
       >
-        <Icon name="lucide:copy" class="size-3.5" />
+        <Icon name="lucide:copy" class="size-4" />
       </button>
       <button
         type="button"
         v-tippy="'Edit'"
+        aria-label="Edit field"
         @click="$emit('edit', field)"
-        class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5 transition-colors"
+        class="text-muted-foreground hover:text-foreground hover:bg-muted flex size-7 items-center justify-center rounded-md transition-colors"
       >
-        <Icon name="lucide:pencil" class="size-3.5" />
+        <Icon name="lucide:pencil" class="size-4" />
       </button>
       <button
         type="button"
         v-tippy="'Delete'"
+        aria-label="Delete field"
         @click="$emit('delete', field)"
-        class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition-colors"
+        class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex size-7 items-center justify-center rounded-md transition-colors"
       >
-        <Icon name="lucide:trash-2" class="size-3.5" />
+        <Icon name="lucide:trash-2" class="size-4" />
       </button>
     </div>
   </div>

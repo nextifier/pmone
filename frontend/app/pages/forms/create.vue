@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-xl space-y-9 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
       <ButtonBack destination="/forms" force-destination />
-      <h1 class="page-title">Create Form</h1>
+      <h1 class="page-title">Create form</h1>
     </div>
 
     <FormForm ref="formRef" mode="create" />
@@ -18,7 +18,7 @@ definePageMeta({
 
 usePageMeta(null, {
   title: "Create Form",
-  description: "Create a new form",
+  description: "Create a new form.",
 });
 
 const formRef = ref(null);

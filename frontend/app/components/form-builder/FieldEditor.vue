@@ -2,20 +2,20 @@
   <div class="space-y-5">
     <!-- Type selector (only for new fields) -->
     <div v-if="!editingField" class="space-y-2">
-      <Label>Field Type</Label>
+      <Label>Field type</Label>
       <FieldTypeSelector :selected="fieldForm.type" @select="changeType" />
     </div>
 
     <div v-else class="flex items-center gap-x-2">
       <span class="text-muted-foreground text-sm tracking-tight">Type:</span>
-      <span class="bg-muted text-muted-foreground flex items-center gap-x-1.5 rounded px-1.5 py-0.5 text-xs tracking-tight">
+      <span class="bg-muted text-muted-foreground flex items-center gap-x-1.5 rounded px-1.5 py-0.5 text-xs tracking-tight sm:text-sm">
         <Icon :name="getTypeIcon(fieldForm.type)" class="size-3.5" />
         {{ getTypeLabel(fieldForm.type) }}
       </span>
     </div>
 
     <div class="space-y-2">
-      <Label for="field_label">{{ isSection ? "Section Title" : "Label" }}</Label>
+      <Label for="field_label">{{ isSection ? "Section title" : "Label" }}</Label>
       <Input
         id="field_label"
         v-model="fieldForm.label"
@@ -47,7 +47,7 @@
     </div>
 
     <div v-if="!isSection" class="space-y-2">
-      <Label for="field_help_text">Help Text</Label>
+      <Label for="field_help_text">Help text</Label>
       <Textarea
         id="field_help_text"
         v-model="fieldForm.help_text"
@@ -73,7 +73,7 @@
           <Input
             v-model="fieldForm.options[idx].value"
             placeholder="Value"
-            class="w-28"
+            class="w-24 sm:w-28"
           />
           <Button
             type="button"
@@ -89,11 +89,11 @@
       <div class="flex items-center gap-2">
         <Button type="button" variant="outline" size="sm" @click="addOption">
           <Icon name="lucide:plus" class="size-3.5" />
-          <span>Add Option</span>
+          <span>Add option</span>
         </Button>
         <Button type="button" variant="ghost" size="sm" @click="showBulkAdd = !showBulkAdd">
           <Icon name="lucide:list-plus" class="size-3.5" />
-          <span>Bulk Add</span>
+          <span>Bulk add</span>
         </Button>
       </div>
       <div v-if="showBulkAdd" class="space-y-2">
@@ -135,11 +135,11 @@
         <!-- Linear scale labels -->
         <div v-if="typeConfig.hasScaleLabels" class="grid grid-cols-2 gap-x-2 gap-y-4">
           <div class="space-y-2">
-            <Label for="field_min_label">Low Label</Label>
+            <Label for="field_min_label">Low label</Label>
             <Input id="field_min_label" v-model="fieldForm.settings.min_label" placeholder="e.g. Poor" />
           </div>
           <div class="space-y-2">
-            <Label for="field_max_label">High Label</Label>
+            <Label for="field_max_label">High label</Label>
             <Input id="field_max_label" v-model="fieldForm.settings.max_label" placeholder="e.g. Excellent" />
           </div>
         </div>
@@ -152,7 +152,7 @@
 
         <!-- Rating max -->
         <div v-if="typeConfig.hasRatingMax" class="space-y-2">
-          <Label>Number of Stars</Label>
+          <Label>Number of stars</Label>
           <InputNumber v-model="fieldForm.settings.max" :min="2" :max="10" placeholder="5" />
         </div>
 
@@ -165,17 +165,17 @@
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-4">
             <div v-if="fieldForm.settings.multiple" class="space-y-2">
-              <Label>Max Files</Label>
+              <Label>Max files</Label>
               <InputNumber v-model="fieldForm.validation.max_files" :min="1" :max="10" placeholder="5" />
             </div>
             <div class="space-y-2">
-              <Label>Max File Size (MB)</Label>
+              <Label>Max file size (MB)</Label>
               <InputNumber v-model="maxFileSizeMb" :min="1" :max="20" placeholder="20" />
             </div>
           </div>
 
           <div class="space-y-2">
-            <Label>Allowed File Types</Label>
+            <Label>Allowed file types</Label>
             <TagsInput v-model="fieldForm.validation.allowed_file_types" class="text-sm">
               <TagsInputItem
                 v-for="ext in fieldForm.validation.allowed_file_types"
@@ -202,7 +202,7 @@
       </div>
       <div class="frame-panel">
         <div class="space-y-2">
-          <Label for="field_param_key">URL Parameter Key</Label>
+          <Label for="field_param_key">URL parameter key</Label>
           <Input
             id="field_param_key"
             v-model="fieldForm.settings.param_key"
@@ -238,7 +238,7 @@
       </Button>
       <Button type="button" :disabled="saving || !fieldForm.label || !fieldForm.type" @click="save">
         <Spinner v-if="saving" class="size-4" />
-        <span>{{ editingField ? "Update Field" : "Add Field" }}</span>
+        <span>{{ editingField ? "Update field" : "Add field" }}</span>
       </Button>
     </div>
   </div>
@@ -337,13 +337,13 @@ const isSection = computed(() => fieldForm.type === "section");
 const minMaxLabels = computed(() => {
   switch (typeConfig.value.minMaxMode) {
     case "length":
-      return { min: "Min Length", max: "Max Length" };
+      return { min: "Min length", max: "Max length" };
     case "selections":
-      return { min: "Min Selections", max: "Max Selections" };
+      return { min: "Min selections", max: "Max selections" };
     case "scale":
-      return { min: "Scale From", max: "Scale To" };
+      return { min: "Scale from", max: "Scale to" };
     default:
-      return { min: "Min Value", max: "Max Value" };
+      return { min: "Min value", max: "Max value" };
   }
 });
 
