@@ -246,7 +246,7 @@
 import InputFileImage from "@/components/InputFileImage.vue";
 import PartnerImportDialog from "@/components/partner/PartnerImportDialog.vue";
 import PartnerTableItem from "@/components/partner/TableItem.vue";
-import { Badge } from "@/components/ui/badge";
+import PartnerWebsiteCell from "@/components/partner/WebsiteCell.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -423,38 +423,9 @@ const columns = computed(() => [
     enableHiding: false,
   },
   {
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const status = row.getValue("status");
-      return h(
-        Badge,
-        {
-          variant: status === "active" ? "success" : "muted",
-          withIcon: true,
-          plain: true,
-        },
-        { default: () => (status === "active" ? "Active" : "Inactive") }
-      );
-    },
-    size: 100,
-  },
-  {
     header: "Website",
     accessorKey: "website_url",
-    cell: ({ row }) => {
-      const url = row.getValue("website_url");
-      if (!url) return h("span", { class: "text-muted-foreground text-sm" }, "-");
-      return h(
-        "a",
-        {
-          href: url,
-          target: "_blank",
-          class: "text-sm tracking-tight text-primary hover:underline truncate block max-w-48",
-        },
-        url.replace(/^https?:\/\//, "")
-      );
-    },
+    cell: ({ row }) => h(PartnerWebsiteCell, { partner: row.original }),
     size: 200,
     enableSorting: false,
   },

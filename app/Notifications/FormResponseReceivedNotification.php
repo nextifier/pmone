@@ -37,7 +37,7 @@ class FormResponseReceivedNotification extends Notification implements ShouldQue
             'body' => $email
                 ? "{$form->title} received a response from {$email}"
                 : "{$form->title} received a new response",
-            'icon' => 'hugeicons:note-edit',
+            'icon' => 'hugeicons:resize-field-rectangle',
             'url' => "/forms/{$form->slug}/responses",
         ];
     }

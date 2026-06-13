@@ -2,7 +2,7 @@
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:note-edit" class="size-5 sm:size-6" />
+        <Icon name="hugeicons:resize-field-rectangle" class="size-5 sm:size-6" />
         <h1 class="page-title">Form Builder</h1>
       </div>
 
@@ -129,11 +129,11 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import TableFilterSection from "@/components/TableFilterSection.vue";
 import FormRowActions from "@/components/form-builder/FormRowActions.vue";
 import FormTableItem from "@/components/form-builder/FormTableItem.vue";
-import { TableData } from "@/components/ui/table-data";
-import { TableSwitch } from "@/components/ui/table-switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TableData } from "@/components/ui/table-data";
+import { TableSwitch } from "@/components/ui/table-switch";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";

@@ -296,7 +296,7 @@ const navMainGroups = computed(() => {
       label: "Form Builder",
       path: "/forms",
       iconName: "hugeicons:resize-field-rectangle",
-      badgeLabel: "Coming Soon",
+      // badgeLabel: "Coming Soon",
     });
   }
 

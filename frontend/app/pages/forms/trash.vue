@@ -11,7 +11,7 @@
           to="/forms"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
         >
-          <Icon name="hugeicons:note-edit" class="size-4 shrink-0" />
+          <Icon name="hugeicons:resize-field-rectangle" class="size-4 shrink-0" />
           <span>All forms</span>
         </nuxt-link>
       </div>
@@ -43,8 +43,8 @@
 
 <script setup>
 import TrashRowActions from "@/components/form-builder/TrashRowActions.vue";
-import { TableData } from "@/components/ui/table-data";
 import { Badge } from "@/components/ui/badge";
+import { TableData } from "@/components/ui/table-data";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";

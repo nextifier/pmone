@@ -21,9 +21,10 @@
             <div class="space-y-2">
               <Label>Logo</Label>
               <InputFileImage
-                v-model="form.tmp_partner_logo"
-                :current-image="partner.partner_logo"
-                @delete="form.delete_partner_logo = true"
+                v-model="logoFiles"
+                v-model:delete-flag="deleteLogo"
+                :initial-image="partner.partner_logo"
+                container-class="relative isolate aspect-3/2 max-w-40"
               />
             </div>
 
@@ -55,20 +56,6 @@
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <!-- Visibility -->
-            <div class="space-y-2">
-              <Label>Visibility</Label>
-              <Select v-model="form.visibility">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select visibility" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">Public</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -219,10 +206,10 @@ const form = reactive({
   website_url: "",
   description: "",
   status: "active",
-  visibility: "public",
-  tmp_partner_logo: null,
-  delete_partner_logo: false,
 });
+
+const logoFiles = ref([]);
+const deleteLogo = ref(false);
 
 // Populate form when partner loads
 watch(
@@ -233,9 +220,8 @@ watch(
       form.website_url = p.website_url || "";
       form.description = p.description || "";
       form.status = p.status || "active";
-      form.visibility = p.visibility || "public";
-      form.tmp_partner_logo = null;
-      form.delete_partner_logo = false;
+      logoFiles.value = [];
+      deleteLogo.value = false;
     }
   },
   { immediate: true },
@@ -246,9 +232,19 @@ const saving = ref(false);
 const handleSave = async () => {
   saving.value = true;
   try {
-    const body = { ...form };
-    if (!body.tmp_partner_logo) delete body.tmp_partner_logo;
-    if (!body.delete_partner_logo) delete body.delete_partner_logo;
+    const body = {
+      name: form.name,
+      website_url: form.website_url || null,
+      description: form.description || null,
+      status: form.status,
+    };
+
+    const logoValue = logoFiles.value?.[0];
+    if (logoValue && logoValue.startsWith("tmp-")) {
+      body.tmp_partner_logo = logoValue;
+    } else if (deleteLogo.value) {
+      body.delete_partner_logo = true;
+    }
 
     await client(`/api/partners/${slug}`, {
       method: "PUT",

@@ -25,7 +25,9 @@
           <div
             class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
           >
-            <div class="translate-y-1.5 -rotate-6"><Icon name="hugeicons:note-edit" /></div>
+            <div class="translate-y-1.5 -rotate-6">
+              <Icon name="hugeicons:resize-field-rectangle" />
+            </div>
             <div><Icon name="hugeicons:search-remove" /></div>
             <div class="translate-y-1.5 rotate-6"><Icon name="hugeicons:file-not-found" /></div>
           </div>
@@ -94,10 +96,10 @@
 
 <script setup>
 import FormShareDialog from "@/components/form-builder/FormShareDialog.vue";
-import { TabNav } from "@/components/ui/tab-nav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TabNav } from "@/components/ui/tab-nav";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
 
 definePageMeta({
