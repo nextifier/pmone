@@ -204,6 +204,7 @@
               </div>
               <InputFileImage
                 v-model="logoFiles"
+                allow-svg
                 container-class="relative isolate aspect-3/2 max-w-40"
               />
             </div>

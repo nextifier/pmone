@@ -24,6 +24,7 @@
                 v-model="logoFiles"
                 v-model:delete-flag="deleteLogo"
                 :initial-image="partner.partner_logo"
+                allow-svg
                 container-class="relative isolate aspect-3/2 max-w-40"
               />
             </div>

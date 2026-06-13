@@ -4,7 +4,7 @@
       ref="inputFileRef"
       v-if="showInput"
       v-model="localFiles"
-      :accepted-file-types="acceptedFileTypes"
+      :accepted-file-types="effectiveAcceptedFileTypes"
       :allow-multiple="false"
       :max-files="1"
     />
@@ -64,7 +64,19 @@ const props = defineProps({
     type: Array,
     default: () => ["image/jpeg", "image/png", "image/jpg", "image/webp"],
   },
+  // Opt-in SVG support. Only enable where the target media collection accepts
+  // SVG (e.g. partner logos) - not all collections do.
+  allowSvg: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const effectiveAcceptedFileTypes = computed(() =>
+  props.allowSvg && !props.acceptedFileTypes.includes("image/svg+xml")
+    ? [...props.acceptedFileTypes, "image/svg+xml"]
+    : props.acceptedFileTypes,
+);
 
 const emit = defineEmits(["update:modelValue", "update:deleteFlag", "delete", "undo"]);
 
