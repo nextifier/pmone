@@ -10,20 +10,14 @@
       </div>
 
       <div class="flex shrink-0 gap-2">
-        <button
-          @click="copyDialogOpen = true"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-2.5 py-1.5 text-sm tracking-tight transition-[transform,background-color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
-        >
+        <Button variant="outline" size="sm" @click="copyDialogOpen = true">
           <Icon name="hugeicons:copy-01" class="size-4 shrink-0" />
           <span>Copy from Event</span>
-        </button>
-        <button
-          @click="addCategoryDialogOpen = true"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium tracking-tight transition-[transform,background-color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
-        >
-          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+        </Button>
+        <Button size="sm" @click="addCategoryDialogOpen = true">
+          <Icon name="lucide:plus" class="size-4 shrink-0" />
           <span>Add Category</span>
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -65,6 +59,7 @@
         v-for="category in categories"
         :key="category.id"
         class="group/cat hover:bg-pattern-diagonal border-border relative flex grow flex-col items-center justify-center gap-y-4 rounded-xl border px-4 py-10 [--pattern-fg:var(--color-primary)]/3 sm:px-6 dark:[--pattern-fg:var(--color-primary)]/10"
+        :class="{ 'min-w-[16rem]': !category.partners?.length }"
         @dragenter.prevent="onZoneDragEnter(category, $event)"
         @dragover.prevent
         @dragleave="onZoneDragLeave(category)"
@@ -72,54 +67,67 @@
       >
         <!-- Floating category badge (matches Credits) -->
         <span
-          class="text-primary bg-background xs:text-sm absolute top-0 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
+          class="text-primary bg-background xs:text-sm pointer-events-none absolute top-0 left-1/2 z-50 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
         >
-          <span class="truncate">{{ category.name }}</span>
+          <span class="truncate"
+            >{{ category.name }}
+            <span class="font-normal">({{ category.partners?.length || 0 }})</span></span
+          >
         </span>
 
         <!-- Drag handle (top-left, always visible) -->
-        <button
+        <Button
           type="button"
-          class="category-drag-handle bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 left-1 z-20 inline-flex size-7 cursor-grab items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-98 active:cursor-grabbing motion-reduce:transition-none"
+          variant="secondary"
+          size="iconSm"
+          class="category-drag-handle absolute top-1 left-1 z-20 cursor-grab rounded-full active:cursor-grabbing"
           v-tippy="'Drag to reorder'"
         >
           <Icon name="lucide:grip-vertical" class="size-4" />
-        </button>
+        </Button>
 
-        <!-- Actions menu (top-right, always visible) -->
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <button
-              type="button"
-              class="bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 right-1 z-20 inline-flex size-7 items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
-              v-tippy="'Options'"
-            >
-              <Icon name="lucide:ellipsis-vertical" class="size-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-44">
-            <DropdownMenuItem @click="openAddPartner(category)">
-              <Icon name="hugeicons:add-01" class="size-4" />
-              <span>Add Partner</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem @click="openEditCategory(category)">
-              <Icon name="hugeicons:edit-02" class="size-4" />
-              <span>Edit Category</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem class="text-destructive" @click="handleDeleteCategory(category)">
-              <Icon name="hugeicons:delete-02" class="size-4" />
-              <span>Delete Category</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <!-- Actions (top-right, always visible): Add partner + options menu -->
+        <div class="absolute top-1 right-1 z-20 flex items-center gap-1">
+          <Button
+            type="button"
+            variant="secondary"
+            size="iconSm"
+            class="rounded-full"
+            @click="openAddPartner(category)"
+            v-tippy="'Add partner'"
+          >
+            <Icon name="lucide:plus" class="size-4" />
+          </Button>
 
-        <!-- Total item count (bottom-right, aligned with the top-right actions trigger) -->
-        <span
-          class="bg-background text-muted-foreground hover:text-foreground absolute right-1 bottom-1 z-20 inline-flex size-7 items-center justify-center rounded-md border text-sm tracking-tight shadow-xs"
-        >
-          {{ category.partners?.length || 0 }}
-        </span>
+          <DropdownMenu :modal="false">
+            <DropdownMenuTrigger as-child>
+              <Button
+                type="button"
+                variant="secondary"
+                size="iconSm"
+                class="rounded-full"
+                v-tippy="'Options'"
+              >
+                <Icon name="lucide:ellipsis" class="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-44">
+              <DropdownMenuItem @click="openAddPartner(category)">
+                <Icon name="lucide:plus" class="size-4" />
+                <span>Add Partner</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="openEditCategory(category)">
+                <Icon name="hugeicons:edit-02" class="size-4" />
+                <span>Edit Category</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem class="text-destructive" @click="handleDeleteCategory(category)">
+                <Icon name="hugeicons:delete-02" class="size-4" />
+                <span>Delete Category</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <!-- Drag-over overlay (drop image logos to bulk-add partners) -->
         <Transition
@@ -148,8 +156,26 @@
           </p>
         </div>
 
+        <!-- Empty state (no partners yet) -->
+        <div
+          v-if="!category.partners?.length"
+          class="flex w-full flex-col items-center justify-center gap-y-3 text-center"
+        >
+          <div
+            class="bg-background/80 squircle text-muted-foreground rounded-lg border p-3 backdrop-blur-sm"
+          >
+            <Icon name="hugeicons:image-upload" class="size-5" />
+          </div>
+          <h3 class="font-semibold tracking-tight">No partners yet</h3>
+          <Button variant="secondary" size="sm" @click="openAddPartner(category)">
+            <Icon name="lucide:plus" class="size-4 shrink-0" />
+            <span>Add partner</span>
+          </Button>
+        </div>
+
         <!-- Logos grid (matches Credits) -->
         <div
+          v-else
           :ref="(el) => setPartnerContainerRef(category.id, el)"
           class="flex w-full flex-wrap items-center justify-evenly gap-x-0 gap-y-2"
         >
@@ -185,32 +211,18 @@
             </div>
 
             <!-- Remove from category (revealed on hover) -->
-            <button
+            <Button
+              variant="destructive"
+              size="iconSm"
               type="button"
               @click.stop="handleRemovePartner(category, partner)"
               @pointerdown.stop
-              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border bg-destructive border-destructive absolute top-1 right-1 z-30 inline-flex size-6 items-center justify-center rounded-md border text-white opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
+              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border border-destructive absolute top-1 right-1 z-30 size-6 rounded-full border opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
               v-tippy="`Remove ${partner.name}`"
             >
-              <Icon name="hugeicons:cancel-01" class="size-3.5" />
-            </button>
+              <Icon name="lucide:x" class="size-3.5" />
+            </Button>
           </div>
-
-          <!-- Add partner tile (same size as a logo tile) -->
-          <button
-            type="button"
-            @click="openAddPartner(category)"
-            v-tippy="'Add partner'"
-            class="border-primary/20 text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-muted/50 flex items-center justify-center rounded-xl border border-dashed transition-[transform,background-color,border-color,color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
-            :class="{
-              'w-full max-w-48 p-3 xl:max-w-56': category.no_container,
-              'aspect-3/2': !category.no_container,
-              'h-20 xl:h-24': (category.partners?.length || 0) <= 10,
-              'h-18 xl:h-20': (category.partners?.length || 0) > 10,
-            }"
-          >
-            <Icon name="hugeicons:add-01" class="size-5 shrink-0" />
-          </button>
         </div>
       </div>
     </div>
@@ -226,9 +238,9 @@
             <div class="space-y-2">
               <Label>Name</Label>
               <Input
+                ref="categoryNameInput"
                 v-model="categoryForm.name"
                 placeholder="e.g. Media Partners"
-                auto-focus
                 required
               />
             </div>
@@ -299,14 +311,16 @@
                   </span>
                 </div>
                 <span class="text-sm font-medium tracking-tight">{{ selectedPartner.name }}</span>
-                <button
+                <Button
+                  variant="ghost"
+                  size="iconSm"
                   type="button"
                   v-tippy="'Change partner'"
-                  class="text-muted-foreground hover:bg-muted hover:text-foreground ml-auto inline-flex size-7 shrink-0 items-center justify-center rounded-md"
+                  class="text-muted-foreground ml-auto size-7 shrink-0"
                   @click="clearSelectedPartner"
                 >
                   <Icon name="hugeicons:cancel-01" class="size-4" />
-                </button>
+                </Button>
               </div>
 
               <!-- Combobox search -->
@@ -364,15 +378,16 @@
             </div>
 
             <!-- Create new partner CTA -->
-            <button
+            <Button
               v-if="!selectedPartner"
+              variant="outline"
               type="button"
-              class="border-border hover:bg-muted text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-x-1.5 rounded-md border border-dashed py-2 text-sm tracking-tight transition-[transform,background-color,border-color,color] duration-150 ease-out active:scale-99 motion-reduce:transition-none"
+              class="text-muted-foreground hover:text-foreground w-full border-dashed font-normal"
               @click="switchToCreateMode"
             >
-              <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+              <Icon name="lucide:plus" class="size-4 shrink-0" />
               <span>Create a new partner</span>
-            </button>
+            </Button>
 
             <div class="flex justify-end gap-2">
               <Button variant="outline" type="button" @click="addPartnerDialogOpen = false">
@@ -833,6 +848,7 @@ const addCategoryDialogOpen = ref(false);
 const editingCategory = ref(null);
 const categoryForm = reactive({ name: "", no_container: false });
 const categorySaving = ref(false);
+const categoryNameInput = ref(null);
 
 const openEditCategory = (category) => {
   editingCategory.value = category;
@@ -842,11 +858,16 @@ const openEditCategory = (category) => {
 };
 
 watch(addCategoryDialogOpen, (open) => {
-  if (!open) {
-    editingCategory.value = null;
-    categoryForm.name = "";
-    categoryForm.no_container = false;
+  if (open) {
+    // Auto-focus the name field so the user can type immediately. reka-ui's
+    // FocusScope lands focus on the dialog/scroll container first, so we move
+    // it onto the input once the dialog content has mounted.
+    nextTick(() => categoryNameInput.value?.$el?.focus());
+    return;
   }
+  editingCategory.value = null;
+  categoryForm.name = "";
+  categoryForm.no_container = false;
 });
 
 const handleSaveCategory = async () => {
@@ -1123,4 +1144,40 @@ const handleCopyFromEvent = async () => {
     copySaving.value = false;
   }
 };
+
+defineShortcuts({
+  n: {
+    handler: () => {
+      if (addPartnerDialogOpen.value || copyDialogOpen.value) {
+        return;
+      }
+      addCategoryDialogOpen.value = true;
+    },
+  },
+  meta_s: {
+    usingInput: true,
+    handler: () => {
+      if (addCategoryDialogOpen.value) {
+        if (categorySaving.value || !categoryForm.name.trim()) {
+          return;
+        }
+        handleSaveCategory();
+        return;
+      }
+      if (addPartnerDialogOpen.value) {
+        if (addPartnerSaving.value) {
+          return;
+        }
+        if (partnerMode.value === "create") {
+          if (!createPartnerForm.name.trim()) {
+            return;
+          }
+          handleCreatePartner();
+        } else if (selectedPartner.value) {
+          handleAddExisting();
+        }
+      }
+    },
+  },
+});
 </script>
