@@ -16,6 +16,14 @@ export function useSortableList(elementRef, data, options = {}) {
   const { onReorder, enabled, sortableOptions = {} } = options;
 
   const instance = useSortable(elementRef, data, {
+    // Re-bind SortableJS whenever the container element changes. VueUse's default
+    // `tryOnMounted(start)` only inits once and its `start()` is a no-op while an
+    // instance already exists - so if the container is unmounted/remounted (e.g. a
+    // `v-if`/`v-else` loading toggle during a refetch) the old instance stays bound
+    // to a detached node and reorder silently dies until a full page reload.
+    // `watchElement` makes VueUse destroy the stale instance and re-init on the new
+    // element automatically.
+    watchElement: true,
     animation: 200,
     handle: ".drag-handle",
     ghostClass: "sortable-ghost",
@@ -42,16 +50,6 @@ export function useSortableList(elementRef, data, options = {}) {
       });
     },
   });
-
-  // VueUse's tryOnMounted(start) only runs once at mount.
-  // For elements set after mount (e.g. via querySelector in async onMounted),
-  // we need our own watch to call start() when the element becomes available.
-  watch(
-    () => unref(elementRef),
-    (el) => {
-      if (el) instance.start();
-    }
-  );
 
   // Watch enabled condition - toggle disabled option on existing instance
   if (enabled !== undefined) {

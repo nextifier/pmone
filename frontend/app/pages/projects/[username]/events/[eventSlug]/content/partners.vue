@@ -592,9 +592,12 @@ const loading = ref(true);
 // Per-category drag-and-drop upload state, keyed by category id.
 const dropZones = reactive({});
 
-const fetchCategories = async () => {
+// Only show the full-page spinner on the initial load. Refetches after a CRUD
+// action keep the existing cards mounted so the category container element is
+// never torn down/rebuilt (which would otherwise drop the SortableJS instance).
+const fetchCategories = async (showLoader = !categories.value.length) => {
   try {
-    loading.value = true;
+    if (showLoader) loading.value = true;
     const response = await client(apiBase);
     categories.value = response.data;
     for (const c of categories.value) {
