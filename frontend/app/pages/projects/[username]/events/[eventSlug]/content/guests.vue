@@ -286,7 +286,7 @@
                 class="drag-handle pointer-events-auto inline-flex size-7 cursor-grab items-center justify-center rounded-md bg-black/40 text-white backdrop-blur-sm transition active:cursor-grabbing"
                 v-tippy="'Drag to reorder'"
               >
-                <Icon name="hugeicons:drag-drop-vertical" class="size-4" />
+                <Icon name="lucide:grip-vertical" class="size-4" />
               </span>
             </div>
           </div>

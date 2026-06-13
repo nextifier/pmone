@@ -83,7 +83,7 @@
           class="category-drag-handle bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 left-1 z-20 inline-flex size-7 cursor-grab items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-98 active:cursor-grabbing motion-reduce:transition-none"
           v-tippy="'Drag to reorder'"
         >
-          <Icon name="hugeicons:drag-drop-vertical" class="size-4" />
+          <Icon name="lucide:grip-vertical" class="size-4" />
         </button>
 
         <!-- Actions menu (top-right, always visible) -->
@@ -94,7 +94,7 @@
               class="bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 right-1 z-20 inline-flex size-7 items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
               v-tippy="'Options'"
             >
-              <Icon name="hugeicons:more-vertical" class="size-4" />
+              <Icon name="lucide:ellipsis-vertical" class="size-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-44">

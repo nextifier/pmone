@@ -264,7 +264,7 @@
                       size="sm"
                       @click="startReorder(post)"
                     >
-                      <Icon name="hugeicons:drag-drop-vertical" class="size-4" />
+                      <Icon name="lucide:grip-vertical" class="size-4" />
                       Reorder
                     </Button>
 

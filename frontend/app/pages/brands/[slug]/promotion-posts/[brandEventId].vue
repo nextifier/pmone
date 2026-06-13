@@ -300,7 +300,7 @@
                       variant="ghost"
                       @click="startReorder(post)"
                     >
-                      <Icon name="hugeicons:drag-drop-vertical" class="mr-1 size-3.5" />
+                      <Icon name="lucide:grip-vertical" class="mr-1 size-3.5" />
                       {{ $t("promotionPosts.reorder") }}
                     </Button>
                     <Button

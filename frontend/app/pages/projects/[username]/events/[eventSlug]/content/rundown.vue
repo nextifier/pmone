@@ -191,7 +191,7 @@
               class="drag-handle text-muted-foreground hover:bg-muted hover:text-foreground -ml-1 inline-flex size-6 shrink-0 cursor-grab items-center justify-center self-start rounded-md transition active:cursor-grabbing sm:size-7"
               @click.stop
             >
-              <Icon name="hugeicons:drag-drop-vertical" class="size-4" />
+              <Icon name="lucide:grip-vertical" class="size-4" />
             </span>
 
             <!-- Time range + poster (left column) -->
