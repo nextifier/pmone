@@ -1,7 +1,9 @@
 <template>
   <div class="mx-auto space-y-6 pb-16 lg:max-w-5xl xl:max-w-6xl">
     <!-- Page header -->
-    <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+    <div
+      class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+    >
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:user-multiple-02" class="size-5 sm:size-6" />
         <h1 class="page-title">Guests &amp; Speakers</h1>
@@ -34,7 +36,10 @@
     </div>
 
     <!-- Filter bar -->
-    <div v-if="!loading || hasActiveFilters || guests.length" class="flex flex-wrap items-center gap-2">
+    <div
+      v-if="!loading || hasActiveFilters || guests.length"
+      class="flex flex-wrap items-center gap-2"
+    >
       <div class="relative min-w-48 flex-1">
         <Icon
           name="hugeicons:search-01"
@@ -205,7 +210,7 @@
       </div>
       <button
         type="button"
-        class="text-primary hover:underline text-sm tracking-tight"
+        class="text-primary text-sm tracking-tight hover:underline"
         @click="resetFilters"
       >
         Clear filters
@@ -223,7 +228,7 @@
         :key="guest.id"
         :data-guest-id="guest.id"
         :class="[
-          'border-border bg-card relative flex flex-col overflow-hidden rounded-2xl border transition-all hover:border-foreground/20 hover:shadow-sm',
+          'border-border bg-card hover:border-foreground/20 relative flex flex-col overflow-hidden rounded-2xl border transition-all hover:shadow-sm',
           isSelected(guest.id) && 'ring-primary border-primary ring-2',
         ]"
       >
@@ -249,7 +254,7 @@
 
           <!-- Top overlay: gradient + checkbox + featured + drag -->
           <div
-            v-if="guest.is_featured || (canDelete || canUpdate)"
+            v-if="guest.is_featured || canDelete || canUpdate"
             class="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 bg-gradient-to-b from-black/40 via-black/10 to-transparent p-2"
           >
             <!-- Selection checkbox (top-left) -->
@@ -260,7 +265,7 @@
             >
               <Checkbox
                 :model-value="isSelected(guest.id)"
-                class="size-4 border-white/70 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+                class="data-[state=checked]:border-primary data-[state=checked]:bg-primary size-4 border-white/70"
                 @update:model-value="toggleSelect(guest.id)"
               />
             </label>
@@ -281,7 +286,7 @@
                 class="drag-handle pointer-events-auto inline-flex size-7 cursor-grab items-center justify-center rounded-md bg-black/40 text-white backdrop-blur-sm transition active:cursor-grabbing"
                 v-tippy="'Drag to reorder'"
               >
-                <Icon name="hugeicons:drag-drop" class="size-4" />
+                <Icon name="hugeicons:drag-drop-vertical" class="size-4" />
               </span>
             </div>
           </div>
@@ -317,10 +322,7 @@
           >
             {{ guest.name }}
           </button>
-          <p
-            v-if="guest.title"
-            class="text-muted-foreground line-clamp-1 text-sm tracking-tight"
-          >
+          <p v-if="guest.title" class="text-muted-foreground line-clamp-1 text-sm tracking-tight">
             {{ guest.title }}
           </p>
           <p
@@ -332,7 +334,7 @@
           </p>
 
           <!-- Action menu -->
-          <div class="mt-1.5 -mx-1 flex items-center justify-end border-t pt-1.5">
+          <div class="-mx-1 mt-1.5 flex items-center justify-end border-t pt-1.5">
             <button
               v-if="guest.can_edit"
               type="button"
@@ -342,14 +344,19 @@
             >
               <Icon
                 name="hugeicons:star"
-                :class="['size-4', guest.is_featured ? 'fill-current text-foreground' : 'text-muted-foreground']"
+                :class="[
+                  'size-4',
+                  guest.is_featured ? 'text-foreground fill-current' : 'text-muted-foreground',
+                ]"
               />
             </button>
             <button
               v-if="guest.can_edit"
               type="button"
               class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md transition"
-              @click="quickToggle(guest, 'status', guest.status === 'active' ? 'inactive' : 'active')"
+              @click="
+                quickToggle(guest, 'status', guest.status === 'active' ? 'inactive' : 'active')
+              "
               v-tippy="guest.status === 'active' ? 'Mark as Inactive' : 'Mark as Active'"
             >
               <Icon
@@ -539,7 +546,8 @@
               />
             </div>
             <p class="text-muted-foreground text-sm tracking-tight tabular-nums">
-              {{ bulkDeleteJob.progress.value?.processed ?? 0 }} / {{ bulkDeleteJob.progress.value?.total ?? 0 }}
+              {{ bulkDeleteJob.progress.value?.processed ?? 0 }} /
+              {{ bulkDeleteJob.progress.value?.total ?? 0 }}
             </p>
           </div>
 
@@ -558,7 +566,11 @@
               :disabled="bulkDeleteJob.processing.value"
               @click="handleBulkDelete"
             >
-              <Icon v-if="bulkDeleteJob.processing.value" name="svg-spinners:ring-resize" class="size-4" />
+              <Icon
+                v-if="bulkDeleteJob.processing.value"
+                name="svg-spinners:ring-resize"
+                class="size-4"
+              />
               {{ bulkDeleteJob.processing.value ? "Deleting..." : "Delete selected" }}
             </Button>
           </div>
@@ -687,7 +699,9 @@ const visibilityFilter = ref("all");
 const page = ref(1);
 const pageSize = ref(50);
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)));
-const pageRangeFrom = computed(() => (totalCount.value === 0 ? 0 : (page.value - 1) * pageSize.value + 1));
+const pageRangeFrom = computed(() =>
+  totalCount.value === 0 ? 0 : (page.value - 1) * pageSize.value + 1
+);
 const pageRangeTo = computed(() => Math.min(page.value * pageSize.value, totalCount.value));
 
 const hasActiveFilters = computed(
@@ -814,10 +828,14 @@ const initSortable = () => {
   });
 };
 
-watch([guests, hasActiveFilters, selectedCount], async () => {
-  await nextTick();
-  initSortable();
-}, { deep: false });
+watch(
+  [guests, hasActiveFilters, selectedCount],
+  async () => {
+    await nextTick();
+    initSortable();
+  },
+  { deep: false }
+);
 
 onUnmounted(() => sortableInstance?.destroy());
 
@@ -856,7 +874,15 @@ const openCreate = () => {
 defineShortcuts({
   n: {
     handler: () => {
-      if (canCreate.value && !formOpen.value && !trashOpen.value && !bulkDeleteOpen.value && !moveOpen.value && !deleteOpen.value && !activityOpen.value) {
+      if (
+        canCreate.value &&
+        !formOpen.value &&
+        !trashOpen.value &&
+        !bulkDeleteOpen.value &&
+        !moveOpen.value &&
+        !deleteOpen.value &&
+        !activityOpen.value
+      ) {
         openCreate();
       }
     },

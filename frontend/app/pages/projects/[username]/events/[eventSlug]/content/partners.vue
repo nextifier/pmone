@@ -80,10 +80,10 @@
         <!-- Drag handle (top-left, always visible) -->
         <button
           type="button"
-          class="category-drag-handle bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 left-1 z-20 inline-flex size-7 cursor-grab items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-95 active:cursor-grabbing motion-reduce:transition-none"
+          class="category-drag-handle bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 left-1 z-20 inline-flex size-7 cursor-grab items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-98 active:cursor-grabbing motion-reduce:transition-none"
           v-tippy="'Drag to reorder'"
         >
-          <Icon name="hugeicons:drag-drop" class="size-4" />
+          <Icon name="hugeicons:drag-drop-vertical" class="size-4" />
         </button>
 
         <!-- Actions menu (top-right, always visible) -->
@@ -91,7 +91,7 @@
           <DropdownMenuTrigger as-child>
             <button
               type="button"
-              class="bg-background text-muted-foreground hover:bg-muted hover:text-foreground data-[state=open]:bg-muted data-[state=open]:text-foreground absolute top-1 right-1 z-20 inline-flex size-7 items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-95 motion-reduce:transition-none"
+              class="bg-background text-muted-foreground hover:bg-muted hover:text-foreground absolute top-1 right-1 z-20 inline-flex size-7 items-center justify-center rounded-md border shadow-xs transition-[transform,background-color,color] duration-150 ease-out active:scale-98 motion-reduce:transition-none"
               v-tippy="'Options'"
             >
               <Icon name="hugeicons:more-vertical" class="size-4" />
@@ -116,7 +116,7 @@
 
         <!-- Total item count (bottom-right, aligned with the top-right actions trigger) -->
         <span
-          class="squircle bg-background text-muted-foreground absolute right-1 bottom-1 z-10 flex size-7 shrink-0 items-center justify-center border text-center text-xs font-semibold tracking-tight"
+          class="bg-background text-muted-foreground hover:text-foreground absolute right-1 bottom-1 z-20 inline-flex size-7 items-center justify-center rounded-md border text-sm tracking-tight shadow-xs"
         >
           {{ category.partners?.length || 0 }}
         </span>
@@ -157,6 +157,7 @@
             v-for="partner in category.partners"
             :key="partner.pivot_id"
             :data-pivot-id="partner.pivot_id"
+            v-tippy="{ content: partner.name, onShow: showTooltipIfContent }"
             class="drag-handle group/logo relative flex cursor-grab items-center justify-center rounded-xl transition-colors duration-200 ease-out active:cursor-grabbing motion-reduce:transition-none dark:hover:bg-white"
             :class="{
               'w-full max-w-48 p-3 xl:max-w-56': category.no_container,
@@ -188,7 +189,7 @@
               type="button"
               @click.stop="handleRemovePartner(category, partner)"
               @pointerdown.stop
-              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border bg-destructive border-destructive absolute top-0 right-0 z-30 inline-flex size-6 items-center justify-center rounded-md border text-white opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
+              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border bg-destructive border-destructive absolute top-1 right-1 z-30 inline-flex size-6 items-center justify-center rounded-md border text-white opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
               v-tippy="`Remove ${partner.name}`"
             >
               <Icon name="hugeicons:cancel-01" class="size-3.5" />
@@ -319,45 +320,45 @@
                     class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
                   />
                 </ComboboxAnchor>
-                <ComboboxList
-                  class="z-100 max-h-72 w-(--reka-combobox-trigger-width) overflow-y-auto p-1"
-                >
-                  <ComboboxEmpty
-                    class="text-muted-foreground px-2 py-6 text-center text-sm tracking-tight"
-                  >
-                    {{
-                      partnerSearchTerm.trim() ? "No partners found." : "Type to search partners."
-                    }}
-                  </ComboboxEmpty>
-                  <ComboboxGroup>
-                    <ComboboxItem
-                      v-for="p in partnerResults"
-                      :key="p.id"
-                      :value="p.name"
-                      class="data-highlighted:bg-muted flex w-full cursor-default items-center gap-3 rounded-md px-2 py-2 outline-none select-none"
-                      @select="selectPartner(p)"
+                <ComboboxList class="z-100 w-(--reka-combobox-trigger-width)">
+                  <ComboboxViewport class="max-h-72 p-1">
+                    <ComboboxEmpty
+                      class="text-muted-foreground px-2 py-6 text-center text-sm tracking-tight"
                     >
-                      <div
-                        class="bg-background flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border"
+                      {{
+                        partnerSearchTerm.trim() ? "No partners found." : "Type to search partners."
+                      }}
+                    </ComboboxEmpty>
+                    <ComboboxGroup>
+                      <ComboboxItem
+                        v-for="p in partnerResults"
+                        :key="p.id"
+                        :value="p.name"
+                        class="data-highlighted:bg-muted flex w-full cursor-default items-center gap-3 rounded-md px-2 py-2 outline-none select-none"
+                        @select="selectPartner(p)"
                       >
-                        <img
-                          v-if="p.partner_logo?.sm || p.partner_logo?.original"
-                          :src="p.partner_logo?.sm || p.partner_logo?.original"
-                          class="max-h-full w-auto max-w-full object-contain"
-                          alt=""
+                        <div
+                          class="bg-background flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border"
+                        >
+                          <img
+                            v-if="p.partner_logo?.sm || p.partner_logo?.original"
+                            :src="p.partner_logo?.sm || p.partner_logo?.original"
+                            class="max-h-full w-auto max-w-full object-contain"
+                            alt=""
+                          />
+                          <span v-else class="text-muted-foreground text-sm font-medium">
+                            {{ p.name.charAt(0).toUpperCase() }}
+                          </span>
+                        </div>
+                        <span class="text-sm tracking-tight">{{ p.name }}</span>
+                        <Icon
+                          v-if="selectedPartner?.id === p.id"
+                          name="hugeicons:tick-02"
+                          class="ml-auto size-4 shrink-0"
                         />
-                        <span v-else class="text-muted-foreground text-sm font-medium">
-                          {{ p.name.charAt(0).toUpperCase() }}
-                        </span>
-                      </div>
-                      <span class="text-sm tracking-tight">{{ p.name }}</span>
-                      <Icon
-                        v-if="selectedPartner?.id === p.id"
-                        name="hugeicons:tick-02"
-                        class="ml-auto size-4 shrink-0"
-                      />
-                    </ComboboxItem>
-                  </ComboboxGroup>
+                      </ComboboxItem>
+                    </ComboboxGroup>
+                  </ComboboxViewport>
                 </ComboboxList>
               </Combobox>
             </div>
@@ -465,7 +466,9 @@
             </div>
 
             <div class="flex justify-end gap-2">
-              <Button variant="outline" type="button" @click="copyDialogOpen = false">Cancel</Button>
+              <Button variant="outline" type="button" @click="copyDialogOpen = false"
+                >Cancel</Button
+              >
               <Button
                 type="button"
                 :disabled="!selectedSourceEventId || copySaving"
@@ -547,6 +550,7 @@ import {
   ComboboxGroup,
   ComboboxItem,
   ComboboxList,
+  ComboboxViewport,
 } from "@/components/ui/combobox";
 import {
   DropdownMenu,
@@ -578,6 +582,9 @@ const route = useRoute();
 const client = useSanctumClient();
 const { username, eventSlug } = route.params;
 const apiBase = `/api/projects/${username}/events/${eventSlug}/partner-categories`;
+
+// Only render the logo tooltip when the partner actually has a name.
+const showTooltipIfContent = (instance) => Boolean(instance.props.content);
 
 // --- Data ---
 const categories = ref([]);
@@ -650,7 +657,9 @@ const fileToPartnerName = (filename) => {
 const findExistingPartner = async (name) => {
   try {
     const res = await client(`/api/partners/search?q=${encodeURIComponent(name)}`);
-    return (res.data || []).find((p) => (p.name || "").toLowerCase() === name.toLowerCase()) || null;
+    return (
+      (res.data || []).find((p) => (p.name || "").toLowerCase() === name.toLowerCase()) || null
+    );
   } catch {
     return null;
   }
