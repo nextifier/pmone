@@ -87,7 +87,7 @@
 
       <TabNav :tabs="formTabs" class="mt-4" />
 
-      <div ref="contentArea" class="pt-6">
+      <div class="pt-6">
         <NuxtPage :form="form" @refresh="refreshForm" />
       </div>
     </template>
@@ -135,7 +135,6 @@ usePageMeta(null, {
 
 const statusBadge = computed(() => formStatusBadge(form.value?.status));
 
-const contentArea = ref(null);
 
 const formBase = computed(() => `/forms/${route.params.slug}`);
 
@@ -152,8 +151,6 @@ const publicFormUrl = computed(() =>
 );
 
 const shareDialogOpen = ref(false);
-
-useTabSwipe(contentArea, formTabs);
 
 provide("form", form);
 provide("refreshForm", refreshForm);

@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-y-0">
     <TabNav :tabs="contentTabs" />
 
-    <div ref="contentArea" class="pt-6">
+    <div class="pt-6">
       <NuxtPage :project="project" />
     </div>
   </div>
@@ -17,8 +17,6 @@ const props = defineProps({
 
 const route = useRoute();
 
-const contentArea = ref(null);
-
 const contentBase = computed(() => `/projects/${route.params.username}/content`);
 const contentTabs = computed(() => [
   {
@@ -27,7 +25,4 @@ const contentTabs = computed(() => [
     to: `${contentBase.value}/banners`,
   },
 ]);
-
-const projectTabs = inject("projectTabs", null);
-useTabSwipe(contentArea, contentTabs, { parentTabs: projectTabs });
 </script>

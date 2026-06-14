@@ -2,7 +2,7 @@
   <div class="flex flex-col">
     <TabNav :tabs="settingsTabs" />
 
-    <div ref="contentArea" class="mx-auto w-full max-w-2xl pt-6">
+    <div class="mx-auto w-full max-w-2xl pt-6">
       <NuxtPage :project="project" />
     </div>
   </div>
@@ -20,8 +20,6 @@ const props = defineProps({
 });
 
 const route = useRoute();
-
-const contentArea = ref(null);
 
 const { hasPermission } = usePermission();
 
@@ -62,7 +60,4 @@ const settingsTabs = computed(() => {
 
   return tabs;
 });
-
-const projectTabs = inject("projectTabs");
-useTabSwipe(contentArea, settingsTabs, { parentTabs: projectTabs });
 </script>

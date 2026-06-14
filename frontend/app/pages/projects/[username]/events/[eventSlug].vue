@@ -115,7 +115,6 @@
       </template>
 
       <div
-        ref="contentArea"
         :class="isBrandPage || isContentPage || isOperationalPage ? '' : 'pt-6'"
       >
         <NuxtPage :event="event" :project="project" />
@@ -217,11 +216,6 @@ const eventTabs = computed(() => {
   return tabs;
 });
 
-const contentArea = ref(null);
-const swipeEnabled = computed(
-  () => !isOperationalPage.value && !isContentPage.value && !isBrandPage.value
-);
-useTabSwipe(contentArea, eventTabs, { enabled: swipeEnabled });
 
 provide("event", event);
 provide("eventTabs", eventTabs);

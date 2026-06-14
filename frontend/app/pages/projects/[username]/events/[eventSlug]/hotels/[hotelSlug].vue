@@ -148,7 +148,7 @@
 
       <TabNav :tabs="hotelTabs" />
 
-      <div ref="hotelArea" class="pt-6">
+      <div class="pt-6">
         <NuxtPage :event="event" :project="project" :hotel="hotel" @refresh="refresh" />
       </div>
 
@@ -220,7 +220,6 @@ const props = defineProps({
 
 const route = useRoute();
 const hotelSlug = computed(() => route.params.hotelSlug);
-const hotelArea = ref(null);
 
 const base = computed(
   () =>
@@ -246,9 +245,6 @@ const hotelTabs = computed(() => [
   { label: "Allotments", icon: "hugeicons:calendar-03", to: `${base.value}/allotments` },
   { label: "Transfers", icon: "hugeicons:car-01", to: `${base.value}/transfers` },
 ]);
-
-const eventTabs = inject("eventTabs", null);
-useTabSwipe(hotelArea, hotelTabs, { parentTabs: eventTabs });
 
 const client = useSanctumClient();
 const pivotDialogOpen = ref(false);

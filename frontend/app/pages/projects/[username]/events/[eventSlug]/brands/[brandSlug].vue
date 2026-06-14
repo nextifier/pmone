@@ -1,5 +1,5 @@
 <template>
-  <div ref="contentArea" class="flex flex-col gap-y-0">
+  <div class="flex flex-col gap-y-0">
     <TabNav :tabs="brandTabs" />
 
     <!-- Loading -->
@@ -29,7 +29,6 @@
 import { TabNav } from "@/components/ui/tab-nav";
 defineProps({ event: Object, project: Object });
 
-const contentArea = ref(null);
 const route = useRoute();
 const client = useSanctumClient();
 
@@ -81,10 +80,6 @@ const brandTabs = computed(() => [
   { label: "Orders", to: `${brandBase.value}/orders`, icon: "hugeicons:shopping-bag-02" },
 ]);
 
-const brandsListRoute = computed(
-  () => `/projects/${route.params.username}/events/${route.params.eventSlug}/brands`
-);
-useTabSwipe(contentArea, brandTabs, { backRoute: brandsListRoute });
 
 onMounted(() => refresh());
 </script>
