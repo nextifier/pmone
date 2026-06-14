@@ -2,11 +2,23 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Event;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class EventResource extends JsonResource
 {
+    /**
+     * Resolve a project's public website URL from its "Website" link.
+     */
+    private function projectWebsiteUrl(?Project $project): ?string
+    {
+        return $project?->links
+            ->first(fn ($link) => strtolower((string) $link->label) === 'website')
+            ?->url;
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -29,7 +41,9 @@ class EventResource extends JsonResource
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'location' => $this->location,
+            'location_short' => data_get($this->custom_fields, 'location_short'),
             'location_link' => $this->location_link,
+            'teaser_video_id' => data_get($this->custom_fields, 'teaser_video_id'),
             'hall' => $this->hall,
             'status' => $this->status,
             'visibility' => $this->visibility,
@@ -64,6 +78,18 @@ class EventResource extends JsonResource
                     ];
                 }
             ),
+            'website_url' => $this->projectWebsiteUrl($this->project),
+            'profile_image' => $this->project?->profile_image,
+            'conjunction_events' => $this->whenLoaded('conjunctionEvents', fn () => $this->conjunctionEvents->map(fn (Event $conjunction) => [
+                'id' => $conjunction->id,
+                'title' => $conjunction->title,
+                'name' => $conjunction->project?->name,
+                'username' => $conjunction->project?->username,
+                'edition_number_with_ordinal' => $conjunction->edition_number_with_ordinal,
+                'conjunction_label' => $conjunction->pivot->conjunction_label,
+                'website_url' => $this->projectWebsiteUrl($conjunction->project),
+                'profile_image' => $conjunction->project?->profile_image,
+            ])->all()),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),
             'can_edit' => auth()->user()?->can('update', $this->resource),

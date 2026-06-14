@@ -17,6 +17,9 @@
         <Button size="sm" @click="addCategoryDialogOpen = true">
           <Icon name="lucide:plus" class="size-4 shrink-0" />
           <span>Add Category</span>
+          <KbdGroup>
+            <Kbd>N</Kbd>
+          </KbdGroup>
         </Button>
       </div>
     </div>
@@ -58,7 +61,7 @@
       <div
         v-for="category in categories"
         :key="category.id"
-        class="group/cat hover:bg-pattern-diagonal border-border relative flex grow flex-col items-center justify-center gap-y-4 rounded-xl border px-4 py-10 [--pattern-fg:var(--color-primary)]/3 sm:px-6 dark:[--pattern-fg:var(--color-primary)]/10"
+        class="group/cat hover:bg-pattern-diagonal border-border relative isolate flex grow flex-col items-center justify-center gap-y-4 rounded-xl border px-4 py-10 [--pattern-fg:var(--color-primary)]/3 sm:px-6 dark:[--pattern-fg:var(--color-primary)]/10"
         :class="{ 'min-w-[16rem]': !category.partners?.length }"
         @dragenter.prevent="onZoneDragEnter(category, $event)"
         @dragover.prevent
@@ -255,6 +258,10 @@
               <Button type="submit" :disabled="categorySaving">
                 <Spinner v-if="categorySaving" class="size-4" />
                 <span v-else>{{ editingCategory ? "Save" : "Create" }}</span>
+                <KbdGroup>
+                  <Kbd>{{ metaSymbol }}</Kbd>
+                  <Kbd>S</Kbd>
+                </KbdGroup>
               </Button>
             </div>
           </form>
@@ -336,12 +343,31 @@
                 </ComboboxAnchor>
                 <ComboboxList class="z-100 w-(--reka-combobox-trigger-width)">
                   <ComboboxViewport class="max-h-72 p-1">
-                    <ComboboxEmpty
-                      class="text-muted-foreground px-2 py-6 text-center text-sm tracking-tight"
-                    >
-                      {{
-                        partnerSearchTerm.trim() ? "No partners found." : "Type to search partners."
-                      }}
+                    <ComboboxEmpty as-child>
+                      <div
+                        v-if="partnerSearchTerm.trim()"
+                        class="flex w-full flex-col items-center justify-center gap-y-3 px-4 py-6 text-center"
+                      >
+                        <div class="bg-background squircle text-muted-foreground rounded-lg border p-3">
+                          <Icon name="hugeicons:search-01" class="size-5" />
+                        </div>
+                        <div class="space-y-1">
+                          <h3 class="text-sm font-semibold tracking-tight">No partners found</h3>
+                          <p class="text-muted-foreground text-sm tracking-tight">
+                            Can't find "{{ partnerSearchTerm.trim() }}"? Create it as a new partner.
+                          </p>
+                        </div>
+                        <Button size="sm" type="button" @click="switchToCreateMode">
+                          <Icon name="lucide:plus" class="size-4 shrink-0" />
+                          <span>Create new partner</span>
+                        </Button>
+                      </div>
+                      <p
+                        v-else
+                        class="text-muted-foreground px-2 py-6 text-center text-sm tracking-tight"
+                      >
+                        Type to search partners.
+                      </p>
                     </ComboboxEmpty>
                     <ComboboxGroup>
                       <ComboboxItem
@@ -377,18 +403,6 @@
               </Combobox>
             </div>
 
-            <!-- Create new partner CTA -->
-            <Button
-              v-if="!selectedPartner"
-              variant="outline"
-              type="button"
-              class="text-muted-foreground hover:text-foreground w-full border-dashed font-normal"
-              @click="switchToCreateMode"
-            >
-              <Icon name="lucide:plus" class="size-4 shrink-0" />
-              <span>Create a new partner</span>
-            </Button>
-
             <div class="flex justify-end gap-2">
               <Button variant="outline" type="button" @click="addPartnerDialogOpen = false">
                 Cancel
@@ -396,6 +410,10 @@
               <Button type="submit" :disabled="addPartnerSaving || !selectedPartner">
                 <Spinner v-if="addPartnerSaving" class="size-4" />
                 <span v-else>Add Partner</span>
+                <KbdGroup>
+                  <Kbd>{{ metaSymbol }}</Kbd>
+                  <Kbd>S</Kbd>
+                </KbdGroup>
               </Button>
             </div>
           </form>
@@ -403,12 +421,14 @@
           <!-- Create mode: brand-new partner with logo -->
           <form v-else @submit.prevent="handleCreatePartner" class="mt-4 space-y-4">
             <div class="space-y-2">
-              <div class="space-y-1">
+              <div class="space-y-2">
                 <Label>Logo</Label>
-                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                  Format PNG dengan background transparan, ukuran 600x400px. Jangan pakai logo warna
-                  putih karena tidak terlihat di background terang.
-                </p>
+                <div class="flex flex-wrap gap-x-1 gap-y-1.5">
+                  <Badge icon="hugeicons:image-02">PNG / SVG</Badge>
+                  <Badge icon="hugeicons:grid-view">Transparent Background</Badge>
+                  <Badge icon="hugeicons:resize-01">Ukuran 600x400px</Badge>
+                  <Badge icon="hugeicons:alert-02">Jangan pakai variant logo warna putih</Badge>
+                </div>
               </div>
               <InputFileImage
                 v-model="createPartnerLogo"
@@ -441,6 +461,10 @@
               <Button type="submit" :disabled="addPartnerSaving || !createPartnerForm.name.trim()">
                 <Spinner v-if="addPartnerSaving" class="size-4" />
                 <span v-else>Create &amp; Add</span>
+                <KbdGroup>
+                  <Kbd>{{ metaSymbol }}</Kbd>
+                  <Kbd>S</Kbd>
+                </KbdGroup>
               </Button>
             </div>
           </form>
@@ -596,6 +620,7 @@ usePageMeta(null, { title: "Partners" });
 
 const route = useRoute();
 const client = useSanctumClient();
+const { metaSymbol } = useShortcuts();
 const { username, eventSlug } = route.params;
 const apiBase = `/api/projects/${username}/events/${eventSlug}/partner-categories`;
 

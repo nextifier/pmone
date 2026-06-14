@@ -45,6 +45,8 @@ class PublicBannerResource extends JsonResource
         return [
             ...$common,
             'subHeadline' => $this->title,
+            'subtitle' => data_get($this->settings, 'subtitle'),
+            'accentColor' => data_get($this->settings, 'accentColor'),
             'content' => $this->description,
             'cta' => $this->cta_label
                 ? ['label' => $this->cta_label, 'link' => $this->link]
@@ -52,6 +54,7 @@ class PublicBannerResource extends JsonResource
             'img' => ($this->type === 'image_text' && $image)
                 ? [
                     'src' => $image['sm'] ?? $image['original'],
+                    'srcset' => $this->buildImageSrcset(),
                     'w' => $image['width'],
                     'h' => $image['height'],
                 ]

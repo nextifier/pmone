@@ -25,7 +25,8 @@
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
       <div class="space-y-2">
         <Label for="start_date">Start Date & Time</Label>
-        <DatePicker with-time
+        <DatePicker
+          with-time
           v-model="form.start_date"
           placeholder="Select start date & time"
           :default-hour="10"
@@ -34,7 +35,8 @@
       </div>
       <div class="space-y-2">
         <Label for="end_date">End Date & Time</Label>
-        <DatePicker with-time
+        <DatePicker
+          with-time
           v-model="form.end_date"
           placeholder="Select end date & time"
           :default-hour="18"
@@ -43,14 +45,6 @@
       </div>
     </div>
 
-    <!-- Saleable Area -->
-    <div class="space-y-2">
-      <Label for="saleable_area">Saleable Area (m²)</Label>
-      <InputNumber id="saleable_area" v-model="form.saleable_area" :min="0" decimal placeholder="e.g. 5000" />
-      <InputErrorMessage :errors="errors.saleable_area" />
-    </div>
-
-    <!-- Venue | Hall | Location Link -->
     <div class="grid grid-cols-1 gap-x-2 gap-y-6 lg:grid-cols-3">
       <div class="space-y-2">
         <Label for="location">Venue</Label>
@@ -58,14 +52,33 @@
         <InputErrorMessage :errors="errors.location" />
       </div>
       <div class="space-y-2">
-        <Label for="hall">Hall</Label>
-        <Input id="hall" v-model="form.hall" type="text" />
-        <InputErrorMessage :errors="errors.hall" />
+        <Label for="location_short">Venue Short</Label>
+        <Input id="location_short" v-model="form.custom_fields.location_short" type="text" />
       </div>
       <div class="space-y-2">
         <Label for="location_link">Location Link</Label>
         <Input id="location_link" v-model="form.location_link" type="url" />
         <InputErrorMessage :errors="errors.location_link" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-x-2 gap-y-6 lg:grid-cols-2">
+      <div class="space-y-2">
+        <Label for="hall">Hall</Label>
+        <Input id="hall" v-model="form.hall" type="text" />
+        <InputErrorMessage :errors="errors.hall" />
+      </div>
+      <!-- Saleable Area -->
+      <div class="space-y-2">
+        <Label for="saleable_area">Saleable Area (m²)</Label>
+        <InputNumber
+          id="saleable_area"
+          v-model="form.saleable_area"
+          :min="0"
+          decimal
+          placeholder="e.g. 5000"
+        />
+        <InputErrorMessage :errors="errors.saleable_area" />
       </div>
     </div>
 
@@ -83,6 +96,15 @@
         container-class="relative isolate aspect-4/5 max-w-full"
       />
       <InputErrorMessage :errors="errors.tmp_poster_image" />
+    </div>
+
+    <!-- Teaser Video ID -->
+    <div class="space-y-2">
+      <Label for="teaser_video_id">Teaser Video ID</Label>
+      <Input id="teaser_video_id" v-model="form.custom_fields.teaser_video_id" type="text" />
+      <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+        YouTube video ID for the teaser (e.g. "1Tsjh4xvtFw").
+      </p>
     </div>
 
     <!-- Visitor E-guide -->
@@ -200,8 +222,6 @@
 </template>
 
 <script setup>
-
-import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -211,6 +231,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { toast } from "vue-sonner";
 
 const { metaSymbol } = useShortcuts();

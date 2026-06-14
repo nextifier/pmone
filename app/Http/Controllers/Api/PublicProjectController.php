@@ -784,7 +784,7 @@ class PublicProjectController extends Controller
         $project = $this->findProject($username);
 
         $event = Event::query()
-            ->with(['media'])
+            ->with(['media', 'project.media', 'project.links', 'conjunctionEvents.project.media', 'conjunctionEvents.project.links'])
             ->where('project_id', $project->id)
             ->where('is_active', true)
             ->published()
