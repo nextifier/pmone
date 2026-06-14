@@ -6,10 +6,10 @@
         <Icon name="hugeicons:carousel-horizontal-02" class="size-5 sm:size-6" />
         <h1 class="page-title">Banners</h1>
         <span
-          v-if="!loading && banners.length"
+          v-if="!loading && totalCount"
           class="text-muted-foreground text-sm tracking-tight tabular-nums"
         >
-          {{ banners.length }}
+          {{ totalCount }}
         </span>
       </div>
 
@@ -20,7 +20,7 @@
     </div>
 
     <p class="text-muted-foreground -mt-2 text-sm tracking-tight">
-      Banners shown in the hero carousel on the event website. Drag to reorder.
+      Banners shown on the event website, grouped by placement. Drag to reorder within a group.
     </p>
 
     <!-- Loading -->
@@ -30,7 +30,7 @@
 
     <!-- Empty -->
     <div
-      v-else-if="!banners.length"
+      v-else-if="!totalCount"
       class="flex flex-col items-center justify-center gap-y-4 py-16 text-center"
     >
       <div
@@ -50,122 +50,23 @@
       </Button>
     </div>
 
-    <!-- List -->
+    <!-- Grouped by placement -->
     <Lightbox v-else :items="lightboxItems" :alt="''" :show-thumbnails="lightboxItems.length > 1">
       <template #trigger="{ openAt }">
-        <div ref="listRef" class="flex flex-col gap-y-2">
-          <div
-            v-for="banner in banners"
-            :key="banner.id"
-            class="group border-border hover:bg-muted/40 flex items-center gap-x-2.5 rounded-xl border p-2.5 transition-colors sm:gap-x-3 sm:p-3"
-            :class="{ 'opacity-60': !banner.is_active }"
-          >
-            <!-- Drag handle -->
-            <Icon
-              v-if="canUpdate"
-              name="lucide:grip-vertical"
-              class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab active:cursor-grabbing"
-            />
-
-            <!-- Thumbnail -->
-            <div class="bg-muted aspect-square w-14 shrink-0 overflow-hidden rounded-lg sm:w-16">
-              <button
-                v-if="banner.image?.sm"
-                type="button"
-                class="block size-full cursor-zoom-in"
-                :aria-label="`Open ${banner.title || 'banner'} image`"
-                @click="openAt(lightboxIndexFor(banner))"
-              >
-                <img
-                  :src="banner.image.sm"
-                  :alt="banner.title || 'Banner'"
-                  class="size-full object-cover"
-                  loading="lazy"
-                />
-              </button>
-              <div v-else class="text-muted-foreground flex size-full items-center justify-center">
-                <Icon
-                  :name="banner.type === 'text' ? 'lucide:type' : 'lucide:image'"
-                  class="size-5"
-                />
-              </div>
-            </div>
-
-            <!-- Info -->
-            <div class="min-w-0 flex-1 space-y-0.5">
-              <div class="flex items-center gap-x-2">
-                <p class="truncate text-sm font-medium tracking-tight">
-                  {{ banner.title || "Untitled banner" }}
-                </p>
-                <Badge v-if="!banner.is_active" variant="muted" class="shrink-0">Hidden</Badge>
-              </div>
-              <div
-                class="text-muted-foreground flex flex-col gap-y-0.5 text-xs tracking-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-1.5 sm:text-sm"
-              >
-                <span class="flex items-center gap-x-1.5">
-                  <span>{{ placementLabel(banner.placement) }}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{{ typeLabel(banner.type) }}</span>
-                </span>
-                <span v-if="scheduleLabel(banner)" class="flex items-center gap-x-1.5">
-                  <span aria-hidden="true" class="hidden sm:inline">·</span
-                  >{{ scheduleLabel(banner) }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex shrink-0 flex-col items-end gap-y-1.5">
-              <div class="flex items-center gap-x-1 sm:gap-x-2">
-                <Switch
-                  v-if="canUpdate"
-                  :model-value="banner.is_active"
-                  @update:model-value="toggleActive(banner)"
-                />
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger as-child>
-                    <Button variant="ghost" size="iconSm" aria-label="Banner actions">
-                      <Icon name="lucide:ellipsis" class="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" class="w-40">
-                    <DropdownMenuItem @select="openAnalytics(banner)">
-                      <Icon name="hugeicons:analytics-01" class="size-4" />
-                      Analytics
-                    </DropdownMenuItem>
-                    <DropdownMenuItem v-if="canUpdate" @select="openEdit(banner)">
-                      <Icon name="hugeicons:edit-02" class="size-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <template v-if="canDelete">
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive" @select="confirmDelete(banner)">
-                        <Icon name="hugeicons:delete-01" class="size-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </template>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <!-- Stats -->
-              <div
-                class="text-muted-foreground mr-1 flex items-center gap-2 text-xs tracking-tight tabular-nums sm:gap-3 sm:text-sm"
-              >
-                <span class="flex items-center gap-1" v-tippy="'Total impressions'">
-                  <Icon name="lucide:eye" class="size-4" />{{
-                    formatCount(banner.impressions_count)
-                  }}
-                </span>
-                <span class="flex items-center gap-1" v-tippy="'Total clicks'">
-                  <Icon name="lucide:mouse-pointer-click" class="size-4" />{{
-                    formatCount(banner.clicks_count)
-                  }}
-                </span>
-              </div>
-            </div>
-          </div>
+        <div class="flex flex-col gap-y-4">
+          <BannerPlacementGroup
+            v-for="group in groups"
+            :key="group.placement"
+            :group="group"
+            :can-update="canUpdate"
+            :can-delete="canDelete"
+            :open-image="(banner) => openAt(lightboxIndexFor(banner))"
+            @toggle="toggleActive"
+            @edit="openEdit"
+            @delete="confirmDelete"
+            @analytics="openAnalytics"
+            @reorder="saveGroupOrder"
+          />
         </div>
       </template>
     </Lightbox>
@@ -285,16 +186,9 @@
 </template>
 
 <script setup>
+import BannerPlacementGroup from "@/components/project/BannerPlacementGroup.vue";
 import FormBanner from "@/components/project/FormBanner.vue";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Lightbox } from "@/components/ui/lightbox";
-import { useSortableList } from "@/composables/useSortableList";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ project: Object });
@@ -314,36 +208,76 @@ const canCreate = computed(() => hasPermission("banners.create"));
 const canUpdate = computed(() => hasPermission("banners.update"));
 const canDelete = computed(() => hasPermission("banners.delete"));
 
-const banners = ref([]);
+// ── Placement grouping ────────────────────────────────
+// Known placements render first, in this order; each gets its own frame.
+const PLACEMENTS = [
+  {
+    placement: "hero",
+    label: "Hero",
+    description: "Carousel at the top of the event website home page.",
+  },
+  {
+    placement: "visitor-cta",
+    label: "Visitor CTA",
+    description: 'Cross-promo cards in the "visit our other events" section.',
+  },
+];
+
+const humanize = (value) => value.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const groups = ref([]);
 const loading = ref(true);
 
-// ── Lightbox ──────────────────────────────────────────
-// One lightbox over every image-bearing banner; text-only banners are skipped.
-const lightboxItems = computed(() =>
-  banners.value
-    .filter((banner) => banner.image)
-    .map((banner) => ({
-      ...banner.image,
-      alt: banner.title || banner.image.alt || "Banner",
-      caption: banner.settings?.caption || banner.image.caption || "",
-    }))
+const buildGroups = (list) => {
+  const byPlacement = new Map();
+  for (const banner of list) {
+    const key = banner.placement || "hero";
+    if (!byPlacement.has(key)) byPlacement.set(key, []);
+    byPlacement.get(key).push(banner);
+  }
+
+  const result = [];
+  for (const meta of PLACEMENTS) {
+    const items = byPlacement.get(meta.placement);
+    if (items?.length) {
+      result.push({ ...meta, items });
+      byPlacement.delete(meta.placement);
+    }
+  }
+  // Surface any unexpected placement value so its banners stay visible/manageable.
+  for (const [placement, items] of byPlacement) {
+    result.push({ placement, label: humanize(placement), description: "", items });
+  }
+  return result;
+};
+
+const totalCount = computed(() =>
+  groups.value.reduce((sum, group) => sum + group.items.length, 0)
 );
 
-const lightboxIndexFor = (banner) => {
-  let index = 0;
-  for (const item of banners.value) {
-    if (!item.image) continue;
-    if (item.id === banner.id) return index;
-    index += 1;
-  }
-  return -1;
-};
+// ── Lightbox ──────────────────────────────────────────
+// One lightbox over every image-bearing banner, in grouped display order so the
+// index a group emits matches the lightbox slide.
+const orderedImageBanners = computed(() =>
+  groups.value.flatMap((group) => group.items).filter((banner) => banner.image)
+);
+
+const lightboxItems = computed(() =>
+  orderedImageBanners.value.map((banner) => ({
+    ...banner.image,
+    alt: banner.title || banner.image.alt || "Banner",
+    caption: banner.settings?.caption || banner.image.caption || "",
+  }))
+);
+
+const lightboxIndexFor = (banner) =>
+  orderedImageBanners.value.findIndex((item) => item.id === banner.id);
 
 const fetchBanners = async () => {
   try {
     loading.value = true;
     const response = await client(apiBase);
-    banners.value = response.data ?? [];
+    groups.value = buildGroups(response.data ?? []);
   } catch (err) {
     console.error("Failed to load banners:", err);
     toast.error("Failed to load banners");
@@ -395,28 +329,6 @@ const openAnalytics = async (banner) => {
   }
 };
 
-// ── Placement / type / schedule labels ────────────────
-const placementLabel = (placement) => ({ hero: "Hero" })[placement] ?? placement ?? "Hero";
-
-const typeLabel = (type) =>
-  ({ image: "Image", text: "Text", image_text: "Image + Text" })[type] ?? type;
-
-const scheduleLabel = (banner) => {
-  const start = banner.start_time ? $dayjs(banner.start_time) : null;
-  const end = banner.end_time ? $dayjs(banner.end_time) : null;
-
-  if (start && end) {
-    // Drop the redundant start year on same-year ranges: "May 25 – Jun 9, 2026".
-    const startLabel = start.isSame(end, "year")
-      ? start.format("MMM D")
-      : start.format("MMM D, YYYY");
-    return `${startLabel} – ${end.format("MMM D, YYYY")}`;
-  }
-  if (start) return `From ${start.format("MMM D, YYYY")}`;
-  if (end) return `Until ${end.format("MMM D, YYYY")}`;
-  return null;
-};
-
 // ── Toggle ────────────────────────────────────────────
 const toggleActive = async (banner) => {
   const previous = banner.is_active;
@@ -429,22 +341,25 @@ const toggleActive = async (banner) => {
   }
 };
 
-// ── Reorder ───────────────────────────────────────────
-const listRef = ref(null);
-useSortableList(listRef, banners, {
-  enabled: canUpdate,
-  onReorder: async () => {
-    try {
-      await client(`${apiBase}/reorder`, {
-        method: "POST",
-        body: { media_ids: banners.value.map((b) => b.id) },
-      });
-    } catch (err) {
-      toast.error("Failed to save order");
-      fetchBanners();
-    }
-  },
-});
+// ── Reorder (within a single placement) ───────────────
+const saveGroupOrder = async ({ placement, ids }) => {
+  // Mirror the new order into our own state so the lightbox index stays correct.
+  const group = groups.value.find((item) => item.placement === placement);
+  if (group) {
+    const byId = new Map(group.items.map((banner) => [banner.id, banner]));
+    group.items = ids.map((id) => byId.get(id)).filter(Boolean);
+  }
+
+  try {
+    await client(`${apiBase}/reorder`, {
+      method: "POST",
+      body: { media_ids: ids },
+    });
+  } catch (err) {
+    toast.error("Failed to save order");
+    fetchBanners();
+  }
+};
 
 // ── Delete ────────────────────────────────────────────
 const deleteOpen = ref(false);
@@ -456,6 +371,18 @@ const confirmDelete = (banner) => {
   deleteOpen.value = true;
 };
 
+// Drop the banner from its group, then drop the group if it's now empty.
+const removeBannerFromGroups = (id) => {
+  for (const group of groups.value) {
+    const index = group.items.findIndex((banner) => banner.id === id);
+    if (index !== -1) {
+      group.items.splice(index, 1);
+      break;
+    }
+  }
+  groups.value = groups.value.filter((group) => group.items.length);
+};
+
 const handleDelete = async () => {
   if (!deletingBanner.value) return;
   deleting.value = true;
@@ -464,7 +391,7 @@ const handleDelete = async () => {
       method: "DELETE",
       body: { media_ids: [deletingBanner.value.id] },
     });
-    banners.value = banners.value.filter((b) => b.id !== deletingBanner.value.id);
+    removeBannerFromGroups(deletingBanner.value.id);
     toast.success("Banner deleted");
     deleteOpen.value = false;
   } catch (err) {
