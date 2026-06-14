@@ -559,6 +559,10 @@ class PublicProjectController extends Controller
         $rundown = data_get($settings, 'rundown', []);
         $brands = data_get($settings, 'brands', []);
         $hotels = data_get($settings, 'hotels', []);
+        $blog = data_get($settings, 'blog', []);
+        $ticketTabs = data_get($settings, 'ticket_tabs', []);
+        $bookSpaceForm = data_get($settings, 'book_space_form', []);
+        $terms = data_get($settings, 'terms', []);
 
         return response()->json([
             'data' => [
@@ -574,6 +578,28 @@ class PublicProjectController extends Controller
                     ],
                     'hotels' => [
                         'show_hotel_section_on_home_page' => (bool) ($hotels['show_hotel_section_on_home_page'] ?? false),
+                    ],
+                    // Defaults mirror the base app.config.ts in pmone-events so a
+                    // project that has never saved these still renders identically.
+                    'blog' => [
+                        'show_post_card_author' => (bool) ($blog['show_post_card_author'] ?? false),
+                        'show_post_card_excerpt' => (bool) ($blog['show_post_card_excerpt'] ?? false),
+                    ],
+                    'ticket_tabs' => [
+                        'show_tickets' => (bool) ($ticketTabs['show_tickets'] ?? true),
+                        'show_guests' => (bool) ($ticketTabs['show_guests'] ?? false),
+                        'show_brands' => (bool) ($ticketTabs['show_brands'] ?? true),
+                        'show_rundown' => (bool) ($ticketTabs['show_rundown'] ?? true),
+                        'show_about' => (bool) ($ticketTabs['show_about'] ?? true),
+                        'show_photos' => (bool) ($ticketTabs['show_photos'] ?? true),
+                    ],
+                    'book_space_form' => [
+                        'show_job_title' => (bool) ($bookSpaceForm['show_job_title'] ?? false),
+                        'show_brand_name' => (bool) ($bookSpaceForm['show_brand_name'] ?? true),
+                        'show_products' => (bool) ($bookSpaceForm['show_products'] ?? false),
+                    ],
+                    'terms' => [
+                        'last_update' => $terms['last_update'] ?? null,
                     ],
                 ],
             ],

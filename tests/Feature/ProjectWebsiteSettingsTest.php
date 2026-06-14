@@ -351,3 +351,57 @@ it('rejects IDR as the estimated-price currency', function () {
         ],
     ])->assertUnprocessable();
 });
+
+it('persists website display settings (blog, ticket tabs, book space form, terms)', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'blog' => ['show_post_card_author' => true],
+        'ticket_tabs' => ['show_photos' => false, 'show_guests' => true],
+        'book_space_form' => ['show_job_title' => true],
+        'terms' => ['last_update' => '2026-04-30'],
+    ]);
+
+    $response->assertSuccessful();
+
+    $this->project->refresh();
+    $ws = data_get($this->project->settings, 'website_settings');
+
+    expect(data_get($ws, 'blog.show_post_card_author'))->toBeTrue();
+    expect(data_get($ws, 'ticket_tabs.show_photos'))->toBeFalse();
+    expect(data_get($ws, 'ticket_tabs.show_guests'))->toBeTrue();
+    expect(data_get($ws, 'book_space_form.show_job_title'))->toBeTrue();
+    expect(data_get($ws, 'terms.last_update'))->toBe('2026-04-30');
+    // Existing rundown block is untouched.
+    expect(data_get($ws, 'rundown.show_search_bar'))->toBeTrue();
+});
+
+it('exposes website display settings with base defaults in the public response', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_display',
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    // Untouched project returns the base app.config defaults.
+    $this->withHeaders(['X-API-Key' => 'pk_test_display'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.blog.show_post_card_author', false)
+        ->assertJsonPath('data.settings.ticket_tabs.show_tickets', true)
+        ->assertJsonPath('data.settings.ticket_tabs.show_guests', false)
+        ->assertJsonPath('data.settings.book_space_form.show_brand_name', true)
+        ->assertJsonPath('data.settings.book_space_form.show_job_title', false)
+        ->assertJsonPath('data.settings.terms.last_update', null);
+
+    $this->actingAs($this->user);
+    $this->patchJson($this->endpoint, [
+        'blog' => ['show_post_card_author' => true],
+        'terms' => ['last_update' => '2025-12-30'],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_display'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.blog.show_post_card_author', true)
+        ->assertJsonPath('data.settings.terms.last_update', '2025-12-30');
+});

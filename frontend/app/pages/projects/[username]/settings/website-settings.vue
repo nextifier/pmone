@@ -133,6 +133,117 @@
           </div>
         </div>
       </div>
+
+      <!-- Ticket page tabs -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:ticket-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Ticket Page Tabs</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Choose which tabs appear on the public ticket page.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y !px-0 !py-0">
+          <div
+            v-for="tab in ticketTabFields"
+            :key="tab.key"
+            class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6"
+          >
+            <Label :for="`ticket-${tab.key}`" class="cursor-pointer text-sm font-medium tracking-tight">
+              {{ tab.label }}
+            </Label>
+            <Switch :id="`ticket-${tab.key}`" v-model="form.ticket_tabs[tab.key]" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Blog -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:news-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Blog</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Control what shows on blog post cards.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y !px-0 !py-0">
+          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
+            <div class="space-y-1">
+              <Label for="blog-show-author" class="cursor-pointer text-sm font-medium tracking-tight">
+                Show author on post cards
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                Display the post author next to each blog post card.
+              </p>
+            </div>
+            <Switch id="blog-show-author" v-model="form.blog.show_post_card_author" />
+          </div>
+
+          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
+            <div class="space-y-1">
+              <Label for="blog-show-excerpt" class="cursor-pointer text-sm font-medium tracking-tight">
+                Show excerpt on post cards
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                Display a short excerpt under each blog post card title.
+              </p>
+            </div>
+            <Switch id="blog-show-excerpt" v-model="form.blog.show_post_card_excerpt" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Space form -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:building-03" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Book Space Form</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Choose which optional fields appear on the exhibitor "Book Space" form.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y !px-0 !py-0">
+          <div
+            v-for="field in bookSpaceFields"
+            :key="field.key"
+            class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6"
+          >
+            <Label :for="`book-${field.key}`" class="cursor-pointer text-sm font-medium tracking-tight">
+              {{ field.label }}
+            </Label>
+            <Switch :id="`book-${field.key}`" v-model="form.book_space_form[field.key]" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:legal-document-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Terms &amp; Privacy</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              The "Last updated" date shown on the Terms and Privacy pages.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel !px-0 !py-0">
+          <div class="flex flex-col gap-2 px-4 py-5 lg:px-6">
+            <Label class="text-sm font-medium tracking-tight">Last updated</Label>
+            <DatePicker v-model="form.terms_last_update" placeholder="Select a date" class="max-w-xs" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -155,13 +266,56 @@ const client = useSanctumClient();
 
 const loading = ref(true);
 
+const ticketTabFields = [
+  { key: "show_tickets", label: "Tickets" },
+  { key: "show_guests", label: "Guests" },
+  { key: "show_brands", label: "Brands" },
+  { key: "show_rundown", label: "Rundown" },
+  { key: "show_about", label: "About" },
+  { key: "show_photos", label: "Photos" },
+];
+
+const bookSpaceFields = [
+  { key: "show_job_title", label: "Job title field" },
+  { key: "show_brand_name", label: "Brand name field" },
+  { key: "show_products", label: "Products field" },
+];
+
+const ticketTabDefaults = () => ({
+  show_tickets: true,
+  show_guests: false,
+  show_brands: true,
+  show_rundown: true,
+  show_about: true,
+  show_photos: true,
+});
+
+const bookSpaceDefaults = () => ({
+  show_job_title: false,
+  show_brand_name: true,
+  show_products: false,
+});
+
 const form = ref({
   show_rundown_on_home_page: false,
   show_search_bar: true,
   show_location_filter: true,
   show_all_rundown_details: false,
   show_brand_preview_on_home_page: false,
+  blog: { show_post_card_author: false, show_post_card_excerpt: false },
+  ticket_tabs: ticketTabDefaults(),
+  book_space_form: bookSpaceDefaults(),
+  terms_last_update: null,
 });
+
+// Format a Date to a plain "YYYY-MM-DD" using local parts (no TZ shift).
+function toIsoDate(date) {
+  if (!date) return null;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 // Snapshot of the last persisted payload. Auto-save no-ops when nothing
 // changed — e.g. focusing then blurring a field without editing it.
@@ -180,6 +334,10 @@ function buildPayload() {
     brands: {
       show_brand_preview_on_home_page: form.value.show_brand_preview_on_home_page,
     },
+    blog: { ...form.value.blog },
+    ticket_tabs: { ...form.value.ticket_tabs },
+    book_space_form: { ...form.value.book_space_form },
+    terms: { last_update: toIsoDate(form.value.terms_last_update) },
   };
 }
 
@@ -188,8 +346,13 @@ async function load() {
   try {
     const response = await client(`/api/projects/${route.params.username}`);
     const settings = response.data?.settings ?? {};
-    const rundown = settings.website_settings?.rundown ?? {};
-    const brands = settings.website_settings?.brands ?? {};
+    const ws = settings.website_settings ?? {};
+    const rundown = ws.rundown ?? {};
+    const brands = ws.brands ?? {};
+    const blog = ws.blog ?? {};
+    const ticketTabs = ws.ticket_tabs ?? {};
+    const bookSpaceForm = ws.book_space_form ?? {};
+    const terms = ws.terms ?? {};
 
     form.value = {
       show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
@@ -197,6 +360,13 @@ async function load() {
       show_location_filter: rundown.show_location_filter ?? true,
       show_all_rundown_details: rundown.show_all_rundown_details ?? false,
       show_brand_preview_on_home_page: brands.show_brand_preview_on_home_page ?? false,
+      blog: {
+        show_post_card_author: blog.show_post_card_author ?? false,
+        show_post_card_excerpt: blog.show_post_card_excerpt ?? false,
+      },
+      ticket_tabs: { ...ticketTabDefaults(), ...ticketTabs },
+      book_space_form: { ...bookSpaceDefaults(), ...bookSpaceForm },
+      terms_last_update: terms.last_update ? new Date(terms.last_update) : null,
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
   } catch (err) {
@@ -242,17 +412,10 @@ async function save() {
   }
 }
 
-// Section toggles persist immediately on change.
-watch(
-  () => [
-    form.value.show_rundown_on_home_page,
-    form.value.show_search_bar,
-    form.value.show_location_filter,
-    form.value.show_all_rundown_details,
-    form.value.show_brand_preview_on_home_page,
-  ],
-  () => save()
-);
+// Section toggles persist immediately on change. A deep watch covers the nested
+// blog / ticket_tabs / book_space_form / terms groups too; save() no-ops via the
+// snapshot so the load() reassignment never triggers a redundant request.
+watch(form, () => save(), { deep: true });
 
 onMounted(() => {
   load();

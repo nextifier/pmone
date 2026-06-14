@@ -5,7 +5,10 @@ const SOCIAL_PREFIXES = {
   Facebook: "https://facebook.com/",
   X: "https://x.com/",
   TikTok: "https://tiktok.com/@",
-  LinkedIn: "https://linkedin.com/in/",
+  // Keep the path segment in the value: LinkedIn has two namespaces
+  // (`/in/<person>` and `/company/<page>`), so the user types e.g.
+  // "company/megabuildid" or "in/john-doe" after this prefix.
+  LinkedIn: "https://linkedin.com/",
   YouTube: "https://youtube.com/@",
 };
 
@@ -15,7 +18,8 @@ const SOCIAL_PATTERNS = {
   Facebook: [/(?:https?:\/\/)?(?:www\.)?(?:facebook|fb)\.com\//i],
   X: [/(?:https?:\/\/)?(?:www\.)?(?:x|twitter)\.com\//i],
   TikTok: [/(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@?/i],
-  LinkedIn: [/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\//i],
+  // Match the domain only so the `/in/` or `/company/` path stays in the value.
+  LinkedIn: [/(?:https?:\/\/)?(?:www\.)?linkedin\.com\//i],
   YouTube: [/(?:https?:\/\/)?(?:www\.)?youtube\.com\/@?/i, /(?:https?:\/\/)?youtu\.be\//i],
 };
 
@@ -27,9 +31,15 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
+const SOCIAL_PLACEHOLDERS = {
+  LinkedIn: "company/name or in/username",
+};
+
 const prefix = computed(() => SOCIAL_PREFIXES[props.label] || "https://");
 const isSocial = computed(() => props.label in SOCIAL_PREFIXES && props.label !== "Website");
-const placeholder = computed(() => (isSocial.value ? "username" : "example.com"));
+const placeholder = computed(
+  () => SOCIAL_PLACEHOLDERS[props.label] || (isSocial.value ? "username" : "example.com"),
+);
 
 function stripPrefix(url) {
   if (!url) return "";

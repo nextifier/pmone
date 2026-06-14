@@ -221,6 +221,11 @@ const PLACEMENTS = [
     label: "Visitor CTA",
     description: 'Cross-promo cards in the "visit our other events" section.',
   },
+  {
+    placement: "hero-announcement",
+    label: "Hero Announcement",
+    description: "Rotating text strip above the hero title on the event website.",
+  },
 ];
 
 const humanize = (value) => value.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

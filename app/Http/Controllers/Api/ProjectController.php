@@ -375,6 +375,24 @@ class ProjectController extends Controller
             'email_subjects.guest_cancelled' => ['sometimes', 'nullable', 'string', 'max:120'],
             'email_subjects.staff_confirmed' => ['sometimes', 'nullable', 'string', 'max:120'],
             'email_subjects.staff_cancelled' => ['sometimes', 'nullable', 'string', 'max:120'],
+            // Public website display settings sourced by the event websites
+            // (pmone-events) instead of their hardcoded app.config.ts.
+            'blog' => ['sometimes', 'array'],
+            'blog.show_post_card_author' => ['sometimes', 'boolean'],
+            'blog.show_post_card_excerpt' => ['sometimes', 'boolean'],
+            'ticket_tabs' => ['sometimes', 'array'],
+            'ticket_tabs.show_tickets' => ['sometimes', 'boolean'],
+            'ticket_tabs.show_guests' => ['sometimes', 'boolean'],
+            'ticket_tabs.show_brands' => ['sometimes', 'boolean'],
+            'ticket_tabs.show_rundown' => ['sometimes', 'boolean'],
+            'ticket_tabs.show_about' => ['sometimes', 'boolean'],
+            'ticket_tabs.show_photos' => ['sometimes', 'boolean'],
+            'book_space_form' => ['sometimes', 'array'],
+            'book_space_form.show_job_title' => ['sometimes', 'boolean'],
+            'book_space_form.show_brand_name' => ['sometimes', 'boolean'],
+            'book_space_form.show_products' => ['sometimes', 'boolean'],
+            'terms' => ['sometimes', 'array'],
+            'terms.last_update' => ['sometimes', 'nullable', 'string', 'max:60'],
         ]);
 
         $settings = $project->settings ?? [];

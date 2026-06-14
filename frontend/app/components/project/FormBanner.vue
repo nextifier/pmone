@@ -220,6 +220,7 @@ const aspectRatios = ["1:1", "16:9", "9:16", "4:5", "2:1", "4:1"];
 const placementOptions = [
   { value: "hero", label: "Hero" },
   { value: "visitor-cta", label: "Visitor CTA (cross-promo)" },
+  { value: "hero-announcement", label: "Hero Announcement" },
 ];
 
 const defaultForm = () => ({
