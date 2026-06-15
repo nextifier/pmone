@@ -292,6 +292,35 @@ class AnalyticsService
             ]);
         }
 
+        // CACHE-FIRST PRIORITY 2.5: Return the duration-keyed latest snapshot.
+        // The exact-date last_success above is keyed by start/end dates, so it is lost
+        // when a rolling window shifts (e.g. "last 30 days" at day rollover). This snapshot
+        // is keyed by property set + duration only, so it survives the shift and lets us
+        // show the previous interval's real data while the background job recomputes.
+        $periodDays = $period->startDate->diffInDays($period->endDate) + 1;
+        $latestSnapshot = Cache::get(CacheKey::latestSnapshot($propertyIds, $periodDays));
+
+        if ($latestSnapshot) {
+            \Log::info('Using duration-keyed latest snapshot fallback', [
+                'period_days' => $periodDays,
+            ]);
+
+            if (! Cache::has(CacheKey::refreshing($cacheKey))) {
+                $this->dispatchAggregateBackgroundRefresh($period, $propertyIds, $cacheKey);
+            }
+
+            return array_merge($latestSnapshot, [
+                'cache_info' => [
+                    'last_updated' => now()->toIso8601String(),
+                    'cache_age_minutes' => 0,
+                    'next_update_in_minutes' => 0,
+                    'is_fresh' => false,
+                    'is_updating' => true,
+                    'from_fallback' => true,
+                ],
+            ]);
+        }
+
         // PRIORITY 3: NO CACHE AT ALL - Dispatch background job, return empty immediately
         // NEVER fetch synchronously to avoid blocking PHP-FPM workers
         \Log::info('No aggregate cache found, dispatching background refresh');

@@ -37,6 +37,7 @@ export default defineComponentDoc({
         { name: "position", type: '"top-left" | "top-right" | "bottom-left" | "bottom-right" | "top-center" | "bottom-center"', default: '"bottom-right"', description: "Anchor for the stack." },
         { name: "richColors", type: "boolean", default: "false", description: "Use coloured variants instead of plain." },
         { name: "expand", type: "boolean", default: "false", description: "Expand stack on hover instead of overlapping." },
+        { name: "progressBar", type: "boolean", default: "true", description: "Show a full-size auto-dismiss progress fill behind each toast. Pauses on hover; follows the global duration; disabled when expand is on." },
       ],
       slots: [
         { name: "info-icon", description: "Override the icon used for info toasts." },

@@ -17,6 +17,16 @@
             </span>
           </ClientOnly>
         </h1>
+
+        <ClientOnly>
+          <div
+            v-if="isBackgroundUpdating"
+            class="border-border bg-muted text-muted-foreground inline-flex shrink-0 items-center gap-x-1.5 rounded-full border px-2.5 py-1 text-xs font-medium tracking-tight"
+          >
+            <Spinner class="size-3 shrink-0" />
+            <span>Updating</span>
+          </div>
+        </ClientOnly>
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-2">
@@ -34,9 +44,9 @@
       </div>
     </div>
 
-    <LoadingState v-if="loading && !aggregateData" label="Loading analytics data.." />
+    <AnalyticsDashboardSkeleton v-if="isInitialLoading" />
 
-    <div v-else-if="error && !aggregateData" class="flex items-center justify-center p-6">
+    <div v-else-if="error && !hasRealData" class="flex items-center justify-center p-6">
       <div class="flex flex-col items-center gap-3 text-center">
         <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
         <div>
@@ -50,7 +60,7 @@
       </div>
     </div>
 
-    <div v-else-if="aggregateData" class="relative grid grid-cols-1 gap-y-10">
+    <div v-else-if="hasRealData" class="relative grid grid-cols-1 gap-y-10">
       <div
         v-if="loading"
         class="bg-background/90 absolute inset-0 z-10 flex items-start justify-center pt-20 backdrop-blur-md"
@@ -483,6 +493,34 @@ const {
   changeDateRange,
   startRealtimeRefresh,
 } = useMergedAnalytics(selectedRange.value);
+
+/**
+ * Whether we have real aggregate data to display. The backend returns an empty
+ * (all-zero) payload with is_updating=true on a cache miss, so a non-null
+ * aggregateData is NOT enough - we must check for actual property data.
+ */
+const hasRealData = computed(() => {
+  const data = aggregateData.value;
+  return Array.isArray(data?.property_breakdown) && data.property_breakdown.length > 0;
+});
+
+/**
+ * Show the skeleton when there is no real data yet AND the data is still loading
+ * or being computed in the background (instead of rendering a grid full of zeros).
+ */
+const isInitialLoading = computed(() => {
+  if (hasRealData.value) return false;
+  return loading.value || !aggregateData.value || cacheInfo.value?.is_updating === true;
+});
+
+/**
+ * We already have data on screen (fresh, stale, or last-interval fallback) but a
+ * newer version is being fetched in the background. Used for the "Updating" pill.
+ */
+const isBackgroundUpdating = computed(() => {
+  if (!hasRealData.value) return false;
+  return loading.value || cacheInfo.value?.is_updating === true;
+});
 
 /**
  * Calculate start and end dates based on the selected range

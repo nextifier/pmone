@@ -98,6 +98,45 @@ class VisitorCtaBannersSeeder extends Seeder
                     'cta' => ['label' => 'Explore startups', 'link' => '/programs'],
                 ],
             ],
+            // campx + panorama-events use a bespoke <Cta /> section (not the
+            // shared <VisitorCta />). accentColor shape follows their component:
+            // campx expects {light,dark}, panorama-events expects a single hex.
+            'campx' => [
+                [
+                    'image' => 'campx-panoramaevents.jpg',
+                    'subtitle' => 'Panorama Events',
+                    'title' => 'Outing Impian, Tanpa Ribet.',
+                    'description' => 'Mau outing tapi pusing ngurusinnya? Serahin aja ke ahlinya! Panorama Events siap atur semua kebutuhan acaramu dari A-Z. Kamu & tim tinggal nikmatin keseruannya.',
+                    'accentColor' => ['light' => '#ea580c', 'dark' => '#f97316'],
+                    'cta' => ['label' => 'Konsultasi Outing Gratis', 'link' => 'https://panoramaevents.id'],
+                ],
+                [
+                    'image' => 'campx-ioe.jpg',
+                    'subtitle' => 'Indonesia Outing Expo 2025',
+                    'title' => 'Berburu Promo & Gear Impianmu.',
+                    'description' => 'Siap-siap! Pameran outing terbesar se-Indonesia akan hadir di JICC Senayan, 14-16 Nov 2025. Dapatkan diskon gila-gilaan untuk alat camping & paket liburan. Jangan lupa mampir ke booth CampX ya!',
+                    'accentColor' => ['light' => '#0891b2', 'dark' => '#06b6d4'],
+                    'cta' => ['label' => 'Info Lengkap Expo', 'link' => 'https://indooutingexpo.co.id'],
+                ],
+            ],
+            'pe' => [
+                [
+                    'image' => 'pe-campx.jpg',
+                    'subtitle' => 'CampX',
+                    'title' => "Panorama Events' Top Outing Pick!",
+                    'description' => "Stuck for outing ideas? Visit CampX, recommended by Panorama Events! With fun activities and stunning, refreshing nature, it's perfect for your team.",
+                    'accentColor' => '#22C55E',
+                    'cta' => ['label' => 'Explore CampX', 'link' => 'https://campx.id'],
+                ],
+                [
+                    'image' => 'pe-ioe.jpg',
+                    'subtitle' => 'Indonesia Outing Expo',
+                    'title' => 'Need Fun Travel Ideas & Promos?',
+                    'description' => "Find fresh inspiration and awesome travel deals for your team at Indonesia Outing Expo 2025! Don't miss out. (JICC, 14-16 Nov)",
+                    'accentColor' => '#38BDF8',
+                    'cta' => ['label' => 'Explore IOE 2025', 'link' => 'https://indooutingexpo.co.id'],
+                ],
+            ],
         ];
     }
 

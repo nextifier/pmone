@@ -7,6 +7,7 @@ use App\Http\Middleware\ValidateApiKey;
 use App\Jobs\FetchExchangeRates;
 use App\Jobs\RefreshRealtimeAnalytics;
 use App\Jobs\SyncTodayAnalyticsJob;
+use App\Jobs\WarmAggregateCacheJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -90,6 +91,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // This proactively fetches today's data so users never have to wait
         // when requesting the "today" period on analytics dashboard
         $schedule->job(new SyncTodayAnalyticsJob)->everyFifteenMinutes();
+
+        // Pre-warm aggregate cache for the dashboard's common ranges (7/30/90 days)
+        // so the default view loads real numbers immediately instead of zeros while a
+        // background job computes them. Reads cached daily data, no extra GA API calls.
+        $schedule->job(new WarmAggregateCacheJob)->everyFifteenMinutes();
 
         // Realtime analytics - refresh every 2 minutes for live user counts
         $schedule->job(new RefreshRealtimeAnalytics)->everyTwoMinutes();

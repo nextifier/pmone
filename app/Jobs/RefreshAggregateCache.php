@@ -153,6 +153,11 @@ class RefreshAggregateCache implements ShouldBeUnique, ShouldQueue
             $lastSuccessKey = CacheKey::lastSuccess($this->cacheKey);
             Cache::put($lastSuccessKey, $data, now()->addYears(10));
 
+            // Store a date-agnostic snapshot keyed by duration so a cache miss after the
+            // rolling date window shifts (e.g. at day rollover) can still return the
+            // previous interval's real data instead of zeros.
+            Cache::put(CacheKey::latestSnapshot($this->propertyIds, $this->days), $data, now()->addYears(10));
+
             // Mark sync as successful with metadata
             $syncLog->markSuccess([
                 'properties_count' => $totalCount,

@@ -54,6 +54,25 @@ class AnalyticsCacheKeyGenerator
     }
 
     /**
+     * Generate a date-agnostic "latest snapshot" key for aggregate data.
+     *
+     * Unlike forAggregate(), this key is based on the property set plus the period
+     * DURATION (in days) instead of exact start/end dates. Rolling ranges like
+     * "last 30 days" shift their dates every day, which churns the date-based key
+     * and discards the last_success fallback. This snapshot survives that shift so
+     * a cache miss can still return the previous interval's real data while the
+     * background job recomputes.
+     *
+     * @param  array<int|string>|null  $propertyIds
+     */
+    public static function latestSnapshot(?array $propertyIds, int $days): string
+    {
+        $key = $propertyIds ? implode(',', collect($propertyIds)->sort()->values()->all()) : 'all';
+
+        return sprintf('%s:%s:aggregate-latest:%s:%dd', self::PREFIX, self::VERSION, $key, $days);
+    }
+
+    /**
      * Generate cache key with suffix (e.g., for timestamp or metadata).
      */
     public static function withSuffix(string $baseKey, string $suffix): string
