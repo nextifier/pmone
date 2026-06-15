@@ -151,7 +151,13 @@ class OrderController extends Controller
         $order = Order::query()
             ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
             ->where('ulid', $ulid)
-            ->with(['items.productCategory', 'brandEvent.brand', 'creator'])
+            ->with([
+                'items.productCategory',
+                'brandEvent.brand',
+                'creator',
+                'adjustments.promotionRule',
+                'adjustments.promoCode',
+            ])
             ->firstOrFail();
 
         return response()->json([
@@ -203,7 +209,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Operational status updated successfully',
-            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator', 'adjustments.promotionRule', 'adjustments.promoCode'])),
         ]);
     }
 
@@ -236,7 +242,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Payment status updated successfully',
-            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator'])),
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator', 'adjustments.promotionRule', 'adjustments.promoCode'])),
         ]);
     }
 

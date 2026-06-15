@@ -37,12 +37,23 @@ class PenaltyService
 
         $morphClass = $entity->getMorphClass();
         $basename = class_basename($morphClass);
+        $eventId = $entity->getPurchaseContext()['event_id'] ?? null;
 
         $rules = PromotionRule::query()
             ->active()
             ->withinWindow()
             ->where('kind', AdjustmentKind::Penalty->value)
             ->whereIn('trigger_type', $autoTriggers)
+            ->where(function ($q) use ($eventId) {
+                // Event-scoped penalty rules (e.g. an event's onsite surcharge) must only
+                // apply to entities of that same event. event_id = null rules are global
+                // (project/system-wide) and remain eligible for every entity.
+                $q->whereNull('event_id');
+
+                if ($eventId !== null) {
+                    $q->orWhere('event_id', $eventId);
+                }
+            })
             ->where(function ($q) use ($morphClass, $basename) {
                 $q->whereNull('target_types')
                     ->orWhereJsonContains('target_types', $morphClass)
@@ -122,12 +133,22 @@ class PenaltyService
     {
         $morphClass = $entity->getMorphClass();
         $basename = class_basename($morphClass);
+        $eventId = $entity->getPurchaseContext()['event_id'] ?? null;
 
         $rules = PromotionRule::query()
             ->active()
             ->withinWindow()
             ->where('kind', AdjustmentKind::Penalty->value)
             ->where('trigger_type', PenaltyTriggerType::CancellationWindow->value)
+            ->where(function ($q) use ($eventId) {
+                // Event-scoped cancellation fees must only apply to entities of that same
+                // event; event_id = null rules are global and remain eligible for every entity.
+                $q->whereNull('event_id');
+
+                if ($eventId !== null) {
+                    $q->orWhere('event_id', $eventId);
+                }
+            })
             ->where(function ($q) use ($morphClass, $basename) {
                 $q->whereNull('target_types')
                     ->orWhereJsonContains('target_types', $morphClass)

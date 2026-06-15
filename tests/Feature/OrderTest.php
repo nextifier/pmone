@@ -224,6 +224,41 @@ it('staff can list orders for an event', function () {
         ->assertJsonPath('meta.total', 2);
 });
 
+it('staff order detail exposes applied adjustments', function () {
+    $this->actingAs($this->exhibitor);
+
+    $this->postJson(
+        "/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders",
+        ['items' => [['event_product_id' => $this->product1->id, 'quantity' => 1]]]
+    )->assertStatus(201);
+
+    $order = Order::first();
+
+    $this->actingAs($this->staff);
+
+    // Apply a manual discount so the order has an adjustment to surface.
+    $this->postJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments",
+        ['mode' => 'manual', 'kind' => 'discount', 'value_type' => 'percentage', 'value' => 10]
+    )->assertSuccessful();
+
+    // The staff order-detail endpoint must eager-load adjustments so the panel can render them.
+    $response = $this->getJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}"
+    );
+
+    $response->assertSuccessful()
+        ->assertJsonCount(1, 'data.adjustments')
+        ->assertJsonPath('data.adjustments.0.kind', 'discount');
+
+    // A status change must not blank out the adjustments panel: the response keeps them.
+    $this->patchJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/operational-status",
+        ['operational_status' => 'confirmed']
+    )->assertSuccessful()
+        ->assertJsonCount(1, 'data.adjustments');
+});
+
 it('staff can view order detail', function () {
     $this->actingAs($this->staff);
 
@@ -664,6 +699,43 @@ it('charges the onsite penalty rate on an order during the onsite period', funct
     expect((float) $order->tax_amount)->toBe(247500.0);
     // total = 1.500.000 + 750.000 + 247.500 = 2.497.500
     expect((float) $order->total)->toBe(2497500.0);
+
+    Carbon::setTestNow();
+});
+
+it('only applies the order event own onsite penalty, never other events rules', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-15 10:00:00'));
+
+    $window = [
+        'normal_order_opens_at' => now()->subDays(10),
+        'normal_order_closes_at' => now()->subDay(),
+        'onsite_order_opens_at' => now()->subHour(),
+        'onsite_order_closes_at' => now()->addHour(),
+    ];
+
+    // This event: 50% onsite penalty (observer syncs its rule).
+    $this->event->update($window + ['onsite_penalty_rate' => 50]);
+
+    // A DIFFERENT event, also onsite-active right now, with its own (huge) penalty rule.
+    // Its rule must never leak onto an order placed for $this->event.
+    Event::factory()->create($window + [
+        'project_id' => $this->project->id,
+        'onsite_penalty_rate' => 90,
+    ]);
+
+    $this->actingAs($this->exhibitor);
+
+    $this->postJson(
+        "/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders",
+        ['items' => [['event_product_id' => $this->product1->id, 'quantity' => 1]]]
+    )->assertStatus(201);
+
+    $order = Order::first()->load('adjustments');
+
+    // Exactly one penalty adjustment (this event's), not the other event's.
+    expect($order->adjustments)->toHaveCount(1);
+    // subtotal 1.500.000; penalty strictly 50% = 750.000 (not compounded with the 90% rule)
+    expect((float) $order->penalty_amount)->toBe(750000.0);
 
     Carbon::setTestNow();
 });

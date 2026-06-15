@@ -135,3 +135,45 @@ it('B13: evaluateAndApply skips rule whose starts_at is in the future', function
 
     expect($applied)->toHaveCount(0);
 });
+
+it('event-scoped cancellation fee only applies the reservation own event rule', function () {
+    $reservation = makeBookingForPenalty(now()->addDay()->toDateString(), now()->addDays(2)->toDateString());
+
+    $ownRule = PromotionRule::factory()->create([
+        'name' => 'Own Event Cancellation',
+        'kind' => AdjustmentKind::Penalty,
+        'value_type' => AdjustmentValueType::Percentage,
+        'value' => 50,
+        'stacking_mode' => StackingMode::CombinableWithAll,
+        'is_active' => true,
+        'target_types' => ['Reservation'],
+        'trigger_type' => PenaltyTriggerType::CancellationWindow,
+        'trigger_config' => ['min_days' => 7, 'operator' => 'lt'],
+        'event_id' => $reservation->event_id,
+        'priority' => 100,
+    ]);
+
+    // A different event's cancellation rule, higher priority (lower number) so it would be
+    // picked first if event scoping leaked across events.
+    $otherEvent = Event::factory()->create();
+    PromotionRule::factory()->create([
+        'name' => 'Other Event Cancellation',
+        'kind' => AdjustmentKind::Penalty,
+        'value_type' => AdjustmentValueType::Percentage,
+        'value' => 90,
+        'stacking_mode' => StackingMode::CombinableWithAll,
+        'is_active' => true,
+        'target_types' => ['Reservation'],
+        'trigger_type' => PenaltyTriggerType::CancellationWindow,
+        'trigger_config' => ['min_days' => 7, 'operator' => 'lt'],
+        'event_id' => $otherEvent->id,
+        'priority' => 1,
+    ]);
+
+    $adj = app(PenaltyService::class)->applyCancellationFee($reservation);
+
+    expect($adj)->not->toBeNull();
+    expect($adj->promotion_rule_id)->toBe($ownRule->id);
+    // subtotal 1.000.000 -> own 50% = 500.000 (never the other event's 90%)
+    expect((float) $adj->amount)->toBe(500000.0);
+});
