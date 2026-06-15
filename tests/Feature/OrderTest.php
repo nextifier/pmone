@@ -1,5 +1,7 @@
 <?php
 
+use App\Mail\OrderConfirmationMail;
+use App\Mail\OrderSubmittedMail;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
@@ -9,6 +11,7 @@ use App\Models\Order;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -576,4 +579,91 @@ it('snapshots product image url in order items', function () {
 
     // Product has no image uploaded so it should be null
     expect($item->product_image_url)->toBeNull();
+});
+
+// Email notification tests
+it('queues submitted and confirmation emails when an order is submitted', function () {
+    Mail::fake();
+
+    $this->actingAs($this->exhibitor);
+
+    $this->postJson(
+        "/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders",
+        ['items' => [['event_product_id' => $this->product1->id, 'quantity' => 1]]]
+    )->assertStatus(201);
+
+    // Operational mail goes to the configured notification_emails (ops@test.com)
+    Mail::assertQueued(OrderSubmittedMail::class, fn ($mail) => $mail->hasTo('ops@test.com'));
+
+    // Confirmation goes to the exhibitor placing the order
+    Mail::assertQueued(OrderConfirmationMail::class, fn ($mail) => $mail->hasTo($this->exhibitor->email));
+});
+
+it('renders order emails with penalty surcharge and promo code, free of dropped discount columns', function () {
+    $order = Order::factory()->create([
+        'brand_event_id' => $this->brandEvent->id,
+        'subtotal' => 6000000,
+        'penalty_amount' => 3000000,
+        'discount_amount' => 600000,
+        'promo_code_applied' => 'PROMO10',
+        'tax_rate' => 11,
+        'tax_amount' => 970200,
+        'total' => 9370200,
+        'submitted_at' => now(),
+    ]);
+
+    $order->items()->create([
+        'event_product_id' => $this->product1->id,
+        'category_id' => $this->product1->category_id,
+        'product_name' => $this->product1->name,
+        'unit_price' => 1500000,
+        'quantity' => 4,
+        'total_price' => 6000000,
+    ]);
+
+    $order->load('items');
+
+    foreach ([OrderSubmittedMail::class, OrderConfirmationMail::class] as $mailable) {
+        $rendered = (new $mailable($order, $this->event, $this->brand))->render();
+
+        expect($rendered)
+            ->toContain('Onsite Surcharge')
+            ->toContain('3.000.000') // penalty amount, id formatting
+            ->toContain('PROMO10')   // promo code shown on the discount line
+            ->toContain('600.000');  // discount amount
+    }
+});
+
+// Onsite penalty regression: penalty is actually charged on a freshly created event
+it('charges the onsite penalty rate on an order during the onsite period', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-15 10:00:00'));
+
+    // New event window: normal closed yesterday, onsite open now. Updating the event
+    // triggers EventObserver to sync the onsite penalty PromotionRule.
+    $this->event->update([
+        'normal_order_opens_at' => now()->subDays(10),
+        'normal_order_closes_at' => now()->subDay(),
+        'onsite_order_opens_at' => now()->subHour(),
+        'onsite_order_closes_at' => now()->addHour(),
+        'onsite_penalty_rate' => 50,
+    ]);
+
+    $this->actingAs($this->exhibitor);
+
+    $this->postJson(
+        "/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders",
+        ['items' => [['event_product_id' => $this->product1->id, 'quantity' => 1]]]
+    )->assertStatus(201);
+
+    $order = Order::first();
+
+    // subtotal = 1.500.000; penalty = 50% = 750.000
+    expect((float) $order->penalty_amount)->toBe(750000.0);
+    expect($order->order_period)->toBe('onsite_order');
+    // tax = (1.500.000 + 750.000) * 11% = 247.500
+    expect((float) $order->tax_amount)->toBe(247500.0);
+    // total = 1.500.000 + 750.000 + 247.500 = 2.497.500
+    expect((float) $order->total)->toBe(2497500.0);
+
+    Carbon::setTestNow();
 });

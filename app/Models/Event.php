@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Observers\EventObserver;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\HasSlug;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -152,6 +154,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  *
  * @mixin \Eloquent
  */
+#[ObservedBy([EventObserver::class])]
 class Event extends Model implements HasMedia, Sortable
 {
     use ClearsResponseCache;

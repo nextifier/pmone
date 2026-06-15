@@ -72,7 +72,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <p class="text-muted-foreground text-xs">
+            <p class="text-muted-foreground text-xs tracking-tight">
               Exhibitors cannot submit orders after this date.
             </p>
             <InputErrorMessage :errors="errors.order_form_deadline" />
@@ -85,7 +85,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <p class="text-muted-foreground text-xs">
+            <p class="text-muted-foreground text-xs tracking-tight">
               Exhibitors cannot upload promotion posts after this date.
             </p>
             <InputErrorMessage :errors="errors.promotion_post_deadline" />
@@ -96,8 +96,8 @@
       <!-- Order Periods -->
       <div class="space-y-4">
         <div class="space-y-1">
-          <Label class="text-base font-semibold">Order Periods</Label>
-          <p class="text-muted-foreground text-xs">
+          <Label class="text-base font-semibold tracking-tight">Order Periods</Label>
+          <p class="text-muted-foreground text-xs tracking-tight">
             Configure normal and onsite order periods. Onsite orders can have a penalty rate
             applied.
           </p>
@@ -166,7 +166,7 @@
                 <InputGroupText>%</InputGroupText>
               </InputGroupAddon>
             </InputGroup>
-            <p class="text-muted-foreground text-xs">Default: 11% (PPN)</p>
+            <p class="text-muted-foreground text-xs tracking-tight">Default: 11% (PPN)</p>
           </div>
 
           <div class="space-y-2">
@@ -185,8 +185,9 @@
                 <InputGroupText>%</InputGroupText>
               </InputGroupAddon>
             </InputGroup>
-            <p class="text-muted-foreground text-xs">
-              Percentage added to order total for onsite period orders. Default: 50%.
+            <p class="text-muted-foreground text-xs tracking-tight">
+              Percentage added to orders placed in the onsite period. Kept in sync with a
+              Promotion Rule automatically. Default: 50%.
             </p>
             <InputErrorMessage :errors="errors.onsite_penalty_rate" />
           </div>
@@ -196,8 +197,8 @@
       <!-- Badge & VIP Info -->
       <div class="space-y-4">
         <div class="space-y-1">
-          <Label class="text-base font-semibold">Badge & VIP Information</Label>
-          <p class="text-muted-foreground text-xs">
+          <Label class="text-base font-semibold tracking-tight">Badge & VIP Information</Label>
+          <p class="text-muted-foreground text-xs tracking-tight">
             Information about exhibitor badges, VIP passes, and related policies.
           </p>
         </div>
@@ -308,7 +309,7 @@
                   : "No documents yet"
               }}
             </p>
-            <p class="text-muted-foreground text-xs">
+            <p class="text-muted-foreground text-xs tracking-tight">
               {{
                 docSearch || selectedDocType !== "all"
                   ? "Try adjusting your search or filters."
@@ -686,12 +687,6 @@ const documentTypeLabels = {
 
 function documentTypeLabel(type) {
   return documentTypeLabels[type] || type;
-}
-
-function documentTypeBadgeVariant(type) {
-  if (type === "checkbox_agreement") return "default";
-  if (type === "file_upload") return "muted";
-  return "outline";
 }
 
 const boothTypeLabels = {

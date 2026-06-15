@@ -43,9 +43,15 @@ Thank you for your order for **{{ $event->title }}**.
 <td style="padding:4px 0;color:#718096;">Subtotal</td>
 <td align="right" style="padding:4px 0;">Rp {{ number_format($order->subtotal, 0, ',', '.') }}</td>
 </tr>
+@if($order->penalty_amount && $order->penalty_amount > 0)
+<tr>
+<td style="padding:4px 0;color:#718096;">Onsite Surcharge</td>
+<td align="right" style="padding:4px 0;">+Rp {{ number_format($order->penalty_amount, 0, ',', '.') }}</td>
+</tr>
+@endif
 @if($order->discount_amount && $order->discount_amount > 0)
 <tr>
-<td style="padding:4px 0;color:#718096;">Discount{{ $order->discount_type === 'percentage' ? ' ('.$order->discount_value.'%)' : '' }}</td>
+<td style="padding:4px 0;color:#718096;">Discount{{ $order->promo_code_applied ? ' ('.$order->promo_code_applied.')' : '' }}</td>
 <td align="right" style="padding:4px 0;">-Rp {{ number_format($order->discount_amount, 0, ',', '.') }}</td>
 </tr>
 @endif
