@@ -250,6 +250,40 @@
               <InputErrorMessage :errors="errors.visibility" />
             </div>
           </div>
+
+          <div class="space-y-2">
+            <Label for="organization">Organization</Label>
+            <Select
+              v-model="form.organization"
+              @update:model-value="handleOrganizationChange"
+            >
+              <div v-if="organizationIsCustom" class="relative">
+                <Input
+                  v-model="form.organization"
+                  type="text"
+                  placeholder="Enter organization name"
+                  class="pr-7"
+                />
+                <SelectTrigger
+                  class="absolute top-0 right-0 flex size-8 items-center justify-center border-transparent bg-transparent !p-0 [&_svg]:!m-0"
+                />
+              </div>
+              <SelectTrigger v-else class="w-full">
+                <SelectValue placeholder="Select organization" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="org in ORGANIZATION_OPTIONS"
+                  :key="org"
+                  :value="org"
+                >
+                  {{ org }}
+                </SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            <InputErrorMessage :errors="errors.organization" />
+          </div>
         </div>
       </div>
     </div>
@@ -449,6 +483,7 @@ const PREDEFINED_LABELS = [
   "YouTube",
 ];
 const PREDEFINED_PHONE_LABELS = ["WhatsApp Sales", "WhatsApp Marketing"];
+const ORGANIZATION_OPTIONS = ["Panorama Media", "CampX", "ASKINDO", "Global AI Expo"];
 const FILE_STATUS = {
   PROCESSING: 3,
 };
@@ -457,6 +492,7 @@ const { metaSymbol } = useShortcuts();
 
 const memberQuery = ref("");
 const selectedMembers = ref([]);
+const organizationIsCustom = ref(false);
 
 // Helper functions
 function createEmptyForm() {
@@ -467,6 +503,7 @@ function createEmptyForm() {
     bio: "",
     status: "active",
     visibility: "public",
+    organization: "",
     member_ids: [],
     links: [],
     phones: [],
@@ -599,6 +636,17 @@ function handlePhoneLabelChange(index, value) {
   }
 }
 
+// Handle organization change (preset vs custom free-text)
+function handleOrganizationChange(value) {
+  if (value === "Custom") {
+    organizationIsCustom.value = true;
+    form.organization = "";
+  } else {
+    organizationIsCustom.value = false;
+    form.organization = value;
+  }
+}
+
 // Populate form with initial data
 function populateForm(data) {
   if (!data || Object.keys(data).length === 0) return;
@@ -609,6 +657,9 @@ function populateForm(data) {
   form.bio = data.bio || "";
   form.status = data.status || "active";
   form.visibility = data.visibility || "public";
+  form.organization = data.organization || "";
+  organizationIsCustom.value =
+    !!form.organization && !ORGANIZATION_OPTIONS.includes(form.organization);
 
   // Handle members
   form.member_ids = [];
@@ -754,6 +805,7 @@ function handleSubmit() {
     bio: form.bio,
     status: form.status,
     visibility: form.visibility,
+    organization: form.organization?.trim() || null,
     member_ids: form.member_ids,
     links: formattedLinks,
     phones: formattedPhones,

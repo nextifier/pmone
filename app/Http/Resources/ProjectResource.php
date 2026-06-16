@@ -24,6 +24,7 @@ class ProjectResource extends JsonResource
                 'email' => $this->email,
                 'status' => $this->status,
                 'visibility' => $this->visibility,
+                'organization' => $this->organization,
                 'order_column' => $this->order_column,
                 'profile_image' => $this->when(
                     $this->hasMedia('profile_image'),
@@ -51,6 +52,7 @@ class ProjectResource extends JsonResource
             'more_details' => $this->more_details,
             'status' => $this->status,
             'visibility' => $this->visibility,
+            'organization' => $this->organization,
             'profile_image' => $this->when(
                 $this->hasMedia('profile_image'),
                 fn () => $this->getMediaUrls('profile_image')

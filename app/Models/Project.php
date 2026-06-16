@@ -122,6 +122,7 @@ class Project extends Model implements HasMedia, Sortable
     protected $fillable = [
         'name',
         'username',
+        'organization',
         'bio',
         'settings',
         'more_details',
