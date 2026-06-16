@@ -26,6 +26,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
@@ -112,6 +113,7 @@ class Project extends Model implements HasMedia, Sortable
     use ClearsResponseCache;
     use HasFactory;
     use HasMediaManager;
+    use HasTranslations;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
@@ -129,6 +131,10 @@ class Project extends Model implements HasMedia, Sortable
         'branding',
         'email',
         'phone',
+    ];
+
+    public array $translatable = [
+        'bio',
     ];
 
     public array $sortable = [

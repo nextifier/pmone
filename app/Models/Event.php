@@ -28,6 +28,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
@@ -161,6 +162,7 @@ class Event extends Model implements HasMedia, Sortable
     use HasFactory;
     use HasMediaManager;
     use HasSlug;
+    use HasTranslations;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
@@ -192,6 +194,10 @@ class Event extends Model implements HasMedia, Sortable
         'onsite_order_closes_at',
         'onsite_penalty_rate',
         'badge_vip_info',
+    ];
+
+    public array $translatable = [
+        'description',
     ];
 
     protected $appends = [
