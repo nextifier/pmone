@@ -1285,6 +1285,9 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(CacheResponse::for(3600, 'promotion-posts'));
     Route::get('/{username}/events/{eventSlug}/rundown', [PublicProjectController::class, 'rundown'])
         ->middleware(CacheResponse::for(86400, 'rundown'));
+    Route::get('/{username}/editions/{editionNumber}/rundown', [PublicProjectController::class, 'rundownByEdition'])
+        ->where('editionNumber', '[0-9]+')
+        ->middleware(CacheResponse::for(86400, 'rundown'));
     Route::get('/{username}/events/{eventSlug}/programs', [PublicProjectController::class, 'programs'])
         ->middleware(CacheResponse::for(86400, 'programs'));
     Route::get('/{username}/events/{eventSlug}/faqs', [PublicProjectController::class, 'faqs'])

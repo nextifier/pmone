@@ -455,6 +455,43 @@ class PublicProjectController extends Controller
     }
 
     /**
+     * List rundown items grouped by date for a specific edition of a project.
+     * Returns translated content based on `?locale=` query param (default: en).
+     */
+    public function rundownByEdition(Request $request, string $username, int $editionNumber): JsonResponse
+    {
+        $event = $this->findEventByEdition($username, $editionNumber);
+        $event->loadMissing('project');
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        $items = $event->rundownItems()
+            ->with(['media', 'tags'])
+            ->where('is_active', true)
+            ->get();
+
+        $rundownSettings = data_get($event->project?->settings, 'website_settings.rundown', []);
+
+        return response()->json([
+            'data' => [
+                'days' => RundownGrouper::group(
+                    $items,
+                    fn ($item) => (new RundownItemPublicResource($item))->resolve(),
+                    event: $event,
+                    unscheduledLabel: null,
+                ),
+                'settings' => [
+                    'show_search_bar' => (bool) ($rundownSettings['show_search_bar'] ?? true),
+                    'show_location_filter' => (bool) ($rundownSettings['show_location_filter'] ?? true),
+                    'show_all_rundown_details' => (bool) ($rundownSettings['show_all_rundown_details'] ?? false),
+                    'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
+                ],
+            ],
+        ]);
+    }
+
+    /**
      * List active main programs for an event, ordered.
      * Returns translated content based on `?locale=` query param (default: en).
      *
