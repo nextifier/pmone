@@ -25,12 +25,11 @@ class EventConjunctionController extends Controller
                 'id' => $e->id,
                 'title' => $e->title,
                 'slug' => $e->slug,
-                'project_name' => $e->project?->name,
-                'project_username' => $e->project?->username,
-                'edition_number' => $e->edition_number,
-                'start_date' => $e->start_date?->toDateString(),
+                'date_label' => $e->date_label,
+                'location' => $e->location,
                 'conjunction_label' => $e->pivot->conjunction_label,
                 'order_column' => $e->pivot->order_column,
+                'poster_image' => $e->getMediaUrls('poster_image'),
             ]);
 
         return response()->json(['data' => $conjunctionEvents]);
@@ -157,19 +156,35 @@ class EventConjunctionController extends Controller
 
         $existingIds = $event->conjunctionEvents()->pluck('events.id')->push($event->id);
 
+        // Match the /events page ordering: ongoing first, upcoming (closest to today),
+        // completed (most recent first), draft/no-date last.
+        $now = now();
         $events = Event::query()
-            ->with('project')
+            ->with(['project', 'media'])
             ->whereNotIn('id', $existingIds)
             ->published()
-            ->orderBy('title')
+            ->orderByRaw('
+                CASE
+                    WHEN start_date IS NOT NULL AND start_date <= ? AND (end_date IS NULL OR end_date >= ?) THEN 0
+                    WHEN start_date IS NOT NULL AND start_date > ? THEN 1
+                    WHEN start_date IS NOT NULL AND (end_date IS NOT NULL AND end_date < ? OR end_date IS NULL AND start_date < ?) THEN 2
+                    ELSE 3
+                END ASC
+            ', [$now, $now->copy()->startOfDay(), $now->copy()->endOfDay(), $now->copy()->startOfDay(), $now->copy()->startOfDay()])
+            ->orderByRaw('
+                CASE
+                    WHEN start_date IS NOT NULL AND start_date > ? THEN ABS(EXTRACT(EPOCH FROM (start_date - ?::timestamp)))
+                    WHEN start_date IS NOT NULL THEN -EXTRACT(EPOCH FROM start_date)
+                    ELSE 999999999
+                END ASC
+            ', [$now->copy()->endOfDay(), $now])
             ->get()
             ->map(fn (Event $e) => [
                 'id' => $e->id,
                 'title' => $e->title,
-                'project_name' => $e->project?->name,
-                'project_username' => $e->project?->username,
-                'edition_number' => $e->edition_number,
-                'start_date' => $e->start_date?->toDateString(),
+                'date_label' => $e->date_label,
+                'location' => $e->location,
+                'poster_image' => $e->getMediaUrls('poster_image'),
             ]);
 
         return response()->json(['data' => $events]);

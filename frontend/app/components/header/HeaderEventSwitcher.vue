@@ -8,7 +8,7 @@
         <Icon name="lucide:chevrons-up-down" class="size-4" />
       </button>
     </PopoverTrigger>
-    <PopoverContent :align="isMobile ? 'end' : 'start'" :side-offset="8" class="w-60 p-0">
+    <PopoverContent :align="isMobile ? 'end' : 'start'" :side-offset="8" class="w-60 p-0 lg:w-80">
       <Command v-model:search-term="search" :ignore-filter="false">
         <CommandInput placeholder="Search event..." />
         <CommandList>
@@ -20,10 +20,10 @@
               :value="`${event.projectName} ${event.title}`"
               @select="switchEvent(event, event.projectUsername)"
             >
-              <div class="flex items-center gap-x-2">
+              <div class="flex min-w-0 grow items-center gap-x-2">
                 <div
                   v-if="event.poster_image?.sm"
-                  class="bg-muted outline-inside aspect-4/5 w-6 shrink-0 overflow-hidden rounded-sm"
+                  class="bg-muted outline-inside aspect-4/5 w-6 shrink-0 overflow-hidden rounded-xs"
                 >
                   <img
                     :src="event.poster_image.sm"
@@ -33,11 +33,14 @@
                 </div>
                 <div
                   v-else
-                  class="bg-muted text-muted-foreground flex aspect-4/5 w-6 shrink-0 items-center justify-center rounded-sm text-[10px] font-medium"
+                  class="bg-muted text-muted-foreground flex aspect-4/5 w-6 shrink-0 items-center justify-center rounded-xs text-[10px] font-medium"
                 >
                   {{ event.title?.charAt(0)?.toUpperCase() }}
                 </div>
-                <span class="truncate text-sm tracking-tight">{{ event.title }}</span>
+                <span
+                  class="scroll-fade-x no-scrollbar min-w-0 overflow-x-auto text-sm tracking-tight whitespace-nowrap"
+                  >{{ event.title }}</span
+                >
               </div>
               <Icon
                 v-if="event.slug === currentEventSlug && event.projectUsername === currentUsername"
@@ -91,8 +94,8 @@ const allEvents = computed(() => {
     if (TIME_STATUS_PRIORITY[statusA] !== TIME_STATUS_PRIORITY[statusB]) {
       return TIME_STATUS_PRIORITY[statusA] - TIME_STATUS_PRIORITY[statusB];
     }
-    const refA = statusA === "completed" ? (a.end_date || a.start_date) : a.start_date;
-    const refB = statusB === "completed" ? (b.end_date || b.start_date) : b.start_date;
+    const refA = statusA === "completed" ? a.end_date || a.start_date : a.start_date;
+    const refB = statusB === "completed" ? b.end_date || b.start_date : b.start_date;
     if (!refA && !refB) return 0;
     if (!refA) return 1;
     if (!refB) return -1;

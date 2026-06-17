@@ -22,10 +22,11 @@
         No conjunction events yet. Add events that happen at the same time and venue.
       </div>
 
-      <div v-else class="space-y-2">
+      <div v-else ref="listContainer" class="space-y-2">
         <div
           v-for="item in conjunctions"
           :key="item.id"
+          :data-item-id="item.id"
           class="bg-muted/50 flex items-center gap-x-3 rounded-lg border px-3 py-2.5"
         >
           <Icon
@@ -33,10 +34,22 @@
             class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab"
           />
 
+          <div
+            class="bg-muted border-border aspect-4/5 w-10 shrink-0 overflow-hidden rounded-md border"
+          >
+            <img
+              v-if="item.poster_image?.sm"
+              :src="item.poster_image.sm"
+              :alt="item.title"
+              class="size-full object-cover select-none"
+              loading="lazy"
+            />
+          </div>
+
           <div class="min-w-0 flex-1">
             <span class="text-sm font-medium tracking-tight">{{ item.title }}</span>
-            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              {{ item.project_name }} · {{ item.project_username }}
+            <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
+              {{ eventSubtitle(item) }}
             </p>
           </div>
 
@@ -80,11 +93,22 @@
             :disabled="addLoading"
             class="hover:bg-muted flex items-center gap-x-3 rounded-lg px-3 py-2.5 text-left transition active:scale-98"
           >
+            <div
+              class="bg-muted border-border aspect-4/5 w-10 shrink-0 overflow-hidden rounded-md border"
+            >
+              <img
+                v-if="ev.poster_image?.sm"
+                :src="ev.poster_image.sm"
+                :alt="ev.title"
+                class="size-full object-cover select-none"
+                loading="lazy"
+              />
+            </div>
+
             <div class="min-w-0 flex-1">
               <p class="truncate text-sm font-medium tracking-tight">{{ ev.title }}</p>
               <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
-                {{ ev.project_name }} · {{ ev.project_username }}
-                <span v-if="ev.start_date"> · {{ ev.start_date }}</span>
+                {{ eventSubtitle(ev) }}
               </p>
             </div>
           </button>
@@ -95,6 +119,7 @@
 </template>
 
 <script setup>
+import { useSortableList } from "@/composables/useSortableList";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -116,6 +141,10 @@ const apiBase = computed(
   () => `/api/projects/${route.params.username}/events/${route.params.eventSlug}/conjunctions`,
 );
 
+function eventSubtitle(event) {
+  return [event.date_label, event.location].filter(Boolean).join(" · ");
+}
+
 async function fetchConjunctions() {
   loading.value = true;
   try {
@@ -127,6 +156,22 @@ async function fetchConjunctions() {
     loading.value = false;
   }
 }
+
+// --- Drag-drop reorder (useSortableList mutates `conjunctions` in place) ---
+const listContainer = ref(null);
+
+useSortableList(listContainer, conjunctions, {
+  onReorder: async () => {
+    const order = conjunctions.value.map((c) => c.id);
+    try {
+      await client(`${apiBase.value}/reorder`, { method: "POST", body: { order } });
+      conjunctions.value.forEach((c, idx) => (c.order_column = idx + 1));
+    } catch {
+      toast.error("Failed to reorder conjunction events");
+      await fetchConjunctions();
+    }
+  },
+});
 
 async function fetchAvailable() {
   availableLoading.value = true;

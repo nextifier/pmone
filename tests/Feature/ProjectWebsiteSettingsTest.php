@@ -202,6 +202,47 @@ it('clears public rundown cache when settings change', function () {
         ->assertJsonPath('data.settings.show_search_bar', false);
 });
 
+it('persists show_partners_on_home_page flag', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'partners' => [
+            'show_partners_on_home_page' => false,
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.website_settings.partners.show_partners_on_home_page', false);
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.partners.show_partners_on_home_page'))->toBeFalse();
+    // Confirm unrelated settings remain intact
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
+});
+
+it('exposes show_partners_on_home_page (default true) in public website-settings response', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_partners_flag',
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    // Unconfigured project keeps the historical always-show behaviour.
+    $this->withHeaders(['X-API-Key' => 'pk_test_partners_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.partners.show_partners_on_home_page', true);
+
+    $this->actingAs($this->user);
+    $this->patchJson($this->endpoint, [
+        'partners' => ['show_partners_on_home_page' => false],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partners_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.partners.show_partners_on_home_page', false);
+});
+
 it('persists show_hotel_section_on_home_page flag', function () {
     $this->actingAs($this->user);
 

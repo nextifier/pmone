@@ -354,6 +354,8 @@ class ProjectController extends Controller
             'rundown.show_rundown_on_home_page' => ['sometimes', 'boolean'],
             'brands' => ['sometimes', 'array'],
             'brands.show_brand_preview_on_home_page' => ['sometimes', 'boolean'],
+            'partners' => ['sometimes', 'array'],
+            'partners.show_partners_on_home_page' => ['sometimes', 'boolean'],
             'hotels' => ['sometimes', 'array'],
             'hotels.show_hotel_section_on_home_page' => ['sometimes', 'boolean'],
             'hotels.show_estimated_price_in_foreign_currency' => ['sometimes', 'boolean'],

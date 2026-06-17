@@ -67,10 +67,20 @@ class PruneOrphanMedia extends Command
         }
 
         // ── Phase A: orphaned records (model gone) ──────────────────────
+        // --skip-conversions is REQUIRED here. Spatie's deprecated-conversion
+        // cleanup lists the whole conversions directory per media and deletes
+        // every file not matching THAT media's filename stem. With the custom
+        // CollectionBasedPathGenerator many media share one conversions folder
+        // (e.g. events/gallery/{event_id}/conversions/), so each media's pass
+        // would wipe its siblings' conversions — emptying the entire folder and
+        // breaking gallery thumbnails. We only want orphaned-RECORD cleanup
+        // here; orphaned FILES (including deprecated conversions) are handled
+        // shared-folder-aware in Phase B below.
         if (! $this->option('skip-records')) {
             $this->info($tag.'Cleaning orphaned media records (model deleted)...');
             $this->call('media-library:clean', array_filter([
                 '--delete-orphaned' => true,
+                '--skip-conversions' => true,
                 '--force' => $apply ?: null,
                 '--dry-run' => $apply ? null : true,
             ]));

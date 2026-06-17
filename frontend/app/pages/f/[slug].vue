@@ -1,10 +1,5 @@
 <template>
-  <div class="min-h-dvh bg-muted/30 dark:bg-background">
-    <!-- Theme toggle -->
-    <div v-if="!isEmbed" class="mx-auto flex w-full max-w-2xl justify-end px-4 pt-4">
-      <ColorModeToggle />
-    </div>
-
+  <div class="bg-muted/30 dark:bg-background min-h-dvh">
     <div
       class="mx-auto w-full max-w-2xl px-4"
       :class="isEmbed ? 'py-4' : 'pt-6 pb-12 sm:pt-8 sm:pb-16'"
@@ -49,7 +44,10 @@
 
       <!-- Form -->
       <template v-else-if="form">
-        <div class="bg-card overflow-hidden rounded-2xl border shadow-sm">
+        <div class="bg-card relative overflow-hidden rounded-2xl border shadow-sm">
+          <div v-if="!isEmbed" class="absolute top-2.5 right-2.5 z-10">
+            <ColorModeToggle />
+          </div>
           <img
             v-if="form.cover_image?.xl && !isEmbed"
             :src="form.cover_image.xl"
@@ -110,17 +108,21 @@
                   :class="{ 'border-destructive': formErrors.respondent_email }"
                   @blur="checkDuplicate"
                 />
-                <p v-if="formErrors.respondent_email" class="text-destructive text-sm tracking-tight">
+                <p
+                  v-if="formErrors.respondent_email"
+                  class="text-destructive text-sm tracking-tight"
+                >
                   {{ formErrors.respondent_email }}
                 </p>
               </div>
 
               <!-- Dynamic fields -->
               <PublicFieldRenderer
-                v-for="field in sortedFields"
+                v-for="(field, index) in sortedFields"
                 :key="field.ulid"
                 :data-field-error="formErrors[`responses.${field.ulid}`] ? field.ulid : undefined"
                 :field="field"
+                :is-first="index === 0"
                 :model-value="responses[field.ulid]"
                 :error="firstFieldError(field)"
                 :form-slug="slug"
@@ -148,22 +150,6 @@
             </form>
           </div>
         </div>
-
-        <!-- Footer -->
-        <p
-          v-if="!isEmbed"
-          class="text-muted-foreground mt-6 text-center text-sm tracking-tight"
-        >
-          Powered by
-          <a
-            href="https://pmone.id"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-foreground font-medium underline-offset-2 hover:underline"
-          >
-            PM One
-          </a>
-        </p>
       </template>
     </div>
   </div>
@@ -285,7 +271,8 @@ const generateHoneypotToken = () => {
 const prefillValueFor = (field) => {
   if (!supportsPrefill(field.type)) return undefined;
 
-  const raw = route.query[field.ulid] ?? (field.settings?.param_key && route.query[field.settings.param_key]);
+  const raw =
+    route.query[field.ulid] ?? (field.settings?.param_key && route.query[field.settings.param_key]);
   if (raw === undefined || raw === null || raw === false || raw === "") return undefined;
 
   const value = String(Array.isArray(raw) ? raw[0] : raw);
@@ -294,12 +281,18 @@ const prefillValueFor = (field) => {
   switch (field.type) {
     case "multi_select":
     case "checkbox_group": {
-      const values = value.split(",").map((v) => v.trim()).filter(Boolean);
+      const values = value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
       const valid = values.filter((v) => optionValues.includes(v));
       return valid.length ? valid : undefined;
     }
     case "tags":
-      return value.split(",").map((v) => v.trim()).filter(Boolean);
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
     case "select":
     case "radio":
       return optionValues.includes(value) ? value : undefined;

@@ -31,7 +31,7 @@
                 for="rundown-show-on-home"
                 class="cursor-pointer text-sm font-medium tracking-tight"
               >
-                Display Rundown section in the Home page
+                Show Rundown section in the Home page
               </Label>
               <p class="text-muted-foreground text-sm tracking-tight">
                 When on, the home page of the public event website includes the Rundown section.
@@ -134,6 +134,44 @@
         </div>
       </div>
 
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:agreement-02" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Partners</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Configure how the Partners section behaves on the public event website.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y !px-0 !py-0">
+          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
+            <div class="space-y-1">
+              <Label
+                for="partners-show-on-home"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
+                Show Partners section in the Home page
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                When on, the home page of the public event website includes the Partners (Credits)
+                section. If the active event has no partners yet, the most recent previous event with
+                partners is shown instead.
+              </p>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                For private testing, add
+                <code class="bg-muted text-foreground rounded-md px-1.5 py-0.5 font-mono"
+                  >?show-partners=true</code
+                >
+                to the home page URL to force-show this section even while this toggle is off.
+              </p>
+            </div>
+            <Switch id="partners-show-on-home" v-model="form.show_partners_on_home_page" />
+          </div>
+        </div>
+      </div>
+
       <!-- Ticket page tabs -->
       <div class="frame">
         <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
@@ -152,7 +190,10 @@
             :key="tab.key"
             class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6"
           >
-            <Label :for="`ticket-${tab.key}`" class="cursor-pointer text-sm font-medium tracking-tight">
+            <Label
+              :for="`ticket-${tab.key}`"
+              class="cursor-pointer text-sm font-medium tracking-tight"
+            >
               {{ tab.label }}
             </Label>
             <Switch :id="`ticket-${tab.key}`" v-model="form.ticket_tabs[tab.key]" />
@@ -175,7 +216,10 @@
         <div class="frame-panel divide-border divide-y !px-0 !py-0">
           <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
             <div class="space-y-1">
-              <Label for="blog-show-author" class="cursor-pointer text-sm font-medium tracking-tight">
+              <Label
+                for="blog-show-author"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
                 Show author on post cards
               </Label>
               <p class="text-muted-foreground text-sm tracking-tight">
@@ -187,7 +231,10 @@
 
           <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
             <div class="space-y-1">
-              <Label for="blog-show-excerpt" class="cursor-pointer text-sm font-medium tracking-tight">
+              <Label
+                for="blog-show-excerpt"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
                 Show excerpt on post cards
               </Label>
               <p class="text-muted-foreground text-sm tracking-tight">
@@ -217,7 +264,10 @@
             :key="field.key"
             class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6"
           >
-            <Label :for="`book-${field.key}`" class="cursor-pointer text-sm font-medium tracking-tight">
+            <Label
+              :for="`book-${field.key}`"
+              class="cursor-pointer text-sm font-medium tracking-tight"
+            >
               {{ field.label }}
             </Label>
             <Switch :id="`book-${field.key}`" v-model="form.book_space_form[field.key]" />
@@ -240,7 +290,11 @@
         <div class="frame-panel !px-0 !py-0">
           <div class="flex flex-col gap-2 px-4 py-5 lg:px-6">
             <Label class="text-sm font-medium tracking-tight">Last updated</Label>
-            <DatePicker v-model="form.terms_last_update" placeholder="Select a date" class="max-w-xs" />
+            <DatePicker
+              v-model="form.terms_last_update"
+              placeholder="Select a date"
+              class="max-w-xs"
+            />
           </div>
         </div>
       </div>
@@ -302,6 +356,7 @@ const form = ref({
   show_location_filter: true,
   show_all_rundown_details: false,
   show_brand_preview_on_home_page: false,
+  show_partners_on_home_page: true,
   blog: { show_post_card_author: false, show_post_card_excerpt: false },
   ticket_tabs: ticketTabDefaults(),
   book_space_form: bookSpaceDefaults(),
@@ -334,6 +389,9 @@ function buildPayload() {
     brands: {
       show_brand_preview_on_home_page: form.value.show_brand_preview_on_home_page,
     },
+    partners: {
+      show_partners_on_home_page: form.value.show_partners_on_home_page,
+    },
     blog: { ...form.value.blog },
     ticket_tabs: { ...form.value.ticket_tabs },
     book_space_form: { ...form.value.book_space_form },
@@ -349,6 +407,7 @@ async function load() {
     const ws = settings.website_settings ?? {};
     const rundown = ws.rundown ?? {};
     const brands = ws.brands ?? {};
+    const partners = ws.partners ?? {};
     const blog = ws.blog ?? {};
     const ticketTabs = ws.ticket_tabs ?? {};
     const bookSpaceForm = ws.book_space_form ?? {};
@@ -360,6 +419,7 @@ async function load() {
       show_location_filter: rundown.show_location_filter ?? true,
       show_all_rundown_details: rundown.show_all_rundown_details ?? false,
       show_brand_preview_on_home_page: brands.show_brand_preview_on_home_page ?? false,
+      show_partners_on_home_page: partners.show_partners_on_home_page ?? true,
       blog: {
         show_post_card_author: blog.show_post_card_author ?? false,
         show_post_card_excerpt: blog.show_post_card_excerpt ?? false,

@@ -1,6 +1,10 @@
 <template>
   <!-- Section (layout block, no input) -->
-  <div v-if="field.type === 'section'" class="border-border border-t pt-6 first:border-t-0 first:pt-0">
+  <div
+    v-if="field.type === 'section'"
+    class="border-border"
+    :class="isFirst ? '' : 'border-t pt-6'"
+  >
     <h2 class="text-lg font-semibold tracking-tighter">{{ field.label }}</h2>
     <div
       v-if="field.settings?.description"
@@ -317,7 +321,11 @@
 
     <!-- Linear Scale -->
     <div v-else-if="field.type === 'linear_scale'" class="space-y-2">
-      <div role="radiogroup" class="flex flex-wrap gap-1.5 sm:gap-2">
+      <div
+        role="radiogroup"
+        class="grid grid-cols-[repeat(var(--scale-cols),minmax(0,1fr))] gap-1.5 sm:grid-cols-[repeat(var(--scale-cols-sm),minmax(0,1fr))] sm:gap-2"
+        :style="scaleGridVars"
+      >
         <button
           v-for="n in scaleRange"
           :key="n"
@@ -325,7 +333,7 @@
           role="radio"
           :aria-checked="Number(modelValue) === n"
           :aria-label="String(n)"
-          class="flex size-9 items-center justify-center rounded-lg border text-sm font-medium tracking-tight transition-colors active:scale-95 sm:size-10"
+          class="flex h-10 w-full items-center justify-center rounded-lg border text-sm font-medium tracking-tight transition-colors active:scale-95"
           :class="
             Number(modelValue) === n
               ? 'border-primary bg-primary text-primary-foreground'
@@ -338,10 +346,10 @@
       </div>
       <div
         v-if="field.settings?.min_label || field.settings?.max_label"
-        class="text-muted-foreground flex justify-between text-xs tracking-tight sm:text-sm"
+        class="text-muted-foreground flex justify-between gap-2 text-xs tracking-tight sm:text-sm"
       >
-        <span>{{ field.settings?.min_label }}</span>
-        <span>{{ field.settings?.max_label }}</span>
+        <span class="text-left">{{ field.settings?.min_label }}</span>
+        <span class="text-right">{{ field.settings?.max_label }}</span>
       </div>
     </div>
     </div>
@@ -397,6 +405,7 @@ const props = defineProps({
   error: { type: String, default: null },
   formSlug: { type: String, default: null },
   preview: { type: Boolean, default: false },
+  isFirst: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue", "uploading"]);
@@ -489,6 +498,15 @@ const scaleRange = computed(() => {
     range.push(i);
   }
   return range;
+});
+
+const scaleGridVars = computed(() => {
+  const count = scaleRange.value.length;
+  const mobileCols = count <= 6 ? count : Math.ceil(count / 2);
+  return {
+    "--scale-cols": String(mobileCols),
+    "--scale-cols-sm": String(count),
+  };
 });
 
 const sliderMin = computed(() => Number(props.field.validation?.min ?? 0));

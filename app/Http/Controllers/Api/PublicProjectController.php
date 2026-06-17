@@ -190,6 +190,18 @@ class PublicProjectController extends Controller
             ]);
         }
 
+        // Opt-in fallback (used by the home-page BrandPreview teaser): when the
+        // active event has no brands yet, borrow the most recent previous edition
+        // that does, so a freshly-created event still shows brands.
+        if ($request->boolean('fallback')
+            && ! $event->brandEvents()->where('status', 'active')->exists()) {
+            $event = $this->fallbackEventWithItems(
+                $event,
+                'brandEvents',
+                fn ($q) => $q->where('status', 'active'),
+            ) ?? $event;
+        }
+
         $query = BrandEvent::query()
             ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
             ->whereHas('brand')
@@ -301,6 +313,21 @@ class PublicProjectController extends Controller
                     ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
                     ->first();
             }
+        }
+
+        // Fallback: search previous editions of the same project (most recent
+        // first) so links from the home-page BrandPreview teaser still resolve
+        // when the active event borrows a previous edition's brands.
+        if (! $brandEvent) {
+            $brandEvent = BrandEvent::query()
+                ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+                ->where('status', 'active')
+                ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
+                ->whereHas('event', fn ($q) => $q->where('project_id', $event->project_id)->published())
+                ->orderByDesc(
+                    Event::select('start_date')->whereColumn('events.id', 'brand_event.event_id'),
+                )
+                ->first();
         }
 
         if (! $brandEvent) {
@@ -534,7 +561,8 @@ class PublicProjectController extends Controller
     /**
      * Most recent other event in the same project that has items for the given
      * relation. Used as a content fallback for programs/faqs (default: active
-     * items) and gallery (constraint: media in the `gallery` collection).
+     * items), gallery (constraint: media in the `gallery` collection), and
+     * partners (constraint: a category with active partners).
      */
     private function fallbackEventWithItems(Event $event, string $relation, ?\Closure $constraint = null): ?Event
     {
@@ -542,6 +570,7 @@ class PublicProjectController extends Controller
             ->events()
             ->where('id', '!=', $event->id)
             ->whereHas($relation, $constraint ?? fn ($q) => $q->where('is_active', true))
+            ->reorder()
             ->orderByDesc('start_date')
             ->first();
     }
@@ -558,6 +587,7 @@ class PublicProjectController extends Controller
         $settings = data_get($project->settings, 'website_settings', []);
         $rundown = data_get($settings, 'rundown', []);
         $brands = data_get($settings, 'brands', []);
+        $partners = data_get($settings, 'partners', []);
         $hotels = data_get($settings, 'hotels', []);
         $blog = data_get($settings, 'blog', []);
         $ticketTabs = data_get($settings, 'ticket_tabs', []);
@@ -575,6 +605,11 @@ class PublicProjectController extends Controller
                     ],
                     'brands' => [
                         'show_brand_preview_on_home_page' => (bool) ($brands['show_brand_preview_on_home_page'] ?? false),
+                    ],
+                    // Defaults true: the Credits section has always rendered when
+                    // partners exist, so an unconfigured project keeps showing it.
+                    'partners' => [
+                        'show_partners_on_home_page' => (bool) ($partners['show_partners_on_home_page'] ?? true),
                     ],
                     'hotels' => [
                         'show_hotel_section_on_home_page' => (bool) ($hotels['show_hotel_section_on_home_page'] ?? false),
@@ -662,12 +697,22 @@ class PublicProjectController extends Controller
 
     /**
      * List partner categories with partners for an event.
+     *
+     * Fallback: if the (active) event has no partners yet, borrow the most
+     * recent other event in the same project that does — mirrors programs/faqs
+     * so a freshly-created event still shows the Credits section.
      */
     public function partners(string $username, string $eventSlug): JsonResponse
     {
         $event = $this->findEvent($username, $eventSlug);
 
-        $categories = $event->partnerCategories()
+        $hasActivePartners = fn ($q) => $q->whereHas('partners', fn ($p) => $p->active());
+
+        $source = $event->partnerCategories()->whereHas('partners', fn ($p) => $p->active())->exists()
+            ? $event
+            : ($this->fallbackEventWithItems($event, 'partnerCategories', $hasActivePartners) ?? $event);
+
+        $categories = $source->partnerCategories()
             ->with(['partners' => fn ($q) => $q->active()->with('media')])
             ->ordered()
             ->get();

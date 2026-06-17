@@ -228,6 +228,7 @@
           :field="previewField"
           v-model="previewValue"
           preview
+          is-first
         />
       </div>
     </div>

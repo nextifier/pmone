@@ -129,3 +129,52 @@ test('omits categories that have no active partners', function () {
         ->assertOk()
         ->assertJsonCount(1, 'data');
 });
+
+test('falls back to a previous event with partners when the event has none', function () {
+    // $this->event (start_date 2026-06-04) has no partners of its own.
+    $older = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'start_date' => '2025-01-01 10:00:00',
+    ]);
+    $category = PartnerCategory::create(['event_id' => $older->id, 'name' => 'Past Sponsors']);
+    ($this->attachPartner)($category, ($this->partnerWithLogo)('legacy'), 1);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partner'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.category', 'Past Sponsors')
+        ->assertJsonPath('data.0.partners.0.name', 'legacy');
+});
+
+test('does not fall back when the event has its own partners', function () {
+    $own = PartnerCategory::create(['event_id' => $this->event->id, 'name' => 'Current Sponsors']);
+    ($this->attachPartner)($own, ($this->partnerWithLogo)('current'), 1);
+
+    $older = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'start_date' => '2025-01-01 10:00:00',
+    ]);
+    $past = PartnerCategory::create(['event_id' => $older->id, 'name' => 'Past Sponsors']);
+    ($this->attachPartner)($past, ($this->partnerWithLogo)('legacy'), 1);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partner'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.category', 'Current Sponsors');
+});
+
+test('does not fall back to an event whose partners are all inactive', function () {
+    $older = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'start_date' => '2025-01-01 10:00:00',
+    ]);
+    $category = PartnerCategory::create(['event_id' => $older->id, 'name' => 'Inactive Only']);
+    ($this->attachPartner)($category, Partner::factory()->inactive()->create(['name' => 'hidden']), 1);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partner'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
+});

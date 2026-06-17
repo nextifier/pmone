@@ -8,7 +8,7 @@
         <Icon name="lucide:chevrons-up-down" class="size-4" />
       </button>
     </PopoverTrigger>
-    <PopoverContent :align="isMobile ? 'end' : 'start'" :side-offset="8" class="w-56 p-0">
+    <PopoverContent :align="isMobile ? 'end' : 'start'" :side-offset="8" class="w-60 p-0 lg:w-80">
       <Command v-model:search-term="search" :ignore-filter="false">
         <CommandInput placeholder="Search project..." />
         <CommandList>
@@ -20,13 +20,16 @@
               :value="project.name"
               @select="switchProject(project)"
             >
-              <div class="flex items-center gap-x-2">
+              <div class="flex min-w-0 grow items-center gap-x-2">
                 <Avatar
                   :model="{ name: project.name, profile_image: project.profile_image }"
                   class="size-6 shrink-0"
                   rounded="rounded-sm"
                 />
-                <span class="truncate text-sm tracking-tight">{{ project.name }}</span>
+                <span
+                  class="scroll-fade-x no-scrollbar min-w-0 overflow-x-auto text-sm tracking-tight whitespace-nowrap"
+                  >{{ project.name }}</span
+                >
               </div>
               <Icon
                 v-if="project.username === currentUsername"

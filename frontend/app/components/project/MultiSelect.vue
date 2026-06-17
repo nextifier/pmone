@@ -118,7 +118,7 @@ const removeTag = (index: number) => {
       </TagsInputRoot>
     </ComboboxAnchor>
 
-    <ComboboxList class="max-h-[40vh] w-(--reka-combobox-trigger-width)">
+    <ComboboxList class="max-h-[60vh] w-(--reka-combobox-trigger-width)">
       <ComboboxViewport>
         <ComboboxEmpty class="px-2 py-4">No results found.</ComboboxEmpty>
 
