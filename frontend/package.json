@@ -28,7 +28,6 @@
     "@tailwindcss/vite": "^4.2.2",
     "@takumi-rs/core": "^1.5.0",
     "@tanstack/vue-table": "^8.21.3",
-    "@types/canvas-confetti": "^1.9.0",
     "@tiptap/extension-color": "^3.20.4",
     "@tiptap/extension-image": "^3.20.4",
     "@tiptap/extension-link": "^3.20.4",
@@ -39,6 +38,7 @@
     "@tiptap/pm": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
     "@tiptap/vue-3": "^3.20.4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/qrcode": "^1.5.6",
     "@unovis/ts": "^1.6.4",
     "@unovis/vue": "^1.6.4",
@@ -50,6 +50,7 @@
     "ai": "^6.0.134",
     "autoprefixer": "^10.4.27",
     "base-vue-phone-input": "^0.1.13",
+    "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.20",
@@ -58,7 +59,6 @@
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-vue": "^8.6.0",
     "embla-carousel-wheel-gestures": "^8.1.0",
-    "canvas-confetti": "^1.9.3",
     "filepond": "^4.32.12",
     "filepond-plugin-file-validate-size": "^2.2.8",
     "filepond-plugin-file-validate-type": "^1.2.9",
@@ -105,5 +105,8 @@
   "overrides": {
     "vue": "latest",
     "esm-env": "npm:esm-env-runtime@^0.1.1"
+  },
+  "dependencies": {
+    "vue-qrcode-reader": "^5.7.3"
   }
 }

@@ -1,0 +1,46 @@
+[
+  {
+    "slug": "regular-pass",
+    "title": "Regular Ticket",
+    "kind": "entry",
+    "tier": "Regular",
+    "benefits": [
+      "Access to Franchise & License Expo Indonesia",
+      "Access to Cafe n' Brasserie Expo Jakarta",
+      "Access to More Food Expo Indonesia"
+    ],
+    "status": "available",
+    "price_label": "Rp60,000",
+    "price": 60000,
+    "on_sale": true,
+    "starts_at": "2026-04-16T00:00:00",
+    "ends_at": "2026-05-10T21:00:00",
+    "poster": "regular-ticket.jpg",
+    "legacy_external_url": "https://panorama.undangin.com/ticket/26296",
+    "day_pass": "All-day pass",
+    "entrance": "Regular entrance",
+    "category": "Entry Tickets"
+  },
+  {
+    "slug": "vip-ticket",
+    "title": "VIP Entry Ticket",
+    "kind": "entry",
+    "tier": "VIP",
+    "benefits": [
+      "Access to Franchise & License Expo Indonesia",
+      "Access to Cafe n' Brasserie Expo Jakarta",
+      "Access to More Food Expo Indonesia"
+    ],
+    "status": "available",
+    "price_label": "Invitation only",
+    "price": null,
+    "on_sale": false,
+    "starts_at": "2026-02-12T10:00:00",
+    "ends_at": "2026-05-10T21:00:00",
+    "poster": "vip-ticket.jpg",
+    "legacy_external_url": "https://panorama.undangin.com/ticket/vip/26296",
+    "day_pass": "All-day pass",
+    "entrance": "VIP entrance",
+    "category": "Entry Tickets"
+  }
+]

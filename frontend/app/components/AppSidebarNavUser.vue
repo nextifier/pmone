@@ -24,10 +24,31 @@
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
+            <NuxtLink to="/account/tickets" @click="setOpenMobile(false)">
+              <DropdownMenuItem>
+                <Icon name="hugeicons:ticket-01" class="size-4 shrink-0" />
+                My Tickets
+              </DropdownMenuItem>
+            </NuxtLink>
+            <NuxtLink to="/account/orders" @click="setOpenMobile(false)">
+              <DropdownMenuItem>
+                <Icon name="hugeicons:shopping-bag-02" class="size-4 shrink-0" />
+                My Orders
+              </DropdownMenuItem>
+            </NuxtLink>
+            <NuxtLink to="/account/profile" @click="setOpenMobile(false)">
+              <DropdownMenuItem>
+                <Icon name="hugeicons:user-circle" class="size-4 shrink-0" />
+                My Profile
+              </DropdownMenuItem>
+            </NuxtLink>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
             <NuxtLink to="/settings/profile" @click="setOpenMobile(false)">
               <DropdownMenuItem>
-                <Icon name="hugeicons:user" class="size-4 shrink-0" />
-                Account
+                <Icon name="hugeicons:settings-02" class="size-4 shrink-0" />
+                Settings
               </DropdownMenuItem>
             </NuxtLink>
           </DropdownMenuGroup>

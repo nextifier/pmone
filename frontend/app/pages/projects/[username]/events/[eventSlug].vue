@@ -96,16 +96,11 @@
 
     <div v-else-if="eventError" class="flex items-center justify-center py-20">
       <div class="flex flex-col items-center gap-y-4 text-center">
-        <div class="space-y-1">
-          <h3 class="text-lg font-semibold tracking-tighter">{{ eventError }}</h3>
-        </div>
-        <NuxtLink
-          :to="`/projects/${route.params.username}/events`"
-          class="bg-primary text-primary-foreground hover:bg-primary/80 flex items-center gap-x-1.5 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-          <span>Back to Events</span>
-        </NuxtLink>
+        <h3 class="text-lg font-semibold tracking-tighter">{{ eventError }}</h3>
+        <Button :to="`/projects/${route.params.username}/events`">
+          <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
+          <span>Back to events</span>
+        </Button>
       </div>
     </div>
 
@@ -210,6 +205,43 @@ const eventTabs = computed(() => {
       label: "Reservations",
       icon: "hugeicons:calendar-02",
       to: `${eventBase.value}/reservations`,
+    });
+  }
+
+  // Tickets tab is gated on the read permission ONLY (not on tickets_enabled):
+  // the enable toggle lives inside the Settings sub-tab, so the tab must stay
+  // reachable to turn the feature on.
+  if (hasPermission("tickets.read")) {
+    tabs.push({ label: "Tickets", icon: "hugeicons:ticket-01", to: `${eventBase.value}/tickets` });
+  }
+
+  if (hasPermission("access_codes.read")) {
+    tabs.push({
+      label: "Access Codes",
+      icon: "hugeicons:ticket-star",
+      to: `${eventBase.value}/access-codes`,
+    });
+  }
+
+  if (hasPermission("attendees.read")) {
+    tabs.push({
+      label: "Attendees",
+      icon: "hugeicons:user-multiple-02",
+      to: `${eventBase.value}/attendees`,
+      notFor: [`${eventBase.value}/attendees/analytics`],
+    });
+    tabs.push({
+      label: "Analytics",
+      icon: "hugeicons:chart-line-data-02",
+      to: `${eventBase.value}/attendees/analytics`,
+    });
+  }
+
+  if (hasPermission("event_custom_fields.read")) {
+    tabs.push({
+      label: "Business Matching",
+      icon: "hugeicons:agreement-02",
+      to: `${eventBase.value}/business-matching`,
     });
   }
 

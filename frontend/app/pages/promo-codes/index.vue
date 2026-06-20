@@ -130,18 +130,7 @@
           class="h-full"
         >
           <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-              >
-                {{ selectedRows.length }}
-              </span>
-            </button>
+            <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -181,6 +170,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { TableBulkAction } from "@/components/ui/table-data";
 import { PopoverClose } from "reka-ui";
 import { toast } from "vue-sonner";
 

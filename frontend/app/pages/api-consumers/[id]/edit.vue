@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen-offset mx-auto flex max-w-2xl flex-col space-y-6 pt-6 pb-20">
     <div class="flex items-center justify-between gap-2">
-      <ButtonBack destination="/api-consumers" />
+      <ButtonBack destination="/api-consumers" force-destination />
     </div>
 
     <LoadingState v-if="pending" label="Loading API consumer.." />

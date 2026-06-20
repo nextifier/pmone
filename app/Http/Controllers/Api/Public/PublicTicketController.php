@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Http\Controllers\Api\Public;
+
+use App\Enums\Ticketing\TicketVisibility;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PublicTicket\PreviewTicketCartRequest;
+use App\Http\Resources\EventCustomFieldResource;
+use App\Http\Resources\PublicTicketResource;
+use App\Models\Event;
+use App\Models\User;
+use App\Services\Ticket\TicketPurchaseService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+
+class PublicTicketController extends Controller
+{
+    public function __construct(protected TicketPurchaseService $purchases) {}
+
+    /**
+     * List the on-sale tickets (entry + add-on, first-party + external) for an
+     * event website. The middleware already enforces tickets_enabled. Content is
+     * localized via `?locale=`; `meta.terms` carries the staff-managed purchase
+     * terms for this locale so the checkout can show them without an extra call.
+     */
+    public function index(Request $request, string $eventSlug): JsonResponse
+    {
+        $event = Event::query()->where('slug', $eventSlug)->firstOrFail();
+        $locale = $this->applyLocale($request);
+
+        // Hidden tickets are NEVER served through this (response-cached) listing —
+        // they are revealed only by the uncached validate-access-code endpoint, so
+        // a cached page can't leak one buyer's unlocked view to another (§8).
+        // `code_required` tickets are listed but flagged `locked` in the resource.
+        $tickets = $event->tickets()
+            ->where('is_active', true)
+            ->where('visibility', '!=', TicketVisibility::Hidden->value)
+            ->with(['media', 'pricePhases', 'sessions', 'validDays'])
+            ->orderBy('order_column')
+            ->get();
+
+        return response()->json([
+            'data' => PublicTicketResource::collection($tickets),
+            'meta' => [
+                'terms' => $this->localizedTerms($event, $locale),
+            ],
+        ]);
+    }
+
+    /**
+     * Active business-matching fields for an event, so the checkout form can
+     * render the conditional questions when the buyer opts in. Labels localized
+     * via `?locale=`.
+     */
+    public function customFields(Request $request, string $eventSlug): JsonResponse
+    {
+        $event = Event::query()->where('slug', $eventSlug)->firstOrFail();
+        $this->applyLocale($request);
+
+        // No Business Matching program for this event -> no questions at checkout.
+        $fields = $event->business_matching_enabled
+            ? $event->eventCustomFields()->where('is_active', true)->orderBy('order_column')->get()
+            : collect();
+
+        return response()->json([
+            'data' => EventCustomFieldResource::collection($fields),
+        ]);
+    }
+
+    /**
+     * Resolve and apply the request locale (default: app locale) for translatable
+     * resources, returning the resolved locale string.
+     */
+    protected function applyLocale(Request $request): string
+    {
+        $locale = (string) $request->input('locale', config('app.locale', 'en'));
+        App::setLocale($locale);
+
+        return $locale;
+    }
+
+    /**
+     * Localize the staff-managed purchase terms stored as {locale: html} in
+     * event.settings.tickets.terms (English fallback). Returns null when unset.
+     */
+    protected function localizedTerms(Event $event, string $locale): ?string
+    {
+        $terms = $event->settings['tickets']['terms'] ?? null;
+
+        if (is_array($terms)) {
+            return $terms[$locale] ?? $terms['en'] ?? null;
+        }
+
+        return is_string($terms) && $terms !== '' ? $terms : null;
+    }
+
+    public function preview(PreviewTicketCartRequest $request): JsonResponse
+    {
+        $event = Event::findOrFail($request->integer('event_id'));
+
+        $preview = $this->purchases->previewCart(
+            $event,
+            $request->input('items', []),
+            $request->input('promo_code'),
+            $request->input('email'),
+            $request->input('access_code'),
+            $request->input('phone'),
+        );
+
+        return response()->json(['data' => $preview]);
+    }
+
+    /**
+     * Email-first lookup: returns ONLY whether an account exists, never any PII,
+     * so the frontend can offer login before autofilling another person's data.
+     */
+    public function emailLookup(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $exists = User::query()->where('email', $validated['email'])->exists();
+
+        return response()->json(['data' => ['exists' => $exists]]);
+    }
+}

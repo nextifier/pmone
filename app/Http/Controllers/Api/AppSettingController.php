@@ -31,6 +31,10 @@ class AppSettingController extends Controller
             'description' => ['nullable', 'string', 'max:5000'],
             'tmp_logo' => ['nullable', 'string', 'starts_with:tmp-'],
             'delete_logo' => ['nullable', 'boolean'],
+            'tmp_success' => ['nullable', 'string', 'starts_with:tmp-'],
+            'tmp_failed' => ['nullable', 'string', 'starts_with:tmp-'],
+            'delete_success' => ['nullable', 'boolean'],
+            'delete_failed' => ['nullable', 'boolean'],
         ]);
 
         $value = $request->input('value');
@@ -49,6 +53,25 @@ class AppSettingController extends Controller
             if ($tmp = $request->input('tmp_logo')) {
                 $this->moveTempToMediaCollection($setting, $tmp, 'branding_logo');
                 $value['logo_url'] = $setting->getFirstMediaUrl('branding_logo');
+            }
+        }
+
+        if ($key === 'scan_sounds') {
+            $setting = AppSetting::firstOrCreate(
+                ['key' => 'scan_sounds'],
+                ['value' => $value, 'description' => $request->input('description')]
+            );
+
+            foreach (['success' => 'scan_success_sound', 'failed' => 'scan_failed_sound'] as $field => $collection) {
+                if ($request->boolean("delete_{$field}")) {
+                    $setting->clearMediaCollection($collection);
+                    $value["{$field}_url"] = null;
+                }
+
+                if ($tmp = $request->input("tmp_{$field}")) {
+                    $this->moveTempToMediaCollection($setting, $tmp, $collection);
+                    $value["{$field}_url"] = $setting->getFirstMediaUrl($collection);
+                }
             }
         }
 

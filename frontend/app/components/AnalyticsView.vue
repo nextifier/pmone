@@ -17,7 +17,7 @@
             embedded ? 'justify-end' : 'justify-between',
           ]"
         >
-          <ButtonBack v-if="!embedded" :destination="backDestination" />
+          <ButtonBack v-if="!embedded" :destination="backDestination" :force-destination="!!backDestination" />
 
           <div class="flex items-center gap-x-2">
             <button

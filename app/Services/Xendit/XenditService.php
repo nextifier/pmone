@@ -376,6 +376,51 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
     }
 
     /**
+     * Provider-agnostic invoice creation for any product (not just hotel
+     * reservations). Mirrors createInvoice() but takes scalar params so the
+     * ticketing flow can reuse the same gateway client without coupling the
+     * Reservation-typed methods. Additive — does not change existing call sites.
+     *
+     * @param  array{given_names?: string|null, email?: string|null, mobile_number?: string|null}  $customer
+     * @return array{invoice_id: string, invoice_url: string}
+     */
+    public function createGenericInvoice(
+        string $externalId,
+        float $amount,
+        string $description,
+        array $customer = [],
+        ?string $successUrl = null,
+        ?string $failureUrl = null,
+    ): array {
+        $this->requireGateway();
+        $api = new InvoiceApi($this->httpClient());
+
+        $payload = new CreateInvoiceRequest([
+            'external_id' => $externalId,
+            'amount' => $amount,
+            'description' => $description,
+            'invoice_duration' => config('xendit.invoice_duration'),
+            'currency' => $this->resolveCurrency(),
+            'customer' => [
+                'given_names' => $customer['given_names'] ?? null,
+                'email' => $customer['email'] ?? null,
+                'mobile_number' => $customer['mobile_number'] ?? null,
+            ],
+            'success_redirect_url' => $successUrl ?? config('xendit.success_redirect_url'),
+            'failure_redirect_url' => $failureUrl ?? config('xendit.failure_redirect_url'),
+        ]);
+
+        $invoice = $api->createInvoice($payload);
+
+        $this->touchGatewayUsage();
+
+        return [
+            'invoice_id' => $invoice->getId(),
+            'invoice_url' => $invoice->getInvoiceUrl(),
+        ];
+    }
+
+    /**
      * Create a payment for a reservation using whichever checkout method the
      * bound gateway is configured for (see ProjectPaymentGateway::$checkout_method).
      *

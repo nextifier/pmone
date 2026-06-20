@@ -115,20 +115,16 @@
           </ClientOnly>
         </div>
 
-        <!-- Action Buttons -->
+        <!-- Action Buttons (bulk actions live in the floating pill below) -->
         <div
           v-if="
             hasActiveFilters ||
             (showRefreshButton && !displayOnly) ||
             (showAddButton && !displayOnly) ||
-            $slots['add-button'] ||
-            $slots.actions
+            $slots['add-button']
           "
           class="flex h-8 w-full items-center justify-between gap-1 sm:gap-x-2"
         >
-          <!-- Actions Slot (for bulk actions like delete) -->
-          <slot name="actions" :table="table" :selected-rows="table.getSelectedRowModel().rows" />
-
           <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
             <!-- Clear Filters Button -->
             <Button
@@ -174,6 +170,48 @@
           </div>
         </div>
       </div>
+
+      <!-- Floating bulk-action pill — rendered for every page that provides an
+           #actions slot. Teleported so it floats above the page; reveals when
+           rows are selected (transitions-dev: panel reveal + badge pop). -->
+      <ClientOnly>
+        <Teleport to="body">
+          <Transition
+            enter-active-class="transition-[transform,opacity,filter] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            enter-from-class="translate-y-4 opacity-0 blur-[2px]"
+            leave-active-class="transition-[transform,opacity,filter] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            leave-to-class="translate-y-4 opacity-0 blur-[2px]"
+          >
+            <div
+              v-if="floatingActions && selectedRowsCount > 0 && $slots.actions"
+              class="fixed bottom-4 left-1/2 z-40 w-fit max-w-[calc(100vw-1.5rem)] -translate-x-1/2 sm:bottom-6"
+            >
+              <!-- Static circle; only the value animates on change (NumberFlow),
+                   so the circle itself never re-pops. -->
+              <span
+                class="bg-foreground text-background border-background absolute -top-2 -right-1 z-10 inline-flex size-6 items-center justify-center rounded-full border-2 text-xs font-medium tracking-tight tabular-nums shadow-sm"
+              >
+                <NumberFlow :value="selectedRowsCount" />
+              </span>
+
+              <div
+                ref="pillEl"
+                class="t-resize bg-foreground text-background flex items-center rounded-full p-1 shadow-lg"
+              >
+                <div class="no-scrollbar scroll-fade-x overflow-x-auto">
+                  <div class="flex w-max items-center gap-x-0.5 px-0.5">
+                    <slot
+                      name="actions"
+                      :table="table"
+                      :selected-rows="table.getSelectedRowModel().rows"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </Teleport>
+      </ClientOnly>
 
       <!-- Table -->
       <div class="frame">
@@ -540,6 +578,12 @@ const props = defineProps({
     type: Array,
     default: () => [{ id: "created_at", desc: true }],
   },
+  // Renders the #actions slot inside the floating bottom pill. On by default so
+  // every table page gets the pill; set false to keep actions inline.
+  floatingActions: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits([
@@ -778,6 +822,91 @@ const currentPageSizeDisplay = computed(() => {
   const isAllSelected = pageSize > maxPageSizeOption;
   return isAllSelected ? "All" : `${pageSize}`;
 });
+
+// Smoothly tween the floating pill's width when its action content changes
+// width (e.g. a button label swaps "Mark as checked in" ↔ "Mark as not
+// checked in"). CSS can't transition intrinsic (auto) widths, so we FLIP:
+// lock the old px width, force a reflow, then animate to the new px width.
+// The `.t-resize` class supplies the transition timing (transitions-dev 01).
+const pillEl = ref(null);
+let pillObserver = null;
+let lastPillWidth = 0;
+let pillAnimating = false;
+let pillResetTimer = null;
+
+const prefersReducedMotion = () =>
+  import.meta.client &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+const teardownPillObserver = () => {
+  if (pillObserver) {
+    pillObserver.disconnect();
+    pillObserver = null;
+  }
+  if (pillResetTimer) {
+    clearTimeout(pillResetTimer);
+    pillResetTimer = null;
+  }
+  lastPillWidth = 0;
+  pillAnimating = false;
+};
+
+const setupPillObserver = (el) => {
+  lastPillWidth = 0;
+  pillObserver = new ResizeObserver(() => {
+    // Ignore the resize events caused by our own inline-width writes.
+    if (pillAnimating) {
+      return;
+    }
+    const newWidth = el.offsetWidth;
+    if (!newWidth) {
+      return;
+    }
+    // First measurement after the pill appears — record the baseline only;
+    // the entrance itself is handled by the panel-reveal transition.
+    if (lastPillWidth === 0 || newWidth === lastPillWidth) {
+      lastPillWidth = newWidth;
+      return;
+    }
+    const fromWidth = lastPillWidth;
+    lastPillWidth = newWidth;
+    if (prefersReducedMotion()) {
+      return;
+    }
+    pillAnimating = true;
+    el.style.width = `${fromWidth}px`;
+    void el.offsetWidth; // force reflow so the next assignment transitions
+    el.style.width = `${newWidth}px`;
+    const finish = () => {
+      el.style.width = "";
+      pillAnimating = false;
+      el.removeEventListener("transitionend", onTransitionEnd);
+      if (pillResetTimer) {
+        clearTimeout(pillResetTimer);
+        pillResetTimer = null;
+      }
+    };
+    const onTransitionEnd = (event) => {
+      if (event.propertyName === "width") {
+        finish();
+      }
+    };
+    el.addEventListener("transitionend", onTransitionEnd);
+    pillResetTimer = setTimeout(finish, 450); // fallback if transitionend misfires
+  });
+  pillObserver.observe(el);
+};
+
+watch(pillEl, (el, prevEl) => {
+  if (prevEl) {
+    teardownPillObserver();
+  }
+  if (el) {
+    setupPillObserver(el);
+  }
+});
+
+onBeforeUnmount(teardownPillObserver);
 
 // Method to reset row selection
 const resetRowSelection = () => {

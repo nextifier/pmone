@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AccessCodeController;
 use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AllotmentController;
 use App\Http\Controllers\Api\AnalyticsController;
@@ -14,13 +15,19 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EventAttendeeAnalyticsController;
+use App\Http\Controllers\Api\EventAttendeeController;
 use App\Http\Controllers\Api\EventConjunctionController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\EventCustomFieldController;
+use App\Http\Controllers\Api\EventDayController;
 use App\Http\Controllers\Api\EventDocumentController;
 use App\Http\Controllers\Api\EventProductCategoryController;
 use App\Http\Controllers\Api\EventProductController;
+use App\Http\Controllers\Api\EventTicketSettingsController;
 use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\ExhibitorDashboardController;
+use App\Http\Controllers\Api\ExhibitorLeadController;
 use App\Http\Controllers\Api\FaqController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\FormFieldController;
@@ -37,6 +44,7 @@ use App\Http\Controllers\Api\LinkPageController;
 use App\Http\Controllers\Api\LinkPageItemController;
 use App\Http\Controllers\Api\LogController;
 use App\Http\Controllers\Api\MediaCoverageController;
+use App\Http\Controllers\Api\MyTicketsController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderAdjustmentController;
 use App\Http\Controllers\Api\OrderController;
@@ -61,10 +69,14 @@ use App\Http\Controllers\Api\ProjectCustomFieldController;
 use App\Http\Controllers\Api\ProjectPaymentGatewayController;
 use App\Http\Controllers\Api\PromoCodeController;
 use App\Http\Controllers\Api\PromotionRuleController;
+use App\Http\Controllers\Api\Public\PublicAccessCodeController;
+use App\Http\Controllers\Api\Public\PublicAttendeeController;
 use App\Http\Controllers\Api\Public\PublicBannerController;
 use App\Http\Controllers\Api\Public\PublicHotelController;
 use App\Http\Controllers\Api\Public\PublicPromoCodeController;
 use App\Http\Controllers\Api\Public\PublicReservationController;
+use App\Http\Controllers\Api\Public\PublicTicketController;
+use App\Http\Controllers\Api\Public\PublicTicketOrderController;
 use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
@@ -75,6 +87,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\RolesPermissionsSyncController;
 use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RundownItemController;
+use App\Http\Controllers\Api\ScanController;
 use App\Http\Controllers\Api\Shaders\ShapeSdfController;
 use App\Http\Controllers\Api\SheetsController;
 use App\Http\Controllers\Api\ShortLinkController;
@@ -82,6 +95,9 @@ use App\Http\Controllers\Api\SyncPermissionsController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TemporaryUploadController;
+use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\TicketPricePhaseController;
+use App\Http\Controllers\Api\TicketSessionController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
@@ -542,6 +558,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/available', [EventConjunctionController::class, 'available'])->name('event-conjunctions.available');
         Route::post('/', [EventConjunctionController::class, 'store'])->name('event-conjunctions.store');
         Route::post('/reorder', [EventConjunctionController::class, 'reorder'])->name('event-conjunctions.reorder');
+        Route::put('/cross-scan', [EventConjunctionController::class, 'setCrossScan'])->name('event-conjunctions.cross-scan');
         Route::delete('/{conjunctionEventId}', [EventConjunctionController::class, 'destroy'])->name('event-conjunctions.destroy');
     });
 
@@ -1161,6 +1178,174 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
     });
 });
 
+// Per-event ticket settings — NOT toggle-gated, since this is where the
+// `tickets_enabled` flag is read and flipped (gating it would be circular).
+Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group(function () {
+    Route::get('ticket-settings', [EventTicketSettingsController::class, 'show'])
+        ->middleware('can:events.read')
+        ->name('events.ticket-settings.show');
+    Route::put('ticket-settings', [EventTicketSettingsController::class, 'update'])
+        ->middleware('can:events.update')
+        ->name('events.ticket-settings.update');
+});
+
+// Ticketing management endpoints (nested under event, authenticated + verified + toggle-gated)
+Route::middleware(['auth:sanctum', 'verified', 'tickets-enabled'])->prefix('events/{event}')->group(function () {
+    // Event days
+    Route::prefix('event-days')->group(function () {
+        Route::get('/', [EventDayController::class, 'index'])
+            ->middleware('can:event_days.read')->name('events.event-days.index');
+        Route::post('/', [EventDayController::class, 'store'])
+            ->middleware('can:event_days.create')->name('events.event-days.store');
+        Route::post('/reorder', [EventDayController::class, 'reorder'])
+            ->middleware('can:event_days.update')->name('events.event-days.reorder');
+        Route::post('/sync', [EventDayController::class, 'sync'])
+            ->middleware('can:event_days.create')->name('events.event-days.sync');
+        Route::post('/active', [EventDayController::class, 'setActive'])
+            ->middleware('can:event_days.update')->name('events.event-days.set-active');
+        Route::get('/{eventDay}', [EventDayController::class, 'show'])
+            ->scopeBindings()->middleware('can:event_days.read')->name('events.event-days.show');
+        Route::put('/{eventDay}', [EventDayController::class, 'update'])
+            ->scopeBindings()->middleware('can:event_days.update')->name('events.event-days.update');
+        Route::delete('/{eventDay}', [EventDayController::class, 'destroy'])
+            ->scopeBindings()->middleware('can:event_days.delete')->name('events.event-days.destroy');
+    });
+
+    // Tickets CRUD (event-scoped)
+    Route::prefix('tickets')->group(function () {
+        Route::get('/', [TicketController::class, 'index'])
+            ->middleware('can:tickets.read')->name('events.tickets.index');
+        Route::post('/', [TicketController::class, 'store'])
+            ->middleware('can:tickets.create')->name('events.tickets.store');
+        Route::post('/reorder', [TicketController::class, 'reorder'])
+            ->middleware('can:tickets.update')->name('events.tickets.reorder');
+
+        // Bulk generate complimentary tickets (admin) + batch progress/export.
+        Route::post('/bulk-generate', [TicketController::class, 'bulkGenerate'])
+            ->middleware('can:tickets.bulk_generate')->name('events.tickets.bulk-generate');
+        Route::get('/batches/{ticketOrder}/status', [TicketController::class, 'batchStatus'])
+            ->middleware('can:tickets.bulk_generate')->name('events.tickets.batches.status');
+        Route::get('/batches/{ticketOrder}/export', [TicketController::class, 'exportBatch'])
+            ->middleware('can:tickets.bulk_generate')->name('events.tickets.batches.export');
+
+        Route::get('/{ticket}', [TicketController::class, 'show'])
+            ->scopeBindings()->middleware('can:tickets.read')->name('events.tickets.show');
+        Route::put('/{ticket}', [TicketController::class, 'update'])
+            ->scopeBindings()->middleware('can:tickets.update')->name('events.tickets.update');
+        Route::delete('/{ticket}', [TicketController::class, 'destroy'])
+            ->scopeBindings()->middleware('can:tickets.delete')->name('events.tickets.destroy');
+
+        // Nested price phases — scopeBindings resolves {pricePhase} against {ticket}.
+        Route::prefix('/{ticket}/price-phases')->scopeBindings()->group(function () {
+            Route::get('/', [TicketPricePhaseController::class, 'index'])
+                ->middleware('can:ticket_price_phases.read')->name('events.tickets.price-phases.index');
+            Route::post('/', [TicketPricePhaseController::class, 'store'])
+                ->middleware('can:ticket_price_phases.create')->name('events.tickets.price-phases.store');
+            Route::post('/reorder', [TicketPricePhaseController::class, 'reorder'])
+                ->middleware('can:ticket_price_phases.update')->name('events.tickets.price-phases.reorder');
+            Route::get('/{pricePhase}', [TicketPricePhaseController::class, 'show'])
+                ->middleware('can:ticket_price_phases.read')->name('events.tickets.price-phases.show');
+            Route::put('/{pricePhase}', [TicketPricePhaseController::class, 'update'])
+                ->middleware('can:ticket_price_phases.update')->name('events.tickets.price-phases.update');
+            Route::delete('/{pricePhase}', [TicketPricePhaseController::class, 'destroy'])
+                ->middleware('can:ticket_price_phases.delete')->name('events.tickets.price-phases.destroy');
+        });
+
+        // Nested sessions (add-on tickets) — scopeBindings resolves {session} against {ticket}.
+        Route::prefix('/{ticket}/sessions')->scopeBindings()->group(function () {
+            Route::get('/', [TicketSessionController::class, 'index'])
+                ->middleware('can:ticket_sessions.read')->name('events.tickets.sessions.index');
+            Route::post('/', [TicketSessionController::class, 'store'])
+                ->middleware('can:ticket_sessions.create')->name('events.tickets.sessions.store');
+            Route::post('/reorder', [TicketSessionController::class, 'reorder'])
+                ->middleware('can:ticket_sessions.update')->name('events.tickets.sessions.reorder');
+            Route::get('/{session}', [TicketSessionController::class, 'show'])
+                ->middleware('can:ticket_sessions.read')->name('events.tickets.sessions.show');
+            Route::put('/{session}', [TicketSessionController::class, 'update'])
+                ->middleware('can:ticket_sessions.update')->name('events.tickets.sessions.update');
+            Route::delete('/{session}', [TicketSessionController::class, 'destroy'])
+                ->middleware('can:ticket_sessions.delete')->name('events.tickets.sessions.destroy');
+        });
+    });
+
+    // Access codes (event-scoped). store = generate a batch of codes.
+    Route::prefix('access-codes')->scopeBindings()->group(function () {
+        Route::get('/', [AccessCodeController::class, 'index'])
+            ->middleware('can:access_codes.read')->name('events.access-codes.index');
+        Route::post('/', [AccessCodeController::class, 'store'])
+            ->middleware('can:access_codes.generate')->name('events.access-codes.store');
+        Route::get('/export', [AccessCodeController::class, 'export'])
+            ->middleware('can:access_codes.export')->name('events.access-codes.export');
+        Route::get('/{accessCode}', [AccessCodeController::class, 'show'])
+            ->middleware('can:access_codes.read')->name('events.access-codes.show');
+        Route::put('/{accessCode}', [AccessCodeController::class, 'update'])
+            ->middleware('can:access_codes.update')->name('events.access-codes.update');
+        Route::delete('/{accessCode}', [AccessCodeController::class, 'destroy'])
+            ->middleware('can:access_codes.delete')->name('events.access-codes.destroy');
+        Route::post('/{accessCode}/revoke', [AccessCodeController::class, 'revoke'])
+            ->middleware('can:access_codes.revoke')->name('events.access-codes.revoke');
+        Route::get('/{accessCode}/redemptions', [AccessCodeController::class, 'redemptions'])
+            ->middleware('can:access_codes.read')->name('events.access-codes.redemptions');
+        Route::post('/{accessCode}/send-invite', [AccessCodeController::class, 'sendInvite'])
+            ->middleware('can:access_codes.send_invites')->name('events.access-codes.send-invite');
+    });
+});
+
+// Scanner / redeem endpoints (scanner, staff, admin, master via scan.check_in).
+Route::middleware(['auth:sanctum', 'verified', 'tickets-enabled', 'can:scan.check_in'])
+    ->prefix('events/{event}/scan')->group(function () {
+        Route::get('/context', [ScanController::class, 'context'])->name('events.scan.context');
+        Route::post('/check-in', [ScanController::class, 'checkIn'])->name('events.scan.check-in');
+        Route::get('/search', [ScanController::class, 'search'])->name('events.scan.search');
+        Route::post('/manual-check-in', [ScanController::class, 'manualCheckIn'])->name('events.scan.manual-check-in');
+        Route::get('/manifest', [ScanController::class, 'manifest'])->name('events.scan.manifest');
+        Route::post('/sync', [ScanController::class, 'sync'])->name('events.scan.sync');
+    });
+
+// Business-matching field builder (admin, event-scoped).
+Route::middleware(['auth:sanctum', 'verified', 'tickets-enabled'])->prefix('events/{event}/custom-fields')->group(function () {
+    Route::get('/', [EventCustomFieldController::class, 'index'])->middleware('can:event_custom_fields.read')->name('events.custom-fields.index');
+    Route::post('/', [EventCustomFieldController::class, 'store'])->middleware('can:event_custom_fields.create')->name('events.custom-fields.store');
+    Route::post('/reorder', [EventCustomFieldController::class, 'reorder'])->middleware('can:event_custom_fields.update')->name('events.custom-fields.reorder');
+    Route::get('/{customField}', [EventCustomFieldController::class, 'show'])->scopeBindings()->middleware('can:event_custom_fields.read')->name('events.custom-fields.show');
+    Route::put('/{customField}', [EventCustomFieldController::class, 'update'])->scopeBindings()->middleware('can:event_custom_fields.update')->name('events.custom-fields.update');
+    Route::delete('/{customField}', [EventCustomFieldController::class, 'destroy'])->scopeBindings()->middleware('can:event_custom_fields.delete')->name('events.custom-fields.destroy');
+});
+
+// Staff attendee management (list + edit + soft-delete/trash/export; mirrors reservations).
+Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/attendees')->group(function () {
+    Route::get('/', [EventAttendeeController::class, 'index'])->middleware('can:attendees.read')->name('events.attendees.index');
+    Route::get('/export', [EventAttendeeController::class, 'export'])->middleware('can:attendees.export')->name('events.attendees.export');
+    Route::get('/analytics/summary', [EventAttendeeAnalyticsController::class, 'summary'])->middleware('can:attendees.read')->name('events.attendees.analytics.summary');
+    Route::get('/analytics', [EventAttendeeAnalyticsController::class, 'detail'])->middleware('can:attendees.read')->name('events.attendees.analytics.detail');
+    Route::delete('/bulk', [EventAttendeeController::class, 'bulkDestroy'])->middleware('can:attendees.delete')->name('events.attendees.bulk-destroy');
+    Route::post('/bulk-check-in', [EventAttendeeController::class, 'bulkCheckIn'])->middleware('can:attendees.update')->name('events.attendees.bulk-check-in');
+    Route::post('/bulk-resend-eticket', [EventAttendeeController::class, 'bulkResendETicket'])->middleware('can:attendees.update')->name('events.attendees.bulk-resend-eticket');
+    Route::get('/trash', [EventAttendeeController::class, 'trash'])->middleware('can:attendees.delete')->name('events.attendees.trash');
+    Route::post('/trash/restore/bulk', [EventAttendeeController::class, 'bulkRestore'])->middleware('can:attendees.delete')->name('events.attendees.bulk-restore');
+    Route::post('/trash/{id}/restore', [EventAttendeeController::class, 'restore'])->middleware('can:attendees.delete')->name('events.attendees.restore');
+    Route::delete('/trash/bulk', [EventAttendeeController::class, 'bulkForceDestroy'])->middleware('can:attendees.delete')->name('events.attendees.bulk-force-destroy');
+    Route::delete('/trash/{id}', [EventAttendeeController::class, 'forceDestroy'])->middleware('can:attendees.delete')->name('events.attendees.force-destroy');
+    Route::post('/{attendee}/resend-eticket', [EventAttendeeController::class, 'resendETicket'])->middleware('can:attendees.update')->name('events.attendees.resend-eticket');
+    Route::patch('/{attendee}', [EventAttendeeController::class, 'update'])->middleware('can:attendees.update')->name('events.attendees.update');
+    Route::delete('/{attendee}', [EventAttendeeController::class, 'destroy'])->middleware('can:attendees.delete')->name('events.attendees.destroy');
+});
+
+// Per-order ticket documents (invoice / receipt PDF) used by the Attendees table.
+Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/ticket-orders')->group(function () {
+    Route::get('/{order}/invoice.pdf', [EventAttendeeController::class, 'invoicePdf'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.invoice-pdf');
+    Route::get('/{order}/receipt.pdf', [EventAttendeeController::class, 'receiptPdf'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.receipt-pdf');
+});
+
+// Exhibitor leads (own brand only; data isolation enforced in the controller).
+Route::middleware(['auth:sanctum', 'verified'])->prefix('exhibitor/brands/{brand}')->group(function () {
+    Route::post('/leads/scan', [ExhibitorLeadController::class, 'scan'])->name('exhibitor.leads.scan');
+    Route::get('/leads', [ExhibitorLeadController::class, 'index'])->name('exhibitor.leads.index');
+    Route::get('/leads/analytics', [ExhibitorLeadController::class, 'analytics'])->name('exhibitor.leads.analytics');
+    Route::get('/leads/context', [ExhibitorLeadController::class, 'context'])->name('exhibitor.leads.context');
+    Route::get('/leads/export', [ExhibitorLeadController::class, 'export'])->name('exhibitor.leads.export');
+});
+
 // App Settings + Event Branding (root-level, authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // App Settings (branding global)
@@ -1349,6 +1534,51 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
 
     Route::post('/promo-codes/validate', [PublicPromoCodeController::class, 'validate'])
         ->middleware('throttle:30,1');
+
+    // ── Tickets (event websites) ──────────────────────────────────────────
+    Route::get('/events/{eventSlug}/tickets', [PublicTicketController::class, 'index'])
+        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+    Route::get('/events/{eventSlug}/custom-fields', [PublicTicketController::class, 'customFields'])
+        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+    Route::post('/tickets/preview', [PublicTicketController::class, 'preview'])
+        ->middleware(['throttle:60,1', 'tickets-enabled']);
+    // Uncached + throttled: the ONLY way a hidden ticket is revealed (anti brute-force).
+    Route::post('/tickets/validate-access-code', [PublicAccessCodeController::class, 'validate'])
+        ->middleware(['throttle:access-code', 'tickets-enabled']);
+    Route::post('/tickets/email-lookup', [PublicTicketController::class, 'emailLookup'])
+        ->middleware('throttle:30,1');
+    Route::post('/ticket-orders', [PublicTicketOrderController::class, 'store'])
+        ->middleware(['throttle:10,1', 'tickets-enabled']);
+    Route::get('/ticket-orders/{ulid}', [PublicTicketOrderController::class, 'show'])
+        ->middleware('throttle:30,1');
+    Route::get('/ticket-orders/magic/{token}', [PublicTicketOrderController::class, 'showByMagicLink'])
+        ->middleware('throttle:30,1');
+    Route::get('/ticket-orders/magic/{token}/invoice.pdf', [PublicTicketOrderController::class, 'invoicePdfByMagicLink'])
+        ->middleware('throttle:30,1')
+        ->name('public.ticket-orders.invoice-pdf');
+    Route::get('/ticket-orders/magic/{token}/receipt.pdf', [PublicTicketOrderController::class, 'receiptPdfByMagicLink'])
+        ->middleware('throttle:30,1')
+        ->name('public.ticket-orders.receipt-pdf');
+
+    // E-ticket per attendee (shareable; ulid is the access key).
+    Route::get('/attendees/{ulid}', [PublicAttendeeController::class, 'show'])
+        ->middleware('throttle:60,1');
+    Route::patch('/attendees/{ulid}', [PublicAttendeeController::class, 'personalize'])
+        ->middleware('throttle:30,1');
+    Route::post('/attendees/{ulid}/dashboard-link', [PublicAttendeeController::class, 'dashboardLink'])
+        ->middleware('throttle:10,1')
+        ->name('public.attendees.dashboard-link');
+});
+
+// Visitor dashboard (authenticated buyer/holder).
+Route::middleware(['auth:sanctum', 'verified'])->prefix('my')->group(function () {
+    Route::get('/ticket-orders', [MyTicketsController::class, 'orders'])->name('my.ticket-orders');
+    Route::get('/tickets', [MyTicketsController::class, 'tickets'])->name('my.tickets');
+    Route::patch('/attendees/{ulid}', [MyTicketsController::class, 'updateAttendee'])->name('my.attendees.update');
+    Route::get('/ticket-profile', [MyTicketsController::class, 'profile'])->name('my.ticket-profile.show');
+    Route::patch('/ticket-profile', [MyTicketsController::class, 'updateProfile'])->name('my.ticket-profile.update');
+    Route::get('/events/{event}/field-responses', [MyTicketsController::class, 'fieldResponses'])->name('my.field-responses.show');
+    Route::put('/events/{event}/field-responses', [MyTicketsController::class, 'saveFieldResponses'])->name('my.field-responses.save');
 });
 
 // Magic-link document downloads — opened directly from reservation emails in
@@ -1362,6 +1592,14 @@ Route::prefix('public')->group(function () {
         ->middleware('throttle:30,1');
     Route::get('/reservations/magic/{token}/voucher', [PublicReservationController::class, 'voucherByMagicLink'])
         ->middleware('throttle:30,1');
+
+    // QR code embedded directly in the attendee e-ticket email as a plain <img>.
+    // The email client fetches it without an API key, so it sits outside the
+    // api.key group; the unguessable opaque ulid (plus throttle) is the access
+    // key, same trade-off as the shareable e-ticket page.
+    Route::get('/attendees/{ulid}/qr.png', [PublicAttendeeController::class, 'qrImage'])
+        ->middleware('throttle:120,1')
+        ->name('public.attendees.qr-image');
 });
 
 // Xendit webhook (no auth - signature verified inside the controller).

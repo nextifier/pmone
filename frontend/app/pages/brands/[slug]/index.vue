@@ -4,36 +4,29 @@
     <div class="flex items-center gap-x-3">
       <NuxtLink
         to="/brands"
-        class="text-muted-foreground hover:text-foreground flex size-8 items-center justify-center rounded-lg transition"
+        aria-label="Back to brands"
+        class="text-muted-foreground hover:bg-muted hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors active:scale-98"
       >
         <Icon name="hugeicons:arrow-left-01" class="size-5" />
       </NuxtLink>
       <div class="min-w-0 flex-1">
-        <h2 class="truncate text-lg font-medium tracking-tight">
+        <h2 class="truncate text-lg font-medium tracking-tighter">
           {{ brand?.name || "Brand" }}
         </h2>
         <p v-if="brand?.company_name" class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
           {{ brand.company_name }}
         </p>
       </div>
-      <div class="flex items-center gap-x-1.5">
-        <NuxtLink
-          v-if="canViewAnalytics"
-          :to="`/brands/${route.params.slug}/analytics`"
-          class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-        >
-          <Icon name="hugeicons:analytics-02" class="size-4" />
+      <div class="flex shrink-0 items-center gap-x-1.5">
+        <Button v-if="canViewAnalytics" :to="`/brands/${route.params.slug}/analytics`" variant="outline" size="sm">
+          <Icon name="hugeicons:analytics-02" class="size-4 shrink-0" />
           Analytics
-        </NuxtLink>
+        </Button>
 
-        <NuxtLink
-          v-if="canEditBrand"
-          :to="`/brands/${route.params.slug}/edit`"
-          class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-        >
-          <Icon name="hugeicons:edit-02" class="size-4" />
+        <Button v-if="canEditBrand" :to="`/brands/${route.params.slug}/edit`" variant="outline" size="sm">
+          <Icon name="hugeicons:edit-02" class="size-4 shrink-0" />
           {{ $t('common.edit') }}
-        </NuxtLink>
+        </Button>
       </div>
     </div>
 
@@ -98,10 +91,10 @@
                 <span
                   v-if="brand.status"
                   :class="[
-                    'shrink-0 rounded-full px-1.5 py-0.5 text-xs leading-none font-medium tracking-tight',
+                    'shrink-0 rounded-full border px-2 py-0.5 text-xs leading-none font-medium tracking-tight capitalize',
                     brand.status === 'active'
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-muted text-muted-foreground',
+                      ? 'bg-success/10 text-success-foreground border-success/20'
+                      : 'bg-muted text-muted-foreground border-transparent',
                   ]"
                 >
                   {{ brand.status }}
@@ -130,7 +123,7 @@
 
       <!-- Events -->
       <div class="space-y-3">
-        <h3 class="text-sm font-medium tracking-tight sm:text-base">{{ $t('brands.events') }}</h3>
+        <h3 class="font-medium tracking-tight">{{ $t('brands.events') }}</h3>
 
         <div v-if="events.length" class="space-y-2">
           <div
@@ -170,63 +163,58 @@
 
             <!-- Quick Links -->
             <div class="mt-3 flex flex-wrap gap-2">
-              <NuxtLink
-                :to="`/brands/${route.params.slug}/documents/${ev.id}`"
-                class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium tracking-tight transition active:scale-98"
-              >
-                <Icon name="hugeicons:file-01" class="size-3.5" />
+              <Button :to="`/brands/${route.params.slug}/documents/${ev.id}`" variant="outline" size="sm">
+                <Icon name="hugeicons:file-01" class="size-4 shrink-0" />
                 Documents
-              </NuxtLink>
-              <NuxtLink
-                :to="`/brands/${route.params.slug}/order-form/${ev.id}`"
-                class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium tracking-tight transition active:scale-98"
-              >
-                <Icon name="hugeicons:shopping-cart-01" class="size-3.5" />
+              </Button>
+              <Button :to="`/brands/${route.params.slug}/order-form/${ev.id}`" variant="outline" size="sm">
+                <Icon name="hugeicons:shopping-cart-01" class="size-4 shrink-0" />
                 {{ $t('brands.orderForm') }}
-              </NuxtLink>
-              <NuxtLink
-                :to="`/brands/${route.params.slug}/orders/${ev.id}`"
-                class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium tracking-tight transition active:scale-98"
-              >
-                <Icon name="hugeicons:shopping-bag-01" class="size-3.5" />
+              </Button>
+              <Button :to="`/brands/${route.params.slug}/orders/${ev.id}`" variant="outline" size="sm">
+                <Icon name="hugeicons:shopping-bag-01" class="size-4 shrink-0" />
                 {{ $t('brands.myOrders') }}
-              </NuxtLink>
-              <NuxtLink
-                :to="`/brands/${route.params.slug}/promotion-posts/${ev.id}`"
-                class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium tracking-tight transition active:scale-98"
-              >
-                <Icon name="hugeicons:image-02" class="size-3.5" />
+              </Button>
+              <Button :to="`/brands/${route.params.slug}/promotion-posts/${ev.id}`" variant="outline" size="sm">
+                <Icon name="hugeicons:image-02" class="size-4 shrink-0" />
                 {{ $t('brands.promotionPosts') }}
-                <span class="bg-muted text-muted-foreground rounded-full px-1.5 py-0.5 text-xs tracking-tight">
+                <span class="bg-muted text-muted-foreground -mr-1 rounded-full px-1.5 py-0.5 text-xs tabular-nums tracking-tight">
                   {{ ev.promotion_posts_count }}
                 </span>
-              </NuxtLink>
+              </Button>
+              <Button :to="`/brands/${route.params.slug}/leads/${ev.id}`" variant="outline" size="sm">
+                <Icon name="hugeicons:agreement-02" class="size-4 shrink-0" />
+                Leads
+              </Button>
             </div>
           </div>
         </div>
 
-        <div
-          v-else
-          class="border-border flex flex-col items-center gap-2 rounded-xl border px-4 py-8"
-        >
-          <div class="bg-muted flex size-10 items-center justify-center rounded-full">
-            <Icon name="hugeicons:calendar-03" class="text-muted-foreground size-5" />
-          </div>
-          <p class="text-muted-foreground text-sm">{{ $t('brands.noEventsYet') }}</p>
-        </div>
+        <Empty v-else class="border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Icon name="hugeicons:calendar-03" />
+            </EmptyMedia>
+            <EmptyTitle>{{ $t('brands.noEventsYet') }}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       </div>
     </template>
 
     <!-- Not Found -->
-    <div v-else class="flex flex-col items-center justify-center gap-3 py-20">
-      <div class="bg-muted flex size-14 items-center justify-center rounded-full">
-        <Icon name="hugeicons:store-02" class="text-muted-foreground size-7" />
-      </div>
-      <p class="text-muted-foreground text-sm">{{ $t('brands.notFound') }}</p>
-      <NuxtLink to="/dashboard" class="text-primary text-sm hover:underline">
-        {{ $t('brands.backToDashboard') }}
-      </NuxtLink>
-    </div>
+    <Empty v-else class="border-dashed">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Icon name="hugeicons:store-02" />
+        </EmptyMedia>
+        <EmptyTitle>{{ $t('brands.notFound') }}</EmptyTitle>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button to="/dashboard" variant="outline" size="sm">
+          {{ $t('brands.backToDashboard') }}
+        </Button>
+      </EmptyContent>
+    </Empty>
   </div>
 </template>
 

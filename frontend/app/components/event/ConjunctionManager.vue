@@ -2,15 +2,11 @@
   <div class="frame">
     <div class="frame-header">
       <div class="frame-title flex items-center justify-between">
-        <span>Conjunction Events</span>
-        <button
-          type="button"
-          @click="addDialogOpen = true"
-          class="border-border hover:bg-muted text-foreground flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm font-medium tracking-tight active:scale-98"
-        >
+        <span>Conjunction events</span>
+        <Button type="button" variant="outline" size="sm" @click="addDialogOpen = true">
           <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
           <span>Add</span>
-        </button>
+        </Button>
       </div>
     </div>
     <div class="frame-panel">
@@ -47,22 +43,48 @@
           </div>
 
           <div class="min-w-0 flex-1">
-            <span class="text-sm font-medium tracking-tight">{{ item.title }}</span>
+            <p class="truncate text-sm font-medium tracking-tight">{{ item.title }}</p>
             <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
               {{ eventSubtitle(item) }}
             </p>
           </div>
 
-          <button
+          <Button
             type="button"
-            @click="handleRemove(item.id)"
+            variant="ghost"
+            size="iconSm"
+            v-tippy="'Remove conjunction'"
+            aria-label="Remove conjunction"
             :disabled="removeLoading === item.id"
-            class="text-muted-foreground hover:text-destructive rounded p-1 transition"
+            class="text-muted-foreground hover:text-destructive shrink-0"
+            @click="handleRemove(item.id)"
           >
-            <Spinner v-if="removeLoading === item.id" class="size-3.5" />
-            <Icon v-else name="lucide:trash-2" class="size-3.5" />
-          </button>
+            <Spinner v-if="removeLoading === item.id" class="size-4" />
+            <Icon v-else name="hugeicons:delete-02" class="size-4" />
+          </Button>
         </div>
+      </div>
+
+      <!-- Cross-event scan & redeem (tickets) -->
+      <div
+        v-if="conjunctions?.length"
+        class="mt-3 flex items-start justify-between gap-3 border-t pt-3"
+      >
+        <div class="min-w-0 space-y-1">
+          <Label for="conjunction-cross-scan" class="cursor-pointer text-sm font-medium tracking-tight">
+            Allow cross-event scan & redeem
+          </Label>
+          <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            When on, a ticket from any event in this in-conjunction set can be scanned and redeemed
+            at the others, sharing one entry gate.
+          </p>
+        </div>
+        <Switch
+          id="conjunction-cross-scan"
+          :model-value="allowCrossScan"
+          :disabled="crossScanSaving"
+          @update:model-value="handleCrossScanToggle"
+        />
       </div>
     </div>
   </div>
@@ -71,9 +93,9 @@
   <DialogResponsive v-model:open="addDialogOpen">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5">
-        <div class="text-primary text-lg font-semibold tracking-tight">Add Conjunction Event</div>
-        <p class="text-body mt-1.5 text-sm tracking-tight">
-          Select an event that runs at the same time and venue. This will be added bidirectionally.
+        <h3 class="text-lg font-semibold tracking-tighter">Add conjunction event</h3>
+        <p class="text-muted-foreground mt-1 text-sm tracking-tight">
+          Select an event that runs at the same time and venue. It will be linked in both directions.
         </p>
 
         <div v-if="availableLoading" class="mt-4 flex justify-center py-6">
@@ -136,6 +158,8 @@ const addDialogOpen = ref(false);
 const addLoading = ref(false);
 const availableEvents = ref([]);
 const availableLoading = ref(false);
+const allowCrossScan = ref(false);
+const crossScanSaving = ref(false);
 
 const apiBase = computed(
   () => `/api/projects/${route.params.username}/events/${route.params.eventSlug}/conjunctions`,
@@ -150,10 +174,30 @@ async function fetchConjunctions() {
   try {
     const res = await client(apiBase.value);
     conjunctions.value = res.data;
+    allowCrossScan.value = !!res.allow_cross_scan;
   } catch {
     toast.error("Failed to load conjunction events");
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleCrossScanToggle(next) {
+  if (crossScanSaving.value) return;
+  const previous = allowCrossScan.value;
+  allowCrossScan.value = next;
+  crossScanSaving.value = true;
+  try {
+    await client(`${apiBase.value}/cross-scan`, {
+      method: "PUT",
+      body: { allow_cross_scan: next },
+    });
+    toast.success(next ? "Cross-event scan enabled" : "Cross-event scan disabled");
+  } catch (error) {
+    allowCrossScan.value = previous;
+    toast.error(error.response?._data?.message || "Failed to update cross-event scan");
+  } finally {
+    crossScanSaving.value = false;
   }
 }
 

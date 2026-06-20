@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-2xl space-y-6 py-6">
     <div class="flex items-center gap-x-3">
-      <ButtonBack destination="/partners" :show-label="true" />
+      <ButtonBack destination="/partners" :show-label="true" force-destination />
     </div>
 
     <!-- Loading -->

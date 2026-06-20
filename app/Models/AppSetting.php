@@ -148,6 +148,14 @@ class AppSetting extends Model implements HasMedia
         $this->addMediaCollection('branding_logo')
             ->singleFile()
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']);
+
+        foreach (['scan_success_sound', 'scan_failed_sound'] as $soundCollection) {
+            $this->addMediaCollection($soundCollection)
+                ->singleFile()
+                ->acceptsMimeTypes([
+                    'audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/webm',
+                ]);
+        }
     }
 
     public function creator(): BelongsTo

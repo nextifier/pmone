@@ -97,15 +97,9 @@
         <!-- Bulk Status Dropdown -->
         <DropdownMenu v-if="selectedRows.length > 0 && event?.can_edit">
           <DropdownMenuTrigger asChild>
-            <button
-              :disabled="bulkUpdating"
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Spinner v-if="bulkUpdating" class="size-4 shrink-0" />
-              <Icon v-else name="hugeicons:task-edit-01" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Status</span>
+            <TableBulkAction icon="hugeicons:task-edit-01" label="Status" :loading="bulkUpdating">
               <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
-            </button>
+            </TableBulkAction>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" class="w-40">
             <DropdownMenuItem
@@ -124,15 +118,9 @@
         <!-- Bulk Payment Dropdown -->
         <DropdownMenu v-if="selectedRows.length > 0 && event?.can_edit">
           <DropdownMenuTrigger asChild>
-            <button
-              :disabled="bulkUpdating"
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Spinner v-if="bulkUpdating" class="size-4 shrink-0" />
-              <Icon v-else name="hugeicons:invoice-03" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Payment</span>
+            <TableBulkAction icon="hugeicons:invoice-03" label="Payment" :loading="bulkUpdating">
               <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
-            </button>
+            </TableBulkAction>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" class="w-40">
             <DropdownMenuItem
@@ -155,18 +143,7 @@
           class="h-full"
         >
           <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-              >
-                {{ selectedRows.length }}
-              </span>
-            </button>
+            <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -239,7 +216,7 @@
 <script setup>
 import FilterSection from "@/components/inbox/FilterSection.vue";
 import OrderStatusDropdown from "@/components/order/StatusDropdown.vue";
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,

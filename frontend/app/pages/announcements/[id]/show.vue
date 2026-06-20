@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-2xl space-y-6 pt-4 pb-16">
     <div class="flex flex-wrap items-start justify-between gap-x-2.5 gap-y-4">
       <div class="flex flex-col items-start gap-y-4">
-        <ButtonBack destination="/announcements" />
+        <ButtonBack destination="/announcements" force-destination />
 
         <div class="flex items-center gap-x-2.5">
           <Icon name="hugeicons:notification-02" class="size-5 shrink-0 sm:size-6" />

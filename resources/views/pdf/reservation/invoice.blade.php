@@ -1,4 +1,4 @@
-@extends('pdf.reservation._layout', ['title' => $invoiceNumber])
+@extends('pdf._layout', ['title' => $invoiceNumber])
 
 @section('content')
 {{-- ─── Header: Logo + Company Info + INVOICE ─── --}}

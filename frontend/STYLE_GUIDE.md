@@ -334,13 +334,34 @@ Padding default `p-6 md:p-12`. Container icon `bg-muted size-12 rounded-full`. B
 
 ## 16. Badge
 
-- Variant: `default`, `secondary`, `outline`, `destructive`.
-- Status custom pakai class langsung dengan CSS variable, bukan literal:
-  - Success: `bg-success/10 text-success-foreground border border-success/20`.
-  - Warning: `bg-warning/10 text-warning-foreground border border-warning/20`.
-  - Info: `bg-info/10 text-info-foreground border border-info/20`.
-  - Destructive: `bg-destructive/10 text-destructive border border-destructive/20`.
-- Padding kecil: `px-2 py-0.5 text-xs`. Padding standar: `px-2.5 py-1 text-xs`.
+**WAJIB DIPATUHI: setiap elemen berbentuk badge / pill / chip / tag / status WAJIB memakai komponen `<Badge>`. JANGAN PERNAH membuat `<span>` atau `<div>` dengan class pill manual** (mis. `rounded-full`/`rounded-md` + `px-* py-*` + `bg-*` + `text-xs`). Ini kesalahan yang SANGAT SERING terjadi - sebelum menulis pill manual, selalu cek dulu apakah cukup pakai `<Badge>` (hampir selalu cukup).
+
+Import: `import { Badge } from "@/components/ui/badge";`
+
+Props:
+
+- `variant`: `default` | `info` | `success` | `warning` | `destructive` | `muted` | `outline`. Pilih sesuai makna status; pakai token semantik, jangan warna literal.
+- `icon`: nama icon **hugeicons** untuk custom icon, mis. `icon="hugeicons:checkmark-circle-02"`. **Selalu hugeicons** (nama valid; cek dulu kalau ragu).
+- `withIcon`: pakai icon default bawaan variant.
+- `plain`: hanya teks, tanpa dot/icon.
+- Tanpa `icon`/`plain` -> otomatis muncul colored dot sesuai variant.
+
+Contoh benar:
+
+```vue
+<Badge variant="success" icon="hugeicons:checkmark-circle-02">Checked in</Badge>
+<Badge variant="info">Entry</Badge>            <!-- dot otomatis -->
+<Badge variant="muted" plain>Draft</Badge>
+<Badge variant="warning" plain>3/100</Badge>   <!-- count chip -->
+```
+
+Contoh SALAH (pill manual - jangan):
+
+```vue
+<span class="bg-success/10 text-success-foreground rounded-full border px-2 py-0.5 text-xs">Active</span>
+```
+
+Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon="hugeicons:..."`).
 
 ---
 

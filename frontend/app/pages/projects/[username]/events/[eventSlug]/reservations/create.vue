@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 pb-16">
     <div class="flex flex-col items-start gap-y-4">
-      <ButtonBack :destination="`${eventBase}/reservations`" />
+      <ButtonBack :destination="`${eventBase}/reservations`" force-destination />
       <div class="flex items-center gap-x-2.5">
         <Icon name="hugeicons:calendar-add-02" class="size-5 sm:size-6" />
         <h1 class="page-title">Create Manual Reservation</h1>

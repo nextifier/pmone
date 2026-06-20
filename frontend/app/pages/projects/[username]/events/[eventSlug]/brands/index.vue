@@ -163,12 +163,14 @@
           <!-- Bulk Status Update -->
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" :disabled="bulkStatusUpdating">
-                <Spinner v-if="bulkStatusUpdating" class="size-4 shrink-0" />
-                <Icon v-else name="hugeicons:task-edit-01" class="size-4 shrink-0" />
-                Status
-                <Icon name="lucide:chevron-down" class="size-3 opacity-60" />
-              </Button>
+              <TableBulkAction
+                icon="hugeicons:task-edit-01"
+                label="Status"
+                :loading="bulkStatusUpdating"
+                :disabled="bulkStatusUpdating"
+              >
+                <Icon name="lucide:chevron-down" class="size-3 shrink-0 opacity-60" />
+              </TableBulkAction>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" class="w-40">
               <DropdownMenuItem
@@ -187,15 +189,7 @@
           <!-- Remove from event -->
           <DialogResponsive v-model:open="removeDialogOpen">
             <template #trigger="{ open }">
-              <Button variant="outline" size="sm" @click="open()">
-                <Icon name="hugeicons:unlink-02" class="size-4 shrink-0" />
-                Remove from event
-                <span
-                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-                >
-                  {{ selectedRows.length }}
-                </span>
-              </Button>
+              <TableBulkAction icon="hugeicons:unlink-02" label="Remove from event" @click="open()" />
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -229,15 +223,12 @@
           <!-- Delete permanently -->
           <DialogResponsive v-if="canDeletePermanently" v-model:open="permanentDeleteDialogOpen">
             <template #trigger="{ open }">
-              <Button variant="outline" size="sm" @click="open()">
-                <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-                Delete permanently
-                <span
-                  class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-                >
-                  {{ selectedRows.length }}
-                </span>
-              </Button>
+              <TableBulkAction
+                icon="hugeicons:delete-01"
+                label="Delete permanently"
+                destructive
+                @click="open()"
+              />
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -308,7 +299,7 @@
 import BrandEventStatusDropdown from "@/components/brand/EventStatusDropdown.vue";
 import BrandImportDialog from "@/components/brand/EventBrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import {

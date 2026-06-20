@@ -49,7 +49,7 @@
           activeClass="*:bg-muted"
         >
           <SidebarMenuButton :tooltip="item.label">
-            <Icon v-if="item.iconName" :name="item.iconName" class="!size-4.5 shrink-0" />
+            <Icon v-if="item.iconName" :name="item.iconName" class="size-4.5! shrink-0" />
             <span>{{ item.label }}</span>
 
             <span
@@ -75,8 +75,15 @@ const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value
 
 const isWriter = computed(() => hasRole("writer") && !isStaffOrAbove.value);
 
+const isScanner = computed(() => hasRole("scanner") && !isStaffOrAbove.value);
+
 const isDefaultUser = computed(
-  () => hasRole("user") && !isStaffOrAbove.value && !hasRole("exhibitor") && !hasRole("writer")
+  () =>
+    hasRole("user") &&
+    !isStaffOrAbove.value &&
+    !hasRole("exhibitor") &&
+    !hasRole("writer") &&
+    !hasRole("scanner")
 );
 
 const navMainGroups = computed(() => {
@@ -100,6 +107,33 @@ const navMainGroups = computed(() => {
             label: "Web Analytics",
             path: "/web-analytics",
             iconName: "hugeicons:analysis-text-link",
+          },
+          {
+            label: t("nav.settings"),
+            path: "/settings",
+            iconName: "hugeicons:settings-01",
+            isActive: false,
+            items: [
+              { label: t("nav.profile"), path: "/settings/profile" },
+              { label: t("nav.password"), path: "/settings/password" },
+              { label: t("nav.appearance"), path: "/settings/appearance" },
+            ],
+          },
+        ],
+      },
+    ];
+  }
+
+  // Scanner - restricted to the check-in scanner (freelancer / daily worker)
+  if (isScanner.value) {
+    return [
+      {
+        label: "Scanner",
+        items: [
+          {
+            label: "Scan",
+            path: "/scan",
+            iconName: "hugeicons:qr-code",
           },
           {
             label: t("nav.settings"),
@@ -453,6 +487,10 @@ const navMainGroups = computed(() => {
     settingsItems.push({
       label: "Branding",
       path: "/settings/branding",
+    });
+    settingsItems.push({
+      label: "Scanner Sounds",
+      path: "/settings/scanner-sounds",
     });
   }
   if (hasPermission("admin.settings")) {

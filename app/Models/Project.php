@@ -513,6 +513,17 @@ class Project extends Model implements HasMedia, Sortable
             ->orderBy('order');
     }
 
+    /**
+     * The project's public website URL, resolved from its "Website" link.
+     * Returns null when no website link is configured.
+     */
+    public function websiteUrl(): ?string
+    {
+        return $this->links
+            ->first(fn ($link) => strtolower((string) $link->label) === 'website')
+            ?->url;
+    }
+
     public function visits(): MorphMany
     {
         return $this->morphMany(Visit::class, 'visitable');

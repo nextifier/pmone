@@ -354,6 +354,11 @@ class Brand extends Model implements HasMedia, Sortable
         return $this->hasMany(BrandEvent::class)->ordered();
     }
 
+    public function exhibitorLeads(): HasMany
+    {
+        return $this->hasMany(ExhibitorLead::class);
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'brand_user')

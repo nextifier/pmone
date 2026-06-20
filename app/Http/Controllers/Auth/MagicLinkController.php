@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
@@ -55,16 +56,23 @@ class MagicLinkController extends Controller
 
     public function loginWithMagicLink(Request $request, string $token): RedirectResponse
     {
-        $magicLink = MagicLink::findByToken($token);
+        // Atomically consume the token under a row lock so two concurrent
+        // requests cannot both pass the validity check before it is marked used.
+        $magicLink = DB::transaction(function () use ($token, $request) {
+            $ml = MagicLink::query()->where('token', $token)->lockForUpdate()->first();
+
+            if (! $ml || ! $ml->isValid()) {
+                return null;
+            }
+
+            $ml->markAsUsed($request->ip(), $request->userAgent());
+
+            return $ml;
+        });
 
         if (! $magicLink) {
             return redirect()->to(config('app.frontend_url').'/login')
-                ->withErrors(['magic_link' => 'Invalid magic link.']);
-        }
-
-        if (! $magicLink->isValid()) {
-            return redirect()->to(config('app.frontend_url').'/login')
-                ->withErrors(['magic_link' => 'Magic link has expired or already been used.']);
+                ->withErrors(['magic_link' => 'This magic link is invalid, expired, or has already been used.']);
         }
 
         // Find or create user
@@ -76,20 +84,12 @@ class MagicLinkController extends Controller
                 ->withErrors(['magic_link' => 'Account is deactivated. Please contact support.']);
         }
 
-        // Mark magic link as used
-        $magicLink->markAsUsed($request->ip(), $request->userAgent());
-
-        // Mark user as logged in
+        // Mark user as logged in (the link was already consumed atomically above)
         $user->markAsLoggedIn($request->ip());
 
         // Verify email if not already verified
         if (! $user->email_verified_at) {
             $user->markEmailAsVerified();
-
-            // Check if user email domain is @panoramamedia.co.id and only has user role
-            if (str_ends_with($user->email, '@panoramamedia.co.id') && $user->hasRole('user') && $user->roles->count() === 1) {
-                $user->syncRoles(['staff']);
-            }
         }
 
         // Login the user (for web session)
@@ -104,8 +104,25 @@ class MagicLinkController extends Controller
             ])
             ->log('User logged in via magic link');
 
-        // Redirect to frontend dashboard
-        return redirect()->to(config('app.frontend_url').'/dashboard');
+        // Redirect into the frontend. Honor an explicit, same-origin relative
+        // ?redirect= path (e.g. the e-ticket "Go to dashboard" sends ticket
+        // holders straight to /account/tickets); default to /dashboard.
+        return redirect()->to(config('app.frontend_url').$this->safeRedirectPath($request));
+    }
+
+    /**
+     * Resolve a safe post-login redirect path, rejecting open-redirect attempts
+     * (only same-origin relative paths with a single leading slash are allowed).
+     */
+    private function safeRedirectPath(Request $request): string
+    {
+        $redirect = (string) $request->query('redirect', '/dashboard');
+
+        if (! str_starts_with($redirect, '/') || str_starts_with($redirect, '//') || str_contains($redirect, '\\')) {
+            return '/dashboard';
+        }
+
+        return $redirect;
     }
 
     private function findOrCreateUser(string $email): User
@@ -119,14 +136,11 @@ class MagicLinkController extends Controller
                 'email_verified_at' => now(),
             ]);
 
-            // Assign default role if method exists
+            // Assign the default visitor role. Staff/admin roles are never granted
+            // automatically here - they are assigned by an admin (UserController),
+            // seeder, or import. Magic-link login must not escalate privileges.
             if (method_exists($user, 'assignRole')) {
                 $user->assignRole('user');
-
-                // Check if user email domain is @panoramamedia.co.id and assign staff role
-                if (str_ends_with($user->email, '@panoramamedia.co.id')) {
-                    $user->syncRoles(['staff']);
-                }
             }
         }
 

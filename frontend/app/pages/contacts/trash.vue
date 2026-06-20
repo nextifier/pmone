@@ -108,18 +108,7 @@
           class="h-full"
         >
           <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="hugeicons:undo-02" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Restore</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-              >
-                {{ selectedRows.length }}
-              </span>
-            </button>
+            <TableBulkAction icon="hugeicons:undo-02" label="Restore" @click="open()" />
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -155,18 +144,12 @@
           class="h-full"
         >
           <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
+            <TableBulkAction
+              icon="hugeicons:delete-01"
+              label="Delete Permanently"
+              destructive
               @click="open()"
-            >
-              <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete Permanently</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-[0.625rem] font-medium"
-              >
-                {{ selectedRows.length }}
-              </span>
-            </button>
+            />
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
@@ -259,7 +242,7 @@
 <script setup>
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
 import ContactTrashRowActions from "@/components/contact/TrashRowActions.vue";
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import FilterSection from "@/components/user/FilterSection.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

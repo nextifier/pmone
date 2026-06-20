@@ -23,7 +23,7 @@
     </div>
 
     <div v-else class="space-y-6">
-      <ButtonBack destination="/hotels" />
+      <ButtonBack destination="/hotels" force-destination />
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-1">
           <h1 class="page-title">Booking {{ reservation.reservation_number }}</h1>

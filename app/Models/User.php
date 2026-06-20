@@ -66,45 +66,46 @@ use Spatie\Permission\Traits\HasRoles;
  * @property array<array-key, mixed>|null $custom_fields
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, \App\Models\Task> $assignedTasks
+ * @property-read Collection<int, Task> $assignedTasks
  * @property-read int|null $assigned_tasks_count
- * @property-read Collection<int, \App\Models\Brand> $brands
+ * @property-read Collection<int, Brand> $brands
  * @property-read int|null $brands_count
- * @property-read Collection<int, \App\Models\Post> $createdPosts
+ * @property-read Collection<int, Post> $createdPosts
  * @property-read int|null $created_posts_count
- * @property-read Collection<int, \App\Models\Task> $createdTasks
+ * @property-read Collection<int, Task> $createdTasks
  * @property-read int|null $created_tasks_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
- * @property-read Collection<int, \App\Models\Link> $links
+ * @property-read Collection<int, Link> $links
  * @property-read int|null $links_count
- * @property-read Collection<int, \App\Models\MagicLink> $magicLinks
+ * @property-read Collection<int, MagicLink> $magicLinks
  * @property-read int|null $magic_links_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
- * @property-read Collection<int, \App\Models\OAuthProvider> $oauthProviders
+ * @property-read Collection<int, OAuthProvider> $oauthProviders
  * @property-read int|null $oauth_providers_count
  * @property-read Collection<int, Permission> $permissions
  * @property-read int|null $permissions_count
- * @property-read Collection<int, \App\Models\Post> $posts
+ * @property-read Collection<int, Post> $posts
  * @property-read int|null $posts_count
- * @property-read Collection<int, \App\Models\Project> $projects
+ * @property-read Collection<int, Project> $projects
  * @property-read int|null $projects_count
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
- * @property-read Collection<int, \App\Models\ShortLink> $shortLinks
+ * @property-read Collection<int, ShortLink> $shortLinks
  * @property-read int|null $short_links_count
- * @property-read Collection<int, \App\Models\Task> $tasks
+ * @property-read Collection<int, Task> $tasks
  * @property-read int|null $tasks_count
  * @property-read Collection<int, PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @property-read User|null $updater
- * @property-read Collection<int, \App\Models\Visit> $visits
+ * @property-read Collection<int, Visit> $visits
  * @property-read int|null $visits_count
- * @property-read Collection<int, \App\Models\Visit> $visitsMade
+ * @property-read Collection<int, Visit> $visitsMade
  * @property-read int|null $visits_made_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User byStatus(string $status)
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
@@ -150,6 +151,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, $guard = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements HasMedia, MustVerifyEmail
@@ -188,6 +190,11 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'last_seen',
         'email_verified_at',
         'company_name',
+        'country',
+        'city',
+        'profession',
+        'position',
+        'business_matching_opt_in',
         'encrypted_password',
         'custom_fields',
     ];
@@ -219,6 +226,7 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'two_factor_confirmed_at' => 'datetime',
         'password' => 'hashed',
         'custom_fields' => 'array',
+        'business_matching_opt_in' => 'boolean',
     ];
 
     /**
@@ -586,5 +594,36 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function deleter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    public function claimedAttendees(): HasMany
+    {
+        return $this->hasMany(Attendee::class, 'claimed_by_user_id');
+    }
+
+    public function fieldResponses(): HasMany
+    {
+        return $this->hasMany(FieldResponse::class);
+    }
+
+    /**
+     * Birth year derived from `birth_date` (no separate column).
+     */
+    public function getBirthYearAttribute(): ?int
+    {
+        return $this->birth_date?->year;
+    }
+
+    /**
+     * Percentage (0-100) of optional profile fields that are filled. Drives the
+     * dashboard progress meter; computed, not stored.
+     */
+    public function getProfileCompletenessAttribute(): int
+    {
+        $fields = ['gender', 'birth_date', 'country', 'city', 'company_name', 'profession', 'position'];
+
+        $filled = collect($fields)->filter(fn (string $field) => filled($this->getAttribute($field)))->count();
+
+        return (int) round($filled / count($fields) * 100);
     }
 }

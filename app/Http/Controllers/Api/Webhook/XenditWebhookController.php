@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api\Webhook;
 
 use App\Enums\ReservationStatus;
+use App\Enums\Ticketing\TicketOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Reservation;
+use App\Models\TicketOrder;
 use App\Services\Payment\PaymentGatewayResolver;
 use App\Services\Reservation\ReservationService;
+use App\Services\Ticket\TicketPurchaseService;
 use App\Services\Xendit\XenditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +22,7 @@ class XenditWebhookController extends Controller
     public function __construct(
         protected ReservationService $reservations,
         protected PaymentGatewayResolver $resolver,
+        protected TicketPurchaseService $tickets,
     ) {}
 
     /**
@@ -161,7 +165,15 @@ class XenditWebhookController extends Controller
             ->where('reservation_number', $externalId)
             ->first();
 
-        return $reservation?->event?->project;
+        if ($reservation) {
+            return $reservation->event?->project;
+        }
+
+        // Ticketing reuses the same per-project gateway + webhook URL; ticket
+        // order numbers (TIX-) never collide with reservation numbers (HTL-).
+        $order = TicketOrder::query()->where('order_number', $externalId)->first();
+
+        return $order?->event?->project;
     }
 
     /**
@@ -278,6 +290,11 @@ class XenditWebhookController extends Controller
                 ->first();
 
             if (! $reservation) {
+                // Not a reservation — try a ticket order (shared gateway + webhook).
+                if ($ticketResponse = $this->handleTicketInvoiceEvent($externalId, $status, $payload)) {
+                    return $ticketResponse;
+                }
+
                 // Acknowledge with 200 so Xendit does not retry. Common cases:
                 //  - "Test and save" in the dashboard sends a synthetic
                 //    external_id ("invoice_123124123") that will never match.
@@ -344,6 +361,63 @@ class XenditWebhookController extends Controller
 
             return response()->json(['message' => 'Webhook received but no action taken']);
         });
+    }
+
+    /**
+     * Ticket-order counterpart of handleInvoiceEvent. Returns null when no
+     * order matches the external id (so the caller falls through to its own
+     * "not found" acknowledgement); otherwise applies paid/expired and returns
+     * the response. Runs in its own locked transaction.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function handleTicketInvoiceEvent(string $externalId, string $status, array $payload): ?JsonResponse
+    {
+        $order = TicketOrder::query()
+            ->where('order_number', $externalId)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $order) {
+            return null;
+        }
+
+        if ($status === 'paid' || $status === 'settled') {
+            if ($order->status === TicketOrderStatus::Confirmed) {
+                return response()->json(['message' => 'Order already confirmed']);
+            }
+
+            if ($order->status->isFinal()) {
+                return response()->json(['message' => 'Order already in final state'], 409);
+            }
+
+            $this->tickets->markAsConfirmed($order, $payload);
+
+            activity()
+                ->performedOn($order)
+                ->event('payment_paid')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'amount' => $payload['amount'] ?? null,
+                    'invoice_id' => $payload['id'] ?? null,
+                ])
+                ->log('Ticket payment received via Xendit');
+
+            return response()->json(['message' => 'Ticket order confirmed']);
+        }
+
+        if ($status === 'expired') {
+            if ($order->status !== TicketOrderStatus::PendingPayment) {
+                return response()->json(['message' => 'Order not eligible for expiry']);
+            }
+
+            $this->tickets->expireOrder($order);
+
+            return response()->json(['message' => 'Ticket order expired']);
+        }
+
+        return response()->json(['message' => 'Webhook received but no action taken']);
     }
 
     /**

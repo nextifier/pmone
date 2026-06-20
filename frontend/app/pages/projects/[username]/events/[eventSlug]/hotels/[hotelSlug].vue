@@ -15,6 +15,7 @@
       <div class="mb-4">
         <ButtonBack
           :destination="`/projects/${route.params.username}/events/${route.params.eventSlug}/hotels`"
+          force-destination
         />
       </div>
 

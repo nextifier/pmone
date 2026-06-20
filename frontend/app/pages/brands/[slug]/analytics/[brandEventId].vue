@@ -13,7 +13,7 @@
       <template v-else-if="brand">
         <div class="flex flex-col gap-y-6">
           <div class="flex items-center justify-between gap-x-3">
-            <ButtonBack :destination="`/brands/${slug}`" />
+            <ButtonBack :destination="`/brands/${slug}`" force-destination />
 
             <div class="flex items-center gap-x-2">
               <span class="text-muted-foreground text-sm tracking-tight">Edition</span>

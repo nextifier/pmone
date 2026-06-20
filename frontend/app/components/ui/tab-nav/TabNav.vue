@@ -40,6 +40,9 @@ const isActive = (tab) => {
   if (tab.exact) {
     return route.path === tab.to || route.path === `${tab.to}/`;
   }
+  if (tab.notFor?.some((path) => route.path.startsWith(path))) {
+    return false;
+  }
   if (tab.activeFor?.some((path) => route.path.startsWith(path))) {
     return true;
   }

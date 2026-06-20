@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex items-end justify-between gap-x-3">
       <div class="flex flex-col items-start gap-y-6">
-        <ButtonBack destination="/dashboard" />
+        <ButtonBack destination="/dashboard" force-destination />
         <div class="min-w-0 flex-1">
           <h2 class="truncate text-lg font-medium tracking-tight">{{ $t("brands.myOrders") }}</h2>
         </div>

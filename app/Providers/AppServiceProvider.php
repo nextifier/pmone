@@ -60,6 +60,15 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(40)->by($request->ip());
         });
 
+        // Access code validation reveals gated tickets — throttle brute-forcing
+        // per code+IP, with a per-IP hourly ceiling on top.
+        RateLimiter::for('access-code', function (Request $request) {
+            return [
+                Limit::perMinute(10)->by(strtoupper(trim((string) $request->input('code'))).'|'.$request->ip()),
+                Limit::perHour(60)->by($request->ip()),
+            ];
+        });
+
         // Register observers
         ContactFormSubmission::observe(ContactFormSubmissionObserver::class);
         Project::observe(ProjectObserver::class);

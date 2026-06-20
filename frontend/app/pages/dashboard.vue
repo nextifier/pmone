@@ -1,8 +1,11 @@
 <template>
-  <DashboardBasicUser v-if="isDefaultUser" />
-  <DashboardExhibitor v-else-if="isExhibitor" />
-  <DashboardWriter v-else-if="isWriter" :tip-definitions="TIP_DEFINITIONS" />
-  <DashboardStaff v-else :tip-definitions="TIP_DEFINITIONS" />
+  <div v-if="isScannerOnly" />
+  <template v-else>
+    <DashboardBasicUser v-if="isDefaultUser" />
+    <DashboardExhibitor v-else-if="isExhibitor" />
+    <DashboardWriter v-else-if="isWriter" :tip-definitions="TIP_DEFINITIONS" />
+    <DashboardStaff v-else :tip-definitions="TIP_DEFINITIONS" />
+  </template>
 </template>
 
 <script setup>
@@ -21,6 +24,16 @@ const isDefaultUser = computed(
 );
 const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
 const isWriter = computed(() => hasRole("writer") && !isStaffOrAbove.value);
+
+// A scanner-only operator has no use for the admin dashboard - send them
+// straight to the distraction-free check-in scanner.
+const isScannerOnly = computed(() => hasRole("scanner") && !isStaffOrAbove.value);
+
+onMounted(() => {
+  if (isScannerOnly.value) {
+    navigateTo("/scan", { replace: true });
+  }
+});
 
 // Shared tip definitions used by Writer and Staff dashboards
 const TIP_DEFINITIONS = [

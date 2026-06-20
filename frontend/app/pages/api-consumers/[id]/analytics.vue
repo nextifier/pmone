@@ -2,7 +2,7 @@
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
     <div class="flex flex-col gap-y-6">
       <div class="flex items-center justify-between gap-2">
-        <ButtonBack destination="/api-consumers" />
+        <ButtonBack destination="/api-consumers" force-destination />
         <DialogViewRaw :data="analyticsData" />
       </div>
 

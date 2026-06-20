@@ -94,16 +94,16 @@ export interface TsplQrOptions extends LabelOptions {
 // ==========================================================================
 
 // Default
-// const TEXT_X_OFFSET = 0;
-// const TEXT_Y_OFFSET = 0;
-// const QR_X_OFFSET = 0;
-// const QR_Y_OFFSET = 0;
+const TEXT_X_OFFSET = -10;
+const TEXT_Y_OFFSET = 10;
+const QR_X_OFFSET = -10;
+const QR_Y_OFFSET = 10;
 
 // Khusus untuk printer Clabel CT221B (50x50mm) supaya QR Code dan Text perfectly center-aligned
-const TEXT_X_OFFSET = 30;
-const TEXT_Y_OFFSET = 11;
-const QR_X_OFFSET = 22;
-const QR_Y_OFFSET = 11;
+// const TEXT_X_OFFSET = 30;
+// const TEXT_Y_OFFSET = 11;
+// const QR_X_OFFSET = 22;
+// const QR_Y_OFFSET = 11;
 // TSPL font "3" = fixed 16×24 dots per char (mul=1). Kalau native QR
 // menampilkan text dengan width berbeda, tweak nilai ini.
 const FONT_CHAR_WIDTH = 16;

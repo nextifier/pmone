@@ -38,7 +38,7 @@
 
     <template v-else>
       <div class="space-y-5">
-        <ButtonBack destination="/hotels-master" />
+        <ButtonBack destination="/hotels-master" force-destination />
 
         <div class="grid gap-5 lg:grid-cols-[14rem_1fr_14rem] lg:items-start">
           <div class="bg-muted aspect-[4/5] w-full overflow-hidden rounded-xl lg:w-56">

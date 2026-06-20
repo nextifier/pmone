@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl">
     <div class="flex flex-col items-start gap-y-4">
-      <ButtonBack destination="/promotion-rules" />
+      <ButtonBack destination="/promotion-rules" force-destination />
       <div class="flex items-center gap-x-2.5">
         <Icon name="hugeicons:delete-01" class="size-5 sm:size-6" />
         <h1 class="page-title">Trashed Promotion Rules</h1>

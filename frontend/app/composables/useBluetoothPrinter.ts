@@ -251,84 +251,7 @@ export function useBluetoothPrinter() {
       }
       addLog("success", "GATT server connected");
 
-      addLog("info", "Discovering primary services...");
-      const services = await server.getPrimaryServices();
-      addLog("success", `${services.length} service ditemukan`);
-
-      const candidates: DiscoveredCharacteristic[] = [];
-      for (const service of services) {
-        if (EXCLUDED_WRITE_SERVICES.has(service.uuid.toLowerCase())) {
-          addLog(
-            "info",
-            `Skip service ${service.uuid}`,
-            "Bukan UART printer (Generic Access / Device Info), di-exclude dari write target"
-          );
-          continue;
-        }
-        try {
-          const chars = await service.getCharacteristics();
-          const charDescs = chars.map((c) => {
-            const props: string[] = [];
-            if (c.properties.write) props.push("write");
-            if (c.properties.writeWithoutResponse) props.push("writeWithoutResponse");
-            if (c.properties.read) props.push("read");
-            if (c.properties.notify) props.push("notify");
-            if (c.properties.indicate) props.push("indicate");
-            return { uuid: c.uuid, properties: props, characteristic: c };
-          });
-
-          addLog(
-            "info",
-            `Service ${service.uuid}`,
-            charDescs.map((d) => `  └ ${d.uuid} [${d.properties.join(", ") || "no props"}]`).join("\n")
-          );
-
-          for (const cd of charDescs) {
-            if (cd.properties.includes("write") || cd.properties.includes("writeWithoutResponse")) {
-              candidates.push({
-                serviceUuid: service.uuid,
-                characteristicUuid: cd.uuid,
-                properties: cd.properties,
-                characteristic: cd.characteristic,
-              });
-            }
-          }
-        } catch (err) {
-          addLog("warn", `Gagal ambil characteristics dari ${service.uuid}`, String(err));
-        }
-      }
-
-      discoveredChars.value = candidates.map((c) => ({
-        serviceUuid: c.serviceUuid,
-        characteristicUuid: c.characteristicUuid,
-        properties: c.properties,
-      }));
-
-      if (candidates.length === 0) {
-        throw new Error("Tidak ada characteristic writable. Printer mungkin tidak expose service yang dikenali.");
-      }
-
-      const ranked = [...candidates].sort(
-        (a, b) =>
-          scoreCandidate(b.serviceUuid, b.properties) -
-          scoreCandidate(a.serviceUuid, a.properties)
-      );
-      const preferred = ranked[0];
-
-      if (!preferred) {
-        throw new Error("Tidak ada characteristic terpilih");
-      }
-
-      writeChar.value = preferred.characteristic;
-      const preferredScore = scoreCandidate(preferred.serviceUuid, preferred.properties);
-      const isPreferredService = PREFERRED_PRINTER_SERVICES.has(
-        preferred.serviceUuid.toLowerCase()
-      );
-      addLog(
-        "success",
-        `Write characteristic terpilih`,
-        `service=${preferred.serviceUuid}\ncharacteristic=${preferred.characteristicUuid}\nproperties=[${preferred.properties.join(", ")}]\nscore=${preferredScore} (preferred service: ${isPreferredService})`
-      );
+      await discoverWriteChar(server);
 
       status.value = "connected";
     } catch (err) {
@@ -347,6 +270,125 @@ export function useBluetoothPrinter() {
       }
       status.value = device.value?.gatt?.connected ? "connected" : "error";
       cleanup();
+    }
+  }
+
+  /**
+   * Discover printer services on an already-connected GATT server, rank the
+   * writable characteristics, and set `writeChar` to the best candidate.
+   * Shared by the picker `connect()` path and the silent `ensureConnected()`
+   * reconnect path so both end up with a valid write target.
+   */
+  async function discoverWriteChar(server: BluetoothRemoteGATTServer): Promise<void> {
+    addLog("info", "Discovering primary services...");
+    const services = await server.getPrimaryServices();
+    addLog("success", `${services.length} service ditemukan`);
+
+    const candidates: DiscoveredCharacteristic[] = [];
+    for (const service of services) {
+      if (EXCLUDED_WRITE_SERVICES.has(service.uuid.toLowerCase())) {
+        addLog(
+          "info",
+          `Skip service ${service.uuid}`,
+          "Bukan UART printer (Generic Access / Device Info), di-exclude dari write target"
+        );
+        continue;
+      }
+      try {
+        const chars = await service.getCharacteristics();
+        const charDescs = chars.map((c) => {
+          const props: string[] = [];
+          if (c.properties.write) props.push("write");
+          if (c.properties.writeWithoutResponse) props.push("writeWithoutResponse");
+          if (c.properties.read) props.push("read");
+          if (c.properties.notify) props.push("notify");
+          if (c.properties.indicate) props.push("indicate");
+          return { uuid: c.uuid, properties: props, characteristic: c };
+        });
+
+        addLog(
+          "info",
+          `Service ${service.uuid}`,
+          charDescs.map((d) => `  └ ${d.uuid} [${d.properties.join(", ") || "no props"}]`).join("\n")
+        );
+
+        for (const cd of charDescs) {
+          if (cd.properties.includes("write") || cd.properties.includes("writeWithoutResponse")) {
+            candidates.push({
+              serviceUuid: service.uuid,
+              characteristicUuid: cd.uuid,
+              properties: cd.properties,
+              characteristic: cd.characteristic,
+            });
+          }
+        }
+      } catch (err) {
+        addLog("warn", `Gagal ambil characteristics dari ${service.uuid}`, String(err));
+      }
+    }
+
+    discoveredChars.value = candidates.map((c) => ({
+      serviceUuid: c.serviceUuid,
+      characteristicUuid: c.characteristicUuid,
+      properties: c.properties,
+    }));
+
+    if (candidates.length === 0) {
+      throw new Error("Tidak ada characteristic writable. Printer mungkin tidak expose service yang dikenali.");
+    }
+
+    const ranked = [...candidates].sort(
+      (a, b) =>
+        scoreCandidate(b.serviceUuid, b.properties) -
+        scoreCandidate(a.serviceUuid, a.properties)
+    );
+    const preferred = ranked[0];
+
+    if (!preferred) {
+      throw new Error("Tidak ada characteristic terpilih");
+    }
+
+    writeChar.value = preferred.characteristic;
+    const preferredScore = scoreCandidate(preferred.serviceUuid, preferred.properties);
+    const isPreferredService = PREFERRED_PRINTER_SERVICES.has(
+      preferred.serviceUuid.toLowerCase()
+    );
+    addLog(
+      "success",
+      `Write characteristic terpilih`,
+      `service=${preferred.serviceUuid}\ncharacteristic=${preferred.characteristicUuid}\nproperties=[${preferred.properties.join(", ")}]\nscore=${preferredScore} (preferred service: ${isPreferredService})`
+    );
+  }
+
+  /**
+   * Silent reconnect for auto-print. Many cheap BLE label printers drop the
+   * GATT link after each job / idle, which would otherwise silently disable
+   * auto-print on the 2nd+ scan. Reconnecting to an ALREADY-granted device via
+   * `gatt.connect()` does NOT require a user gesture (only `requestDevice` /
+   * the picker does), so this can run on every scan with no UI prompt.
+   *
+   * Returns false when there is no known device yet (the caller must open the
+   * picker via `connect()` from a user gesture first).
+   */
+  async function ensureConnected(): Promise<boolean> {
+    if (status.value === "connected" && writeChar.value && device.value?.gatt?.connected) {
+      return true;
+    }
+    if (!device.value?.gatt) {
+      return false;
+    }
+    try {
+      status.value = "connecting";
+      const server = await device.value.gatt.connect();
+      await discoverWriteChar(server);
+      status.value = "connected";
+      addLog("success", "Auto-reconnect berhasil (tanpa picker)");
+      return true;
+    } catch (err) {
+      addLog("warn", "Auto-reconnect gagal", err instanceof Error ? err.message : String(err));
+      cleanup();
+      status.value = "disconnected";
+      return false;
     }
   }
 
@@ -484,52 +526,63 @@ export function useBluetoothPrinter() {
    * Android: chunk dipersempit ke 20 byte + delay 40ms karena Chrome Android
    * tidak auto-negotiate MTU besar dan stack-nya kurang reliable untuk chunk besar.
    */
+  // Serialize all writes through a single chain: two rapid scans must not
+  // interleave GATT operations on the same characteristic (Web Bluetooth throws
+  // "GATT operation already in progress"). Each call waits for the previous one.
+  let writeLock: Promise<unknown> = Promise.resolve();
+
   async function writeChunked(bytes: Uint8Array, chunkSize = 100, delayMs = 20): Promise<void> {
-    if (!writeChar.value) {
-      addLog("error", "Tidak bisa write - belum ada characteristic terpilih");
-      throw new Error("Not connected");
-    }
+    const run = async (): Promise<void> => {
+      if (!writeChar.value) {
+        addLog("error", "Tidak bisa write - belum ada characteristic terpilih");
+        throw new Error("Not connected");
+      }
 
-    const isAndroid =
-      import.meta.client && /Android/i.test(navigator.userAgent);
-    if (isAndroid) {
-      chunkSize = Math.min(chunkSize, 20);
-      delayMs = Math.max(delayMs, 40);
-    }
+      const isAndroid =
+        import.meta.client && /Android/i.test(navigator.userAgent);
+      if (isAndroid) {
+        chunkSize = Math.min(chunkSize, 20);
+        delayMs = Math.max(delayMs, 40);
+      }
 
-    addLog(
-      "data",
-      `Mengirim ${bytes.length} bytes (chunk ${chunkSize}b, delay ${delayMs}ms)`,
-      `Preview: ${bytesToHexPreview(bytes, 48)}${isAndroid ? "\nPlatform: Android (chunk size & delay disesuaikan)" : ""}`
-    );
+      addLog(
+        "data",
+        `Mengirim ${bytes.length} bytes (chunk ${chunkSize}b, delay ${delayMs}ms)`,
+        `Preview: ${bytesToHexPreview(bytes, 48)}${isAndroid ? "\nPlatform: Android (chunk size & delay disesuaikan)" : ""}`
+      );
 
-    const useWriteWithoutResponse =
-      writeChar.value.properties.writeWithoutResponse;
+      const useWriteWithoutResponse =
+        writeChar.value.properties.writeWithoutResponse;
 
-    let sent = 0;
-    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-      const chunk = bytes.slice(offset, offset + chunkSize);
-      try {
-        if (useWriteWithoutResponse) {
-          await writeChar.value.writeValueWithoutResponse(chunk);
-        } else {
-          await writeChar.value.writeValueWithResponse(chunk);
+      let sent = 0;
+      for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+        const chunk = bytes.slice(offset, offset + chunkSize);
+        try {
+          if (useWriteWithoutResponse) {
+            await writeChar.value.writeValueWithoutResponse(chunk);
+          } else {
+            await writeChar.value.writeValueWithResponse(chunk);
+          }
+          sent += chunk.length;
+        } catch (err) {
+          addLog(
+            "error",
+            `Write gagal pada offset ${offset}`,
+            err instanceof Error ? err.message : String(err)
+          );
+          throw err;
         }
-        sent += chunk.length;
-      } catch (err) {
-        addLog(
-          "error",
-          `Write gagal pada offset ${offset}`,
-          err instanceof Error ? err.message : String(err)
-        );
-        throw err;
+        if (delayMs > 0 && offset + chunkSize < bytes.length) {
+          await new Promise((r) => setTimeout(r, delayMs));
+        }
       }
-      if (delayMs > 0 && offset + chunkSize < bytes.length) {
-        await new Promise((r) => setTimeout(r, delayMs));
-      }
-    }
 
-    addLog("success", `Berhasil mengirim ${sent} bytes`);
+      addLog("success", `Berhasil mengirim ${sent} bytes`);
+    };
+
+    const p = writeLock.then(run, run);
+    writeLock = p.catch(() => {});
+    return p;
   }
 
   return {
@@ -541,6 +594,7 @@ export function useBluetoothPrinter() {
     logs,
     isSupported,
     connect,
+    ensureConnected,
     disconnect,
     writeChunked,
     selectCharacteristic,

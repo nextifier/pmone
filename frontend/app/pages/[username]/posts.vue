@@ -7,7 +7,7 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <ButtonBack destination="/users" />
+        <ButtonBack destination="/users" force-destination />
       </div>
     </div>
 

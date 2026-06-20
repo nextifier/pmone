@@ -249,6 +249,11 @@ function animateCenterValue() {
     return;
   }
 
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+
+  // Tween from the currently displayed value (0 on first reveal) to the new
+  // target so live updates count up smoothly instead of snapping back to 0.
+  const from = animatedCenterValue.value;
   const duration = barStaggerMs * (props.totalBars - 1) + barTransitionMs;
   const start = performance.now();
 
@@ -257,7 +262,7 @@ function animateCenterValue() {
     const t = Math.min(elapsed / duration, 1);
     const eased = 1 - Math.pow(1 - t, 3);
 
-    animatedCenterValue.value = Math.round(targetCenter * eased);
+    animatedCenterValue.value = Math.round(from + (targetCenter - from) * eased);
 
     if (t < 1) {
       animationFrame = requestAnimationFrame(step);
@@ -271,6 +276,14 @@ function reveal() {
   if (props.animateBars) isRevealed.value = true;
   animateCenterValue();
 }
+
+// Keep the center number in sync when the value changes after the initial
+// reveal (e.g. live-updating dashboards). The bars already react via fillRatio.
+watch(resolvedCenterValue, () => {
+  if (isRevealed.value) {
+    animateCenterValue();
+  }
+});
 
 let observer = null;
 

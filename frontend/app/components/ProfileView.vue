@@ -44,7 +44,7 @@
           />
         </div>
 
-        <ButtonBack v-if="showButtonBack" v-slot="{ goBack }" :destination="backDestination">
+        <ButtonBack v-if="showButtonBack" v-slot="{ goBack }" :destination="backDestination" :force-destination="!!backDestination">
           <button
             @click="goBack"
             class="absolute top-2.5 left-2.5 flex size-10 items-center justify-center rounded-full bg-white text-black shadow backdrop-blur-sm transition hover:bg-white/80 active:scale-98"

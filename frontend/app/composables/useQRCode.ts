@@ -78,15 +78,13 @@ export function buildQRSvgString(
       `<rect width="${size}" height="${size}" fill="${bgColor}"/>`
     );
 
-    // Finder patterns (nested squares: 7x7 fg, 5x5 bg, 3x3 fg)
+    // Finder patterns: eye frame as a stroke square (transparent centre) + pupil,
+    // so the QR background can be transparent and still read as a proper frame.
     for (const [r, c] of finderPositions) {
       const x = offset + c * moduleSize;
       const y = offset + r * moduleSize;
       parts.push(
-        `<rect x="${x}" y="${y}" width="${7 * moduleSize}" height="${7 * moduleSize}" fill="${fgColor}"/>`
-      );
-      parts.push(
-        `<rect x="${x + moduleSize}" y="${y + moduleSize}" width="${5 * moduleSize}" height="${5 * moduleSize}" fill="${bgColor}"/>`
+        `<rect x="${x + moduleSize / 2}" y="${y + moduleSize / 2}" width="${6 * moduleSize}" height="${6 * moduleSize}" fill="none" stroke="${fgColor}" stroke-width="${moduleSize}"/>`
       );
       parts.push(
         `<rect x="${x + 2 * moduleSize}" y="${y + 2 * moduleSize}" width="${3 * moduleSize}" height="${3 * moduleSize}" fill="${fgColor}"/>`
@@ -114,22 +112,17 @@ export function buildQRSvgString(
       `<rect width="${size}" height="${size}" fill="${bgColor}" rx="12" ry="12"/>`
     );
 
-    // Finder patterns (circular eye frame + eye ball)
+    // Finder patterns: eye frame as a stroke ring (transparent centre) + pupil,
+    // so the QR background can be transparent and still read as a proper ring.
     for (const [r, c] of finderPositions) {
       const cx = offset + (c + 3.5) * moduleSize;
       const cy = offset + (r + 3.5) * moduleSize;
-      const outerR = 3.5 * moduleSize;
-      const middleR = 2.5 * moduleSize;
-      const innerR = 1.5 * moduleSize;
 
       parts.push(
-        `<circle cx="${cx}" cy="${cy}" r="${outerR}" fill="${fgColor}"/>`
+        `<circle cx="${cx}" cy="${cy}" r="${3 * moduleSize}" fill="none" stroke="${fgColor}" stroke-width="${moduleSize}"/>`
       );
       parts.push(
-        `<circle cx="${cx}" cy="${cy}" r="${middleR}" fill="${bgColor}"/>`
-      );
-      parts.push(
-        `<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${fgColor}"/>`
+        `<circle cx="${cx}" cy="${cy}" r="${1.5 * moduleSize}" fill="${fgColor}"/>`
       );
     }
 

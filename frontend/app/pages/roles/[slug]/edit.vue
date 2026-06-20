@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-lg space-y-6 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-6">
-      <ButtonBack destination="/roles" />
+      <ButtonBack destination="/roles" force-destination />
 
       <div class="flex w-full items-center justify-between gap-2">
         <h1 class="page-title">Edit Role</h1>

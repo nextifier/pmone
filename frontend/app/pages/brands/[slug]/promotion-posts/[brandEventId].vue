@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-2xl space-y-6 py-6">
     <!-- Back + Title -->
     <div class="flex flex-col items-start gap-y-3">
-      <ButtonBack :destination="`/brands/${brandSlug}`" :show-label="true" />
+      <ButtonBack :destination="`/brands/${brandSlug}`" :show-label="true" force-destination />
       <div class="flex flex-col gap-y-1">
         <h2 class="page-title">{{ $t("promotionPosts.title") }}</h2>
         <p v-if="pageData" class="page-description">

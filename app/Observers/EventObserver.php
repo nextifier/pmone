@@ -8,6 +8,7 @@ use App\Enums\PenaltyTriggerType;
 use App\Enums\StackingMode;
 use App\Models\Event;
 use App\Models\PromotionRule;
+use App\Services\Ticket\EventDayService;
 
 class EventObserver
 {
@@ -22,6 +23,19 @@ class EventObserver
         'onsite_penalty_rate',
         'onsite_order_opens_at',
         'onsite_order_closes_at',
+    ];
+
+    /**
+     * Columns that, when touched on a ticketed event, re-derive the event days
+     * from the date range (timezone-aware, id-stable - see EventDayService).
+     *
+     * @var array<int, string>
+     */
+    private const DAY_SYNC_COLUMNS = [
+        'start_date',
+        'end_date',
+        'timezone',
+        'tickets_enabled',
     ];
 
     /**
@@ -48,6 +62,10 @@ class EventObserver
     {
         if ($event->wasChanged(self::SYNC_TRIGGER_COLUMNS)) {
             $this->syncOnsitePenaltyRule($event);
+        }
+
+        if ($event->tickets_enabled && $event->wasChanged(self::DAY_SYNC_COLUMNS)) {
+            app(EventDayService::class)->syncFromEventDates($event);
         }
     }
 

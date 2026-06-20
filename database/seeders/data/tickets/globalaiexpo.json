@@ -1,0 +1,123 @@
+[
+  {
+    "slug": "regular-ticket",
+    "title": "Regular Ticket",
+    "kind": "entry",
+    "tier": "Regular",
+    "benefits": [
+      "Access to AI exhibition hall (200+ exhibitors)",
+      "Access to startup pavilion",
+      "Access to public conference stage",
+      "Event tote bag and visitor lanyard"
+    ],
+    "status": "available",
+    "price_label": "Rp350,000",
+    "price": 350000,
+    "on_sale": true,
+    "requires_day_selection": true,
+    "valid_days": [1, 2, 3],
+    "poster": "regular-ticket.jpg",
+    "day_pass": "1-day pass",
+    "entrance": "Regular entrance",
+    "category": "Entry Tickets"
+  },
+  {
+    "slug": "vip-ticket",
+    "title": "VIP Ticket",
+    "kind": "entry",
+    "tier": "VIP",
+    "benefits": [
+      "All Regular ticket benefits",
+      "Access to all conference sessions and keynote stage",
+      "Priority business matching with exhibitors",
+      "VIP lounge access with refreshments",
+      "Fast track entrance and dedicated registration desk",
+      "Networking dinner invitation (Day 2)",
+      "Conference materials and digital proceedings"
+    ],
+    "status": "available",
+    "price_label": "Rp2,500,000",
+    "price": 2500000,
+    "on_sale": true,
+    "valid_days": [1, 2, 3],
+    "poster": "vip-ticket.jpg",
+    "day_pass": "3-day pass",
+    "entrance": "VIP entrance",
+    "category": "Entry Tickets"
+  },
+  {
+    "slug": "3-day-bundle",
+    "title": "3-Day Bundle",
+    "kind": "entry",
+    "tier": "Bundle",
+    "benefits": [
+      "Single ticket valid for all 3 event days",
+      "Access to AI exhibition hall (200+ exhibitors)",
+      "Access to startup pavilion",
+      "Access to public conference stage",
+      "Best value for full-event access"
+    ],
+    "status": "available",
+    "price_label": "Rp900,000",
+    "price": 900000,
+    "on_sale": true,
+    "requires_day_selection": false,
+    "valid_days": [1, 2, 3],
+    "poster": "regular-ticket.jpg",
+    "day_pass": "3-day pass",
+    "entrance": "Regular entrance",
+    "category": "Entry Tickets"
+  },
+  {
+    "slug": "conference-pass",
+    "title": "Conference",
+    "kind": "add_on",
+    "tier": "Conference",
+    "benefits": [
+      "Access to all conference sessions",
+      "Keynote stage seating",
+      "Conference materials and digital proceedings"
+    ],
+    "status": "available",
+    "price_label": "Rp500,000",
+    "price": 500000,
+    "on_sale": true,
+    "category": "Add-ons"
+  },
+  {
+    "slug": "meet-and-greet",
+    "title": "Meet & Greet",
+    "kind": "add_on",
+    "tier": "Meet & Greet",
+    "benefits": [
+      "Meet & greet session with featured AI speakers",
+      "Photo opportunity with the speaker",
+      "Limited seats per session"
+    ],
+    "status": "available",
+    "price_label": "Rp250,000",
+    "price": 250000,
+    "on_sale": true,
+    "sessions": [
+      {
+        "label": "Session 1 · 10:00 - 10:30",
+        "starts_at": "2026-11-20 10:00:00",
+        "ends_at": "2026-11-20 10:30:00",
+        "capacity": 20
+      },
+      {
+        "label": "Session 2 · 13:00 - 13:30",
+        "starts_at": "2026-11-20 13:00:00",
+        "ends_at": "2026-11-20 13:30:00",
+        "capacity": 20
+      },
+      {
+        "label": "Session 3 · 15:00 - 15:30",
+        "starts_at": "2026-11-21 15:00:00",
+        "ends_at": "2026-11-21 15:30:00",
+        "capacity": 15
+      }
+    ],
+    "category": "Add-ons"
+  }
+]

@@ -194,6 +194,10 @@ class Event extends Model implements HasMedia, Sortable
         'onsite_order_closes_at',
         'onsite_penalty_rate',
         'badge_vip_info',
+        'timezone',
+        'allow_cross_day',
+        'tickets_enabled',
+        'business_matching_enabled',
     ];
 
     public array $translatable = [
@@ -229,6 +233,9 @@ class Event extends Model implements HasMedia, Sortable
             'is_active' => 'boolean',
             'order_form_deadline' => 'datetime',
             'promotion_post_deadline' => 'datetime',
+            'allow_cross_day' => 'boolean',
+            'tickets_enabled' => 'boolean',
+            'business_matching_enabled' => 'boolean',
         ];
     }
 
@@ -502,6 +509,16 @@ class Event extends Model implements HasMedia, Sortable
         return $this->belongsTo(Project::class);
     }
 
+    /**
+     * Base URL for this event's public-facing pages (e-ticket, order result,
+     * invites). Prefers the event's own website; falls back to the app frontend
+     * URL when the event has no "Website" link configured.
+     */
+    public function publicBaseUrl(): string
+    {
+        return rtrim((string) ($this->project?->websiteUrl() ?: config('app.frontend_url')), '/');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -608,9 +625,48 @@ class Event extends Model implements HasMedia, Sortable
     public function conjunctionEvents(): BelongsToMany
     {
         return $this->belongsToMany(self::class, 'event_conjunctions', 'event_id', 'conjunction_event_id')
-            ->withPivot(['conjunction_label', 'order_column'])
+            ->withPivot(['conjunction_label', 'allow_cross_scan', 'order_column'])
             ->withTimestamps()
             ->orderByPivot('order_column');
+    }
+
+    public function eventDays(): HasMany
+    {
+        return $this->hasMany(EventDay::class)->ordered();
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class)->ordered();
+    }
+
+    public function accessCodes(): HasMany
+    {
+        return $this->hasMany(AccessCode::class);
+    }
+
+    public function accessCodeBatches(): HasMany
+    {
+        return $this->hasMany(AccessCodeBatch::class);
+    }
+
+    public function eventCustomFields(): HasMany
+    {
+        return $this->hasMany(EventCustomField::class)->ordered();
+    }
+
+    /**
+     * Alias of {@see eventCustomFields()} so scoped route-model binding can
+     * resolve `{customField}` against this relation.
+     */
+    public function customFields(): HasMany
+    {
+        return $this->hasMany(EventCustomField::class);
+    }
+
+    public function ticketOrders(): HasMany
+    {
+        return $this->hasMany(TicketOrder::class);
     }
 
     // Scopes

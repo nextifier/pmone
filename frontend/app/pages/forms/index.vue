@@ -105,18 +105,7 @@
           @confirm="handleDeleteRows(selectedRows)"
         >
           <template #trigger="{ open }">
-            <button
-              class="hover:bg-muted flex h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-              @click="open()"
-            >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
-              <span class="text-sm tracking-tight">Delete</span>
-              <span
-                class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-xs font-medium tabular-nums"
-              >
-                {{ selectedRows.length }}
-              </span>
-            </button>
+            <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
         </ConfirmDialog>
       </template>
@@ -132,7 +121,7 @@ import FormTableItem from "@/components/form-builder/FormTableItem.vue";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { TableSwitch } from "@/components/ui/table-switch";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
 import { resolveDirective, withDirectives } from "vue";

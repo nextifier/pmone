@@ -7,6 +7,7 @@ use App\Models\Event;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
 class EventConjunctionController extends Controller
@@ -28,11 +29,67 @@ class EventConjunctionController extends Controller
                 'date_label' => $e->date_label,
                 'location' => $e->location,
                 'conjunction_label' => $e->pivot->conjunction_label,
+                'allow_cross_scan' => (bool) $e->pivot->allow_cross_scan,
                 'order_column' => $e->pivot->order_column,
                 'poster_image' => $e->getMediaUrls('poster_image'),
             ]);
 
-        return response()->json(['data' => $conjunctionEvents]);
+        return response()->json([
+            'data' => $conjunctionEvents,
+            'allow_cross_scan' => $this->resolveCrossScanState($event),
+        ]);
+    }
+
+    /**
+     * Toggle cross-event scan & redeem for an event's entire in-conjunction set.
+     *
+     * Cross-scan is a property of the whole clique, so the flag is written to
+     * every pivot row connecting members of the set (in both directions),
+     * keeping it consistent however the admin enters the set.
+     */
+    public function setCrossScan(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $event = $this->findEvent($username, $eventSlug);
+
+        $validated = $request->validate([
+            'allow_cross_scan' => ['required', 'boolean'],
+        ]);
+
+        $memberIds = $event->conjunctionEvents()->pluck('events.id')->push($event->id)->unique()->all();
+
+        DB::table('event_conjunctions')
+            ->whereIn('event_id', $memberIds)
+            ->whereIn('conjunction_event_id', $memberIds)
+            ->update(['allow_cross_scan' => $validated['allow_cross_scan']]);
+
+        ResponseCache::clear(['brands']);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($event)
+            ->event($validated['allow_cross_scan'] ? 'cross_scan_enabled' : 'cross_scan_disabled')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'allow_cross_scan' => $validated['allow_cross_scan'],
+            ])
+            ->log($validated['allow_cross_scan'] ? 'Enabled cross-event scan' : 'Disabled cross-event scan');
+
+        return response()->json([
+            'message' => 'Cross-event scan setting updated.',
+            'allow_cross_scan' => $validated['allow_cross_scan'],
+        ]);
+    }
+
+    /**
+     * Cross-scan is set-wide; report it as enabled when any pivot row in the
+     * event's set carries the flag.
+     */
+    private function resolveCrossScanState(Event $event): bool
+    {
+        return $event->conjunctionEvents()
+            ->wherePivot('allow_cross_scan', true)
+            ->exists();
     }
 
     /**

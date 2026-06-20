@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "regular-ticket",
+    "title": "Regular Entry Ticket",
+    "kind": "entry",
+    "tier": "Regular",
+    "benefits": [],
+    "status": "available",
+    "price_label": "FREE",
+    "price": 0,
+    "on_sale": true,
+    "starts_at": "2025-10-01T12:00:00",
+    "ends_at": "2025-11-16T21:00:00",
+    "poster": "regular-ticket.jpg",
+    "legacy_external_url": "https://panorama.undangin.com/ticket/26288",
+    "day_pass": "One-day pass",
+    "category": "Entry Tickets",
+    "entrance": "Regular entrance"
+  }
+]

@@ -1,15 +1,20 @@
 <?php
 
+use App\Models\AccessCode;
 use App\Models\Announcement;
 use App\Models\ApiConsumer;
 use App\Models\AppSetting;
+use App\Models\Attendee;
 use App\Models\Brand;
 use App\Models\Contact;
 use App\Models\ContactFormSubmission;
 use App\Models\Event;
+use App\Models\EventCustomField;
+use App\Models\EventDay;
 use App\Models\EventDocument;
 use App\Models\EventProduct;
 use App\Models\EventProductCategory;
+use App\Models\ExhibitorLead;
 use App\Models\Faq;
 use App\Models\Form;
 use App\Models\Guest;
@@ -31,6 +36,10 @@ use App\Models\RoomType;
 use App\Models\RundownItem;
 use App\Models\ShortLink;
 use App\Models\Task;
+use App\Models\Ticket;
+use App\Models\TicketOrder;
+use App\Models\TicketPricePhase;
+use App\Models\TicketSession;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -263,6 +272,60 @@ return [
             'model' => PromoCode::class,
             'actions' => ['create', 'read', 'update', 'delete', 'restore'],
         ],
+        'tickets' => [
+            'label' => 'Tickets',
+            'description' => 'Manage event ticket products (entry & add-on)',
+            'model' => Ticket::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'ticket_price_phases' => [
+            'label' => 'Ticket Price Phases',
+            'description' => 'Manage time-bound ticket pricing phases',
+            'model' => TicketPricePhase::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'ticket_sessions' => [
+            'label' => 'Ticket Sessions',
+            'description' => 'Manage add-on ticket sessions',
+            'model' => TicketSession::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'event_days' => [
+            'label' => 'Event Days',
+            'description' => 'Manage event days used by ticket valid-days and scanning',
+            'model' => EventDay::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'event_custom_fields' => [
+            'label' => 'Business Matching Fields',
+            'description' => 'Manage per-event business-matching custom fields',
+            'model' => EventCustomField::class,
+            'actions' => ['create', 'read', 'update', 'delete'],
+        ],
+        'ticket_orders' => [
+            'label' => 'Ticket Orders',
+            'description' => 'View and manage visitor ticket orders',
+            'model' => TicketOrder::class,
+            'actions' => ['read', 'update'],
+        ],
+        'access_codes' => [
+            'label' => 'Access Codes',
+            'description' => 'Manage ticket access codes (invitations & shared codes)',
+            'model' => AccessCode::class,
+            'actions' => ['create', 'read', 'update', 'delete', 'restore'],
+        ],
+        'attendees' => [
+            'label' => 'Attendees',
+            'description' => 'View and manage ticket attendees',
+            'model' => Attendee::class,
+            'actions' => ['read', 'update', 'delete', 'restore'],
+        ],
+        'exhibitor_leads' => [
+            'label' => 'Exhibitor Leads',
+            'description' => 'View exhibitor leads captured by scanning',
+            'model' => ExhibitorLead::class,
+            'actions' => ['read'],
+        ],
     ],
 
     /*
@@ -332,6 +395,26 @@ return [
                 'promotions.void_adjustment' => 'Void an already applied adjustment',
                 'promotions.bulk_generate_codes' => 'Bulk-generate promo codes from a rule',
                 'promotions.view_reports' => 'View promo code usage and ROI reports',
+            ],
+        ],
+        'ticket_ops' => [
+            'label' => 'Ticket Operations',
+            'description' => 'On-site ticket scanning, redemption and sales operations',
+            'permissions' => [
+                'tickets.export' => 'Export ticket sales to Excel',
+                'tickets.bulk_generate' => 'Bulk-generate complimentary tickets',
+                'tickets.mark_paid' => 'Manually mark a ticket order as paid',
+                'access_codes.generate' => 'Generate access code batches',
+                'access_codes.revoke' => 'Revoke an access code',
+                'access_codes.import' => 'Import invitation recipients',
+                'access_codes.export' => 'Export access codes to Excel',
+                'access_codes.send_invites' => 'Send access code invites via WhatsApp / email',
+                'attendees.export' => 'Export attendees to Excel',
+                'attendees.view_documents' => 'Download ticket order invoice and receipt PDFs',
+                'scan.check_in' => 'Check in an attendee by scanning',
+                'scan.reprint' => 'Reprint an attendee badge / e-ticket',
+                'scan.reissue' => 'Re-issue an attendee ticket',
+                'scan.exhibitor_lead' => 'Capture an exhibitor lead by scanning',
             ],
         ],
     ],

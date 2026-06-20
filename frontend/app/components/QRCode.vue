@@ -1,19 +1,22 @@
 <template>
-  <Tippy v-if="svgContent" theme="primary" placement="bottom">
-    <button
-      type="button"
-      @click="toggleQrStyle"
-      class="block w-full cursor-pointer rounded-lg transition active:scale-98"
-    >
-      <div v-html="svgContent" />
-    </button>
-    <template #content>
-      <span class="flex items-center gap-x-1.5 leading-none tracking-tight">
-        <Icon name="hugeicons:mouse-left-click-01" class="size-4 shrink-0" />
-        <span>Click to change QR Code style</span>
-      </span>
-    </template>
-  </Tippy>
+  <!-- aspect-square reserves the space before the QR generates (no layout shift) -->
+  <div class="aspect-square w-full">
+    <Tippy v-if="svgContent" tag="div" theme="primary" placement="bottom">
+      <button
+        type="button"
+        @click="toggleQrStyle"
+        class="block w-full cursor-pointer rounded-lg transition active:scale-98"
+      >
+        <div v-html="svgContent" class="[&>svg]:block [&>svg]:h-auto [&>svg]:w-full" />
+      </button>
+      <template #content>
+        <span class="flex items-center gap-x-1.5 leading-none tracking-tight">
+          <Icon name="hugeicons:mouse-left-click-01" class="size-4 shrink-0" />
+          <span>Click to change QR Code style</span>
+        </span>
+      </template>
+    </Tippy>
+  </div>
 </template>
 
 <script setup>
@@ -38,7 +41,7 @@ const props = defineProps({
   },
   bgColor: {
     type: String,
-    default: "var(--background)",
+    default: "transparent",
   },
   errorCorrectionLevel: {
     type: String,

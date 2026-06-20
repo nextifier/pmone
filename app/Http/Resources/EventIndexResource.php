@@ -28,6 +28,7 @@ class EventIndexResource extends JsonResource
             'location' => $this->location,
             'status' => $this->status,
             'is_active' => $this->is_active,
+            'tickets_enabled' => (bool) $this->tickets_enabled,
             'visibility' => $this->visibility,
             'order_column' => $this->order_column,
             'poster_image' => $this->when(

@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto w-full max-w-4xl pt-4 pb-16">
     <header>
-      <ButtonBack destination="/" />
+      <ButtonBack destination="/" force-destination />
       <h1
         class="text-foreground mt-6 text-3xl font-semibold tracking-tighter text-balance sm:text-4xl"
       >

@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl">
     <div class="flex flex-col items-start gap-y-4">
-      <ButtonBack destination="/promotion-rules" />
+      <ButtonBack destination="/promotion-rules" force-destination />
 
       <div v-if="rule" class="flex flex-col">
         <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2">

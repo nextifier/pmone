@@ -25,6 +25,9 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
+    // Note: "/" -> "/dashboard" is handled by a global route middleware
+    // (app/middleware/root-redirect.global.ts), not a routeRule - a routeRule
+    // redirect on "/" is ignored while pages/index.vue exists.
     "/docs": { redirect: { to: "/docs/staff-dashboard-overview", statusCode: 302 } },
     "/shaders/docs": { redirect: { to: "/shaders/docs/quickstart", statusCode: 302 } },
     // The visual editor is a fully interactive WebGPU tool — render it client-side
@@ -106,6 +109,13 @@ export default defineNuxtConfig({
         "shaders/svelte/codegen",
         "shaders/solid/codegen",
         "shaders/js/codegen",
+        // vue-qrcode-reader loads a zxing wasm decoder at runtime (via
+        // barcode-detector). Pre-bundling the wasm-loading deps breaks Vite's
+        // optimizer, so exclude them and let them load as native ESM (mirrors
+        // the shaders rationale above).
+        "vue-qrcode-reader",
+        "barcode-detector",
+        "zxing-wasm",
       ],
       include: [
         "nanoid",

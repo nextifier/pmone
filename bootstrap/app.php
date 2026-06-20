@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureHotelReservationEnabled;
+use App\Http\Middleware\EnsureTicketsEnabled;
 use App\Http\Middleware\LogPaymentWebhook;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Http\Middleware\ValidateApiKey;
@@ -49,6 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'cacheResponse' => CacheResponse::class,
             'doNotCacheResponse' => DoNotCacheResponse::class,
             'hotel-reservation-enabled' => EnsureHotelReservationEnabled::class,
+            'tickets-enabled' => EnsureTicketsEnabled::class,
             'log-payment-webhook' => LogPaymentWebhook::class,
         ]);
 

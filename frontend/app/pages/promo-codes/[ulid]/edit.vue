@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto flex max-w-2xl flex-col gap-y-5 pt-4 pb-16">
     <div class="flex flex-col items-start gap-y-5">
-      <ButtonBack :destination="`/promo-codes/${route.params.ulid}/show`" />
+      <ButtonBack :destination="`/promo-codes/${route.params.ulid}/show`" force-destination />
 
       <div class="flex flex-col">
         <h1 class="page-title">Edit Promo Code</h1>

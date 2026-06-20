@@ -75,6 +75,7 @@ class AppliedAdjustment extends Model
         'adjustable_id',
         'promotion_rule_id',
         'promo_code_id',
+        'access_code_id',
         'kind',
         'label',
         'value_type',
@@ -128,6 +129,11 @@ class AppliedAdjustment extends Model
     public function promoCode(): BelongsTo
     {
         return $this->belongsTo(PromoCode::class);
+    }
+
+    public function accessCode(): BelongsTo
+    {
+        return $this->belongsTo(AccessCode::class);
     }
 
     public function usage(): BelongsTo

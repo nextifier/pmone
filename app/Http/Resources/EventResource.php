@@ -14,9 +14,7 @@ class EventResource extends JsonResource
      */
     private function projectWebsiteUrl(?Project $project): ?string
     {
-        return $project?->links
-            ->first(fn ($link) => strtolower((string) $link->label) === 'website')
-            ?->url;
+        return $project?->websiteUrl();
     }
 
     /**
@@ -61,6 +59,7 @@ class EventResource extends JsonResource
             'badge_vip_info' => $this->badge_vip_info,
             'is_active' => $this->is_active,
             'hotel_reservation_enabled' => (bool) $this->project?->hotel_reservation_enabled,
+            'business_matching_enabled' => (bool) $this->business_matching_enabled,
             'order_column' => $this->order_column,
             'poster_image' => $this->when(
                 $this->hasMedia('poster_image'),

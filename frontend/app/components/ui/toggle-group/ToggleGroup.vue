@@ -13,7 +13,7 @@ type ToggleGroupVariants = VariantProps<typeof toggleVariants>;
 const props = defineProps<
   ToggleGroupRootProps & {
     class?: HTMLAttributes["class"];
-    variant?: ToggleGroupVariants["variant"];
+    variant?: ToggleGroupVariants["variant"] | "pill";
     size?: ToggleGroupVariants["size"];
   }
 >();
@@ -37,7 +37,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     v-bind="forwarded"
     :class="
       cn(
-        'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
+        'group/toggle-group flex items-center',
+        variant === 'pill'
+          ? 'flex-wrap gap-2'
+          : 'w-fit rounded-md data-[variant=outline]:shadow-xs',
         props.class
       )
     "
