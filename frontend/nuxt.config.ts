@@ -231,9 +231,13 @@ export default defineNuxtConfig({
 
   icon: {
     mode: "svg",
-    clientBundle: {
-      scan: true,
-    },
+    // `clientBundle.scan` parses all ~1.1k components at build time to collect
+    // used icons and inlines them into a client chunk - a heavy build-memory
+    // step that contributed to the Cloudflare 8 GB OOM. Disabled: with mode
+    // "svg" + installed @iconify-json collections, icons are resolved
+    // server-side (inlined into SSR HTML) and fetched from the bundled icon API
+    // on client navigation, so they keep rendering with no scan/bundle cost.
+    clientBundle: false,
   },
 
   shadcn: {
@@ -366,6 +370,14 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // Nitro defaults `sourceMap: true`, so the Cloudflare worker/server bundle
+    // (which SSR-compiles every page + component) still emits source maps even
+    // though Vite's client source maps are off. For ~1.3k components this is a
+    // major build-memory and bundle-size cost with zero production value — the
+    // worker is never debugged via maps. Disabling it cuts the peak heap that
+    // was OOM-ing the Cloudflare Pages build (8 GB VM ceiling) and shrinks the
+    // worker bundle toward the 25 MiB limit.
+    sourceMap: false,
     alias: {
       "vue-stream-markdown": noopMock,
     },
