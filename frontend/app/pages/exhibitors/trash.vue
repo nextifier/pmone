@@ -6,7 +6,7 @@
         <h1 class="page-title">Exhibitor Trash</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <nuxt-link
           to="/exhibitors"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -14,16 +14,6 @@
           <Icon name="hugeicons:location-user-04" class="size-4 shrink-0" />
           <span>All Exhibitors</span>
         </nuxt-link>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
-        </button>
       </div>
     </div>
 
@@ -210,8 +200,6 @@ const {
   onPaginationUpdate,
   onSortingUpdate,
   onColumnFiltersUpdate,
-  hasSelectedRows,
-  clearSelection,
   getFilterValue,
   handleFilterChange,
   restoreDialogOpen,

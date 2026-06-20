@@ -22,8 +22,7 @@
           hasActiveFilters ||
           (showRefreshButton && !displayOnly) ||
           (showAddButton && !displayOnly) ||
-          $slots['add-button'] ||
-          $slots.actions
+          $slots['add-button']
         "
         class="space-y-3"
       >
@@ -177,9 +176,9 @@
       <ClientOnly>
         <Teleport to="body">
           <Transition
-            enter-active-class="transition-[transform,opacity,filter] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            enter-active-class="transition-[translate,opacity,filter] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
             enter-from-class="translate-y-4 opacity-0 blur-[2px]"
-            leave-active-class="transition-[transform,opacity,filter] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+            leave-active-class="transition-[translate,opacity,filter] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
             leave-to-class="translate-y-4 opacity-0 blur-[2px]"
           >
             <div
@@ -199,7 +198,17 @@
                 class="t-resize bg-foreground text-background flex items-center rounded-full p-1 shadow-lg"
               >
                 <div class="no-scrollbar scroll-fade-x overflow-x-auto">
-                  <div class="flex w-max items-center gap-x-0.5 px-0.5">
+                  <div class="flex w-max items-center gap-x-0.5">
+                    <TableBulkAction
+                      icon="lucide:x"
+                      label="Clear selection"
+                      @click="resetRowSelection"
+                    />
+                    <div
+                      v-if="$slots.actions"
+                      class="bg-background/20 mx-0.5 h-5 w-px shrink-0"
+                      aria-hidden="true"
+                    />
                     <slot
                       name="actions"
                       :table="table"
@@ -456,6 +465,7 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
+import TableBulkAction from "@/components/ui/table-data/TableBulkAction.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";

@@ -8,19 +8,12 @@
         <h1 class="page-title">Attendees Trash</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <Button variant="outline" size="sm" as-child>
           <NuxtLink :to="`${eventBase}/attendees`">
             <Icon name="hugeicons:arrow-left-02" class="size-4 shrink-0" />
             <span>All Attendees</span>
           </NuxtLink>
-        </Button>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <Button variant="outline" size="sm" @click="clearSelection">
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
         </Button>
       </div>
     </div>
@@ -222,11 +215,6 @@ const meta = computed(
 watch([columnFilters, sorting, pagination], () => refresh(), { deep: true });
 
 const tableRef = ref();
-
-const hasSelectedRows = computed(
-  () => tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0
-);
-const clearSelection = () => tableRef.value?.resetRowSelection();
 
 const restoreDialogOpen = ref(false);
 const restorePending = ref(false);

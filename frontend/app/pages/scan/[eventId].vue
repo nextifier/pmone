@@ -32,19 +32,54 @@
             {{ outbox.length }} pending
           </Badge>
           <ClientOnly>
-            <Button
-              v-if="printerSupported"
-              variant="ghost"
-              size="iconSm"
-              :class="printerChipClass"
-              :aria-label="printerLabel"
-              v-tippy="printerLabel"
-              :disabled="printerStatus === 'connecting'"
-              @click="connectPrinterInteractive"
-            >
-              <Spinner v-if="printerStatus === 'connecting'" />
-              <Icon v-else name="hugeicons:printer" class="size-4" />
-            </Button>
+            <DropdownMenu v-if="printerSupported">
+              <DropdownMenuTrigger as-child>
+                <Button
+                  variant="ghost"
+                  size="iconSm"
+                  :class="printerChipClass"
+                  :aria-label="printerLabel"
+                  v-tippy="printerLabel"
+                >
+                  <Spinner v-if="printerStatus === 'connecting'" />
+                  <Icon v-else name="hugeicons:printer" class="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" class="w-60">
+                <DropdownMenuLabel class="flex items-center gap-x-2 font-normal">
+                  <span
+                    class="size-2 shrink-0 rounded-full"
+                    :class="printerConnected ? 'bg-success' : 'bg-muted-foreground/40'"
+                  />
+                  <span class="truncate">{{ printerStatusText }}</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  v-if="printerName && !printerConnected"
+                  :disabled="printerStatus === 'connecting'"
+                  class="gap-x-2"
+                  @click="reconnectPrinter"
+                >
+                  <Icon name="hugeicons:bluetooth" class="size-4 shrink-0" />
+                  <span class="truncate">Reconnect to {{ printerName }}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  :disabled="printerStatus === 'connecting'"
+                  class="gap-x-2"
+                  @click="chooseAnotherPrinter"
+                >
+                  <Icon name="hugeicons:exchange-01" class="size-4 shrink-0" />
+                  <span>Choose another device</span>
+                </DropdownMenuItem>
+                <template v-if="printerName">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive" class="gap-x-2" @click="forgetPrinter">
+                    <Icon name="lucide:x" class="size-4 shrink-0" />
+                    <span>Forget printer</span>
+                  </DropdownMenuItem>
+                </template>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </ClientOnly>
           <Button variant="ghost" size="sm" to="/scan">
             <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
@@ -83,6 +118,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { BottomNav, BottomNavItem, BottomNavAction } from "@/components/ui/bottom-nav";
 import ScanPanel from "@/components/scan/ScanPanel.vue";
 import FindPanel from "@/components/scan/FindPanel.vue";
@@ -108,8 +151,12 @@ const {
   outbox,
   printerSupported,
   printerStatus,
+  printerConnected,
   printerError,
-  connectPrinterInteractive,
+  printerName,
+  reconnectPrinter,
+  chooseAnotherPrinter,
+  forgetPrinter,
 } = session;
 
 usePageMeta(null, {
@@ -136,4 +183,16 @@ const printerLabel = computed(() => {
 const printerChipClass = computed(() =>
   printerStatus.value === "connected" ? "text-success-foreground" : "text-muted-foreground",
 );
+const printerStatusText = computed(() => {
+  switch (printerStatus.value) {
+    case "connected":
+      return printerName.value ? `Connected to ${printerName.value}` : "Printer connected";
+    case "connecting":
+      return "Connecting…";
+    case "error":
+      return printerError.value || "Printer error";
+    default:
+      return printerName.value ? `${printerName.value} (disconnected)` : "No printer connected";
+  }
+});
 </script>

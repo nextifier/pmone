@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-y-0">
+  <div>
     <NuxtPage :event="event" :project="project" />
   </div>
 </template>

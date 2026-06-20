@@ -12,7 +12,7 @@
         </span>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         <button
           @click="handleExport"
           :disabled="exportPending"
@@ -21,16 +21,6 @@
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export {{ totalActiveFilters > 0 ? "filtered" : "all" }}</span>
-        </button>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
         </button>
       </div>
     </div>
@@ -332,18 +322,6 @@ watch(
 );
 
 const refresh = fetchOrders;
-
-// Check if there are any selected rows
-const hasSelectedRows = computed(() => {
-  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
-});
-
-// Clear selection
-const clearSelection = () => {
-  if (tableRef.value) {
-    tableRef.value.resetRowSelection();
-  }
-};
 
 // Status update handlers
 const statusUpdating = ref(null);

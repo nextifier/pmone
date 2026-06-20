@@ -98,6 +98,14 @@ const TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
 
 let logIdCounter = 0;
 
+/**
+ * Cap the diagnostic log so a long check-in session (hundreds/thousands of
+ * scans, each pushing several entries via discoverWriteChar + writeChunked)
+ * cannot grow `logs` unbounded and leak memory. Only the most recent entries
+ * are kept.
+ */
+const MAX_LOGS = 300;
+
 export function useBluetoothPrinter() {
   const device = shallowRef<BluetoothDevice | null>(null);
   const writeChar = shallowRef<BluetoothRemoteGATTCharacteristic | null>(null);
@@ -126,6 +134,9 @@ export function useBluetoothPrinter() {
       message,
       detail,
     });
+    if (logs.value.length > MAX_LOGS) {
+      logs.value.splice(0, logs.value.length - MAX_LOGS);
+    }
   }
 
   function clearLogs(): void {
@@ -203,7 +214,7 @@ export function useBluetoothPrinter() {
           `Device dipilih: ${requestedDevice.name ?? "(no name)"}`,
           `id=${requestedDevice.id}`
         );
-        requestedDevice.addEventListener("gattserverdisconnected", handleDisconnected);
+        attachDeviceListener(requestedDevice);
       }
 
       device.value = requestedDevice;
@@ -237,7 +248,7 @@ export function useBluetoothPrinter() {
             `Device dipilih ulang: ${fallbackDevice.name ?? "(no name)"}`,
             `id=${fallbackDevice.id}`
           );
-          fallbackDevice.addEventListener("gattserverdisconnected", handleDisconnected);
+          attachDeviceListener(fallbackDevice);
           requestedDevice = fallbackDevice;
           device.value = fallbackDevice;
           persistDevice(fallbackDevice);
@@ -370,6 +381,12 @@ export function useBluetoothPrinter() {
    * Returns false when there is no known device yet (the caller must open the
    * picker via `connect()` from a user gesture first).
    */
+  // Coalesce concurrent auto-print reconnects. Rapid back-to-back scans right
+  // after the link drops would otherwise each call `gatt.connect()` in parallel
+  // and throw "GATT operation already in progress"; instead they all await the
+  // same in-flight reconnect.
+  let reconnectInFlight: Promise<boolean> | null = null;
+
   async function ensureConnected(): Promise<boolean> {
     if (status.value === "connected" && writeChar.value && device.value?.gatt?.connected) {
       return true;
@@ -377,25 +394,54 @@ export function useBluetoothPrinter() {
     if (!device.value?.gatt) {
       return false;
     }
-    try {
-      status.value = "connecting";
-      const server = await device.value.gatt.connect();
-      await discoverWriteChar(server);
-      status.value = "connected";
-      addLog("success", "Auto-reconnect berhasil (tanpa picker)");
-      return true;
-    } catch (err) {
-      addLog("warn", "Auto-reconnect gagal", err instanceof Error ? err.message : String(err));
-      cleanup();
-      status.value = "disconnected";
-      return false;
+    if (reconnectInFlight) {
+      return reconnectInFlight;
     }
+    const gatt = device.value.gatt;
+    reconnectInFlight = (async (): Promise<boolean> => {
+      try {
+        status.value = "connecting";
+        const server = await gatt.connect();
+        await discoverWriteChar(server);
+        status.value = "connected";
+        addLog("success", "Auto-reconnect berhasil (tanpa picker)");
+        return true;
+      } catch (err) {
+        addLog("warn", "Auto-reconnect gagal", err instanceof Error ? err.message : String(err));
+        cleanup();
+        status.value = "disconnected";
+        return false;
+      }
+    })().finally(() => {
+      reconnectInFlight = null;
+    });
+    return reconnectInFlight;
   }
 
   function handleDisconnected(): void {
     addLog("warn", "Device disconnected");
     cleanup();
     status.value = "disconnected";
+  }
+
+  // Track which device currently has our disconnect listener so switching
+  // printers ("Choose another device") doesn't leave stale listeners on old
+  // device objects across many re-pairs.
+  let listenedDevice: BluetoothDevice | null = null;
+
+  function attachDeviceListener(d: BluetoothDevice): void {
+    if (listenedDevice && listenedDevice !== d) {
+      listenedDevice.removeEventListener("gattserverdisconnected", handleDisconnected);
+    }
+    d.addEventListener("gattserverdisconnected", handleDisconnected);
+    listenedDevice = d;
+  }
+
+  function detachDeviceListener(): void {
+    if (listenedDevice) {
+      listenedDevice.removeEventListener("gattserverdisconnected", handleDisconnected);
+      listenedDevice = null;
+    }
   }
 
   function persistDevice(d: BluetoothDevice): void {
@@ -443,7 +489,7 @@ export function useBluetoothPrinter() {
         const grantedDevices = await navigator.bluetooth.getDevices();
         const match = grantedDevices.find((d) => d.id === savedId);
         if (match) {
-          match.addEventListener("gattserverdisconnected", handleDisconnected);
+          attachDeviceListener(match);
           device.value = match;
           addLog(
             "success",
@@ -493,6 +539,7 @@ export function useBluetoothPrinter() {
     }
     cleanup();
     if (forget) {
+      detachDeviceListener();
       device.value = null;
       clearStoredDevice();
       addLog("info", "Device dilupakan (storage dibersihkan)");

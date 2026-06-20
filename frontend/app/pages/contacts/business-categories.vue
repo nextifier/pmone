@@ -12,7 +12,7 @@
         <h1 class="page-title">Business Categories</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <ContactBusinessCategoriesImportDialog @imported="fetchCategories">
           <template #trigger="{ open }">
             <button
@@ -32,16 +32,6 @@
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export</span>
-        </button>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear Selection</span>
         </button>
       </div>
     </div>
@@ -240,14 +230,6 @@ const tableRef = ref();
 const tableWrapper = ref(null);
 const sortableEl = ref(null);
 const activeFilters = ref([]);
-
-const hasSelectedRows = computed(() => {
-  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
-});
-
-const clearSelection = () => {
-  tableRef.value?.resetRowSelection();
-};
 
 const onColumnFiltersUpdate = (filters) => {
   activeFilters.value = filters;

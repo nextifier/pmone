@@ -127,7 +127,9 @@ export function useScanSession(eventId: string) {
     ensureConnected,
     writeChunked,
     tryRestoreDevice,
+    disconnect: disconnectPrinter,
     device: printerDevice,
+    savedDeviceName: printerName,
     errorMessage: printerError,
   } = useBluetoothPrinter();
   const printerConnected = computed(() => printerStatus.value === "connected");
@@ -443,19 +445,21 @@ export function useScanSession(eventId: string) {
         }
         return;
       }
-      const { renderPrintCanvas, buildTsplBitmap } = await import(
+      // Native TSPL QR: the printer firmware renders the QR, so we only send a
+      // tiny (~400 byte) ASCII command instead of a ~20 KB raster bitmap. This
+      // makes auto-print near-instant and creates almost no per-print garbage
+      // (no canvas / getImageData / qrcode import).
+      const { buildTsplNativeQr } = await import(
         "@/composables/usePrinterCommands"
       );
-      const canvas = await renderPrintCanvas({
+      const bytes = buildTsplNativeQr({
         name: attendee.name || "Guest",
         // Encode the bare qr_token so the printed badge matches the e-ticket and
         // bulk-PDF QR exactly; the gate and exhibitor scanners read it verbatim.
         qrData: attendee.qr_token,
         widthMm: 50,
         heightMm: 50,
-        scale: 1,
       });
-      const bytes = buildTsplBitmap(canvas, { widthMm: 50, heightMm: 50 });
       await writeChunked(bytes);
       if (interactive) toast.success("Badge sent to printer");
     } catch (err) {
@@ -475,6 +479,32 @@ export function useScanSession(eventId: string) {
     }
     await connectPrinter(!!printerDevice.value);
     if (printerConnected.value) toast.success("Printer connected");
+  };
+
+  // Reconnect to the remembered printer (Tier-1 instant, or name-filtered picker).
+  const reconnectPrinter = async (): Promise<void> => {
+    await connectPrinter(true);
+    if (printerConnected.value) {
+      toast.success("Printer connected");
+    } else if (printerError.value) {
+      toast.error("Reconnect failed", { description: printerError.value });
+    }
+  };
+
+  // Open a fresh picker to pair a different printer.
+  const chooseAnotherPrinter = async (): Promise<void> => {
+    await connectPrinter(false);
+    if (printerConnected.value) {
+      toast.success("Printer connected");
+    } else if (printerError.value) {
+      toast.error("Couldn't connect", { description: printerError.value });
+    }
+  };
+
+  // Disconnect and clear the remembered device from this browser.
+  const forgetPrinter = async (): Promise<void> => {
+    await disconnectPrinter(true);
+    toast.success("Printer forgotten");
   };
 
   const reprintBadge = (attendee: any): void => {
@@ -756,10 +786,14 @@ export function useScanSession(eventId: string) {
     printerConnected,
     printerReady,
     printerError,
+    printerName,
     printing,
     printBadge,
     reprintBadge,
     reissueBadge,
     connectPrinterInteractive,
+    reconnectPrinter,
+    chooseAnotherPrinter,
+    forgetPrinter,
   };
 }

@@ -8,7 +8,7 @@
         <h1 class="page-title">Reservations</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <Button variant="outline" size="sm" :disabled="exportPending" @click="handleExport">
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
@@ -25,13 +25,6 @@
             <Icon name="lucide:plus" class="size-4 shrink-0" />
             <span>Create</span>
           </NuxtLink>
-        </Button>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <Button variant="outline" size="sm" @click="clearSelection">
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
         </Button>
       </div>
     </div>
@@ -392,11 +385,6 @@ const modeMeta = {
 };
 
 const tableRef = ref();
-
-const hasSelectedRows = computed(
-  () => tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0
-);
-const clearSelection = () => tableRef.value?.resetRowSelection();
 
 const deleteDialogOpen = ref(false);
 const deletePending = ref(false);

@@ -6,7 +6,7 @@
         <p class="page-description">Manage exhibitor brands for this event.</p>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex flex-wrap gap-1 sm:gap-2">
+      <div class="ml-auto flex flex-wrap gap-1 sm:gap-2">
         <!-- Import -->
         <BrandImportDialog
           v-if="event?.can_edit"
@@ -44,16 +44,6 @@
             <Kbd>N</Kbd>
           </KbdGroup>
         </Button>
-      </div>
-
-      <div v-else-if="event?.can_edit" class="ml-auto flex flex-wrap gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
-        </button>
       </div>
     </div>
 
@@ -396,16 +386,6 @@ onMounted(() => refresh());
 
 // Table ref
 const tableRef = ref();
-
-const hasSelectedRows = computed(() => {
-  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
-});
-
-const clearSelection = () => {
-  if (tableRef.value) {
-    tableRef.value.resetRowSelection();
-  }
-};
 
 // Filter helpers
 const getFilterValue = (columnId) => {

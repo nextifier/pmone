@@ -8,7 +8,7 @@
         <h1 class="page-title">Exhibitor PICs</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <ImportDialog
           v-if="canCreate"
           title="Import Exhibitors"
@@ -50,16 +50,6 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
         </nuxt-link>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
-        </button>
       </div>
     </div>
 
@@ -285,8 +275,6 @@ const {
   onSortingUpdate,
   onColumnFiltersUpdate,
   handleToggleStatus,
-  hasSelectedRows,
-  clearSelection,
   getFilterValue,
   handleFilterChange,
   exportPending,

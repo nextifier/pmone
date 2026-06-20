@@ -6,7 +6,7 @@
         <h1 class="page-title">Promo Codes</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         <NuxtLink
           to="/promotion-rules/guide"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -33,16 +33,6 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
         </NuxtLink>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>Clear selection</span>
-        </button>
       </div>
     </div>
 
@@ -255,11 +245,6 @@ const onColumnFiltersUpdate = (val) => (columnFilters.value = val);
 const refresh = fetchCodes;
 
 const tableRef = ref();
-
-const hasSelectedRows = computed(
-  () => tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0,
-);
-const clearSelection = () => tableRef.value?.resetRowSelection();
 
 // Filter popover
 const totalActiveFilters = computed(() => {

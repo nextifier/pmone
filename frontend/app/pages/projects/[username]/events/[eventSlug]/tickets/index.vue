@@ -14,7 +14,7 @@
         </span>
       </div>
 
-      <div v-if="!isDisabled" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div v-if="!isDisabled" class="flex flex-wrap gap-2 sm:ml-auto sm:shrink-0 sm:flex-nowrap">
         <Button v-if="canUpdate" as-child variant="outline">
           <NuxtLink :to="`${ticketsBase}/settings`">
             <Icon name="hugeicons:settings-02" class="size-4 shrink-0" />

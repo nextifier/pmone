@@ -8,7 +8,7 @@
         <h1 class="page-title">{{ $t("brands.title") }}</h1>
       </div>
 
-      <div v-if="!hasSelectedRows" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <BrandImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
             <button
@@ -41,16 +41,6 @@
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
         </NuxtLink>
-      </div>
-
-      <div v-else class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          @click="clearSelection"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
-          <Icon name="lucide:x" class="size-4 shrink-0" />
-          <span>{{ $t("common.clearSelection") }}</span>
-        </button>
       </div>
     </div>
 
@@ -286,16 +276,6 @@ const refresh = fetchBrands;
 
 // Table ref
 const tableRef = ref();
-
-const hasSelectedRows = computed(() => {
-  return tableRef.value?.table?.getSelectedRowModel()?.rows?.length > 0;
-});
-
-const clearSelection = () => {
-  if (tableRef.value) {
-    tableRef.value.resetRowSelection();
-  }
-};
 
 // Filter helpers
 const getFilterValue = (columnId) => {
