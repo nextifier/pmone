@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\Ticketing\TicketOrderStatus;
 use App\Models\TicketOrder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -43,7 +44,18 @@ class PublicTicketOrderResource extends JsonResource
                 'phase_label' => $item->phase_label,
                 'subtotal' => (float) $item->subtotal,
             ])),
-            'attendees' => AttendeeResource::collection($this->whenLoaded('attendees')),
+            // The qr_token is the gate-scanner access key, so it is only revealed
+            // once the order is Confirmed (free/comp/paid). For a pending order the
+            // attendee rows still show (names, ticket) but the token stays null, so
+            // unpaid tickets can never be scanned or downloaded as a usable QR.
+            'attendees' => $this->whenLoaded('attendees', fn () => $this->attendees->map(function ($attendee) {
+                $row = (new AttendeeResource($attendee))->resolve();
+                if ($this->status !== TicketOrderStatus::Confirmed) {
+                    $row['qr_token'] = null;
+                }
+
+                return $row;
+            })),
             'created_at' => $this->created_at,
         ];
     }

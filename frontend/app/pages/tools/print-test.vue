@@ -396,7 +396,7 @@ async function handlePrint(mode: PrintMode): Promise<void> {
     let bytes: Uint8Array;
 
     if (mode === "tspl-native") {
-      bytes = buildTsplNativeQr({
+      bytes = await buildTsplNativeQr({
         name: visitorName.value,
         qrData: qrData.value,
         widthMm: 50,

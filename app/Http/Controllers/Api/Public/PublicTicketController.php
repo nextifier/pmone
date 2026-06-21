@@ -121,7 +121,7 @@ class PublicTicketController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        $exists = User::query()->where('email', $validated['email'])->exists();
+        $exists = User::query()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->exists();
 
         return response()->json(['data' => ['exists' => $exists]]);
     }

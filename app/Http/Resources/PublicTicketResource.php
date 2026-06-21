@@ -56,6 +56,7 @@ class PublicTicketResource extends JsonResource
             ),
             'on_sale' => $phase !== null,
             'price' => $phase ? (float) $phase->price : null,
+            'display_price' => $phase ? (float) $phase->price : ($upcomingPhase ? (float) $upcomingPhase->price : null),
             'phase_label' => $phase?->label,
             'sales_status' => $phase !== null ? 'on_sale' : ($upcomingPhase !== null ? 'upcoming' : 'closed'),
             'sales_starts_at' => $upcomingPhase?->starts_at,

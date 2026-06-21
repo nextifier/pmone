@@ -120,7 +120,8 @@
             hasActiveFilters ||
             (showRefreshButton && !displayOnly) ||
             (showAddButton && !displayOnly) ||
-            $slots['add-button']
+            $slots['add-button'] ||
+            $slots['toolbar-actions']
           "
           class="flex h-8 w-full items-center justify-between gap-1 sm:gap-x-2"
         >
@@ -135,6 +136,9 @@
               <Icon name="lucide:x" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Clear filters</span>
             </Button>
+
+            <!-- Custom toolbar actions (rendered before Refresh) -->
+            <slot name="toolbar-actions" :table="table" />
 
             <!-- Refresh Button -->
             <Button

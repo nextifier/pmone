@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 it('serves an inline QR PNG for a valid attendee WITHOUT an API key', function () {
     // The email client fetches the <img> directly and cannot send X-API-Key,
     // so this route must live outside the api.key group.
-    $attendee = Attendee::factory()->create();
+    $attendee = Attendee::factory()->confirmed()->create();
 
     $response = $this->get("/api/public/attendees/{$attendee->ulid}/qr.png");
 
@@ -28,8 +28,15 @@ it('404s the QR image for an unknown attendee', function () {
     $this->get('/api/public/attendees/NOPE/qr.png')->assertNotFound();
 });
 
-it('caches the generated QR bytes keyed by qr_token (no file on disk, no regen)', function () {
+it('404s the QR image for a pending (unpaid) order', function () {
+    // The QR is the gate key; an unpaid ticket has no usable code yet.
     $attendee = Attendee::factory()->create();
+
+    $this->get("/api/public/attendees/{$attendee->ulid}/qr.png")->assertNotFound();
+});
+
+it('caches the generated QR bytes keyed by qr_token (no file on disk, no regen)', function () {
+    $attendee = Attendee::factory()->confirmed()->create();
 
     expect(Cache::has("attendee-qr:{$attendee->qr_token}"))->toBeFalse();
 

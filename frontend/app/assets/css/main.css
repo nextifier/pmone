@@ -1423,3 +1423,88 @@ label:has(+ .base-phone-input input:required)::after {
   }
 }
 
+/* transitions-dev — scanner page. List row reveal (Panel reveal 07 adapted
+   per row, for <TransitionGroup>) + soft fade-pop for status chips that
+   appear/disappear. Reuses the --panel-ease token. */
+.t-list-enter-active {
+  transition:
+    transform 0.32s var(--panel-ease),
+    opacity 0.32s var(--panel-ease),
+    filter 0.32s var(--panel-ease);
+  will-change: transform, opacity, filter;
+}
+.t-list-leave-active {
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.t-list-enter-from {
+  transform: translateY(-8px);
+  opacity: 0;
+  filter: blur(2px);
+}
+.t-list-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.t-list-move {
+  transition: transform 0.3s var(--panel-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-list-enter-active,
+  .t-list-leave-active,
+  .t-list-move {
+    transition: none !important;
+  }
+}
+
+.t-fade-pop-enter-active {
+  transition:
+    opacity 0.26s var(--panel-ease),
+    transform 0.26s var(--panel-ease),
+    filter 0.26s var(--panel-ease);
+  will-change: opacity, transform, filter;
+}
+.t-fade-pop-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+.t-fade-pop-enter-from,
+.t-fade-pop-leave-to {
+  opacity: 0;
+  transform: scale(0.85);
+  filter: blur(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-fade-pop-enter-active,
+  .t-fade-pop-leave-active {
+    transition: none !important;
+  }
+}
+
+/* Scanner camera scanline — the laser sweeps top↔bottom of the scan frame.
+   Defined globally (NOT in a scoped <style>) because Vue rewrites @keyframes
+   names inside scoped blocks, which breaks a Tailwind animate-[scanline] ref. */
+@keyframes scanline {
+  0% {
+    top: 0;
+  }
+  50% {
+    top: 100%;
+  }
+  100% {
+    top: 0;
+  }
+}
+.t-scanline {
+  animation: scanline 2.4s ease-in-out infinite;
+  will-change: top;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-scanline {
+    animation: none;
+    top: 50%;
+  }
+}
+

@@ -7,6 +7,7 @@ use App\Http\Requests\PublicTicket\PersonalizeAttendeeRequest;
 use App\Http\Resources\AttendeeResource;
 use App\Models\Attendee;
 use App\Models\MagicLink;
+use App\Models\TicketOrder;
 use App\Models\User;
 use BaconQrCode\Renderer\Image\ImagickImageBackend;
 use BaconQrCode\Renderer\ImageRenderer;
@@ -40,7 +41,7 @@ class PublicAttendeeController extends Controller
         $order = $attendee->ticketOrderItem?->ticketOrder;
 
         return response()->json([
-            'data' => (new AttendeeResource($attendee))->additional([])->resolve(),
+            'data' => $this->gateQrToken((new AttendeeResource($attendee))->resolve(), $order),
             'order' => $order ? [
                 'order_number' => $order->order_number,
                 'status' => $order->status?->value,
@@ -67,7 +68,14 @@ class PublicAttendeeController extends Controller
      */
     public function qrImage(string $ulid): Response
     {
-        $attendee = Attendee::query()->where('ulid', $ulid)->firstOrFail();
+        $attendee = Attendee::query()
+            ->where('ulid', $ulid)
+            ->with('ticketOrderItem.ticketOrder')
+            ->firstOrFail();
+
+        // The QR is the gate-scanner key; an unpaid ticket has no usable code, so
+        // refuse the image entirely until the order is confirmed.
+        abort_unless($attendee->ticketOrderItem?->ticketOrder?->isConfirmed(), 404);
 
         $png = Cache::remember(
             "attendee-qr:{$attendee->qr_token}",
@@ -181,17 +189,38 @@ class PublicAttendeeController extends Controller
             // with the e-ticket URL from claiming someone else's (or a staff)
             // account by typing their email.
             if (! $attendee->claimed_by_user_id
-                && ! User::query()->where('email', $validated['email'])->exists()) {
+                && ! User::withTrashed()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->exists()) {
                 $attendee->claimed_by_user_id = $this->resolveHolderUser($validated)->id;
             }
         }
 
         $attendee->save();
 
+        $fresh = $attendee->fresh(['ticket', 'ticketOrderItem.ticketOrder']);
+
         return response()->json([
             'message' => 'Ticket personalized.',
-            'data' => new AttendeeResource($attendee->fresh('ticket')),
+            'data' => $this->gateQrToken(
+                (new AttendeeResource($fresh))->resolve(),
+                $fresh->ticketOrderItem?->ticketOrder,
+            ),
         ]);
+    }
+
+    /**
+     * Strip the qr_token (gate-scanner access key) from a serialized attendee
+     * unless its order is confirmed - an unpaid ticket has no usable QR.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function gateQrToken(array $payload, ?TicketOrder $order): array
+    {
+        if (! $order?->isConfirmed()) {
+            $payload['qr_token'] = null;
+        }
+
+        return $payload;
     }
 
     /**
@@ -199,18 +228,25 @@ class PublicAttendeeController extends Controller
      */
     protected function resolveHolderUser(array $data): User
     {
-        $email = trim((string) $data['email']);
+        $email = strtolower(trim((string) $data['email']));
 
-        return User::query()->firstOrCreate(
-            ['email' => $email],
-            [
-                'name' => $data['name'] ?? Str::before($email, '@'),
-                'phone' => $data['phone'] ?? null,
-                'username' => $this->uniqueUsername($email),
-                'status' => 'active',
-                'visibility' => 'private',
-            ],
-        );
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->first();
+        if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+
+            return $user;
+        }
+
+        return User::create([
+            'email' => $email,
+            'name' => $data['name'] ?? Str::before($email, '@'),
+            'phone' => $data['phone'] ?? null,
+            'username' => $this->uniqueUsername($email),
+            'status' => 'active',
+            'visibility' => 'private',
+        ]);
     }
 
     protected function uniqueUsername(string $email): string

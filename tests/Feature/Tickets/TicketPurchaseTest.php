@@ -154,6 +154,57 @@ it('lazily registers the buyer and reuses an existing account by email', functio
         ->and($order->user_id)->toBe($existing->id);
 });
 
+it('matches the buyer account case-insensitively instead of creating a duplicate', function () {
+    $ticket = entryTicketWithPrice($this->event, 0);
+
+    $existing = User::factory()->create(['email' => 'casebuyer@example.com']);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Case Buyer',
+        'buyer_email' => 'CaseBuyer@Example.com',
+        'buyer_phone' => '0812',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ]);
+
+    expect(User::withTrashed()->whereRaw('LOWER(email) = ?', ['casebuyer@example.com'])->count())->toBe(1)
+        ->and($order->user_id)->toBe($existing->id);
+});
+
+it('stores a brand-new buyer email in lowercase', function () {
+    $ticket = entryTicketWithPrice($this->event, 0);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'New Case',
+        'buyer_email' => 'NewCase@Example.com',
+        'buyer_phone' => '0812',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ]);
+
+    expect($order->user->email)->toBe('newcase@example.com');
+});
+
+it('reuses and restores a soft-deleted buyer instead of hitting the unique email constraint', function () {
+    $ticket = entryTicketWithPrice($this->event, 0);
+
+    $deleted = User::factory()->create(['email' => 'activerow@example.com']);
+    $deleted->delete();
+    expect($deleted->fresh()->trashed())->toBeTrue();
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Anton',
+        'buyer_email' => 'activerow@example.com',
+        'buyer_phone' => '0812',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ]);
+
+    expect(User::withTrashed()->where('email', 'activerow@example.com')->count())->toBe(1)
+        ->and($order->user_id)->toBe($deleted->id)
+        ->and($deleted->fresh()->trashed())->toBeFalse();
+});
+
 it('enforces stock and counts pending orders as held', function () {
     $ticket = entryTicketWithPrice($this->event, 0, stock: 2);
 

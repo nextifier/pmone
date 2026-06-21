@@ -392,7 +392,7 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
     {
         $email = strtolower(trim($email));
 
-        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (! $user) {
             $password = Str::random(12);
@@ -402,6 +402,8 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
                 'password' => Hash::make($password),
                 'email_verified_at' => now(),
             ]);
+        } elseif ($user->trashed()) {
+            $user->restore();
         }
 
         // Assign exhibitor role if doesn't have it

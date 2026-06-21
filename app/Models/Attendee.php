@@ -119,7 +119,7 @@ class Attendee extends Model
             return null;
         }
 
-        $user = User::query()->where('email', $this->email)->first();
+        $user = User::query()->whereRaw('LOWER(email) = ?', [strtolower(trim($this->email))])->first();
 
         if (! $user || $user->status === 'inactive') {
             return null;

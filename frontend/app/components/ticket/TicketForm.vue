@@ -55,6 +55,22 @@
             <InputErrorMessage :errors="errors.tier" />
           </div>
 
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="space-y-2">
+              <Label for="ticket-day-pass">Day pass label</Label>
+              <Input id="ticket-day-pass" v-model="form.day_pass" placeholder="All-day pass / One-day pass" />
+              <InputErrorMessage :errors="errors['more_details.day_pass']" />
+            </div>
+            <div class="space-y-2">
+              <Label for="ticket-entrance">Entrance label</Label>
+              <Input id="ticket-entrance" v-model="form.entrance" placeholder="Regular entrance / VIP entrance" />
+              <InputErrorMessage :errors="errors['more_details.entrance']" />
+            </div>
+          </div>
+          <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+            Optional badges shown on the public ticket card. Leave empty to hide.
+          </p>
+
           <div class="space-y-2">
             <Label>Benefits</Label>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
@@ -364,6 +380,8 @@ const form = reactive({
   kind: "entry",
   title: EMPTY_TRANSLATABLE(),
   tier: "",
+  day_pass: "",
+  entrance: "",
   benefits: [],
   currency: "IDR",
   purchase_type: "first_party",
@@ -381,6 +399,8 @@ const form = reactive({
 const posterFiles = ref([]);
 const deletePoster = ref(false);
 const initialPoster = ref(null);
+// Preserve any extra more_details keys (the form only manages day_pass/entrance).
+const initialMoreDetails = ref({});
 
 const titleField = computed({
   get: () => form.title[activeLocale.value] ?? "",
@@ -437,6 +457,8 @@ watch(
       kind: val.kind ?? "entry",
       title: { ...EMPTY_TRANSLATABLE(), ...(val.title ?? {}) },
       tier: val.tier ?? "",
+      day_pass: val.more_details?.day_pass ?? "",
+      entrance: val.more_details?.entrance ?? "",
       benefits: Array.isArray(val.benefits) ? [...val.benefits] : [],
       currency: val.currency ?? "IDR",
       purchase_type: val.purchase_type ?? "first_party",
@@ -450,6 +472,7 @@ watch(
       is_active: val.is_active ?? true,
       visibility: val.visibility ?? "public",
     });
+    initialMoreDetails.value = val.more_details && typeof val.more_details === "object" ? { ...val.more_details } : {};
     const poster = Array.isArray(val.poster) ? val.poster[0] : val.poster;
     initialPoster.value = poster?.original ?? poster?.url ?? null;
     deletePoster.value = false;
@@ -473,6 +496,11 @@ const handleSubmit = () => {
     kind: form.kind,
     title: cleanTranslatable(form.title),
     tier: form.tier || null,
+    more_details: {
+      ...initialMoreDetails.value,
+      day_pass: form.day_pass?.trim() || null,
+      entrance: form.entrance?.trim() || null,
+    },
     benefits: form.benefits,
     currency: (form.currency || "IDR").toUpperCase(),
     purchase_type: form.purchase_type,

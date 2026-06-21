@@ -735,13 +735,17 @@ class TicketPurchaseService
      */
     protected function resolveBuyerUser(array $data): ?User
     {
-        $email = trim((string) ($data['buyer_email'] ?? ''));
+        $email = strtolower(trim((string) ($data['buyer_email'] ?? '')));
         if ($email === '') {
             return null;
         }
 
-        $user = User::query()->where('email', $email)->first();
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->first();
         if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+
             return $user;
         }
 

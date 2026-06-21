@@ -88,40 +88,38 @@ export interface TsplQrOptions extends LabelOptions {
 }
 
 // ==========================================================================
-// MANUAL TWEAK - berlaku untuk TSPL Native QR DAN TSPL Bitmap (sama 100%).
-// Satuan: dots (1 mm = 8 dots @ 203 DPI). Positif = geser kanan/bawah,
-// negatif = geser kiri/atas.
-// ==========================================================================
-
-// Default
-const TEXT_X_OFFSET = -10;
-const TEXT_Y_OFFSET = 10;
-const QR_X_OFFSET = -10;
-const QR_Y_OFFSET = 10;
-
-// Khusus untuk printer Clabel CT221B (50x50mm) supaya QR Code dan Text perfectly center-aligned
-// const TEXT_X_OFFSET = 30;
-// const TEXT_Y_OFFSET = 11;
-// const QR_X_OFFSET = 22;
-// const QR_Y_OFFSET = 11;
-// TSPL font "3" = fixed 16×24 dots per char (mul=1). Kalau native QR
-// menampilkan text dengan width berbeda, tweak nilai ini.
-const FONT_CHAR_WIDTH = 16;
-const FONT_CHAR_HEIGHT = 24;
-const FONT_MUL = 1;
-// Negative letter spacing untuk canvas/bitmap mode (dots @ scale=1).
-// Tidak applicable untuk TSPL Native (firmware tidak support letter-spacing).
-const CANVAS_LETTER_SPACING = -4;
-// Estimasi jumlah module QR (28-37 untuk URL pendek-sedang). Naik = QR
-// dianggap lebih lebar = lebih ke kiri saat di-center.
-const ESTIMATED_QR_MODULES = 33;
-// Cell width QR di TSPL (1-10). Total QR width = ESTIMATED_QR_MODULES * CELL_WIDTH.
-const CELL_WIDTH = 7;
-// Gap vertikal antara text dan QR (dots).
-const GAP_BETWEEN = 16;
+// Label layout. Unit: dots (1 mm = 8 dots @ 203 DPI). The name + QR are
+// centred as a group - each centred horizontally, the whole block centred
+// vertically - and the QR is sized as large as the label allows. Nothing here
+// is printer-specific: positions are derived from the *exact* QR module count
+// (computed per-token, see computeTsplLayout) plus the label size, so any
+// 50x50mm (or other) label stays perfectly centred with no manual nudging.
 // ==========================================================================
 
 const DOTS_PER_MM = 8;
+// TSPL internal font "3" = fixed 16x24 dots per character (multiplier 1).
+const FONT_CHAR_WIDTH = 16;
+const FONT_CHAR_HEIGHT = 24;
+const FONT_MUL = 1;
+// Vertical gap between the name line and the QR (dots).
+const GAP_BETWEEN = 16;
+// Quiet-zone margin kept around the QR/text block (dots). 24 dots = 3 mm.
+const QR_MARGIN = 24;
+// Largest TSPL QRCODE cell size (module size in dots) we'll use. The QR grows
+// to the biggest cell that still fits the label minus margins, capped here so
+// the printed code never spills past the quiet zone.
+const CELL_MAX = 10;
+// Physical print calibration (dots, +x = right, +y = down). The layout itself
+// is mathematically centred; these compensate for the printer's printable
+// origin sitting a little in from the label's top-left edge, which otherwise
+// makes the whole block print slightly up-and-left. Applied ONLY to the native
+// TSPL commands (buildTsplNativeQr) - the digital preview/bitmap stays pure.
+// Tune per printer if labels still sit off-centre.
+const PRINT_X_OFFSET = 30;
+const PRINT_Y_OFFSET = 26;
+// Negative letter spacing for the canvas/bitmap preview only (dots @ scale 1);
+// TSPL native text can't letter-space, so this never affects real native prints.
+const CANVAS_LETTER_SPACING = -4;
 
 interface TsplLayout {
   labelWidthDots: number;
@@ -138,31 +136,53 @@ interface TsplLayout {
 }
 
 /**
- * Compute layout positions yang dipakai oleh TSPL Native QR & TSPL Bitmap.
- * Output dalam dots (printer pixel). Ini single source of truth supaya tweak
- * konstanta di atas berlaku untuk kedua mode.
+ * Single source of truth for where the name + QR sit on the label, in dots.
+ * Shared by the native-QR command and the canvas/bitmap renderer so both stay
+ * pixel-identical.
+ *
+ * `moduleCount` is the QR's real side length in modules (from QRCode.create on
+ * the actual token), so the QR footprint is known exactly instead of guessed -
+ * that is what lets the block be perfectly centred. The cell size is grown to
+ * the largest that fits the label minus margins (capped at CELL_MAX) so the QR
+ * prints as large as possible.
  */
-function computeTsplLayout(name: string, widthMm: number, heightMm: number): TsplLayout {
+function computeTsplLayout(
+  name: string,
+  moduleCount: number,
+  widthMm: number,
+  heightMm: number
+): TsplLayout {
   const labelWidthDots = widthMm * DOTS_PER_MM;
   const labelHeightDots = heightMm * DOTS_PER_MM;
-  const qrPixelSize = ESTIMATED_QR_MODULES * CELL_WIDTH;
   const fontHeight = FONT_CHAR_HEIGHT * FONT_MUL;
   const textWidth = name.length * FONT_CHAR_WIDTH * FONT_MUL;
+
+  // Biggest cell that fits the width AND the height left after the name + gap.
+  const safeModules = Math.max(1, moduleCount);
+  const maxCellByWidth = Math.floor((labelWidthDots - 2 * QR_MARGIN) / safeModules);
+  const maxCellByHeight = Math.floor(
+    (labelHeightDots - 2 * QR_MARGIN - fontHeight - GAP_BETWEEN) / safeModules
+  );
+  const cellWidth = Math.max(1, Math.min(CELL_MAX, maxCellByWidth, maxCellByHeight));
+  const qrPixelSize = safeModules * cellWidth;
+
+  // Centre the name + QR as one block: each centred horizontally, the whole
+  // stack centred vertically.
   const totalContentHeight = fontHeight + GAP_BETWEEN + qrPixelSize;
-  const topMargin = Math.max(20, Math.floor((labelHeightDots - totalContentHeight) / 2));
+  const topMargin = Math.max(0, Math.floor((labelHeightDots - totalContentHeight) / 2));
 
   return {
     labelWidthDots,
     labelHeightDots,
-    textX: Math.max(0, Math.floor((labelWidthDots - textWidth) / 2)) + TEXT_X_OFFSET,
-    textY: topMargin + TEXT_Y_OFFSET,
+    textX: Math.max(0, Math.floor((labelWidthDots - textWidth) / 2)),
+    textY: topMargin,
     textWidth,
     fontHeight,
     fontMul: FONT_MUL,
-    qrX: Math.max(0, Math.floor((labelWidthDots - qrPixelSize) / 2)) + QR_X_OFFSET,
-    qrY: topMargin + fontHeight + GAP_BETWEEN + QR_Y_OFFSET,
+    qrX: Math.max(0, Math.floor((labelWidthDots - qrPixelSize) / 2)),
+    qrY: topMargin + fontHeight + GAP_BETWEEN,
     qrPixelSize,
-    cellWidth: CELL_WIDTH,
+    cellWidth,
   };
 }
 
@@ -170,12 +190,19 @@ function computeTsplLayout(name: string, widthMm: number, heightMm: number): Tsp
  * TSPL native QR command. Printer yang render QR.
  * Layout: nama di atas, QR di tengah-bawah.
  */
-export function buildTsplNativeQr(opts: TsplQrOptions): Uint8Array {
+export async function buildTsplNativeQr(opts: TsplQrOptions): Promise<Uint8Array> {
   const widthMm = opts.widthMm ?? 50;
   const heightMm = opts.heightMm ?? 50;
   const gapMm = opts.gapMm ?? 2;
   const density = opts.density ?? 8;
-  const layout = computeTsplLayout(opts.name, widthMm, heightMm);
+
+  // Exact module count for THIS token so the QR can be centred and maximised
+  // precisely. ECC "H" here must match the `H` in the QRCODE command below;
+  // both the library and the printer firmware pick the smallest spec-compliant
+  // version for the data, so the counts agree.
+  const QRLib = (await import("qrcode")).default;
+  const moduleCount = QRLib.create(opts.qrData, { errorCorrectionLevel: "H" }).modules.size;
+  const layout = computeTsplLayout(opts.name, moduleCount, widthMm, heightMm);
 
   const cmd = [
     `SIZE ${widthMm} mm,${heightMm} mm`,
@@ -185,8 +212,8 @@ export function buildTsplNativeQr(opts: TsplQrOptions): Uint8Array {
     `DIRECTION 0`,
     `REFERENCE 0,0`,
     `CLS`,
-    `TEXT ${layout.textX},${layout.textY},"3",0,${layout.fontMul},${layout.fontMul},"${escapeTspl(opts.name)}"`,
-    `QRCODE ${layout.qrX},${layout.qrY},H,${layout.cellWidth},A,0,M2,S7,"${escapeTspl(opts.qrData)}"`,
+    `TEXT ${layout.textX + PRINT_X_OFFSET},${layout.textY + PRINT_Y_OFFSET},"3",0,${layout.fontMul},${layout.fontMul},"${escapeTspl(opts.name)}"`,
+    `QRCODE ${layout.qrX + PRINT_X_OFFSET},${layout.qrY + PRINT_Y_OFFSET},H,${layout.cellWidth},A,0,M2,S7,"${escapeTspl(opts.qrData)}"`,
     `PRINT 1,1`,
     ``,
   ].join("\r\n");
@@ -318,7 +345,10 @@ export async function renderPrintCanvas(opts: {
   const widthMm = opts.widthMm ?? 50;
   const heightMm = opts.heightMm ?? 50;
   const scale = opts.scale ?? 1;
-  const layout = computeTsplLayout(opts.name, widthMm, heightMm);
+
+  const QRLib = (await import("qrcode")).default;
+  const moduleCount = QRLib.create(opts.qrData, { errorCorrectionLevel: "H" }).modules.size;
+  const layout = computeTsplLayout(opts.name, moduleCount, widthMm, heightMm);
 
   const widthPx = layout.labelWidthDots * scale;
   const heightPx = layout.labelHeightDots * scale;
@@ -359,7 +389,6 @@ export async function renderPrintCanvas(opts: {
     ctxAny.letterSpacing = "0px";
   }
 
-  const QRLib = (await import("qrcode")).default;
   const qrSizePx = layout.qrPixelSize * scale;
   const qrCanvas = document.createElement("canvas");
   await QRLib.toCanvas(qrCanvas, opts.qrData, {

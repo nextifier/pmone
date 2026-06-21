@@ -82,9 +82,13 @@ class BrandEventController extends Controller
     {
         $email = strtolower(trim($email));
 
-        $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+
             return $user;
         }
 

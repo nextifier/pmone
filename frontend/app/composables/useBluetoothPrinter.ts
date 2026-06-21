@@ -399,19 +399,36 @@ export function useBluetoothPrinter() {
     }
     const gatt = device.value.gatt;
     reconnectInFlight = (async (): Promise<boolean> => {
-      try {
-        status.value = "connecting";
-        const server = await gatt.connect();
-        await discoverWriteChar(server);
-        status.value = "connected";
-        addLog("success", "Auto-reconnect berhasil (tanpa picker)");
-        return true;
-      } catch (err) {
-        addLog("warn", "Auto-reconnect gagal", err instanceof Error ? err.message : String(err));
-        cleanup();
-        status.value = "disconnected";
-        return false;
+      status.value = "connecting";
+      // Cheap BLE label printers routinely drop the GATT link when idle and can
+      // need a moment (or a second attempt) to answer a reconnect. Retrying a
+      // few times with a short backoff - all silent, no picker - lets auto-print
+      // survive the gaps between scans instead of giving up on the first miss.
+      const ATTEMPTS = 3;
+      for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+        try {
+          const server = await gatt.connect();
+          await discoverWriteChar(server);
+          status.value = "connected";
+          addLog(
+            "success",
+            `Auto-reconnect berhasil (tanpa picker)${attempt > 1 ? ` pada percobaan ${attempt}` : ""}`
+          );
+          return true;
+        } catch (err) {
+          addLog(
+            "warn",
+            `Auto-reconnect percobaan ${attempt}/${ATTEMPTS} gagal`,
+            err instanceof Error ? err.message : String(err)
+          );
+          if (attempt < ATTEMPTS) {
+            await new Promise((r) => setTimeout(r, 400));
+          }
+        }
       }
+      cleanup();
+      status.value = "disconnected";
+      return false;
     })().finally(() => {
       reconnectInFlight = null;
     });

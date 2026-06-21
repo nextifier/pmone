@@ -594,15 +594,17 @@ class BrandController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $user = User::whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();
 
         if (! $user) {
             $user = User::create([
                 'name' => Str::before($validated['email'], '@'),
-                'email' => $validated['email'],
+                'email' => strtolower(trim($validated['email'])),
                 'password' => bcrypt(Str::random(16)),
                 'email_verified_at' => now(),
             ]);
+        } elseif ($user->trashed()) {
+            $user->restore();
         }
 
         if (! $user->hasRole('exhibitor')) {

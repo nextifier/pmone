@@ -1,7 +1,7 @@
 <template>
-  <section class="flex flex-col gap-y-4">
+  <section class="flex min-h-0 flex-1 flex-col gap-y-4">
     <!-- Event header -->
-    <header class="flex items-start gap-x-3">
+    <header class="flex items-center gap-x-3">
       <!-- Poster shows uncropped; tap to open the full-size version in a lightbox -->
       <Lightbox
         v-if="posterItems.length"
@@ -57,13 +57,15 @@
 
     <!-- Live camera -->
     <div
-      class="bg-foreground relative aspect-[4/3] w-full overflow-hidden rounded-2xl border lg:aspect-auto lg:h-[min(46vh,24rem)]"
+      class="relative min-h-64 w-full flex-1 overflow-hidden rounded-2xl border border-border lg:h-[min(46vh,24rem)] lg:min-h-0 lg:flex-none"
+      :class="cameraLive ? 'bg-foreground' : 'bg-muted'"
     >
       <ClientOnly>
         <QrcodeStream
           v-if="cameraLive"
           :constraints="cameraConstraints"
           :formats="['qr_code']"
+          :track="trackDetect"
           class="size-full object-cover"
           @detect="onCameraDetect"
           @camera-on="handleCameraOn"
@@ -94,24 +96,18 @@
           <span class="border-background absolute top-0 right-0 size-8 rounded-tr-xl border-t-2 border-r-2" />
           <span class="border-background absolute bottom-0 left-0 size-8 rounded-bl-xl border-b-2 border-l-2" />
           <span class="border-background absolute right-0 bottom-0 size-8 rounded-br-xl border-r-2 border-b-2" />
-          <span class="bg-success/80 absolute inset-x-0 top-0 h-0.5 animate-[scanline_2s_ease-in-out_infinite]" />
+          <span class="t-scanline bg-success absolute inset-x-0 top-0 h-0.5 rounded-full" />
         </div>
       </div>
 
       <!-- Non-live states -->
       <div
         v-else
-        class="text-background/90 absolute inset-0 flex flex-col items-center justify-center gap-y-3 p-6 text-center"
+        class="text-muted-foreground absolute inset-0 flex flex-col items-center justify-center gap-y-3 p-6 text-center"
       >
         <Icon name="hugeicons:camera-off-01" class="size-8" />
         <p class="max-w-xs text-sm tracking-tight">{{ cameraMessage }}</p>
-        <Button
-          v-if="cameraError"
-          variant="outline"
-          size="sm"
-          class="bg-background/10 border-background/30 text-background hover:bg-background/20 hover:text-background"
-          @click="retryCamera"
-        >
+        <Button v-if="cameraError" variant="outline" size="sm" @click="retryCamera">
           <Icon name="hugeicons:refresh" class="size-4 shrink-0" />
           <span>Retry camera</span>
         </Button>
@@ -119,28 +115,23 @@
     </div>
 
     <!-- Scanner gun input -->
-    <div class="space-y-1.5">
-      <div class="relative">
-        <Icon
-          name="hugeicons:qr-code"
-          class="text-muted-foreground absolute top-1/2 left-3 size-5 -translate-y-1/2"
-        />
-        <Input
-          v-model="gunValue"
-          data-scanner-gun
-          class="h-12 pl-10 text-base tracking-tight"
-          placeholder="Scan or paste a ticket code"
-          autocomplete="off"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-          enterkeyhint="done"
-          @paste="onGunPaste"
-        />
-      </div>
-      <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-        Point a ticket QR at the camera, or fire a scanner gun for instant check-in.
-      </p>
+    <div class="relative">
+      <Icon
+        name="hugeicons:qr-code-01"
+        class="text-muted-foreground absolute top-1/2 left-3 size-5 -translate-y-1/2"
+      />
+      <Input
+        v-model="gunValue"
+        data-scanner-gun
+        class="h-12 pl-10 text-base tracking-tight"
+        placeholder="Scan or paste a ticket code"
+        autocomplete="off"
+        autocapitalize="off"
+        autocorrect="off"
+        spellcheck="false"
+        enterkeyhint="done"
+        @paste="onGunPaste"
+      />
     </div>
 
     <!-- Last scan result -->
@@ -327,6 +318,21 @@ const switchCamera = () => {
   facingMode.value = facingMode.value === "environment" ? "user" : "environment";
 };
 
+// Re-scanning the SAME ticket. vue-qrcode-reader's `@detect` only fires when a
+// NEW code appears and never re-fires an identical code until a *different* code
+// resets its internal `contentBefore` - so without leaving the page a ticket
+// can't be scanned twice in a row (e.g. when a check-in needs redoing). The
+// `track` callback, by contrast, runs every frame a code is in view with no
+// library-level dedup, so we route detection through it too. Double check-ins
+// are still prevented by the session's own sliding-window dedup
+// (`isDuplicateScan`): while a ticket stays in front of the camera the window
+// keeps sliding so it submits once; take it away for the dedupe window and
+// present it again and it scans afresh - no refresh needed. (`@detect` is kept
+// as a fast path for the first sighting; both funnel through the same dedup.)
+const trackDetect = (codes) => {
+  onCameraDetect(codes);
+};
+
 const cameraLive = computed(
   () => props.cameraEnabled && cameraSupported.value && !cameraError.value,
 );
@@ -386,7 +392,12 @@ const checkedInAtLabel = computed(() => {
   return "";
 });
 
+// Only auto-focus the hidden gun input on devices with a fine pointer (desktop
+// + USB scanner gun). On touch devices auto-focusing pops the on-screen
+// keyboard, which gets in the way since check-ins are done with the camera.
 const focusGun = () => {
+  if (typeof window === "undefined") return;
+  if (!window.matchMedia("(pointer: fine)").matches) return;
   nextTick(() => {
     const el = document.querySelector("[data-scanner-gun]");
     if (el instanceof HTMLElement) el.focus({ preventScroll: true });
@@ -394,30 +405,11 @@ const focusGun = () => {
 };
 
 onMounted(focusGun);
-// Re-focus the gun whenever this panel becomes the active one on mobile.
+// Re-focus the gun whenever this panel becomes the active one.
 watch(() => props.cameraEnabled, (on) => on && focusGun());
 </script>
 
 <style scoped>
-@keyframes scanline {
-  0% {
-    top: 0;
-  }
-  50% {
-    top: 100%;
-  }
-  100% {
-    top: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [class*="animate-[scanline"] {
-    animation: none;
-    top: 50%;
-  }
-}
-
 .result-pop-enter-active,
 .result-pop-leave-active {
   transition:

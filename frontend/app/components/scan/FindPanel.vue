@@ -42,7 +42,12 @@
       No matching attendees found.
     </div>
 
-    <ul v-else-if="searchResults.length" class="space-y-2">
+    <TransitionGroup
+      v-else-if="searchResults.length"
+      tag="ul"
+      name="t-list"
+      class="space-y-2"
+    >
       <li
         v-for="att in searchResults"
         :key="att.ulid"
@@ -71,16 +76,14 @@
           <span>Check in</span>
         </Button>
       </li>
-    </ul>
+    </TransitionGroup>
 
     <div
       v-else
-      class="text-muted-foreground flex flex-col items-center justify-center gap-y-2 py-12 text-center"
+      class="text-muted-foreground flex items-center justify-center gap-x-2 py-4 text-center"
     >
-      <Icon name="hugeicons:search-01" class="size-10 opacity-40" />
-      <p class="max-w-xs text-sm tracking-tight">
-        Search by name, email, phone, or order number to check a visitor in manually.
-      </p>
+      <Icon name="hugeicons:search-01" class="size-4 shrink-0 opacity-40" />
+      <p class="text-xs tracking-tight sm:text-sm">Type to look up a visitor.</p>
     </div>
   </section>
 </template>

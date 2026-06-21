@@ -111,7 +111,13 @@ class OAuthController extends Controller
         }
 
         // Find or create user by email
-        $user = User::where('email', $socialiteUser->getEmail())->first();
+        $user = User::withTrashed()
+            ->whereRaw('LOWER(email) = ?', [strtolower(trim((string) $socialiteUser->getEmail()))])
+            ->first();
+
+        if ($user?->trashed()) {
+            throw new \DomainException('This account is no longer active.');
+        }
 
         if (! $user) {
             $user = $this->createNewUser($socialiteUser);
@@ -135,7 +141,7 @@ class OAuthController extends Controller
     {
         $user = User::create([
             'name' => $socialiteUser->getName(),
-            'email' => $socialiteUser->getEmail(),
+            'email' => strtolower(trim((string) $socialiteUser->getEmail())),
             'email_verified_at' => now(),
             'password' => Hash::make(Str::random(32)),
         ]);

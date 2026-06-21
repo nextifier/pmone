@@ -212,14 +212,11 @@ const eventTabs = computed(() => {
   // the enable toggle lives inside the Settings sub-tab, so the tab must stay
   // reachable to turn the feature on.
   if (hasPermission("tickets.read")) {
-    tabs.push({ label: "Tickets", icon: "hugeicons:ticket-01", to: `${eventBase.value}/tickets` });
-  }
-
-  if (hasPermission("access_codes.read")) {
     tabs.push({
-      label: "Access Codes",
-      icon: "hugeicons:ticket-star",
-      to: `${eventBase.value}/access-codes`,
+      label: "Tickets",
+      icon: "hugeicons:ticket-01",
+      to: `${eventBase.value}/tickets`,
+      activeFor: [`${eventBase.value}/access-codes`],
     });
   }
 

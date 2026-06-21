@@ -31,6 +31,15 @@ it('mints a magic-link with a valid email token, even for a returning (unclaimed
     expect(MagicLink::where('email', 'holder@example.com')->valid()->exists())->toBeTrue();
 });
 
+it('resolves the loginable account case-insensitively', function () {
+    User::factory()->create(['email' => 'holder@example.com', 'email_verified_at' => now()]);
+    $attendee = Attendee::factory()->create(['email' => 'Holder@Example.com', 'claimed_by_user_id' => null]);
+
+    $this->postJson("/api/public/attendees/{$attendee->ulid}/dashboard-link", [
+        'token' => $attendee->dashboardLoginToken(),
+    ], $this->headers)->assertOk();
+});
+
 it('sends the holder to /account/tickets after login (safe redirect)', function () {
     $user = User::factory()->create(['email_verified_at' => now()]);
     $ml = MagicLink::generate($user->email, 10);

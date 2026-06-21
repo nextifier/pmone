@@ -47,6 +47,31 @@ it('creates a ticket with a slug derived from the title', function () {
     expect(Ticket::where('event_id', $this->event->id)->count())->toBe(1);
 });
 
+it('persists and updates the day-pass and entrance badge labels', function () {
+    $this->postJson($this->base, [
+        'kind' => 'entry',
+        'title' => ['en' => 'Day Pass'],
+        'purchase_type' => 'first_party',
+        'more_details' => ['day_pass' => 'All-day pass', 'entrance' => 'Regular entrance'],
+    ])->assertCreated()
+        ->assertJsonPath('data.more_details.day_pass', 'All-day pass')
+        ->assertJsonPath('data.more_details.entrance', 'Regular entrance');
+
+    $ticket = Ticket::where('event_id', $this->event->id)->firstOrFail();
+    expect($ticket->more_details['day_pass'])->toBe('All-day pass')
+        ->and($ticket->more_details['entrance'])->toBe('Regular entrance');
+
+    $this->putJson("{$this->base}/{$ticket->slug}", [
+        'kind' => 'entry',
+        'title' => ['en' => 'Day Pass'],
+        'purchase_type' => 'first_party',
+        'more_details' => ['day_pass' => 'Two-day pass', 'entrance' => 'VIP entrance'],
+    ])->assertSuccessful()
+        ->assertJsonPath('data.more_details.day_pass', 'Two-day pass');
+
+    expect($ticket->fresh()->more_details['entrance'])->toBe('VIP entrance');
+});
+
 it('scopes slug uniqueness to the event', function () {
     Ticket::factory()->create(['event_id' => $this->event->id, 'title' => ['en' => 'Regular'], 'slug' => 'regular']);
 

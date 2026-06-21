@@ -1,10 +1,11 @@
 <template>
   <section class="space-y-4">
     <!-- Pending sync -->
-    <div v-if="outbox.length" class="space-y-2">
-      <div
-        class="bg-warning/10 border-warning/20 flex items-center justify-between gap-x-3 rounded-xl border p-3"
-      >
+    <Transition name="t-fade-pop">
+      <div v-if="outbox.length">
+        <div
+          class="bg-warning/10 border-warning/20 flex items-center justify-between gap-x-3 rounded-xl border p-3"
+        >
         <div class="min-w-0">
           <p class="text-warning-foreground text-sm font-medium tracking-tight">
             {{ outbox.length }} scan{{ outbox.length === 1 ? "" : "s" }} pending sync
@@ -13,13 +14,14 @@
             Queued offline - will flush when back online.
           </p>
         </div>
-        <Button size="sm" variant="outline" :disabled="!isOnline || syncing" @click="flushOutbox">
-          <Spinner v-if="syncing" />
-          <Icon v-else name="hugeicons:refresh" class="size-4 shrink-0" />
-          <span>Sync</span>
-        </Button>
+          <Button size="sm" variant="outline" :disabled="!isOnline || syncing" @click="flushOutbox">
+            <Spinner v-if="syncing" />
+            <Icon v-else name="hugeicons:refresh" class="size-4 shrink-0" />
+            <span>Sync</span>
+          </Button>
+        </div>
       </div>
-    </div>
+    </Transition>
 
     <!-- Recent scans -->
     <div class="space-y-2">
@@ -30,7 +32,12 @@
         </span>
       </div>
 
-      <ul v-if="recentScans.length" class="space-y-1.5">
+      <TransitionGroup
+        v-if="recentScans.length"
+        tag="ul"
+        name="t-list"
+        class="space-y-1.5"
+      >
         <li
           v-for="entry in recentScans"
           :key="entry.id"
@@ -54,16 +61,14 @@
             {{ entry.time }}
           </span>
         </li>
-      </ul>
+      </TransitionGroup>
 
       <div
         v-else
-        class="text-muted-foreground flex flex-col items-center justify-center gap-y-2 py-12 text-center"
+        class="text-muted-foreground flex items-center justify-center gap-x-2 py-4 text-center"
       >
-        <Icon name="hugeicons:clock-01" class="size-10 opacity-40" />
-        <p class="max-w-xs text-sm tracking-tight">
-          No scans yet. Check-ins from this session will show up here.
-        </p>
+        <Icon name="hugeicons:clock-01" class="size-4 shrink-0 opacity-40" />
+        <p class="text-xs tracking-tight sm:text-sm">No check-ins yet.</p>
       </div>
     </div>
   </section>

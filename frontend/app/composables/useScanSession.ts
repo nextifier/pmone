@@ -137,9 +137,19 @@ export function useScanSession(eventId: string) {
   // the GATT link has since dropped, since printBadge() silently reconnects.
   const printerReady = computed(() => printerConnected.value || !!printerDevice.value);
   const printing = ref(false);
+  // Throttle for the "printer asleep, tap to reconnect" auto-print hint so a run
+  // of scans against an unreachable printer shows the guidance once, not per scan.
+  let lastPrinterHintAt = 0;
 
   /* --------------------------- Debounce dedupe ---------------------------- */
-  const DEDUPE_MS = 2500;
+  // Sliding window: every detection of a token refreshes its timestamp, so a
+  // ticket held continuously in front of the camera submits once (the camera's
+  // `track` callback fires ~25x/s). Take it away for longer than this window and
+  // present it again and it scans afresh - this is what lets staff deliberately
+  // re-scan the same ticket without reloading. Kept short because a repeat
+  // check-in is idempotent server-side (returns "already_checked_in"), so the
+  // only cost of an over-eager re-scan is a harmless redundant request.
+  const DEDUPE_MS = 1500;
   const recentTokens = new Map<string, number>();
 
   const isDuplicateScan = (token: string): boolean => {
@@ -442,6 +452,16 @@ export function useScanSession(eventId: string) {
           toast.error("Printer not connected", {
             description: printerError.value || "Connect a printer using the printer icon first.",
           });
+        } else if (printerReady.value && Date.now() - lastPrinterHintAt > 8000) {
+          // Auto-print wanted to fire but the remembered printer is asleep / out
+          // of range and couldn't be reconnected silently (Web Bluetooth can't
+          // wake a fully-asleep BLE device without a user gesture). Surface a
+          // throttled, actionable hint instead of failing silently so staff know
+          // to tap once - rather than thinking auto-print is broken.
+          lastPrinterHintAt = Date.now();
+          toast.warning("Printer needs reconnecting", {
+            description: "Tap the printer icon above, then Reconnect, to resume auto-print.",
+          });
         }
         return;
       }
@@ -452,7 +472,7 @@ export function useScanSession(eventId: string) {
       const { buildTsplNativeQr } = await import(
         "@/composables/usePrinterCommands"
       );
-      const bytes = buildTsplNativeQr({
+      const bytes = await buildTsplNativeQr({
         name: attendee.name || "Guest",
         // Encode the bare qr_token so the printed badge matches the e-ticket and
         // bulk-PDF QR exactly; the gate and exhibitor scanners read it verbatim.
@@ -722,7 +742,17 @@ export function useScanSession(eventId: string) {
     restoreFromStorage().then(loadManifest);
     loadScanSounds();
     loadContext();
-    if (printerSupported.value) tryRestoreDevice();
+    if (printerSupported.value) {
+      // Arm auto-print on load: restore the remembered printer, then silently
+      // (re)connect to it so the very first scan prints without a manual connect
+      // and the status chip shows the live link straight away. Reconnecting to
+      // an already-granted device needs no user gesture; a failure is silent
+      // (the printer may be off) and every printBadge() still reconnects on its
+      // own, so this is best-effort arming, not a hard requirement.
+      tryRestoreDevice().then(() => {
+        if (printerDevice.value) ensureConnected();
+      });
+    }
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);

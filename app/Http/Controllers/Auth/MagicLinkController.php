@@ -78,6 +78,12 @@ class MagicLinkController extends Controller
         // Find or create user
         $user = $this->findOrCreateUser($magicLink->email);
 
+        // A soft-deleted account must not be resurrected by logging back in.
+        if ($user->trashed()) {
+            return redirect()->to(config('app.frontend_url').'/login')
+                ->withErrors(['magic_link' => 'This account is no longer active. Please contact support.']);
+        }
+
         // Check if user is active
         if ($user->status === 'inactive') {
             return redirect()->to(config('app.frontend_url').'/login')
@@ -127,7 +133,9 @@ class MagicLinkController extends Controller
 
     private function findOrCreateUser(string $email): User
     {
-        $user = User::where('email', $email)->first();
+        $email = strtolower(trim($email));
+
+        $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [$email])->first();
 
         if (! $user) {
             $user = User::create([

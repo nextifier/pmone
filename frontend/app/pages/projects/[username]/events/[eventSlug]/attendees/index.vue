@@ -132,6 +132,15 @@
         </ClientOnly>
       </template>
 
+      <template #toolbar-actions>
+        <Button v-if="canScan && event?.id" variant="outline" size="sm" as-child>
+          <NuxtLink :to="{ path: `/scan/${event.id}`, query: { title: event.title } }">
+            <Icon name="hugeicons:qr-code-01" class="size-4 shrink-0" />
+            <span>Open scanner</span>
+          </NuxtLink>
+        </Button>
+      </template>
+
       <template #actions="{ selectedRows }">
         <TableBulkAction
           v-if="canUpdate"
@@ -286,6 +295,7 @@ const canDelete = computed(() => hasPermission("attendees.delete"));
 const canUpdate = computed(() => hasPermission("attendees.update"));
 const canExport = computed(() => hasPermission("attendees.export"));
 const canViewDocs = computed(() => hasPermission("attendees.view_documents"));
+const canScan = computed(() => hasPermission("scan.check_in"));
 
 const checkInOptions = [
   { label: "Checked in", value: "in" },

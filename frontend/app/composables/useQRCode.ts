@@ -55,7 +55,7 @@ export function buildQRSvgString(
     margin = 0,
     fgColor = "#000000",
     bgColor = "#FFFFFF",
-    styleVariant = "rounded",
+    styleVariant = "square",
   } = options;
 
   const moduleCount = qrData.modules.size;
@@ -149,7 +149,7 @@ export function buildQRSvgString(
 export function useQRCodeStyle() {
   const qrStyle = useLocalStorage<QRStyleVariant>(
     "pmone:qr-code-style",
-    "rounded"
+    "square"
   );
 
   const toggleQrStyle = () => {

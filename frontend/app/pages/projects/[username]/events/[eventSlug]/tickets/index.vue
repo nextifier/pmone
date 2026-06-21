@@ -21,15 +21,15 @@
             <span>Ticket Settings</span>
           </NuxtLink>
         </Button>
-        <Button v-if="canScan && event?.id" as-child variant="outline">
-          <NuxtLink :to="{ path: `/scan/${event.id}`, query: { title: event.title } }">
-            <Icon name="hugeicons:qr-code" class="size-4 shrink-0" />
-            <span>Open scanner</span>
-          </NuxtLink>
-        </Button>
         <Button v-if="canBulkGenerate && event?.id" variant="outline" @click="bulkOpen = true">
           <Icon name="hugeicons:ticket-02" class="size-4 shrink-0" />
           <span>Bulk generate</span>
+        </Button>
+        <Button v-if="canViewAccessCodes" as-child variant="outline">
+          <NuxtLink :to="accessCodesBase">
+            <Icon name="hugeicons:ticket-star" class="size-4 shrink-0" />
+            <span>Access Codes</span>
+          </NuxtLink>
         </Button>
         <Button v-if="canCreate" as-child>
           <NuxtLink :to="`${ticketsBase}/create`">
@@ -260,6 +260,10 @@ const ticketsBase = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}/tickets`
 );
 
+const accessCodesBase = computed(
+  () => `/projects/${route.params.username}/events/${route.params.eventSlug}/access-codes`
+);
+
 usePageMeta(null, {
   title: computed(() => `Tickets · ${props.event?.title || "Event"}`),
 });
@@ -269,8 +273,8 @@ const { hasPermission } = usePermission();
 const canCreate = computed(() => hasPermission("tickets.create"));
 const canUpdate = computed(() => hasPermission("tickets.update"));
 const canDelete = computed(() => hasPermission("tickets.delete"));
-const canScan = computed(() => hasPermission("scan.check_in"));
 const canBulkGenerate = computed(() => hasPermission("tickets.bulk_generate"));
+const canViewAccessCodes = computed(() => hasPermission("access_codes.read"));
 const bulkOpen = ref(false);
 
 const columnFilters = ref([]);

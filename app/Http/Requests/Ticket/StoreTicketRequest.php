@@ -41,6 +41,8 @@ class StoreTicketRequest extends FormRequest
             'external_url' => ['nullable', 'url', 'max:1000', Rule::requiredIf($this->input('purchase_type') === PurchaseType::External->value)],
 
             'more_details' => ['nullable', 'array'],
+            'more_details.day_pass' => ['nullable', 'string', 'max:255'],
+            'more_details.entrance' => ['nullable', 'string', 'max:255'],
             'settings' => ['nullable', 'array'],
 
             'print_on_redeem' => ['sometimes', 'boolean'],
