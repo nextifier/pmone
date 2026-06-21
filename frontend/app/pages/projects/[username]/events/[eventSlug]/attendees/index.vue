@@ -548,6 +548,22 @@ async function resendETicket(attendee) {
   }
 }
 
+async function resendConfirmation(attendee) {
+  try {
+    const result = await client(
+      `/api/events/${props.event.id}/ticket-orders/${attendee.order?.ulid}/resend-confirmation`,
+      { method: "POST" }
+    );
+    toast.success(result.message || "Confirmation email is being sent", {
+      description: attendee.order?.number,
+    });
+  } catch (err) {
+    toast.error("Failed to resend confirmation", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  }
+}
+
 // The shareable e-ticket page lives on the event's public website (pmone-events),
 // not the admin app — so the link is built from the event's Website URL. Hidden
 // entirely when the event has no public website configured.
@@ -741,6 +757,32 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
+                      p.attendee.can_view_documents
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "a",
+                                  {
+                                    href: `${apiBase}/api/events/${props.event.id}/attendees/${p.attendee.id}/preview-eticket`,
+                                    target: "_blank",
+                                    rel: "noopener",
+                                    class:
+                                      "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight whitespace-nowrap flex items-center gap-x-1.5",
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "hugeicons:mail-open-02",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Preview e-ticket email"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
                       eticketBase.value
                         ? h(
                             PopoverClose,
@@ -840,6 +882,56 @@ const RowActions = defineComponent({
                                       class: "size-4 shrink-0",
                                     }),
                                     h("span", {}, "Receipt"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
+                      canUpdate.value && p.attendee.order?.ulid
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "button",
+                                  {
+                                    class:
+                                      "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight whitespace-nowrap flex items-center gap-x-1.5",
+                                    onClick: () => resendConfirmation(p.attendee),
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "hugeicons:mail-send-02",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Resend confirmation to buyer"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
+                      p.attendee.can_view_documents && p.attendee.order?.ulid
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "a",
+                                  {
+                                    href: `${apiBase}/api/events/${props.event.id}/ticket-orders/${p.attendee.order?.ulid}/preview-confirmation`,
+                                    target: "_blank",
+                                    rel: "noopener",
+                                    class:
+                                      "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight whitespace-nowrap flex items-center gap-x-1.5",
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "hugeicons:mail-open-01",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Preview confirmation email"),
                                   ]
                                 ),
                             }

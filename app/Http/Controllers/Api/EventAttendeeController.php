@@ -8,6 +8,9 @@ use App\Http\Requests\Attendee\UpdateEventAttendeeRequest;
 use App\Http\Resources\AttendeeIndexResource;
 use App\Http\Resources\AttendeeResource;
 use App\Jobs\Ticket\SendAttendeeETicketJob;
+use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
+use App\Mail\Ticket\AttendeeETicketMail;
+use App\Mail\Ticket\TicketOrderConfirmationMail;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\TicketOrder;
@@ -374,6 +377,75 @@ class EventAttendeeController extends Controller
         abort_if($order->paid_at === null, 422, 'Receipt is only available after payment.');
 
         return $documents->renderReceiptPdf($order);
+    }
+
+    /**
+     * Resend the order confirmation email to the buyer (order-level companion to
+     * the per-attendee resendETicket).
+     */
+    public function resendOrderConfirmation(Request $request, Event $event, TicketOrder $order): JsonResponse
+    {
+        $this->ensureOrderBelongsToEvent($event, $order);
+
+        if (! auth()->user()?->can('attendees.update')) {
+            abort(403);
+        }
+
+        abort_if(blank($order->buyer_email), 422, 'This order has no buyer email address.');
+
+        SendTicketOrderConfirmationJob::dispatch($order->id);
+
+        activity()
+            ->causedBy($request->user())
+            ->event('resent_order_confirmation')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'ticket_order_id' => $order->id,
+                'model_type' => 'TicketOrder',
+            ])
+            ->log('Resent order confirmation email');
+
+        return response()->json(['message' => 'Confirmation email is being sent.']);
+    }
+
+    /**
+     * Render the buyer's order-confirmation email as HTML for a staff preview
+     * (opened in a new tab). Builds the exact mailable the send job would.
+     */
+    public function previewOrderEmail(Event $event, TicketOrder $order): Response
+    {
+        $this->ensureOrderBelongsToEvent($event, $order);
+
+        if (! auth()->user()?->can('attendees.view_documents')) {
+            abort(403);
+        }
+
+        $order->load(['event.project.media', 'event.project.links', 'items.ticket']);
+
+        return response(TicketOrderConfirmationMail::for($order)->render(), 200, ['Content-Type' => 'text/html']);
+    }
+
+    /**
+     * Render an attendee's e-ticket email as HTML for a staff preview.
+     */
+    public function previewAttendeeEmail(Event $event, Attendee $attendee): Response
+    {
+        $this->ensureAttendeeBelongsToEvent($event, $attendee);
+
+        if (! auth()->user()?->can('attendees.view_documents')) {
+            abort(403);
+        }
+
+        $attendee->load([
+            'ticket',
+            'ticketOrderItem.ticketOrder.event.project.media',
+            'ticketOrderItem.ticketOrder.event.project.links',
+            'ticketOrderItem.selectedEventDay',
+            'ticketOrderItem.ticketSession',
+        ]);
+
+        return response(AttendeeETicketMail::for($attendee)->render(), 200, ['Content-Type' => 'text/html']);
     }
 
     private function availablePaymentChannels(Event $event)

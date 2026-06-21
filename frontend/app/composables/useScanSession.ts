@@ -133,6 +133,10 @@ export function useScanSession(eventId: string) {
     errorMessage: printerError,
     startKeepAlive,
     stopKeepAlive,
+    logs: printerLogs,
+    copyLogs: copyPrinterLogs,
+    clearLogs: clearPrinterLogs,
+    addLog: addPrinterLog,
   } = useBluetoothPrinter();
   const printerConnected = computed(() => printerStatus.value === "connected");
   // "Ready" once a printer has been picked at least once this session - even if
@@ -441,15 +445,22 @@ export function useScanSession(eventId: string) {
   const printBadge = async (attendee: any, { interactive = false } = {}): Promise<void> => {
     if (!printerSupported.value || !attendee?.qr_token) return;
     printing.value = true;
+    addPrinterLog(
+      "info",
+      `printBadge mulai: ${attendee.name || "(no name)"}`,
+      `interactive=${interactive}, status awal=${printerStatus.value}`,
+    );
     try {
       // Silent reconnect first (no picker, no gesture needed). Only fall back to
       // the picker from an interactive user gesture (the buttons / printer chip).
       let ready = await ensureConnected();
+      addPrinterLog(ready ? "success" : "warn", `Printer siap untuk print: ${ready}`, `status=${printerStatus.value}`);
       if (!ready && interactive) {
         await connectPrinter(!!printerDevice.value);
         ready = printerConnected.value;
       }
       if (!ready) {
+        addPrinterLog("error", "Auto-print DIBATALKAN: printer tidak tersambung", `interactive=${interactive}`);
         if (interactive) {
           toast.error("Printer not connected", {
             description: printerError.value || "Connect a printer using the printer icon first.",
@@ -483,8 +494,10 @@ export function useScanSession(eventId: string) {
         heightMm: 50,
       });
       await writeChunked(bytes);
+      addPrinterLog("success", `Auto-print SELESAI: ${attendee.name || "(no name)"}`, `${bytes.length} bytes terkirim`);
       if (interactive) toast.success("Badge sent to printer");
     } catch (err) {
+      addPrinterLog("error", `Auto-print GAGAL: ${attendee.name || "(no name)"}`, err instanceof Error ? err.message : String(err));
       toast.error("Print failed", {
         description: err instanceof Error ? err.message : String(err),
       });
@@ -547,7 +560,17 @@ export function useScanSession(eventId: string) {
     buzz(isSuccessSound ? [35] : alreadyIn ? [30, 40, 30] : [50, 40, 50]);
     // Auto-print on a first check-in (or reprint/re-issue): printBadge silently
     // reconnects, so this keeps working on every scan, not just the first.
-    if (ok && shouldAutoPrint(result.attendee)) {
+    const willAutoPrint = ok && shouldAutoPrint(result.attendee);
+    addPrinterLog(
+      "info",
+      `Scan: ${result.attendee?.name || "(unknown)"} → ${result.result}`,
+      willAutoPrint
+        ? "auto-print akan dijalankan"
+        : ok
+          ? `tidak auto-print (printerReady=${printerReady.value}, kind=${result.attendee?.kind})`
+          : "tidak auto-print (bukan check-in/reprint baru)",
+    );
+    if (willAutoPrint) {
       printBadge(result.attendee);
     }
   };
@@ -832,5 +855,9 @@ export function useScanSession(eventId: string) {
     reconnectPrinter,
     chooseAnotherPrinter,
     forgetPrinter,
+    // diagnostics
+    printerLogs,
+    copyPrinterLogs,
+    clearPrinterLogs,
   };
 }

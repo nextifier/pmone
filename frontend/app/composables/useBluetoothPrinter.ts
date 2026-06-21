@@ -409,7 +409,7 @@ export function useBluetoothPrinter() {
   // same in-flight reconnect.
   let reconnectInFlight: Promise<boolean> | null = null;
 
-  async function ensureConnected(): Promise<boolean> {
+  async function ensureConnected({ attempts = 3, quiet = false } = {}): Promise<boolean> {
     if (status.value === "connected" && writeChar.value && device.value?.gatt?.connected) {
       return true;
     }
@@ -426,11 +426,18 @@ export function useBluetoothPrinter() {
       // need a moment (or a second attempt) to answer a reconnect. Retrying a
       // few times with a short backoff - all silent, no picker - lets auto-print
       // survive the gaps between scans instead of giving up on the first miss.
-      const ATTEMPTS = 3;
-      for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
+      // `quiet` suppresses the per-attempt warnings for the keep-alive heartbeat
+      // (which has its own 10s retry cadence) so an idle, asleep printer doesn't
+      // flood the diagnostic log.
+      for (let attempt = 1; attempt <= attempts; attempt++) {
         try {
           const server = await gatt.connect();
           await discoverWriteChar(server);
+          // Let the printer settle after (re)connect + service discovery before
+          // the caller's first write - cheap BLE printers drop a write that
+          // arrives too soon after the link comes up, which would otherwise make
+          // the first auto-print after a reconnect silently fail.
+          await new Promise((r) => setTimeout(r, 250));
           status.value = "connected";
           addLog(
             "success",
@@ -438,12 +445,14 @@ export function useBluetoothPrinter() {
           );
           return true;
         } catch (err) {
-          addLog(
-            "warn",
-            `Auto-reconnect percobaan ${attempt}/${ATTEMPTS} gagal`,
-            err instanceof Error ? err.message : String(err)
-          );
-          if (attempt < ATTEMPTS) {
+          if (!quiet) {
+            addLog(
+              "warn",
+              `Auto-reconnect percobaan ${attempt}/${attempts} gagal`,
+              err instanceof Error ? err.message : String(err)
+            );
+          }
+          if (attempt < attempts) {
             await new Promise((r) => setTimeout(r, 400));
           }
         }
@@ -643,17 +652,25 @@ export function useBluetoothPrinter() {
         `Preview: ${bytesToHexPreview(bytes, 48)}${isAndroid ? "\nPlatform: Android (chunk size & delay disesuaikan)" : ""}`
       );
 
-      const useWriteWithoutResponse =
-        writeChar.value.properties.writeWithoutResponse;
+      // Prefer ACKed writes (writeValueWithResponse): the promise only resolves
+      // once the printer confirms receipt, giving real flow control so chunks
+      // are never silently dropped. Unacknowledged writes (writeWithoutResponse)
+      // are faster but the browser hands them to the OS and resolves immediately
+      // - if the printer's buffer isn't ready (classically, the first write
+      // right after a reconnect) the data just vanishes and the label never
+      // prints even though the code "succeeded". That is the usual cause of
+      // intermittent auto-print misses, so we only fall back to no-ack when the
+      // characteristic genuinely can't do ACKed writes.
+      const useAckedWrite = writeChar.value.properties.write;
 
       let sent = 0;
       for (let offset = 0; offset < bytes.length; offset += chunkSize) {
         const chunk = bytes.slice(offset, offset + chunkSize);
         try {
-          if (useWriteWithoutResponse) {
-            await writeChar.value.writeValueWithoutResponse(chunk);
-          } else {
+          if (useAckedWrite) {
             await writeChar.value.writeValueWithResponse(chunk);
+          } else {
+            await writeChar.value.writeValueWithoutResponse(chunk);
           }
           sent += chunk.length;
         } catch (err) {
@@ -669,7 +686,7 @@ export function useBluetoothPrinter() {
         }
       }
 
-      addLog("success", `Berhasil mengirim ${sent} bytes`);
+      addLog("success", `Berhasil mengirim ${sent} bytes (${useAckedWrite ? "ACKed" : "no-ack"})`);
     };
 
     return runExclusive(run);
@@ -694,7 +711,9 @@ export function useBluetoothPrinter() {
       }
     }
     if (device.value?.gatt && !device.value.gatt.connected) {
-      await ensureConnected();
+      // Single quiet attempt: the 10s heartbeat cadence is itself the retry, so
+      // an idle/asleep printer doesn't spam the log with failed reconnects.
+      await ensureConnected({ attempts: 1, quiet: true });
     }
   }
 

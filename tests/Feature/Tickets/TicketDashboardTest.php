@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
 use App\Mail\Ticket\TicketOrderConfirmationMail;
 use App\Models\ApiConsumer;
@@ -97,6 +98,33 @@ it('personalizes an attendee and claims it to the holder by email', function () 
     $attendee->refresh();
     expect($attendee->claimed_by_user_id)->not->toBeNull();
     expect(User::where('email', 'holder@example.com')->exists())->toBeTrue();
+});
+
+it('auto-sends the e-ticket when the holder adds their email while personalizing', function () {
+    Bus::fake();
+    $order = freeOrderFor($this->event, $this->service);
+    $attendee = $order->attendees()->orderBy('id')->skip(1)->first(); // placeholder, no email
+
+    $this->withHeaders($this->headers)
+        ->patchJson("/api/public/attendees/{$attendee->ulid}", [
+            'name' => 'Real Name',
+            'email' => 'holder@example.com',
+        ])
+        ->assertSuccessful();
+
+    Bus::assertDispatched(SendAttendeeETicketJob::class, fn ($job) => $job->attendeeId === $attendee->id);
+});
+
+it('does not auto-send an e-ticket when only the name is personalized', function () {
+    Bus::fake();
+    $order = freeOrderFor($this->event, $this->service);
+    $attendee = $order->attendees()->orderBy('id')->skip(1)->first();
+
+    $this->withHeaders($this->headers)
+        ->patchJson("/api/public/attendees/{$attendee->ulid}", ['name' => 'Just Renamed'])
+        ->assertSuccessful();
+
+    Bus::assertNotDispatched(SendAttendeeETicketJob::class);
 });
 
 it('locks personalization after check-in', function () {

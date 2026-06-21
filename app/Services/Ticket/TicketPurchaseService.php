@@ -2,6 +2,7 @@
 
 namespace App\Services\Ticket;
 
+use App\Enums\Payment\CheckoutMethod;
 use App\Enums\Ticketing\PurchaseType;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Jobs\Ticket\GenerateBulkAttendeesJob;
@@ -451,7 +452,7 @@ class TicketPurchaseService
             // Free/Claim orders skip the webhook, so consume the access-code hold here.
             $this->accessCodes->consume($order);
 
-            SendTicketOrderConfirmationJob::dispatch($order->id);
+            $this->dispatchConfirmationEmails($order);
 
             return $order->fresh(['items.attendees', 'event']);
         }
@@ -463,24 +464,41 @@ class TicketPurchaseService
             $client = $xendit ?? XenditService::forGateway($gateway);
             [$successUrl, $failureUrl] = $this->paymentRedirectUrls($order);
 
-            $invoice = $client->createGenericInvoice(
-                $order->order_number,
-                (float) $order->total,
-                "Ticket order {$order->order_number} - {$order->event?->title}",
-                [
-                    'given_names' => $order->buyer_name,
-                    'email' => $order->buyer_email,
-                    'mobile_number' => $order->buyer_phone,
-                ],
-                $successUrl,
-                $failureUrl,
-            );
+            // Mirror reservations: use the Sessions API when the gateway is
+            // configured for it (the modern default) so the webhook can resolve
+            // the real card brand (Visa/Mastercard/Amex) instead of a generic
+            // "CREDIT_CARD" channel. Fall back to the legacy Invoices API
+            // otherwise. Both store their reference in `xendit_invoice_id` — the
+            // webhook matches the order by `order_number` (reference_id), not
+            // this id, so the two flows are interchangeable downstream.
+            if (($gateway->checkout_method ?? CheckoutMethod::PaymentLinkLegacy) === CheckoutMethod::PaymentLinkSessions) {
+                $session = $client->createTicketSession($order, $successUrl, $failureUrl);
 
-            $order->update([
-                'xendit_invoice_id' => $invoice['invoice_id'],
-                'payment_url' => $invoice['invoice_url'],
-                'payment_gateway_id' => $gateway->id,
-            ]);
+                $order->update([
+                    'xendit_invoice_id' => $session['session_id'],
+                    'payment_url' => $session['payment_url'],
+                    'payment_gateway_id' => $gateway->id,
+                ]);
+            } else {
+                $invoice = $client->createGenericInvoice(
+                    $order->order_number,
+                    (float) $order->total,
+                    "Ticket order {$order->order_number} - {$order->event?->title}",
+                    [
+                        'given_names' => $order->buyer_name,
+                        'email' => $order->buyer_email,
+                        'mobile_number' => $order->buyer_phone,
+                    ],
+                    $successUrl,
+                    $failureUrl,
+                );
+
+                $order->update([
+                    'xendit_invoice_id' => $invoice['invoice_id'],
+                    'payment_url' => $invoice['invoice_url'],
+                    'payment_gateway_id' => $gateway->id,
+                ]);
+            }
         } catch (\Throwable $e) {
             $mapped = XenditErrorMapper::map($e);
             Log::log($mapped['log_level'], 'Ticket payment link creation failed - order kept for retry', [
@@ -523,7 +541,40 @@ class TicketPurchaseService
 
         if ($confirmed > 0) {
             $this->accessCodes->consume($order);
+            $this->dispatchConfirmationEmails($order);
+        }
+    }
+
+    /**
+     * Decide which post-confirmation emails to send. A single-ticket self-purchase
+     * (the buyer is the only attendee) gets ONE consolidated e-ticket - QR plus
+     * order summary - instead of a separate confirmation + e-ticket pair. Every
+     * other order sends the buyer an order confirmation, plus a personal e-ticket
+     * (with QR) to each attendee who has their own email.
+     */
+    protected function dispatchConfirmationEmails(TicketOrder $order): void
+    {
+        $order->loadMissing('attendees');
+        $attendees = $order->attendees;
+        $buyerEmail = strtolower(trim((string) $order->buyer_email));
+
+        if ($attendees->count() === 1) {
+            $only = $attendees->first();
+            if ($buyerEmail !== '' && strtolower(trim((string) $only->email)) === $buyerEmail) {
+                SendAttendeeETicketJob::dispatch($only->id, consolidated: true);
+
+                return;
+            }
+        }
+
+        if ($buyerEmail !== '') {
             SendTicketOrderConfirmationJob::dispatch($order->id);
+        }
+
+        foreach ($attendees as $attendee) {
+            if (filled($attendee->email)) {
+                SendAttendeeETicketJob::dispatch($attendee->id);
+            }
         }
     }
 

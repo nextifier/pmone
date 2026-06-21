@@ -51,20 +51,24 @@ it('caches the generated QR bytes keyed by qr_token (no file on disk, no regen)'
     expect(Cache::has("attendee-qr:{$attendee->qr_token}"))->toBeTrue();
 });
 
-it('embeds the QR image as a plain <img> in the e-ticket email', function () {
-    $attendee = Attendee::factory()->create();
-    $qrUrl = route('public.attendees.qr-image', $attendee->ulid);
+it('embeds the QR image inline (CID) in the e-ticket email', function () {
+    // A confirmed attendee has a qr_token, so the mail embeds the PNG inline
+    // (cid:) instead of a remote URL - the code shows without "load images".
+    $attendee = Attendee::factory()->confirmed()->create();
 
     $mailable = new AttendeeETicketMail(
         $attendee,
         'https://example.test/tickets/'.$attendee->ulid,
         null,
         null,
-        $qrUrl,
+        route('public.attendees.qr-image', $attendee->ulid),
     );
 
     $mailable->assertSeeInHtml('<img', false);
-    $mailable->assertSeeInHtml($qrUrl, false);
+    $mailable->assertSeeInHtml('Your check-in QR code', false);
+    // Embedded inline (data: on render, cid: when sent) - never the remote URL.
+    $mailable->assertDontSeeInHtml(route('public.attendees.qr-image', $attendee->ulid), false);
+    $mailable->assertSeeInHtml('data:image/png', false);
 });
 
 it('passes the absolute QR image url to the e-ticket mailable when sending', function () {

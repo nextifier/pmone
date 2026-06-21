@@ -45,9 +45,20 @@ const METHOD_LABEL_MAP: Record<string, string> = {
   complimentary: "Complimentary",
 };
 
+// Generic card channels: a payment made by card whose specific brand
+// (Visa/Mastercard/Amex/JCB) wasn't captured - e.g. legacy Invoice-API ticket
+// orders that only report "CREDIT_CARD". These have no brand logo, so the badge
+// falls back to a generic card icon + "Credit Card" label instead of raw text.
+const GENERIC_CARD_KEYS = new Set(["CREDIT_CARD", "CARDS", "CARD"]);
+
 function normalize(value?: string | null): string | null {
   if (!value) return null;
   return value.toString().toUpperCase().replace(/[\s-]+/g, "_");
+}
+
+export function isGenericCardChannel(channel?: string | null): boolean {
+  const key = normalize(channel);
+  return key !== null && GENERIC_CARD_KEYS.has(key);
 }
 
 export function getPaymentLogoUrl(channel?: string | null): string | null {
@@ -60,6 +71,7 @@ export function getPaymentLogoUrl(channel?: string | null): string | null {
 export function getPaymentChannelLabel(channel?: string | null): string | null {
   const key = normalize(channel);
   if (!key) return null;
+  if (GENERIC_CARD_KEYS.has(key)) return "Credit Card";
   return CHANNEL_LOGO_MAP[key]?.label ?? channel ?? null;
 }
 

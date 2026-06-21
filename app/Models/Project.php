@@ -524,6 +524,17 @@ class Project extends Model implements HasMedia, Sortable
             ?->url;
     }
 
+    /**
+     * A remote logo URL suitable for an email header (medium conversion), or null
+     * when the project has no profile image.
+     */
+    public function emailLogoUrl(): ?string
+    {
+        $logo = $this->profile_image;
+
+        return is_array($logo) ? ($logo['md'] ?? $logo['url'] ?? null) : null;
+    }
+
     public function visits(): MorphMany
     {
         return $this->morphMany(Visit::class, 'visitable');

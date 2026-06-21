@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class SendTicketOrderConfirmationJob implements ShouldQueue
@@ -18,22 +19,36 @@ class SendTicketOrderConfirmationJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public int $tries = 3;
+
     public function __construct(public int $ticketOrderId) {}
+
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
+
+    public function failed(\Throwable $e): void
+    {
+        Log::error('Failed to send ticket order confirmation email', [
+            'ticket_order_id' => $this->ticketOrderId,
+            'error' => $e->getMessage(),
+        ]);
+    }
 
     public function handle(): void
     {
         $order = TicketOrder::query()
-            ->with(['event.project.links', 'items', 'attendees.ticket'])
+            ->with(['event.project.media', 'event.project.links', 'items.ticket', 'attendees.ticket'])
             ->find($this->ticketOrderId);
 
         if (! $order || ! $order->buyer_email) {
             return;
         }
 
-        $rawToken = TicketOrder::magicLinkTokenFor($order->order_number);
-        $base = $order->event?->publicBaseUrl() ?? rtrim((string) config('app.frontend_url'), '/');
-        $magicLinkUrl = "{$base}/tickets/order/{$rawToken}";
-
-        Mail::to($order->buyer_email)->send(new TicketOrderConfirmationMail($order, $magicLinkUrl));
+        Mail::to($order->buyer_email)->send(TicketOrderConfirmationMail::for($order));
     }
 }

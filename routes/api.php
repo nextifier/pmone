@@ -1327,6 +1327,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/attendee
     Route::delete('/trash/bulk', [EventAttendeeController::class, 'bulkForceDestroy'])->middleware('can:attendees.delete')->name('events.attendees.bulk-force-destroy');
     Route::delete('/trash/{id}', [EventAttendeeController::class, 'forceDestroy'])->middleware('can:attendees.delete')->name('events.attendees.force-destroy');
     Route::post('/{attendee}/resend-eticket', [EventAttendeeController::class, 'resendETicket'])->middleware('can:attendees.update')->name('events.attendees.resend-eticket');
+    Route::get('/{attendee}/preview-eticket', [EventAttendeeController::class, 'previewAttendeeEmail'])->middleware('can:attendees.view_documents')->name('events.attendees.preview-eticket');
     Route::patch('/{attendee}', [EventAttendeeController::class, 'update'])->middleware('can:attendees.update')->name('events.attendees.update');
     Route::delete('/{attendee}', [EventAttendeeController::class, 'destroy'])->middleware('can:attendees.delete')->name('events.attendees.destroy');
 });
@@ -1335,6 +1336,8 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/attendee
 Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/ticket-orders')->group(function () {
     Route::get('/{order}/invoice.pdf', [EventAttendeeController::class, 'invoicePdf'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.invoice-pdf');
     Route::get('/{order}/receipt.pdf', [EventAttendeeController::class, 'receiptPdf'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.receipt-pdf');
+    Route::get('/{order}/preview-confirmation', [EventAttendeeController::class, 'previewOrderEmail'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.preview-confirmation');
+    Route::post('/{order}/resend-confirmation', [EventAttendeeController::class, 'resendOrderConfirmation'])->middleware('can:attendees.update')->name('events.ticket-orders.resend-confirmation');
 });
 
 // Exhibitor leads (own brand only; data isolation enforced in the controller).

@@ -26,7 +26,25 @@ class SendAccessCodeInviteJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public int $tries = 3;
+
     public function __construct(public int $accessCodeId) {}
+
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
+
+    public function failed(\Throwable $e): void
+    {
+        Log::error('Failed to send access-code invite', [
+            'access_code_id' => $this->accessCodeId,
+            'error' => $e->getMessage(),
+        ]);
+    }
 
     public function handle(): void
     {

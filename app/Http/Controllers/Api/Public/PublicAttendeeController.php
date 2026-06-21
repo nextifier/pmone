@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PublicTicket\PersonalizeAttendeeRequest;
 use App\Http\Resources\AttendeeResource;
+use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Models\Attendee;
 use App\Models\MagicLink;
 use App\Models\TicketOrder;
 use App\Models\User;
-use BaconQrCode\Common\ErrorCorrectionLevel;
-use BaconQrCode\Encoder\Encoder;
+use App\Support\AttendeeQrImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -78,51 +78,13 @@ class PublicAttendeeController extends Controller
         $png = Cache::remember(
             "attendee-qr:{$attendee->qr_token}",
             now()->addDays(7),
-            fn (): string => $this->renderQrPng($attendee->qr_token),
+            fn (): string => AttendeeQrImage::png($attendee->qr_token),
         );
 
         return response($png, 200, [
             'Content-Type' => 'image/png',
             'Cache-Control' => 'public, max-age=86400',
         ]);
-    }
-
-    /**
-     * Render a QR PNG using GD only (no Imagick extension required, so it works
-     * on hosts without Imagick - which is what was 500ing in production). The
-     * BaconQrCode package only ships Imagick/SVG/EPS backends, so we encode the
-     * raw module matrix and paint it onto a GD canvas ourselves. Modules are
-     * drawn as solid squares (not rounded) with a 4-module quiet zone.
-     */
-    protected function renderQrPng(string $value): string
-    {
-        $matrix = Encoder::encode($value, ErrorCorrectionLevel::M())->getMatrix();
-        $modules = $matrix->getWidth();
-        $margin = 4;
-        $scale = 10;
-        $dimension = ($modules + $margin * 2) * $scale;
-
-        $image = imagecreatetruecolor($dimension, $dimension);
-        $white = imagecolorallocate($image, 255, 255, 255);
-        $black = imagecolorallocate($image, 0, 0, 0);
-        imagefilledrectangle($image, 0, 0, $dimension, $dimension, $white);
-
-        for ($y = 0; $y < $modules; $y++) {
-            for ($x = 0; $x < $modules; $x++) {
-                if ($matrix->get($x, $y) === 1) {
-                    $left = ($x + $margin) * $scale;
-                    $top = ($y + $margin) * $scale;
-                    imagefilledrectangle($image, $left, $top, $left + $scale - 1, $top + $scale - 1, $black);
-                }
-            }
-        }
-
-        ob_start();
-        imagepng($image);
-        $png = (string) ob_get_clean();
-        imagedestroy($image);
-
-        return $png;
     }
 
     /**
@@ -204,6 +166,7 @@ class PublicAttendeeController extends Controller
         }
 
         $validated = $request->validated();
+        $emailBefore = strtolower(trim((string) $attendee->email));
         $attendee->name = $validated['name'];
         $attendee->phone = $validated['phone'] ?? $attendee->phone;
         $attendee->personalized_at = now();
@@ -226,6 +189,15 @@ class PublicAttendeeController extends Controller
         $attendee->save();
 
         $fresh = $attendee->fresh(['ticket', 'ticketOrderItem.ticketOrder']);
+
+        // When the holder adds (or changes) their email here, send their e-ticket
+        // with the QR right away - closing the loop without staff resending. Only
+        // for a confirmed order (an unpaid ticket has no usable QR yet).
+        $emailAfter = strtolower(trim((string) $fresh->email));
+        if ($emailAfter !== '' && $emailAfter !== $emailBefore
+            && $fresh->ticketOrderItem?->ticketOrder?->isConfirmed()) {
+            SendAttendeeETicketJob::dispatch($fresh->id);
+        }
 
         return response()->json([
             'message' => 'Ticket personalized.',

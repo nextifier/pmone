@@ -110,6 +110,32 @@ it('opens a payment for a paid order and stays pending', function () {
         ->and($order->attendees()->count())->toBe(2);
 });
 
+it('opens a Sessions checkout for a paid order when the gateway uses sessions', function () {
+    ProjectPaymentGateway::factory()->create([
+        'project_id' => $this->project->id,
+        'mode' => 'test',
+        'is_active' => true,
+        'checkout_method' => 'payment_link_sessions',
+    ]);
+    $ticket = entryTicketWithPrice($this->event, 60000);
+
+    $xendit = mock(XenditService::class);
+    $xendit->shouldReceive('createTicketSession')->once()
+        ->andReturn(['session_id' => 'ps_abc', 'payment_url' => 'https://pay.example/ps_abc', 'status' => 'ACTIVE']);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Sari',
+        'buyer_email' => 'sari@example.com',
+        'buyer_phone' => '0811',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+    ], $xendit);
+
+    expect($order->status)->toBe(TicketOrderStatus::PendingPayment)
+        ->and($order->payment_url)->toBe('https://pay.example/ps_abc')
+        ->and($order->xendit_invoice_id)->toBe('ps_abc');
+});
+
 it('uses the buyer data for attendee #1 when also attending', function () {
     $ticket = entryTicketWithPrice($this->event, 0);
 

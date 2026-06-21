@@ -82,6 +82,11 @@
                   <Icon name="hugeicons:exchange-01" class="size-4 shrink-0" />
                   <span>Choose another device</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem class="gap-x-2" @click="diagnosticOpen = true">
+                  <Icon name="hugeicons:bug-01" class="size-4 shrink-0" />
+                  <span>Diagnostic log</span>
+                </DropdownMenuItem>
                 <template v-if="printerName">
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" class="gap-x-2" @click="forgetPrinter">
@@ -133,6 +138,77 @@
         <BottomNavAction icon="hugeicons:qr-code-01" label="Scan" @select="activeTab = 'scan'" />
         <BottomNavItem value="activity" icon="hugeicons:clock-01" label="Activity" />
       </BottomNav>
+
+      <!-- Printer diagnostic log: capture exactly what each scan's auto-print did
+           (decision, reconnect, write) so failures can be pinpointed. -->
+      <DialogResponsive v-model:open="diagnosticOpen" dialog-max-width="640px">
+        <template #default>
+          <div class="flex flex-col gap-4 px-5 pt-5 pb-6 md:px-6">
+            <!-- Header (right side kept clear of the dialog's close button) -->
+            <div class="space-y-1 pr-10">
+              <h3 class="text-base font-semibold tracking-tighter">Printer diagnostic log</h3>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                Scan a few tickets, then Copy and share this log to debug auto-print.
+              </p>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-muted-foreground text-sm tracking-tight tabular-nums">
+                {{ printerLogs.length }} {{ printerLogs.length === 1 ? "entry" : "entries" }}
+              </span>
+              <div class="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  :disabled="!printerLogs.length"
+                  @click="copyDiagnostic"
+                >
+                  <Icon name="hugeicons:copy-01" class="size-4 shrink-0" />
+                  <span>Copy</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  :disabled="!printerLogs.length"
+                  @click="clearPrinterLogs"
+                >
+                  <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
+                  <span>Clear</span>
+                </Button>
+              </div>
+            </div>
+
+            <!-- Log -->
+            <div class="bg-muted/40 max-h-[52vh] overflow-y-auto rounded-xl border font-mono text-xs sm:text-sm">
+              <div
+                v-if="!printerLogs.length"
+                class="text-muted-foreground flex flex-col items-center gap-2 px-4 py-12 text-center tracking-tight"
+              >
+                <Icon name="hugeicons:printer" class="size-6 opacity-60" />
+                <span>No activity yet. Connect the printer and scan a ticket.</span>
+              </div>
+              <div
+                v-for="log in printerLogs"
+                :key="log.id"
+                class="border-border/50 flex flex-col gap-1 border-b px-3 py-2 last:border-b-0"
+                :class="logColorClass(log.level)"
+              >
+                <div class="flex items-baseline gap-2">
+                  <span class="text-muted-foreground shrink-0 tabular-nums">{{ log.timestamp }}</span>
+                  <span class="shrink-0 font-medium">{{ log.level }}</span>
+                  <span class="min-w-0 break-words">{{ log.message }}</span>
+                </div>
+                <pre
+                  v-if="log.detail"
+                  class="text-muted-foreground pl-3 break-all whitespace-pre-wrap"
+                  >{{ log.detail }}</pre
+                >
+              </div>
+            </div>
+          </div>
+        </template>
+      </DialogResponsive>
     </template>
   </div>
 </template>
@@ -150,6 +226,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BottomNav, BottomNavItem, BottomNavAction } from "@/components/ui/bottom-nav";
+import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { toast } from "vue-sonner";
 import ScanPanel from "@/components/scan/ScanPanel.vue";
 import FindPanel from "@/components/scan/FindPanel.vue";
 import ActivityPanel from "@/components/scan/ActivityPanel.vue";
@@ -180,7 +258,33 @@ const {
   reconnectPrinter,
   chooseAnotherPrinter,
   forgetPrinter,
+  printerLogs,
+  copyPrinterLogs,
+  clearPrinterLogs,
 } = session;
+
+// Printer diagnostic panel (opened from the printer dropdown). Surfaces the
+// per-scan auto-print trace so intermittent failures can be diagnosed in the
+// field - scan a few tickets, Copy, and share the log.
+const diagnosticOpen = ref(false);
+const copyDiagnostic = async () => {
+  await copyPrinterLogs();
+  toast.success("Diagnostic log copied");
+};
+const logColorClass = (level) => {
+  switch (level) {
+    case "success":
+      return "text-success-foreground";
+    case "warn":
+      return "text-warning-foreground";
+    case "error":
+      return "text-destructive";
+    case "data":
+      return "text-info-foreground";
+    default:
+      return "";
+  }
+};
 
 usePageMeta(null, {
   title: computed(() => `Scanner · ${eventTitle.value}`),

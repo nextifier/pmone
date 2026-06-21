@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -23,42 +24,42 @@ class SendAttendeeETicketJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public int $attendeeId) {}
+    public int $tries = 3;
+
+    public function __construct(public int $attendeeId, public bool $consolidated = false) {}
+
+    /**
+     * @return array<int, int>
+     */
+    public function backoff(): array
+    {
+        return [60, 300];
+    }
+
+    public function failed(\Throwable $e): void
+    {
+        Log::error('Failed to send attendee e-ticket email', [
+            'attendee_id' => $this->attendeeId,
+            'error' => $e->getMessage(),
+        ]);
+    }
 
     public function handle(): void
     {
         $attendee = Attendee::query()
-            ->with(['ticket', 'ticketOrderItem.ticketOrder.event.project.links'])
+            ->with([
+                'ticket',
+                'ticketOrderItem.ticketOrder.event.project.media',
+                'ticketOrderItem.ticketOrder.event.project.links',
+                'ticketOrderItem.selectedEventDay',
+                'ticketOrderItem.ticketSession',
+            ])
             ->find($this->attendeeId);
 
         if (! $attendee || ! $attendee->email) {
             return;
         }
 
-        $event = $attendee->ticketOrderItem?->ticketOrder?->event;
-
-        // The shareable e-ticket page is served by the event's public website
-        // (pmone-events), not the admin app — so prefer the event's Website URL,
-        // falling back to the configured frontend URL.
-        $base = $event?->publicBaseUrl() ?? rtrim((string) config('app.frontend_url'), '/');
-        $eticketUrl = "{$base}/tickets/{$attendee->ulid}";
-
-        // Absolute API URL to the on-the-fly QR image (no file stored, no
-        // attachment) so the email can embed it as a plain <img src>.
-        $qrImageUrl = route('public.attendees.qr-image', $attendee->ulid);
-
-        // One-click dashboard sign-in button - email ONLY (never on the shareable
-        // e-ticket page). The button carries a secret HMAC token; opening it lands
-        // on the e-ticket page with ?login=<token>, which mints a fresh magic link.
-        // Shown only when the event allows it AND the attendee's email maps to a
-        // loginable visitor account (works for returning account holders too).
-        $loginEnabled = (bool) ($event?->settings['tickets']['login_button_enabled'] ?? true);
-        $dashboardUrl = ($loginEnabled && $attendee->resolveLoginableUser())
-            ? "{$eticketUrl}?login=".$attendee->dashboardLoginToken()
-            : null;
-
-        Mail::to($attendee->email)->send(
-            new AttendeeETicketMail($attendee, $eticketUrl, $event, $dashboardUrl, $qrImageUrl)
-        );
+        Mail::to($attendee->email)->send(AttendeeETicketMail::for($attendee, $this->consolidated));
     }
 }

@@ -20,6 +20,7 @@ use App\Enums\PaymentCapability;
 use App\Exceptions\Payment\PaymentProviderException;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
+use App\Models\TicketOrder;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
@@ -530,6 +531,80 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
             ],
         ];
 
+        return $this->postSession($payload);
+    }
+
+    /**
+     * Create a Xendit Payment Session for a TICKET ORDER. Mirrors
+     * createSession() (reservations) so ticket payments made via the Sessions
+     * API get the same hosted checkout and, crucially, the same card-brand
+     * resolution at webhook time (resolveSessionChannel) — the Invoices API only
+     * reports a generic "CREDIT_CARD" channel.
+     *
+     * @return array{session_id: string, payment_url: string, status: string}
+     */
+    public function createTicketSession(
+        TicketOrder $order,
+        ?string $successUrl = null,
+        ?string $failureUrl = null,
+    ): array {
+        $this->requireGateway();
+
+        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$order->order_number);
+        $cancel = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$order->order_number);
+
+        $customer = [
+            'reference_id' => $order->order_number.'-cust',
+            'type' => 'INDIVIDUAL',
+            'individual_detail' => [
+                'given_names' => $order->buyer_name ?: 'Guest',
+            ],
+        ];
+
+        if (filled($order->buyer_email)) {
+            $customer['email'] = $order->buyer_email;
+        }
+
+        $mobile = $this->toE164($order->buyer_phone);
+        if ($mobile !== null) {
+            $customer['mobile_number'] = $mobile;
+        }
+
+        $payload = [
+            'reference_id' => $order->order_number,
+            'session_type' => 'PAY',
+            'mode' => 'PAYMENT_LINK',
+            'currency' => $this->resolveCurrency(),
+            'amount' => (int) round((float) $order->total),
+            'country' => 'ID',
+            'locale' => 'en',
+            'customer' => $customer,
+            'description' => "Ticket order {$order->order_number} - {$order->event?->title}",
+            'expires_at' => now()->addSeconds((int) config('xendit.invoice_duration', 86400))->toIso8601String(),
+            'success_return_url' => $success,
+            'cancel_return_url' => $cancel,
+            // Mirror createSession(): suppress the single-option installment
+            // dropdown on the hosted card form.
+            'channel_properties' => [
+                'cards' => [
+                    'allowed_installment_program_ids' => [],
+                ],
+            ],
+        ];
+
+        return $this->postSession($payload);
+    }
+
+    /**
+     * POST a built session payload to Xendit and normalise the response. Shared
+     * by createSession() (reservations) and createTicketSession() so both speak
+     * to the Sessions API identically.
+     *
+     * @param  array<string, mixed>  $payload
+     * @return array{session_id: string, payment_url: string, status: string}
+     */
+    private function postSession(array $payload): array
+    {
         try {
             $response = Http::withBasicAuth($this->secretKey, '')
                 ->acceptJson()

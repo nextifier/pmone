@@ -6,6 +6,7 @@ use App\Enums\ReservationStatus;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
 use App\Models\TicketOrder;
 use App\Services\Payment\PaymentGatewayResolver;
@@ -662,10 +663,26 @@ class XenditWebhookController extends Controller
                 ->first();
 
             if (! $reservation) {
+                // Ticketing shares the same per-project gateway + session webhook.
+                // A ticket order paid via the Sessions API carries its
+                // order_number (TIX-) as the session reference_id, so settle it
+                // here — this is what lets ticket card payments capture the real
+                // brand (resolveSessionChannel) just like reservations.
+                if ($referenceId) {
+                    $order = TicketOrder::query()
+                        ->where('order_number', $referenceId)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($order) {
+                        return $this->settleTicketSession($order, $data, $sessionId, $event, $status);
+                    }
+                }
+
                 // Acknowledge with 200 so Xendit does not retry — same rationale
                 // as handleInvoiceEvent (synthetic "Test and save" payloads, or
                 // a webhook racing our create transaction).
-                Log::warning('Xendit session webhook: reservation not found', [
+                Log::warning('Xendit session webhook: reservation/order not found', [
                     'reference_id' => $referenceId,
                     'session_id' => $sessionId,
                 ]);
@@ -690,7 +707,7 @@ class XenditWebhookController extends Controller
                     return response()->json(['message' => 'Reservation already in final state'], 409);
                 }
 
-                $channel = $this->resolveSessionChannel($data, $reservation);
+                $channel = $this->resolveSessionChannel($data, $reservation->paymentGateway);
                 $this->reservations->markAsPaid(
                     $reservation,
                     $this->sessionPaidPayload($data, $sessionId, $reservation, $channel),
@@ -772,6 +789,77 @@ class XenditWebhookController extends Controller
     }
 
     /**
+     * Settle a ticket order from a Payment Session webhook — the ticketing
+     * counterpart of the reservation branch in handleSessionEvent. Resolves the
+     * real card brand the same way before confirming, so the Attendees Payment
+     * column shows Visa/Mastercard/Amex rather than a generic "CREDIT_CARD".
+     *
+     * @param  array<string, mixed>  $data  The session object (webhook `data`).
+     */
+    private function settleTicketSession(
+        TicketOrder $order,
+        array $data,
+        ?string $sessionId,
+        string $event,
+        string $status,
+    ): JsonResponse {
+        $isCompleted = $event === 'payment_session.completed' || $status === 'COMPLETED';
+        $isExpired = $event === 'payment_session.expired' || $status === 'EXPIRED';
+
+        if ($isCompleted) {
+            if ($order->status === TicketOrderStatus::Confirmed) {
+                return response()->json(['message' => 'Order already confirmed']);
+            }
+
+            if ($order->status->isFinal()) {
+                return response()->json(['message' => 'Order already in final state'], 409);
+            }
+
+            $channel = $this->resolveSessionChannel($data, $order->paymentGateway);
+
+            $payload = ['id' => $sessionId ?: $order->xendit_invoice_id];
+            if ($channel !== null && $channel !== '') {
+                $payload['payment_channel'] = $channel;
+            }
+
+            $this->tickets->markAsConfirmed($order, $payload);
+
+            activity()
+                ->performedOn($order)
+                ->event('payment_paid')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'amount' => $data['amount'] ?? null,
+                    'session_id' => $sessionId,
+                    'payment_request_id' => $data['payment_request_id'] ?? null,
+                    'payment_channel' => $channel,
+                ])
+                ->log('Ticket payment received via Xendit');
+
+            return response()->json(['message' => 'Ticket order confirmed']);
+        }
+
+        if ($isExpired) {
+            if ($order->status !== TicketOrderStatus::PendingPayment) {
+                return response()->json(['message' => 'Order not eligible for expiry']);
+            }
+
+            $this->tickets->expireOrder($order);
+
+            return response()->json(['message' => 'Ticket order expired']);
+        }
+
+        Log::info('Xendit session webhook (ticket) with no mapped action', [
+            'event' => $event,
+            'status' => $status,
+            'ticket_order_id' => $order->id,
+        ]);
+
+        return response()->json(['message' => 'Webhook received but no action taken']);
+    }
+
+    /**
      * Resolve the payment channel (QRIS, OVO, a VA bank, ...) for a completed
      * Payment Session. The session.completed payload only lists
      * `allowed_payment_channels`, not the channel actually used, so this fetches
@@ -783,10 +871,9 @@ class XenditWebhookController extends Controller
      *
      * @param  array<string, mixed>  $data  The session object (webhook `data`).
      */
-    private function resolveSessionChannel(array $data, Reservation $reservation): ?string
+    private function resolveSessionChannel(array $data, ?ProjectPaymentGateway $gateway): ?string
     {
         $paymentRequestId = $data['payment_request_id'] ?? null;
-        $gateway = $reservation->paymentGateway;
 
         if (! is_string($paymentRequestId) || $paymentRequestId === '' || ! $gateway) {
             return null;
