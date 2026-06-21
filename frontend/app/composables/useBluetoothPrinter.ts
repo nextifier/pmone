@@ -109,6 +109,9 @@ const MAX_LOGS = 300;
 export function useBluetoothPrinter() {
   const device = shallowRef<BluetoothDevice | null>(null);
   const writeChar = shallowRef<BluetoothRemoteGATTCharacteristic | null>(null);
+  // A readable characteristic used purely as a keep-alive heartbeat target (see
+  // startKeepAlive). Reads can never make the printer print, so this is safe.
+  const keepAliveChar = shallowRef<BluetoothRemoteGATTCharacteristic | null>(null);
   const status = ref<PrinterStatus>("disconnected");
   const errorMessage = ref<string | null>(null);
   const savedDeviceName = ref<string | null>(null);
@@ -369,6 +372,25 @@ export function useBluetoothPrinter() {
       `Write characteristic terpilih`,
       `service=${preferred.serviceUuid}\ncharacteristic=${preferred.characteristicUuid}\nproperties=[${preferred.properties.join(", ")}]\nscore=${preferredScore} (preferred service: ${isPreferredService})`
     );
+
+    // Pick any readable characteristic (e.g. Device Information) as the
+    // keep-alive heartbeat target. A periodic read is side-effect-free - it
+    // cannot trigger a print - yet the BLE traffic keeps the link, and on most
+    // cheap printers the firmware, from idling into sleep.
+    keepAliveChar.value = null;
+    for (const service of services) {
+      try {
+        const chars = await service.getCharacteristics();
+        const readable = chars.find((c) => c.properties.read);
+        if (readable) {
+          keepAliveChar.value = readable;
+          addLog("info", "Keep-alive characteristic dipilih", `${service.uuid} / ${readable.uuid}`);
+          break;
+        }
+      } catch {
+        // ignore services whose characteristics can't be enumerated
+      }
+    }
   }
 
   /**
@@ -547,6 +569,7 @@ export function useBluetoothPrinter() {
 
   function cleanup(): void {
     writeChar.value = null;
+    keepAliveChar.value = null;
   }
 
   async function disconnect(forget = false): Promise<void> {
@@ -590,10 +613,15 @@ export function useBluetoothPrinter() {
    * Android: chunk dipersempit ke 20 byte + delay 40ms karena Chrome Android
    * tidak auto-negotiate MTU besar dan stack-nya kurang reliable untuk chunk besar.
    */
-  // Serialize all writes through a single chain: two rapid scans must not
-  // interleave GATT operations on the same characteristic (Web Bluetooth throws
-  // "GATT operation already in progress"). Each call waits for the previous one.
-  let writeLock: Promise<unknown> = Promise.resolve();
+  // Serialize ALL GATT operations (print writes + keep-alive reads) through one
+  // chain: two overlapping ops on the same device make Web Bluetooth throw "GATT
+  // operation already in progress". Each call waits for the previous one.
+  let gattLock: Promise<unknown> = Promise.resolve();
+  function runExclusive<T>(op: () => Promise<T>): Promise<T> {
+    const p = gattLock.then(op, op);
+    gattLock = p.catch(() => {});
+    return p;
+  }
 
   async function writeChunked(bytes: Uint8Array, chunkSize = 100, delayMs = 20): Promise<void> {
     const run = async (): Promise<void> => {
@@ -644,9 +672,46 @@ export function useBluetoothPrinter() {
       addLog("success", `Berhasil mengirim ${sent} bytes`);
     };
 
-    const p = writeLock.then(run, run);
-    writeLock = p.catch(() => {});
-    return p;
+    return runExclusive(run);
+  }
+
+  /* ----------------------------- Keep-alive ------------------------------- */
+  // Cheap BLE label printers drop the link (and sometimes deep-sleep their
+  // radio) after a short idle, which is what forces a manual reconnect for
+  // auto-print. A lightweight heartbeat keeps the link warm: while connected it
+  // does a tiny serialized read (no print possible); if the link has dropped it
+  // silently reconnects - so the printer is ready before the next scan and, in
+  // practice, never idles long enough to fully sleep.
+  let keepAliveTimer: ReturnType<typeof setInterval> | null = null;
+
+  async function keepAliveTick(): Promise<void> {
+    if (device.value?.gatt?.connected && keepAliveChar.value) {
+      try {
+        await runExclusive(() => keepAliveChar.value!.readValue());
+        return;
+      } catch {
+        // The read failing means the link just dropped; fall through to reconnect.
+      }
+    }
+    if (device.value?.gatt && !device.value.gatt.connected) {
+      await ensureConnected();
+    }
+  }
+
+  function startKeepAlive(intervalMs = 10000): void {
+    if (keepAliveTimer || !isSupported.value) {
+      return;
+    }
+    keepAliveTimer = setInterval(() => {
+      void keepAliveTick();
+    }, intervalMs);
+  }
+
+  function stopKeepAlive(): void {
+    if (keepAliveTimer) {
+      clearInterval(keepAliveTimer);
+      keepAliveTimer = null;
+    }
   }
 
   return {
@@ -664,6 +729,8 @@ export function useBluetoothPrinter() {
     selectCharacteristic,
     tryRestoreDevice,
     clearStoredDevice,
+    startKeepAlive,
+    stopKeepAlive,
     addLog,
     clearLogs,
     copyLogs,

@@ -131,6 +131,8 @@ export function useScanSession(eventId: string) {
     device: printerDevice,
     savedDeviceName: printerName,
     errorMessage: printerError,
+    startKeepAlive,
+    stopKeepAlive,
   } = useBluetoothPrinter();
   const printerConnected = computed(() => printerStatus.value === "connected");
   // "Ready" once a printer has been picked at least once this session - even if
@@ -752,6 +754,10 @@ export function useScanSession(eventId: string) {
       tryRestoreDevice().then(() => {
         if (printerDevice.value) ensureConnected();
       });
+      // Heartbeat keeps the printer link warm for the whole session so auto-print
+      // stays instant and the printer never idles long enough to need a manual
+      // reconnect.
+      startKeepAlive();
     }
 
     window.addEventListener("online", handleOnline);
@@ -762,6 +768,7 @@ export function useScanSession(eventId: string) {
 
   onBeforeUnmount(() => {
     if (searchTimer) clearTimeout(searchTimer);
+    stopKeepAlive();
     window.removeEventListener("online", handleOnline);
     window.removeEventListener("offline", handleOffline);
   });

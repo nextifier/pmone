@@ -22,6 +22,12 @@ it('serves an inline QR PNG for a valid attendee WITHOUT an API key', function (
     $body = $response->getContent();
     expect($body)->not->toBeEmpty();
     expect(str_starts_with($body, "\x89PNG"))->toBeTrue();
+
+    // Decode it to prove it is a real raster (GD-rendered, no Imagick needed)
+    // and that the canvas is square.
+    $image = imagecreatefromstring($body);
+    expect($image)->not->toBeFalse();
+    expect(imagesx($image))->toBe(imagesy($image))->toBeGreaterThan(0);
 });
 
 it('404s the QR image for an unknown attendee', function () {
