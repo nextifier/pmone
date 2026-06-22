@@ -60,10 +60,24 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/public/*',
         ]);
 
-        // Trust forwarded headers from upstream proxies (Nuxt server, CDN, load balancer).
-        // Without this, $request->ip() returns the proxy IP, breaking tracking analytics
-        // and IP-based throttling. Tighten to specific CIDR ranges in production hardening.
-        $middleware->trustProxies(at: '*');
+        // Trust forwarded headers only from Cloudflare's edge ranges (all public traffic
+        // reaches the origin through Cloudflare) plus loopback/private hops for any internal
+        // load balancer. This lets $request->ip() resolve the real visitor IP from
+        // X-Forwarded-For for analytics + per-IP throttling, while a direct-to-origin request
+        // from the public internet can no longer spoof X-Forwarded-For to forge an IP.
+        // Cloudflare ranges: https://www.cloudflare.com/ips/ (refresh if Cloudflare changes them).
+        $middleware->trustProxies(at: [
+            // Cloudflare IPv4
+            '173.245.48.0/20', '103.21.244.0/22', '103.22.200.0/22', '103.31.4.0/22',
+            '141.101.64.0/18', '108.162.192.0/18', '190.93.240.0/20', '188.114.96.0/20',
+            '197.234.240.0/22', '198.41.128.0/17', '162.158.0.0/15', '104.16.0.0/13',
+            '104.24.0.0/14', '172.64.0.0/13', '131.0.72.0/22',
+            // Cloudflare IPv6
+            '2400:cb00::/32', '2606:4700::/32', '2803:f800::/32', '2405:b500::/32',
+            '2405:8100::/32', '2a06:98c0::/29', '2c0f:f248::/32',
+            // Loopback + private ranges (internal load balancer / reverse proxy hops)
+            '127.0.0.0/8', '::1/128', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7',
+        ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
         // Cleanup temporary uploads older than 1 hour, run hourly

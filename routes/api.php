@@ -865,8 +865,9 @@ Route::get('/sheets/brand-events', [SheetsController::class, 'brandEvents'])
     ->middleware('throttle:60,1')
     ->name('sheets.brand-events');
 
-// Contact form submission (requires API key for CORS and rate limiting)
-Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])->middleware(['api.key']);
+// Contact form submission (per-IP throttle first to reject floods cheaply, then API key for CORS)
+Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])
+    ->middleware(['throttle:contact-submit', 'api.key']);
 
 // Analytics routes (authenticated)
 Route::middleware(['auth:sanctum'])->prefix('analytics')->group(function () {

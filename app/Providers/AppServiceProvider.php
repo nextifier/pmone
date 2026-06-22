@@ -60,6 +60,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(40)->by($request->ip());
         });
 
+        // Public contact-form / registration submissions (contact, media-partner, sponsorship,
+        // exhibitor) all hit one shared endpoint. They are anonymous writes, so throttle tight
+        // per real client IP (forwarded by the Cloudflare edge proxy) with a per-hour ceiling
+        // on top to blunt slow-drip flooding. Legit users submit once or twice per session.
+        RateLimiter::for('contact-submit', function (Request $request) {
+            return [
+                Limit::perMinute(5)->by($request->ip()),
+                Limit::perHour(30)->by($request->ip()),
+            ];
+        });
+
         // Access code validation reveals gated tickets — throttle brute-forcing
         // per code+IP, with a per-IP hourly ceiling on top.
         RateLimiter::for('access-code', function (Request $request) {

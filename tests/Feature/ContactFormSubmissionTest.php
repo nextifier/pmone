@@ -302,6 +302,70 @@ test('contact form submission accepts valid honeypot data', function () {
     $response->assertStatus(201);
 });
 
+// Rate Limiting & Real Client IP Tests
+
+test('contact form submission throttles bursts from the same IP', function () {
+    $payload = [
+        'project_username' => 'testproject',
+        'data' => [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'phone' => '08123456789',
+        ],
+    ];
+
+    // contact-submit limiter allows 5/minute per IP; the 6th must be rejected.
+    for ($i = 0; $i < 5; $i++) {
+        postJsonWithApiKey($this, '/api/contact-forms/submit', $payload)
+            ->assertStatus(201);
+    }
+
+    postJsonWithApiKey($this, '/api/contact-forms/submit', $payload)
+        ->assertStatus(429);
+});
+
+test('contact form submission records the real visitor IP from a trusted Cloudflare proxy', function () {
+    $response = $this->withServerVariables(['REMOTE_ADDR' => '173.245.48.1']) // Cloudflare edge range
+        ->withHeaders([
+            'X-API-Key' => 'pk_test_api_key_12345',
+            'X-Forwarded-For' => '203.0.113.45', // real visitor forwarded by the edge
+        ])->postJson('/api/contact-forms/submit', [
+            'project_username' => 'testproject',
+            'data' => [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'phone' => '08123456789',
+            ],
+            'website' => '',
+            '_token_time' => generateValidTimestampToken(),
+        ]);
+
+    $response->assertStatus(201);
+
+    expect(ContactFormSubmission::latest()->first()->ip_address)->toBe('203.0.113.45');
+});
+
+test('contact form submission ignores a spoofed X-Forwarded-For from an untrusted peer', function () {
+    $response = $this->withServerVariables(['REMOTE_ADDR' => '8.8.8.8']) // not a Cloudflare/private range
+        ->withHeaders([
+            'X-API-Key' => 'pk_test_api_key_12345',
+            'X-Forwarded-For' => '1.2.3.4', // attacker-supplied, must be ignored
+        ])->postJson('/api/contact-forms/submit', [
+            'project_username' => 'testproject',
+            'data' => [
+                'name' => 'John Doe',
+                'email' => 'john@example.com',
+                'phone' => '08123456789',
+            ],
+            'website' => '',
+            '_token_time' => generateValidTimestampToken(),
+        ]);
+
+    $response->assertStatus(201);
+
+    expect(ContactFormSubmission::latest()->first()->ip_address)->toBe('8.8.8.8');
+});
+
 // Inbox Management Tests (Authenticated)
 
 test('can retrieve list of contact form submissions', function () {

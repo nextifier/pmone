@@ -135,7 +135,7 @@
           </Tabs>
         </div>
         <div class="bg-card rounded-xl border p-4 sm:p-5">
-          <ChartLine
+          <ChartArea
             v-if="trendData.length > 1"
             :key="metric"
             :data="trendData"
@@ -175,12 +175,13 @@
             <p class="text-muted-foreground mb-3 text-sm font-medium tracking-tight">
               Arrivals by hour
             </p>
-            <ChartLine
-              v-if="checkInFlow.length > 1"
+            <ChartBar
+              v-if="checkInFlow.length"
               :data="checkInFlow"
               :config="{ count: { label: 'Check-ins', color: 'var(--chart-2)' } }"
               data-key="count"
-              gradient
+              x-key="date"
+              :x-tick-formatter="formatHour"
               class="h-56! w-full"
             />
             <p v-else class="text-muted-foreground py-14 text-center text-sm tracking-tight">
@@ -223,6 +224,22 @@
           <p class="text-muted-foreground text-sm tracking-tight">
             Sales, attendance and revenue for each ticket type.
           </p>
+        </div>
+        <div class="bg-card rounded-xl border p-4 sm:p-5">
+          <p class="text-muted-foreground mb-3 text-sm font-medium tracking-tight">
+            Tickets sold by type
+          </p>
+          <ChartBar
+            :data="ticketSoldData"
+            :config="{ sold: { label: 'Sold', color: 'var(--chart-1)' } }"
+            data-key="sold"
+            x-key="idx"
+            horizontal
+            :x-tick-formatter="ticketSoldLabel"
+            :margin="{ left: 120, right: 8, top: 8, bottom: 8 }"
+            :style="{ height: `${Math.max(200, ticketSoldData.length * 46)}px` }"
+            class="w-full"
+          />
         </div>
         <div class="overflow-hidden rounded-xl border">
           <div
@@ -291,7 +308,30 @@
           </div>
           <div v-if="d.order_status.length" class="space-y-3">
             <p class="text-muted-foreground text-sm font-medium tracking-tight">Order status</p>
-            <AnalyticsBarList :items="statusItems" />
+            <ChartPie
+              :data="orderStatusData"
+              :config="orderStatusConfig"
+              value-key="count"
+              name-key="status"
+              :arc-width="28"
+              :total="s.total_orders"
+              center-sub-label="orders"
+              class="mx-auto"
+            />
+            <div class="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+              <div
+                v-for="o in d.order_status"
+                :key="o.status"
+                class="flex items-center gap-x-1.5 text-sm tracking-tight"
+              >
+                <span
+                  class="size-2 shrink-0 rounded-[2px]"
+                  :style="{ backgroundColor: TONE_VAR[o.color] || 'var(--chart-1)' }"
+                />
+                <span class="text-muted-foreground">{{ o.label }}</span>
+                <span class="text-foreground font-medium tabular-nums">{{ formatNumber(o.count) }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -512,6 +552,7 @@ const formatDate = (value) =>
   value
     ? new Date(value).toLocaleDateString("en-US", { day: "numeric", month: "short" })
     : "";
+const formatHour = (value) => new Date(value).toLocaleTimeString("en-US", { hour: "numeric" });
 
 const kpis = computed(() => [
   {
@@ -598,7 +639,36 @@ const paymentItems = computed(() =>
     secondary: `${formatNumber(c.orders)} orders`,
   }))
 );
-const statusItems = computed(() =>
-  (d.value?.order_status ?? []).map((o) => ({ label: o.label, value: o.count, tone: o.color }))
+// Order status donut: categorical share with semantic tone colours.
+const TONE_VAR = {
+  success: "var(--success)",
+  warning: "var(--warning)",
+  destructive: "var(--destructive)",
+  muted: "var(--muted-foreground)",
+  info: "var(--info)",
+};
+const orderStatusData = computed(() =>
+  (d.value?.order_status ?? []).map((o) => ({
+    status: o.status,
+    count: o.count,
+    label: o.label,
+    fill: `var(--color-${o.status})`,
+  }))
 );
+const orderStatusConfig = computed(() => ({
+  count: { label: "Orders" },
+  ...Object.fromEntries(
+    (d.value?.order_status ?? []).map((o) => [
+      o.status,
+      { label: o.label, color: TONE_VAR[o.color] || "var(--chart-1)" },
+    ])
+  ),
+}));
+
+// Tickets sold by type: horizontal bar summary above the detail table.
+// Unovis bars need a numeric x, so we plot by index and label the axis with the title.
+const ticketSoldData = computed(() =>
+  (d.value?.by_ticket_type ?? []).map((t, i) => ({ idx: i, name: t.title, sold: t.sold }))
+);
+const ticketSoldLabel = (i) => ticketSoldData.value[i]?.name ?? "";
 </script>

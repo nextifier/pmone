@@ -5,7 +5,7 @@
   >
     <VisXYContainer
       :data="data"
-      :margin="margin"
+      :margin="resolvedMargin"
       :y-domain="horizontal ? undefined : [0, undefined]"
       :x-domain="horizontal ? [0, undefined] : undefined"
     >
@@ -33,6 +33,7 @@
         :tick-line="false"
         :domain-line="false"
         :grid-line="false"
+        :tickTextHideOverlapping="true"
         :num-ticks="categoryValues.length"
         :tick-values="categoryValues"
         :tick-format="xTickFormatter || defaultXFormat"
@@ -44,6 +45,7 @@
           :tick-line="false"
           :domain-line="false"
           :grid-line="false"
+          :tickTextHideOverlapping="true"
           :num-ticks="categoryValues.length"
           :tick-values="categoryValues"
           :tick-format="xTickFormatter || defaultXFormat"
@@ -112,6 +114,10 @@ const props = defineProps({
     type: Number,
     default: 6,
   },
+  margin: {
+    type: Object,
+    default: null,
+  },
   xTickFormatter: {
     type: Function,
     default: null,
@@ -140,8 +146,8 @@ const barColor = computed(() => {
 
 const categoryValues = computed(() => props.data.map((d) => d[props.xKey]));
 
-const margin = computed(() =>
-  props.horizontal ? { left: 8, right: 8 } : { left: 4, right: 0, top: 8 }
+const resolvedMargin = computed(
+  () => props.margin || (props.horizontal ? { left: 8, right: 8 } : { left: 4, right: 0, top: 8 })
 );
 
 const defaultXFormat = (d) => {
