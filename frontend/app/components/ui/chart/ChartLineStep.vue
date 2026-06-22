@@ -1,103 +1,105 @@
-<script setup lang="ts">
-import type {
-  ChartConfig,
-} from "@/components/ui/chart"
-import { CurveType } from "@unovis/ts"
+<template>
+  <ChartContainer
+    :config="config"
+    class="[&_.domain]:stroke-gray-200 dark:[&_.domain]:stroke-gray-800!"
+  >
+    <VisXYContainer
+      :data="data"
+      :margin="{ left: 8, right: 0 }"
+      :padding="{ top: 12, bottom: 12 }"
+      :y-domain="[0, undefined]"
+    >
+      <VisLine
+        :x="(d) => d[xKey]"
+        :y="(d) => d[dataKey]"
+        :color="config[dataKey]?.color || 'var(--chart-1)'"
+        :curve-type="CurveType.Step"
+      />
+      <VisAxis
+        type="x"
+        :num-ticks="10"
+        :tickTextHideOverlapping="true"
+        :x="(d) => d[xKey]"
+        :tick-line="false"
+        :domain-line="false"
+        :grid-line="false"
+        tickTextAlign="right"
+        :fullSize="false"
+        :tick-format="
+          (d) => {
+            const date = new Date(d);
+            return date.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            });
+          }
+        "
+      />
+      <VisAxis
+        type="y"
+        :num-ticks="5"
+        :tickTextHideOverlapping="true"
+        :tick-line="false"
+        :domain-line="false"
+        :tick-format="
+          (d) => {
+            return new Intl.NumberFormat('en-US', {
+              notation: 'compact',
+              maximumFractionDigits: 1,
+            }).format(d);
+          }
+        "
+      />
+      <ChartTooltip />
+      <ChartCrosshair
+        :template="tooltipTemplate"
+        :color="config[dataKey]?.color || 'var(--chart-1)'"
+      />
+    </VisXYContainer>
+  </ChartContainer>
+</template>
 
-import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue"
-import { TrendingUp } from "lucide-vue-next"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+<script setup>
+import { VisAxis, VisLine, VisXYContainer } from "@unovis/vue";
+import { CurveType } from "@unovis/ts";
 import {
   ChartContainer,
   ChartCrosshair,
   ChartTooltip,
   ChartTooltipContent,
   componentToString,
-} from "@/components/ui/chart"
+} from ".";
 
-const description = "A line chart"
-
-const chartData = [
-  { date: new Date("2024-01-01"), desktop: 186 },
-  { date: new Date("2024-02-01"), desktop: 305 },
-  { date: new Date("2024-03-01"), desktop: 237 },
-  { date: new Date("2024-04-01"), desktop: 73 },
-  { date: new Date("2024-05-01"), desktop: 209 },
-  { date: new Date("2024-06-01"), desktop: 214 },
-]
-
-type Data = typeof chartData[number]
-
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-1)",
+const props = defineProps({
+  data: {
+    type: Array,
+    required: true,
   },
-} satisfies ChartConfig
-</script>
+  config: {
+    type: Object,
+    required: true,
+  },
+  dataKey: {
+    type: String,
+    default: "value",
+  },
+  xKey: {
+    type: String,
+    default: "date",
+  },
+});
 
-<template>
-  <Card>
-    <CardHeader>
-      <CardTitle>Line Chart - Step</CardTitle>
-      <CardDescription>January - June 2024</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <ChartContainer :config="chartConfig">
-        <VisXYContainer
-          :data="chartData"
-          :margin="{ left: -24 }"
-          :y-domain="[0, undefined]"
-        >
-          <VisLine
-            :x="(d: Data) => d.date"
-            :y="(d: Data) => d.desktop"
-            :color="chartConfig.desktop.color"
-            :curve-type="CurveType.Step"
-          />
-          <VisAxis
-            type="x"
-            :x="(d: Data) => d.date"
-            :tick-line="false"
-            :domain-line="false"
-            :grid-line="false"
-            :num-ticks="6"
-            :tick-format="(d: number) => {
-              const date = new Date(d)
-              return date.toLocaleDateString('en-US', {
-                month: 'short',
-              })
-            }"
-            :tick-values="chartData.map(d => d.date)"
-          />
-          <VisAxis
-            type="y"
-            :num-ticks="3"
-            :tick-line="false"
-            :domain-line="false"
-          />
-          <ChartTooltip />
-          <ChartCrosshair
-            :template="componentToString(chartConfig, ChartTooltipContent, { hideLabel: true })"
-            :color="chartConfig.desktop.color"
-          />
-        </VisXYContainer>
-      </ChartContainer>
-    </CardContent>
-    <CardFooter class="flex-col items-start gap-2 text-sm">
-      <div class="flex gap-2 font-medium leading-none">
-        Trending up by 5.2% this month <TrendingUp class="h-4 w-4" />
-      </div>
-      <div class="leading-none text-muted-foreground">
-        Showing total visitors for the last 6 months
-      </div>
-    </CardFooter>
-  </Card>
-</template>
+const currentConfig = computed(() => props.config);
+
+const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
+  hideLabel: false,
+  labelFormatter: (d) => {
+    const date = new Date(d);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  },
+});
+</script>

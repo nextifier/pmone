@@ -4,8 +4,8 @@ import { ChartSemiCircle } from "@/components/ui/chart";
 
 <template>
   <ClientOnly>
-    <div class="h-48 w-full max-w-sm">
-      <ChartSemiCircle :value="68" :max="100" label="Storage used" />
+    <div class="w-full max-w-[220px]">
+      <ChartSemiCircle :value="68" :max="100" center-label="Storage used" show-max />
     </div>
   </ClientOnly>
 </template>

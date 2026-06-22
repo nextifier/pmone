@@ -3,10 +3,28 @@ import { createContext } from "reka-ui"
 
 export { default as ChartContainer } from "./ChartContainer.vue"
 export { default as ChartLegendContent } from "./ChartLegendContent.vue"
+export { default as ChartTooltipContent } from "./ChartTooltipContent.vue"
+export { default as ChartSemiCircle } from "./ChartSemiCircle.vue"
+
+// Line
 export { default as ChartLine } from "./ChartLine.vue"
 export { default as ChartLineDefault } from "./ChartLineDefault.vue"
-export { default as ChartSemiCircle } from "./ChartSemiCircle.vue"
-export { default as ChartTooltipContent } from "./ChartTooltipContent.vue"
+export { default as ChartLineLinear } from "./ChartLineLinear.vue"
+export { default as ChartLineStep } from "./ChartLineStep.vue"
+export { default as ChartLineInteractive } from "./ChartLineInteractive.vue"
+
+// Area
+export { default as ChartArea } from "./ChartArea.vue"
+export { default as ChartAreaInteractive } from "./ChartAreaInteractive.vue"
+
+// Bar
+export { default as ChartBar } from "./ChartBar.vue"
+export { default as ChartBarInteractive } from "./ChartBarInteractive.vue"
+
+// Pie / Donut (ChartDonut is an alias; pass arc-width for a donut)
+export { default as ChartPie } from "./ChartPie.vue"
+export { default as ChartDonut } from "./ChartPie.vue"
+
 export { componentToString } from "./utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }

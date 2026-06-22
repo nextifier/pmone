@@ -4,75 +4,63 @@ export default defineComponentDoc({
   name: "chart",
   title: "Chart",
   description:
-    "Chart primitives built on unovis-vue. ChartContainer wires the theming and tooltip; the leaf components (ChartLineDefault, ChartSemiCircle) render specific chart types.",
+    "Charting foundation built on unovis-vue. ChartContainer provides the theming, config context, tooltip wiring, and legend that every chart shares. For ready-made charts see Line, Area, Bar, Pie, and Semi Circle.",
   installation: {
     importPath: "@/components/ui/chart",
-    imports: [
-      "ChartContainer",
-      "ChartLineDefault",
-      "ChartSemiCircle",
-      "ChartLegendContent",
-      "ChartTooltipContent",
+    imports: ["ChartContainer", "ChartTooltipContent", "ChartLegendContent"],
+  },
+  whenToUse: {
+    title: "When to use?",
+    description:
+      "Reach for the chart-type components (Line, Area, Bar, Pie) for everyday charts and the Semi Circle gauge for progress. Use these primitives directly only when you need a custom Unovis composition; ChartContainer still gives you the shared theming and tooltip/legend plumbing.",
+  },
+  anatomy: {
+    tree: [
+      {
+        component: "ChartContainer",
+        children: [
+          {
+            component: "VisXYContainer",
+            children: [
+              { component: "VisArea" },
+              { component: "VisLine" },
+              { component: "VisAxis" },
+              { component: "ChartTooltip" },
+              { component: "ChartCrosshair" },
+            ],
+          },
+          { component: "ChartLegendContent" },
+        ],
+      },
     ],
   },
-  sections: [
-    {
-      id: "line",
-      title: "Line",
-      description: "Time-series line chart with a single data key.",
-      examples: ["line"],
-      align: "start",
-    },
-    {
-      id: "semi-circle",
-      title: "Semi circle",
-      description: "Gauge-style chart for progress or percentages.",
-      examples: ["semi-circle"],
-      align: "start",
-    },
-  ],
+  sections: [],
   apiReference: [
     {
       component: "ChartContainer",
       props: [
-        { name: "config", type: "ChartConfig", default: "—", description: "Map of dataKey → { label, color, icon }. Drives theming and legend." },
+        { name: "config", type: "ChartConfig", default: "—", description: "Map of dataKey → { label, color, icon }. Drives theming and the legend." },
+        { name: "cursor", type: "boolean", default: "false", description: "Show the Unovis crosshair line." },
         { name: "class", type: "string", default: "—", description: "Extra classes for the wrapping div." },
       ],
       slots: [
-        { name: "default", description: "Scoped slot exposing { id, config } for the chart leaf component." },
-      ],
-    },
-    {
-      component: "ChartLineDefault",
-      props: [
-        { name: "data", type: "Record<string, any>[]", default: "[]", description: "Series data." },
-        { name: "dataKey", type: "string", default: "—", description: "Key in each row to read the y value from." },
-        { name: "config", type: "ChartConfig", default: "—", description: "Theming map." },
-      ],
-    },
-    {
-      component: "ChartSemiCircle",
-      props: [
-        { name: "value", type: "number", default: "0", description: "Current value." },
-        { name: "max", type: "number", default: "100", description: "Maximum value." },
-        { name: "label", type: "string", default: "—", description: "Centre label." },
-      ],
-    },
-    {
-      component: "ChartLegendContent",
-      props: [
-        { name: "config", type: "ChartConfig", default: "—", description: "Theming map used to render legend swatches and labels." },
-        { name: "class", type: "string", default: "—", description: "Extra classes for the legend row." },
+        { name: "default", description: "Scoped slot exposing { id, config } for the chart leaf components." },
       ],
     },
     {
       component: "ChartTooltipContent",
       props: [
         { name: "config", type: "ChartConfig", default: "—", description: "Theming map for tooltip swatches and labels." },
+        { name: "indicator", type: "\"dot\" | \"line\" | \"dashed\"", default: "\"dot\"", description: "Indicator style next to each value." },
         { name: "hideLabel", type: "boolean", default: "false", description: "Hide the tooltip title row." },
+        { name: "labelFormatter", type: "(d) => string", default: "—", description: "Format the title (e.g. dates)." },
       ],
-      slots: [
-        { name: "default", description: "Override the tooltip body. Receives the hovered data point." },
+    },
+    {
+      component: "ChartLegendContent",
+      props: [
+        { name: "verticalAlign", type: "\"top\" | \"bottom\"", default: "\"bottom\"", description: "Position relative to the chart." },
+        { name: "hideIcon", type: "boolean", default: "false", description: "Hide per-series icons from the config." },
       ],
     },
   ],
