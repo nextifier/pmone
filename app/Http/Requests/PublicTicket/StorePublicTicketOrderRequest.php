@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\PublicTicket;
 
+use App\Models\Event;
+use App\Support\BusinessMatchingValidation;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePublicTicketOrderRequest extends FormRequest
@@ -51,5 +54,31 @@ class StorePublicTicketOrderRequest extends FormRequest
         return [
             'accept_terms.accepted' => 'You must accept the terms and conditions to continue.',
         ];
+    }
+
+    /**
+     * Validate business-matching answers per field type + required flag once the
+     * base rules pass, reusing the shared Form Builder rule builder.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $event = Event::find($this->input('event_id'));
+            if (! $event) {
+                return;
+            }
+
+            $bm = (array) $this->input('business_matching', []);
+
+            $errors = BusinessMatchingValidation::errorsFor(
+                $event,
+                (bool) ($bm['opt_in'] ?? false),
+                (array) ($bm['responses'] ?? []),
+            );
+
+            foreach ($errors as $key => $message) {
+                $validator->errors()->add($key, $message);
+            }
+        });
     }
 }

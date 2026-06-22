@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,7 @@ use Spatie\Translatable\HasTranslations;
  */
 class EventCustomField extends Model implements Sortable
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasTranslations;
     use SoftDeletes;
@@ -64,6 +66,15 @@ class EventCustomField extends Model implements Sortable
             'required' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected static function responseCacheTags(): array
+    {
+        // The public custom-fields endpoint is cached under the 'tickets' tag.
+        return ['tickets'];
     }
 
     protected static function boot(): void

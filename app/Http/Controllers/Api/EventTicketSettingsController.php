@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EventTicketSettings\UpdateEventTicketSettingsRequest;
 use App\Models\Event;
 use Illuminate\Http\JsonResponse;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class EventTicketSettingsController extends Controller
 {
@@ -36,6 +37,11 @@ class EventTicketSettingsController extends Controller
         }
 
         $event->save();
+
+        // The Event model busts ['events','faqs','brands','gallery'] but NOT
+        // 'tickets', which fronts the public tickets + custom-fields endpoints
+        // affected by these settings (BM toggle, purchase terms).
+        ResponseCache::clear(['tickets']);
 
         return response()->json([
             'message' => 'Ticket settings updated successfully',

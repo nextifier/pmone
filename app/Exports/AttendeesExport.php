@@ -3,12 +3,22 @@
 namespace App\Exports;
 
 use App\Models\Attendee;
+use App\Models\EventCustomField;
+use App\Models\FieldResponse;
+use App\Support\FormFieldTypes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class AttendeesExport extends BaseExport
 {
     private const MONEY_COLUMN = 'N';
+
+    /** @var Collection<int, EventCustomField>|null */
+    private ?Collection $customFieldsCache = null;
+
+    /** @var array<int, array<int, mixed>> Buyer answers keyed by [user_id][field_id]. */
+    private array $answersByUser = [];
 
     protected function getQuery(): Builder
     {
@@ -24,7 +34,7 @@ class AttendeesExport extends BaseExport
 
     public function headings(): array
     {
-        return [
+        return array_merge([
             'Name',
             'Email',
             'Phone',
@@ -40,7 +50,7 @@ class AttendeesExport extends BaseExport
             'Mode',
             'Total',
             'Created At',
-        ];
+        ], $this->customFields()->map(fn (EventCustomField $f) => $this->fieldLabel($f))->all());
     }
 
     public function map($model): array
@@ -50,7 +60,7 @@ class AttendeesExport extends BaseExport
         $day = $item?->selectedEventDay;
         $session = $item?->ticketSession;
 
-        return [
+        $row = [
             $model->name ?: '-',
             $model->email ?: '-',
             $this->cleanPhone($model->phone),
@@ -67,6 +77,57 @@ class AttendeesExport extends BaseExport
             $order ? (float) $order->total : 0,
             $model->created_at?->format('Y-m-d H:i') ?? '-',
         ];
+
+        // Business-matching intake answers belong to the order's buyer, so every
+        // attendee of an order shows the same answers.
+        $answers = $this->answersByUser[$order?->user_id] ?? [];
+        foreach ($this->customFields() as $field) {
+            $row[] = FormFieldTypes::formatStoredValue($field->type, $answers[$field->id] ?? null, $field->options ?? []);
+        }
+
+        return $row;
+    }
+
+    /**
+     * Active business-matching custom fields for the exported event (columns),
+     * loaded once together with every buyer's answers.
+     *
+     * @return Collection<int, EventCustomField>
+     */
+    private function customFields(): Collection
+    {
+        if ($this->customFieldsCache !== null) {
+            return $this->customFieldsCache;
+        }
+
+        $eventId = $this->filters['event_id'] ?? null;
+        if (! $eventId) {
+            return $this->customFieldsCache = collect();
+        }
+
+        $this->customFieldsCache = EventCustomField::query()
+            ->where('event_id', $eventId)
+            ->where('is_active', true)
+            ->orderBy('order_column')
+            ->get();
+
+        if ($this->customFieldsCache->isNotEmpty()) {
+            FieldResponse::query()
+                ->whereIn('event_custom_field_id', $this->customFieldsCache->pluck('id'))
+                ->get(['user_id', 'event_custom_field_id', 'value'])
+                ->each(function (FieldResponse $r): void {
+                    $this->answersByUser[$r->user_id][$r->event_custom_field_id] = $r->value;
+                });
+        }
+
+        return $this->customFieldsCache;
+    }
+
+    private function fieldLabel(EventCustomField $field): string
+    {
+        return $field->getTranslation('label', app()->getLocale(), false)
+            ?: $field->getTranslation('label', 'en', false)
+            ?: '-';
     }
 
     protected function phoneColumns(): array

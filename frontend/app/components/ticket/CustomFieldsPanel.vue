@@ -125,7 +125,11 @@
                   <SelectValue placeholder="Select a field type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectGroup v-for="group in FIELD_GROUPS" :key="group.key">
+                  <SelectGroup
+                    v-for="group in FIELD_GROUPS"
+                    v-show="typesByGroup[group.key]?.length"
+                    :key="group.key"
+                  >
                     <SelectLabel>{{ group.label }}</SelectLabel>
                     <SelectItem
                       v-for="type in typesByGroup[group.key]"
@@ -291,10 +295,15 @@ const isDisabled = computed(
   () => !pending.value && error.value?.data?.error_code === "TICKETS_DISABLED"
 );
 
+// Types that don't fit a ticket-checkout intake: file needs upload infra that
+// business matching doesn't wire, and section is a layout-only divider.
+const EXCLUDED_TYPES = ["file", "section"];
+
 // Build the field-type Select options grouped exactly like the form builder catalog.
 const typesByGroup = computed(() => {
   const grouped = {};
   for (const [value, config] of Object.entries(FIELD_TYPES)) {
+    if (EXCLUDED_TYPES.includes(value)) continue;
     const groupKey = config.group;
     if (!grouped[groupKey]) grouped[groupKey] = [];
     grouped[groupKey].push({ value, label: config.label, icon: config.icon });

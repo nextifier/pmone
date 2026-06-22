@@ -11,6 +11,7 @@ use App\Models\EventCustomField;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class EventCustomFieldController extends Controller
 {
@@ -74,6 +75,9 @@ class EventCustomFieldController extends Controller
                 $event->eventCustomFields()->where('id', $order['id'])->update(['order_column' => $order['order']]);
             }
         });
+
+        // Bulk query-builder updates skip model events, so bust the cache manually.
+        ResponseCache::clear(['tickets']);
 
         return response()->json(['message' => 'Field order updated successfully']);
     }

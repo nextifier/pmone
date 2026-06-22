@@ -77,7 +77,7 @@ class FormFieldTypes
     }
 
     /**
-     * Build validation rules for a single field, keyed by the full input path.
+     * Build validation rules for a single FormField, keyed by the full input path.
      *
      * @return array<string, array<int, string>>
      */
@@ -85,20 +85,56 @@ class FormFieldTypes
     {
         $validation = $field->validation ?? [];
         $settings = $field->settings ?? [];
-        $required = ! empty($validation['required']);
 
+        return self::rulesForType(
+            $field->type,
+            $key,
+            ! empty($validation['required']),
+            self::optionValues($field),
+            [
+                'min' => $validation['min'] ?? null,
+                'max' => $validation['max'] ?? null,
+                'min_selections' => $validation['min_selections'] ?? null,
+                'max_selections' => $validation['max_selections'] ?? null,
+                'rating_max' => $settings['max'] ?? null,
+                'scale_min' => $validation['min'] ?? null,
+                'scale_max' => $validation['max'] ?? null,
+                'file_multiple' => ! empty($settings['multiple']),
+                'max_files' => $validation['max_files'] ?? null,
+            ],
+        );
+    }
+
+    /**
+     * Build validation rules for a single field type, keyed by the full input
+     * path. Decoupled from FormField so callers with a leaner field model (e.g.
+     * EventCustomField business-matching intake) can reuse the same per-type
+     * rules. Numeric/option constraints are passed via $opts; absent keys fall
+     * back to the same defaults the Form Builder uses.
+     *
+     * @param  array<int, string>  $optionValues  Allowed values for choice types.
+     * @param  array<string, mixed>  $opts  min, max, min_selections, max_selections, rating_max, scale_min, scale_max, file_multiple, max_files.
+     * @return array<string, array<int, string>>
+     */
+    public static function rulesForType(
+        string $type,
+        string $key,
+        bool $required,
+        array $optionValues = [],
+        array $opts = [],
+    ): array {
         $base = [$required ? 'required' : 'nullable'];
         $rules = [];
 
-        switch ($field->type) {
+        switch ($type) {
             case FormField::TYPE_TEXT:
             case FormField::TYPE_TEXTAREA:
             case FormField::TYPE_RICH_TEXT:
                 $base[] = 'string';
-                if (isset($validation['min'])) {
-                    $base[] = 'min:'.$validation['min'];
+                if (isset($opts['min'])) {
+                    $base[] = 'min:'.$opts['min'];
                 }
-                $base[] = 'max:'.($validation['max'] ?? 65535);
+                $base[] = 'max:'.($opts['max'] ?? 65535);
                 break;
 
             case FormField::TYPE_EMAIL:
@@ -121,11 +157,11 @@ class FormFieldTypes
             case FormField::TYPE_NUMBER:
             case FormField::TYPE_SLIDER:
                 $base[] = 'numeric';
-                if (isset($validation['min'])) {
-                    $base[] = 'min:'.$validation['min'];
+                if (isset($opts['min'])) {
+                    $base[] = 'min:'.$opts['min'];
                 }
-                if (isset($validation['max'])) {
-                    $base[] = 'max:'.$validation['max'];
+                if (isset($opts['max'])) {
+                    $base[] = 'max:'.$opts['max'];
                 }
                 break;
 
@@ -150,7 +186,7 @@ class FormFieldTypes
             case FormField::TYPE_SELECT:
             case FormField::TYPE_RADIO:
                 $base[] = 'string';
-                if ($optionValues = self::optionValues($field)) {
+                if ($optionValues) {
                     $base[] = 'in:'.implode(',', $optionValues);
                 }
                 break;
@@ -158,14 +194,14 @@ class FormFieldTypes
             case FormField::TYPE_MULTI_SELECT:
             case FormField::TYPE_CHECKBOX_GROUP:
                 $base[] = 'array';
-                if (isset($validation['min_selections'])) {
-                    $base[] = 'min:'.$validation['min_selections'];
+                if (isset($opts['min_selections'])) {
+                    $base[] = 'min:'.$opts['min_selections'];
                 }
-                if (isset($validation['max_selections'])) {
-                    $base[] = 'max:'.$validation['max_selections'];
+                if (isset($opts['max_selections'])) {
+                    $base[] = 'max:'.$opts['max_selections'];
                 }
                 $itemRules = ['string'];
-                if ($optionValues = self::optionValues($field)) {
+                if ($optionValues) {
                     $itemRules[] = 'in:'.implode(',', $optionValues);
                 }
                 $rules[$key.'.*'] = $itemRules;
@@ -173,8 +209,8 @@ class FormFieldTypes
 
             case FormField::TYPE_TAGS:
                 $base[] = 'array';
-                if (isset($validation['max_selections'])) {
-                    $base[] = 'max:'.$validation['max_selections'];
+                if (isset($opts['max_selections'])) {
+                    $base[] = 'max:'.$opts['max_selections'];
                 }
                 $rules[$key.'.*'] = ['string', 'max:100'];
                 break;
@@ -185,9 +221,9 @@ class FormFieldTypes
                 break;
 
             case FormField::TYPE_FILE:
-                if (! empty($settings['multiple'])) {
+                if (! empty($opts['file_multiple'])) {
                     $base[] = 'array';
-                    $base[] = 'max:'.($validation['max_files'] ?? 5);
+                    $base[] = 'max:'.($opts['max_files'] ?? 5);
                     $rules[$key.'.*'] = ['string', 'starts_with:form-'];
                 } else {
                     $base[] = 'string';
@@ -198,13 +234,13 @@ class FormFieldTypes
             case FormField::TYPE_RATING:
                 $base[] = 'integer';
                 $base[] = 'min:1';
-                $base[] = 'max:'.($settings['max'] ?? 5);
+                $base[] = 'max:'.($opts['rating_max'] ?? 5);
                 break;
 
             case FormField::TYPE_LINEAR_SCALE:
                 $base[] = 'integer';
-                $base[] = 'min:'.($validation['min'] ?? 1);
-                $base[] = 'max:'.($validation['max'] ?? 5);
+                $base[] = 'min:'.($opts['scale_min'] ?? 1);
+                $base[] = 'max:'.($opts['scale_max'] ?? 5);
                 break;
 
             case FormField::TYPE_COLOR:
@@ -225,24 +261,36 @@ class FormFieldTypes
     }
 
     /**
-     * Format a stored response value for export, email, and display.
+     * Format a stored FormField response value for export, email, and display.
      */
     public static function formatValue(FormField $field, mixed $value): string
+    {
+        return self::formatValueForType($field->type, $value, $field->options ?? []);
+    }
+
+    /**
+     * Format a logical value for a field type. Decoupled from FormField so leaner
+     * field models (e.g. EventCustomField business-matching intake) can reuse it.
+     * `$options` may be plain strings or {value,label} pairs.
+     *
+     * @param  array<int, mixed>  $options
+     */
+    public static function formatValueForType(string $type, mixed $value, array $options = []): string
     {
         if ($value === null || $value === '' || $value === []) {
             return '-';
         }
 
-        switch ($field->type) {
+        switch ($type) {
             case FormField::TYPE_SELECT:
             case FormField::TYPE_RADIO:
-                return self::optionLabel($field, $value);
+                return self::optionLabelFrom($options, $value);
 
             case FormField::TYPE_MULTI_SELECT:
             case FormField::TYPE_CHECKBOX_GROUP:
                 $values = is_array($value) ? $value : [$value];
 
-                return implode(', ', array_map(fn ($v) => self::optionLabel($field, $v), $values));
+                return implode(', ', array_map(fn ($v) => self::optionLabelFrom($options, $v), $values));
 
             case FormField::TYPE_TAGS:
                 return implode(', ', (array) $value);
@@ -276,6 +324,43 @@ class FormFieldTypes
     }
 
     /**
+     * Format a value as stored by the business-matching intake, which wraps
+     * scalar answers in a single-element array. Unwraps to the logical value
+     * for the type before formatting.
+     *
+     * @param  array<int, mixed>  $options
+     */
+    public static function formatStoredValue(string $type, mixed $stored, array $options = []): string
+    {
+        return self::formatValueForType($type, self::normalizeStored($type, $stored), $options);
+    }
+
+    /**
+     * Reverse the storage wrapping: scalar types are persisted as `[value]`,
+     * multi-value types and date ranges keep their natural array/object shape.
+     */
+    public static function normalizeStored(string $type, mixed $stored): mixed
+    {
+        if ($type === FormField::TYPE_DATE_RANGE) {
+            return is_array($stored) ? $stored : null;
+        }
+
+        if (in_array($type, self::MULTI_VALUE_TYPES, true)) {
+            if ($stored === null) {
+                return [];
+            }
+
+            return is_array($stored) ? array_values($stored) : [$stored];
+        }
+
+        if (is_array($stored)) {
+            return $stored[0] ?? null;
+        }
+
+        return $stored;
+    }
+
+    /**
      * @return array<int, string>
      */
     public static function optionValues(FormField $field): array
@@ -288,10 +373,24 @@ class FormFieldTypes
             ->all();
     }
 
-    private static function optionLabel(FormField $field, mixed $value): string
+    /**
+     * Resolve an option's display label from either a plain string list or a
+     * list of {value,label} pairs.
+     *
+     * @param  array<int, mixed>  $options
+     */
+    private static function optionLabelFrom(array $options, mixed $value): string
     {
-        $option = collect($field->options ?? [])->firstWhere('value', $value);
+        foreach ($options as $option) {
+            if (is_array($option)) {
+                if (($option['value'] ?? null) == $value) {
+                    return (string) ($option['label'] ?? $option['value'] ?? '');
+                }
+            } elseif ($option == $value) {
+                return (string) $option;
+            }
+        }
 
-        return (string) ($option['label'] ?? (is_scalar($value) ? $value : json_encode($value)));
+        return is_scalar($value) ? (string) $value : (string) json_encode($value);
     }
 }

@@ -3,24 +3,35 @@
 namespace App\Exports;
 
 use App\Models\Brand;
+use App\Models\EventCustomField;
 use App\Models\ExhibitorLead;
+use App\Models\FieldResponse;
+use App\Support\FormFieldTypes;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 
 /**
  * Exhibitor's own leads as an Excel sheet. Scoped to a single brand so an
- * exhibitor never exports another exhibitor's data.
+ * exhibitor never exports another exhibitor's data. Business-matching intake
+ * answers (given by the lead's buyer at checkout) are appended as columns.
  */
 class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
 {
+    /** @var Collection<int, EventCustomField>|null */
+    private ?Collection $customFieldsCache = null;
+
+    /** @var array<int, array<int, mixed>> Buyer answers keyed by [user_id][field_id]. */
+    private array $answersByUser = [];
+
     public function __construct(protected Brand $brand) {}
 
     public function collection()
     {
         return ExhibitorLead::query()
             ->where('brand_id', $this->brand->id)
-            ->with(['attendee', 'event'])
+            ->with(['attendee.ticketOrderItem.ticketOrder', 'event'])
             ->orderByDesc('scanned_at')
             ->get();
     }
@@ -30,7 +41,10 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
      */
     public function headings(): array
     {
-        return ['Name', 'Email', 'Phone', 'Ticket Tier', 'Event', 'Scanned At'];
+        return array_merge(
+            ['Name', 'Email', 'Phone', 'Ticket Tier', 'Event', 'Scanned At'],
+            $this->customFields()->map(fn (EventCustomField $f) => $this->fieldLabel($f))->all(),
+        );
     }
 
     /**
@@ -41,7 +55,7 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
     {
         $snapshot = $lead->snapshot ?? [];
 
-        return [
+        $row = [
             $snapshot['name'] ?? $lead->attendee?->name,
             $snapshot['email'] ?? $lead->attendee?->email,
             $snapshot['phone'] ?? $lead->attendee?->phone,
@@ -49,5 +63,62 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
             $lead->event?->title,
             $lead->scanned_at?->format('Y-m-d H:i'),
         ];
+
+        // Answers belong to the lead's buyer and only to this lead's event fields.
+        $buyerId = $lead->attendee?->ticketOrderItem?->ticketOrder?->user_id;
+        $answers = $this->answersByUser[$buyerId] ?? [];
+        foreach ($this->customFields() as $field) {
+            $value = $field->event_id === $lead->event_id ? ($answers[$field->id] ?? null) : null;
+            $row[] = FormFieldTypes::formatStoredValue($field->type, $value, $field->options ?? []);
+        }
+
+        return $row;
+    }
+
+    /**
+     * Active business-matching custom fields across every event this brand has
+     * leads in (columns), loaded once with every buyer's answers.
+     *
+     * @return Collection<int, EventCustomField>
+     */
+    private function customFields(): Collection
+    {
+        if ($this->customFieldsCache !== null) {
+            return $this->customFieldsCache;
+        }
+
+        $eventIds = ExhibitorLead::query()
+            ->where('brand_id', $this->brand->id)
+            ->distinct()
+            ->pluck('event_id');
+
+        if ($eventIds->isEmpty()) {
+            return $this->customFieldsCache = collect();
+        }
+
+        $this->customFieldsCache = EventCustomField::query()
+            ->whereIn('event_id', $eventIds)
+            ->where('is_active', true)
+            ->orderBy('event_id')
+            ->orderBy('order_column')
+            ->get();
+
+        if ($this->customFieldsCache->isNotEmpty()) {
+            FieldResponse::query()
+                ->whereIn('event_custom_field_id', $this->customFieldsCache->pluck('id'))
+                ->get(['user_id', 'event_custom_field_id', 'value'])
+                ->each(function (FieldResponse $r): void {
+                    $this->answersByUser[$r->user_id][$r->event_custom_field_id] = $r->value;
+                });
+        }
+
+        return $this->customFieldsCache;
+    }
+
+    private function fieldLabel(EventCustomField $field): string
+    {
+        return $field->getTranslation('label', app()->getLocale(), false)
+            ?: $field->getTranslation('label', 'en', false)
+            ?: '-';
     }
 }

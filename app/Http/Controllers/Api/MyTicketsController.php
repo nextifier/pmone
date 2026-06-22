@@ -13,8 +13,10 @@ use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\TicketOrder;
 use App\Models\User;
+use App\Support\BusinessMatchingValidation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class MyTicketsController extends Controller
 {
@@ -160,6 +162,21 @@ class MyTicketsController extends Controller
         ]);
 
         $user = $request->user();
+
+        $optIn = array_key_exists('opt_in', $validated)
+            ? (bool) $validated['opt_in']
+            : (bool) $user->business_matching_opt_in;
+
+        $errors = BusinessMatchingValidation::errorsFor(
+            $event,
+            $optIn,
+            $validated['responses'] ?? [],
+            'responses',
+        );
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
         if (array_key_exists('opt_in', $validated)) {
             $user->forceFill(['business_matching_opt_in' => (bool) $validated['opt_in']])->save();
         }
