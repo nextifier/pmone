@@ -1,17 +1,29 @@
 <template>
   <div class="space-y-8 pb-16">
     <!-- Header -->
-    <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex min-w-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:chart-line-data-02" class="size-5 shrink-0 sm:size-6" />
-        <div class="min-w-0">
+    <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0 space-y-1.5">
+        <div class="flex items-center gap-x-2.5">
+          <Icon name="hugeicons:chart-line-data-02" class="size-5 shrink-0 sm:size-6" />
           <h1 class="page-title">Analytics</h1>
-          <p class="text-muted-foreground truncate text-sm tracking-tight">
-            Attendance, sales and engagement for {{ event?.title }}
-          </p>
         </div>
+        <p class="page-description truncate">
+          Attendance, sales and engagement for {{ event?.title }}
+        </p>
+        <p
+          v-if="updatedAgo"
+          class="text-muted-foreground flex items-center gap-x-1.5 text-xs tracking-tight sm:text-sm"
+        >
+          <span class="relative flex size-2 shrink-0">
+            <span
+              class="animate-ping-slow bg-success absolute inline-flex size-full rounded-full opacity-75"
+            />
+            <span class="bg-success relative inline-flex size-2 rounded-full" />
+          </span>
+          Updated {{ updatedAgo }}
+        </p>
       </div>
-      <Button variant="outline" size="sm" as-child>
+      <Button variant="outline" size="sm" as-child class="shrink-0">
         <NuxtLink :to="`${eventBase}/attendees`">
           <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
           <span>Attendees</span>
@@ -78,9 +90,24 @@
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ kpi.desc }}</p>
           </div>
           <NumberFlow
-            class="text-foreground -mb-1 text-lg leading-tight font-medium tracking-tighter sm:text-xl"
+            v-if="kpi.type === 'count'"
+            class="text-foreground -mb-1 cursor-pointer text-lg leading-tight font-medium tracking-tighter sm:text-xl"
             :value="kpi.value"
-            :format="kpi.format"
+            locales="id-ID"
+            :format="{ notation: expanded ? 'standard' : 'compact' }"
+            :title="expanded ? 'Click to collapse' : 'Click for exact value'"
+            @click="expanded = !expanded"
+          />
+          <NumberFlow
+            v-else
+            class="text-foreground -mb-1 cursor-pointer text-lg leading-tight font-medium tracking-tighter sm:text-xl"
+            :value="expanded ? kpi.value : rupiahCompactParts(kpi.value).value"
+            prefix="Rp"
+            :suffix="expanded ? '' : rupiahCompactParts(kpi.value).suffix"
+            locales="id-ID"
+            :format="{ maximumFractionDigits: expanded ? 0 : 1 }"
+            :title="expanded ? 'Click to collapse' : 'Click for exact value'"
+            @click="expanded = !expanded"
           />
         </div>
       </GridFill>
@@ -98,27 +125,14 @@
               How {{ metricMeta[metric].noun }} accumulated as the campaign ran.
             </p>
           </div>
-          <div
-            ref="metricToggle"
-            class="bg-muted inline-flex w-fit gap-x-0.5 rounded-lg p-0.5"
-            @mouseleave="onMetricHover(null, 'out')"
-          >
-            <button
-              v-for="(opt, i) in metricOptions"
-              :key="opt.value"
-              type="button"
-              class="t-avatar rounded-md px-2.5 py-1 text-sm font-medium tracking-tight"
-              :class="
-                metric === opt.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              "
-              @click="metric = opt.value"
-              @mouseenter="onMetricHover(i, 'in')"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
+          <Tabs v-model="metric" variant="segmented" class="w-fit">
+            <TabsList>
+              <TabsIndicator />
+              <TabsTrigger v-for="opt in metricOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
         <div class="bg-card rounded-xl border p-4 sm:p-5">
           <ChartLine
@@ -127,6 +141,7 @@
             :data="trendData"
             :config="trendConfig"
             :data-key="metric"
+            :y-tick-formatter="metric === 'revenue' ? formatRupiahCompact : null"
             gradient
             class="h-64! w-full"
           />
@@ -143,11 +158,17 @@
         :data-open="revealed"
         :style="{ '--panel-translate-y': '18px', transitionDelay: '140ms' }"
       >
-        <div>
-          <h2 class="text-base font-medium tracking-tight">Check-in activity</h2>
-          <p class="text-muted-foreground text-sm tracking-tight">
-            When attendees arrived and how each event day performed.
-          </p>
+        <div class="flex flex-col gap-y-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-base font-medium tracking-tight">Check-in activity</h2>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              When attendees arrived and how each event day performed.
+            </p>
+          </div>
+          <div class="text-sm tracking-tight">
+            <span class="text-foreground font-medium tabular-nums">{{ formatNumber(s.no_show ?? 0) }}</span>
+            <span class="text-muted-foreground"> no-shows · {{ s.no_show_rate ?? 0 }}% of sold</span>
+          </div>
         </div>
         <div class="grid gap-6 lg:grid-cols-2">
           <div class="bg-card rounded-xl border p-4 sm:p-5">
@@ -225,13 +246,25 @@
               <div class="tabular-nums sm:text-right">
                 <span class="text-muted-foreground text-xs tracking-tight sm:hidden">Sold </span>
                 <span class="text-sm tracking-tight">{{ formatNumber(t.sold) }}</span>
+                <span v-if="t.capacity" class="text-muted-foreground text-xs tracking-tight">
+                  / {{ formatNumber(t.capacity) }} · {{ sellThrough(t) }}%
+                </span>
               </div>
               <div class="flex items-baseline gap-x-1.5 tabular-nums sm:justify-end">
+                <span class="text-muted-foreground text-xs tracking-tight sm:hidden">Checked in </span>
                 <span class="text-sm tracking-tight">{{ formatNumber(t.checked_in) }}</span>
                 <span class="text-muted-foreground text-xs tracking-tight">{{ t.check_in_rate }}%</span>
               </div>
               <div class="tabular-nums sm:text-right">
-                <span class="text-sm font-medium tracking-tight">{{ formatCurrency(t.revenue) }}</span>
+                <span class="text-muted-foreground text-xs tracking-tight sm:hidden">Revenue </span>
+                <button
+                  type="button"
+                  class="cursor-pointer text-sm font-medium tracking-tight"
+                  :title="expanded ? 'Click to collapse' : 'Click for exact value'"
+                  @click="expanded = !expanded"
+                >
+                  {{ formatCurrency(t.revenue) }}
+                </button>
               </div>
             </div>
           </div>
@@ -263,6 +296,43 @@
         </div>
       </section>
 
+      <!-- Business Matching participation -->
+      <section
+        v-if="bm?.has_questions"
+        class="t-panel-slide space-y-4"
+        :data-open="revealed"
+        :style="{ '--panel-translate-y': '18px', transitionDelay: '335ms' }"
+      >
+        <div>
+          <h2 class="text-base font-medium tracking-tight">Business Matching</h2>
+          <p class="text-muted-foreground text-sm tracking-tight">
+            Buyers who opted in and shared an intake profile.
+          </p>
+        </div>
+        <div class="border-border rounded-xl border p-4 sm:p-5">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <p class="text-2xl font-semibold tracking-tighter tabular-nums">
+                {{ formatNumber(bm.opted_in) }}
+                <span class="text-muted-foreground text-base font-normal tracking-tight">
+                  / {{ formatNumber(bm.buyers) }} buyers
+                </span>
+              </p>
+              <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+                opted into Business Matching
+              </p>
+            </div>
+            <span class="text-2xl font-semibold tracking-tighter tabular-nums">{{ bm.opt_in_rate }}%</span>
+          </div>
+          <div class="bg-muted mt-3 h-2 overflow-hidden rounded-full">
+            <div
+              class="bg-primary h-full rounded-full transition-[width] duration-500"
+              :style="{ width: `${Math.min(bm.opt_in_rate, 100)}%` }"
+            />
+          </div>
+        </div>
+      </section>
+
       <!-- Demographics -->
       <section
         v-if="d.demographics.length"
@@ -281,7 +351,11 @@
             <div class="flex items-baseline justify-between gap-2">
               <p class="text-muted-foreground text-sm font-medium tracking-tight">{{ field.label }}</p>
               <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                {{ formatNumber(field.total_responses) }} responses
+                <template v-if="field.average !== null && field.average !== undefined">
+                  avg {{ field.average }} ·
+                </template>
+                {{ formatNumber(field.total_responses) }} resp<template v-if="field.response_rate">
+                  · {{ field.response_rate }}% answered</template>
               </span>
             </div>
             <AnalyticsBarList
@@ -380,12 +454,29 @@ usePageMeta(null, {
 });
 
 // Live feed: polls, refetches on focus, reacts to attendee mutations - no reload.
-const { data: d, pending } = useAttendeeAnalytics(props.event?.id, "detail", {
+const { data: d, pending, lastUpdatedAt } = useAttendeeAnalytics(props.event?.id, "detail", {
   interval: 20000,
+});
+
+// Ticking "Updated Xs ago" affordance so staff know how fresh the live feed is.
+const nowTick = ref(Date.now());
+let tickTimer = null;
+onMounted(() => {
+  tickTimer = setInterval(() => (nowTick.value = Date.now()), 10000);
+});
+onBeforeUnmount(() => tickTimer && clearInterval(tickTimer));
+
+const updatedAgo = computed(() => {
+  if (!lastUpdatedAt.value) return null;
+  const secs = Math.max(0, Math.round((nowTick.value - lastUpdatedAt.value) / 1000));
+  if (secs < 5) return "just now";
+  if (secs < 60) return `${secs}s ago`;
+  return `${Math.round(secs / 60)}m ago`;
 });
 
 const s = computed(() => d.value?.summary ?? {});
 const leads = computed(() => d.value?.exhibitor_leads ?? null);
+const bm = computed(() => d.value?.business_matching ?? null);
 const hasData = computed(
   () => !!d.value && ((s.value.total_attendees ?? 0) > 0 || (s.value.total_orders ?? 0) > 0)
 );
@@ -403,54 +494,20 @@ watch(
   { immediate: true }
 );
 
-// Metric toggle hover-spring (avatar group hover, transitions-dev 11). The
-// timing-function is written inline before the var writes so the lift uses
-// ease-in and the return uses a bouncy ease-out.
-const metricToggle = ref(null);
-function onMetricHover(activeIdx, phase) {
-  const root = metricToggle.value;
-  if (!root) {
-    return;
-  }
-  const items = Array.from(root.querySelectorAll(".t-avatar"));
-  const cs = getComputedStyle(document.documentElement);
-  const num = (name, fallback) => {
-    const v = parseFloat(cs.getPropertyValue(name));
-    return Number.isFinite(v) ? v : fallback;
-  };
-  const ease = (name, fallback) => cs.getPropertyValue(name).trim() || fallback;
-  const lift = num("--avatar-lift", -4);
-  const falloff = num("--avatar-falloff", 0.45);
-  const scale = num("--avatar-scale", 1.05);
-  const tf =
-    phase === "out"
-      ? ease("--avatar-ease-out", "cubic-bezier(0.34, 3.85, 0.64, 1)")
-      : ease("--avatar-ease-in", "cubic-bezier(0.22, 1, 0.36, 1)");
+const { formatRupiahFull, formatRupiahCompact, rupiahCompactParts } = useFormatters();
 
-  items.forEach((el, i) => {
-    el.style.transitionTimingFunction = tf;
-    if (activeIdx == null) {
-      el.style.setProperty("--shift", "0px");
-      el.style.setProperty("--scale-active", "1");
-      return;
-    }
-    const dist = Math.abs(i - activeIdx);
-    el.style.setProperty("--shift", `${(lift * Math.pow(falloff, dist)).toFixed(3)}px`);
-    el.style.setProperty("--scale-active", i === activeIdx ? String(scale) : "1");
-  });
-}
+// One page-level toggle (mirrors web-analytics SummaryCards): collapsed shows an
+// unambiguous compact value, clicking any value reveals the exact full number.
+const expanded = ref(false);
 
-const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value ?? 0);
-const formatCurrency = (value) => {
-  const amount = value ?? 0;
-  const compact = Math.abs(amount) >= 1_000_000;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: s.value.currency || "IDR",
-    notation: compact ? "compact" : "standard",
-    maximumFractionDigits: compact ? 1 : 0,
-  }).format(amount);
-};
+const formatNumber = (value) => new Intl.NumberFormat("id-ID").format(value ?? 0);
+// IDR only: compact uses Indonesian short scale (rb/jt/miliar) so it is never
+// misread as the English "M". Expanding reveals the exact rupiah.
+const formatCurrency = (value) =>
+  expanded.value ? formatRupiahFull(value) : formatRupiahCompact(value);
+
+const sellThrough = (t) =>
+  t.capacity > 0 ? Math.round(((t.sold ?? 0) / t.capacity) * 100) : 0;
 const formatDate = (value) =>
   value
     ? new Date(value).toLocaleDateString("en-US", { day: "numeric", month: "short" })
@@ -463,7 +520,7 @@ const kpis = computed(() => [
     icon: "hugeicons:user-multiple-02",
     color: "text-violet-500",
     value: s.value.total_attendees ?? 0,
-    format: { notation: "compact" },
+    type: "count",
   },
   {
     label: "Tickets sold",
@@ -471,7 +528,7 @@ const kpis = computed(() => [
     icon: "hugeicons:ticket-01",
     color: "text-sky-500",
     value: s.value.tickets_sold ?? 0,
-    format: { notation: "compact" },
+    type: "count",
   },
   {
     label: "Revenue",
@@ -479,12 +536,7 @@ const kpis = computed(() => [
     icon: "hugeicons:money-bag-02",
     color: "text-emerald-500",
     value: s.value.total_revenue ?? 0,
-    format: {
-      style: "currency",
-      currency: s.value.currency || "IDR",
-      notation: "compact",
-      maximumFractionDigits: 1,
-    },
+    type: "currency",
   },
   {
     label: "Orders",
@@ -492,7 +544,7 @@ const kpis = computed(() => [
     icon: "hugeicons:shopping-cart-02",
     color: "text-amber-500",
     value: s.value.confirmed_orders ?? 0,
-    format: { notation: "compact" },
+    type: "count",
   },
   {
     label: "Avg order",
@@ -500,12 +552,7 @@ const kpis = computed(() => [
     icon: "hugeicons:coins-01",
     color: "text-rose-500",
     value: s.value.avg_order_value ?? 0,
-    format: {
-      style: "currency",
-      currency: s.value.currency || "IDR",
-      notation: "compact",
-      maximumFractionDigits: 1,
-    },
+    type: "currency",
   },
 ]);
 
@@ -531,7 +578,8 @@ const trendData = computed(() => {
     tickets += row.tickets ?? 0;
     revenue += row.revenue ?? 0;
     orders += row.orders ?? 0;
-    return { date: row.date, tickets, revenue, orders };
+    // ChartLine scales x numerically, so x must be a Date (not a string).
+    return { date: new Date(row.date), tickets, revenue, orders };
   });
 });
 const trendConfig = computed(() => ({
@@ -539,7 +587,7 @@ const trendConfig = computed(() => ({
 }));
 
 const checkInFlow = computed(() =>
-  (d.value?.check_ins_over_time ?? []).map((row) => ({ date: row.slot, count: row.count }))
+  (d.value?.check_ins_over_time ?? []).map((row) => ({ date: new Date(row.slot), count: row.count }))
 );
 
 // Bar lists ───────────────────────────────────────────────────────────────────

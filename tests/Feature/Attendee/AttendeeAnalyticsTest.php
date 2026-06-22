@@ -160,6 +160,130 @@ it('aggregates demographics only when business matching is enabled', function ()
     expect($data['exhibitor_leads']['total'])->toBe(0);
 });
 
+it('reports business matching opt-in participation', function () {
+    $this->event->update(['business_matching_enabled' => true]);
+
+    $field = EventCustomField::create([
+        'event_id' => $this->event->id, 'label' => 'Company', 'type' => 'text', 'required' => false, 'is_active' => true,
+    ]);
+
+    $buyerA = User::factory()->create();
+    makeOrder(['status' => TicketOrderStatus::Confirmed, 'user_id' => $buyerA->id, 'total' => 0], 1);
+    FieldResponse::create(['user_id' => $buyerA->id, 'event_custom_field_id' => $field->id, 'value' => ['Acme']]);
+
+    // A second confirmed buyer who did not opt in (no answers).
+    $buyerB = User::factory()->create();
+    makeOrder(['status' => TicketOrderStatus::Confirmed, 'user_id' => $buyerB->id, 'total' => 0], 1);
+
+    $data = $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics")
+        ->assertOk()
+        ->json('data');
+
+    expect($data['business_matching']['has_questions'])->toBeTrue()
+        ->and($data['business_matching']['buyers'])->toBe(2)
+        ->and($data['business_matching']['opted_in'])->toBe(1)
+        ->and((float) $data['business_matching']['opt_in_rate'])->toBe(50.0);
+});
+
+it('aggregates numeric custom fields with an average and value-ordered breakdown', function () {
+    $this->event->update(['business_matching_enabled' => true]);
+
+    $field = EventCustomField::create([
+        'event_id' => $this->event->id, 'label' => 'Satisfaction', 'type' => 'rating', 'required' => false, 'is_active' => true,
+    ]);
+
+    foreach ([5, 4, 5] as $score) {
+        FieldResponse::create([
+            'user_id' => User::factory()->create()->id,
+            'event_custom_field_id' => $field->id,
+            'value' => [$score],
+        ]);
+    }
+
+    $data = $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics")
+        ->assertOk()
+        ->json('data');
+
+    $demo = collect($data['demographics'])->firstWhere('label', 'Satisfaction');
+    expect($demo['kind'])->toBe('numeric')
+        ->and($demo['total_responses'])->toBe(3)
+        ->and($demo['average'])->toBe(4.67);
+
+    $breakdown = collect($demo['breakdown'])->keyBy('value');
+    expect($breakdown['4']['count'])->toBe(1)
+        ->and($breakdown['5']['count'])->toBe(2);
+});
+
+it('exposes ticket capacity and no-show metrics', function () {
+    $this->ticket->update(['stock' => 200]);
+    // 5 confirmed attendees, 2 checked in -> 3 no-shows (60%).
+    makeOrder(['status' => TicketOrderStatus::Confirmed], 5, 2);
+
+    $data = $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics")
+        ->assertOk()
+        ->json('data');
+
+    $row = collect($data['by_ticket_type'])->firstWhere('ticket_id', $this->ticket->id);
+    expect($row['capacity'])->toBe(200)
+        ->and($row['sold'])->toBe(5);
+
+    expect($data['summary']['no_show'])->toBe(3)
+        ->and((float) $data['summary']['no_show_rate'])->toBe(60.0);
+});
+
+it('reports business-matching respondents and per-field response rate', function () {
+    $this->event->update(['business_matching_enabled' => true]);
+
+    $field = EventCustomField::create([
+        'event_id' => $this->event->id, 'label' => 'Industry', 'type' => 'select',
+        'options' => ['Tech', 'Finance'], 'required' => false, 'is_active' => true,
+    ]);
+
+    $buyer = User::factory()->create();
+    makeOrder(['status' => TicketOrderStatus::Confirmed, 'user_id' => $buyer->id, 'total' => 0], 1);
+    FieldResponse::create(['user_id' => $buyer->id, 'event_custom_field_id' => $field->id, 'value' => ['Tech']]);
+
+    $data = $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics")
+        ->assertOk()
+        ->json('data');
+
+    expect($data['business_matching']['respondents'])->toBe(1);
+
+    $demo = collect($data['demographics'])->firstWhere('label', 'Industry');
+    expect($demo['answered'])->toBe(1)
+        ->and((float) $demo['response_rate'])->toBe(100.0);
+});
+
+it('labels boolean custom fields as Yes/No', function () {
+    $this->event->update(['business_matching_enabled' => true]);
+
+    $field = EventCustomField::create([
+        'event_id' => $this->event->id, 'label' => 'Subscribe', 'type' => 'checkbox', 'required' => false, 'is_active' => true,
+    ]);
+
+    foreach ([[true], [true], [false]] as $value) {
+        FieldResponse::create([
+            'user_id' => User::factory()->create()->id,
+            'event_custom_field_id' => $field->id,
+            'value' => $value,
+        ]);
+    }
+
+    $data = $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics")
+        ->assertOk()
+        ->json('data');
+
+    $demo = collect($data['demographics'])->firstWhere('label', 'Subscribe');
+    $breakdown = collect($demo['breakdown'])->keyBy('value');
+    expect($breakdown['Yes']['count'])->toBe(2)
+        ->and($breakdown['No']['count'])->toBe(1);
+});
+
 it('counts per-day check-ins by assigned/valid day and excludes add-ons', function () {
     EventDay::factory()->create([
         'event_id' => $this->event->id,

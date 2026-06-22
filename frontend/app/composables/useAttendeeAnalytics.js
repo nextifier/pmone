@@ -24,6 +24,7 @@ export function useAttendeeAnalytics(eventId, variant = "summary", options = {})
   const client = useSanctumClient();
   const data = ref(null);
   const pending = ref(true);
+  const lastUpdatedAt = ref(null);
 
   const path =
     variant === "summary"
@@ -39,6 +40,7 @@ export function useAttendeeAnalytics(eventId, variant = "summary", options = {})
     try {
       const res = await client(path);
       data.value = res?.data ?? null;
+      lastUpdatedAt.value = Date.now();
     } catch {
       // Keep the last good snapshot on a transient error so the UI never blanks.
     } finally {
@@ -70,5 +72,5 @@ export function useAttendeeAnalytics(eventId, variant = "summary", options = {})
   });
   onBeforeUnmount(() => pause());
 
-  return { data, pending, refresh };
+  return { data, pending, refresh, lastUpdatedAt };
 }

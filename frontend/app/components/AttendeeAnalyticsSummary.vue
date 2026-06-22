@@ -48,9 +48,12 @@
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Ticket holders</p>
           </div>
           <NumberFlow
-            class="text-foreground -mb-1 text-lg leading-tight font-medium tracking-tighter sm:text-xl"
+            class="text-foreground -mb-1 cursor-pointer text-lg leading-tight font-medium tracking-tighter sm:text-xl"
             :value="summary.total_attendees"
-            :format="{ notation: 'compact' }"
+            locales="id-ID"
+            :format="{ notation: expanded ? 'standard' : 'compact' }"
+            :title="expanded ? 'Click to collapse' : 'Click for exact value'"
+            @click="expanded = !expanded"
           />
         </div>
 
@@ -64,9 +67,12 @@
             </p>
           </div>
           <NumberFlow
-            class="text-foreground -mb-1 text-lg leading-tight font-medium tracking-tighter sm:text-xl"
+            class="text-foreground -mb-1 cursor-pointer text-lg leading-tight font-medium tracking-tighter sm:text-xl"
             :value="summary.tickets_sold"
-            :format="{ notation: 'compact' }"
+            locales="id-ID"
+            :format="{ notation: expanded ? 'standard' : 'compact' }"
+            :title="expanded ? 'Click to collapse' : 'Click for exact value'"
+            @click="expanded = !expanded"
           />
         </div>
 
@@ -78,14 +84,14 @@
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Confirmed orders</p>
           </div>
           <NumberFlow
-            class="text-foreground -mb-1 text-lg leading-tight font-medium tracking-tighter sm:text-xl"
-            :value="summary.total_revenue"
-            :format="{
-              style: 'currency',
-              currency: summary.currency || 'IDR',
-              notation: 'compact',
-              maximumFractionDigits: 1,
-            }"
+            class="text-foreground -mb-1 cursor-pointer text-lg leading-tight font-medium tracking-tighter sm:text-xl"
+            :value="expanded ? summary.total_revenue : rupiahCompactParts(summary.total_revenue).value"
+            prefix="Rp"
+            :suffix="expanded ? '' : rupiahCompactParts(summary.total_revenue).suffix"
+            locales="id-ID"
+            :format="{ maximumFractionDigits: expanded ? 0 : 1 }"
+            :title="expanded ? 'Click to collapse' : 'Click for exact value'"
+            @click="expanded = !expanded"
           />
         </div>
       </template>
@@ -107,7 +113,12 @@ const props = defineProps({
   },
 });
 
-const formatNumber = (value) => new Intl.NumberFormat("en-US").format(value ?? 0);
+const { rupiahCompactParts } = useFormatters();
+const formatNumber = (value) => new Intl.NumberFormat("id-ID").format(value ?? 0);
+
+// Shared collapse/expand: compact (unambiguous Rupiah) by default, click any
+// value to reveal the exact number. Mirrors the full analytics page.
+const expanded = ref(false);
 
 // Panel-reveal entrance (transitions-dev 07): mount closed, then flip open on
 // the next frame so the section slides + blurs into place.

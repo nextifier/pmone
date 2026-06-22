@@ -45,6 +45,7 @@ class AttendeeAnalyticsService
         $orders = $this->orders($event);
         $days = EventDay::query()->where('event_id', $event->id)->orderBy('day_number')->get();
         $tickets = Ticket::query()->where('event_id', $event->id)->with('validDays:id')->get()->keyBy('id');
+        $businessMatching = $event->business_matching_enabled ? $this->businessMatching($event, $orders) : null;
 
         return [
             'summary' => $this->buildSummary($event, $attendees, $orders),
@@ -56,8 +57,53 @@ class AttendeeAnalyticsService
             'payment_channels' => $this->paymentChannels($orders),
             'order_status' => $this->orderStatus($orders),
             'top_buyers' => $this->topBuyers($orders),
-            'demographics' => $event->business_matching_enabled ? $this->demographics($event) : [],
+            'business_matching' => $businessMatching,
+            'demographics' => $event->business_matching_enabled
+                ? $this->demographics($event, (int) ($businessMatching['respondents'] ?? 0))
+                : [],
             'exhibitor_leads' => $event->business_matching_enabled ? $this->exhibitorLeads($event) : null,
+        ];
+    }
+
+    /**
+     * Business-matching participation: how many ticket buyers shared an intake
+     * profile (a buyer only has answers when they opted in at checkout).
+     *
+     * @param  Collection<int, TicketOrder>  $orders
+     * @return array<string, mixed>
+     */
+    private function businessMatching(Event $event, Collection $orders): array
+    {
+        $fieldIds = EventCustomField::query()
+            ->where('event_id', $event->id)
+            ->where('is_active', true)
+            ->pluck('id');
+
+        $buyers = $orders
+            ->filter(fn (TicketOrder $o): bool => $o->status === TicketOrderStatus::Confirmed)
+            ->pluck('user_id')
+            ->filter()
+            ->unique();
+
+        $responded = $fieldIds->isEmpty()
+            ? collect()
+            : FieldResponse::query()
+                ->whereIn('event_custom_field_id', $fieldIds)
+                ->distinct()
+                ->pluck('user_id')
+                ->filter()
+                ->unique();
+
+        $respondedCount = $buyers->intersect($responded)->count();
+        $buyerCount = $buyers->count();
+
+        return [
+            'has_questions' => $fieldIds->isNotEmpty(),
+            'buyers' => $buyerCount,
+            'opted_in' => $respondedCount,
+            'opt_in_rate' => $this->rate($respondedCount, $buyerCount),
+            // Buyers with >=1 answer; denominator for per-field response coverage.
+            'respondents' => $respondedCount,
         ];
     }
 
@@ -83,7 +129,7 @@ class AttendeeAnalyticsService
         return TicketOrder::query()
             ->where('event_id', $event->id)
             ->with(['items:id,ticket_order_id,ticket_id,ticket_session_id,quantity,subtotal'])
-            ->get(['id', 'status', 'total', 'payment_channel', 'created_at', 'paid_at', 'buyer_name', 'buyer_email']);
+            ->get(['id', 'status', 'total', 'payment_channel', 'created_at', 'paid_at', 'buyer_name', 'buyer_email', 'user_id']);
     }
 
     /**
@@ -98,17 +144,27 @@ class AttendeeAnalyticsService
         $confirmed = $orders->filter(fn (TicketOrder $o): bool => $o->status === TicketOrderStatus::Confirmed);
         $revenue = (float) $confirmed->sum(fn (TicketOrder $o): float => (float) $o->total);
 
+        // Confirmed ticket holders who never checked in (only meaningful during/
+        // after the event); floored so it never reads negative.
+        $ticketsSold = $attendees->filter(fn (Attendee $a): bool => $this->isConfirmedAttendee($a))->count();
+        $confirmedCheckedIn = $attendees
+            ->filter(fn (Attendee $a): bool => $this->isConfirmedAttendee($a) && $a->checked_in_at !== null)
+            ->count();
+        $noShow = max(0, $ticketsSold - $confirmedCheckedIn);
+
         return [
             'total_attendees' => $total,
             'checked_in' => $checkedIn,
             'not_checked_in' => $total - $checkedIn,
             'check_in_rate' => $this->rate($checkedIn, $total),
+            'no_show' => $noShow,
+            'no_show_rate' => $this->rate($noShow, $ticketsSold),
             'personalized' => $attendees->filter(fn (Attendee $a): bool => $a->personalized_at !== null)->count(),
             'claimed' => $attendees->filter(fn (Attendee $a): bool => $a->claimed_by_user_id !== null)->count(),
             'total_orders' => $orders->count(),
             'confirmed_orders' => $confirmed->count(),
             'pending_orders' => $orders->filter(fn (TicketOrder $o): bool => $o->status === TicketOrderStatus::PendingPayment)->count(),
-            'tickets_sold' => $attendees->filter(fn (Attendee $a): bool => $this->isConfirmedAttendee($a))->count(),
+            'tickets_sold' => $ticketsSold,
             'total_revenue' => $revenue,
             'avg_order_value' => $confirmed->count() > 0 ? round($revenue / $confirmed->count(), 2) : 0.0,
             'currency' => $this->currency($event),
@@ -197,6 +253,8 @@ class AttendeeAnalyticsService
                     'checked_in' => $checkedIn,
                     'check_in_rate' => $this->rate($checkedIn, $group->count()),
                     'revenue' => (float) ($revenueByTicket[$ticketId] ?? 0),
+                    // null = unlimited stock; drives the sell-through display.
+                    'capacity' => $ticket?->stock,
                 ];
             })
             ->sortByDesc('issued')
@@ -347,14 +405,14 @@ class AttendeeAnalyticsService
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function demographics(Event $event): array
+    private function demographics(Event $event, int $respondents = 0): array
     {
         $fields = EventCustomField::query()
             ->where('event_id', $event->id)
             ->where('is_active', true)
             ->orderBy('order_column')
             ->get()
-            ->filter(fn (EventCustomField $field): bool => FormFieldTypes::analyticsKind($field->type) === 'options');
+            ->filter(fn (EventCustomField $field): bool => in_array(FormFieldTypes::analyticsKind($field->type), ['options', 'numeric'], true));
 
         if ($fields->isEmpty()) {
             return [];
@@ -366,34 +424,107 @@ class AttendeeAnalyticsService
             ->groupBy('event_custom_field_id');
 
         return $fields
-            ->map(function (EventCustomField $field) use ($responses): array {
-                $optionLabels = $this->optionLabelMap($field);
-                $counts = [];
-
-                foreach ($responses->get($field->id, collect()) as $response) {
-                    foreach ($this->normalizeValues($response->value) as $value) {
-                        $label = $optionLabels[$value] ?? $value;
-                        $counts[$label] = ($counts[$label] ?? 0) + 1;
-                    }
-                }
-
-                arsort($counts);
-                $breakdown = [];
-                foreach (array_slice($counts, 0, 15, true) as $label => $count) {
-                    $breakdown[] = ['value' => (string) $label, 'count' => $count];
-                }
-
-                return [
-                    'field_id' => $field->id,
-                    'label' => $this->fieldLabel($field),
-                    'type' => $field->type,
-                    'total_responses' => array_sum($counts),
-                    'breakdown' => $breakdown,
-                ];
-            })
+            ->map(fn (EventCustomField $field): array => FormFieldTypes::analyticsKind($field->type) === 'numeric'
+                ? $this->numericField($field, $responses->get($field->id, collect()))
+                : $this->optionsField($field, $responses->get($field->id, collect())))
             ->filter(fn (array $field): bool => $field['total_responses'] > 0)
+            // Coverage = distinct respondents who answered this field vs all opted-in buyers.
+            ->map(function (array $field) use ($respondents): array {
+                $field['response_rate'] = $this->rate($field['answered'] ?? $field['total_responses'], $respondents);
+
+                return $field;
+            })
             ->values()
             ->all();
+    }
+
+    /**
+     * Distribution of a choice-type field, with Yes/No labels for boolean
+     * checkbox/switch answers.
+     *
+     * @param  Collection<int, FieldResponse>  $responses
+     * @return array<string, mixed>
+     */
+    private function optionsField(EventCustomField $field, Collection $responses): array
+    {
+        $optionLabels = $this->optionLabelMap($field);
+        $boolean = in_array($field->type, ['checkbox', 'switch'], true);
+        $counts = [];
+
+        foreach ($responses as $response) {
+            foreach ($this->normalizeValues($response->value) as $value) {
+                $label = $boolean
+                    ? ($this->isTruthy($value) ? 'Yes' : 'No')
+                    : ($optionLabels[$value] ?? $value);
+                $counts[$label] = ($counts[$label] ?? 0) + 1;
+            }
+        }
+
+        arsort($counts);
+        $breakdown = [];
+        foreach (array_slice($counts, 0, 15, true) as $label => $count) {
+            $breakdown[] = ['value' => (string) $label, 'count' => $count];
+        }
+
+        return [
+            'field_id' => $field->id,
+            'label' => $this->fieldLabel($field),
+            'type' => $field->type,
+            'kind' => 'options',
+            'average' => null,
+            'answered' => $responses->count(),
+            'total_responses' => array_sum($counts),
+            'breakdown' => $breakdown,
+        ];
+    }
+
+    /**
+     * Distribution + average for a numeric field (number, slider, rating,
+     * linear scale). Breakdown is ordered by value for a natural scale view.
+     *
+     * @param  Collection<int, FieldResponse>  $responses
+     * @return array<string, mixed>
+     */
+    private function numericField(EventCustomField $field, Collection $responses): array
+    {
+        $numbers = [];
+        foreach ($responses as $response) {
+            foreach ($this->normalizeValues($response->value) as $value) {
+                if (is_numeric($value)) {
+                    $numbers[] = $value + 0;
+                }
+            }
+        }
+
+        $counts = [];
+        foreach ($numbers as $number) {
+            $key = (string) $number;
+            $counts[$key] = ($counts[$key] ?? 0) + 1;
+        }
+        uksort($counts, fn (string $a, string $b): int => (float) $a <=> (float) $b);
+
+        $breakdown = [];
+        foreach (array_slice($counts, 0, 15, true) as $label => $count) {
+            $breakdown[] = ['value' => (string) $label, 'count' => $count];
+        }
+
+        $total = count($numbers);
+
+        return [
+            'field_id' => $field->id,
+            'label' => $this->fieldLabel($field),
+            'type' => $field->type,
+            'kind' => 'numeric',
+            'average' => $total > 0 ? round(array_sum($numbers) / $total, 2) : null,
+            'answered' => $responses->count(),
+            'total_responses' => $total,
+            'breakdown' => $breakdown,
+        ];
+    }
+
+    private function isTruthy(mixed $value): bool
+    {
+        return ! in_array((string) $value, ['', '0', 'false', 'no', 'off'], true);
     }
 
     /**

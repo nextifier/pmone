@@ -71,6 +71,51 @@ export function useFormatters() {
     return `Rp${Number(amount).toLocaleString("id-ID")}`;
   }
 
+  // Full, exact Rupiah, e.g. "Rp20.900.000". No abbreviation, never ambiguous.
+  function formatRupiahFull(amount) {
+    return `Rp${Number(amount ?? 0).toLocaleString("id-ID")}`;
+  }
+
+  // Compact Rupiah using Indonesian short scale so it is NEVER read as the
+  // ambiguous English "M" (which Indonesians read as "Milyar"/billion):
+  // rb = ribu, jt = juta, miliar, triliun. e.g. "Rp20,9 jt".
+  function formatRupiahCompact(amount) {
+    const n = Number(amount ?? 0);
+    const abs = Math.abs(n);
+    const short = (v, suffix) =>
+      `Rp${v.toLocaleString("id-ID", { maximumFractionDigits: 1 })}${suffix}`;
+    if (abs >= 1e12) return short(n / 1e12, " triliun");
+    if (abs >= 1e9) return short(n / 1e9, " miliar");
+    if (abs >= 1e6) return short(n / 1e6, " jt");
+    if (abs >= 1e3) return short(n / 1e3, " rb");
+    return `Rp${n.toLocaleString("id-ID")}`;
+  }
+
+  // Compact Rupiah split into the numeric value + Indonesian-scale suffix, so a
+  // NumberFlow can animate the digits while showing "jt"/"miliar" (never "M").
+  function rupiahCompactParts(amount) {
+    const n = Number(amount ?? 0);
+    const abs = Math.abs(n);
+    if (abs >= 1e12) return { value: n / 1e12, suffix: " triliun" };
+    if (abs >= 1e9) return { value: n / 1e9, suffix: " miliar" };
+    if (abs >= 1e6) return { value: n / 1e6, suffix: " jt" };
+    if (abs >= 1e3) return { value: n / 1e3, suffix: " rb" };
+    return { value: n, suffix: "" };
+  }
+
+  // Compact plain count using the same unambiguous Indonesian short scale.
+  function formatCountCompact(value) {
+    const n = Number(value ?? 0);
+    const abs = Math.abs(n);
+    const short = (v, suffix) =>
+      `${v.toLocaleString("id-ID", { maximumFractionDigits: 1 })}${suffix}`;
+    if (abs >= 1e12) return short(n / 1e12, " triliun");
+    if (abs >= 1e9) return short(n / 1e9, " miliar");
+    if (abs >= 1e6) return short(n / 1e6, " jt");
+    if (abs >= 1e3) return short(n / 1e3, " rb");
+    return n.toLocaleString("id-ID");
+  }
+
   function formatDateId(dateStr) {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -98,6 +143,10 @@ export function useFormatters() {
     formatNumber,
     formatCurrency,
     formatPrice,
+    formatRupiahFull,
+    formatRupiahCompact,
+    rupiahCompactParts,
+    formatCountCompact,
     formatDateId,
     orderStatusClass,
   };

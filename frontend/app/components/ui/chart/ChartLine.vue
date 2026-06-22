@@ -73,12 +73,13 @@
         :tick-line="false"
         :domain-line="false"
         :tick-format="
-          (d) => {
-            return new Intl.NumberFormat('en-US', {
-              notation: 'compact',
-              maximumFractionDigits: 1,
-            }).format(d);
-          }
+          (d) =>
+            yTickFormatter
+              ? yTickFormatter(d)
+              : new Intl.NumberFormat('en-US', {
+                  notation: 'compact',
+                  maximumFractionDigits: 1,
+                }).format(d)
         "
       />
       <ChartTooltip />
@@ -125,6 +126,12 @@ const props = defineProps({
   comparisonLabel: {
     type: String,
     default: "Previous Period",
+  },
+  // Optional custom Y-axis tick formatter. Defaults to en-US compact when null,
+  // so existing charts are unaffected.
+  yTickFormatter: {
+    type: Function,
+    default: null,
   },
 });
 

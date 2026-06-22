@@ -2,6 +2,10 @@
 
 use App\Models\Attendee;
 use App\Models\Event;
+use App\Models\EventCustomField;
+use App\Models\EventDay;
+use App\Models\ExhibitorLead;
+use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
@@ -14,46 +18,64 @@ uses(RefreshDatabase::class);
 
 function seedGlobalAiExpoTickets(): Event
 {
-    $project = Project::factory()->create(['username' => 'globalaiexpo']);
-    $event = Event::factory()->create(['project_id' => $project->id, 'is_active' => true]);
+    User::factory()->create(['email_verified_at' => now()]);
 
-    foreach (['regular-ticket', 'vip-ticket', '3-day-bundle', 'conference-pass', 'meet-and-greet'] as $slug) {
-        $ticket = Ticket::factory()->create(['event_id' => $event->id, 'slug' => $slug]);
+    $project = Project::factory()->create(['username' => 'globalaiexpo']);
+    $event = Event::factory()->create([
+        'project_id' => $project->id,
+        'is_active' => true,
+        'tickets_enabled' => true,
+        'start_date' => now()->addDays(30)->startOfDay(),
+    ]);
+    EventDay::factory()->create(['event_id' => $event->id, 'day_number' => 1, 'date' => now()->addDays(30)->startOfDay()]);
+
+    foreach (['regular' => 50000, 'vip' => 250000, 'free-day' => 0] as $slug => $price) {
+        $ticket = Ticket::factory()->create(['event_id' => $event->id, 'slug' => $slug, 'stock' => 500]);
         TicketPricePhase::factory()->create([
             'ticket_id' => $ticket->id,
-            'price' => 100000,
+            'price' => $price,
             'starts_at' => now()->subDay(),
-            'ends_at' => now()->addDay(),
+            'ends_at' => now()->addMonths(2),
         ]);
     }
 
     return $event;
 }
 
-it('seeds named attendees across all ticket types', function () {
-    User::factory()->create();
+it('seeds a rich, varied demo dataset', function () {
     $event = seedGlobalAiExpoTickets();
 
     $this->seed(GlobalAiExpoAttendeesSeeder::class);
 
-    $attendees = Attendee::forEvent($event->id)->get();
+    expect(EventCustomField::where('event_id', $event->id)->where('settings->seeded', true)->count())->toBe(13)
+        ->and(TicketOrder::where('event_id', $event->id)->count())->toBe(110)
+        ->and(Attendee::forEvent($event->id)->count())->toBeGreaterThan(100)
+        ->and(FieldResponse::query()->count())->toBeGreaterThan(0)
+        ->and(ExhibitorLead::where('event_id', $event->id)->count())->toBeGreaterThan(0)
+        ->and(User::where('email', 'like', '%@gae-demo.test')->count())->toBe(110);
 
-    expect($attendees)->toHaveCount(42)
-        ->and($attendees->whereNotNull('checked_in_at'))->not->toBeEmpty()
-        ->and($attendees->every(fn ($a) => filled($a->name) && filled($a->qr_token)))->toBeTrue();
+    // Business matching auto-enables, check-ins exist, and statuses vary.
+    expect($event->fresh()->business_matching_enabled)->toBeTrue()
+        ->and(Attendee::forEvent($event->id)->whereNotNull('checked_in_at')->count())->toBeGreaterThan(0)
+        ->and(TicketOrder::where('event_id', $event->id)->distinct()->pluck('status')->count())->toBeGreaterThan(1);
+
+    // Orders are spread across the campaign (not all the same day).
+    $days = TicketOrder::where('event_id', $event->id)->get()
+        ->map(fn ($o) => $o->created_at->format('Y-m-d'))->unique();
+    expect($days->count())->toBeGreaterThan(5);
 });
 
-it('is idempotent across re-runs', function () {
-    User::factory()->create();
+it('is idempotent and never touches real public data', function () {
     $event = seedGlobalAiExpoTickets();
+    $real = TicketOrder::factory()->create(['event_id' => $event->id, 'batch_label' => null]);
 
     $this->seed(GlobalAiExpoAttendeesSeeder::class);
     $this->seed(GlobalAiExpoAttendeesSeeder::class);
 
-    expect(Attendee::forEvent($event->id)->count())->toBe(42)
-        ->and(TicketOrder::where('event_id', $event->id)
-            ->where('batch_label', 'Seeder: Global AI Expo Attendees')
-            ->count())->toBe(5);
+    expect(EventCustomField::where('event_id', $event->id)->where('settings->seeded', true)->count())->toBe(13)
+        ->and(User::where('email', 'like', '%@gae-demo.test')->count())->toBe(110)
+        ->and(TicketOrder::where('event_id', $event->id)->where('batch_label', 'Seeder: Global AI Expo Demo')->count())->toBe(110)
+        ->and(TicketOrder::query()->whereKey($real->id)->exists())->toBeTrue();
 });
 
 it('skips gracefully when the event is absent', function () {
