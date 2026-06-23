@@ -6,6 +6,7 @@ use App\Contracts\Pricing\Purchasable;
 use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
 use App\Traits\HasAdjustments;
+use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,8 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
  * @property int $id
@@ -24,6 +27,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $order_number
  * @property OperationalStatus $operational_status
  * @property string|null $notes
+ * @property string|null $internal_notes
  * @property numeric $discount_amount
  * @property numeric $subtotal
  * @property numeric $tax_rate
@@ -87,10 +91,12 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @mixin \Eloquent
  */
-class Order extends Model implements Purchasable
+class Order extends Model implements HasMedia, Purchasable
 {
     use HasAdjustments;
     use HasFactory;
+    use HasMediaManager;
+    use InteractsWithMedia;
     use LogsActivity;
 
     protected $fillable = [
@@ -101,6 +107,7 @@ class Order extends Model implements Purchasable
         'cancellation_reason',
         'order_period',
         'notes',
+        'internal_notes',
         'subtotal',
         'discount_amount',
         'penalty_amount',
@@ -170,6 +177,30 @@ class Order extends Model implements Purchasable
         }
 
         return $prefix.str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->registerDynamicMediaCollections();
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function getMediaCollections(): array
+    {
+        return [
+            'invoice' => [
+                'single_file' => true,
+                'mime_types' => ['application/pdf'],
+                'max_size' => 20480,
+            ],
+            'receipt' => [
+                'single_file' => true,
+                'mime_types' => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
+                'max_size' => 20480,
+            ],
+        ];
     }
 
     public function getActivitylogOptions(): LogOptions

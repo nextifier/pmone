@@ -150,6 +150,11 @@ class OrderAdjustmentController extends Controller
         $value = (float) $data['value'];
         $reason = $data['reason'] ?? null;
 
+        $orderItemId = $data['order_item_id'] ?? null;
+        if ($orderItemId !== null && ! $order->items()->whereKey($orderItemId)->exists()) {
+            abort(422, 'The selected item does not belong to this order.');
+        }
+
         $slug = $kind === AdjustmentKind::Discount->value
             ? 'system-manual-order-discount'
             : 'system-manual-order-penalty';
@@ -174,10 +179,11 @@ class OrderAdjustmentController extends Controller
 
         $adjustment = null;
 
-        DB::transaction(function () use ($order, $rule, $kind, $valueType, $value, $reason, $userId, &$adjustment) {
+        DB::transaction(function () use ($order, $rule, $kind, $valueType, $value, $reason, $userId, $orderItemId, &$adjustment) {
             $adjustment = AppliedAdjustment::query()->create([
                 'adjustable_type' => $order->getMorphClass(),
                 'adjustable_id' => $order->id,
+                'order_item_id' => $orderItemId,
                 'promotion_rule_id' => $rule->id,
                 'promo_code_id' => null,
                 'kind' => $kind,

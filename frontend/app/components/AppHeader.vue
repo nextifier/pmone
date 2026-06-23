@@ -14,12 +14,17 @@
             class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
             @click="toggleSidebar"
           >
-            <Icon
-              v-if="open && !isMobile"
-              name="hugeicons:sidebar-left-01"
-              class="text-primary size-5"
-            />
-            <Icon v-else name="hugeicons:sidebar-left" class="text-primary size-5" />
+            <ClientOnly>
+              <Icon
+                v-if="open && !isMobile"
+                name="hugeicons:sidebar-left-01"
+                class="text-primary size-5"
+              />
+              <Icon v-else name="hugeicons:sidebar-left" class="text-primary size-5" />
+              <template #fallback>
+                <span class="size-5" aria-hidden="true" />
+              </template>
+            </ClientOnly>
           </button>
           <template #content>
             <span class="inline-flex items-center gap-x-1.5 tracking-tight">

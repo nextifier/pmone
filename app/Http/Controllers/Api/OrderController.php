@@ -6,8 +6,12 @@ use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
 use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Order\UpdateOrderInternalNotesRequest;
+use App\Http\Requests\Order\UploadOrderInvoiceRequest;
+use App\Http\Requests\Order\UploadOrderReceiptRequest;
 use App\Http\Resources\OrderIndexResource;
 use App\Http\Resources\OrderResource;
+use App\Jobs\Order\SendOrderDocumentJob;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Order;
@@ -16,6 +20,9 @@ use App\Notifications\OrderStatusChangedNotification;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -157,6 +164,7 @@ class OrderController extends Controller
                 'creator',
                 'adjustments.promotionRule',
                 'adjustments.promoCode',
+                'media',
             ])
             ->firstOrFail();
 
@@ -297,5 +305,198 @@ class OrderController extends Controller
             ->log('Exported orders');
 
         return Excel::download($export, $filename);
+    }
+
+    /**
+     * Update staff-only internal notes on the order and/or individual items.
+     */
+    public function updateInternalNotes(UpdateOrderInternalNotesRequest $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $this->ensureCanManageOperational($request);
+
+        [, $order] = $this->resolveOrder($username, $eventSlug, $ulid);
+
+        $data = $request->validated();
+
+        if (array_key_exists('internal_notes', $data)) {
+            $order->update(['internal_notes' => $data['internal_notes']]);
+        }
+
+        if (! empty($data['items'])) {
+            foreach ($data['items'] as $itemData) {
+                $order->items()
+                    ->whereKey($itemData['id'])
+                    ->update(['internal_notes' => $itemData['internal_notes'] ?? null]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Internal notes updated successfully',
+            'data' => new OrderResource($order->fresh([
+                'items.productCategory', 'brandEvent.brand', 'creator',
+                'adjustments.promotionRule', 'adjustments.promoCode', 'media',
+            ])),
+        ]);
+    }
+
+    public function uploadInvoice(UploadOrderInvoiceRequest $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $this->ensureCanManageDocuments($request);
+
+        [, $order] = $this->resolveOrder($username, $eventSlug, $ulid);
+
+        $this->storeDocument($order, 'invoice', $request->input('tmp_invoice'));
+
+        return $this->documentResponse($order, 'invoice', 'Invoice uploaded successfully');
+    }
+
+    public function uploadReceipt(UploadOrderReceiptRequest $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $this->ensureCanManageDocuments($request);
+
+        [, $order] = $this->resolveOrder($username, $eventSlug, $ulid);
+
+        $this->storeDocument($order, 'receipt', $request->input('tmp_receipt'));
+
+        return $this->documentResponse($order, 'receipt', 'Receipt uploaded successfully');
+    }
+
+    public function sendInvoice(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $this->ensureCanManageDocuments($request);
+
+        [$event, $order] = $this->resolveOrder($username, $eventSlug, $ulid);
+
+        return $this->dispatchDocumentEmail($request, $event, $order, 'invoice');
+    }
+
+    public function sendReceipt(Request $request, string $username, string $eventSlug, string $ulid): JsonResponse
+    {
+        $this->ensureCanManageDocuments($request);
+
+        [$event, $order] = $this->resolveOrder($username, $eventSlug, $ulid);
+
+        return $this->dispatchDocumentEmail($request, $event, $order, 'receipt');
+    }
+
+    /**
+     * @return array{0: Event, 1: Order}
+     */
+    private function resolveOrder(string $username, string $eventSlug, string $ulid): array
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $order = Order::query()
+            ->whereIn('brand_event_id', $event->brandEvents()->select('id'))
+            ->where('ulid', $ulid)
+            ->firstOrFail();
+
+        return [$event, $order];
+    }
+
+    private function ensureCanManageOperational(Request $request): void
+    {
+        $user = $request->user();
+
+        if (! $user->hasRole(['master', 'admin'])) {
+            if (! $user->hasRole('staff') || ! $user->hasAnyPermission(['operational', 'project-coordinator'])) {
+                abort(403, 'Unauthorized to manage this order.');
+            }
+        }
+    }
+
+    private function ensureCanManageDocuments(Request $request): void
+    {
+        $user = $request->user();
+
+        if (! $user->hasRole(['master', 'admin'])) {
+            if (! $user->hasRole('staff') || ! $user->hasPermissionTo('finance')) {
+                abort(403, 'Unauthorized to manage order documents.');
+            }
+        }
+    }
+
+    private function storeDocument(Order $order, string $collection, ?string $tmpFolder): void
+    {
+        if (is_string($tmpFolder) && Str::startsWith($tmpFolder, 'tmp-')) {
+            $this->attachTempDocument($order, $collection, $tmpFolder);
+
+            return;
+        }
+
+        $order->clearMediaCollection($collection);
+        $order->addMediaFromRequest($collection)->toMediaCollection($collection);
+    }
+
+    private function attachTempDocument(Order $order, string $collection, string $tmpFolder): void
+    {
+        $metadataPath = "tmp/uploads/{$tmpFolder}/metadata.json";
+
+        if (! Storage::disk('local')->exists($metadataPath)) {
+            abort(422, 'Temporary file not found.');
+        }
+
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
+        $filePath = "tmp/uploads/{$tmpFolder}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            abort(422, 'Temporary file is missing.');
+        }
+
+        $order->clearMediaCollection($collection);
+        $order->addMedia(Storage::disk('local')->path($filePath))->toMediaCollection($collection);
+
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$tmpFolder}");
+    }
+
+    private function documentResponse(Order $order, string $collection, string $message): JsonResponse
+    {
+        $media = $order->getFirstMedia($collection);
+
+        return response()->json([
+            'message' => $message,
+            $collection => [
+                'name' => $media?->name,
+                'url' => $order->getFirstMediaUrl($collection),
+            ],
+        ]);
+    }
+
+    /**
+     * @param  'invoice'|'receipt'  $type
+     */
+    private function dispatchDocumentEmail(Request $request, Event $event, Order $order, string $type): JsonResponse
+    {
+        if (! $order->hasMedia($type)) {
+            return response()->json(['message' => ucfirst($type).' must be uploaded first'], 422);
+        }
+
+        // Throttle to one send per minute per order to prevent spamming.
+        $rateLimitKey = "send-order-{$type}:{$order->id}";
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 1)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+
+            return response()->json([
+                'message' => "Please wait {$seconds} seconds before resending.",
+                'retry_after' => $seconds,
+            ], 429);
+        }
+
+        RateLimiter::hit($rateLimitKey, 60);
+
+        SendOrderDocumentJob::dispatch($order->id, $type);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($order)
+            ->event("{$type}_sent")
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'order_id' => $order->id,
+            ])
+            ->log(ucfirst($type).' sent to exhibitor');
+
+        return response()->json(['message' => ucfirst($type).' email sent']);
     }
 }

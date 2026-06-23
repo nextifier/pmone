@@ -38,6 +38,10 @@ class StoreAdjustmentRequest extends FormRequest
             'value_type' => ['required_if:mode,manual', new Enum(AdjustmentValueType::class)],
             'value' => ['required_if:mode,manual', 'numeric', 'min:0'],
             'reason' => ['nullable', 'string', 'max:500'],
+
+            // Optional: scope a manual adjustment to a single order item.
+            // Belongs-to-order check is enforced in the controller.
+            'order_item_id' => ['nullable', 'integer', 'exists:order_items,id'],
         ];
     }
 

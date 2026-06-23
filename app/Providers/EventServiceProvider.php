@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Listeners\AutoVerifyPrivilegedUsers;
+use App\Listeners\RecordFailedLogin;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Spatie\Permission\Events\RoleAttached;
 
@@ -16,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         RoleAttached::class => [
             AutoVerifyPrivilegedUsers::class,
+        ],
+        Failed::class => [
+            RecordFailedLogin::class,
         ],
     ];
 

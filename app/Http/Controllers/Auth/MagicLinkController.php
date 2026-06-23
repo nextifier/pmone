@@ -91,7 +91,7 @@ class MagicLinkController extends Controller
         }
 
         // Mark user as logged in (the link was already consumed atomically above)
-        $user->markAsLoggedIn($request->ip());
+        $user->markAsLoggedIn($request->ip(), $request->userAgent());
 
         // Verify email if not already verified
         if (! $user->email_verified_at) {

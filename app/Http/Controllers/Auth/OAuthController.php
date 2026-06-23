@@ -187,7 +187,7 @@ class OAuthController extends Controller
 
     private function markUserAsLoggedIn(User $user): void
     {
-        $user->markAsLoggedIn(request()->ip());
+        $user->markAsLoggedIn(request()->ip(), request()->userAgent());
     }
 
     private function logUserActivity(User $user, string $provider): void

@@ -27,7 +27,7 @@
         >
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export {{ (search || selectedCategory !== "all") ? "selected" : "all" }}</span>
+          <span>Export {{ activeSearch || selectedCategory !== "all" ? "selected" : "all" }}</span>
         </button>
 
         <template v-if="event?.can_edit">
@@ -52,177 +52,75 @@
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-2">
-      <div class="relative min-w-48 flex-1">
-        <Icon
-          name="hugeicons:search-01"
-          class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
-        />
-        <Input
-          v-model="search"
-          placeholder="Search products..."
-          class="pl-9"
-        />
-      </div>
+    <TableData
+      ref="tableRef"
+      :client-only="true"
+      :data="categoryFilteredProducts"
+      :columns="columns"
+      :meta="meta"
+      :pending="loading"
+      model="products"
+      label="Product"
+      :show-add-button="false"
+      :initial-sorting="[]"
+      search-column="name"
+      search-placeholder="Search products..."
+      @update:column-filters="onColumnFiltersChange"
+    >
+      <template #filters>
+        <Select v-model="selectedCategory">
+          <SelectTrigger class="w-48 shrink-0">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            <SelectItem v-for="cat in categories" :key="cat.id" :value="String(cat.id)">
+              {{ cat.title }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </template>
 
-      <Select v-model="selectedCategory">
-        <SelectTrigger class="w-48 shrink-0">
-          <SelectValue placeholder="All categories" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All categories</SelectItem>
-          <SelectItem v-for="cat in categories" :key="cat.id" :value="String(cat.id)">
-            {{ cat.title }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
-
-    <!-- Table -->
-    <div class="frame overflow-hidden">
-      <!-- Loading -->
-      <div v-if="loading" class="flex items-center justify-center py-16">
-        <div class="flex items-center gap-x-2">
-          <Spinner class="size-4 shrink-0" />
-          <span class="text-muted-foreground text-sm">Loading products...</span>
-        </div>
-      </div>
-
-      <!-- Empty State -->
-      <div
-        v-else-if="!loading && filteredProducts.length === 0"
-        class="flex flex-col items-center justify-center gap-y-3 py-16 text-center"
-      >
-        <div
-          class="*:bg-background/80 *:squircle text-muted-foreground flex items-center -space-x-2 *:rounded-lg *:border *:p-3 *:backdrop-blur-sm [&_svg]:size-5"
+      <template #actions="{ selectedRows }">
+        <!-- Bulk Delete -->
+        <DialogResponsive
+          v-if="selectedRows.length > 0 && event?.can_edit"
+          v-model:open="bulkDeleteDialogOpen"
+          class="h-full"
         >
-          <div class="translate-y-1.5 -rotate-6">
-            <Icon name="hugeicons:shopping-cart-01" />
-          </div>
-          <div>
-            <Icon name="hugeicons:package-01" />
-          </div>
-          <div class="translate-y-1.5 rotate-6">
-            <Icon name="hugeicons:tag-01" />
-          </div>
-        </div>
-        <div class="space-y-1">
-          <p class="text-sm font-medium">
-            {{ search || selectedCategory !== "all" ? "No products match your filters" : "No products yet" }}
-          </p>
-          <p class="text-muted-foreground text-xs">
-            {{ search || selectedCategory !== "all" ? "Try adjusting your search or filters." : "Add your first product to get started." }}
-          </p>
-        </div>
-        <Button v-if="!search && selectedCategory === 'all' && event?.can_edit" @click="openCreate" size="sm" variant="outline">
-          <Icon name="hugeicons:add-01" class="size-4" />
-          Add Product
-        </Button>
-      </div>
-
-      <!-- Data Table -->
-      <div v-else class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b text-left">
-              <th class="text-muted-foreground px-4 py-3 font-medium">Name</th>
-              <th class="text-muted-foreground px-4 py-3 font-medium">Category</th>
-              <th class="text-muted-foreground px-4 py-3 font-medium">Price</th>
-              <th class="text-muted-foreground px-4 py-3 font-medium">Unit</th>
-              <th class="text-muted-foreground px-4 py-3 font-medium">Booth Types</th>
-              <th class="text-muted-foreground px-4 py-3 font-medium">Active</th>
-              <th v-if="event?.can_edit" class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="product in filteredProducts"
-              :key="product.id"
-              class="border-b last:border-0"
-            >
-              <!-- Name -->
-              <td class="px-4 py-3">
-                <div class="font-medium tracking-tight">{{ product.name }}</div>
-                <div v-if="product.description" class="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
-                  {{ product.description }}
-                </div>
-              </td>
-
-              <!-- Category -->
-              <td class="px-4 py-3">
-                <Badge v-if="product.category" variant="outline" class="font-normal">
-                  {{ product.category }}
-                </Badge>
-                <span v-else class="text-muted-foreground">—</span>
-              </td>
-
-              <!-- Price -->
-              <td class="px-4 py-3 whitespace-nowrap">
-                <span v-if="product.price !== null" class="font-medium">
-                  {{ formatPrice(product.price) }}
-                </span>
-                <span v-else class="text-muted-foreground">—</span>
-              </td>
-
-              <!-- Unit -->
-              <td class="px-4 py-3">
-                <span v-if="product.unit" class="text-muted-foreground text-xs">
-                  {{ product.unit }}
-                </span>
-                <span v-else class="text-muted-foreground">—</span>
-              </td>
-
-              <!-- Booth Types -->
-              <td class="px-4 py-3">
-                <div v-if="product.booth_types && product.booth_types.length" class="flex flex-wrap gap-1">
-                  <Badge
-                    v-for="type in product.booth_types"
-                    :key="type"
-                    variant="muted"
-                    class="text-xs font-normal"
-                  >
-                    {{ boothTypeLabel(type) }}
-                  </Badge>
-                </div>
-                <span v-else class="text-muted-foreground">—</span>
-              </td>
-
-              <!-- Active Toggle -->
-              <td class="px-4 py-3">
-                <Switch
-                  :model-value="product.is_active"
-                  :disabled="togglingId === product.id || !event?.can_edit"
-                  @update:model-value="handleToggleActive(product)"
-                />
-              </td>
-
-              <!-- Actions -->
-              <td v-if="event?.can_edit" class="px-4 py-3">
-                <div class="flex items-center justify-end gap-x-1">
-                  <button
-                    type="button"
-                    @click="openEdit(product)"
-                    class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5 transition"
-                    title="Edit"
-                  >
-                    <Icon name="hugeicons:edit-02" class="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    @click="confirmDelete(product)"
-                    class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition"
-                    title="Delete"
-                  >
-                    <Icon name="hugeicons:delete-02" class="size-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+          <template #trigger="{ open }">
+            <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
+                This action can't be undone. This will permanently delete
+                {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "product" : "products" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  @click="bulkDeleteDialogOpen = false"
+                  :disabled="bulkDeleting"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="handleDeleteRows(selectedRows)"
+                  :disabled="bulkDeleting"
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="bulkDeleting" class="size-4 text-white" />
+                  <span v-else>Delete</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+      </template>
+    </TableData>
 
     <!-- Add/Edit Dialog -->
     <DialogResponsive v-model:open="showFormDialog" dialog-max-width="500px" :overflow-content="true">
@@ -283,7 +181,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -292,7 +190,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import EventProductImportDialog from "@/components/event/EventProductImportDialog.vue";
+import { h, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -304,7 +204,6 @@ const client = useSanctumClient();
 const products = ref([]);
 const categories = ref([]);
 const loading = ref(true);
-const search = ref("");
 const selectedCategory = ref("all");
 const showFormDialog = ref(false);
 const editingProduct = ref(null);
@@ -312,6 +211,15 @@ const showDeleteDialog = ref(false);
 const deletingProduct = ref(null);
 const deleteLoading = ref(false);
 const togglingId = ref(null);
+const tableRef = ref();
+
+// Mirror TableData's client-side free-text search so the server-side export
+// can apply the same filter as the displayed table.
+const activeSearch = ref("");
+const onColumnFiltersChange = (filters) => {
+  const nameFilter = (filters || []).find((f) => f.id === "name");
+  activeSearch.value = nameFilter?.value ?? "";
+};
 
 // Computed
 const apiBase = computed(
@@ -319,25 +227,25 @@ const apiBase = computed(
     `/api/projects/${route.params.username}/events/${route.params.eventSlug}/products`
 );
 
-const filteredProducts = computed(() => {
-  let result = products.value;
-
-  if (search.value) {
-    const q = search.value.toLowerCase();
-    result = result.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(q) ||
-        p.category?.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q)
+// Category filter is applied here (page-level) so TableData receives a list
+// pre-filtered by category. The free-text search is handled by TableData via
+// the "name" column's custom filterFn (matches name / category / description).
+const categoryFilteredProducts = computed(() => {
+  if (selectedCategory.value && selectedCategory.value !== "all") {
+    return products.value.filter(
+      (p) => String(p.category_id) === selectedCategory.value
     );
   }
-
-  if (selectedCategory.value && selectedCategory.value !== "all") {
-    result = result.filter((p) => String(p.category_id) === selectedCategory.value);
-  }
-
-  return result;
+  return products.value;
 });
+
+// clientOnly TableData still requires a meta prop.
+const meta = computed(() => ({
+  current_page: 1,
+  last_page: 1,
+  per_page: categoryFilteredProducts.value.length || 10,
+  total: categoryFilteredProducts.value.length,
+}));
 
 // Booth type label map
 const boothTypeLabels = {
@@ -360,6 +268,190 @@ function formatPrice(price) {
       .toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   );
 }
+
+// Table columns
+const columns = computed(() => {
+  const cols = [
+    {
+      id: "select",
+      header: ({ table }) =>
+        h(Checkbox, {
+          modelValue:
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate"),
+          "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
+          "aria-label": "Select all",
+        }),
+      cell: ({ row }) =>
+        h(Checkbox, {
+          modelValue: row.getIsSelected(),
+          "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
+          "aria-label": "Select row",
+        }),
+      size: 28,
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      header: "Name",
+      accessorKey: "name",
+      cell: ({ row }) => {
+        const product = row.original;
+        return h("div", {}, [
+          h("div", { class: "font-medium tracking-tight" }, product.name),
+          product.description
+            ? h(
+                "div",
+                {
+                  class:
+                    "text-muted-foreground mt-0.5 line-clamp-1 text-xs sm:text-sm tracking-tight",
+                },
+                product.description
+              )
+            : null,
+        ]);
+      },
+      size: 280,
+      enableHiding: false,
+      filterFn: (row, columnId, filterValue) => {
+        const q = String(filterValue || "").toLowerCase();
+        if (!q) return true;
+        const p = row.original;
+        // Coerce to a strict boolean: optional chaining on null fields yields
+        // `undefined`, which TanStack does not treat as "exclude".
+        return Boolean(
+          p.name?.toLowerCase().includes(q) ||
+            p.category?.toLowerCase().includes(q) ||
+            p.description?.toLowerCase().includes(q)
+        );
+      },
+    },
+    {
+      header: "Category",
+      accessorKey: "category",
+      cell: ({ row }) => {
+        const category = row.original.category;
+        if (!category) {
+          return h("span", { class: "text-muted-foreground" }, "—");
+        }
+        return h(
+          Badge,
+          { variant: "outline", class: "font-normal" },
+          { default: () => category }
+        );
+      },
+      size: 160,
+    },
+    {
+      header: "Price",
+      accessorKey: "price",
+      cell: ({ row }) => {
+        const price = row.original.price;
+        if (price === null || price === undefined) {
+          return h("span", { class: "text-muted-foreground" }, "—");
+        }
+        return h(
+          "span",
+          { class: "font-medium tracking-tight tabular-nums whitespace-nowrap" },
+          formatPrice(price)
+        );
+      },
+      size: 140,
+    },
+    {
+      header: "Unit",
+      accessorKey: "unit",
+      cell: ({ row }) => {
+        const unit = row.original.unit;
+        if (!unit) {
+          return h("span", { class: "text-muted-foreground" }, "—");
+        }
+        return h(
+          "span",
+          { class: "text-muted-foreground text-xs sm:text-sm tracking-tight" },
+          unit
+        );
+      },
+      size: 110,
+    },
+    {
+      header: "Booth Types",
+      accessorKey: "booth_types",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const types = row.original.booth_types;
+        if (!types || !types.length) {
+          return h("span", { class: "text-muted-foreground" }, "—");
+        }
+        return h(
+          "div",
+          { class: "flex flex-wrap gap-1" },
+          types.map((type) =>
+            h(
+              Badge,
+              { key: type, variant: "muted", class: "font-normal" },
+              { default: () => boothTypeLabel(type) }
+            )
+          )
+        );
+      },
+      size: 200,
+    },
+    {
+      header: "Active",
+      accessorKey: "is_active",
+      cell: ({ row }) => {
+        const product = row.original;
+        return h(Switch, {
+          modelValue: product.is_active,
+          disabled: togglingId.value === product.id || !props.event?.can_edit,
+          "onUpdate:modelValue": () => handleToggleActive(product),
+        });
+      },
+      size: 90,
+    },
+  ];
+
+  if (props.event?.can_edit) {
+    cols.push({
+      id: "actions",
+      header: () => h("span", { class: "sr-only" }, "Actions"),
+      cell: ({ row }) => {
+        const product = row.original;
+        const Icon = resolveComponent("Icon");
+        return h("div", { class: "flex items-center justify-end gap-x-1" }, [
+          h(
+            "button",
+            {
+              type: "button",
+              title: "Edit",
+              class:
+                "text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-1.5 transition",
+              onClick: () => openEdit(product),
+            },
+            [h(Icon, { name: "hugeicons:edit-02", class: "size-4" })]
+          ),
+          h(
+            "button",
+            {
+              type: "button",
+              title: "Delete",
+              class:
+                "text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition",
+              onClick: () => confirmDelete(product),
+            },
+            [h(Icon, { name: "hugeicons:delete-02", class: "size-4" })]
+          ),
+        ]);
+      },
+      size: 80,
+      enableSorting: false,
+      enableHiding: false,
+    });
+  }
+
+  return cols;
+});
 
 // Methods
 async function fetchProducts() {
@@ -430,6 +522,33 @@ async function handleDelete() {
   }
 }
 
+// Bulk delete handlers
+const bulkDeleteDialogOpen = ref(false);
+const bulkDeleting = ref(false);
+
+async function handleDeleteRows(selectedRows) {
+  const ids = selectedRows.map((row) => row.original.id);
+  bulkDeleting.value = true;
+  try {
+    await Promise.all(
+      ids.map((id) => client(`${apiBase.value}/${id}`, { method: "DELETE" }))
+    );
+    await fetchProducts();
+    await fetchCategories();
+    bulkDeleteDialogOpen.value = false;
+    if (tableRef.value) {
+      tableRef.value.resetRowSelection();
+    }
+    toast.success(`${ids.length} product(s) deleted successfully`);
+  } catch (err) {
+    toast.error("Failed to delete product(s)", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    bulkDeleting.value = false;
+  }
+}
+
 function openCreate() {
   editingProduct.value = null;
   showFormDialog.value = true;
@@ -449,11 +568,12 @@ const handleExport = async () => {
 
     const params = new URLSearchParams();
 
-    if (search.value) {
-      params.append("filter_search", search.value);
-    }
     if (selectedCategory.value && selectedCategory.value !== "all") {
       params.append("filter_category_id", selectedCategory.value);
+    }
+
+    if (activeSearch.value) {
+      params.append("filter_search", activeSearch.value);
     }
 
     const response = await client(

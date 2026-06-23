@@ -97,7 +97,9 @@ class PricingService
             $existing = $existing->push($transient);
         }
 
-        $penaltyResolved = $this->resolvePenalties($existing, $taxableBase);
+        $itemAmounts = $this->buildItemAmounts($items);
+
+        $penaltyResolved = $this->resolvePenalties($existing, $taxableBase, $itemAmounts);
         $penaltyTotal = $penaltyResolved['total'];
 
         $discountResolved = $this->resolveDiscounts(
@@ -106,6 +108,7 @@ class PricingService
             penaltyTotal: $penaltyTotal,
             subtotal: $subtotal,
             items: $items,
+            itemAmounts: $itemAmounts,
         );
         $discountTotal = $discountResolved['total'];
 
@@ -150,10 +153,35 @@ class PricingService
     }
 
     /**
+     * Sum each purchase item's amount keyed by its item id. Used to scope a
+     * per-item adjustment's base to that single line rather than the whole order.
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @return array<int, float>
+     */
+    private function buildItemAmounts(array $items): array
+    {
+        $amounts = [];
+
+        foreach ($items as $it) {
+            $id = $it['item_id'] ?? null;
+
+            if ($id === null) {
+                continue;
+            }
+
+            $amounts[(int) $id] = ($amounts[(int) $id] ?? 0.0) + (float) ($it['unit_price'] ?? 0);
+        }
+
+        return $amounts;
+    }
+
+    /**
      * @param  Collection<int, AppliedAdjustment>  $adjustments
+     * @param  array<int, float>  $itemAmounts
      * @return array{total: float, snapshots: array<int, array<string, mixed>>}
      */
-    private function resolvePenalties(Collection $adjustments, float $taxableBase): array
+    private function resolvePenalties(Collection $adjustments, float $taxableBase, array $itemAmounts = []): array
     {
         $penalties = $adjustments->filter(fn (AppliedAdjustment $a) => $a->kind === AdjustmentKind::Penalty);
 
@@ -161,7 +189,9 @@ class PricingService
         $snapshots = [];
 
         foreach ($penalties as $adj) {
-            $base = $taxableBase + $total;
+            $base = $adj->order_item_id !== null && isset($itemAmounts[$adj->order_item_id])
+                ? $itemAmounts[$adj->order_item_id]
+                : $taxableBase + $total;
             $amount = $this->resolveSimpleAmount($adj->value_type, (float) $adj->value, $base);
 
             $total += $amount;
@@ -175,6 +205,7 @@ class PricingService
     /**
      * @param  Collection<int, AppliedAdjustment>  $adjustments
      * @param  array<int, array<string, mixed>>  $items
+     * @param  array<int, float>  $itemAmounts
      * @return array{total: float, snapshots: array<int, array<string, mixed>>}
      */
     private function resolveDiscounts(
@@ -183,6 +214,7 @@ class PricingService
         float $penaltyTotal,
         float $subtotal,
         array $items,
+        array $itemAmounts = [],
     ): array {
         $discounts = $adjustments->filter(fn (AppliedAdjustment $a) => $a->kind === AdjustmentKind::Discount);
 
@@ -197,9 +229,13 @@ class PricingService
             $rule = $adj->promotionRule;
             $appliesBeforeTax = $rule?->applies_before_tax ?? true;
 
-            $base = $appliesBeforeTax
-                ? ($taxableBase + $penaltyTotal - $total)
-                : ($subtotal + $penaltyTotal - $total);
+            // Per-item adjustments are scoped to that single line's amount;
+            // order-level adjustments use the running taxable/subtotal base.
+            $base = $adj->order_item_id !== null && isset($itemAmounts[$adj->order_item_id])
+                ? $itemAmounts[$adj->order_item_id]
+                : ($appliesBeforeTax
+                    ? ($taxableBase + $penaltyTotal - $total)
+                    : ($subtotal + $penaltyTotal - $total));
             $base = max(0.0, $base);
 
             $resolved = $this->computeDiscountAmount(
@@ -216,6 +252,13 @@ class PricingService
             }
 
             $remaining = max(0.0, $taxableBase + $penaltyTotal - $total);
+
+            // Per-item discounts are additionally capped by the item's own amount,
+            // so a fixed-amount discount can never exceed the line it targets.
+            if ($adj->order_item_id !== null && isset($itemAmounts[$adj->order_item_id])) {
+                $remaining = min($remaining, $itemAmounts[$adj->order_item_id]);
+            }
+
             $amount = min($amount, $remaining);
 
             $total += $amount;

@@ -394,6 +394,12 @@ const navMainGroups = computed(() => {
       path: "/exhibitors",
       iconName: "hugeicons:location-user-04",
     });
+
+    adminItems.push({
+      label: "Visitors",
+      path: "/visitors",
+      iconName: "hugeicons:user-multiple-02",
+    });
   }
 
   // Roles - requires roles.read permission

@@ -12,6 +12,7 @@ class AppliedAdjustmentResource extends JsonResource
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
+            'order_item_id' => $this->order_item_id,
             'kind' => $this->kind?->value,
             'kind_label' => $this->kind?->label(),
             'kind_color' => $this->kind?->color(),

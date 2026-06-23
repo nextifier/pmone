@@ -35,6 +35,7 @@ class OrdersExport extends BaseExport
             'Booth Size (sqm)',
             'Booth Price',
             'Fascia Name',
+            'Badge Name',
             'Sales PIC',
             'Order Period',
             'Product Name',
@@ -80,6 +81,7 @@ class OrdersExport extends BaseExport
             $brandEvent?->booth_size,
             $brandEvent?->booth_price,
             $brandEvent?->fascia_name ?? '-',
+            $brandEvent?->badge_name ?? '-',
             $brandEvent?->sales?->name ?? '-',
             $order->order_period ? $this->titleCase($order->order_period) : '-',
         ];
@@ -109,7 +111,7 @@ class OrdersExport extends BaseExport
             $orderFields,
             [
                 $item->product_name,
-                $item->productCategory?->name ?? '-',
+                $item->productCategory?->title ?? '-',
                 $item->quantity,
                 $item->unit_price,
                 $item->total_price,
@@ -120,21 +122,24 @@ class OrdersExport extends BaseExport
     }
 
     /**
-     * Number columns: G=Booth Size, H=Booth Price, N=Qty, O=Unit Price, P=Item Total,
-     * R=Subtotal, U=Discount Amount, W=Tax Amount, X=Total
+     * Number columns (after inserting "Badge Name" at col J): G=Booth Size,
+     * H=Booth Price, O=Qty, P=Unit Price, Q=Item Total, S=Subtotal,
+     * T=Discount Amount, U=Penalty Amount, W=Tax Rate, X=Tax Amount, Y=Total.
      */
     public function columnFormats(): array
     {
         return [
             'G' => '#,##0.00',
             'H' => '#,##0',
-            'N' => '#,##0',
             'O' => '#,##0',
             'P' => '#,##0',
-            'R' => '#,##0',
+            'Q' => '#,##0',
+            'S' => '#,##0',
+            'T' => '#,##0',
             'U' => '#,##0',
-            'W' => '#,##0',
+            'W' => '#,##0.00',
             'X' => '#,##0',
+            'Y' => '#,##0',
         ];
     }
 
@@ -149,7 +154,7 @@ class OrdersExport extends BaseExport
             ],
         ];
 
-        foreach (['G', 'H', 'N', 'O', 'P', 'R', 'U', 'W', 'X'] as $column) {
+        foreach (['G', 'H', 'O', 'P', 'Q', 'S', 'T', 'U', 'W', 'X', 'Y'] as $column) {
             $styles[$column] = $numberFont;
         }
 

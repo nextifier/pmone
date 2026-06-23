@@ -152,6 +152,48 @@
                       >
                         {{ item.notes }}
                       </p>
+
+                      <!-- Per-item adjustments -->
+                      <div v-if="itemAdjustments(item.id).length" class="mt-1.5 space-y-1">
+                        <div
+                          v-for="adj in itemAdjustments(item.id)"
+                          :key="adj.id"
+                          class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
+                          :class="adj.is_voided ? 'opacity-50' : ''"
+                        >
+                          <span
+                            :class="[
+                              'inline-flex items-center rounded-full px-1.5 py-0 text-xs tracking-tight',
+                              adj.kind === 'discount'
+                                ? 'bg-success/15 text-success-foreground'
+                                : 'bg-warning/15 text-warning-foreground',
+                            ]"
+                          >
+                            {{ adj.kind_label }}
+                          </span>
+                          <span class="text-xs tracking-tight tabular-nums">
+                            {{ adj.kind === "discount" ? "-" : "+" }}{{ formatPrice(adj.amount) }}
+                          </span>
+                          <button
+                            v-if="!adj.is_voided && canVoid"
+                            type="button"
+                            class="text-destructive text-xs tracking-tight hover:underline"
+                            @click="openVoidAdjustment(adj)"
+                          >
+                            Void
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        v-if="canApplyManual"
+                        type="button"
+                        class="text-primary mt-1 inline-flex items-center gap-x-1 text-xs tracking-tight hover:underline"
+                        @click="openItemAdjustment(item)"
+                      >
+                        <Icon name="lucide:plus" class="size-3 shrink-0" />
+                        Adjust item
+                      </button>
                     </td>
                     <td class="px-4 py-3">
                       <span class="text-muted-foreground tracking-tight">
@@ -237,6 +279,48 @@
               {{ order.notes }}
             </p>
           </div>
+
+          <!-- Internal Notes (staff only) -->
+          <div class="border-border rounded-lg border p-4">
+            <div class="mb-3 flex items-center justify-between gap-2">
+              <h4 class="font-medium tracking-tight">Internal Notes</h4>
+              <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">Staff only</span>
+            </div>
+            <div class="space-y-3">
+              <div class="space-y-1.5">
+                <label class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  Order note
+                </label>
+                <textarea
+                  v-model="internalNotesForm.order"
+                  rows="2"
+                  placeholder="Internal note for this order"
+                  class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 text-sm tracking-tight outline-none focus:ring-1"
+                />
+              </div>
+              <div
+                v-for="item in order.items"
+                :key="`note-${item.id}`"
+                class="space-y-1.5"
+              >
+                <label class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  {{ item.product_name }}
+                </label>
+                <input
+                  v-model="internalNotesForm.items[item.id]"
+                  type="text"
+                  placeholder="Internal note for this item"
+                  class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring w-full rounded-md border px-3 py-2 text-sm tracking-tight outline-none focus:ring-1"
+                />
+              </div>
+              <div class="flex justify-end">
+                <Button size="sm" :disabled="savingNotes" @click="saveInternalNotes">
+                  <Spinner v-if="savingNotes" class="size-4" />
+                  {{ savingNotes ? "Saving…" : "Save Notes" }}
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Sidebar -->
@@ -256,13 +340,13 @@
               </Button>
             </div>
 
-            <div v-if="!order.adjustments?.length" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
-              No adjustments applied.
+            <div v-if="!orderLevelAdjustments.length" class="text-muted-foreground text-xs sm:text-sm tracking-tight">
+              No order-level adjustments applied.
             </div>
 
             <div v-else class="space-y-2">
               <div
-                v-for="adj in order.adjustments"
+                v-for="adj in orderLevelAdjustments"
                 :key="adj.id"
                 :class="[
                   'rounded-md border p-2',
@@ -299,6 +383,81 @@
                   <Icon name="lucide:x" class="size-3 shrink-0" />
                   Void
                 </Button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="border-border rounded-lg border p-4">
+            <h4 class="mb-3 font-medium tracking-tight">Documents</h4>
+            <div class="space-y-4">
+              <div v-for="doc in documentTypes" :key="doc.type" class="space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-medium tracking-tight">{{ doc.label }}</span>
+                  <a
+                    v-if="order[doc.type]?.url"
+                    :href="order[doc.type].url"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-primary inline-flex items-center gap-x-1 text-xs tracking-tight hover:underline sm:text-sm"
+                  >
+                    <Icon name="hugeicons:download-04" class="size-3.5 shrink-0" />
+                    Download
+                  </a>
+                </div>
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ doc.hint }}</p>
+                <div class="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" @click="docState[doc.type].dialogOpen = true">
+                    <Icon name="lucide:upload" class="size-3.5 shrink-0" />
+                    {{ order[doc.type] ? "Replace" : "Upload" }}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    :disabled="!order[doc.type] || docState[doc.type].sending || docCooldown(doc.type) > 0"
+                    @click="handleSendDocument(doc.type)"
+                  >
+                    <Spinner v-if="docState[doc.type].sending" class="size-4" />
+                    <Icon v-else name="lucide:send" class="size-3.5 shrink-0" />
+                    {{ docSendLabel(doc.type) }}
+                  </Button>
+                </div>
+
+                <DialogResponsive
+                  v-model:open="docState[doc.type].dialogOpen"
+                  :overflow-content="true"
+                  dialog-max-width="28rem"
+                >
+                  <template #default>
+                    <div class="px-4 pb-10 md:px-6 md:py-5">
+                      <h3 class="text-lg font-semibold tracking-tight">Upload {{ doc.label }}</h3>
+                      <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ doc.accept }}</p>
+                      <form @submit.prevent="handleDocumentUpload(doc.type)" class="mt-4 space-y-4">
+                        <InputFile
+                          v-model="docState[doc.type].files"
+                          :max-file-size="'20MB'"
+                          :accepted-file-types="doc.mimes"
+                        />
+                        <div class="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            @click="docState[doc.type].dialogOpen = false"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            :disabled="docState[doc.type].uploading || !docState[doc.type].files.length"
+                          >
+                            <Spinner v-if="docState[doc.type].uploading" class="size-4" />
+                            {{ docState[doc.type].uploading ? "Uploading…" : "Upload" }}
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  </template>
+                </DialogResponsive>
               </div>
             </div>
           </div>
@@ -403,11 +562,21 @@
       </template>
     </DialogResponsive>
 
-    <!-- Manual Adjustment Dialog -->
+    <!-- Manual Adjustment Dialog (order-level) -->
     <ManualAdjustmentDialog
       v-model:open="adjustmentDialogOpen"
       target-type="Order"
       :target-email="order?.brand_event?.brand?.company_email"
+      @apply="handleApplyAdjustment"
+    />
+
+    <!-- Manual Adjustment Dialog (per-item) -->
+    <ManualAdjustmentDialog
+      v-model:open="itemAdjustmentDialogOpen"
+      target-type="Order"
+      manual-only
+      :item-id="adjustItem?.id ?? null"
+      :item-label="adjustItem?.product_name ?? ''"
       @apply="handleApplyAdjustment"
     />
 
@@ -463,6 +632,160 @@ const voidDialogOpen = ref(false);
 const voidTarget = ref(null);
 const voiding = ref(false);
 
+// Per-item adjustment state
+const itemAdjustmentDialogOpen = ref(false);
+const adjustItem = ref(null);
+
+const orderLevelAdjustments = computed(
+  () => order.value?.adjustments?.filter((a) => !a.order_item_id) ?? []
+);
+
+const itemAdjustments = (itemId) =>
+  order.value?.adjustments?.filter((a) => a.order_item_id === itemId) ?? [];
+
+const openItemAdjustment = (item) => {
+  adjustItem.value = item;
+  itemAdjustmentDialogOpen.value = true;
+};
+
+// Internal notes (staff only)
+const savingNotes = ref(false);
+const internalNotesForm = reactive({ order: "", items: {} });
+let notesInitialized = false;
+
+const syncInternalNotesForm = () => {
+  if (!order.value) return;
+  internalNotesForm.order = order.value.internal_notes ?? "";
+  internalNotesForm.items = {};
+  for (const item of order.value.items ?? []) {
+    internalNotesForm.items[item.id] = item.internal_notes ?? "";
+  }
+  notesInitialized = true;
+};
+
+watch(
+  order,
+  () => {
+    if (!notesInitialized) syncInternalNotesForm();
+  },
+  { immediate: true }
+);
+
+const saveInternalNotes = async () => {
+  savingNotes.value = true;
+  try {
+    const res = await client(`${orderBase.value}/internal-notes`, {
+      method: "PATCH",
+      body: {
+        internal_notes: internalNotesForm.order || null,
+        items: Object.entries(internalNotesForm.items).map(([id, internal_notes]) => ({
+          id: Number(id),
+          internal_notes: internal_notes || null,
+        })),
+      },
+    });
+    if (res?.data) order.value = res.data;
+    syncInternalNotesForm();
+    toast.success("Internal notes saved");
+  } catch (err) {
+    toast.error("Failed to save notes", { description: err?.data?.message });
+  } finally {
+    savingNotes.value = false;
+  }
+};
+
+// Documents (invoice + receipt) upload & send
+const documentTypes = [
+  {
+    type: "invoice",
+    label: "Invoice",
+    hint: "Single PDF with invoice + faktur pajak.",
+    accept: "PDF only. Max 20MB.",
+    mimes: ["application/pdf"],
+  },
+  {
+    type: "receipt",
+    label: "Receipt",
+    hint: "Proof of payment.",
+    accept: "PDF, JPG, or PNG. Max 20MB.",
+    mimes: ["application/pdf", "image/jpeg", "image/png"],
+  },
+];
+
+const docState = reactive({
+  invoice: { files: [], dialogOpen: false, uploading: false, sending: false, cooldownUntil: 0 },
+  receipt: { files: [], dialogOpen: false, uploading: false, sending: false, cooldownUntil: 0 },
+});
+
+const cooldownTick = ref(Date.now());
+let cooldownTimer = null;
+
+const docCooldown = (type) =>
+  Math.max(0, Math.ceil((docState[type].cooldownUntil - cooldownTick.value) / 1000));
+
+const docSendLabel = (type) => {
+  const remaining = docCooldown(type);
+  if (remaining > 0) return `Resend in ${remaining}s`;
+  return order.value?.[type] ? "Send" : "Send";
+};
+
+const startDocCooldown = (type, seconds = 60) => {
+  docState[type].cooldownUntil = Date.now() + seconds * 1000;
+  cooldownTick.value = Date.now();
+  if (cooldownTimer) return;
+  cooldownTimer = setInterval(() => {
+    cooldownTick.value = Date.now();
+    if (docCooldown("invoice") <= 0 && docCooldown("receipt") <= 0) {
+      clearInterval(cooldownTimer);
+      cooldownTimer = null;
+    }
+  }, 1000);
+};
+
+onBeforeUnmount(() => {
+  if (cooldownTimer) clearInterval(cooldownTimer);
+});
+
+const handleDocumentUpload = async (type) => {
+  const folder = docState[type].files?.[0];
+  if (!folder || !String(folder).startsWith("tmp-")) return;
+  docState[type].uploading = true;
+  try {
+    await client(`${orderBase.value}/${type}`, {
+      method: "POST",
+      body: { [`tmp_${type}`]: folder },
+    });
+    toast.success(`${type === "invoice" ? "Invoice" : "Receipt"} uploaded`);
+    docState[type].dialogOpen = false;
+    docState[type].files = [];
+    await fetchOrder();
+  } catch (err) {
+    toast.error("Upload failed", { description: err?.data?.message || err?.message });
+  } finally {
+    docState[type].uploading = false;
+  }
+};
+
+const handleSendDocument = async (type) => {
+  docState[type].sending = true;
+  try {
+    await client(`${orderBase.value}/send-${type}`, { method: "POST" });
+    toast.success(`${type === "invoice" ? "Invoice" : "Receipt"} email sent`);
+    startDocCooldown(type);
+  } catch (err) {
+    const status = err?.response?.status || err?.status;
+    const payload = err?.response?._data || err?.data;
+    if (status === 429) {
+      startDocCooldown(type, payload?.retry_after || 60);
+      toast.error(payload?.message || "Please wait before resending.");
+    } else {
+      toast.error("Send failed", { description: payload?.message || err?.message });
+    }
+  } finally {
+    docState[type].sending = false;
+  }
+};
+
 usePageMeta(null, {
   title: computed(
     () => `Order ${order.value?.order_number || ""} · ${props.event?.title || "Event"}`
@@ -482,6 +805,7 @@ const handleApplyAdjustment = async (payload, setErrors) => {
     });
     toast.success(res?.message || "Adjustment applied");
     adjustmentDialogOpen.value = false;
+    itemAdjustmentDialogOpen.value = false;
     if (res?.data?.order) {
       order.value = res.data.order;
     } else {

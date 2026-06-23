@@ -92,6 +92,13 @@ class RoleAndPermissionSeeder extends Seeder
             'admin.view',
             'admin.settings',
             'admin.logs',
+            // User account security (impersonation is intentionally master-only and is NOT a permission)
+            'users.view_security',
+            'users.manage_sessions',
+            'users.reset_2fa',
+            'users.send_account_emails',
+            'users.suspend',
+            'users.manage_notes',
             // Analytics
             'analytics.view',
             'analytics.export',

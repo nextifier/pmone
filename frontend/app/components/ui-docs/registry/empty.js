@@ -13,7 +13,8 @@ export default defineComponentDoc({
     {
       id: "default",
       title: "Default",
-      description: "Icon, title, description, and a call-to-action.",
+      description:
+        "Stacked isometric media (3D layers that lift apart on hover), title, description, and a call-to-action.",
       examples: ["default"],
       align: "center",
     },
@@ -44,9 +45,10 @@ export default defineComponentDoc({
       props: [
         {
           name: "variant",
-          type: '"default" | "icon"',
+          type: '"default" | "icon" | "stacked"',
           default: '"default"',
-          description: "default for free-form illustrations, icon adds a circular muted background.",
+          description:
+            "default for free-form illustrations, icon adds a muted rounded background, stacked renders an animated isometric layer stack with the icon on the front layer.",
         },
       ],
     },

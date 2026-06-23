@@ -7,6 +7,8 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\Event;
+use App\Models\EventDocument;
+use App\Models\EventDocumentSubmission;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -35,7 +37,7 @@ class SheetsController extends Controller
         $headings = [
             'ID', 'Order Number', 'Brand Name', 'Company Name',
             'Booth Type', 'Booth Number', 'Booth Size (sqm)', 'Booth Price',
-            'Fascia Name', 'Sales PIC', 'Order Period',
+            'Fascia Name', 'Badge Name', 'Sales PIC', 'Order Period',
             'Product Name', 'Product Category', 'Qty', 'Unit Price', 'Item Total', 'Item Notes',
             'Subtotal', 'Discount Amount', 'Penalty Amount', 'Promo Code',
             'Tax Rate (%)', 'Tax Amount', 'Total',
@@ -60,6 +62,7 @@ class SheetsController extends Controller
                 $brandEvent?->booth_size,
                 $brandEvent?->booth_price,
                 $brandEvent?->fascia_name ?? '-',
+                $brandEvent?->badge_name ?? '-',
                 $brandEvent?->sales?->name ?? '-',
                 $order->order_period ? ucwords(str_replace('_', ' ', $order->order_period)) : '-',
             ];
@@ -89,7 +92,7 @@ class SheetsController extends Controller
                         $orderFields,
                         [
                             $item->product_name,
-                            $item->productCategory?->name ?? '-',
+                            $item->productCategory?->title ?? '-',
                             $item->quantity,
                             $item->unit_price,
                             $item->total_price,
@@ -368,6 +371,26 @@ class SheetsController extends Controller
 
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
+        // Dynamic operational-document columns (non-event-rule docs only).
+        // This sheet spans all events, so columns are qualified by event title
+        // and submissions are keyed by event_id + booth_identifier.
+        $eventIds = $brandEvents->pluck('event_id')->filter()->unique()->values()->all();
+        $eventTitles = $brandEvents->pluck('event')->filter()->unique('id')
+            ->mapWithKeys(fn ($e) => [$e->id => $e->title])->all();
+
+        $operationalDocs = EventDocument::query()
+            ->whereIn('event_id', $eventIds)
+            ->ordered()
+            ->get()
+            ->reject(fn (EventDocument $doc) => $doc->isEventRule())
+            ->values();
+
+        $documentSubmissions = EventDocumentSubmission::query()
+            ->whereIn('event_id', $eventIds)
+            ->with('media')
+            ->get()
+            ->groupBy(fn (EventDocumentSubmission $s) => $s->event_id.'|'.$s->booth_identifier);
+
         $headings = [
             'ID',
             'Brand ID', 'Brand ULID', 'Brand Name', 'Brand Slug',
@@ -391,7 +414,12 @@ class SheetsController extends Controller
             'Created At', 'Updated At',
         ];
 
-        $rows = $brandEvents->map(function (BrandEvent $brandEvent) use ($linkLabels) {
+        foreach ($operationalDocs as $doc) {
+            $eventTitle = $eventTitles[$doc->event_id] ?? ('Event '.$doc->event_id);
+            $headings[] = 'Doc: ['.$eventTitle.'] '.$doc->title;
+        }
+
+        $rows = $brandEvents->map(function (BrandEvent $brandEvent) use ($linkLabels, $operationalDocs, $documentSubmissions) {
             $brand = $brandEvent->brand;
             $event = $brandEvent->event;
             $sales = $brandEvent->sales;
@@ -443,7 +471,7 @@ class SheetsController extends Controller
                 ? json_encode($brandEvent->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
                 : '-';
 
-            return [
+            $row = [
                 $brandEvent->id,
                 $brand?->id ?? '-',
                 $brand?->ulid ?? '-',
@@ -493,6 +521,34 @@ class SheetsController extends Controller
                 $brandEvent->created_at?->format('Y-m-d H:i:s'),
                 $brandEvent->updated_at?->format('Y-m-d H:i:s'),
             ];
+
+            // Append operational-document submission values for this brand-event.
+            $boothIdentifier = $brandEvent->booth_number ?: 'be-'.$brandEvent->id;
+            $rowSubmissions = $documentSubmissions->get($brandEvent->event_id.'|'.$boothIdentifier, collect());
+
+            foreach ($operationalDocs as $doc) {
+                if ($doc->event_id !== $brandEvent->event_id) {
+                    $row[] = '';
+
+                    continue;
+                }
+
+                $submission = $rowSubmissions->firstWhere('event_document_id', $doc->id);
+
+                if (! $submission) {
+                    $row[] = '-';
+                } elseif ($doc->document_type === 'checkbox_agreement') {
+                    $row[] = $submission->agreed_at ? 'Agreed ('.$submission->submitted_at?->format('Y-m-d H:i').')' : '-';
+                } elseif ($doc->document_type === 'file_upload') {
+                    $row[] = strtok($submission->getFirstMediaUrl('submission_file'), '?') ?: '-';
+                } elseif ($doc->document_type === 'text_input') {
+                    $row[] = $submission->text_value ?: '-';
+                } else {
+                    $row[] = '-';
+                }
+            }
+
+            return $row;
         })->toArray();
 
         return response()->json([

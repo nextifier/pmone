@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\UserAgentParser;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -9,6 +10,8 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $canViewSecurity = (bool) auth()->user()?->can('users.view_security');
+
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
@@ -34,6 +37,11 @@ class UserResource extends JsonResource
             'is_online' => $this->isOnline(),
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'last_seen' => $this->last_seen?->toISOString(),
+            'last_login_at' => $this->when($canViewSecurity, fn () => $this->last_login_at?->toISOString()),
+            'last_login_ip' => $this->when($canViewSecurity, fn () => $this->last_login_ip),
+            'last_login_device' => $this->when($canViewSecurity, fn () => UserAgentParser::parse($this->last_login_user_agent)),
+            'suspended_at' => $this->when($canViewSecurity, fn () => $this->suspended_at?->toISOString()),
+            'suspension_reason' => $this->when($canViewSecurity, fn () => $this->suspension_reason),
             'created_at' => $this->created_at->toISOString(),
             'updated_at' => $this->updated_at->toISOString(),
             'profile_image' => $this->when(

@@ -23,6 +23,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -45,6 +46,13 @@ class UserController extends Controller
             $query->withCount('brands');
         }
 
+        // Opt-in security column: active session count per user (sessions.user_id is indexed).
+        if ($request->boolean('with_security')) {
+            $query->addSelect(['sessions_count' => DB::table('sessions')
+                ->selectRaw('count(*)')
+                ->whereColumn('sessions.user_id', 'users.id')]);
+        }
+
         $clientOnly = $request->boolean('client_only', false);
 
         // Apply filters and sorting only if not client-only mode
@@ -53,9 +61,9 @@ class UserController extends Controller
             $this->applySorting($query, $request);
         }
 
-        // Apply exclude_role filter for both modes
+        // Apply exclude_role filter for both modes (accepts comma-separated roles)
         if ($excludeRole = $request->input('exclude_role')) {
-            $query->whereDoesntHave('roles', fn ($q) => $q->where('name', $excludeRole));
+            $query->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', explode(',', $excludeRole)));
         }
 
         // Apply role filter for both modes
@@ -65,7 +73,11 @@ class UserController extends Controller
 
         // Paginate only if not client-only mode
         if ($clientOnly) {
-            $users = $query->orderByRaw('last_seen IS NULL')->orderByDesc('last_seen')->get();
+            // Safety cap: client-only loads everything into the browser, so bound it
+            // to avoid OOM on large datasets (visitors use the server-side page).
+            $users = $query->orderByRaw('last_seen IS NULL')->orderByDesc('last_seen')
+                ->limit((int) config('app.client_only_cap', 2000))
+                ->get();
 
             return response()->json([
                 'data' => UserIndexResource::collection($users),
@@ -175,6 +187,28 @@ class UserController extends Controller
                 }
             });
         }
+
+        // Online-now filter (matches User::isOnline() 5-minute window)
+        if ($request->boolean('filter_online')) {
+            $query->where('last_seen', '>', now()->subMinutes(5));
+        }
+
+        // Two-factor filter
+        if (($twoFactor = $request->input('filter_2fa')) !== null && $twoFactor !== '') {
+            if (in_array($twoFactor, ['true', '1'], true)) {
+                $query->whereNotNull('two_factor_secret');
+            } elseif (in_array($twoFactor, ['false', '0'], true)) {
+                $query->whereNull('two_factor_secret');
+            }
+        }
+
+        // Last-login date range
+        if ($from = $request->input('filter_last_login_from')) {
+            $query->whereDate('last_login_at', '>=', $from);
+        }
+        if ($to = $request->input('filter_last_login_to')) {
+            $query->whereDate('last_login_at', '<=', $to);
+        }
     }
 
     private function applySorting($query, Request $request): void
@@ -192,6 +226,9 @@ class UserController extends Controller
         } elseif ($field === 'last_seen') {
             $query->orderByRaw('last_seen IS NULL')
                 ->orderBy('last_seen', $direction);
+        } elseif ($field === 'last_login_at') {
+            $query->orderByRaw('last_login_at IS NULL')
+                ->orderBy('last_login_at', $direction);
         } elseif (in_array($field, ['name', 'email', 'username', 'status', 'email_verified_at', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
@@ -327,7 +364,23 @@ class UserController extends Controller
     {
         $user = $request->user()->load(['roles', 'permissions', 'oauthProviders', 'media', 'links']);
 
-        return response()->json(new UserResource($user));
+        $payload = (new UserResource($user))->resolve($request);
+
+        // Session-scoped impersonation flag - read live each request, never stored
+        // on the user or logged, so it leaves no audit trail.
+        $impersonatorId = $request->hasSession() ? $request->session()->get('impersonator_id') : null;
+        $payload['impersonating'] = $impersonatorId !== null;
+
+        if ($impersonatorId !== null) {
+            $impersonator = User::find($impersonatorId);
+            $payload['impersonator'] = $impersonator ? [
+                'id' => $impersonator->id,
+                'name' => $impersonator->name,
+                'username' => $impersonator->username,
+            ] : null;
+        }
+
+        return response()->json($payload);
     }
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse
@@ -1467,6 +1520,75 @@ class UserController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function bulkForceLogout(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $actorId = $request->user()->id;
+        $count = 0;
+
+        foreach (User::whereIn('id', $request->input('ids'))->get() as $user) {
+            // Never bulk force-logout the acting admin themselves.
+            if ($user->id === $actorId) {
+                continue;
+            }
+
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+            $user->tokens()->delete();
+
+            activity()
+                ->causedBy($request->user())
+                ->performedOn($user)
+                ->event('force_logout')
+                ->log("Forced logout for {$user->name}");
+
+            $count++;
+        }
+
+        return response()->json([
+            'message' => "Forced logout for {$count} user(s).",
+            'count' => $count,
+        ]);
+    }
+
+    public function bulkSendPasswordReset(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'exists:users,id'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $sent = 0;
+
+        foreach (User::whereIn('id', $request->input('ids'))->get() as $user) {
+            if (Password::sendResetLink(['email' => $user->email]) === Password::RESET_LINK_SENT) {
+                $sent++;
+            }
+        }
+
+        return response()->json([
+            'message' => "Sent password reset link to {$sent} user(s).",
+            'count' => $sent,
+        ]);
     }
 
     private function detachUserRelations(User $user): void

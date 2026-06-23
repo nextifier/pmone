@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
  * @property string $ulid
  * @property string $adjustable_type
  * @property int $adjustable_id
+ * @property int|null $order_item_id
  * @property int|null $promotion_rule_id
  * @property int|null $promo_code_id
  * @property AdjustmentKind $kind
@@ -34,6 +35,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Model|\Eloquent $adjustable
+ * @property-read OrderItem|null $orderItem
  * @property-read PromoCode|null $promoCode
  * @property-read PromotionRule|null $promotionRule
  * @property-read PromoCodeUsage|null $usage
@@ -73,6 +75,7 @@ class AppliedAdjustment extends Model
     protected $fillable = [
         'adjustable_type',
         'adjustable_id',
+        'order_item_id',
         'promotion_rule_id',
         'promo_code_id',
         'access_code_id',
@@ -119,6 +122,11 @@ class AppliedAdjustment extends Model
     public function adjustable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class);
     }
 
     public function promotionRule(): BelongsTo

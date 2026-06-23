@@ -125,70 +125,93 @@
       <div class="space-y-3">
         <h3 class="font-medium tracking-tight">{{ $t('brands.events') }}</h3>
 
-        <div v-if="events.length" class="space-y-2">
-          <div
+        <Accordion v-if="events.length" type="multiple" :default-value="defaultOpenEvents" class="space-y-2">
+          <AccordionItem
             v-for="ev in events"
             :key="ev.id"
-            class="border-border rounded-xl border p-4"
+            :value="String(ev.id)"
+            class="rounded-xl px-4 lg:rounded-xl lg:px-4"
           >
-            <div class="flex items-start gap-x-3">
-              <img
-                v-if="ev.event.poster_image?.sm"
-                :src="ev.event.poster_image.sm"
-                :alt="ev.event.title"
-                class="size-12 shrink-0 rounded-lg object-cover"
-              />
-              <div
-                v-else
-                class="bg-muted text-muted-foreground flex size-12 shrink-0 items-center justify-center rounded-lg"
-              >
-                <Icon name="hugeicons:calendar-03" class="size-5" />
-              </div>
-              <div class="min-w-0 flex-1">
-                <p class="truncate font-medium tracking-tight">{{ ev.event.title }}</p>
-                <div class="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 text-xs tracking-tight sm:text-sm">
-                  <span v-if="ev.event.date_label">{{ ev.event.date_label }}</span>
-                  <span v-if="ev.event.location">{{ ev.event.location }}</span>
+            <AccordionTrigger class="py-4 sm:py-4">
+              <div class="flex min-w-0 flex-1 items-start gap-x-3 pr-2">
+                <img
+                  v-if="ev.event.poster_image?.sm"
+                  :src="ev.event.poster_image.sm"
+                  :alt="ev.event.title"
+                  class="size-12 shrink-0 rounded-lg object-cover"
+                />
+                <div
+                  v-else
+                  class="bg-muted text-muted-foreground flex size-12 shrink-0 items-center justify-center rounded-lg"
+                >
+                  <Icon name="hugeicons:calendar-03" class="size-5" />
                 </div>
-                <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs tracking-tight sm:text-sm">
-                  <span v-if="ev.booth_number">
-                    {{ $t('brands.booth') }} <span class="text-foreground font-medium">{{ ev.booth_number }}</span>
-                  </span>
-                  <span v-if="ev.booth_type_label">
-                    {{ ev.booth_type_label }}
-                  </span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate font-medium tracking-tight">{{ ev.event.title }}</p>
+                  <div class="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-3 text-xs font-normal tracking-tight sm:text-sm">
+                    <span v-if="ev.event.date_label">{{ ev.event.date_label }}</span>
+                    <span v-if="ev.event.location">{{ ev.event.location }}</span>
+                  </div>
+                  <div
+                    v-if="ev.fascia_name || ev.badge_name"
+                    class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 text-xs font-normal tracking-tight sm:text-sm"
+                  >
+                    <span v-if="ev.fascia_name" class="inline-flex items-center gap-x-1">
+                      <Icon name="hugeicons:signature" class="size-3.5 shrink-0" />
+                      {{ ev.fascia_name }}
+                    </span>
+                    <span v-if="ev.badge_name" class="inline-flex items-center gap-x-1">
+                      <Icon name="hugeicons:id" class="size-3.5 shrink-0" />
+                      {{ ev.badge_name }}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- Quick Links -->
-            <div class="mt-3 flex flex-wrap gap-2">
-              <Button :to="`/brands/${route.params.slug}/documents/${ev.id}`" variant="outline" size="sm">
-                <Icon name="hugeicons:file-01" class="size-4 shrink-0" />
-                Documents
-              </Button>
-              <Button :to="`/brands/${route.params.slug}/order-form/${ev.id}`" variant="outline" size="sm">
-                <Icon name="hugeicons:shopping-cart-01" class="size-4 shrink-0" />
-                {{ $t('brands.orderForm') }}
-              </Button>
-              <Button :to="`/brands/${route.params.slug}/orders/${ev.id}`" variant="outline" size="sm">
-                <Icon name="hugeicons:shopping-bag-01" class="size-4 shrink-0" />
-                {{ $t('brands.myOrders') }}
-              </Button>
-              <Button :to="`/brands/${route.params.slug}/promotion-posts/${ev.id}`" variant="outline" size="sm">
-                <Icon name="hugeicons:image-02" class="size-4 shrink-0" />
-                {{ $t('brands.promotionPosts') }}
-                <span class="bg-muted text-muted-foreground -mr-1 rounded-full px-1.5 py-0.5 text-xs tabular-nums tracking-tight">
-                  {{ ev.promotion_posts_count }}
-                </span>
-              </Button>
-              <Button :to="`/brands/${route.params.slug}/leads/${ev.id}`" variant="outline" size="sm">
-                <Icon name="hugeicons:agreement-02" class="size-4 shrink-0" />
-                Leads
-              </Button>
-            </div>
-          </div>
-        </div>
+                <!-- Booth -->
+                <div v-if="ev.booth_number" class="shrink-0 text-right">
+                  <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                    {{ $t('brands.booth') }}
+                  </p>
+                  <p class="text-foreground text-lg font-semibold tracking-tighter sm:text-xl">
+                    {{ ev.booth_number }}
+                  </p>
+                  <p v-if="ev.booth_type_label" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                    {{ ev.booth_type_label }}
+                  </p>
+                </div>
+              </div>
+            </AccordionTrigger>
+
+            <AccordionContent class="pb-4 sm:pb-4">
+              <!-- Quick Links -->
+              <div class="flex flex-wrap gap-2">
+                <Button :to="`/brands/${route.params.slug}/documents/${ev.id}`" variant="outline" size="sm">
+                  <Icon name="hugeicons:file-01" class="size-4 shrink-0" />
+                  Documents
+                </Button>
+                <Button :to="`/brands/${route.params.slug}/order-form/${ev.id}`" variant="outline" size="sm">
+                  <Icon name="hugeicons:shopping-cart-01" class="size-4 shrink-0" />
+                  {{ $t('brands.orderForm') }}
+                </Button>
+                <Button :to="`/brands/${route.params.slug}/orders/${ev.id}`" variant="outline" size="sm">
+                  <Icon name="hugeicons:shopping-bag-01" class="size-4 shrink-0" />
+                  {{ $t('brands.myOrders') }}
+                </Button>
+                <Button :to="`/brands/${route.params.slug}/promotion-posts/${ev.id}`" variant="outline" size="sm">
+                  <Icon name="hugeicons:image-02" class="size-4 shrink-0" />
+                  {{ $t('brands.promotionPosts') }}
+                  <span class="bg-muted text-muted-foreground -mr-1 rounded-full px-1.5 py-0.5 text-xs tabular-nums tracking-tight">
+                    {{ ev.promotion_posts_count }}
+                  </span>
+                </Button>
+                <Button :to="`/brands/${route.params.slug}/leads/${ev.id}`" variant="outline" size="sm">
+                  <Icon name="hugeicons:agreement-02" class="size-4 shrink-0" />
+                  Leads
+                </Button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
         <Empty v-else class="border-dashed">
           <EmptyHeader>
@@ -219,6 +242,12 @@
 </template>
 
 <script setup>
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -244,6 +273,14 @@ const canViewAnalytics = computed(() => {
 const brand = ref(null);
 const events = ref([]);
 const loading = ref(true);
+
+// Default open: collapse all when multiple events, open the only one when exactly one.
+const defaultOpenEvents = computed(() => {
+  if (events.value.length === 1) {
+    return [String(events.value[0].id)];
+  }
+  return [];
+});
 
 usePageMeta(null, {
   title: computed(() => brand.value?.name || "Brand"),

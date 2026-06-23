@@ -164,6 +164,71 @@
           </template>
         </DialogResponsive>
       </template>
+
+      <!-- Inline expanded order items -->
+      <template #expanded-row="{ row }">
+        <div class="px-4 py-3">
+          <div
+            v-if="expandedOrders[row.original.ulid]?.loading"
+            class="text-muted-foreground flex items-center gap-x-2 py-2 text-sm tracking-tight"
+          >
+            <Spinner class="size-4 shrink-0" />
+            <span>Loading items…</span>
+          </div>
+          <div
+            v-else-if="!expandedOrders[row.original.ulid]?.items?.length"
+            class="text-muted-foreground py-2 text-sm tracking-tight"
+          >
+            No items in this order.
+          </div>
+          <div v-else class="bg-background overflow-hidden rounded-md border">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b">
+                  <th class="text-muted-foreground px-3 py-2 text-left text-xs font-medium tracking-tight sm:text-sm">Product</th>
+                  <th class="text-muted-foreground px-3 py-2 text-left text-xs font-medium tracking-tight sm:text-sm">Category</th>
+                  <th class="text-muted-foreground px-3 py-2 text-center text-xs font-medium tracking-tight sm:text-sm">Qty</th>
+                  <th class="text-muted-foreground px-3 py-2 text-right text-xs font-medium tracking-tight sm:text-sm">Unit Price</th>
+                  <th class="text-muted-foreground px-3 py-2 text-right text-xs font-medium tracking-tight sm:text-sm">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in expandedOrders[row.original.ulid].items"
+                  :key="item.id"
+                  class="border-b last:border-0"
+                >
+                  <td class="px-3 py-2">
+                    <span class="font-medium tracking-tight">{{ item.product_name }}</span>
+                    <p v-if="item.notes" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                      {{ item.notes }}
+                    </p>
+                  </td>
+                  <td class="text-muted-foreground px-3 py-2 tracking-tight">
+                    {{ item.product_category || "—" }}
+                  </td>
+                  <td class="px-3 py-2 text-center tabular-nums tracking-tight">{{ item.quantity }}</td>
+                  <td class="px-3 py-2 text-right tabular-nums tracking-tight">
+                    {{ formatPrice(item.unit_price) }}
+                  </td>
+                  <td class="px-3 py-2 text-right font-medium tabular-nums tracking-tight">
+                    {{ formatPrice(item.total_price ?? item.unit_price * item.quantity) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="flex justify-end border-t px-3 py-2">
+              <NuxtLink
+                :to="orderDetailUrl(row.original)"
+                class="text-primary inline-flex items-center gap-x-1 text-sm font-medium tracking-tight hover:underline"
+              >
+                View full order
+                <Icon name="lucide:arrow-right" class="size-3.5 shrink-0" />
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+      </template>
     </TableData>
 
     <!-- Cancellation Reason Dialog -->
@@ -489,6 +554,24 @@ function orderDetailUrl(order) {
   return `/projects/${route.params.username}/events/${route.params.eventSlug}/operational/orders/${order.ulid}`;
 }
 
+// Inline row expansion: clicking the order number expands its items in place.
+// Items are lazy-fetched once per order (the list endpoint only returns counts).
+const expandedOrders = ref({});
+
+async function toggleOrderExpand(row) {
+  row.toggleExpanded();
+  const ulid = row.original.ulid;
+  if (row.getIsExpanded() && !expandedOrders.value[ulid]) {
+    expandedOrders.value[ulid] = { loading: true, items: [] };
+    try {
+      const res = await client(`${apiBase.value}/${ulid}`);
+      expandedOrders.value[ulid] = { loading: false, items: res.data?.items || [] };
+    } catch {
+      expandedOrders.value[ulid] = { loading: false, items: [], error: true };
+    }
+  }
+}
+
 // Table columns
 const columns = [
   {
@@ -518,26 +601,36 @@ const columns = [
       const order = row.original;
       const brand = order.brand_event?.brand;
       return h(
-        "div",
+        "button",
         {
-          class: "cursor-pointer",
-          onClick: () => navigateTo(orderDetailUrl(order)),
+          type: "button",
+          class: "flex w-full cursor-pointer items-center gap-x-2 text-left",
+          onClick: () => toggleOrderExpand(row),
         },
         [
-          h(
-            "div",
-            { class: "font-mono text-sm font-medium tracking-tight" },
-            order.order_number
-          ),
-          brand
-            ? h(
-                "div",
-                { class: "text-muted-foreground text-xs sm:text-sm tracking-tight" },
-                brand.company_name && brand.company_name !== brand.name
-                  ? `${brand.name} · ${brand.company_name}`
-                  : brand.name
-              )
-            : null,
+          h(resolveComponent("Icon"), {
+            name: "lucide:chevron-right",
+            class: [
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+              row.getIsExpanded() ? "rotate-90" : "",
+            ],
+          }),
+          h("div", { class: "min-w-0" }, [
+            h(
+              "div",
+              { class: "font-mono text-sm font-medium tracking-tight" },
+              order.order_number
+            ),
+            brand
+              ? h(
+                  "div",
+                  { class: "text-muted-foreground truncate text-xs sm:text-sm tracking-tight" },
+                  brand.company_name && brand.company_name !== brand.name
+                    ? `${brand.name} · ${brand.company_name}`
+                    : brand.name
+                )
+              : null,
+          ]),
         ]
       );
     },

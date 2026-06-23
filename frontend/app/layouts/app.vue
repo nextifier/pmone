@@ -5,6 +5,7 @@
     <SidebarInset
       :class="isExcluded ? 'contents' : 'mx-auto min-h-screen max-w-[1920px]'"
     >
+      <ImpersonateExitBanner />
       <AppHeader v-if="!isExcluded" :hide-sidebar="isProjectPage" />
       <div
         :class="isExcluded ? 'contents' : 'grow overflow-x-clip px-4'"
@@ -16,6 +17,8 @@
 </template>
 
 <script setup>
+import ImpersonateExitBanner from "@/components/user/ImpersonateExitBanner.vue";
+
 const defaultOpen = useCookie("sidebar_state");
 const route = useRoute();
 

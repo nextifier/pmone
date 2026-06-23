@@ -26,8 +26,18 @@
           <Icon name="lucide:ellipsis" class="size-4" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" class="w-40 p-1">
+      <PopoverContent align="end" class="w-44 p-1">
         <div class="flex flex-col">
+          <PopoverClose as-child>
+            <NuxtLink
+              :to="`/users/${username}`"
+              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+            >
+              <Icon name="hugeicons:user-settings-01" class="size-4 shrink-0" />
+              <span>Manage</span>
+            </NuxtLink>
+          </PopoverClose>
+
           <PopoverClose as-child>
             <NuxtLink
               :to="`/${username}`"
@@ -71,6 +81,28 @@
                 :class="['size-4 shrink-0', isVerified ? 'text-muted-foreground' : 'text-info']"
               />
               <span>{{ isVerified ? "Unverify" : "Verify" }}</span>
+            </button>
+          </PopoverClose>
+
+          <PopoverClose v-if="canSendEmails" as-child>
+            <button
+              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
+              :disabled="emailPending"
+              @click="sendPasswordReset"
+            >
+              <Icon name="hugeicons:key-01" class="size-4 shrink-0" />
+              <span>Reset password</span>
+            </button>
+          </PopoverClose>
+
+          <PopoverClose v-if="canSendEmails && !isVerified" as-child>
+            <button
+              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
+              :disabled="emailPending"
+              @click="resendVerification"
+            >
+              <Icon name="hugeicons:mail-validation-01" class="size-4 shrink-0" />
+              <span>Resend verify</span>
             </button>
           </PopoverClose>
 
@@ -192,12 +224,46 @@ const whatsappLink = computed(() => {
 
 const emit = defineEmits(["refresh"]);
 
+const { hasPermission } = usePermission();
+const canSendEmails = computed(() => hasPermission("users.send_account_emails"));
+
 const deleteDialogOpen = ref(false);
 const verifyDialogOpen = ref(false);
 const unverifyDialogOpen = ref(false);
 const singleDeletePending = ref(false);
 const singleVerifyPending = ref(false);
 const singleUnverifyPending = ref(false);
+const emailPending = ref(false);
+
+const sendPasswordReset = async () => {
+  emailPending.value = true;
+  try {
+    const client = useSanctumClient();
+    await client(`/api/users/${props.username}/send-password-reset`, { method: "POST" });
+    toast.success("Password reset link sent");
+  } catch (error) {
+    toast.error("Failed to send reset link", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    emailPending.value = false;
+  }
+};
+
+const resendVerification = async () => {
+  emailPending.value = true;
+  try {
+    const client = useSanctumClient();
+    await client(`/api/users/${props.username}/resend-verification`, { method: "POST" });
+    toast.success("Verification email sent");
+  } catch (error) {
+    toast.error("Failed to resend verification", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    emailPending.value = false;
+  }
+};
 
 const handleVerify = async () => {
   singleVerifyPending.value = true;

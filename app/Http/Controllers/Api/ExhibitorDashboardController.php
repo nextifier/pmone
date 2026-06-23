@@ -1125,10 +1125,18 @@ class ExhibitorDashboardController extends Controller
                 }
             }
 
-            // Send confirmation to exhibitor
-            if ($user->email) {
-                Mail::to($user->email)->queue(new OrderConfirmationMail($order, $event, $brand));
+            // Send confirmation to all brand members + company email + the
+            // submitting user, de-duplicated case-insensitively.
+            $recipients = collect($brand->recipientEmails());
+            if ($user?->email) {
+                $recipients->push($user->email);
             }
+
+            $recipients
+                ->filter(fn ($email) => is_string($email) && trim($email) !== '')
+                ->map(fn ($email) => trim($email))
+                ->unique(fn ($email) => strtolower($email))
+                ->each(fn ($email) => Mail::to($email)->queue(new OrderConfirmationMail($order, $event, $brand)));
         } catch (\Exception $e) {
             logger()->warning('Failed to send order emails', [
                 'order_id' => $order->id,

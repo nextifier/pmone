@@ -357,6 +357,18 @@ return [
                 'analytics.export' => 'Export analytics data',
             ],
         ],
+        'user_security' => [
+            'label' => 'User Account Security',
+            'description' => 'Security operations on user accounts (sessions, 2FA, account emails, suspension, notes)',
+            'permissions' => [
+                'users.view_security' => 'View a user\'s login history, sessions and 2FA status',
+                'users.manage_sessions' => 'View and revoke a user\'s active sessions and API tokens',
+                'users.reset_2fa' => 'Disable / reset two-factor authentication for a user',
+                'users.send_account_emails' => 'Send password reset and resend verification emails',
+                'users.suspend' => 'Suspend or reactivate a user (force logout)',
+                'users.manage_notes' => 'Read and write internal admin notes on a user',
+            ],
+        ],
         'staff_roles' => [
             'label' => 'Staff Sub-roles',
             'description' => 'Staff department-level permissions',

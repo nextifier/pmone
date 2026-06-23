@@ -366,6 +366,27 @@ class Brand extends Model implements HasMedia, Sortable
             ->withTimestamps();
     }
 
+    /**
+     * Customer-facing notification recipients: all brand members plus the
+     * company email, de-duplicated case-insensitively. Used for order
+     * confirmation, invoice, and receipt emails.
+     *
+     * @return array<int, string>
+     */
+    public function recipientEmails(): array
+    {
+        $this->loadMissing('users');
+
+        return $this->users
+            ->pluck('email')
+            ->push($this->company_email)
+            ->filter(fn ($email) => is_string($email) && trim($email) !== '')
+            ->map(fn ($email) => trim($email))
+            ->unique(fn ($email) => strtolower($email))
+            ->values()
+            ->all();
+    }
+
     public function links(): MorphMany
     {
         return $this->morphMany(Link::class, 'linkable')

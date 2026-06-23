@@ -9,6 +9,8 @@ class UserIndexResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $canViewSecurity = (bool) auth()->user()?->can('users.view_security');
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -20,6 +22,10 @@ class UserIndexResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'is_online' => $this->isOnline(),
             'last_seen' => $this->last_seen?->toISOString(),
+            'last_login_at' => $this->when($canViewSecurity, fn () => $this->last_login_at?->toISOString()),
+            'two_factor_enabled' => $this->when($canViewSecurity, fn () => ! is_null($this->two_factor_secret)),
+            'sessions_count' => $this->when($canViewSecurity && isset($this->sessions_count), fn () => (int) $this->sessions_count),
+            'suspended_at' => $this->when($canViewSecurity, fn () => $this->suspended_at?->toISOString()),
             'created_at' => $this->created_at->toISOString(),
 
             // Profile Image

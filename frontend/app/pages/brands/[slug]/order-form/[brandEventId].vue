@@ -28,14 +28,22 @@
         </div>
         <h1 class="text-2xl font-medium tracking-tight">{{ $t("orderForm.title") }}</h1>
         <div
-          v-if="info.brand_event?.booth_number || info.brand_event?.booth_type"
-          class="text-muted-foreground flex flex-wrap items-center gap-x-3 text-sm"
+          v-if="info.brand_event?.booth_number || info.brand_event?.booth_type_label"
+          class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
         >
-          <span v-if="info.brand_event?.booth_number">
-            {{ $t("orderForm.booth") }}
-            <span class="text-foreground font-medium">{{ info.brand_event.booth_number }}</span>
+          <span
+            v-if="info.brand_event?.booth_number"
+            class="inline-flex items-baseline gap-x-1.5"
+          >
+            <span class="text-muted-foreground tracking-tight">{{ $t("orderForm.booth") }}</span>
+            <span class="text-foreground text-base font-semibold tracking-tighter">{{
+              info.brand_event.booth_number
+            }}</span>
           </span>
-          <span v-if="info.brand_event?.booth_type_label">
+          <span
+            v-if="info.brand_event?.booth_type_label"
+            class="text-muted-foreground tracking-tight"
+          >
             {{ info.brand_event.booth_type_label }}
           </span>
         </div>
@@ -80,121 +88,118 @@
         <!-- Product Catalog (2/3) -->
         <div class="space-y-6 lg:col-span-2">
           <template v-if="products.length > 0">
-            <div v-for="category in products" :key="category.category" class="space-y-2">
-              <!-- Category header (collapsible) -->
-              <button
-                @click="toggleCategory(category.category)"
-                class="flex w-full items-center justify-between py-1"
+            <Accordion type="multiple" :default-value="[]" class="space-y-2">
+              <AccordionItem
+                v-for="category in products"
+                :key="category.category"
+                :value="String(category.category)"
+                class="rounded-xl px-4 lg:rounded-xl lg:px-4"
               >
-                <h3 class="text-sm font-medium tracking-tight uppercase">
-                  {{ category.category }}
-                  <span class="text-muted-foreground ml-1 font-normal normal-case">
-                    ({{ category.products.length }})
+                <AccordionTrigger class="py-4 text-sm sm:py-4">
+                  <span class="tracking-tight">
+                    {{ category.category }}
+                    <span class="text-muted-foreground ml-1 font-normal">
+                      ({{ category.products.length }})
+                    </span>
                   </span>
-                </h3>
-                <Icon
-                  :name="
-                    collapsedCategories.includes(category.category)
-                      ? 'lucide:chevron-right'
-                      : 'lucide:chevron-down'
-                  "
-                  class="text-muted-foreground size-4 shrink-0"
-                />
-              </button>
+                </AccordionTrigger>
 
-              <div
-                v-if="category.description && !collapsedCategories.includes(category.category)"
-                class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none"
-                v-html="category.description"
-              />
-
-              <div v-if="!collapsedCategories.includes(category.category)" class="space-y-2">
-                <!-- Catalog PDF -->
-                <a
-                  v-if="category.catalog_file"
-                  :href="category.catalog_file.url"
-                  target="_blank"
-                  class="border-border bg-muted/50 hover:bg-muted flex items-center gap-x-2 rounded-lg border p-4 transition"
-                >
-                  <Icon name="teenyicons:pdf-solid" class="text-destructive size-10 shrink-0" />
-                  <span class="truncate text-sm tracking-tight">{{
-                    category.catalog_file.name
-                  }}</span>
-                  <Icon
-                    name="hugeicons:arrow-up-right-01"
-                    class="text-muted-foreground ml-auto size-3.5 shrink-0"
-                  />
-                </a>
-
-                <div
-                  v-for="product in category.products"
-                  :key="product.id"
-                  class="border-border flex items-center justify-between rounded-lg border p-4"
-                >
-                  <div class="flex min-w-0 flex-1 items-start gap-x-3 pr-4">
-                    <img
-                      v-if="product.product_image?.sm"
-                      :src="product.product_image.sm"
-                      :alt="product.name"
-                      class="size-12 shrink-0 rounded-lg object-cover"
+                <AccordionContent class="pb-4 sm:pb-4">
+                  <div class="space-y-2">
+                    <div
+                      v-if="category.description"
+                      class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none"
+                      v-html="category.description"
                     />
-                    <div class="min-w-0 flex-1">
-                      <p class="font-medium tracking-tight">{{ product.name }}</p>
-                      <p
-                        v-if="product.description"
-                        class="text-muted-foreground mt-0.5 text-xs tracking-tight sm:text-sm"
-                      >
-                        {{ product.description }}
-                      </p>
-                      <p class="mt-1 text-sm font-medium">
-                        <template v-if="isOnsite">
-                          <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(product.price) }}</span>
-                          {{ formatPrice(withPenalty(product.price)) }}
+
+                    <!-- Catalog PDF -->
+                    <a
+                      v-if="category.catalog_file"
+                      :href="category.catalog_file.url"
+                      target="_blank"
+                      class="border-border bg-muted/50 hover:bg-muted flex items-center gap-x-2 rounded-lg border p-4 transition"
+                    >
+                      <Icon name="teenyicons:pdf-solid" class="text-destructive size-10 shrink-0" />
+                      <span class="truncate text-sm tracking-tight">{{
+                        category.catalog_file.name
+                      }}</span>
+                      <Icon
+                        name="hugeicons:arrow-up-right-01"
+                        class="text-muted-foreground ml-auto size-3.5 shrink-0"
+                      />
+                    </a>
+
+                    <div
+                      v-for="product in category.products"
+                      :key="product.id"
+                      class="border-border flex items-center justify-between rounded-lg border p-4"
+                    >
+                      <div class="flex min-w-0 flex-1 items-start gap-x-3 pr-4">
+                        <img
+                          v-if="product.product_image?.sm"
+                          :src="product.product_image.sm"
+                          :alt="product.name"
+                          class="size-12 shrink-0 rounded-lg object-cover"
+                        />
+                        <div class="min-w-0 flex-1">
+                          <p class="font-medium tracking-tight">{{ product.name }}</p>
+                          <p
+                            v-if="product.description"
+                            class="text-muted-foreground mt-0.5 text-xs tracking-tight sm:text-sm"
+                          >
+                            {{ product.description }}
+                          </p>
+                          <p class="mt-1 text-sm font-medium">
+                            <template v-if="isOnsite">
+                              <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(product.price) }}</span>
+                              {{ formatPrice(withPenalty(product.price)) }}
+                            </template>
+                            <template v-else>
+                              {{ formatPrice(product.price) }}
+                            </template>
+                            <span class="text-muted-foreground font-normal">/ {{ product.unit }}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <!-- Add to cart or quantity controls -->
+                      <div class="shrink-0">
+                        <template v-if="getCartItem(product.id)">
+                          <div class="flex items-center gap-x-1">
+                            <button
+                              @click="updateQuantity(product.id, getCartItem(product.id).quantity - 1)"
+                              class="border-border hover:bg-muted flex size-7 items-center justify-center rounded border text-sm"
+                            >
+                              -
+                            </button>
+                            <span class="w-8 text-center text-sm">
+                              {{ getCartItem(product.id).quantity }}
+                            </span>
+                            <button
+                              @click="updateQuantity(product.id, getCartItem(product.id).quantity + 1)"
+                              class="border-border hover:bg-muted flex size-7 items-center justify-center rounded border text-sm"
+                            >
+                              +
+                            </button>
+                          </div>
                         </template>
                         <template v-else>
-                          {{ formatPrice(product.price) }}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            :disabled="isDeadlinePassed"
+                            @click="handleAddToCart(product, category.category)"
+                          >
+                            <Icon name="lucide:plus" class="mr-1 size-3.5" />
+                            {{ $t("common.add") }}
+                          </Button>
                         </template>
-                        <span class="text-muted-foreground font-normal">/ {{ product.unit }}</span>
-                      </p>
+                      </div>
                     </div>
                   </div>
-
-                  <!-- Add to cart or quantity controls -->
-                  <div class="shrink-0">
-                    <template v-if="getCartItem(product.id)">
-                      <div class="flex items-center gap-x-1">
-                        <button
-                          @click="updateQuantity(product.id, getCartItem(product.id).quantity - 1)"
-                          class="border-border hover:bg-muted flex size-7 items-center justify-center rounded border text-sm"
-                        >
-                          -
-                        </button>
-                        <span class="w-8 text-center text-sm">
-                          {{ getCartItem(product.id).quantity }}
-                        </span>
-                        <button
-                          @click="updateQuantity(product.id, getCartItem(product.id).quantity + 1)"
-                          class="border-border hover:bg-muted flex size-7 items-center justify-center rounded border text-sm"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </template>
-                    <template v-else>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        :disabled="isDeadlinePassed"
-                        @click="handleAddToCart(product, category.category)"
-                      >
-                        <Icon name="lucide:plus" class="mr-1 size-3.5" />
-                        {{ $t("common.add") }}
-                      </Button>
-                    </template>
-                  </div>
-                </div>
-              </div>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </template>
 
           <div v-else class="text-muted-foreground py-12 text-center text-sm">
@@ -204,7 +209,9 @@
 
         <!-- Cart Panel (1/3) -->
         <div ref="cartPanelRef" class="lg:col-span-1">
-          <div class="sticky top-20 space-y-4">
+          <div
+            class="sticky top-[var(--navbar-height-mobile)] space-y-4 lg:top-[var(--navbar-height-desktop)]"
+          >
             <div class="border-border rounded-lg border p-4">
               <div class="mb-3 flex items-center justify-between">
                 <h3 class="flex items-center font-medium tracking-tight">
@@ -467,6 +474,12 @@
 </template>
 
 <script setup>
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrderCart } from "@/composables/useOrderCart";
@@ -489,7 +502,6 @@ const loading = ref(true);
 const submitting = ref(false);
 const showConfirmDialog = ref(false);
 const orderNotes = ref("");
-const collapsedCategories = ref([]);
 const cartPanelRef = ref(null);
 
 const {
@@ -564,15 +576,6 @@ async function fetchData() {
     toast.error(t("orderForm.failedToLoad"));
   } finally {
     loading.value = false;
-  }
-}
-
-function toggleCategory(name) {
-  const index = collapsedCategories.value.indexOf(name);
-  if (index >= 0) {
-    collapsedCategories.value.splice(index, 1);
-  } else {
-    collapsedCategories.value.push(name);
   }
 }
 

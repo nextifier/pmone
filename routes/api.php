@@ -100,6 +100,9 @@ use App\Http\Controllers\Api\TicketPricePhaseController;
 use App\Http\Controllers\Api\TicketSessionController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\UserImpersonationController;
+use App\Http\Controllers\Api\UserNoteController;
+use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\Api\WhatsAppTestController;
@@ -109,6 +112,11 @@ use Spatie\ResponseCache\Middlewares\CacheResponse;
 
 // Basic authenticated routes
 Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profile']);
+
+// Leaving impersonation must work for ANY authenticated session (the impersonated
+// account may be unverified or lack permissions), so it lives here, not in the
+// permission-gated users group.
+Route::middleware(['auth:sanctum'])->post('/users/impersonate/leave', [UserImpersonationController::class, 'leave']);
 
 // Public: stream a generated SDF .bin THROUGH Laravel so the CORS middleware applies
 // (static /storage files bypass the kernel and get no CORS, which blocks the shader's
@@ -190,6 +198,33 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/trash/{id}/restore', [UserController::class, 'restore'])->middleware('can:users.delete');
         Route::delete('/trash/bulk', [UserController::class, 'bulkForceDestroy'])->middleware('can:users.delete');
         Route::delete('/trash/{id}', [UserController::class, 'forceDestroy'])->middleware('can:users.delete');
+
+        // User security & account management (literal segments before /{user})
+        Route::get('/stats', [UserSecurityController::class, 'stats']);
+        Route::post('/bulk/force-logout', [UserController::class, 'bulkForceLogout'])->middleware('can:users.manage_sessions');
+        Route::post('/bulk/send-password-reset', [UserController::class, 'bulkSendPasswordReset'])->middleware('can:users.send_account_emails');
+
+        // Impersonation start: master-only (enforced inside the controller, never a
+        // permission), silent. The matching "leave" route lives outside this group so an
+        // impersonated (possibly unverified / low-permission) account can always exit.
+        Route::post('/{user}/impersonate', [UserImpersonationController::class, 'start']);
+
+        Route::get('/{user}/sessions', [UserSecurityController::class, 'sessions'])->middleware('can:users.manage_sessions');
+        Route::delete('/{user}/sessions/{sessionId}', [UserSecurityController::class, 'revokeSession'])->middleware('can:users.manage_sessions');
+        Route::delete('/{user}/sessions', [UserSecurityController::class, 'clearAllSessions'])->middleware('can:users.manage_sessions');
+        Route::get('/{user}/tokens', [UserSecurityController::class, 'tokens'])->middleware('can:users.manage_sessions');
+        Route::delete('/{user}/tokens/{tokenId}', [UserSecurityController::class, 'revokeToken'])->middleware('can:users.manage_sessions');
+        Route::get('/{user}/login-history', [UserSecurityController::class, 'loginHistory'])->middleware('can:users.view_security');
+        Route::get('/{user}/security', [UserSecurityController::class, 'securityOverview'])->middleware('can:users.view_security');
+        Route::post('/{user}/send-password-reset', [UserSecurityController::class, 'sendPasswordReset'])->middleware(['can:users.send_account_emails', 'throttle:6,1']);
+        Route::post('/{user}/resend-verification', [UserSecurityController::class, 'resendVerification'])->middleware(['can:users.send_account_emails', 'throttle:6,1']);
+        Route::delete('/{user}/two-factor', [UserSecurityController::class, 'resetTwoFactor'])->middleware('can:users.reset_2fa');
+        Route::post('/{user}/suspend', [UserSecurityController::class, 'suspend'])->middleware('can:users.suspend');
+        Route::post('/{user}/unsuspend', [UserSecurityController::class, 'unsuspend'])->middleware('can:users.suspend');
+        Route::get('/{user}/notes', [UserNoteController::class, 'index'])->middleware('can:users.manage_notes');
+        Route::post('/{user}/notes', [UserNoteController::class, 'store'])->middleware('can:users.manage_notes');
+        Route::delete('/{user}/notes/{note}', [UserNoteController::class, 'destroy'])->middleware('can:users.manage_notes');
+
         Route::get('/{user}', [UserController::class, 'show']);
         Route::put('/{user}', [UserController::class, 'update'])->middleware('can:users.update');
         Route::post('/{user}/verify', [UserController::class, 'verify'])->middleware('can:users.update');
@@ -455,6 +490,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             ->name('orders.adjustments.store');
         Route::delete('/{ulid}/adjustments/{adjustment:ulid}', [OrderAdjustmentController::class, 'destroy'])
             ->name('orders.adjustments.destroy');
+
+        Route::patch('/{ulid}/internal-notes', [OrderController::class, 'updateInternalNotes'])
+            ->name('orders.update-internal-notes');
+
+        Route::post('/{ulid}/invoice', [OrderController::class, 'uploadInvoice'])->name('orders.upload-invoice');
+        Route::post('/{ulid}/receipt', [OrderController::class, 'uploadReceipt'])->name('orders.upload-receipt');
+        Route::post('/{ulid}/send-invoice', [OrderController::class, 'sendInvoice'])->name('orders.send-invoice');
+        Route::post('/{ulid}/send-receipt', [OrderController::class, 'sendReceipt'])->name('orders.send-receipt');
     });
 
     // Promotion rule & promo code admin CRUD

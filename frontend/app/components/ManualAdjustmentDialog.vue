@@ -5,12 +5,18 @@
         <div>
           <h3 class="text-lg font-semibold tracking-tight">Add Adjustment</h3>
           <p class="text-muted-foreground text-sm tracking-tight mt-1">
-            Apply a discount or penalty to this {{ targetType.toLowerCase() }}.
+            <template v-if="manualOnly && itemLabel">
+              Apply a discount or penalty to
+              <span class="text-foreground font-medium">{{ itemLabel }}</span>.
+            </template>
+            <template v-else>
+              Apply a discount or penalty to this {{ targetType.toLowerCase() }}.
+            </template>
           </p>
         </div>
 
         <Tabs v-model="mode" class="w-full">
-          <TabsList class="grid grid-cols-3 w-full">
+          <TabsList v-if="!manualOnly" class="grid grid-cols-3 w-full">
             <TabsTrigger value="promo_code">Promo Code</TabsTrigger>
             <TabsTrigger value="promotion_rule">From Rule</TabsTrigger>
             <TabsTrigger value="manual">Manual</TabsTrigger>
@@ -139,6 +145,11 @@ const props = defineProps({
   targetType: { type: String, default: "Reservation" },
   targetEmail: { type: String, default: "" },
   loading: { type: Boolean, default: false },
+  // When true, only the Manual tab is shown (used for per-item adjustments).
+  manualOnly: { type: Boolean, default: false },
+  // Optional order item this adjustment is scoped to.
+  itemId: { type: [Number, null], default: null },
+  itemLabel: { type: String, default: "" },
 });
 
 const emit = defineEmits(["update:open", "apply"]);
@@ -148,7 +159,7 @@ const dialogOpen = computed({
   set: (v) => emit("update:open", v),
 });
 
-const mode = ref("promo_code");
+const mode = ref(props.manualOnly ? "manual" : "promo_code");
 const errors = ref({});
 
 const form = ref({
@@ -176,7 +187,7 @@ watch(dialogOpen, (open) => {
       value: 0,
       reason: "",
     };
-    mode.value = "promo_code";
+    mode.value = props.manualOnly ? "manual" : "promo_code";
   }
 });
 
@@ -222,13 +233,17 @@ function buildPayload() {
     }
     return payload;
   }
-  return {
+  const manualPayload = {
     mode: "manual",
     kind: form.value.kind,
     value_type: form.value.value_type,
     value: form.value.value,
     reason: form.value.reason,
   };
+  if (props.itemId != null) {
+    manualPayload.order_item_id = props.itemId;
+  }
+  return manualPayload;
 }
 
 function handleApply() {

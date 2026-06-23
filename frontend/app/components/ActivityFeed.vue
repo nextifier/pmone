@@ -1,8 +1,8 @@
 <template>
   <div class="flex flex-col gap-y-4">
     <!-- Search & Filters -->
-    <div class="flex flex-wrap items-center gap-1.5">
-      <div class="relative min-w-0 flex-1">
+    <div v-if="showSearch || $slots.filters" class="flex flex-wrap items-center gap-1.5">
+      <div v-if="showSearch" class="relative min-w-0 flex-1">
         <Icon
           name="hugeicons:search-01"
           class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 shrink-0 -translate-y-1/2"
@@ -485,6 +485,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   error: { type: Boolean, default: false },
   searchPlaceholder: { type: String, default: "Search activity..." },
+  showSearch: { type: Boolean, default: true },
   perPage: { type: Number, default: 20 },
   pageSizes: { type: Array, default: () => [10, 20, 50, 100] },
   initialSearch: { type: String, default: "" },

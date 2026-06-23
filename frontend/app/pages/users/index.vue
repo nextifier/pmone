@@ -40,6 +40,8 @@
       </div>
     </div>
 
+    <UserStatsHeader v-if="canViewSecurity" />
+
     <TableData
       :clientOnly="clientOnly"
       ref="tableRef"
@@ -61,6 +63,9 @@
         posts_count: false,
         email_verified_at: false,
         status: false,
+        last_login_at: false,
+        two_factor_enabled: false,
+        is_online: false,
       }"
       :show-add-button="false"
       @update:pagination="onPaginationUpdate"
@@ -119,6 +124,25 @@
                 :selected="selectedVerified"
                 @change="handleFilterChange('email_verified_at', $event)"
               />
+              <template v-if="canViewSecurity">
+                <div class="border-t" />
+                <FilterSection
+                  title="Presence"
+                  :options="[{ label: 'Online now', value: 'online' }]"
+                  :selected="selectedOnline"
+                  @change="handleFilterChange('is_online', $event)"
+                />
+                <div class="border-t" />
+                <FilterSection
+                  title="Two-factor"
+                  :options="[
+                    { label: 'Enabled', value: 'on' },
+                    { label: 'Disabled', value: 'off' },
+                  ]"
+                  :selected="selectedTwoFactor"
+                  @change="handleFilterChange('two_factor_enabled', $event)"
+                />
+              </template>
             </div>
           </PopoverContent>
         </Popover>
@@ -198,6 +222,78 @@
         </DialogResponsive>
 
         <DialogResponsive
+          v-if="canManageSessions && selectedRows.length > 0"
+          v-model:open="forceLogoutDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <TableBulkAction icon="hugeicons:logout-03" label="Force logout" @click="open()" />
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Force logout?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This signs out {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "user" : "users" }} from every device.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  :disabled="forceLogoutPending"
+                  @click="forceLogoutDialogOpen = false"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="bg-destructive hover:bg-destructive/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight text-white active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  :disabled="forceLogoutPending"
+                  @click="handleForceLogoutRows(selectedRows)"
+                >
+                  <Spinner v-if="forceLogoutPending" class="size-4 text-white" />
+                  <span v-else>Force logout</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
+          v-if="canSendEmails && selectedRows.length > 0"
+          v-model:open="sendResetDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <TableBulkAction icon="hugeicons:key-01" label="Send reset" @click="open()" />
+          </template>
+          <template #default>
+            <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="text-primary text-lg font-semibold tracking-tight">Send password reset?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This emails a password reset link to {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "user" : "users" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <button
+                  class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                  :disabled="sendResetPending"
+                  @click="sendResetDialogOpen = false"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="bg-primary text-primary-foreground hover:bg-primary/80 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                  :disabled="sendResetPending"
+                  @click="handleSendResetRows(selectedRows)"
+                >
+                  <Spinner v-if="sendResetPending" class="size-4" />
+                  <span v-else>Send reset</span>
+                </button>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+
+        <DialogResponsive
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -242,9 +338,11 @@ import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { TableSwitch } from "@/components/ui/table-switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import FilterSection from "@/components/user/FilterSection.vue";
 import ImportDialog from "@/components/user/ImportDialog.vue";
 import RowActions from "@/components/user/RowActions.vue";
+import UserStatsHeader from "@/components/user/StatsHeader.vue";
 import UserTableItem from "@/components/user/TableItem.vue";
 import { useUserTable } from "@/composables/useUserTable";
 import { resolveDirective, withDirectives } from "vue";
@@ -265,6 +363,9 @@ const { hasPermission } = usePermission();
 
 const canCreate = computed(() => hasPermission("users.create"));
 const canDelete = computed(() => hasPermission("users.delete"));
+const canViewSecurity = computed(() => hasPermission("users.view_security"));
+const canManageSessions = computed(() => hasPermission("users.manage_sessions"));
+const canSendEmails = computed(() => hasPermission("users.send_account_emails"));
 
 const {
   columnFilters,
@@ -294,18 +395,31 @@ const {
   deleteDialogOpen,
   deletePending,
   handleDeleteRows,
+  forceLogoutDialogOpen,
+  forceLogoutPending,
+  handleForceLogoutRows,
+  sendResetDialogOpen,
+  sendResetPending,
+  handleSendResetRows,
   $dayjs,
 } = await useUserTable({
   fetchKey: "users-list",
-  extraParams: { exclude_role: "exhibitor" },
+  extraParams: { exclude_role: "exhibitor,user" },
 });
 
 // Filter computed values
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedRoles = computed(() => getFilterValue("roles"));
 const selectedVerified = computed(() => getFilterValue("email_verified_at"));
+const selectedOnline = computed(() => getFilterValue("is_online"));
+const selectedTwoFactor = computed(() => getFilterValue("two_factor_enabled"));
 const totalActiveFilters = computed(
-  () => selectedStatuses.value.length + selectedRoles.value.length + selectedVerified.value.length
+  () =>
+    selectedStatuses.value.length +
+    selectedRoles.value.length +
+    selectedVerified.value.length +
+    selectedOnline.value.length +
+    selectedTwoFactor.value.length
 );
 
 // Table columns
@@ -460,6 +574,59 @@ const columns = [
       );
     },
     size: 100,
+  },
+  {
+    header: "Last login",
+    accessorKey: "last_login_at",
+    cell: ({ row }) => {
+      const date = row.getValue("last_login_at");
+      if (!date) {
+        return h("span", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return withDirectives(
+        h("div", { class: "text-sm text-muted-foreground tracking-tight" }, $dayjs(date).fromNow()),
+        [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+      );
+    },
+    size: 100,
+    enableSorting: true,
+  },
+  {
+    header: "2FA",
+    accessorKey: "two_factor_enabled",
+    cell: ({ row }) => {
+      const on = !!row.original.two_factor_enabled;
+      return h(
+        Badge,
+        { variant: on ? "success" : "outline" },
+        { default: () => (on ? "On" : "Off") }
+      );
+    },
+    size: 70,
+    enableSorting: false,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const on = !!row.original.two_factor_enabled;
+      return filterValue.some((value) => (value === "on" ? on : !on));
+    },
+  },
+  {
+    id: "is_online",
+    accessorKey: "is_online",
+    header: "Presence",
+    cell: ({ row }) =>
+      h(
+        "span",
+        { class: "text-sm tracking-tight" },
+        row.original.is_online ? "Online" : "Offline"
+      ),
+    size: 80,
+    enableSorting: false,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      const online = !!row.original.is_online;
+      return filterValue.some((value) => (value === "online" ? online : !online));
+    },
   },
   {
     header: "Created",

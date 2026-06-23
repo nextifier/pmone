@@ -51,6 +51,12 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $status
  * @property string $visibility
  * @property Carbon|null $last_seen
+ * @property Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property string|null $last_login_user_agent
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
+ * @property int|null $suspended_by
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -188,6 +194,12 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'status',
         'visibility',
         'last_seen',
+        'last_login_at',
+        'last_login_ip',
+        'last_login_user_agent',
+        'suspended_at',
+        'suspension_reason',
+        'suspended_by',
         'email_verified_at',
         'company_name',
         'country',
@@ -223,6 +235,8 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'user_settings' => 'array',
         'more_details' => 'array',
         'last_seen' => 'datetime',
+        'last_login_at' => 'datetime',
+        'suspended_at' => 'datetime',
         'two_factor_confirmed_at' => 'datetime',
         'password' => 'hashed',
         'custom_fields' => 'array',
@@ -492,16 +506,24 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         $this->update(['last_seen' => now()]);
     }
 
-    public function markAsLoggedIn(): void
+    public function markAsLoggedIn(?string $ip = null, ?string $userAgent = null): void
     {
         $this->update([
             'last_seen' => now(),
+            'last_login_at' => now(),
+            'last_login_ip' => $ip,
+            'last_login_user_agent' => $userAgent,
         ]);
     }
 
     public function isOnline(): bool
     {
         return $this->last_seen && $this->last_seen->gt(now()->subMinutes(5));
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
     }
 
     // User Settings Helpers
@@ -594,6 +616,16 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     public function deleter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    public function suspendedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'suspended_by');
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(UserNote::class)->latest();
     }
 
     public function claimedAttendees(): HasMany

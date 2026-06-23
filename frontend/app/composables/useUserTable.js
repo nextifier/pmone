@@ -20,6 +20,7 @@ export async function useUserTable({
   defaultSorting,
   isTrash = false,
   entityLabel = "Users",
+  clientOnly: clientOnlyOption = true,
 }) {
   const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
   const { $dayjs } = useNuxtApp();
@@ -30,8 +31,8 @@ export async function useUserTable({
   const sorting = ref(defaultSorting || [{ id: "last_seen", desc: true }]);
   const tableRef = ref();
 
-  // Client-only mode
-  const clientOnly = ref(true);
+  // Client-only mode (set false for high-volume server-side pages, e.g. Visitors)
+  const clientOnly = ref(clientOnlyOption);
 
   // Late-bound refresh function (assigned after useLazySanctumFetch)
   let _fetchUsers = null;
@@ -384,6 +385,64 @@ export async function useUserTable({
     }
   };
 
+  // Bulk force-logout handlers
+  const forceLogoutDialogOpen = ref(false);
+  const forceLogoutPending = ref(false);
+  const handleForceLogoutRows = async (selectedRows) => {
+    const userIds = selectedRows.map((row) => row.original.id);
+    try {
+      forceLogoutPending.value = true;
+      const client = useSanctumClient();
+      const response = await client("/api/users/bulk/force-logout", {
+        method: "POST",
+        body: { ids: userIds },
+      });
+      forceLogoutDialogOpen.value = false;
+      if (tableRef.value?.table) {
+        tableRef.value.table.resetRowSelection();
+      }
+      toast.success(response.message || "Users signed out", {
+        description: `${response.count} user(s) signed out everywhere`,
+      });
+    } catch (error) {
+      console.error("Failed to force logout users:", error);
+      toast.error("Failed to sign out users", {
+        description: error?.data?.message || error?.message || "An error occurred",
+      });
+    } finally {
+      forceLogoutPending.value = false;
+    }
+  };
+
+  // Bulk send-password-reset handlers
+  const sendResetDialogOpen = ref(false);
+  const sendResetPending = ref(false);
+  const handleSendResetRows = async (selectedRows) => {
+    const userIds = selectedRows.map((row) => row.original.id);
+    try {
+      sendResetPending.value = true;
+      const client = useSanctumClient();
+      const response = await client("/api/users/bulk/send-password-reset", {
+        method: "POST",
+        body: { ids: userIds },
+      });
+      sendResetDialogOpen.value = false;
+      if (tableRef.value?.table) {
+        tableRef.value.table.resetRowSelection();
+      }
+      toast.success(response.message || "Reset links sent", {
+        description: `${response.count} link(s) sent`,
+      });
+    } catch (error) {
+      console.error("Failed to send reset links:", error);
+      toast.error("Failed to send reset links", {
+        description: error?.data?.message || error?.message || "An error occurred",
+      });
+    } finally {
+      sendResetPending.value = false;
+    }
+  };
+
   // Restore handlers (trash mode only)
   const restoreDialogOpen = ref(false);
   const restorePending = ref(false);
@@ -461,6 +520,12 @@ export async function useUserTable({
     deleteDialogOpen,
     deletePending,
     handleDeleteRows,
+    forceLogoutDialogOpen,
+    forceLogoutPending,
+    handleForceLogoutRows,
+    sendResetDialogOpen,
+    sendResetPending,
+    handleSendResetRows,
 
     // Trash-specific bulk dialogs
     restoreDialogOpen,

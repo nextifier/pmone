@@ -14,6 +14,10 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Staff-only fields (internal notes, invoice/receipt) must never leak to
+        // exhibitors, who consume this same resource via the dashboard.
+        $isStaff = $request->user()?->hasRole(['master', 'admin', 'staff']) ?? false;
+
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
@@ -26,6 +30,15 @@ class OrderResource extends JsonResource
             'cancellation_reason' => $this->cancellation_reason,
             'order_period' => $this->order_period,
             'notes' => $this->notes,
+            'internal_notes' => $this->when($isStaff, fn () => $this->internal_notes),
+            'invoice' => $this->when($isStaff, fn () => $this->hasMedia('invoice') ? [
+                'name' => $this->getFirstMedia('invoice')?->name,
+                'url' => $this->getFirstMediaUrl('invoice'),
+            ] : null),
+            'receipt' => $this->when($isStaff, fn () => $this->hasMedia('receipt') ? [
+                'name' => $this->getFirstMedia('receipt')?->name,
+                'url' => $this->getFirstMediaUrl('receipt'),
+            ] : null),
             'subtotal' => $this->subtotal,
             'discount_amount' => (float) $this->discount_amount,
             'penalty_amount' => (float) $this->penalty_amount,
@@ -46,6 +59,7 @@ class OrderResource extends JsonResource
                 'quantity' => $item->quantity,
                 'total_price' => $item->total_price,
                 'notes' => $item->notes,
+                'internal_notes' => $isStaff ? $item->internal_notes : null,
             ])),
             'brand_event' => $this->whenLoaded('brandEvent', fn () => [
                 'id' => $this->brandEvent->id,

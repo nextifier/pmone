@@ -23,7 +23,9 @@ class BrandEventsExport extends BaseExport
     ) {
         $this->eventDocuments = EventDocument::where('event_id', $this->eventId)
             ->ordered()
-            ->get();
+            ->get()
+            ->reject(fn (EventDocument $doc) => $doc->isEventRule())
+            ->values();
 
         $this->documentSubmissions = EventDocumentSubmission::where('event_id', $this->eventId)
             ->get()

@@ -311,21 +311,30 @@
               </template>
 
               <template v-else-if="table.getRowModel().rows?.length">
-                <TableRow
-                  v-for="row in table.getRowModel().rows"
-                  :key="row.id"
-                  :data-state="row.getIsSelected() && 'selected'"
-                  class="group tracking-tight"
-                >
-                  <TableCell
-                    v-for="cell in row.getVisibleCells()"
-                    :key="cell.id"
-                    :style="{ width: `${cell.column.getSize()}px` }"
-                    class="py-2.5"
+                <template v-for="row in table.getRowModel().rows" :key="row.id">
+                  <TableRow
+                    :data-state="row.getIsSelected() && 'selected'"
+                    class="group tracking-tight"
                   >
-                    <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
-                  </TableCell>
-                </TableRow>
+                    <TableCell
+                      v-for="cell in row.getVisibleCells()"
+                      :key="cell.id"
+                      :style="{ width: `${cell.column.getSize()}px` }"
+                      class="py-2.5"
+                    >
+                      <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                    </TableCell>
+                  </TableRow>
+                  <TableRow
+                    v-if="$slots['expanded-row'] && row.getIsExpanded()"
+                    :key="`${row.id}-expanded`"
+                    class="hover:bg-transparent"
+                  >
+                    <TableCell :colspan="row.getVisibleCells().length" class="bg-muted/30 p-0">
+                      <slot name="expanded-row" :row="row" />
+                    </TableCell>
+                  </TableRow>
+                </template>
               </template>
             </TableBody>
           </Table>
@@ -493,11 +502,14 @@ import { valueUpdater } from "@/components/ui/table/utils";
 import {
   FlexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useVueTable,
 } from "@tanstack/vue-table";
+
+const slots = useSlots();
 
 const props = defineProps({
   // Data
@@ -618,6 +630,7 @@ const columnFilters = ref(props.initialColumnFilters);
 const columnVisibility = ref(props.initialColumnVisibility);
 const pagination = ref(props.initialPagination);
 const sorting = ref(props.initialSorting);
+const expanded = ref({});
 
 // Watch for state changes and emit to parent
 watch(rowSelection, (value) => emit("update:rowSelection", value), { deep: true });
@@ -638,6 +651,10 @@ const table = useVueTable({
   getFilteredRowModel: isClientSideMode.value ? getFilteredRowModel() : undefined,
   getSortedRowModel: isClientSideMode.value ? getSortedRowModel() : undefined,
   getPaginationRowModel: isClientSideMode.value ? getPaginationRowModel() : undefined,
+  // Row expansion is opt-in: only enabled when the consumer provides an
+  // #expanded-row slot, so existing tables are unaffected.
+  getExpandedRowModel: getExpandedRowModel(),
+  getRowCanExpand: () => !!slots["expanded-row"],
   manualPagination: !isClientSideMode.value,
   manualSorting: !isClientSideMode.value,
   manualFiltering: !isClientSideMode.value,
@@ -659,12 +676,16 @@ const table = useVueTable({
     get columnVisibility() {
       return columnVisibility.value;
     },
+    get expanded() {
+      return expanded.value;
+    },
   },
   onSortingChange: (updater) => valueUpdater(updater, sorting),
   onPaginationChange: (updater) => valueUpdater(updater, pagination),
   onColumnFiltersChange: (updater) => valueUpdater(updater, columnFilters),
   onColumnVisibilityChange: (updater) => valueUpdater(updater, columnVisibility),
   onRowSelectionChange: (updater) => valueUpdater(updater, rowSelection),
+  onExpandedChange: (updater) => valueUpdater(updater, expanded),
   enableSortingRemoval: false,
 });
 

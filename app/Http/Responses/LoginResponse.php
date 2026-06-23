@@ -13,7 +13,7 @@ class LoginResponse implements LoginResponseContract
         $user = $request->user();
 
         // Mark user as logged in
-        $user->markAsLoggedIn($request->ip());
+        $user->markAsLoggedIn($request->ip(), $request->userAgent());
 
         // Create token
         $token = $user->createToken('auth-token', ['*'], now()->addDays(30))->plainTextToken;

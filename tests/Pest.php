@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Tests\TestCase;
 
 /*
@@ -49,4 +50,26 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Create an active, verified user holding `users.read` plus the given
+ * security permissions. Requires RoleAndPermissionSeeder to have run.
+ *
+ * @param  array<int, string>  $permissions
+ */
+function securityTestUser(array $permissions = []): User
+{
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+        'status' => 'active',
+    ]);
+
+    $user->assignRole('user');
+
+    foreach (array_merge(['users.read'], $permissions) as $permission) {
+        $user->givePermissionTo($permission);
+    }
+
+    return $user;
 }
