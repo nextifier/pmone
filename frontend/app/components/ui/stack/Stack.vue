@@ -37,6 +37,13 @@ const props = withDefaults(
 
 const count = computed(() => Math.max(1, Math.floor(props.layers ?? 3)));
 
+/**
+ * b-t / t-b are FACE-ON stacked cards (front card biggest, cards behind shrink +
+ * recede + fade) - a flat illustration, not the 3D rotated stack. Verbatim from
+ * reui's "No products" (b-t) and "Looking for something?" (t-b) empty states.
+ */
+const isVertical = computed(() => props.direction === "b-t" || props.direction === "t-b");
+
 const tdir = computed(
   () => stackThickness[(props.direction ?? "br-tl") as StackDirection] ?? stackThickness["br-tl"],
 );
@@ -132,6 +139,47 @@ function layerStyle(i: number): CSSProperties {
   }
   return style;
 }
+
+/** Face-on (b-t/t-b): front (i = count-1) full size, each card behind shrinks. */
+function verticalScale(i: number): number {
+  return Number((1 - (count.value - 1 - i) * 0.13).toFixed(3));
+}
+
+/** Face-on vertical offset px: t-b front sits on top, b-t front sits at bottom. */
+function verticalOffset(i: number): number {
+  const dir = props.direction === "t-b" ? -1 : 1;
+  return dir * (i - (count.value - 1) / 2) * (props.gap ?? 59) * tdir.value.gapScale;
+}
+
+function verticalLayerStyle(i: number): CSSProperties {
+  return {
+    opacity: opacityFor(i),
+    width: "var(--st-size)",
+    height: "var(--st-size)",
+    scale: String(verticalScale(i)),
+    translate: `-50% calc(-50% + ${verticalOffset(i)}px + var(--vspread, 0px))`,
+  };
+}
+
+/**
+ * Face-on lift-apart on hover (avatar-group-hover pattern): each card fans
+ * further along the recede axis - front toward its edge, back away - then
+ * settles back. Static per-layer values (no var*var). Reuses --avatar tokens.
+ */
+function verticalHover(i: number): string {
+  if (!props.interactive) {
+    return "";
+  }
+  const dir = props.direction === "t-b" ? -1 : 1;
+  const s = Math.sign(dir * (i - (count.value - 1) / 2));
+  if (s > 0) {
+    return "group-hover/stack:[--vspread:7px]";
+  }
+  if (s < 0) {
+    return "group-hover/stack:[--vspread:-7px]";
+  }
+  return "";
+}
 </script>
 
 <template>
@@ -140,7 +188,36 @@ function layerStyle(i: number): CSSProperties {
     :class="cn('group/stack relative flex shrink-0 items-center justify-center', props.class)"
     :style="rootStyle"
   >
+    <!-- Vertical (b-t / t-b): face-on stack - front card biggest, cards behind
+         shrink + offset + fade. Same card style as the diagonals (square, bg-card,
+         border, outlined thickness, icon, opacity fade); only the pose differs. -->
     <div
+      v-if="isVertical"
+      class="relative size-(--st-size) translate-y-0 transition-[translate] duration-(--avatar-dur) ease-(--avatar-ease-in) motion-reduce:transition-none starting:translate-y-1"
+    >
+      <div
+        v-for="i in count"
+        :key="i"
+        :class="
+          cn(
+            'absolute top-1/2 left-1/2 flex items-center justify-center rounded-[14%] border border-border bg-card',
+            'transition-[translate] duration-(--avatar-dur) ease-(--avatar-ease-in) motion-reduce:transition-none [--vspread:0px]',
+            i - 1 === count - 1 && 'shadow-sm',
+            verticalHover(i - 1)
+          )
+        "
+        :style="verticalLayerStyle(i - 1)"
+        :aria-hidden="i - 1 !== count - 1 || undefined"
+      >
+        <slot :name="`layer-${count - (i - 1)}`">
+          <slot v-if="i - 1 === count - 1" />
+        </slot>
+      </div>
+    </div>
+
+    <!-- Diagonal: 3D rotated isometric stack -->
+    <div
+      v-else
       :class="
         cn(
           stackVariants({ direction }),

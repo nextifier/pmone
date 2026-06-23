@@ -16,8 +16,10 @@ export const stackVariants = cva("relative transform-3d", {
       "bl-tr": "-rotate-x-12 -rotate-y-24 skew-y-24",
       "tl-br": "rotate-x-12 -rotate-y-24 -skew-y-24",
       "tr-bl": "rotate-x-12 rotate-y-24 skew-y-24",
-      "b-t": "[transform:rotateX(-34deg)_skewX(-9deg)_skewY(5deg)]",
-      "t-b": "[transform:rotateX(34deg)_skewX(-9deg)_skewY(-5deg)]",
+      // b-t / t-b are face-on layered cards (reui style), rendered by a dedicated
+      // branch in Stack.vue, so they don't use a 3D scene transform.
+      "b-t": "",
+      "t-b": "",
     },
   },
   defaultVariants: {
@@ -42,9 +44,9 @@ export const stackThickness: Record<
   "bl-tr": { tx: 1, ty: -1, gapScale: 1, depthScale: 1 },
   "tl-br": { tx: 1, ty: 1, gapScale: 1, depthScale: 1 },
   "tr-bl": { tx: -1, ty: 1, gapScale: 1, depthScale: 1 },
-  // Vertical poses are rotateX-only (upright content, straight recede). They read
-  // as the reference "card on a stack of slabs" via deeper thickness (depthScale)
-  // + tight stacking, not a fancier pose.
-  "b-t": { tx: 0, ty: -1, gapScale: 0.58, depthScale: 3 },
-  "t-b": { tx: 0, ty: 1, gapScale: 0.58, depthScale: 3 },
+  // b-t / t-b are FACE-ON (no 3D): front card biggest, cards behind shrink + offset
+  // + fade (reui arrangement). gapScale = vertical offset step; same depth/thickness
+  // + bg-card + border + icon as the other variants (consistent style).
+  "b-t": { tx: 0, ty: -1, gapScale: 0.24, depthScale: 1 },
+  "t-b": { tx: 0, ty: 1, gapScale: 0.24, depthScale: 1 },
 };
