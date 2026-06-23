@@ -6,8 +6,8 @@
     <VisXYContainer
       :data="plotData"
       :svg-defs="gradient ? svgDefs : undefined"
-      :margin="{ left: 8, right: 0 }"
-      :padding="{ top: 12, bottom: 12 }"
+      :margin="margin"
+      :padding="{ top: 12, bottom: 0 }"
       :y-domain="[0, undefined]"
     >
       <VisArea
@@ -99,6 +99,10 @@ const props = defineProps({
   numXTicks: {
     type: Number,
     default: 6,
+  },
+  margin: {
+    type: Object,
+    default: () => ({ top: 8, right: 8, bottom: 18, left: 26 }),
   },
   xTickFormatter: {
     type: Function,

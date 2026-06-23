@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Actions\ContactForm\SubmitContactFormAction;
+use App\Exceptions\ContactFormUnavailableException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactFormSubmitRequest;
 use App\Models\Project;
@@ -44,6 +45,13 @@ class ContactFormController extends Controller
                 'message' => 'Your message has been sent successfully. We will get back to you soon.',
                 'submission_id' => $submission->ulid,
             ], 201);
+        } catch (ContactFormUnavailableException $e) {
+            // Business condition (form turned off for this project), not a server
+            // fault: return 403 so disabled-form spam does not flood error logs as 500s.
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 403);
         } catch (\Exception $e) {
             logger()->error('Contact form submission failed', [
                 'error' => $e->getMessage(),

@@ -3,12 +3,14 @@
 namespace App\Actions\ContactForm;
 
 use App\Enums\ContactFormStatus;
+use App\Exceptions\ContactFormUnavailableException;
 use App\Helpers\PhoneCountryHelper;
 use App\Jobs\ProcessContactFormSubmission;
 use App\Models\ContactFormSubmission;
 use App\Models\Project;
 use App\Notifications\NewInboxMessageNotification;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 
 class SubmitContactFormAction
 {
@@ -24,7 +26,7 @@ class SubmitContactFormAction
     {
         // Validate project has contact form enabled
         if (! $this->project->isContactFormEnabled()) {
-            throw new \Exception('Contact form is not enabled for this project.');
+            throw new ContactFormUnavailableException('Contact form is not enabled for this project.');
         }
 
         // Validate email config exists
@@ -66,7 +68,7 @@ class SubmitContactFormAction
             foreach ($recipients as $recipient) {
                 $recipient->notify(new NewInboxMessageNotification($submission));
             }
-        } catch (\Spatie\Permission\Exceptions\PermissionDoesNotExist $e) {
+        } catch (PermissionDoesNotExist $e) {
             // Permission not synced yet, skip notifications
         }
 

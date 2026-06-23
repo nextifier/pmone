@@ -302,6 +302,27 @@ test('contact form submission accepts valid honeypot data', function () {
     $response->assertStatus(201);
 });
 
+test('contact form submission returns 403 (not 500) when the form is disabled for the project', function () {
+    Project::factory()->create([
+        'username' => 'disabledproject',
+        'settings' => ['contact_form' => ['enabled' => false]],
+    ]);
+
+    $response = postJsonWithApiKey($this, '/api/contact-forms/submit', [
+        'project_username' => 'disabledproject',
+        'data' => [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'phone' => '08123456789',
+        ],
+    ]);
+
+    $response->assertStatus(403)
+        ->assertJson(['success' => false]);
+
+    expect(ContactFormSubmission::where('subject', 'Contact Form')->count())->toBe(0);
+});
+
 // Rate Limiting & Real Client IP Tests
 
 test('contact form submission throttles bursts from the same IP', function () {

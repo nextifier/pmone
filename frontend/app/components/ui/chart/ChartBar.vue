@@ -17,6 +17,7 @@
         :rounded-corners="roundedCorners"
         :orientation="horizontal ? Orientation.Horizontal : Orientation.Vertical"
         :bar-padding="0.2"
+        :bar-max-width="barMaxWidth || undefined"
       />
       <VisGroupedBar
         v-else
@@ -26,6 +27,7 @@
         :rounded-corners="roundedCorners"
         :orientation="horizontal ? Orientation.Horizontal : Orientation.Vertical"
         :bar-padding="0.2"
+        :bar-max-width="barMaxWidth || undefined"
       />
       <VisAxis
         v-if="horizontal"
@@ -112,7 +114,13 @@ const props = defineProps({
   },
   roundedCorners: {
     type: Number,
-    default: 6,
+    default: 4,
+  },
+  // Caps bar thickness so sparse data (few categories) doesn't blow up into
+  // giant bars. null leaves Unovis' default (bars fill their band).
+  barMaxWidth: {
+    type: Number,
+    default: null,
   },
   margin: {
     type: Object,
@@ -123,6 +131,12 @@ const props = defineProps({
     default: null,
   },
   yTickFormatter: {
+    type: Function,
+    default: null,
+  },
+  // Formats the value shown in the tooltip (e.g. currency). Falls back to
+  // toLocaleString when not provided.
+  valueFormatter: {
     type: Function,
     default: null,
   },
@@ -147,7 +161,11 @@ const barColor = computed(() => {
 const categoryValues = computed(() => props.data.map((d) => d[props.xKey]));
 
 const resolvedMargin = computed(
-  () => props.margin || (props.horizontal ? { left: 8, right: 8 } : { left: 4, right: 0, top: 8 })
+  () =>
+    props.margin ||
+    (props.horizontal
+      ? { top: 4, right: 8, bottom: 4, left: 60 }
+      : { top: 6, right: 8, bottom: 18, left: 26 })
 );
 
 const defaultXFormat = (d) => {
@@ -163,7 +181,13 @@ const currentConfig = computed(() => props.config);
 const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
   indicator: isMulti.value ? "dashed" : "dot",
   hideLabel: false,
+  valueFormatter: props.valueFormatter || undefined,
+  // Reuse the axis formatter for the tooltip's x label so index-based charts
+  // (numeric x) read the real category instead of a bogus epoch date.
   labelFormatter: (d) => {
+    if (props.xTickFormatter) {
+      return props.xTickFormatter(d);
+    }
     const date = new Date(d);
     return Number.isNaN(date.getTime())
       ? String(d)

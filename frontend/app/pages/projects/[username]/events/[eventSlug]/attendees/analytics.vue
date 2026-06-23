@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 pb-16">
+  <div class="space-y-12 pb-16">
     <!-- Header -->
     <div class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:items-start sm:justify-between">
       <div class="min-w-0 space-y-1.5">
@@ -32,14 +32,14 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="pending" class="space-y-8">
+    <div v-if="pending" class="space-y-12">
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <Skeleton v-for="i in 6" :key="`k-${i}`" class="h-28 rounded-xl" />
       </div>
-      <Skeleton class="h-72 rounded-xl" />
-      <div class="grid gap-6 lg:grid-cols-2">
-        <Skeleton class="h-56 rounded-xl" />
-        <Skeleton class="h-56 rounded-xl" />
+      <Skeleton class="h-80 rounded-xl" />
+      <div class="grid gap-4 lg:grid-cols-2">
+        <Skeleton class="h-72 rounded-xl" />
+        <Skeleton class="h-72 rounded-xl" />
       </div>
     </div>
 
@@ -114,41 +114,49 @@
 
       <!-- Registrations & revenue trend -->
       <section
-        class="t-panel-slide space-y-4"
+        class="t-panel-slide"
         :data-open="revealed"
         :style="{ '--panel-translate-y': '18px', transitionDelay: '70ms' }"
       >
-        <div class="flex flex-col gap-y-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 class="text-base font-medium tracking-tight">Registrations over time</h2>
-            <p class="text-muted-foreground text-sm tracking-tight">
-              How {{ metricMeta[metric].noun }} accumulated as the campaign ran.
+        <Card>
+          <CardHeader class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="space-y-1.5">
+              <CardTitle>Registrations over time</CardTitle>
+              <CardDescription>
+                How {{ metricMeta[metric].noun }} accumulated as the campaign ran.
+              </CardDescription>
+            </div>
+            <Tabs v-model="metric" variant="segmented" class="w-full sm:w-fit">
+              <TabsList class="w-full sm:w-auto">
+                <TabsIndicator />
+                <TabsTrigger
+                  v-for="opt in metricOptions"
+                  :key="opt.value"
+                  :value="opt.value"
+                  class="flex-1 sm:flex-none"
+                >
+                  {{ opt.label }}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardHeader>
+          <CardContent>
+            <ChartArea
+              v-if="trendData.length > 1"
+              :key="metric"
+              :data="trendData"
+              :config="trendConfig"
+              :data-key="metric"
+              :y-tick-formatter="metric === 'revenue' ? formatRupiahCompact : null"
+              :margin="trendAreaMargin"
+              gradient
+              class="h-64! w-full"
+            />
+            <p v-else class="text-muted-foreground py-16 text-center text-sm tracking-tight">
+              Not enough activity yet to draw a trend.
             </p>
-          </div>
-          <Tabs v-model="metric" variant="segmented" class="w-fit">
-            <TabsList>
-              <TabsIndicator />
-              <TabsTrigger v-for="opt in metricOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-        <div class="bg-card rounded-xl border p-4 sm:p-5">
-          <ChartArea
-            v-if="trendData.length > 1"
-            :key="metric"
-            :data="trendData"
-            :config="trendConfig"
-            :data-key="metric"
-            :y-tick-formatter="metric === 'revenue' ? formatRupiahCompact : null"
-            gradient
-            class="h-64! w-full"
-          />
-          <p v-else class="text-muted-foreground py-16 text-center text-sm tracking-tight">
-            Not enough activity yet to draw a trend.
-          </p>
-        </div>
+          </CardContent>
+        </Card>
       </section>
 
       <!-- Check-in flow + by day -->
@@ -170,45 +178,51 @@
             <span class="text-muted-foreground"> no-shows · {{ s.no_show_rate ?? 0 }}% of sold</span>
           </div>
         </div>
-        <div class="grid gap-6 lg:grid-cols-2">
-          <div class="bg-card rounded-xl border p-4 sm:p-5">
-            <p class="text-muted-foreground mb-3 text-sm font-medium tracking-tight">
-              Arrivals by hour
-            </p>
-            <ChartBar
-              v-if="checkInFlow.length"
-              :data="checkInFlow"
-              :config="{ count: { label: 'Check-ins', color: 'var(--chart-2)' } }"
-              data-key="count"
-              x-key="date"
-              :x-tick-formatter="formatHour"
-              class="h-56! w-full"
-            />
-            <p v-else class="text-muted-foreground py-14 text-center text-sm tracking-tight">
-              No check-ins recorded yet.
-            </p>
-          </div>
-          <div class="bg-card rounded-xl border p-4 sm:p-5">
-            <p class="text-muted-foreground mb-3 text-sm font-medium tracking-tight">
-              Attendance by day
-            </p>
-            <div v-if="d.by_event_day.length" class="flex flex-wrap justify-center gap-x-4 gap-y-2">
-              <div v-for="day in d.by_event_day" :key="day.day_number" class="w-[148px]">
-                <ChartSemiCircle
-                  :value="day.checked_in"
-                  :max="Math.max(s.total_attendees, 1)"
-                  :center-label="day.label"
-                  class="w-full"
-                />
-                <p class="text-muted-foreground text-center text-xs tracking-tight sm:text-sm">
-                  {{ formatDate(day.date) }}
-                </p>
-              </div>
-            </div>
-            <p v-else class="text-muted-foreground py-14 text-center text-sm tracking-tight">
-              No event days configured.
-            </p>
-          </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Arrivals by hour</CardTitle>
+              <CardDescription>Check-ins grouped by hour</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartBar
+                v-if="checkInFlow.length"
+                :data="checkInFlow"
+                :config="{ count: { label: 'Check-ins', color: 'var(--chart-1)' } }"
+                data-key="count"
+                x-key="idx"
+                :x-tick-formatter="checkInLabel"
+                :bar-max-width="48"
+                :margin="{ top: 6, right: 10, bottom: 18, left: 16 }"
+                class="h-56! w-full"
+              />
+              <p v-else class="text-muted-foreground py-14 text-center text-sm tracking-tight">
+                No check-ins recorded yet.
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Attendance by day</CardTitle>
+              <CardDescription>Checked in on each event day</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartBar
+                v-if="attendanceData.length"
+                :data="attendanceData"
+                :config="{ checked_in: { label: 'Checked in', color: 'var(--chart-1)' } }"
+                data-key="checked_in"
+                x-key="idx"
+                :x-tick-formatter="attendanceLabel"
+                :bar-max-width="100"
+                :margin="{ top: 6, right: 10, bottom: 18, left: 22 }"
+                class="h-56! w-full"
+              />
+              <p v-else class="text-muted-foreground py-14 text-center text-sm tracking-tight">
+                No event days configured.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -225,22 +239,6 @@
             Sales, attendance and revenue for each ticket type.
           </p>
         </div>
-        <div class="bg-card rounded-xl border p-4 sm:p-5">
-          <p class="text-muted-foreground mb-3 text-sm font-medium tracking-tight">
-            Tickets sold by type
-          </p>
-          <ChartBar
-            :data="ticketSoldData"
-            :config="{ sold: { label: 'Sold', color: 'var(--chart-1)' } }"
-            data-key="sold"
-            x-key="idx"
-            horizontal
-            :x-tick-formatter="ticketSoldLabel"
-            :margin="{ left: 120, right: 8, top: 8, bottom: 8 }"
-            :style="{ height: `${Math.max(200, ticketSoldData.length * 46)}px` }"
-            class="w-full"
-          />
-        </div>
         <div class="overflow-hidden rounded-xl border">
           <div
             class="text-muted-foreground bg-muted/40 hidden grid-cols-[2fr_1fr_1.4fr_1.2fr] gap-x-4 px-4 py-2.5 text-xs font-medium tracking-tight sm:grid"
@@ -256,9 +254,17 @@
               :key="t.ticket_id"
               class="grid grid-cols-2 gap-x-4 gap-y-2 px-4 py-3.5 sm:grid-cols-[2fr_1fr_1.4fr_1.2fr] sm:items-center"
             >
-              <div class="col-span-2 flex items-center gap-x-2 sm:col-span-1">
-                <span class="truncate text-sm font-medium tracking-tight">{{ t.title }}</span>
-                <Badge v-if="t.tier" variant="muted" class="shrink-0">{{ t.tier }}</Badge>
+              <div class="col-span-2 space-y-2 sm:col-span-1">
+                <div class="flex items-center gap-x-2">
+                  <span class="truncate text-sm font-medium tracking-tight">{{ t.title }}</span>
+                  <Badge v-if="t.tier" variant="muted" class="shrink-0">{{ t.tier }}</Badge>
+                </div>
+                <div class="bg-muted h-1.5 w-full max-w-[240px] overflow-hidden rounded-full">
+                  <div
+                    class="h-full rounded-full transition-[width] duration-700 ease-out"
+                    :style="{ width: `${soldPct(t)}%`, backgroundColor: 'var(--chart-1)' }"
+                  />
+                </div>
               </div>
               <div class="tabular-nums sm:text-right">
                 <span class="text-muted-foreground text-xs tracking-tight sm:hidden">Sold </span>
@@ -301,76 +307,97 @@
             Where revenue came from and the state of every order.
           </p>
         </div>
-        <div class="grid gap-x-10 gap-y-8 lg:grid-cols-2">
-          <div v-if="d.payment_channels.length" class="space-y-3">
-            <p class="text-muted-foreground text-sm font-medium tracking-tight">Payment channels</p>
-            <AnalyticsBarList :items="paymentItems" :format-value="formatCurrency" />
-          </div>
-          <div v-if="d.order_status.length" class="space-y-3">
-            <p class="text-muted-foreground text-sm font-medium tracking-tight">Order status</p>
-            <ChartPie
-              :data="orderStatusData"
-              :config="orderStatusConfig"
-              value-key="count"
-              name-key="status"
-              :arc-width="28"
-              :total="s.total_orders"
-              center-sub-label="orders"
-              class="mx-auto"
-            />
-            <div class="flex flex-wrap justify-center gap-x-4 gap-y-1.5">
-              <div
-                v-for="o in d.order_status"
-                :key="o.status"
-                class="flex items-center gap-x-1.5 text-sm tracking-tight"
-              >
-                <span
-                  class="size-2 shrink-0 rounded-[2px]"
-                  :style="{ backgroundColor: TONE_VAR[o.color] || 'var(--chart-1)' }"
-                />
-                <span class="text-muted-foreground">{{ o.label }}</span>
-                <span class="text-foreground font-medium tabular-nums">{{ formatNumber(o.count) }}</span>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <Card v-if="d.payment_channels.length">
+            <CardHeader>
+              <CardTitle>Payment channels</CardTitle>
+              <CardDescription>Revenue by payment method</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartBar
+                :data="paymentChartData"
+                :config="{ value: { label: 'Revenue', color: 'var(--chart-1)' } }"
+                data-key="value"
+                x-key="idx"
+                horizontal
+                :x-tick-formatter="paymentChartLabel"
+                :value-formatter="formatCurrency"
+                :margin="hbarMargin"
+                :style="{ height: `${Math.max(150, paymentChartData.length * 44)}px` }"
+                class="w-full"
+              />
+            </CardContent>
+          </Card>
+          <Card v-if="d.order_status.length">
+            <CardHeader>
+              <CardTitle>Order status</CardTitle>
+              <CardDescription>Every order by current state</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartPie
+                :data="orderStatusData"
+                :config="orderStatusConfig"
+                value-key="count"
+                name-key="status"
+                :arc-width="28"
+                :total="s.total_orders"
+                center-sub-label="orders"
+                class="mx-auto"
+              />
+              <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+                <div
+                  v-for="(o, i) in d.order_status"
+                  :key="o.status"
+                  class="flex items-center gap-x-1.5 text-sm tracking-tight"
+                >
+                  <span
+                    class="size-2 shrink-0 rounded-[2px]"
+                    :style="{ backgroundColor: orderStatusColor(i) }"
+                  />
+                  <span class="text-muted-foreground">{{ o.label }}</span>
+                  <span class="text-foreground font-medium tabular-nums">{{ formatNumber(o.count) }}</span>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       <!-- Business Matching participation -->
       <section
         v-if="bm?.has_questions"
-        class="t-panel-slide space-y-4"
+        class="t-panel-slide"
         :data-open="revealed"
         :style="{ '--panel-translate-y': '18px', transitionDelay: '335ms' }"
       >
-        <div>
-          <h2 class="text-base font-medium tracking-tight">Business Matching</h2>
-          <p class="text-muted-foreground text-sm tracking-tight">
-            Buyers who opted in and shared an intake profile.
-          </p>
-        </div>
-        <div class="border-border rounded-xl border p-4 sm:p-5">
-          <div class="flex items-end justify-between gap-3">
-            <div>
-              <p class="text-2xl font-semibold tracking-tighter tabular-nums">
-                {{ formatNumber(bm.opted_in) }}
-                <span class="text-muted-foreground text-base font-normal tracking-tight">
-                  / {{ formatNumber(bm.buyers) }} buyers
-                </span>
-              </p>
-              <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
-                opted into Business Matching
-              </p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Business Matching</CardTitle>
+            <CardDescription>Buyers who opted in and shared an intake profile.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div class="flex items-end justify-between gap-3">
+              <div>
+                <p class="text-2xl font-semibold tracking-tighter tabular-nums">
+                  {{ formatNumber(bm.opted_in) }}
+                  <span class="text-muted-foreground text-base font-normal tracking-tight">
+                    / {{ formatNumber(bm.buyers) }} buyers
+                  </span>
+                </p>
+                <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+                  opted into Business Matching
+                </p>
+              </div>
+              <span class="text-2xl font-semibold tracking-tighter tabular-nums">{{ bm.opt_in_rate }}%</span>
             </div>
-            <span class="text-2xl font-semibold tracking-tighter tabular-nums">{{ bm.opt_in_rate }}%</span>
-          </div>
-          <div class="bg-muted mt-3 h-2 overflow-hidden rounded-full">
-            <div
-              class="bg-primary h-full rounded-full transition-[width] duration-500"
-              :style="{ width: `${Math.min(bm.opt_in_rate, 100)}%` }"
-            />
-          </div>
-        </div>
+            <div class="bg-muted mt-3 h-2 overflow-hidden rounded-full">
+              <div
+                class="h-full rounded-full transition-[width] duration-500"
+                :style="{ width: `${Math.min(bm.opt_in_rate, 100)}%`, backgroundColor: 'var(--chart-1)' }"
+              />
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       <!-- Demographics -->
@@ -386,22 +413,33 @@
             Self-reported answers from the business-matching profile.
           </p>
         </div>
-        <div class="grid gap-x-10 gap-y-8 lg:grid-cols-2">
-          <div v-for="field in d.demographics" :key="field.field_id" class="space-y-3">
-            <div class="flex items-baseline justify-between gap-2">
-              <p class="text-muted-foreground text-sm font-medium tracking-tight">{{ field.label }}</p>
-              <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+        <div class="grid gap-4 lg:grid-cols-2">
+          <Card v-for="field in d.demographics" :key="field.field_id">
+            <CardHeader>
+              <CardTitle>{{ field.label }}</CardTitle>
+              <CardDescription>
                 <template v-if="field.average !== null && field.average !== undefined">
                   avg {{ field.average }} ·
                 </template>
                 {{ formatNumber(field.total_responses) }} resp<template v-if="field.response_rate">
                   · {{ field.response_rate }}% answered</template>
-              </span>
-            </div>
-            <AnalyticsBarList
-              :items="field.breakdown.map((b) => ({ label: b.value, value: b.count, tone: 'info' }))"
-            />
-          </div>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartBar
+                :data="field.breakdown.map((b, i) => ({ idx: i, value: b.count }))"
+                :config="{ value: { label: field.label, color: 'var(--chart-1)' } }"
+                data-key="value"
+                x-key="idx"
+                horizontal
+                :x-tick-formatter="(i) => clampLabel(field.breakdown[i]?.value)"
+                :value-formatter="formatNumber"
+                :margin="hbarMargin"
+                :style="{ height: `${Math.max(150, field.breakdown.length * 40)}px` }"
+                class="w-full"
+              />
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -418,50 +456,64 @@
             Exhibitor connections and the most active buyers.
           </p>
         </div>
-        <div class="grid gap-x-10 gap-y-8 lg:grid-cols-2">
-          <div v-if="leads" class="space-y-3">
-            <div class="flex items-baseline justify-between gap-2">
-              <p class="text-muted-foreground text-sm font-medium tracking-tight">Exhibitor leads</p>
-              <span class="text-foreground text-sm font-medium tabular-nums tracking-tight">
-                {{ formatNumber(leads.total) }} captured
-              </span>
-            </div>
-            <AnalyticsBarList
-              v-if="leads.by_brand.length"
-              :items="leads.by_brand.map((b) => ({ label: b.name, value: b.leads }))"
-            />
-            <p v-else class="text-muted-foreground text-sm tracking-tight">
-              No badge scans recorded yet.
-            </p>
-          </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <Card v-if="leads">
+            <CardHeader>
+              <CardTitle>Exhibitor leads</CardTitle>
+              <CardDescription>{{ formatNumber(leads.total) }} captured across booths</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartBar
+                v-if="leads.by_brand.length"
+                :data="leadsChartData"
+                :config="{ value: { label: 'Leads', color: 'var(--chart-1)' } }"
+                data-key="value"
+                x-key="idx"
+                horizontal
+                :x-tick-formatter="leadsChartLabel"
+                :value-formatter="formatNumber"
+                :margin="hbarMargin"
+                :style="{ height: `${Math.max(150, leadsChartData.length * 44)}px` }"
+                class="w-full"
+              />
+              <p v-else class="text-muted-foreground text-sm tracking-tight">
+                No badge scans recorded yet.
+              </p>
+            </CardContent>
+          </Card>
 
-          <div v-if="d.top_buyers.length" class="space-y-3">
-            <p class="text-muted-foreground text-sm font-medium tracking-tight">Top buyers</p>
-            <ul class="divide-border divide-y">
-              <li
-                v-for="(buyer, i) in d.top_buyers"
-                :key="i"
-                class="flex items-center justify-between gap-3 py-2.5"
-              >
-                <div class="flex min-w-0 items-center gap-x-3">
-                  <span
-                    class="bg-muted text-muted-foreground squircle flex size-7 shrink-0 items-center justify-center text-xs font-medium tabular-nums"
-                  >
-                    {{ i + 1 }}
-                  </span>
-                  <div class="min-w-0">
-                    <p class="truncate text-sm font-medium tracking-tight">{{ buyer.name }}</p>
-                    <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
-                      {{ buyer.tickets }} tickets · {{ buyer.orders }} orders
-                    </p>
+          <Card v-if="d.top_buyers.length">
+            <CardHeader>
+              <CardTitle>Top buyers</CardTitle>
+              <CardDescription>Highest spend this event</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul class="divide-border divide-y">
+                <li
+                  v-for="(buyer, i) in d.top_buyers"
+                  :key="i"
+                  class="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <div class="flex min-w-0 items-center gap-x-3">
+                    <span
+                      class="bg-muted text-muted-foreground squircle flex size-7 shrink-0 items-center justify-center text-xs font-medium tabular-nums"
+                    >
+                      {{ i + 1 }}
+                    </span>
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-medium tracking-tight">{{ buyer.name }}</p>
+                      <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
+                        {{ buyer.tickets }} tickets · {{ buyer.orders }} orders
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <span class="shrink-0 text-sm font-medium tabular-nums tracking-tight">
-                  {{ formatCurrency(buyer.total_spent) }}
-                </span>
-              </li>
-            </ul>
-          </div>
+                  <span class="shrink-0 text-sm font-medium tabular-nums tracking-tight">
+                    {{ formatCurrency(buyer.total_spent) }}
+                  </span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </template>
@@ -469,7 +521,7 @@
 </template>
 
 <script setup>
-import AnalyticsBarList from "@/components/AnalyticsBarList.vue";
+import { useMediaQuery } from "@vueuse/core";
 import { useAttendeeAnalytics } from "@/composables/useAttendeeAnalytics";
 
 definePageMeta({
@@ -540,6 +592,16 @@ const { formatRupiahFull, formatRupiahCompact, rupiahCompactParts } = useFormatt
 // unambiguous compact value, clicking any value reveals the exact full number.
 const expanded = ref(false);
 
+// Horizontal bar charts waste width on phones: the category gutter eats most of
+// a narrow card. Shrink the left margin + truncate labels harder on mobile.
+const isMobile = useMediaQuery("(max-width: 639px)");
+const hbarMargin = computed(() => ({
+  top: 6,
+  right: 8,
+  bottom: 6,
+  left: isMobile.value ? 70 : 100,
+}));
+
 const formatNumber = (value) => new Intl.NumberFormat("id-ID").format(value ?? 0);
 // IDR only: compact uses Indonesian short scale (rb/jt/miliar) so it is never
 // misread as the English "M". Expanding reveals the exact rupiah.
@@ -548,11 +610,14 @@ const formatCurrency = (value) =>
 
 const sellThrough = (t) =>
   t.capacity > 0 ? Math.round(((t.sold ?? 0) / t.capacity) * 100) : 0;
-const formatDate = (value) =>
-  value
-    ? new Date(value).toLocaleDateString("en-US", { day: "numeric", month: "short" })
-    : "";
-const formatHour = (value) => new Date(value).toLocaleTimeString("en-US", { hour: "numeric" });
+
+// Keep horizontal-bar category labels from running into the plot area; trim
+// tighter on mobile where the gutter is smaller.
+const clampLabel = (value) => {
+  const str = String(value ?? "");
+  const max = isMobile.value ? 12 : 16;
+  return str.length > max ? `${str.slice(0, max - 1)}…` : str;
+};
 
 const kpis = computed(() => [
   {
@@ -606,8 +671,8 @@ const metricOptions = [
 ];
 const metricMeta = {
   tickets: { noun: "ticket sales", color: "var(--chart-1)", label: "Tickets sold" },
-  revenue: { noun: "revenue", color: "var(--chart-2)", label: "Revenue" },
-  orders: { noun: "orders", color: "var(--chart-4)", label: "Orders" },
+  revenue: { noun: "revenue", color: "var(--chart-1)", label: "Revenue" },
+  orders: { noun: "orders", color: "var(--chart-1)", label: "Orders" },
 };
 
 // Running cumulative so each metric reads as growth over the campaign.
@@ -626,49 +691,78 @@ const trendData = computed(() => {
 const trendConfig = computed(() => ({
   [metric.value]: { label: metricMeta[metric.value].label, color: metricMeta[metric.value].color },
 }));
+// Left gutter sized to the widest y-axis label: rupiah-compact (revenue) is much
+// wider than the plain counts, so reserve more only for that metric.
+const trendAreaMargin = computed(() => ({
+  top: 8,
+  right: 10,
+  bottom: 18,
+  left: metric.value === "revenue" ? 46 : 28,
+}));
 
+// Even index spacing (not the raw timestamp) so sparse hour buckets render as
+// tidy, evenly-spaced bars with non-overlapping labels.
 const checkInFlow = computed(() =>
-  (d.value?.check_ins_over_time ?? []).map((row) => ({ date: new Date(row.slot), count: row.count }))
+  (d.value?.check_ins_over_time ?? []).map((row, i) => ({ idx: i, slot: row.slot, count: row.count }))
 );
+const checkInLabel = (i) => {
+  const slot = checkInFlow.value[i]?.slot;
+  return slot ? new Date(slot).toLocaleTimeString("en-US", { hour: "numeric" }) : "";
+};
 
-// Bar lists ───────────────────────────────────────────────────────────────────
-const paymentItems = computed(() =>
-  (d.value?.payment_channels ?? []).map((c) => ({
-    label: c.channel,
-    value: c.revenue,
-    secondary: `${formatNumber(c.orders)} orders`,
+// Checked-in per event day as a bar chart (clearer than near-identical gauges).
+const attendanceData = computed(() =>
+  (d.value?.by_event_day ?? []).map((day, i) => ({
+    idx: i,
+    label: day.label,
+    checked_in: day.checked_in,
   }))
 );
-// Order status donut: categorical share with semantic tone colours.
-const TONE_VAR = {
-  success: "var(--success)",
-  warning: "var(--warning)",
-  destructive: "var(--destructive)",
-  muted: "var(--muted-foreground)",
-  info: "var(--info)",
-};
+const attendanceLabel = (i) => attendanceData.value[i]?.label ?? "";
+
+// Horizontal bar charts (shadcn "Bar Chart - Horizontal"): category on the left
+// axis, value via tooltip. Numeric idx keeps Unovis bars evenly spaced.
+const paymentChartData = computed(() =>
+  (d.value?.payment_channels ?? []).map((c, i) => ({ idx: i, value: c.revenue, label: c.channel }))
+);
+const paymentChartLabel = (i) => clampLabel(paymentChartData.value[i]?.label);
+
+const leadsChartData = computed(() =>
+  (leads.value?.by_brand ?? []).map((b, i) => ({ idx: i, value: b.leads, label: b.name }))
+);
+const leadsChartLabel = (i) => clampLabel(leadsChartData.value[i]?.label);
+
+// Order status donut: monochrome share. Each status steps through the neutral
+// chart ramp (chart-1 darkest/lightest) so it stays grayscale like the rest.
+const CHART_VARS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
+const orderStatusColor = (i) => CHART_VARS[i % CHART_VARS.length];
 const orderStatusData = computed(() =>
   (d.value?.order_status ?? []).map((o) => ({
     status: o.status,
     count: o.count,
     label: o.label,
-    fill: `var(--color-${o.status})`,
   }))
 );
 const orderStatusConfig = computed(() => ({
   count: { label: "Orders" },
   ...Object.fromEntries(
-    (d.value?.order_status ?? []).map((o) => [
+    (d.value?.order_status ?? []).map((o, i) => [
       o.status,
-      { label: o.label, color: TONE_VAR[o.color] || "var(--chart-1)" },
+      { label: o.label, color: orderStatusColor(i) },
     ])
   ),
 }));
 
-// Tickets sold by type: horizontal bar summary above the detail table.
-// Unovis bars need a numeric x, so we plot by index and label the axis with the title.
-const ticketSoldData = computed(() =>
-  (d.value?.by_ticket_type ?? []).map((t, i) => ({ idx: i, name: t.title, sold: t.sold }))
+// Per-row sell bar inside the ticket table, scaled to the best-selling type so
+// the table reads as a ranked breakdown without a redundant standalone chart.
+const maxTicketSold = computed(() =>
+  Math.max(1, ...(d.value?.by_ticket_type ?? []).map((t) => t.sold ?? 0))
 );
-const ticketSoldLabel = (i) => ticketSoldData.value[i]?.name ?? "";
+const soldPct = (t) => Math.max(2, Math.round(((t.sold ?? 0) / maxTicketSold.value) * 100));
 </script>
