@@ -280,7 +280,7 @@
   --vis-tooltip-padding: none !important;
   --vis-font-family: inherit !important;
   --vis-area-stroke-width: 2px !important;
-  --vis-donut-central-label-text-color: hsl(var(--muted-foreground)) !important;
+  --vis-donut-central-label-text-color: var(--foreground) !important;
 
   --vis-primary-color: var(--primary);
   /* change to any hsl value you want */

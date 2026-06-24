@@ -42,15 +42,16 @@
           >
             {{ currentAction.action }}
           </Button>
-          <NuxtLink
+          <Button
             v-if="brandEventWithOrders"
             :to="`/brands/${brandEventWithOrders.brand.slug}/orders/${brandEventWithOrders.brand_event_id}`"
+            size="sm"
+            variant="outline"
+            class="w-full sm:w-auto"
           >
-            <Button size="sm" variant="outline" class="w-full sm:w-auto">
-              <Icon name="hugeicons:shopping-cart-01" class="mr-1.5 size-4" />
-              {{ $t("ed.hero.viewOrders") }}
-            </Button>
-          </NuxtLink>
+            <Icon name="hugeicons:shopping-cart-01" class="mr-1.5 size-4" />
+            {{ $t("ed.hero.viewOrders") }}
+          </Button>
         </div>
       </div>
     </div>

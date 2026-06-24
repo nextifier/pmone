@@ -136,6 +136,17 @@ export function useFormatters() {
     return map[status] || "bg-muted text-muted-foreground";
   }
 
+  function orderStatusVariant(status) {
+    const map = {
+      submitted: "info",
+      confirmed: "success",
+      processing: "warning",
+      completed: "success",
+      cancelled: "destructive",
+    };
+    return map[status] || "muted";
+  }
+
   return {
     formatDate,
     formatDateTime,
@@ -149,5 +160,6 @@ export function useFormatters() {
     formatCountCompact,
     formatDateId,
     orderStatusClass,
+    orderStatusVariant,
   };
 }

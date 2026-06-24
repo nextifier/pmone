@@ -18,7 +18,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-20">
-      <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
+      <Spinner class="text-muted-foreground size-6" />
     </div>
 
     <template v-else-if="pageData">
@@ -68,14 +68,14 @@
             <div class="shrink-0">
               <div
                 v-if="getStatus(item) === 'completed'"
-                class="flex items-center gap-x-1 text-green-600"
+                class="text-success-foreground flex items-center gap-x-1"
               >
                 <Icon name="hugeicons:checkmark-circle-02" class="size-5" />
                 <span class="text-xs font-medium tracking-tight sm:text-sm">Done</span>
               </div>
               <div
                 v-else-if="getStatus(item) === 'needs_reagreement'"
-                class="flex items-center gap-x-1 text-amber-600"
+                class="text-warning-foreground flex items-center gap-x-1"
               >
                 <Icon name="hugeicons:alert-02" class="size-5" />
                 <span class="text-xs font-medium tracking-tight sm:text-sm">Updated</span>
@@ -127,7 +127,7 @@
               </p>
               <p
                 v-if="getStatus(item) === 'needs_reagreement'"
-                class="text-xs tracking-tight text-amber-600 sm:text-sm"
+                class="text-warning-foreground text-xs tracking-tight sm:text-sm"
               >
                 The document has been updated. Please re-agree to the latest version.
               </p>
@@ -145,7 +145,7 @@
                 >
                   View uploaded file
                 </a>
-                <Icon name="hugeicons:checkmark-circle-02" class="size-4 text-green-500" />
+                <Icon name="hugeicons:checkmark-circle-02" class="text-success-foreground size-4" />
               </div>
 
               <div class="space-y-2">
@@ -163,11 +163,7 @@
                   :disabled="submittingId === item.document.id"
                   @click="handleFileUpload(item)"
                 >
-                  <Icon
-                    v-if="submittingId === item.document.id"
-                    name="svg-spinners:ring-resize"
-                    class="mr-1.5 size-4"
-                  />
+                  <Spinner v-if="submittingId === item.document.id" class="mr-1.5 size-4" />
                   Upload
                 </Button>
               </div>
@@ -226,11 +222,7 @@
                   "
                   @click="handleTextSubmit(item)"
                 >
-                  <Icon
-                    v-if="submittingId === item.document.id"
-                    name="svg-spinners:ring-resize"
-                    class="mr-1.5 size-4"
-                  />
+                  <Spinner v-if="submittingId === item.document.id" class="mr-1.5 size-4" />
                   {{ item.submission ? "Update" : "Submit" }}
                 </Button>
               </div>
@@ -251,6 +243,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";

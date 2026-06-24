@@ -11,7 +11,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-20">
-      <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
+      <Spinner class="text-muted-foreground size-6" />
     </div>
 
     <template v-else-if="order">
@@ -37,7 +37,7 @@
             <span>Onsite Order - includes {{ formatPrice(order.penalty_amount) }} surcharge</span>
           </div>
         </div>
-        <Badge :class="statusClass(order.operational_status)" class="shrink-0 capitalize">
+        <Badge :variant="statusVariant(order.operational_status)" class="shrink-0 capitalize">
           {{ order.operational_status_label || order.operational_status }}
         </Badge>
       </div>
@@ -162,6 +162,7 @@
 
 <script setup>
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -190,7 +191,7 @@ async function fetchOrder() {
   }
 }
 
-const { formatPrice, formatDateId: formatDate, orderStatusClass: statusClass } = useFormatters();
+const { formatPrice, formatDateId: formatDate, orderStatusVariant: statusVariant } = useFormatters();
 
 onMounted(fetchOrder);
 usePageMeta(

@@ -32,11 +32,10 @@ const padAngle = (2 * Math.PI) / 180;
         :config="config"
         value-key="count"
         name-key="status"
+        :radius="100"
         :arc-width="35"
         :corner-radius="5"
         :pad-angle="padAngle"
-        segment-stroke-color="var(--background)"
-        :segment-stroke-width="2"
         :center-label="centerLabel"
         center-sub-label="Completed"
         legend

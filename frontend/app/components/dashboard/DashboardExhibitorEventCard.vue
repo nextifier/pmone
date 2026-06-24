@@ -47,7 +47,7 @@
         v-for="dl in deadlines"
         :key="dl.label"
         class="flex items-center gap-1.5 text-xs tracking-tight sm:text-sm"
-        :class="dl.urgent ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'"
+        :class="dl.urgent ? 'text-warning-foreground' : 'text-muted-foreground'"
       >
         <Icon :name="dl.icon" class="size-3.5" />
         <span>{{ dl.label }}: {{ dl.date }}</span>

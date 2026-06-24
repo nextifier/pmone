@@ -9,13 +9,13 @@
         </div>
       </div>
 
-      <NuxtLink
+      <Button
         :to="`/brands/${route.params.slug}/order-form/${route.params.brandEventId}`"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
+        size="sm"
       >
-        <Icon name="hugeicons:add-01" class="size-4" />
+        <Icon name="hugeicons:add-01" class="mr-1.5 size-4" />
         {{ $t("orders.newOrder") }}
-      </NuxtLink>
+      </Button>
     </div>
 
     <!-- Loading Skeleton -->
@@ -54,7 +54,7 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-x-2">
                 <p class="font-mono text-sm font-medium">{{ order.order_number }}</p>
-                <Badge :class="statusClass(order.operational_status)" class="capitalize">
+                <Badge :variant="statusVariant(order.operational_status)" class="capitalize">
                   {{ order.operational_status_label || order.operational_status }}
                 </Badge>
               </div>
@@ -94,29 +94,31 @@
     </template>
 
     <!-- Empty state -->
-    <div v-else class="border-border flex flex-col items-center gap-3 rounded-xl border px-4 py-12">
-      <div class="bg-muted flex size-12 items-center justify-center rounded-full">
-        <Icon name="hugeicons:shopping-bag-01" class="text-muted-foreground size-6" />
-      </div>
-      <div class="text-center">
-        <p class="text-sm font-medium">{{ $t("orders.noOrdersYet") }}</p>
-        <p class="text-muted-foreground mt-1 text-xs tracking-tight sm:text-sm">
-          {{ $t("orders.placeFirstOrder") }}
-        </p>
-      </div>
-      <NuxtLink
-        :to="`/brands/${route.params.slug}/order-form/${route.params.brandEventId}`"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-sm font-medium tracking-tight transition active:scale-98"
-      >
-        <Icon name="hugeicons:add-01" class="size-4" />
-        {{ $t("orders.placeAnOrder") }}
-      </NuxtLink>
-    </div>
+    <Empty v-else>
+      <EmptyHeader>
+        <EmptyMedia variant="icon">
+          <Icon name="hugeicons:shopping-bag-01" />
+        </EmptyMedia>
+        <EmptyTitle>{{ $t("orders.noOrdersYet") }}</EmptyTitle>
+        <EmptyDescription>{{ $t("orders.placeFirstOrder") }}</EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <Button
+          :to="`/brands/${route.params.slug}/order-form/${route.params.brandEventId}`"
+          size="sm"
+        >
+          <Icon name="hugeicons:add-01" class="mr-1.5 size-4" />
+          {{ $t("orders.placeAnOrder") }}
+        </Button>
+      </EmptyContent>
+    </Empty>
   </div>
 </template>
 
 <script setup>
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -147,7 +149,7 @@ async function fetchOrders() {
   }
 }
 
-const { formatPrice, formatDateId: formatDate, orderStatusClass: statusClass } = useFormatters();
+const { formatPrice, formatDateId: formatDate, orderStatusVariant: statusVariant } = useFormatters();
 
 onMounted(fetchOrders);
 </script>

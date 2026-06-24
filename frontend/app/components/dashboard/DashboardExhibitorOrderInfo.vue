@@ -54,30 +54,33 @@
 
     <!-- Action buttons -->
     <div class="flex flex-wrap items-center gap-2">
-      <NuxtLink
+      <Button
         v-if="canOrder"
         :to="`/brands/${be.brand.slug}/order-form/${be.brand_event_id}`"
-        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-x-1.5 rounded-lg px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
+        size="sm"
       >
-        <Icon name="hugeicons:shopping-cart-01" class="size-3.5" />
+        <Icon name="hugeicons:shopping-cart-01" class="mr-1.5 size-4" />
         {{ be.orders_count > 0 ? $t("ed.order.newOrder") : $t("ed.order.openForm") }}
-      </NuxtLink>
+      </Button>
       <p v-else class="text-muted-foreground text-sm tracking-tight">
         {{ closedMessage }}
       </p>
-      <NuxtLink
+      <Button
         v-if="be.orders_count > 0"
         :to="`/brands/${be.brand.slug}/orders/${be.brand_event_id}`"
-        class="border-border hover:bg-muted inline-flex items-center gap-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
+        size="sm"
+        variant="outline"
       >
-        <Icon name="hugeicons:shopping-bag-01" class="size-3.5" />
+        <Icon name="hugeicons:shopping-bag-01" class="mr-1.5 size-4" />
         {{ $t("ed.order.viewOrders") }}
-      </NuxtLink>
+      </Button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
+
 const { t, locale } = useI18n();
 
 const props = defineProps({

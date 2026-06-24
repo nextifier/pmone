@@ -16,17 +16,20 @@
         <ChartTooltip :triggers="tooltipTriggers" />
       </VisSingleContainer>
     </template>
-    <!-- Active segment: base donut + a larger overlay arc, both in a sized,
-         relative box so the legend can sit below without overlapping. Unovis sets
-         an inline position, so absolute/inset are forced with !. -->
+    <!-- Donut sits in a fixed-size square box so its size & vertical position are
+         consistent regardless of radius/center-label, and the legend flows below
+         it (never constrained inside the square). Unovis sets an inline position,
+         so absolute/inset are forced with !. The active-segment overlay is an
+         optional second donut painted only on the active slice at a larger radius. -->
     <div
-      v-else-if="activeArcWidth"
-      class="relative mx-auto aspect-square w-full max-w-[250px] [&_[data-vis-single-container]]:absolute! [&_[data-vis-single-container]]:inset-0!"
+      v-else
+      class="relative mx-auto aspect-square w-full [&_[data-vis-single-container]]:absolute! [&_[data-vis-single-container]]:inset-0!"
+      :style="{ maxWidth: donutBoxMaxWidth }"
     >
       <VisSingleContainer
         :data="data"
         :svg-defs="svgDefs || undefined"
-        :margin="{ top: 20, bottom: 20 }"
+        :margin="{ top: 12, bottom: 12 }"
       >
         <VisDonut
           :value="(d) => d[valueKey]"
@@ -42,8 +45,9 @@
         <ChartTooltip :triggers="tooltipTriggers" />
       </VisSingleContainer>
       <VisSingleContainer
+        v-if="activeArcWidth"
         :data="data"
-        :margin="{ top: 20, bottom: 20 }"
+        :margin="{ top: 12, bottom: 12 }"
         class="pointer-events-none"
       >
         <VisDonut
@@ -56,26 +60,6 @@
         />
       </VisSingleContainer>
     </div>
-    <template v-else>
-      <VisSingleContainer
-        :data="data"
-        :svg-defs="svgDefs || undefined"
-        :margin="{ top: 20, bottom: 20 }"
-      >
-        <VisDonut
-          :value="(d) => d[valueKey]"
-          :color="segmentColorAccessor"
-          :arc-width="arcWidth"
-          :corner-radius="cornerRadius"
-          :pad-angle="padAngle"
-          :radius="radius || undefined"
-          :central-label="resolvedCenterLabel || ''"
-          :central-sub-label="centerSubLabel || ''"
-          :central-label-offset-y="centerSubLabel ? 10 : 0"
-        />
-        <ChartTooltip :triggers="tooltipTriggers" />
-      </VisSingleContainer>
-    </template>
     <ChartLegendContent v-if="legend" :name-key="nameKey" />
   </ChartContainer>
 </template>
@@ -247,21 +231,22 @@ const activeColorAccessor = computed(() => {
   return (d, i) => (i === props.activeIndex ? base(d) : "transparent");
 });
 
-const baseClass = computed(() => {
-  const base = "mx-auto aspect-square max-h-[250px] h-auto!";
-  if (resolvedLayers.value) {
-    return `relative ${base} [&_[data-vis-single-container]]:absolute!`;
-  }
-  if (validActiveIndex.value) {
-    // Auto-height column: the inner wrapper handles the square donut box and the
-    // legend flows beneath it.
-    return "mx-auto flex w-full max-w-[280px] flex-col items-center h-auto!";
-  }
-  return base;
-});
+// The donut box is normally a tight square; when a segment expands it must be
+// large enough for the active outer radius (+ container margin) to render unclipped.
+const donutBoxMaxWidth = computed(() =>
+  validActiveIndex.value ? `${props.activeOuterRadius * 2 + 28}px` : "224px"
+);
 
 const containerClass = computed(() => {
-  const classes = [baseClass.value];
+  const classes = [];
+  if (resolvedLayers.value) {
+    // Concentric rings stack as absolutely-positioned containers in a square.
+    classes.push("relative mx-auto aspect-square max-h-[250px] h-auto! [&_[data-vis-single-container]]:absolute!");
+  } else {
+    // Auto-height column: the fixed-size donut box + legend flow vertically so
+    // spacing is consistent and the legend never overflows the square.
+    classes.push("mx-auto flex w-full flex-col items-center h-auto!");
+  }
   if (props.donutFilter) {
     classes.push(`[&_.vis-donut]:[filter:${props.donutFilter}]`);
   }
@@ -276,6 +261,9 @@ const mergedStyle = computed(() => {
   if (resolvedCenterLabel.value) {
     style["--vis-donut-central-label-font-size"] = "1.5rem";
     style["--vis-donut-central-label-font-weight"] = "600";
+    // Inline (on ChartContainer) so it wins for the donut subtree over Unovis'
+    // :root default; the big value uses foreground, the sub-label muted.
+    style["--vis-donut-central-label-text-color"] = "var(--foreground)";
     style["--vis-donut-central-sub-label-text-color"] = "var(--muted-foreground)";
   }
   if (props.segmentStrokeColor) {

@@ -36,8 +36,6 @@
       </template>
 
       <div class="ml-auto flex h-full shrink-0 items-center gap-x-1 sm:gap-x-2">
-        <LanguageSwitcher v-if="isExhibitor" />
-
         <KeyboardShortcutsDialog class="hidden sm:flex" />
 
         <ColorModeToggle />
@@ -75,7 +73,6 @@
 </template>
 
 <script setup>
-import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { useSidebar } from "@/components/ui/sidebar/utils";
 
@@ -89,7 +86,4 @@ defineProps({
 const { toggleSidebar, open, isMobile } = useSidebar();
 const { metaSymbol } = useShortcuts();
 const { isAuthenticated } = useSanctumAuth();
-const { hasRole, isStaffOrAbove } = usePermission();
-
-const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
 </script>

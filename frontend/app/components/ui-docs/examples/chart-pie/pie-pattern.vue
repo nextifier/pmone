@@ -43,8 +43,6 @@ const padAngle = (2 * Math.PI) / 180;
         :corner-radius="4"
         :pad-angle="padAngle"
         :svg-defs="svgDefs"
-        segment-stroke-color="var(--background)"
-        :segment-stroke-width="2"
         legend
       />
     </ChartCard>

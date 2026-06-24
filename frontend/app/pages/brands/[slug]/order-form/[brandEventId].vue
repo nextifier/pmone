@@ -66,7 +66,7 @@
       <!-- Order Period Banner -->
       <div
         v-if="info.current_period === 'onsite_order'"
-        class="mt-4 flex items-center gap-x-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300"
+        class="border-warning/40 bg-warning/10 text-warning-foreground mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
         <span>
@@ -77,7 +77,7 @@
       <!-- Order Closed Banner -->
       <div
         v-if="!canOrder"
-        class="mt-4 flex items-center gap-x-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+        class="border-destructive/40 bg-destructive/10 text-destructive mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
         <span>The order form is currently closed. No active order period at this time.</span>
@@ -463,7 +463,7 @@
               {{ $t("common.back") }}
             </button>
             <Button @click="handleSubmitOrder" :disabled="submitting">
-              <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              <Spinner v-if="submitting" class="mr-1.5 size-4" />
               {{ submitting ? $t("common.submitting") : $t("orderForm.submitOrder") }}
             </Button>
           </div>
@@ -481,6 +481,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrderCart } from "@/composables/useOrderCart";
 import { toast } from "vue-sonner";

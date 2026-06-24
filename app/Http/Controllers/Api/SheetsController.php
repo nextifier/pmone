@@ -372,11 +372,9 @@ class SheetsController extends Controller
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
         // Dynamic operational-document columns (non-event-rule docs only).
-        // This sheet spans all events, so columns are qualified by event title
-        // and submissions are keyed by event_id + booth_identifier.
+        // This sheet spans all events; each row only fills its own event's
+        // columns (submissions are keyed by event_id + booth_identifier).
         $eventIds = $brandEvents->pluck('event_id')->filter()->unique()->values()->all();
-        $eventTitles = $brandEvents->pluck('event')->filter()->unique('id')
-            ->mapWithKeys(fn ($e) => [$e->id => $e->title])->all();
 
         $operationalDocs = EventDocument::query()
             ->whereIn('event_id', $eventIds)
@@ -415,8 +413,7 @@ class SheetsController extends Controller
         ];
 
         foreach ($operationalDocs as $doc) {
-            $eventTitle = $eventTitles[$doc->event_id] ?? ('Event '.$doc->event_id);
-            $headings[] = 'Doc: ['.$eventTitle.'] '.$doc->title;
+            $headings[] = 'Doc: '.$doc->title;
         }
 
         $rows = $brandEvents->map(function (BrandEvent $brandEvent) use ($linkLabels, $operationalDocs, $documentSubmissions) {

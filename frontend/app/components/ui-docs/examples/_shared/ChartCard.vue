@@ -23,7 +23,11 @@ const props = defineProps({
 });
 
 const isCenter = computed(() => props.variant === "center");
-const cardClass = computed(() => (props.size === "xs" ? "w-full max-w-xs" : "w-full max-w-md"));
+const cardClass = computed(() => {
+  const base = props.size === "xs" ? "w-full max-w-xs" : "w-full max-w-md";
+  // Tighten the header->content gap for centered donut cards (default gap-6 is too airy).
+  return isCenter.value ? `${base} gap-2` : base;
+});
 </script>
 
 <template>

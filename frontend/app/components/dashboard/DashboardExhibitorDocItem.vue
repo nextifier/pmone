@@ -13,8 +13,8 @@
         </Badge>
         <Badge
           v-if="status === 'needs_reagreement'"
-          variant="outline"
-          class="border-amber-200 bg-amber-50 text-xs font-normal tracking-tight text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400"
+          variant="warning"
+          class="text-xs font-normal tracking-tight"
         >
           {{ $t("ed.docs.updated") }}
         </Badge>
@@ -164,7 +164,7 @@
               :disabled="submitting"
               @click="handleFileUpload"
             >
-              <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              <Spinner v-if="submitting" class="mr-1.5 size-4" />
               {{ currentSubmission?.submission_file ? $t("ed.docs.replace") : $t("ed.docs.upload") }}
             </Button>
             <Button
@@ -197,7 +197,7 @@
           <Textarea v-model="textValue" :placeholder="$t('ed.docs.placeholder')" rows="3" />
           <div class="flex gap-2">
             <Button size="sm" :disabled="submitting || !textValue.trim()" @click="handleTextSubmit">
-              <Icon v-if="submitting" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              <Spinner v-if="submitting" class="mr-1.5 size-4" />
               {{ currentSubmission?.text_value ? $t("ed.docs.update") : $t("ed.docs.submit") }}
             </Button>
             <Button
@@ -218,6 +218,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
@@ -254,13 +255,6 @@ function formatDeadline(dateStr) {
   );
 }
 
-const typeIcon = computed(() => {
-  if (props.doc.document_type === "checkbox_agreement") return "hugeicons:file-validation";
-  if (props.doc.document_type === "file_upload") return "hugeicons:file-upload";
-  if (props.doc.document_type === "text_input") return "hugeicons:text-font";
-  return "hugeicons:file-01";
-});
-
 const hasFiles = computed(() => {
   return props.doc.template_en || props.doc.template_id || props.doc.example_file;
 });
@@ -291,14 +285,6 @@ function getMediaUrl(media) {
   if (!media) return "";
   if (typeof media === "string") return media;
   return media.url || media.original || "";
-}
-
-function downloadFilename(title, lang) {
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return `${slug}-${lang}.pdf`;
 }
 
 async function handleFileUpload() {

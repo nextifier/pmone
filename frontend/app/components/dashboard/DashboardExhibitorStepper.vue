@@ -1,4 +1,22 @@
 <template>
+  <!-- Mobile: compact progress -->
+  <div class="sm:hidden">
+    <div class="mb-1.5 flex items-center justify-between gap-2">
+      <span class="text-foreground truncate text-sm font-medium tracking-tight">
+        {{ currentStep.label }}
+      </span>
+      <span class="text-muted-foreground shrink-0 text-xs tracking-tight">
+        {{ completedCount }}/{{ steps.length }}
+      </span>
+    </div>
+    <div class="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+      <div
+        class="bg-primary h-full rounded-full transition-all duration-300"
+        :style="{ width: `${progressPct}%` }"
+      />
+    </div>
+  </div>
+
   <!-- Desktop: Horizontal -->
   <div class="hidden sm:block">
     <div class="flex items-center">
@@ -65,4 +83,18 @@ const props = defineProps({
 defineEmits(["jump"]);
 
 const completedCount = computed(() => props.steps.filter((s) => s.completed).length);
+
+const progressPct = computed(() =>
+  props.steps.length ? Math.round((completedCount.value / props.steps.length) * 100) : 0
+);
+
+const currentStep = computed(() => {
+  const steps = props.steps;
+  return (
+    steps.find((s) => s.current) ||
+    steps.find((s) => !s.completed && !s.locked) ||
+    steps[steps.length - 1] ||
+    { label: "" }
+  );
+});
 </script>

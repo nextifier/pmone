@@ -13,7 +13,7 @@
 
     <!-- Loading -->
     <div v-if="pending" class="flex items-center justify-center py-20">
-      <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
+      <Spinner class="text-muted-foreground size-6" />
     </div>
 
     <template v-else-if="pageData">
@@ -49,8 +49,8 @@
         :class="[
           'flex items-center gap-x-3 rounded-lg border px-4 py-3 text-xs tracking-tight sm:text-sm',
           isDeadlinePassed
-            ? 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300'
-            : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300',
+            ? 'border-destructive/40 bg-destructive/10 text-destructive'
+            : 'border-warning/40 bg-warning/10 text-warning-foreground',
         ]"
       >
         <Icon
@@ -120,7 +120,7 @@
               size="sm"
               :disabled="creating || !newPostFiles.length || isDeadlinePassed || isLimitReached"
             >
-              <Icon v-if="creating" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              <Spinner v-if="creating" class="mr-1.5 size-4" />
               {{ $t("promotionPosts.uploadPost") }}
             </Button>
           </form>
@@ -173,11 +173,7 @@
               </div>
               <div class="flex gap-2">
                 <Button size="sm" :disabled="savingReorder" @click="saveReorder(post.id)">
-                  <Icon
-                    v-if="savingReorder"
-                    name="svg-spinners:ring-resize"
-                    class="mr-1.5 size-4"
-                  />
+                  <Spinner v-if="savingReorder" class="mr-1.5 size-4" />
                   {{ $t("common.save") }}
                 </Button>
                 <Button size="sm" variant="ghost" @click="cancelReorder">
@@ -234,11 +230,7 @@
                     :disabled="savingAddImages || !addImageFiles.length"
                     @click="saveAddImages(post.id)"
                   >
-                    <Icon
-                      v-if="savingAddImages"
-                      name="svg-spinners:ring-resize"
-                      class="mr-1.5 size-4"
-                    />
+                    <Spinner v-if="savingAddImages" class="mr-1.5 size-4" />
                     Upload
                   </Button>
                   <Button size="sm" variant="ghost" @click="cancelAddImages">
@@ -254,11 +246,7 @@
                     <Textarea v-model="editCaption" rows="2" />
                     <div class="flex gap-2">
                       <Button size="sm" :disabled="updatingPost" @click="updatePost(post.id)">
-                        <Icon
-                          v-if="updatingPost"
-                          name="svg-spinners:ring-resize"
-                          class="mr-1.5 size-4"
-                        />
+                        <Spinner v-if="updatingPost" class="mr-1.5 size-4" />
                         {{ $t("common.save") }}
                       </Button>
                       <Button size="sm" variant="ghost" @click="editingPostId = null">
@@ -310,14 +298,8 @@
                       :disabled="deletingPostId === post.id"
                       @click="confirmingDeleteId = post.id"
                     >
-                      <Icon
-                        :name="
-                          deletingPostId === post.id
-                            ? 'svg-spinners:ring-resize'
-                            : 'hugeicons:delete-02'
-                        "
-                        class="mr-1 size-3.5"
-                      />
+                      <Spinner v-if="deletingPostId === post.id" class="mr-1 size-3.5" />
+                      <Icon v-else name="hugeicons:delete-02" class="mr-1 size-3.5" />
                       {{ $t("common.delete") }}
                     </Button>
                   </div>
@@ -327,17 +309,14 @@
           </div>
         </div>
 
-        <div
-          v-else
-          class="border-border flex flex-col items-center gap-3 rounded-xl border px-4 py-12"
-        >
-          <div class="bg-muted flex size-12 items-center justify-center rounded-full">
-            <Icon name="hugeicons:image-02" class="text-muted-foreground size-6" />
-          </div>
-          <p class="text-muted-foreground text-sm tracking-tight">
-            {{ $t("promotionPosts.noPostsYet") }}
-          </p>
-        </div>
+        <Empty v-else>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Icon name="hugeicons:image-02" />
+            </EmptyMedia>
+            <EmptyTitle>{{ $t("promotionPosts.noPostsYet") }}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       </div>
     </template>
 
@@ -361,7 +340,7 @@
               :disabled="deletingPostId !== null"
               @click="deletePost(confirmingDeleteId)"
             >
-              <Icon v-if="deletingPostId" name="svg-spinners:ring-resize" class="mr-1.5 size-4" />
+              <Spinner v-if="deletingPostId" class="mr-1.5 size-4" />
               {{ $t("common.delete") }}
             </Button>
           </div>
@@ -373,7 +352,9 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 

@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\EventDocument;
+use App\Models\EventDocumentSubmission;
 use App\Models\EventProduct;
 use App\Models\EventProductCategory;
 use App\Models\Order;
@@ -323,7 +324,7 @@ it('orders sheet includes Badge Name and resolves Product Category title', funct
 it('brand-events sheet adds operational document columns but not event rules', function () {
     config()->set('services.sheets.api_token', 'test-token');
 
-    EventDocument::factory()->create([
+    $doc = EventDocument::factory()->create([
         'event_id' => $this->event->id,
         'title' => 'Floor Plan',
         'document_type' => 'text_input',
@@ -336,12 +337,28 @@ it('brand-events sheet adds operational document columns but not event rules', f
         'blocks_next_step' => true,
     ]);
 
+    // Submission keyed exactly like the controller (event_id + booth_identifier).
+    $boothIdentifier = $this->brandEvent->booth_number ?: 'be-'.$this->brandEvent->id;
+    EventDocumentSubmission::factory()->withTextValue('Hall A - Row 3')->create([
+        'event_document_id' => $doc->id,
+        'event_id' => $this->event->id,
+        'booth_identifier' => $boothIdentifier,
+    ]);
+
     $response = $this->getJson('/api/sheets/brand-events?token=test-token');
     $response->assertSuccessful();
 
     $headings = $response->json('headings');
     $docHeadings = collect($headings)->filter(fn ($h) => str_starts_with($h, 'Doc: '))->values();
 
+    // Operational doc is shown; blocking event-rule is excluded.
     expect($docHeadings)->toHaveCount(1);
-    expect($docHeadings->first())->toContain('Floor Plan');
+    // Heading carries the plain doc title, without the event-name qualifier.
+    expect($docHeadings->first())->toBe('Doc: Floor Plan');
+    expect($docHeadings->first())->not->toContain($this->event->title);
+
+    // The row cell under that column reflects the submitted value.
+    $docIndex = array_search('Doc: Floor Plan', $headings, true);
+    $rows = $response->json('rows');
+    expect($rows[0][$docIndex])->toBe('Hall A - Row 3');
 });
