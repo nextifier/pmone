@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toggleVariants } from "@/components/ui/toggle";
+import { togglePillClass, toggleVariants } from "@/components/ui/toggle";
 import { cn } from "@/lib/utils";
 import { reactiveOmit } from "@vueuse/core";
 import type { VariantProps } from "class-variance-authority";
@@ -35,11 +35,6 @@ const cvaVariant = computed<ToggleGroupVariants["variant"]>(() =>
 
 const delegatedProps = reactiveOmit(props, "class", "size", "variant");
 const forwardedProps = useForwardProps(delegatedProps);
-
-// Separated "pill" chip that matches the day picker on the event websites,
-// instead of the default connected segmented look.
-const pillClass =
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium tracking-tight outline-none transition-[color,box-shadow] hover:bg-muted disabled:pointer-events-none disabled:opacity-50 focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[1px] data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-foreground data-[state=on]:ring-1 data-[state=on]:ring-primary";
 </script>
 
 <template>
@@ -51,7 +46,7 @@ const pillClass =
     v-bind="forwardedProps"
     :class="
       resolvedVariant === 'pill'
-        ? cn(pillClass, props.class)
+        ? cn(togglePillClass, props.class)
         : cn(
             toggleVariants({
               variant: cvaVariant,

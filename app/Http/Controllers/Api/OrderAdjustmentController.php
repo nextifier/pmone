@@ -59,7 +59,7 @@ class OrderAdjustmentController extends Controller
             $adjustment = $this->createManualAdhocAdjustment($order, $data, $request->user()->id);
         }
 
-        $order = $order->fresh(['items.productCategory', 'brandEvent.brand', 'creator', 'adjustments']);
+        $order = $order->fresh(['items.productCategory', 'brandEvent.brand.media', 'creator', 'adjustments']);
 
         activity()
             ->causedBy($request->user())
@@ -105,7 +105,7 @@ class OrderAdjustmentController extends Controller
 
         $this->promoCodes->void($adjustment, 'admin_voided');
 
-        $order = $order->fresh(['items.productCategory', 'brandEvent.brand', 'creator', 'adjustments']);
+        $order = $order->fresh(['items.productCategory', 'brandEvent.brand.media', 'creator', 'adjustments']);
 
         activity()
             ->causedBy(auth()->user())

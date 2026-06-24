@@ -272,6 +272,7 @@
 import FilterSection from "@/components/inbox/FilterSection.vue";
 import OrderStatusDropdown from "@/components/order/StatusDropdown.vue";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -600,25 +601,43 @@ const columns = [
     cell: ({ row }) => {
       const order = row.original;
       const brand = order.brand_event?.brand;
-      return h(
-        "button",
-        {
-          type: "button",
-          class: "flex w-full cursor-pointer items-center gap-x-2 text-left",
-          onClick: () => toggleOrderExpand(row),
-        },
-        [
-          h(resolveComponent("Icon"), {
-            name: "lucide:chevron-right",
-            class: [
-              "size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-              row.getIsExpanded() ? "rotate-90" : "",
-            ],
-          }),
-          h("div", { class: "min-w-0" }, [
+      return h("div", { class: "flex w-full items-center gap-x-1" }, [
+        // Dedicated toggle button for the inline items accordion.
+        h(
+          "button",
+          {
+            type: "button",
+            class:
+              "bg-muted hover:bg-border inline-flex size-8 shrink-0 items-center justify-center rounded-full transition active:scale-95",
+            "aria-label": row.getIsExpanded() ? "Collapse items" : "Expand items",
+            "aria-expanded": row.getIsExpanded() ? "true" : "false",
+            onClick: () => toggleOrderExpand(row),
+          },
+          [
+            h(resolveComponent("Icon"), {
+              name: "lucide:chevron-right",
+              class: [
+                "text-muted-foreground size-4 shrink-0 transition-transform duration-200",
+                row.getIsExpanded() ? "rotate-90" : "",
+              ],
+            }),
+          ]
+        ),
+        // Clicking the order opens its detail page.
+        h(
+          "button",
+          {
+            type: "button",
+            class: "min-w-0 flex-1 cursor-pointer text-left",
+            onClick: () => navigateTo(orderDetailUrl(order)),
+          },
+          [
             h(
               "div",
-              { class: "font-mono text-sm font-medium tracking-tight" },
+              {
+                class:
+                  "font-mono text-sm font-medium tracking-tight underline-offset-2 hover:underline",
+              },
               order.order_number
             ),
             brand
@@ -630,9 +649,9 @@ const columns = [
                     : brand.name
                 )
               : null,
-          ]),
-        ]
-      );
+          ]
+        ),
+      ]);
     },
     size: 250,
     enableHiding: false,
@@ -730,21 +749,25 @@ const columns = [
         { class: "flex items-center justify-end" },
         [
           h(
-            "button",
+            Button,
             {
-              class: "hover:bg-muted inline-flex size-8 items-center justify-center rounded-md",
+              variant: "outline",
+              size: "sm",
               onClick: () => navigateTo(orderDetailUrl(row.original)),
             },
-            [
-              h(resolveComponent("Icon"), {
-                name: "lucide:chevron-right",
-                class: "text-muted-foreground size-4",
-              }),
-            ]
+            {
+              default: () => [
+                "View details",
+                h(resolveComponent("Icon"), {
+                  name: "hugeicons:arrow-right-01",
+                  class: "size-4 shrink-0",
+                }),
+              ],
+            }
           ),
         ]
       ),
-    size: 50,
+    size: 140,
     enableHiding: false,
     enableSorting: false,
   },

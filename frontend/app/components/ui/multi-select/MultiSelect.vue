@@ -5,7 +5,7 @@ import {
   ComboboxItem,
   ComboboxItemIndicator,
 } from "@/components/ui/combobox";
-import { LucideCheck, LucideX } from "lucide-vue-next";
+import { LucideCheck, LucideChevronsUpDown, LucideX } from "lucide-vue-next";
 import {
   ComboboxInput,
   ComboboxRoot,
@@ -82,7 +82,8 @@ const removeTag = (index: number) => {
         delimiter=""
         class="border-input focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative min-h-[38px] cursor-text rounded-md border p-1 text-sm transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
         :class="{
-          'pe-9': !hideClearAllButton,
+          'pe-8': !modelValue.length || hideClearAllButton,
+          'pe-12': modelValue.length && !hideClearAllButton,
         }"
       >
         <div class="flex flex-wrap gap-1">
@@ -112,15 +113,21 @@ const removeTag = (index: number) => {
             />
           </ComboboxInput>
         </div>
-        <button
-          v-if="!hideClearAllButton && modelValue.length"
-          type="button"
-          class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring absolute end-0 top-0 flex size-9 items-center justify-center rounded-md border border-transparent transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
-          aria-label="Clear all"
-          @click="() => (modelValue = [])"
-        >
-          <LucideX class="size-4" aria-hidden="true" />
-        </button>
+        <div class="pointer-events-none absolute end-2 top-0 flex h-9 items-center gap-0.5">
+          <button
+            v-if="!hideClearAllButton && modelValue.length"
+            type="button"
+            class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring pointer-events-auto flex size-6 items-center justify-center rounded-md border border-transparent transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+            aria-label="Clear all"
+            @click="() => (modelValue = [])"
+          >
+            <LucideX class="size-4" aria-hidden="true" />
+          </button>
+          <LucideChevronsUpDown
+            class="text-muted-foreground size-3.5 shrink-0 opacity-50"
+            aria-hidden="true"
+          />
+        </div>
       </TagsInputRoot>
     </ComboboxAnchor>
 

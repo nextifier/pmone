@@ -73,6 +73,9 @@ class OrderResource extends JsonResource
                         'name' => $this->brandEvent->brand->name,
                         'slug' => $this->brandEvent->brand->slug,
                         'company_name' => $this->brandEvent->brand->company_name,
+                        'brand_logo' => $this->brandEvent->brand->relationLoaded('media')
+                            ? $this->brandEvent->brand->brand_logo
+                            : null,
                     ]
                 ),
             ]),

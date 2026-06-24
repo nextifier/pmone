@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-y-0">
-    <TabNav :tabs="opsTabs" />
+    <TabNav v-if="!isOrderDetail" :tabs="opsTabs" />
 
     <div class="pt-6">
       <NuxtPage :event="event" :project="project" />
@@ -16,6 +16,9 @@ const props = defineProps({
 });
 
 const route = useRoute();
+
+// Hide the operational tab nav on the order detail page (it has its own back link).
+const isOrderDetail = computed(() => !!route.params.ulid);
 
 const opsBase = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}/operational`

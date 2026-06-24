@@ -325,18 +325,30 @@
                       <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                     </TableCell>
                   </TableRow>
-                  <TableRow
-                    v-if="$slots['expanded-row'] && row.getIsExpanded()"
-                    :key="`${row.id}-expanded`"
-                    class="hover:bg-transparent"
-                  >
-                    <TableCell :colspan="row.getVisibleCells().length" class="bg-muted/30 p-0">
-                      <slot name="expanded-row" :row="row" />
-                    </TableCell>
-                  </TableRow>
+                  <Transition v-if="$slots['expanded-row']" name="t-acc">
+                    <TableRow
+                      v-if="row.getIsExpanded()"
+                      :key="`${row.id}-expanded`"
+                      class="border-b-0 hover:bg-transparent"
+                    >
+                      <TableCell :colspan="row.getVisibleCells().length" class="p-0">
+                        <div class="t-acc-wrap">
+                          <div class="t-acc-inner bg-muted/30">
+                            <slot name="expanded-row" :row="row" />
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </Transition>
                 </template>
               </template>
             </TableBody>
+            <tfoot
+              v-if="$slots.footer && hasRows && !isInitialLoading"
+              data-slot="table-footer"
+            >
+              <slot name="footer" />
+            </tfoot>
           </Table>
 
           <!-- Empty State -->
@@ -386,7 +398,10 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="hasRows" class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div
+        v-if="hasRows && showPagination"
+        class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"
+      >
         <div class="flex items-center justify-between gap-x-4">
           <div class="text-muted-foreground text-sm tracking-tight">
             <template v-if="hasSelectedRows">
@@ -565,6 +580,10 @@ const props = defineProps({
     default: true,
   },
   showRefreshButton: {
+    type: Boolean,
+    default: true,
+  },
+  showPagination: {
     type: Boolean,
     default: true,
   },

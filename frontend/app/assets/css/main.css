@@ -1508,3 +1508,53 @@ label:has(+ .base-phone-input input:required)::after {
   }
 }
 
+/* Accordion expand (transitions-dev 21) — grid-rows 0fr↔1fr height animation
+   with a cross-blur fade, driven by a Vue <Transition name="t-acc"> around the
+   expandable row. Transition classes land on the <tr>; we animate the
+   descendant grid wrapper, so no JS height measuring is needed. */
+:root {
+  --acc-expand: 250ms;
+  --acc-collapse: 250ms;
+  --acc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.t-acc-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.t-acc-inner {
+  overflow: hidden;
+}
+.t-acc-enter-active .t-acc-wrap {
+  transition: grid-template-rows var(--acc-expand) var(--acc-ease);
+}
+.t-acc-leave-active .t-acc-wrap {
+  transition: grid-template-rows var(--acc-collapse) var(--acc-ease);
+}
+.t-acc-enter-from .t-acc-wrap,
+.t-acc-leave-to .t-acc-wrap {
+  grid-template-rows: 0fr;
+}
+.t-acc-enter-active .t-acc-inner {
+  transition:
+    opacity var(--acc-expand) var(--acc-ease),
+    filter var(--acc-expand) var(--acc-ease);
+}
+.t-acc-leave-active .t-acc-inner {
+  transition:
+    opacity var(--acc-collapse) var(--acc-ease),
+    filter var(--acc-collapse) var(--acc-ease);
+}
+.t-acc-enter-from .t-acc-inner,
+.t-acc-leave-to .t-acc-inner {
+  opacity: 0;
+  filter: blur(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-acc-enter-active .t-acc-wrap,
+  .t-acc-leave-active .t-acc-wrap,
+  .t-acc-enter-active .t-acc-inner,
+  .t-acc-leave-active .t-acc-inner {
+    transition: none !important;
+  }
+}
+

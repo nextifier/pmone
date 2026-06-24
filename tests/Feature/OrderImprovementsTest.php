@@ -234,6 +234,34 @@ it('staff can update internal notes on the order and items', function () {
     expect($item->fresh()->internal_notes)->toBe('Item staff note');
 });
 
+it('updates a single item note without clearing the order-level note', function () {
+    $order = submitImprovementOrder($this);
+    $order->update(['internal_notes' => 'Existing order note']);
+    $item = $order->items->first();
+
+    $this->actingAs($this->staff);
+    $this->patchJson("{$this->ordersBase}/{$order->ulid}/internal-notes", [
+        'items' => [['id' => $item->id, 'internal_notes' => 'Just the item']],
+    ])->assertSuccessful();
+
+    expect($order->fresh()->internal_notes)->toBe('Existing order note');
+    expect($item->fresh()->internal_notes)->toBe('Just the item');
+});
+
+it('updates the order note without touching item notes', function () {
+    $order = submitImprovementOrder($this);
+    $item = $order->items->first();
+    $item->update(['internal_notes' => 'Existing item note']);
+
+    $this->actingAs($this->staff);
+    $this->patchJson("{$this->ordersBase}/{$order->ulid}/internal-notes", [
+        'internal_notes' => 'Just the order',
+    ])->assertSuccessful();
+
+    expect($order->fresh()->internal_notes)->toBe('Just the order');
+    expect($item->fresh()->internal_notes)->toBe('Existing item note');
+});
+
 it('hides internal notes from exhibitors', function () {
     $order = Order::factory()->create([
         'brand_event_id' => $this->brandEvent->id,

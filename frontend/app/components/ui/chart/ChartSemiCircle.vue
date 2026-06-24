@@ -34,17 +34,21 @@
         <div class="flex items-baseline">
           <NumberFlow
             v-if="animateValue"
-            class="text-foreground translate-y-1 text-[12cqw] font-medium tracking-tighter"
+            class="text-foreground translate-y-1 text-[12cqw] font-medium tracking-tighter tabular-nums"
             :value="Number(displayValue) || 0"
             :format="{ notation: 'compact' }"
           />
           <span v-else class="text-foreground text-[12cqw] font-medium tracking-tighter">{{
             staticDisplayValue
           }}</span>
-          <span v-if="showMax" class="text-muted-foreground text-[6cqw] tracking-tighter"
+          <span
+            v-if="showMax"
+            class="text-muted-foreground text-[6cqw] tracking-tighter tabular-nums"
             >/{{ formattedMax }}</span
           >
-          <span v-if="suffix" class="text-muted-foreground text-[5cqw] tracking-tighter">{{ suffix }}</span>
+          <span v-if="suffix" class="text-muted-foreground text-[5cqw] tracking-tighter">{{
+            suffix
+          }}</span>
         </div>
         <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{
           centerLabel

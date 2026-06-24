@@ -160,7 +160,7 @@ class OrderController extends Controller
             ->where('ulid', $ulid)
             ->with([
                 'items.productCategory',
-                'brandEvent.brand',
+                'brandEvent.brand.media',
                 'creator',
                 'adjustments.promotionRule',
                 'adjustments.promoCode',
@@ -217,7 +217,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Operational status updated successfully',
-            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator', 'adjustments.promotionRule', 'adjustments.promoCode'])),
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand.media', 'creator', 'adjustments.promotionRule', 'adjustments.promoCode'])),
         ]);
     }
 
@@ -250,7 +250,7 @@ class OrderController extends Controller
 
         return response()->json([
             'message' => 'Payment status updated successfully',
-            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand', 'creator', 'adjustments.promotionRule', 'adjustments.promoCode'])),
+            'data' => new OrderResource($order->load(['items.productCategory', 'brandEvent.brand.media', 'creator', 'adjustments.promotionRule', 'adjustments.promoCode'])),
         ]);
     }
 
@@ -333,7 +333,7 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Internal notes updated successfully',
             'data' => new OrderResource($order->fresh([
-                'items.productCategory', 'brandEvent.brand', 'creator',
+                'items.productCategory', 'brandEvent.brand.media', 'creator',
                 'adjustments.promotionRule', 'adjustments.promoCode', 'media',
             ])),
         ]);
