@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-area",
-  title: "Area Chart",
+  title: "Chart Area",
   description:
     "Area charts built on unovis-vue. One ChartArea handles single or multi-series data, with optional gradient fills and stacking.",
   installation: {

@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-composed",
-  title: "Composed Chart",
+  title: "Chart Composed",
   description:
     "Composed charts overlay more than one geometry on the same axes. ChartComposed draws a filled area behind a line, useful for forecast or target zones.",
   installation: {

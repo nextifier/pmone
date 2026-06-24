@@ -80,6 +80,8 @@ class TicketOrder extends Model implements Purchasable
         'payment_channel',
         'payment_expires_at',
         'paid_at',
+        'marked_paid_manually_at',
+        'marked_paid_by',
         'magic_link_token',
         'magic_link_expires_at',
         'source',
@@ -100,6 +102,7 @@ class TicketOrder extends Model implements Purchasable
             'total' => 'decimal:2',
             'payment_expires_at' => 'datetime',
             'paid_at' => 'datetime',
+            'marked_paid_manually_at' => 'datetime',
             'magic_link_expires_at' => 'datetime',
         ];
     }
@@ -173,7 +176,7 @@ class TicketOrder extends Model implements Purchasable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['status', 'total', 'discount_amount', 'promo_code_applied', 'paid_at', 'payment_channel', 'payment_gateway_id'])
+            ->logOnly(['status', 'total', 'discount_amount', 'promo_code_applied', 'paid_at', 'payment_channel', 'payment_gateway_id', 'marked_paid_manually_at'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -326,6 +329,11 @@ class TicketOrder extends Model implements Purchasable
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function markedPaidBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'marked_paid_by');
     }
 
     public function scopeConfirmed(Builder $query): Builder

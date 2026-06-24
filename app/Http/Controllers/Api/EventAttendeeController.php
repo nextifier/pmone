@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Ticketing\TicketOrderStatus;
 use App\Exports\AttendeesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Attendee\UpdateEventAttendeeRequest;
+use App\Http\Requests\Ticket\MarkTicketOrderPaidRequest;
 use App\Http\Resources\AttendeeIndexResource;
 use App\Http\Resources\AttendeeResource;
 use App\Jobs\Ticket\SendAttendeeETicketJob;
@@ -16,6 +18,7 @@ use App\Models\Event;
 use App\Models\TicketOrder;
 use App\Services\Ticket\AttendeeService;
 use App\Services\Ticket\TicketDocumentService;
+use App\Services\Ticket\TicketPurchaseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -30,6 +33,7 @@ class EventAttendeeController extends Controller
         'ticketOrderItem.selectedEventDay',
         'ticketOrderItem.ticketSession',
         'ticketOrderItem.ticketOrder.paymentGateway',
+        'ticketOrderItem.ticketOrder.markedPaidBy',
     ];
 
     public function index(Request $request, Event $event): JsonResponse
@@ -407,6 +411,56 @@ class EventAttendeeController extends Controller
             ->log('Resent order confirmation email');
 
         return response()->json(['message' => 'Confirmation email is being sent.']);
+    }
+
+    /**
+     * Manually confirm a ticket order as paid. Covers the case where the customer
+     * paid but the payment gateway failed to deliver / process the webhook, leaving
+     * the order stuck on PendingPayment. Reuses the normal confirmation path so the
+     * e-ticket(s) and buyer confirmation email are dispatched exactly as they would
+     * be on a real paid webhook. Idempotent + atomic at the service layer.
+     */
+    public function markPaid(MarkTicketOrderPaidRequest $request, Event $event, TicketOrder $order, TicketPurchaseService $purchases): JsonResponse
+    {
+        $this->ensureOrderBelongsToEvent($event, $order);
+
+        abort_if(
+            $order->status !== TicketOrderStatus::PendingPayment,
+            422,
+            "Only pending payment ticket orders can be marked as paid. Current status: {$order->status->label()}."
+        );
+
+        $data = $request->validated();
+
+        $purchases->markAsConfirmed($order, ['payment_channel' => $data['payment_channel']]);
+
+        // Audit marker kept separate from payment_channel: the channel drives the
+        // logo column, this flags that staff confirmed it by hand.
+        TicketOrder::query()->whereKey($order->id)->update([
+            'marked_paid_manually_at' => now(),
+            'marked_paid_by' => $request->user()->id,
+        ]);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($order->fresh())
+            ->event('ticket_order_marked_paid_manual')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'ticket_order_id' => $order->id,
+                'payment_channel' => $data['payment_channel'],
+                'note' => $data['note'] ?? null,
+            ])
+            ->log('Ticket order manually marked as paid by staff');
+
+        return response()->json([
+            'message' => 'Ticket order marked as paid.',
+            'order' => [
+                'ulid' => $order->ulid,
+                'status' => $order->fresh()->status->value,
+            ],
+        ]);
     }
 
     /**

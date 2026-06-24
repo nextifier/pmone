@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-semi-circle",
-  title: "Semi Circle Chart",
+  title: "Chart Semi Circle",
   description:
     "A radial gauge for progress, usage, or percentages. A PM One custom component (not from shadcn-vue) built with plain SVG, an animated reveal, and a count-up centre value.",
   installation: {

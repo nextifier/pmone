@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-pie",
-  title: "Pie Chart",
+  title: "Chart Pie",
   description:
     "Pie and donut charts built on unovis-vue. One ChartPie renders a full pie, a donut, a donut with a centre total, or nested rings.",
   installation: {

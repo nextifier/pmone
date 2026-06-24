@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils'
-import { reactiveOmit } from '@vueuse/core'
-import type { CheckboxRootEmits, CheckboxRootProps } from 'reka-ui'
-import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from 'reka-ui'
-import type { HTMLAttributes } from 'vue'
+import { cn } from "@/lib/utils";
+import { reactiveOmit } from "@vueuse/core";
+import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui";
+import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-const props = defineProps<CheckboxRootProps & { class?: HTMLAttributes['class'] }>()
-const emits = defineEmits<CheckboxRootEmits>()
+const props = defineProps<CheckboxRootProps & { class?: HTMLAttributes["class"] }>();
+const emits = defineEmits<CheckboxRootEmits>();
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, "class");
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
-const isIndeterminate = computed(() => props.modelValue === 'indeterminate')
+const isIndeterminate = computed(() => props.modelValue === "indeterminate");
 </script>
 
 <template>
@@ -21,7 +21,7 @@ const isIndeterminate = computed(() => props.modelValue === 'indeterminate')
     v-bind="forwarded"
     :class="
       cn(
-        'peer border-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex size-4 shrink-0 items-center justify-center rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50',
+        'peer border-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex size-4 shrink-0 items-center justify-center rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50',
         props.class
       )
     "

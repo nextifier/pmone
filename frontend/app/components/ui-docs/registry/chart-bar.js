@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-bar",
-  title: "Bar Chart",
+  title: "Chart Bar",
   description:
     "Bar charts built on unovis-vue. One ChartBar covers vertical/horizontal orientation, single or grouped series, and stacking.",
   installation: {

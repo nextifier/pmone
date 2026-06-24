@@ -1382,6 +1382,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/ticket-o
     Route::get('/{order}/receipt.pdf', [EventAttendeeController::class, 'receiptPdf'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.receipt-pdf');
     Route::get('/{order}/preview-confirmation', [EventAttendeeController::class, 'previewOrderEmail'])->middleware('can:attendees.view_documents')->name('events.ticket-orders.preview-confirmation');
     Route::post('/{order}/resend-confirmation', [EventAttendeeController::class, 'resendOrderConfirmation'])->middleware('can:attendees.update')->name('events.ticket-orders.resend-confirmation');
+    Route::post('/{order}/mark-paid', [EventAttendeeController::class, 'markPaid'])->middleware('can:tickets.mark_paid')->name('events.ticket-orders.mark-paid');
 });
 
 // Exhibitor leads (own brand only; data isolation enforced in the controller).

@@ -244,10 +244,12 @@ import { getPaymentChannelLabel } from "@/lib/payment-method-logos";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
-import TicketQr from "@/components/TicketQr.vue";
 import AttendeeAnalyticsSummary from "@/components/AttendeeAnalyticsSummary.vue";
 import { useAttendeesChangedSignal } from "@/composables/useAttendeeAnalytics";
 import AttendeeEditDialog from "@/components/ticket/AttendeeEditDialog.vue";
+import AttendeeNameCell from "@/components/ticket/AttendeeNameCell.vue";
+import AttendeeQrDialog from "@/components/ticket/AttendeeQrDialog.vue";
+import MarkOrderPaidDialog from "@/components/ticket/MarkOrderPaidDialog.vue";
 import { PopoverClose } from "reka-ui";
 import {
   computed,
@@ -296,6 +298,13 @@ const canUpdate = computed(() => hasPermission("attendees.update"));
 const canExport = computed(() => hasPermission("attendees.export"));
 const canViewDocs = computed(() => hasPermission("attendees.view_documents"));
 const canScan = computed(() => hasPermission("scan.check_in"));
+const canMarkPaid = computed(() => hasPermission("tickets.mark_paid"));
+
+// A ticket only becomes usable (QR/e-ticket) once its order is confirmed. Free
+// and complimentary orders are auto-confirmed, so this also covers them. Gates
+// every QR/e-ticket/check-in action so staff never see an unusable QR for an
+// order still awaiting payment.
+const isTicketReady = (attendee) => attendee.order?.status === "confirmed";
 
 const checkInOptions = [
   { label: "Checked in", value: "in" },
@@ -579,6 +588,14 @@ async function copyEticketLink(attendee) {
   }
 }
 
+// After a manual confirmation (handled by MarkOrderPaidDialog) refresh the list
+// so the row flips to confirmed - QR/e-ticket actions appear, "Mark as paid"
+// disappears - and the live analytics summary recounts.
+async function onMarkPaidSuccess() {
+  await refresh();
+  attendeesChanged.value++;
+}
+
 const bulkCheckInPending = ref(false);
 const bulkCheckIn = async (selectedRows) => {
   const ids = selectedRows.map((row) => row.original.id);
@@ -631,6 +648,7 @@ const RowActions = defineComponent({
     const qrOpen = ref(false);
     const dialogOpen = ref(false);
     const singleDeletePending = ref(false);
+    const markPaidDialogOpen = ref(false);
     return () =>
       h("div", { class: "flex justify-end" }, [
         h(
@@ -664,21 +682,23 @@ const RowActions = defineComponent({
                 {
                   default: () =>
                     h("div", { class: "flex flex-col" }, [
-                      h(
-                        "button",
-                        {
-                          class:
-                            "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight whitespace-nowrap flex items-center gap-x-1.5",
-                          onClick: () => (qrOpen.value = true),
-                        },
-                        [
-                          h(resolveComponent("Icon"), {
-                            name: "hugeicons:qr-code",
-                            class: "size-4 shrink-0",
-                          }),
-                          h("span", {}, "Show QR"),
-                        ]
-                      ),
+                      isTicketReady(p.attendee)
+                        ? h(
+                            "button",
+                            {
+                              class:
+                                "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight whitespace-nowrap flex items-center gap-x-1.5",
+                              onClick: () => (qrOpen.value = true),
+                            },
+                            [
+                              h(resolveComponent("Icon"), {
+                                name: "hugeicons:qr-code",
+                                class: "size-4 shrink-0",
+                              }),
+                              h("span", {}, "Show QR"),
+                            ]
+                          )
+                        : null,
                       h(
                         PopoverClose,
                         { asChild: true },
@@ -701,7 +721,7 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
-                      canUpdate.value
+                      canUpdate.value && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -733,7 +753,7 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
-                      canUpdate.value && p.attendee.email
+                      canUpdate.value && p.attendee.email && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -757,7 +777,7 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
-                      p.attendee.can_view_documents
+                      p.attendee.can_view_documents && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -783,7 +803,7 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
-                      eticketBase.value
+                      eticketBase.value && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -807,7 +827,7 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
-                      eticketBase.value
+                      eticketBase.value && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -887,7 +907,7 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
-                      canUpdate.value && p.attendee.order?.ulid
+                      canUpdate.value && p.attendee.order?.ulid && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -911,7 +931,7 @@ const RowActions = defineComponent({
                             }
                           )
                         : null,
-                      p.attendee.can_view_documents && p.attendee.order?.ulid
+                      p.attendee.can_view_documents && p.attendee.order?.ulid && isTicketReady(p.attendee)
                         ? h(
                             PopoverClose,
                             { asChild: true },
@@ -932,6 +952,33 @@ const RowActions = defineComponent({
                                       class: "size-4 shrink-0",
                                     }),
                                     h("span", {}, "Preview confirmation email"),
+                                  ]
+                                ),
+                            }
+                          )
+                        : null,
+                      canMarkPaid.value &&
+                      p.attendee.order?.status === "pending_payment" &&
+                      !p.attendee.is_free &&
+                      p.attendee.order?.ulid
+                        ? h(
+                            PopoverClose,
+                            { asChild: true },
+                            {
+                              default: () =>
+                                h(
+                                  "button",
+                                  {
+                                    class:
+                                      "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight whitespace-nowrap flex items-center gap-x-1.5",
+                                    onClick: () => (markPaidDialogOpen.value = true),
+                                  },
+                                  [
+                                    h(resolveComponent("Icon"), {
+                                      name: "hugeicons:money-receive-02",
+                                      class: "size-4 shrink-0",
+                                    }),
+                                    h("span", {}, "Mark as paid"),
                                   ]
                                 ),
                             }
@@ -967,37 +1014,11 @@ const RowActions = defineComponent({
             ],
           }
         ),
-        h(
-          DialogResponsive,
-          {
-            open: qrOpen.value,
-            "onUpdate:open": (value) => (qrOpen.value = value),
-            dialogMaxWidth: "360px",
-          },
-          {
-            default: () =>
-              h("div", { class: "space-y-4 px-4 pb-10 md:px-6 md:py-5" }, [
-                h("div", { class: "space-y-1 text-center" }, [
-                  h(
-                    "h2",
-                    { class: "text-lg font-semibold tracking-tighter" },
-                    p.attendee.name || "Attendee"
-                  ),
-                  p.attendee.ticket?.title
-                    ? h(
-                        "p",
-                        { class: "text-muted-foreground text-sm tracking-tight" },
-                        p.attendee.ticket.title
-                      )
-                    : null,
-                ]),
-                h(TicketQr, {
-                  token: p.attendee.qr_token,
-                  containerClass: "w-full max-w-[220px] mx-auto",
-                }),
-              ]),
-          }
-        ),
+        h(AttendeeQrDialog, {
+          open: qrOpen.value,
+          "onUpdate:open": (value) => (qrOpen.value = value),
+          attendee: p.attendee,
+        }),
         h(
           DialogResponsive,
           {
@@ -1052,6 +1073,13 @@ const RowActions = defineComponent({
               ]),
           }
         ),
+        h(MarkOrderPaidDialog, {
+          open: markPaidDialogOpen.value,
+          "onUpdate:open": (value) => (markPaidDialogOpen.value = value),
+          attendee: p.attendee,
+          eventId: props.event.id,
+          onSuccess: onMarkPaidSuccess,
+        }),
       ]);
   },
 });
@@ -1080,43 +1108,12 @@ const columns = [
   {
     header: "Name",
     accessorKey: "name",
-    cell: ({ row }) => {
-      const a = row.original;
-      const indicators = [];
-      if (a.is_personalized) {
-        indicators.push(
-          withDirectives(
-            h(resolveComponent("Icon"), {
-              name: "hugeicons:user-check-01",
-              class: "text-muted-foreground size-3.5 shrink-0",
-            }),
-            [[resolveDirective("tippy"), "Personalized by attendee"]]
-          )
-        );
-      }
-      if (a.has_account) {
-        indicators.push(
-          withDirectives(
-            h(resolveComponent("Icon"), {
-              name: "hugeicons:user-circle",
-              class: "text-muted-foreground size-3.5 shrink-0",
-            }),
-            [[resolveDirective("tippy"), "Has linked account"]]
-          )
-        );
-      }
-      return h("div", { class: "min-w-0 flex flex-col gap-0.5" }, [
-        h("div", { class: "flex items-center gap-x-1" }, [
-          h("span", { class: "text-sm tracking-tight truncate" }, a.name || "Unnamed"),
-          ...indicators,
-        ]),
-        h(
-          "div",
-          { class: "text-muted-foreground text-xs tracking-tight truncate" },
-          a.email || a.phone || "-"
-        ),
-      ]);
-    },
+    cell: ({ row }) =>
+      h(
+        resolveComponent("ClientOnly"),
+        {},
+        { default: () => h(AttendeeNameCell, { attendee: row.original }) }
+      ),
     size: 230,
     enableHiding: false,
   },
@@ -1200,11 +1197,29 @@ const columns = [
       if (a.is_free || !a.payment_channel) {
         return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "-");
       }
-      return h(PaymentMethodBadge, {
+      const badge = h(PaymentMethodBadge, {
         channel: a.payment_channel,
         size: "md",
         iconOnly: true,
       });
+      // Audit differentiator: a manually-confirmed order keeps its real channel
+      // logo but gets a marker so staff can tell it didn't sync from the gateway.
+      if (!a.marked_paid_manually) {
+        return badge;
+      }
+      const tooltip = a.marked_paid_by_name
+        ? `Marked as paid manually by ${a.marked_paid_by_name}`
+        : "Marked as paid manually";
+      return h("span", { class: "inline-flex items-center gap-x-1" }, [
+        badge,
+        withDirectives(
+          h(resolveComponent("Icon"), {
+            name: "hugeicons:user-edit-01",
+            class: "text-muted-foreground size-3.5 shrink-0",
+          }),
+          [[resolveDirective("tippy"), tooltip]]
+        ),
+      ]);
     },
     size: 105,
   },

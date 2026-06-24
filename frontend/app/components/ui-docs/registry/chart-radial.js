@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-radial",
-  title: "Radial Bar Chart",
+  title: "Chart Radial Bar",
   description:
     "Radial bar charts render each value as a concentric arc. Built as a self-contained SVG component with gradient bars, a glow, background tracks, and inline labels.",
   installation: {

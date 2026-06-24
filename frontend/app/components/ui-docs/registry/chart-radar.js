@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-radar",
-  title: "Radar Chart",
+  title: "Chart Radar",
   description:
     "Radar charts plot one series across several axes on a polar grid. Built as a self-contained SVG component with gradient fill, glow, and dot markers.",
   installation: {

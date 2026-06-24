@@ -79,3 +79,28 @@ export function getPaymentMethodLabel(method?: string | null): string | null {
   if (!method) return null;
   return METHOD_LABEL_MAP[method.toLowerCase()] ?? null;
 }
+
+/**
+ * Grouped, de-duplicated channel options for a manual payment-channel <Select>
+ * (e.g. confirming an order by hand). Values are the canonical codes that
+ * `getPaymentLogoUrl` resolves, so the chosen channel always renders a logo.
+ */
+export const PAYMENT_CHANNEL_GROUPS: { label: string; options: { value: string; label: string }[] }[] = [
+  {
+    label: "Virtual Account",
+    options: ["BCA", "BNI", "BRI", "MANDIRI", "PERMATA", "BSI", "BSS", "CIMB", "BJB", "BNC", "MUAMALAT"],
+  },
+  {
+    label: "E-Wallet",
+    options: ["GOPAY", "OVO", "DANA", "SHOPEEPAY", "LINKAJA", "JENIUSPAY", "NEXCASH", "ASTRAPAY"],
+  },
+  { label: "QRIS", options: ["QRIS"] },
+  { label: "Card", options: ["VISA", "MASTERCARD", "AMEX", "JCB"] },
+  { label: "Direct Debit", options: ["DD_BRI"] },
+].map((group) => ({
+  label: group.label,
+  options: group.options.map((value) => ({
+    value,
+    label: CHANNEL_LOGO_MAP[value]?.label ?? value,
+  })),
+}));

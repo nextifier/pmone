@@ -51,19 +51,20 @@
           />
         </g>
 
-        <!-- Labels at each bar's start (12 o'clock) -->
+        <!-- Value labels centred on each bar's start (12 o'clock). Fill uses
+             --background so it stays legible in both modes: bars are light in
+             dark mode (dark text) and dark in light mode (light text). -->
         <template v-if="showLabels">
           <text
             v-for="ring in rings"
             :key="`label-${ring.name}`"
-            :x="cx + 5"
+            :x="cx"
             :y="cy - ring.radius"
-            text-anchor="start"
-            dominant-baseline="middle"
-            fill="#fff"
-            :style="{ fontSize: '11px', fontWeight: 600 }"
+            text-anchor="middle"
+            dominant-baseline="central"
+            :style="{ fill: 'var(--background)', fontSize: '12px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }"
           >
-            {{ ring.label }}
+            {{ ring.value }}
           </text>
         </template>
       </svg>
@@ -157,6 +158,7 @@ const rings = computed(() => {
     const frac = Math.min(value / props.max, 1);
     return {
       name,
+      value,
       label: props.config[name]?.label || name,
       color: d.colorValue || props.config[name]?.color || "var(--chart-1)",
       radius,

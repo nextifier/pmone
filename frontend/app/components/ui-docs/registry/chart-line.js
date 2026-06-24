@@ -2,7 +2,7 @@ import { defineComponentDoc } from "./define";
 
 export default defineComponentDoc({
   name: "chart-line",
-  title: "Line Chart",
+  title: "Chart Line",
   description:
     "Time-series line charts built on unovis-vue. Pass an array of rows plus a config that maps each series key to a label and color.",
   installation: {
