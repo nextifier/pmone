@@ -611,6 +611,18 @@ class Project extends Model implements HasMedia, Sortable
     }
 
     /**
+     * Whether public event-website endpoints may borrow a previous event's data
+     * for the given section when the active event has none. Defaults true to
+     * preserve the historical behaviour; per-section flags live under
+     * `website_settings.data_fallback` (brands, guests, partners, programs,
+     * faqs, gallery, media_coverages).
+     */
+    public function shouldFallbackToPreviousEventData(string $section): bool
+    {
+        return (bool) data_get($this->settings, "website_settings.data_fallback.{$section}", true);
+    }
+
+    /**
      * Get contact form auto-reply configuration.
      */
     public function getContactFormAutoReplyConfig(): array

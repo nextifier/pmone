@@ -190,15 +190,20 @@ class PublicProjectController extends Controller
             ]);
         }
 
+        $activeEvent = $event;
+
         // Opt-in fallback (used by the home-page BrandPreview teaser): when the
         // active event has no brands yet, borrow the most recent previous edition
-        // that does, so a freshly-created event still shows brands.
+        // that does, so a freshly-created event still shows brands. Gated by the
+        // project's per-section data-fallback toggle.
         if ($request->boolean('fallback')
+            && $event->project->shouldFallbackToPreviousEventData('brands')
             && ! $event->brandEvents()->where('status', 'active')->exists()) {
             $event = $this->fallbackEventWithItems(
                 $event,
                 'brandEvents',
                 fn ($q) => $q->where('status', 'active'),
+                'brands',
             ) ?? $event;
         }
 
@@ -225,6 +230,7 @@ class PublicProjectController extends Controller
                 'last_page' => $brandEvents->lastPage(),
                 'per_page' => $brandEvents->perPage(),
                 'total' => $brandEvents->total(),
+                'fallback' => $this->fallbackMeta($activeEvent, $event),
             ],
         ]);
     }
@@ -317,8 +323,9 @@ class PublicProjectController extends Controller
 
         // Fallback: search previous editions of the same project (most recent
         // first) so links from the home-page BrandPreview teaser still resolve
-        // when the active event borrows a previous edition's brands.
-        if (! $brandEvent) {
+        // when the active event borrows a previous edition's brands. Skipped
+        // when the project disables previous-edition brand fallback.
+        if (! $brandEvent && $event->project->shouldFallbackToPreviousEventData('brands')) {
             $brandEvent = BrandEvent::query()
                 ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
                 ->where('status', 'active')
@@ -508,7 +515,7 @@ class PublicProjectController extends Controller
 
         $source = $event->programs()->where('is_active', true)->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'programs') ?? $event);
+            : ($this->fallbackEventWithItems($event, 'programs', null, 'programs') ?? $event);
 
         $programs = $source->programs()
             ->with('media')
@@ -517,6 +524,7 @@ class PublicProjectController extends Controller
 
         return response()->json([
             'data' => ProgramPublicResource::collection($programs),
+            'meta' => ['fallback' => $this->fallbackMeta($event, $source)],
         ]);
     }
 
@@ -526,7 +534,7 @@ class PublicProjectController extends Controller
 
         $source = $event->mediaCoverages()->where('is_active', true)->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'mediaCoverages') ?? $event);
+            : ($this->fallbackEventWithItems($event, 'mediaCoverages', null, 'media_coverages') ?? $event);
 
         $items = $source->mediaCoverages()
             ->where('is_active', true)
@@ -534,6 +542,7 @@ class PublicProjectController extends Controller
 
         return response()->json([
             'data' => MediaCoveragePublicResource::collection($items),
+            'meta' => ['fallback' => $this->fallbackMeta($event, $source)],
         ]);
     }
 
@@ -555,7 +564,7 @@ class PublicProjectController extends Controller
 
         $source = $event->faqs()->where('is_active', true)->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'faqs') ?? $event);
+            : ($this->fallbackEventWithItems($event, 'faqs', null, 'faqs') ?? $event);
 
         $faqs = $source->faqs()
             ->where('is_active', true)
@@ -564,6 +573,7 @@ class PublicProjectController extends Controller
 
         return response()->json([
             'data' => FaqPublicResource::collection($faqs),
+            'meta' => ['fallback' => $this->fallbackMeta($event, $source)],
         ]);
     }
 
@@ -584,13 +594,15 @@ class PublicProjectController extends Controller
             : ($this->fallbackEventWithItems(
                 $event,
                 'media',
-                fn ($q) => $q->where('collection_name', 'gallery')
+                fn ($q) => $q->where('collection_name', 'gallery'),
+                'gallery',
             ) ?? $event);
 
         return response()->json([
             'data' => GalleryPublicResource::collection($source->getMedia('gallery')),
             'meta' => [
                 'aspect_ratio' => data_get($event->settings, 'gallery_aspect_ratio', '1:1'),
+                'fallback' => $this->fallbackMeta($event, $source),
             ],
         ]);
     }
@@ -600,9 +612,17 @@ class PublicProjectController extends Controller
      * relation. Used as a content fallback for programs/faqs (default: active
      * items), gallery (constraint: media in the `gallery` collection), and
      * partners (constraint: a category with active partners).
+     *
+     * Returns null when the project disables previous-edition data fallback for
+     * the given section ($settingKey), so callers keep the active event's own
+     * (possibly empty) data.
      */
-    private function fallbackEventWithItems(Event $event, string $relation, ?\Closure $constraint = null): ?Event
+    private function fallbackEventWithItems(Event $event, string $relation, ?\Closure $constraint, string $settingKey): ?Event
     {
+        if (! $event->project->shouldFallbackToPreviousEventData($settingKey)) {
+            return null;
+        }
+
         return $event->project
             ->events()
             ->where('id', '!=', $event->id)
@@ -610,6 +630,30 @@ class PublicProjectController extends Controller
             ->reorder()
             ->orderByDesc('start_date')
             ->first();
+    }
+
+    /**
+     * Build the `meta.fallback` block for a section response so the event
+     * website can show a "data from a previous edition" notice. Flags whether
+     * the rendered data was borrowed from another event and, if so, which one.
+     *
+     * @return array{is_fallback: bool, source_event: array{title: string, edition_number: int|null, edition_label: string|null, slug: string}|null}
+     */
+    private function fallbackMeta(Event $activeEvent, Event $source): array
+    {
+        if ($source->id === $activeEvent->id) {
+            return ['is_fallback' => false, 'source_event' => null];
+        }
+
+        return [
+            'is_fallback' => true,
+            'source_event' => [
+                'title' => $source->title,
+                'edition_number' => $source->edition_number,
+                'edition_label' => $source->edition_number_with_ordinal,
+                'slug' => $source->slug,
+            ],
+        ];
     }
 
     /**
@@ -630,6 +674,7 @@ class PublicProjectController extends Controller
         $ticketTabs = data_get($settings, 'ticket_tabs', []);
         $bookSpaceForm = data_get($settings, 'book_space_form', []);
         $terms = data_get($settings, 'terms', []);
+        $dataFallback = data_get($settings, 'data_fallback', []);
 
         return response()->json([
             'data' => [
@@ -673,6 +718,17 @@ class PublicProjectController extends Controller
                     'terms' => [
                         'last_update' => $terms['last_update'] ?? null,
                     ],
+                    // Defaults true: previous-edition data fallback has always
+                    // been on, so an unconfigured project keeps borrowing data.
+                    'data_fallback' => [
+                        'brands' => (bool) ($dataFallback['brands'] ?? true),
+                        'guests' => (bool) ($dataFallback['guests'] ?? true),
+                        'partners' => (bool) ($dataFallback['partners'] ?? true),
+                        'programs' => (bool) ($dataFallback['programs'] ?? true),
+                        'faqs' => (bool) ($dataFallback['faqs'] ?? true),
+                        'gallery' => (bool) ($dataFallback['gallery'] ?? true),
+                        'media_coverages' => (bool) ($dataFallback['media_coverages'] ?? true),
+                    ],
                 ],
             ],
         ]);
@@ -688,7 +744,13 @@ class PublicProjectController extends Controller
         $locale = $request->input('locale', config('app.locale', 'en'));
         App::setLocale($locale);
 
-        $query = $event->guests()
+        $hasPublicGuests = fn ($q) => $q->active()->where('visibility', 'public');
+
+        $source = $event->guests()->active()->where('visibility', 'public')->exists()
+            ? $event
+            : ($this->fallbackEventWithItems($event, 'guests', $hasPublicGuests, 'guests') ?? $event);
+
+        $query = $source->guests()
             ->active()
             ->where('visibility', 'public')
             ->with(['media', 'tags', 'links']);
@@ -706,6 +768,7 @@ class PublicProjectController extends Controller
             'meta' => [
                 'count' => $items->count(),
                 'featured_count' => $items->where('is_featured', true)->count(),
+                'fallback' => $this->fallbackMeta($event, $source),
             ],
         ]);
     }
@@ -725,7 +788,29 @@ class PublicProjectController extends Controller
             ->where('visibility', 'public')
             ->where('slug', $slug)
             ->with(['media', 'tags', 'links'])
-            ->firstOrFail();
+            ->first();
+
+        // Fallback: resolve a guest borrowed from a previous edition (most recent
+        // first) so links from a fallback-rendered guest list still resolve.
+        if (! $guest) {
+            $sourceEvent = $this->fallbackEventWithItems(
+                $event,
+                'guests',
+                fn ($q) => $q->active()->where('visibility', 'public')->where('slug', $slug),
+                'guests',
+            );
+
+            $guest = $sourceEvent?->guests()
+                ->active()
+                ->where('visibility', 'public')
+                ->where('slug', $slug)
+                ->with(['media', 'tags', 'links'])
+                ->first();
+        }
+
+        if (! $guest) {
+            abort(404);
+        }
 
         return response()->json([
             'data' => new GuestPublicResource($guest),
@@ -747,7 +832,7 @@ class PublicProjectController extends Controller
 
         $source = $event->partnerCategories()->whereHas('partners', fn ($p) => $p->active())->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'partnerCategories', $hasActivePartners) ?? $event);
+            : ($this->fallbackEventWithItems($event, 'partnerCategories', $hasActivePartners, 'partners') ?? $event);
 
         $categories = $source->partnerCategories()
             ->with(['partners' => fn ($q) => $q->active()->with('media')])
@@ -767,7 +852,10 @@ class PublicProjectController extends Controller
                 ]),
             ]);
 
-        return response()->json(['data' => $data]);
+        return response()->json([
+            'data' => $data,
+            'meta' => ['fallback' => $this->fallbackMeta($event, $source)],
+        ]);
     }
 
     /**

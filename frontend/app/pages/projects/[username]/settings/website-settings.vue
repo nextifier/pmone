@@ -298,6 +298,40 @@
           </div>
         </div>
       </div>
+
+      <!-- Data Fallback -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:database-restore" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Data Fallback</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              When the active event has no data for a section yet, borrow content from the most
+              recent previous edition that does. Turn a section off to show only the active event's
+              own data, so empty sections stay empty.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y !px-0 !py-0">
+          <div
+            v-for="field in dataFallbackFields"
+            :key="field.key"
+            class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6"
+          >
+            <div class="space-y-1">
+              <Label
+                :for="`fallback-${field.key}`"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
+                {{ field.label }}
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">{{ field.description }}</p>
+            </div>
+            <Switch :id="`fallback-${field.key}`" v-model="form.data_fallback[field.key]" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -335,6 +369,44 @@ const bookSpaceFields = [
   { key: "show_products", label: "Products field" },
 ];
 
+const dataFallbackFields = [
+  {
+    key: "brands",
+    label: "Brands",
+    description: "Borrow exhibitors/brands (incl. the home Brand Preview) from a previous edition.",
+  },
+  {
+    key: "guests",
+    label: "Guests",
+    description: "Borrow speakers/guests from a previous edition.",
+  },
+  {
+    key: "partners",
+    label: "Partners",
+    description: "Borrow partners (Credits) from a previous edition.",
+  },
+  {
+    key: "programs",
+    label: "Programs",
+    description: "Borrow programs from a previous edition.",
+  },
+  {
+    key: "faqs",
+    label: "FAQ",
+    description: "Borrow FAQ entries from a previous edition.",
+  },
+  {
+    key: "gallery",
+    label: "Photos (Gallery)",
+    description: "Borrow gallery photos from a previous edition.",
+  },
+  {
+    key: "media_coverages",
+    label: "Media Coverage",
+    description: "Borrow media coverage items from a previous edition.",
+  },
+];
+
 const ticketTabDefaults = () => ({
   show_tickets: true,
   show_guests: false,
@@ -350,6 +422,16 @@ const bookSpaceDefaults = () => ({
   show_products: false,
 });
 
+const dataFallbackDefaults = () => ({
+  brands: true,
+  guests: true,
+  partners: true,
+  programs: true,
+  faqs: true,
+  gallery: true,
+  media_coverages: true,
+});
+
 const form = ref({
   show_rundown_on_home_page: false,
   show_search_bar: true,
@@ -361,6 +443,7 @@ const form = ref({
   ticket_tabs: ticketTabDefaults(),
   book_space_form: bookSpaceDefaults(),
   terms_last_update: null,
+  data_fallback: dataFallbackDefaults(),
 });
 
 // Format a Date to a plain "YYYY-MM-DD" using local parts (no TZ shift).
@@ -396,6 +479,7 @@ function buildPayload() {
     ticket_tabs: { ...form.value.ticket_tabs },
     book_space_form: { ...form.value.book_space_form },
     terms: { last_update: toIsoDate(form.value.terms_last_update) },
+    data_fallback: { ...form.value.data_fallback },
   };
 }
 
@@ -412,6 +496,7 @@ async function load() {
     const ticketTabs = ws.ticket_tabs ?? {};
     const bookSpaceForm = ws.book_space_form ?? {};
     const terms = ws.terms ?? {};
+    const dataFallback = ws.data_fallback ?? {};
 
     form.value = {
       show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
@@ -427,6 +512,7 @@ async function load() {
       ticket_tabs: { ...ticketTabDefaults(), ...ticketTabs },
       book_space_form: { ...bookSpaceDefaults(), ...bookSpaceForm },
       terms_last_update: terms.last_update ? new Date(terms.last_update) : null,
+      data_fallback: { ...dataFallbackDefaults(), ...dataFallback },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
   } catch (err) {

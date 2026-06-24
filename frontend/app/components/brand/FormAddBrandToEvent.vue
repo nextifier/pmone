@@ -58,7 +58,7 @@
                     />
                   </AutocompleteItem>
                   <AutocompleteEmpty
-                    v-if="searchTerm.trim()"
+                    v-if="searchTerm.trim() && !searching"
                     class="text-muted-foreground px-2 py-4 text-center text-sm"
                   >
                     No brands found
@@ -217,18 +217,9 @@ const form = reactive({
 
 const selectedBrand = ref(null);
 const searchTerm = ref("");
-const allBrands = ref([]);
-const brandsLoaded = ref(false);
-
-const brandResults = computed(() => {
-  const term = searchTerm.value.trim().toLowerCase();
-  if (!term) return [];
-  return allBrands.value.filter(
-    (b) =>
-      b.name.toLowerCase().includes(term) ||
-      (b.company_name && b.company_name.toLowerCase().includes(term))
-  );
-});
+const brandResults = ref([]);
+const searching = ref(false);
+let brandSearchTimer = null;
 
 const salesSearch = ref("");
 const selectedSales = computed(() => props.members.find((u) => u.id === form.sales_id) || null);
@@ -238,14 +229,21 @@ const filteredMembers = computed(() => {
   return props.members.filter((u) => u.name.toLowerCase().includes(term));
 });
 
-async function fetchBrands() {
-  if (brandsLoaded.value) return;
+async function searchBrands(term) {
+  searching.value = true;
   try {
-    const res = await client("/api/brands/search", { params: { q: "*" } });
-    allBrands.value = res.data || [];
-    brandsLoaded.value = true;
+    const res = await client("/api/brands/search", { params: { q: term } });
+    if (searchTerm.value.trim() === term) {
+      brandResults.value = res.data || [];
+    }
   } catch {
-    allBrands.value = [];
+    if (searchTerm.value.trim() === term) {
+      brandResults.value = [];
+    }
+  } finally {
+    if (searchTerm.value.trim() === term) {
+      searching.value = false;
+    }
   }
 }
 
@@ -253,6 +251,17 @@ watch(searchTerm, (val) => {
   if (selectedBrand.value && val !== selectedBrand.value.name) {
     selectedBrand.value = null;
   }
+  const term = val.trim();
+  if (brandSearchTimer) {
+    clearTimeout(brandSearchTimer);
+  }
+  if (!term) {
+    brandResults.value = [];
+    searching.value = false;
+    return;
+  }
+  searching.value = true;
+  brandSearchTimer = setTimeout(() => searchBrands(term), 250);
 });
 
 watch(selectedBrand, (brand) => {
@@ -262,9 +271,7 @@ watch(selectedBrand, (brand) => {
 });
 
 watch(isOpen, (val) => {
-  if (val) {
-    fetchBrands();
-  } else {
+  if (!val) {
     selectedBrand.value = null;
     searchTerm.value = "";
     form.booth_number = "";
@@ -277,7 +284,8 @@ watch(isOpen, (val) => {
     form.emails = [""];
     form.send_login_email = false;
     errors.value = {};
-    brandsLoaded.value = false;
+    brandResults.value = [];
+    searching.value = false;
   }
 });
 

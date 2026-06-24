@@ -417,6 +417,61 @@ it('persists website display settings (blog, ticket tabs, book space form, terms
     expect(data_get($ws, 'rundown.show_search_bar'))->toBeTrue();
 });
 
+it('persists per-section data_fallback flags', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'data_fallback' => [
+            'brands' => false,
+            'guests' => false,
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.website_settings.data_fallback.brands', false)
+        ->assertJsonPath('data.website_settings.data_fallback.guests', false);
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.data_fallback.brands'))->toBeFalse();
+    expect(data_get($this->project->settings, 'website_settings.data_fallback.guests'))->toBeFalse();
+    // Unrelated settings remain intact.
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
+});
+
+it('rejects a non-boolean data_fallback value', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'data_fallback' => ['brands' => 'maybe'],
+    ])->assertUnprocessable();
+});
+
+it('exposes data_fallback flags (default true) in public website-settings response', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_fallback_flag',
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    // Unconfigured project keeps the historical always-fallback behaviour.
+    $this->withHeaders(['X-API-Key' => 'pk_test_fallback_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.data_fallback.brands', true)
+        ->assertJsonPath('data.settings.data_fallback.guests', true)
+        ->assertJsonPath('data.settings.data_fallback.media_coverages', true);
+
+    $this->actingAs($this->user);
+    $this->patchJson($this->endpoint, [
+        'data_fallback' => ['brands' => false],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_fallback_flag'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.data_fallback.brands', false)
+        ->assertJsonPath('data.settings.data_fallback.guests', true);
+});
+
 it('exposes website display settings with base defaults in the public response', function () {
     ApiConsumer::factory()->create([
         'api_key' => 'pk_test_display',

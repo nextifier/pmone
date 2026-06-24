@@ -397,6 +397,11 @@ class ProjectController extends Controller
             'book_space_form.show_products' => ['sometimes', 'boolean'],
             'terms' => ['sometimes', 'array'],
             'terms.last_update' => ['sometimes', 'nullable', 'string', 'max:60'],
+            // Per-section toggles for borrowing a previous edition's data when
+            // the active event's section is empty (brands/guests/partners/
+            // programs/faqs/gallery/media_coverages).
+            'data_fallback' => ['sometimes', 'array'],
+            'data_fallback.*' => ['sometimes', 'boolean'],
         ]);
 
         $settings = $project->settings ?? [];
@@ -418,8 +423,12 @@ class ProjectController extends Controller
         // Public rundown / events / website-settings responses cache
         // `website_settings` from the owning project. The Project model only
         // clears the 'projects' tag on save, so explicitly invalidate the
-        // dependent caches here.
-        ResponseCache::clear(['rundown', 'events', 'website-settings', 'hotels']);
+        // dependent caches here. The data_fallback toggles change the output of
+        // every fallback-backed section, so bust those tags too.
+        ResponseCache::clear([
+            'rundown', 'events', 'website-settings', 'hotels',
+            'brands', 'partners', 'programs', 'faqs', 'media-coverages', 'gallery', 'guests',
+        ]);
 
         return response()->json([
             'message' => 'Website settings updated successfully',

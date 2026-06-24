@@ -1,32 +1,34 @@
 <template>
   <ChartContainer
     :config="config"
+    :style="barStyle"
     class="[&_.domain]:stroke-gray-200 dark:[&_.domain]:stroke-gray-800!"
   >
     <VisXYContainer
       :data="data"
       :margin="resolvedMargin"
+      :svg-defs="svgDefs || undefined"
       :y-domain="horizontal ? undefined : [0, undefined]"
       :x-domain="horizontal ? [0, undefined] : undefined"
     >
       <VisStackedBar
         v-if="stacked"
-        :x="(d) => d[xKey]"
+        :x="xAccessor"
         :y="barY"
         :color="barColor"
         :rounded-corners="roundedCorners"
         :orientation="horizontal ? Orientation.Horizontal : Orientation.Vertical"
-        :bar-padding="0.2"
+        :bar-padding="barPadding"
         :bar-max-width="barMaxWidth || undefined"
       />
       <VisGroupedBar
         v-else
-        :x="(d) => d[xKey]"
+        :x="xAccessor"
         :y="barY"
         :color="barColor"
         :rounded-corners="roundedCorners"
         :orientation="horizontal ? Orientation.Horizontal : Orientation.Vertical"
-        :bar-padding="0.2"
+        :bar-padding="barPadding"
         :bar-max-width="barMaxWidth || undefined"
       />
       <VisAxis
@@ -36,27 +38,28 @@
         :domain-line="false"
         :grid-line="false"
         :tickTextHideOverlapping="true"
-        :num-ticks="categoryValues.length"
-        :tick-values="categoryValues"
-        :tick-format="xTickFormatter || defaultXFormat"
+        :num-ticks="tickValues.length"
+        :tick-values="tickValues"
+        :tick-format="categoryTickFormat"
       />
       <template v-else>
         <VisAxis
           type="x"
-          :x="(d) => d[xKey]"
+          :x="xAccessor"
           :tick-line="false"
           :domain-line="false"
           :grid-line="false"
           :tickTextHideOverlapping="true"
-          :num-ticks="categoryValues.length"
-          :tick-values="categoryValues"
-          :tick-format="xTickFormatter || defaultXFormat"
+          :num-ticks="tickValues.length"
+          :tick-values="tickValues"
+          :tick-format="categoryTickFormat"
         />
         <VisAxis
           type="y"
-          :num-ticks="3"
+          :num-ticks="4"
           :tick-line="false"
           :domain-line="false"
+          :grid-line="grid"
           :tick-format="yTickFormatter || defaultYFormat"
         />
       </template>
@@ -122,6 +125,37 @@ const props = defineProps({
     type: Number,
     default: null,
   },
+  // Fraction of each band left empty between bars (0-1). Higher = thinner bars.
+  barPadding: {
+    type: Number,
+    default: 0.2,
+  },
+  // Draw horizontal grid lines behind the bars.
+  grid: {
+    type: Boolean,
+    default: false,
+  },
+  // Raw SVG <defs> string (patterns/gradients/filters) injected into the chart
+  // SVG. Reference them from barFill via url(#id).
+  svgDefs: {
+    type: String,
+    default: null,
+  },
+  // Override the bar fill. String applies to every series; an object maps each
+  // series key to its own fill (e.g. url(#pattern) for one, a color for another).
+  barFill: {
+    type: [String, Object],
+    default: null,
+  },
+  // Outline drawn around every bar (e.g. to frame a pattern fill).
+  barStroke: {
+    type: String,
+    default: null,
+  },
+  barStrokeWidth: {
+    type: Number,
+    default: 1,
+  },
   margin: {
     type: Object,
     default: null,
@@ -154,11 +188,59 @@ const barY = computed(() => {
 });
 
 const barColor = computed(() => {
-  const colors = keys.value.map((key) => props.config[key]?.color || "var(--chart-1)");
+  const colors = keys.value.map((key) => {
+    if (props.barFill) {
+      if (typeof props.barFill === "string") {
+        return props.barFill;
+      }
+      if (props.barFill[key]) {
+        return props.barFill[key];
+      }
+    }
+    return props.config[key]?.color || "var(--chart-1)";
+  });
   return colors.length === 1 ? colors[0] : colors;
 });
 
+// Bar outline is set through Unovis' CSS variables (works for both grouped and
+// stacked) so a pattern fill can be framed without touching the fill accessor.
+const barStyle = computed(() => {
+  if (!props.barStroke) {
+    return undefined;
+  }
+  return {
+    "--vis-grouped-bar-stroke-color": props.barStroke,
+    "--vis-grouped-bar-stroke-width": `${props.barStrokeWidth}px`,
+    "--vis-stacked-bar-stroke-color": props.barStroke,
+    "--vis-stacked-bar-stroke-width": `${props.barStrokeWidth}px`,
+  };
+});
+
 const categoryValues = computed(() => props.data.map((d) => d[props.xKey]));
+
+// Unovis' XY scales are numeric, so string categories (e.g. "Jan") are mapped
+// to their row index and the original label is restored on the axis/tooltip.
+const isCategorical = computed(() =>
+  categoryValues.value.some((v) => typeof v === "string")
+);
+
+const xAccessor = computed(() =>
+  isCategorical.value ? (_d, i) => i : (d) => d[props.xKey]
+);
+
+const tickValues = computed(() =>
+  isCategorical.value ? props.data.map((_d, i) => i) : categoryValues.value
+);
+
+const categoryTickFormat = computed(() => {
+  if (isCategorical.value) {
+    return (i) => {
+      const label = categoryValues.value[i];
+      return props.xTickFormatter ? props.xTickFormatter(label) : label;
+    };
+  }
+  return props.xTickFormatter || defaultXFormat;
+});
 
 const resolvedMargin = computed(
   () =>
@@ -185,6 +267,10 @@ const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
   // Reuse the axis formatter for the tooltip's x label so index-based charts
   // (numeric x) read the real category instead of a bogus epoch date.
   labelFormatter: (d) => {
+    if (isCategorical.value) {
+      const label = categoryValues.value[d];
+      return props.xTickFormatter ? props.xTickFormatter(label) : label;
+    }
     if (props.xTickFormatter) {
       return props.xTickFormatter(d);
     }

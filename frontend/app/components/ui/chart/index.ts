@@ -25,6 +25,19 @@ export { default as ChartBarInteractive } from "./ChartBarInteractive.vue"
 export { default as ChartPie } from "./ChartPie.vue"
 export { default as ChartDonut } from "./ChartPie.vue"
 
+// Composed (area + line)
+export { default as ChartComposed } from "./ChartComposed.vue"
+
+// Radar
+export { default as ChartRadar } from "./ChartRadar.vue"
+
+// Radial bar
+export { default as ChartRadialBar } from "./ChartRadialBar.vue"
+
+// Bespoke bar variants
+export { default as ChartBar3D } from "./ChartBar3D.vue"
+export { default as ChartBarAnimated } from "./ChartBarAnimated.vue"
+
 export { componentToString } from "./utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
