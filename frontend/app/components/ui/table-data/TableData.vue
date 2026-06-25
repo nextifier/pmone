@@ -237,10 +237,10 @@
                 class="tracking-tight hover:bg-transparent"
               >
                 <TableHead
-                  v-for="header in headerGroup.headers"
+                  v-for="(header, index) in headerGroup.headers"
                   :key="header.id"
                   :style="{ width: `${header.getSize()}px` }"
-                  class="h-11"
+                  :class="['h-11', index === 0 && header.column.id !== 'select' ? 'pl-4' : '']"
                 >
                   <template v-if="!header.isPlaceholder">
                     <div
@@ -297,7 +297,7 @@
                       v-for="(header, j) in table.getHeaderGroups()[0]?.headers || []"
                       :key="`skeleton-cell-${i}-${j}`"
                       :style="{ width: `${header.getSize()}px` }"
-                      class="py-2.5"
+                      :class="['py-2.5', j === 0 && header.column.id !== 'select' ? 'pl-4' : '']"
                     >
                       <Skeleton
                         :class="[
@@ -317,10 +317,10 @@
                     class="group tracking-tight"
                   >
                     <TableCell
-                      v-for="cell in row.getVisibleCells()"
+                      v-for="(cell, index) in row.getVisibleCells()"
                       :key="cell.id"
                       :style="{ width: `${cell.column.getSize()}px` }"
-                      class="py-2.5"
+                      :class="['py-2.5', index === 0 && cell.column.id !== 'select' ? 'pl-4' : '']"
                     >
                       <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                     </TableCell>

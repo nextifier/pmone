@@ -15,11 +15,12 @@
           </p>
         </div>
 
-        <Tabs v-model="mode" class="w-full">
+        <Tabs v-model="mode" variant="segmented" class="w-full">
           <TabsList v-if="!manualOnly" class="grid grid-cols-3 w-full">
+            <TabsIndicator />
+            <TabsTrigger value="manual">Manual</TabsTrigger>
             <TabsTrigger value="promo_code">Promo Code</TabsTrigger>
             <TabsTrigger value="promotion_rule">From Rule</TabsTrigger>
-            <TabsTrigger value="manual">Manual</TabsTrigger>
           </TabsList>
 
           <!-- Mode: Promo Code -->
@@ -137,7 +138,13 @@ import { InputErrorMessage } from "@/components/ui/input-error-message";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsIndicator,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
 const props = defineProps({
@@ -159,7 +166,7 @@ const dialogOpen = computed({
   set: (v) => emit("update:open", v),
 });
 
-const mode = ref(props.manualOnly ? "manual" : "promo_code");
+const mode = ref("manual");
 const errors = ref({});
 
 const form = ref({
@@ -187,7 +194,7 @@ watch(dialogOpen, (open) => {
       value: 0,
       reason: "",
     };
-    mode.value = props.manualOnly ? "manual" : "promo_code";
+    mode.value = "manual";
   }
 });
 

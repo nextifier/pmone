@@ -98,8 +98,13 @@
             </Select>
           </div>
 
-          <Tabs :model-value="form.mode" @update:model-value="(v) => (form.mode = v)">
+          <Tabs
+            :model-value="form.mode"
+            variant="segmented"
+            @update:model-value="(v) => (form.mode = v)"
+          >
             <TabsList class="grid w-full grid-cols-2">
+              <TabsIndicator />
               <TabsTrigger value="anonymous">Anonymous</TabsTrigger>
               <TabsTrigger value="named">Named list</TabsTrigger>
             </TabsList>
@@ -196,7 +201,7 @@ import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { computed, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";

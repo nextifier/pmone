@@ -21,7 +21,7 @@
             <p style="font-size:13px;color:#71717a;margin:{{ $whereTopMargin }}px 0 2px;">Where</p>
             <p style="font-size:15px;font-weight:600;margin:0;">{{ $venueLine }}</p>
             @if($event->location_link)
-                <a href="{{ $event->location_link }}" style="display:inline-block;margin-top:8px;font-size:13px;color:#18181b;text-decoration:underline;">Get directions &rarr;</a>
+                <a href="{{ $event->location_link }}" style="display:inline-block;margin-top:8px;font-size:13px;color:#18181b;text-decoration:underline;">Get directions &#8594;</a>
             @endif
         @endif
     </div>

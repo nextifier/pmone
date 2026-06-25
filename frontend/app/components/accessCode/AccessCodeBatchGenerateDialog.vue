@@ -76,8 +76,13 @@
           </div>
 
           <!-- Kind -->
-          <Tabs :model-value="form.kind" @update:model-value="(v) => (form.kind = v)">
+          <Tabs
+            :model-value="form.kind"
+            variant="segmented"
+            @update:model-value="(v) => (form.kind = v)"
+          >
             <TabsList class="grid w-full grid-cols-2">
+              <TabsIndicator />
               <TabsTrigger value="shared">Shared</TabsTrigger>
               <TabsTrigger value="invitation">Invitation</TabsTrigger>
             </TabsList>
@@ -220,7 +225,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { computed, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";

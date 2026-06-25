@@ -38,7 +38,7 @@
         @if(! empty($attendee->ticket?->benefits))
             <p style="font-size:13px;color:#71717a;margin:12px 0 6px;">Includes</p>
             @foreach($attendee->ticket->benefits as $benefit)
-                <p style="font-size:14px;color:#18181b;margin:0 0 4px;line-height:1.4;">&checkmark; {{ $benefit }}</p>
+                <p style="font-size:14px;color:#18181b;margin:0 0 4px;line-height:1.4;">&#10003; {{ $benefit }}</p>
             @endforeach
         @endif
 

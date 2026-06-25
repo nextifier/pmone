@@ -296,11 +296,10 @@
               <div v-if="!adj.is_voided && canVoid" class="mt-2 flex justify-end">
                 <Button
                   size="sm"
-                  variant="ghost"
-                  class="text-destructive h-7 px-2 text-xs"
+                  variant="outline-destructive"
                   @click="openVoidFromDialog(adj)"
                 >
-                  <Icon name="hugeicons:cancel-01" class="size-3.5 shrink-0" />
+                  <Icon name="hugeicons:cancel-01" class="size-4 shrink-0" />
                   Void
                 </Button>
               </div>
@@ -582,12 +581,19 @@ const openItemAdjustment = (item) => {
 
 const openAddAdjustment = () => {
   adjustmentsDialogOpen.value = false;
-  adjustmentDialogOpen.value = true;
+  // Tunggu animasi close dialog list (~200ms) selesai sebelum membuka dialog
+  // manual; membuka keduanya di tick yang sama membuat handoff reka-ui
+  // membatalkan open dialog kedua.
+  setTimeout(() => {
+    adjustmentDialogOpen.value = true;
+  }, 220);
 };
 
 const openVoidFromDialog = (adj) => {
   adjustmentsDialogOpen.value = false;
-  openVoidAdjustment(adj);
+  setTimeout(() => {
+    openVoidAdjustment(adj);
+  }, 220);
 };
 
 const orderBase = computed(
@@ -972,11 +978,12 @@ const taxPct = computed(() => {
 });
 
 // Show a rate for a penalty/discount only when it maps to a single
-// percentage-type adjustment. Fixed-amount (or mixed/multiple) adjustments
-// have no meaningful single rate, so no percentage is shown.
+// ORDER-LEVEL percentage-type adjustment. Per-item adjustments apply to one
+// item's subtotal, not the whole order, so their rate is meaningless on the
+// order footer. Fixed-amount (or mixed/multiple) adjustments also show no rate.
 function kindPct(kind) {
   const adjs = (order.value?.adjustments ?? []).filter(
-    (a) => !a.is_voided && a.kind === kind
+    (a) => !a.is_voided && !a.order_item_id && a.kind === kind
   );
   if (adjs.length !== 1 || adjs[0].value_type !== "percentage") {
     return null;

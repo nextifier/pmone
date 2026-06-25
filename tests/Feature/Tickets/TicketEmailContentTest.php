@@ -145,6 +145,29 @@ it('renders an enriched e-ticket with event when/where, QR, order and a unique s
     expect($mail->attachments())->toHaveCount(1);
 });
 
+it('renders ticket benefits with a portable checkmark, not the unsupported &checkmark; entity', function () {
+    Mail::fake();
+    $ticket = freeEntryTicket($this->event);
+    $ticket->update(['benefits' => ['Access to AI exhibition hall', 'Event tote bag']]);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Anton',
+        'buyer_email' => 'anton@example.com',
+        'buyer_phone' => '0812',
+        'also_attending' => true,
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ]);
+    $attendee = $order->attendees()->first()->load(['ticket', 'ticketOrderItem.ticketOrder.event.project']);
+
+    $mail = new AttendeeETicketMail($attendee, 'https://e.test/x', $this->event, null, 'https://qr', null, true);
+
+    $mail->assertSeeInHtml('Access to AI exhibition hall', false);
+    $mail->assertSeeInHtml('&#10003;', false);   // numeric ref dikirim apa adanya (view biasa, tanpa inliner)
+    $mail->assertDontSeeInHtml('&checkmark;', false);
+    $mail->assertDontSeeInHtml('&rarr;', false);  // partial when/where pakai &#8594;
+});
+
 it('sends from the organizer name and replies to the project email', function () {
     Mail::fake();
     $ticket = freeEntryTicket($this->event);
