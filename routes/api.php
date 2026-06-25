@@ -1231,6 +1231,9 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group
     Route::put('ticket-settings', [EventTicketSettingsController::class, 'update'])
         ->middleware('can:events.update')
         ->name('events.ticket-settings.update');
+    Route::get('ticket-settings/payment-channels', [EventTicketSettingsController::class, 'paymentChannels'])
+        ->middleware('can:events.read')
+        ->name('events.ticket-settings.payment-channels');
 });
 
 // Ticketing management endpoints (nested under event, authenticated + verified + toggle-gated)

@@ -10,6 +10,7 @@ use App\Http\Resources\PublicTicketResource;
 use App\Models\Event;
 use App\Models\User;
 use App\Services\Ticket\TicketPurchaseService;
+use App\Support\PaymentChannels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -44,6 +45,7 @@ class PublicTicketController extends Controller
             'data' => PublicTicketResource::collection($tickets),
             'meta' => [
                 'terms' => $this->localizedTerms($event, $locale),
+                'allowed_payment_channels' => $this->allowedChannelLogos($event),
             ],
         ]);
     }
@@ -93,6 +95,37 @@ class PublicTicketController extends Controller
         }
 
         return is_string($terms) && $terms !== '' ? $terms : null;
+    }
+
+    /**
+     * Payment-channel logos the event restricts ticket checkout to, for the
+     * website to display only those at checkout. Empty = no restriction (the
+     * site shows its default "we accept" set). Server-side enforcement still
+     * happens at checkout creation, so this is purely informational.
+     *
+     * @return array<int, array{code: string, label: string, logo: string}>
+     */
+    protected function allowedChannelLogos(Event $event): array
+    {
+        $codes = $event->settings['tickets']['allowed_payment_channels'] ?? null;
+        if (! is_array($codes) || $codes === []) {
+            return [];
+        }
+
+        $byCode = collect(PaymentChannels::catalog())->keyBy('code');
+
+        return collect($codes)
+            ->map(fn ($code) => is_string($code) ? strtoupper($code) : null)
+            ->filter()
+            ->map(fn (string $code) => $byCode->get($code))
+            ->filter()
+            ->map(fn (array $entry) => [
+                'code' => $entry['code'],
+                'label' => $entry['label'],
+                'logo' => $entry['logo_url'],
+            ])
+            ->values()
+            ->all();
     }
 
     public function preview(PreviewTicketCartRequest $request): JsonResponse

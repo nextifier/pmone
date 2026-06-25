@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EventTicketSettings\UpdateEventTicketSettingsRequest;
 use App\Models\Event;
+use App\Services\Xendit\XenditService;
+use App\Support\PaymentChannels;
 use Illuminate\Http\JsonResponse;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
@@ -27,7 +29,7 @@ class EventTicketSettingsController extends Controller
             $event->fill($columnUpdates);
         }
 
-        $settingKeys = ['default_min_quantity', 'default_max_quantity', 'default_stock', 'default_print_on_redeem', 'login_button_enabled', 'terms'];
+        $settingKeys = ['default_min_quantity', 'default_max_quantity', 'default_stock', 'default_print_on_redeem', 'login_button_enabled', 'terms', 'allowed_payment_channels'];
         $settingUpdates = array_intersect_key($validated, array_flip($settingKeys));
 
         if (! empty($settingUpdates)) {
@@ -71,6 +73,40 @@ class EventTicketSettingsController extends Controller
             // Staff-managed purchase terms as {locale: html} for the editor's
             // per-language tabs (empty object when never set).
             'terms' => is_array($ticketDefaults['terms'] ?? null) ? $ticketDefaults['terms'] : (object) [],
+            // Canonical payment-channel allowlist; empty = accept all channels.
+            'allowed_payment_channels' => array_values(
+                is_array($ticketDefaults['allowed_payment_channels'] ?? null) ? $ticketDefaults['allowed_payment_channels'] : []
+            ),
         ];
+    }
+
+    /**
+     * Channels the admin can pick from, scoped to the project's active gateway:
+     *  - Xendit  -> canonical catalog intersected with the account's live channels.
+     *  - Midtrans -> the Midtrans-supported subset (no live channel-list API).
+     *  - none     -> full catalog (validation still guards what gets saved).
+     */
+    public function paymentChannels(Event $event): JsonResponse
+    {
+        $gateway = $event->project?->activePaymentGateway();
+
+        if ($gateway === null) {
+            return response()->json([
+                'data' => PaymentChannels::catalog(),
+                'meta' => ['gateway_configured' => false],
+            ]);
+        }
+
+        if ($gateway->provider === 'midtrans') {
+            $channels = PaymentChannels::catalogForCodes(PaymentChannels::midtransSupportedCodes());
+        } else {
+            $enabled = XenditService::forGateway($gateway)->enabledChannelCodes();
+            $channels = $enabled === [] ? PaymentChannels::catalog() : PaymentChannels::catalogForEnabled($enabled);
+        }
+
+        return response()->json([
+            'data' => $channels,
+            'meta' => ['gateway_configured' => true, 'provider' => $gateway->provider],
+        ]);
     }
 }

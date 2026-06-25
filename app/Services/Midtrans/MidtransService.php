@@ -2,6 +2,7 @@
 
 namespace App\Services\Midtrans;
 
+use App\Contracts\Payment\CheckoutPayable;
 use App\Contracts\Payment\CreatesCheckout;
 use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Payment\ProvidesSettlements;
@@ -15,6 +16,7 @@ use App\Enums\ReservationStatus;
 use App\Exceptions\Payment\PaymentProviderException;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
+use App\Support\PaymentChannels;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -136,11 +138,11 @@ class MidtransService implements CreatesCheckout, PaymentProvider, ProvidesSettl
     }
 
     /**
-     * Create a Midtrans Snap transaction for a reservation and return the hosted
-     * checkout redirect URL.
+     * Create a Midtrans Snap transaction for any CheckoutPayable (reservation or
+     * ticket order) and return the hosted checkout redirect URL.
      *
-     * `order_id` is the reservation number so the notification webhook can
-     * resolve the reservation by it. `gross_amount` must be a whole-rupiah
+     * `order_id` is the payable's reference (reservation/order number) so the
+     * notification webhook can resolve it. `gross_amount` must be a whole-rupiah
      * integer (IDR has no minor units). `item_details` is intentionally omitted:
      * Midtrans requires the item sum to equal gross_amount, and the Xendit
      * invoice flow does not itemise either.
@@ -148,21 +150,23 @@ class MidtransService implements CreatesCheckout, PaymentProvider, ProvidesSettl
      * @return array{reference: string, payment_url: string, checkout_method: string}
      */
     public function createCheckout(
-        Reservation $reservation,
+        CheckoutPayable $payable,
         ?string $successUrl = null,
         ?string $failureUrl = null,
     ): array {
         $this->requireGateway();
 
+        $customer = $payable->checkoutCustomer();
+
         $payload = [
             'transaction_details' => [
-                'order_id' => $reservation->reservation_number,
-                'gross_amount' => (int) round((float) $reservation->total_amount),
+                'order_id' => $payable->checkoutReference(),
+                'gross_amount' => (int) round($payable->checkoutAmount()),
             ],
             'customer_details' => array_filter([
-                'first_name' => $reservation->guest_name ?: 'Guest',
-                'email' => $reservation->guest_email ?: null,
-                'phone' => $reservation->guest_phone ?: null,
+                'first_name' => ($customer['given_names'] ?? null) ?: 'Guest',
+                'email' => $customer['email'] ?? null,
+                'phone' => $customer['mobile_number'] ?? null,
             ]),
             'credit_card' => ['secure' => true],
             'expiry' => [
@@ -170,6 +174,15 @@ class MidtransService implements CreatesCheckout, PaymentProvider, ProvidesSettl
                 'duration' => (int) config('midtrans.expiry_duration', 86400),
             ],
         ];
+
+        // Restrict the Snap payment list when the payable carries a non-empty
+        // allowlist that maps to Midtrans-supported methods; otherwise leave it
+        // absent so Snap shows every method enabled on the account.
+        $allowed = $payable->allowedPaymentChannels();
+        $enabled = $allowed === null ? [] : PaymentChannels::toMidtransEnabledPayments($allowed);
+        if ($enabled !== []) {
+            $payload['enabled_payments'] = $enabled;
+        }
 
         // Snap redirects here after the customer finishes (or abandons) payment.
         if ($successUrl !== null) {

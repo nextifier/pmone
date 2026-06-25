@@ -230,6 +230,77 @@
           </div>
         </div>
       </div>
+
+      <!-- Payment Channels -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:credit-card" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 flex-1 space-y-1">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-base font-semibold tracking-tighter">Payment Channels</h3>
+              <Badge v-if="selectedChannelCount > 0" variant="default">
+                {{ selectedChannelCount }} selected
+              </Badge>
+              <Badge v-else variant="muted">All accepted</Badge>
+            </div>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Restrict ticket checkout to specific payment channels, e.g. for a bank-sponsored
+              event. Leave everything unchecked to accept every channel enabled on your gateway.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4">
+          <div v-if="channelsLoading" class="flex items-center justify-center py-6">
+            <Spinner class="size-5" />
+          </div>
+
+          <template v-else>
+            <p v-if="!gatewayConfigured" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              No active payment gateway yet, so the full list of supported channels is shown. Your
+              selection is saved and applied once a gateway is connected.
+            </p>
+
+            <div v-if="channelOptions.length" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <label
+                v-for="channel in channelOptions"
+                :key="channel.code"
+                :class="[
+                  'flex cursor-pointer items-center gap-x-3 rounded-lg border px-3 py-2.5 transition-colors',
+                  isChannelSelected(channel.code)
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:bg-muted/40',
+                ]"
+              >
+                <Checkbox
+                  :model-value="isChannelSelected(channel.code)"
+                  @update:model-value="(v) => toggleChannel(channel.code, v)"
+                />
+                <img
+                  v-if="channel.logo_url"
+                  :src="channel.logo_url"
+                  :alt="channel.label"
+                  class="h-5 w-9 shrink-0 object-contain"
+                />
+                <span class="min-w-0 flex-1 truncate text-sm font-medium tracking-tight">
+                  {{ channel.label }}
+                </span>
+              </label>
+            </div>
+
+            <p v-else class="text-muted-foreground text-sm tracking-tight">
+              No payment channels are available to select.
+            </p>
+
+            <div v-if="selectedChannelCount > 0" class="flex items-center justify-between gap-3">
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                Only the selected channels will appear at checkout.
+              </p>
+              <Button variant="ghost" size="sm" @click="clearChannels">Clear</Button>
+            </div>
+          </template>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -237,6 +308,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { InputNumber } from "@/components/ui/input-number";
 import { Label } from "@/components/ui/label";
 import {
@@ -277,6 +349,10 @@ const loading = ref(true);
 const toggling = ref(false);
 const savingTerms = ref(false);
 
+const channelOptions = ref([]);
+const channelsLoading = ref(true);
+const gatewayConfigured = ref(true);
+
 const form = ref({
   tickets_enabled: false,
   allow_cross_day: false,
@@ -287,7 +363,31 @@ const form = ref({
   default_print_on_redeem: false,
   login_button_enabled: true,
   terms: EMPTY_TRANSLATABLE(),
+  allowed_payment_channels: [],
 });
+
+const selectedChannelCount = computed(() => form.value.allowed_payment_channels?.length ?? 0);
+
+function isChannelSelected(code) {
+  return (form.value.allowed_payment_channels ?? []).includes(code);
+}
+
+function toggleChannel(code, checked) {
+  const set = new Set(form.value.allowed_payment_channels ?? []);
+  if (checked) {
+    set.add(code);
+  } else {
+    set.delete(code);
+  }
+  form.value.allowed_payment_channels = [...set];
+  save();
+}
+
+function clearChannels() {
+  if (selectedChannelCount.value === 0) return;
+  form.value.allowed_payment_channels = [];
+  save();
+}
 
 const termsField = computed({
   get: () => form.value.terms?.[activeTermsLocale.value] ?? "",
@@ -333,6 +433,7 @@ function buildPayload() {
     default_print_on_redeem: form.value.default_print_on_redeem,
     login_button_enabled: form.value.login_button_enabled,
     terms: cleanTranslatable(form.value.terms),
+    allowed_payment_channels: [...(form.value.allowed_payment_channels ?? [])],
   };
 }
 
@@ -366,12 +467,31 @@ async function load() {
       default_print_on_redeem: !!d.default_print_on_redeem,
       login_button_enabled: d.login_button_enabled !== false,
       terms: { ...EMPTY_TRANSLATABLE(), ...(d.terms && typeof d.terms === "object" ? d.terms : {}) },
+      allowed_payment_channels: Array.isArray(d.allowed_payment_channels)
+        ? [...d.allowed_payment_channels]
+        : [],
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
   } catch (err) {
     toast.error("Failed to load ticket settings");
   } finally {
     loading.value = false;
+  }
+}
+
+// Channels the admin can pick from: the canonical catalog intersected with the
+// channels actually enabled on the project's gateway (falls back to the full
+// catalog when no gateway is connected yet).
+async function loadChannels() {
+  channelsLoading.value = true;
+  try {
+    const res = await client(`${baseUrl.value}/payment-channels`);
+    channelOptions.value = Array.isArray(res?.data) ? res.data : [];
+    gatewayConfigured.value = res?.meta?.gateway_configured !== false;
+  } catch (err) {
+    channelOptions.value = [];
+  } finally {
+    channelsLoading.value = false;
   }
 }
 
@@ -442,5 +562,8 @@ watch(
   () => save()
 );
 
-onMounted(load);
+onMounted(() => {
+  load();
+  loadChannels();
+});
 </script>

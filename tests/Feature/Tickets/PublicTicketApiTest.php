@@ -43,6 +43,27 @@ it('lists on-sale tickets for an event website', function () {
         ->assertJsonPath('data.0.on_sale', true);
 });
 
+it('exposes allowed payment channel logos when the event restricts checkout', function () {
+    onSaleTicket($this->event, 60000);
+    $this->event->update(['settings' => ['tickets' => ['allowed_payment_channels' => ['BCA', 'CREDIT_CARD']]]]);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets")
+        ->assertSuccessful()
+        ->assertJsonPath('meta.allowed_payment_channels.0.code', 'BCA')
+        ->assertJsonPath('meta.allowed_payment_channels.0.logo', '/img/payment-methods/bca.svg')
+        ->assertJsonPath('meta.allowed_payment_channels.1.code', 'CREDIT_CARD');
+});
+
+it('returns an empty channel list when the event has no restriction', function () {
+    onSaleTicket($this->event, 60000);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets")
+        ->assertSuccessful()
+        ->assertJsonPath('meta.allowed_payment_channels', []);
+});
+
 it('exposes the sales window for the sale countdown', function () {
     onSaleTicket($this->event, 60000);
 

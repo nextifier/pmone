@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Contracts\Payment\CheckoutPayable;
 use App\Contracts\Pricing\Purchasable;
 use App\Enums\IdentityType;
 use App\Enums\PaymentMethod;
@@ -168,7 +169,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  *
  * @mixin \Eloquent
  */
-class Reservation extends Model implements HasMedia, Purchasable
+class Reservation extends Model implements CheckoutPayable, HasMedia, Purchasable
 {
     use HasAdjustments;
     use HasFactory;
@@ -446,6 +447,39 @@ class Reservation extends Model implements HasMedia, Purchasable
     public function customerEmail(): ?string
     {
         return $this->guest_email;
+    }
+
+    public function checkoutReference(): string
+    {
+        return (string) $this->reservation_number;
+    }
+
+    public function checkoutAmount(): float
+    {
+        return (float) $this->total_amount;
+    }
+
+    public function checkoutDescription(): string
+    {
+        return "Hotel reservation {$this->reservation_number} - {$this->hotel?->name}";
+    }
+
+    public function checkoutCustomer(): array
+    {
+        return [
+            'given_names' => $this->guest_name ?: null,
+            'email' => $this->guest_email ?: null,
+            'mobile_number' => $this->guest_phone ?: null,
+        ];
+    }
+
+    /**
+     * Hotel reservations accept every channel enabled on the gateway - the
+     * per-event allowlist is a ticketing-only feature.
+     */
+    public function allowedPaymentChannels(): ?array
+    {
+        return null;
     }
 
     public function persistTotals(array $totals): void

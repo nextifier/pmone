@@ -1,12 +1,14 @@
 <?php
 
 use App\Enums\ReservationStatus;
+use App\Enums\Ticketing\TicketOrderStatus;
 use App\Jobs\Reservation\SendBookingReceivedJob;
 use App\Models\Event;
 use App\Models\Hotel;
 use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
+use App\Models\TicketOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 
@@ -218,4 +220,65 @@ it('logs the notification to payment_webhook_events attributed to the project', 
         'external_id' => 'HTL-MID-LOG-1',
         'project_id' => $this->project->id,
     ]);
+});
+
+it('confirms a ticket order on a valid settlement notification', function () {
+    $order = TicketOrder::factory()->create([
+        'event_id' => $this->event->id,
+        'order_number' => 'TIX-MID-PAID-1',
+        'status' => TicketOrderStatus::PendingPayment,
+        'payment_gateway_id' => $this->gateway->id,
+        'xendit_invoice_id' => 'snap-token-keep',
+        'total' => 100000,
+    ]);
+
+    $payload = midtransNotification($this, 'TIX-MID-PAID-1', [
+        'transaction_id' => 'mid-tix-1',
+        'payment_type' => 'gopay',
+    ]);
+
+    $this->postJson('/api/webhooks/midtrans', $payload)
+        ->assertSuccessful()
+        ->assertJsonPath('message', 'Ticket order confirmed');
+
+    $order->refresh();
+    expect($order->status)->toBe(TicketOrderStatus::Confirmed)
+        ->and($order->paid_at)->not->toBeNull()
+        ->and($order->payment_channel)->toBe('GOPAY');
+});
+
+it('expires a ticket order on a cancel notification', function () {
+    $order = TicketOrder::factory()->create([
+        'event_id' => $this->event->id,
+        'order_number' => 'TIX-MID-EXP-1',
+        'status' => TicketOrderStatus::PendingPayment,
+        'payment_gateway_id' => $this->gateway->id,
+        'total' => 100000,
+    ]);
+
+    $payload = midtransNotification($this, 'TIX-MID-EXP-1', ['transaction_status' => 'expire']);
+
+    $this->postJson('/api/webhooks/midtrans', $payload)
+        ->assertSuccessful()
+        ->assertJsonPath('message', 'Ticket order expired');
+
+    expect($order->refresh()->status)->toBe(TicketOrderStatus::Expired);
+});
+
+it('rejects a ticket notification with a bad signature', function () {
+    TicketOrder::factory()->create([
+        'event_id' => $this->event->id,
+        'order_number' => 'TIX-MID-BAD-1',
+        'status' => TicketOrderStatus::PendingPayment,
+        'payment_gateway_id' => $this->gateway->id,
+        'total' => 100000,
+    ]);
+
+    $payload = midtransNotification($this, 'TIX-MID-BAD-1');
+    $payload['signature_key'] = 'tampered';
+
+    $this->postJson('/api/webhooks/midtrans', $payload)->assertStatus(401);
+
+    expect(TicketOrder::where('order_number', 'TIX-MID-BAD-1')->first()->status)
+        ->toBe(TicketOrderStatus::PendingPayment);
 });

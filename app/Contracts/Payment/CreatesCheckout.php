@@ -3,17 +3,17 @@
 namespace App\Contracts\Payment;
 
 use App\Models\ProjectPaymentGateway;
-use App\Models\Reservation;
 
 /**
- * A payment provider that can create a hosted checkout for a reservation.
+ * A payment provider that can create a hosted checkout for any CheckoutPayable
+ * (a hotel Reservation or a ticket TicketOrder).
  *
  * Both XenditService (Invoices / Sessions) and MidtransService (Snap) implement
- * this, so ReservationService can create a payment without knowing which
+ * this, so callers create a payment without knowing which product or which
  * provider backs the project's active gateway. The return shape is intentionally
  * method-agnostic — `reference` is whatever id the provider uses to correlate
  * the payment (Xendit invoice/session id, Midtrans Snap token) and is stored on
- * the reservation's `xendit_invoice_id` column.
+ * the record's `xendit_invoice_id` column.
  */
 interface CreatesCheckout
 {
@@ -21,7 +21,7 @@ interface CreatesCheckout
      * @return array{reference: string, payment_url: string, checkout_method: string}
      */
     public function createCheckout(
-        Reservation $reservation,
+        CheckoutPayable $payable,
         ?string $successUrl = null,
         ?string $failureUrl = null,
     ): array;

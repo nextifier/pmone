@@ -1,5 +1,6 @@
 <?php
 
+use App\Contracts\Payment\CreatesCheckout;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Models\Event;
 use App\Models\Project;
@@ -10,8 +11,8 @@ use App\Models\TicketPricePhase;
 use App\Models\TicketSession;
 use App\Models\User;
 use App\Services\Ticket\TicketPurchaseService;
-use App\Services\Xendit\XenditService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 use function Pest\Laravel\mock;
@@ -87,13 +88,14 @@ it('uses just the buyer name for a single ticket', function () {
     expect($order->attendees()->first()->name)->toBe('Antonius');
 });
 
-it('opens a payment for a paid order and stays pending', function () {
+it('opens a checkout via the active gateway and stays pending', function () {
     ProjectPaymentGateway::factory()->create(['project_id' => $this->project->id, 'mode' => 'test', 'is_active' => true]);
     $ticket = entryTicketWithPrice($this->event, 60000);
 
-    $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createGenericInvoice')->once()
-        ->andReturn(['invoice_id' => 'inv_123', 'invoice_url' => 'https://pay.example/inv_123']);
+    $client = mock(CreatesCheckout::class);
+    $client->shouldReceive('createCheckout')->once()
+        ->andReturn(['reference' => 'ref_123', 'payment_url' => 'https://pay.example/ref_123', 'checkout_method' => 'payment_link_legacy']);
+    $client->shouldReceive('gateway')->andReturnNull();
 
     $order = $this->service->createOrder([
         'event_id' => $this->event->id,
@@ -101,39 +103,57 @@ it('opens a payment for a paid order and stays pending', function () {
         'buyer_email' => 'sari@example.com',
         'buyer_phone' => '0811',
         'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
-    ], $xendit);
+    ], $client);
 
     expect($order->status)->toBe(TicketOrderStatus::PendingPayment)
         ->and((float) $order->total)->toBe(120000.0)
-        ->and($order->payment_url)->toBe('https://pay.example/inv_123')
-        ->and($order->xendit_invoice_id)->toBe('inv_123')
+        ->and($order->payment_url)->toBe('https://pay.example/ref_123')
+        ->and($order->xendit_invoice_id)->toBe('ref_123')
         ->and($order->attendees()->count())->toBe(2);
 });
 
-it('opens a Sessions checkout for a paid order when the gateway uses sessions', function () {
-    ProjectPaymentGateway::factory()->create([
-        'project_id' => $this->project->id,
-        'mode' => 'test',
-        'is_active' => true,
-        'checkout_method' => 'payment_link_sessions',
-    ]);
+it('passes the ticket order itself to the provider checkout (no hardcoded Xendit)', function () {
+    ProjectPaymentGateway::factory()->create(['project_id' => $this->project->id, 'mode' => 'test', 'is_active' => true]);
     $ticket = entryTicketWithPrice($this->event, 60000);
 
-    $xendit = mock(XenditService::class);
-    $xendit->shouldReceive('createTicketSession')->once()
-        ->andReturn(['session_id' => 'ps_abc', 'payment_url' => 'https://pay.example/ps_abc', 'status' => 'ACTIVE']);
+    $client = mock(CreatesCheckout::class);
+    $client->shouldReceive('createCheckout')->once()
+        ->withArgs(fn ($payable) => $payable instanceof TicketOrder)
+        ->andReturn(['reference' => 'ref_x', 'payment_url' => 'https://pay.example/ref_x', 'checkout_method' => 'snap']);
+    $client->shouldReceive('gateway')->andReturnNull();
+
+    $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Sari', 'buyer_email' => 'sari@example.com', 'buyer_phone' => '0811',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ], $client);
+});
+
+it('opens a Midtrans Snap checkout when the active gateway is Midtrans, honoring the channel allowlist', function () {
+    ProjectPaymentGateway::factory()->midtrans()->create([
+        'project_id' => $this->project->id, 'mode' => 'test', 'is_active' => true,
+    ]);
+    $this->event->update(['settings' => ['tickets' => ['allowed_payment_channels' => ['BCA', 'GOPAY']]]]);
+    $ticket = entryTicketWithPrice($this->event, 60000);
+
+    Http::fake([
+        '*/snap/v1/transactions' => Http::response([
+            'token' => 'snap-tok', 'redirect_url' => 'https://app.sandbox.midtrans.com/snap/v2/vtweb/snap-tok',
+        ], 201),
+    ]);
 
     $order = $this->service->createOrder([
         'event_id' => $this->event->id,
-        'buyer_name' => 'Sari',
-        'buyer_email' => 'sari@example.com',
-        'buyer_phone' => '0811',
-        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
-    ], $xendit);
+        'buyer_name' => 'Sari', 'buyer_email' => 'sari@example.com', 'buyer_phone' => '0811',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ]);
 
     expect($order->status)->toBe(TicketOrderStatus::PendingPayment)
-        ->and($order->payment_url)->toBe('https://pay.example/ps_abc')
-        ->and($order->xendit_invoice_id)->toBe('ps_abc');
+        ->and($order->payment_url)->toBe('https://app.sandbox.midtrans.com/snap/v2/vtweb/snap-tok')
+        ->and($order->xendit_invoice_id)->toBe('snap-tok');
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/snap/v1/transactions')
+        && ($request->data()['enabled_payments'] ?? null) === ['bca_va', 'gopay']);
 });
 
 it('uses the buyer data for attendee #1 when also attending', function () {

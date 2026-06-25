@@ -2,6 +2,7 @@
 
 namespace App\Services\Xendit;
 
+use App\Contracts\Payment\CheckoutPayable;
 use App\Contracts\Payment\CreatesCheckout;
 use App\Contracts\Payment\PaymentProvider;
 use App\Contracts\Payment\ProvidesBalance;
@@ -19,8 +20,7 @@ use App\Enums\Payment\CheckoutMethod;
 use App\Enums\PaymentCapability;
 use App\Exceptions\Payment\PaymentProviderException;
 use App\Models\ProjectPaymentGateway;
-use App\Models\Reservation;
-use App\Models\TicketOrder;
+use App\Support\PaymentChannels;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
@@ -340,66 +340,31 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
         }
     }
 
-    public function createInvoice(
-        Reservation $reservation,
-        ?string $successUrl = null,
-        ?string $failureUrl = null,
-    ): array {
-        $this->requireGateway();
-        $api = new InvoiceApi($this->httpClient());
-
-        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$reservation->reservation_number);
-        $failure = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$reservation->reservation_number);
-
-        $payload = new CreateInvoiceRequest([
-            'external_id' => $reservation->reservation_number,
-            'amount' => (float) $reservation->total_amount,
-            'description' => "Hotel reservation {$reservation->reservation_number} - {$reservation->hotel?->name}",
-            'invoice_duration' => config('xendit.invoice_duration'),
-            'currency' => $this->resolveCurrency(),
-            'customer' => [
-                'given_names' => $reservation->guest_name,
-                'email' => $reservation->guest_email,
-                'mobile_number' => $reservation->guest_phone,
-            ],
-            'success_redirect_url' => $success,
-            'failure_redirect_url' => $failure,
-        ]);
-
-        $invoice = $api->createInvoice($payload);
-
-        $this->touchGatewayUsage();
-
-        return [
-            'invoice_id' => $invoice->getId(),
-            'invoice_url' => $invoice->getInvoiceUrl(),
-        ];
-    }
-
     /**
-     * Provider-agnostic invoice creation for any product (not just hotel
-     * reservations). Mirrors createInvoice() but takes scalar params so the
-     * ticketing flow can reuse the same gateway client without coupling the
-     * Reservation-typed methods. Additive — does not change existing call sites.
+     * Create a legacy Xendit Invoice for any CheckoutPayable (reservation or
+     * ticket order). Restricts payment methods when the payable carries a
+     * non-empty allowlist; otherwise Xendit shows every enabled method.
      *
-     * @param  array{given_names?: string|null, email?: string|null, mobile_number?: string|null}  $customer
      * @return array{invoice_id: string, invoice_url: string}
      */
-    public function createGenericInvoice(
-        string $externalId,
-        float $amount,
-        string $description,
-        array $customer = [],
+    public function createInvoice(
+        CheckoutPayable $payable,
         ?string $successUrl = null,
         ?string $failureUrl = null,
     ): array {
         $this->requireGateway();
         $api = new InvoiceApi($this->httpClient());
 
-        $payload = new CreateInvoiceRequest([
-            'external_id' => $externalId,
-            'amount' => $amount,
-            'description' => $description,
+        $reference = $payable->checkoutReference();
+        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$reference);
+        $failure = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$reference);
+
+        $customer = $payable->checkoutCustomer();
+
+        $attributes = [
+            'external_id' => $reference,
+            'amount' => $payable->checkoutAmount(),
+            'description' => $payable->checkoutDescription(),
             'invoice_duration' => config('xendit.invoice_duration'),
             'currency' => $this->resolveCurrency(),
             'customer' => [
@@ -407,9 +372,19 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
                 'email' => $customer['email'] ?? null,
                 'mobile_number' => $customer['mobile_number'] ?? null,
             ],
-            'success_redirect_url' => $successUrl ?? config('xendit.success_redirect_url'),
-            'failure_redirect_url' => $failureUrl ?? config('xendit.failure_redirect_url'),
-        ]);
+            'success_redirect_url' => $success,
+            'failure_redirect_url' => $failure,
+        ];
+
+        // Restrict to specific payment methods only when a non-empty mapped list
+        // results - otherwise leave the key absent so Xendit shows all methods.
+        $allowed = $payable->allowedPaymentChannels();
+        $methods = $allowed === null ? [] : PaymentChannels::toXenditInvoiceCodes($allowed);
+        if ($methods !== []) {
+            $attributes['payment_methods'] = $methods;
+        }
+
+        $payload = new CreateInvoiceRequest($attributes);
 
         $invoice = $api->createInvoice($payload);
 
@@ -422,16 +397,16 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
     }
 
     /**
-     * Create a payment for a reservation using whichever checkout method the
-     * bound gateway is configured for (see ProjectPaymentGateway::$checkout_method).
+     * Create a payment for any CheckoutPayable using whichever checkout method
+     * the bound gateway is configured for (see ProjectPaymentGateway::$checkout_method).
      *
-     * Returns a method-agnostic shape so callers (ReservationService) never need
-     * to know whether the Sessions API or the legacy Invoices API ran.
+     * Returns a method-agnostic shape so callers never need to know whether the
+     * Sessions API or the legacy Invoices API ran.
      *
      * @return array{reference: string, payment_url: string, checkout_method: string}
      */
     public function createCheckout(
-        Reservation $reservation,
+        CheckoutPayable $payable,
         ?string $successUrl = null,
         ?string $failureUrl = null,
     ): array {
@@ -440,7 +415,7 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
         $method = $this->gateway->checkout_method ?? CheckoutMethod::PaymentLinkLegacy;
 
         if ($method === CheckoutMethod::PaymentLinkSessions) {
-            $session = $this->createSession($reservation, $successUrl, $failureUrl);
+            $session = $this->createSession($payable, $successUrl, $failureUrl);
 
             return [
                 'reference' => $session['session_id'],
@@ -450,7 +425,7 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
         }
 
         // CheckoutMethod::PaymentLinkLegacy — the legacy Invoices API.
-        $invoice = $this->createInvoice($reservation, $successUrl, $failureUrl);
+        $invoice = $this->createInvoice($payable, $successUrl, $failureUrl);
 
         return [
             'reference' => $invoice['invoice_id'],
@@ -460,8 +435,8 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
     }
 
     /**
-     * Create a Xendit Payment Session (PAYMENT_LINK mode) for a reservation
-     * and return the hosted checkout URL.
+     * Create a Xendit Payment Session (PAYMENT_LINK mode) for any CheckoutPayable
+     * (reservation or ticket order) and return the hosted checkout URL.
      *
      * The installed xendit/xendit-php SDK has no Sessions client, so this calls
      * the REST endpoint directly with the same Basic-auth pattern as
@@ -470,53 +445,55 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
      * @return array{session_id: string, payment_url: string, status: string}
      */
     public function createSession(
-        Reservation $reservation,
+        CheckoutPayable $payable,
         ?string $successUrl = null,
         ?string $failureUrl = null,
     ): array {
         $this->requireGateway();
 
-        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$reservation->reservation_number);
-        $cancel = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$reservation->reservation_number);
+        $reference = $payable->checkoutReference();
+        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$reference);
+        $cancel = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$reference);
 
+        $detail = $payable->checkoutCustomer();
         $customer = [
-            'reference_id' => $reservation->reservation_number.'-cust',
+            'reference_id' => $reference.'-cust',
             'type' => 'INDIVIDUAL',
             'individual_detail' => [
-                'given_names' => $reservation->guest_name ?: 'Guest',
+                'given_names' => ($detail['given_names'] ?? null) ?: 'Guest',
             ],
         ];
 
-        if (filled($reservation->guest_email)) {
-            $customer['email'] = $reservation->guest_email;
+        if (filled($detail['email'] ?? null)) {
+            $customer['email'] = $detail['email'];
         }
 
-        // Sessions validates mobile_number strictly as E.164. PM One guest
-        // phones are free-form, so only forward a conforming value; otherwise
-        // omit it rather than have Xendit reject the whole request.
-        $mobile = $this->toE164($reservation->guest_phone);
+        // Sessions validates mobile_number strictly as E.164. PM One phones are
+        // free-form, so only forward a conforming value; otherwise omit it
+        // rather than have Xendit reject the whole request.
+        $mobile = $this->toE164($detail['mobile_number'] ?? null);
         if ($mobile !== null) {
             $customer['mobile_number'] = $mobile;
         }
 
         $payload = [
-            'reference_id' => $reservation->reservation_number,
+            'reference_id' => $reference,
             'session_type' => 'PAY',
             'mode' => 'PAYMENT_LINK',
             'currency' => $this->resolveCurrency(),
             // IDR has no minor units — Xendit expects a whole-rupiah integer.
-            'amount' => (int) round((float) $reservation->total_amount),
+            'amount' => (int) round($payable->checkoutAmount()),
             'country' => 'ID',
             'locale' => 'en',
             'customer' => $customer,
-            'description' => "Hotel reservation {$reservation->reservation_number} - {$reservation->hotel?->name}",
+            'description' => $payable->checkoutDescription(),
             // Sessions default to a 30-minute expiry; align it with the
             // app-wide payment window so the hosted page does not die early.
             'expires_at' => now()->addSeconds((int) config('xendit.invoice_duration', 86400))->toIso8601String(),
             'success_return_url' => $success,
             'cancel_return_url' => $cancel,
             // Suppress the "Installment Plan" dropdown on the hosted Sessions
-            // Payment Link page. Hotel bookings are one-off and we have no
+            // Payment Link page. Our payments are one-off and we have no
             // installment programs to offer — the dropdown would otherwise
             // render a useless single "Pay in Full" option (or worse, an empty
             // combobox if the merchant account hasn't configured any programs).
@@ -531,74 +508,21 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
             ],
         ];
 
-        return $this->postSession($payload);
-    }
-
-    /**
-     * Create a Xendit Payment Session for a TICKET ORDER. Mirrors
-     * createSession() (reservations) so ticket payments made via the Sessions
-     * API get the same hosted checkout and, crucially, the same card-brand
-     * resolution at webhook time (resolveSessionChannel) — the Invoices API only
-     * reports a generic "CREDIT_CARD" channel.
-     *
-     * @return array{session_id: string, payment_url: string, status: string}
-     */
-    public function createTicketSession(
-        TicketOrder $order,
-        ?string $successUrl = null,
-        ?string $failureUrl = null,
-    ): array {
-        $this->requireGateway();
-
-        $success = $successUrl ?? (config('xendit.success_redirect_url').'?ref='.$order->order_number);
-        $cancel = $failureUrl ?? (config('xendit.failure_redirect_url').'?ref='.$order->order_number);
-
-        $customer = [
-            'reference_id' => $order->order_number.'-cust',
-            'type' => 'INDIVIDUAL',
-            'individual_detail' => [
-                'given_names' => $order->buyer_name ?: 'Guest',
-            ],
-        ];
-
-        if (filled($order->buyer_email)) {
-            $customer['email'] = $order->buyer_email;
+        // Limit the hosted checkout to specific channels only when a non-empty
+        // mapped list results - an empty/absent field means "all channels".
+        $allowed = $payable->allowedPaymentChannels();
+        $channels = $allowed === null ? [] : PaymentChannels::toXenditSessionsCodes($allowed);
+        if ($channels !== []) {
+            $payload['allowed_payment_channels'] = $channels;
         }
-
-        $mobile = $this->toE164($order->buyer_phone);
-        if ($mobile !== null) {
-            $customer['mobile_number'] = $mobile;
-        }
-
-        $payload = [
-            'reference_id' => $order->order_number,
-            'session_type' => 'PAY',
-            'mode' => 'PAYMENT_LINK',
-            'currency' => $this->resolveCurrency(),
-            'amount' => (int) round((float) $order->total),
-            'country' => 'ID',
-            'locale' => 'en',
-            'customer' => $customer,
-            'description' => "Ticket order {$order->order_number} - {$order->event?->title}",
-            'expires_at' => now()->addSeconds((int) config('xendit.invoice_duration', 86400))->toIso8601String(),
-            'success_return_url' => $success,
-            'cancel_return_url' => $cancel,
-            // Mirror createSession(): suppress the single-option installment
-            // dropdown on the hosted card form.
-            'channel_properties' => [
-                'cards' => [
-                    'allowed_installment_program_ids' => [],
-                ],
-            ],
-        ];
 
         return $this->postSession($payload);
     }
 
     /**
      * POST a built session payload to Xendit and normalise the response. Shared
-     * by createSession() (reservations) and createTicketSession() so both speak
-     * to the Sessions API identically.
+     * by createSession() for every CheckoutPayable so reservations and ticket
+     * orders speak to the Sessions API identically.
      *
      * @param  array<string, mixed>  $payload
      * @return array{session_id: string, payment_url: string, status: string}
@@ -1314,6 +1238,31 @@ class XenditService implements CreatesCheckout, PaymentProvider, ProvidesBalance
         // sensible static set when the live list is unavailable, empty, or none
         // of the returned codes have a known logo asset.
         return $logos !== [] ? $logos : $this->fallbackLogos();
+    }
+
+    /**
+     * Raw activated channel codes (uppercase) for the bound gateway, sharing
+     * the same 24h cache as {@see getEnabledPaymentChannels()}. Returns the
+     * codes themselves (not logos) so the admin channel picker can intersect
+     * them with {@see PaymentChannels::catalog()}. Empty when no gateway is
+     * bound or the live list is unavailable.
+     *
+     * @return array<int, string>
+     */
+    public function enabledChannelCodes(): array
+    {
+        $cacheKey = $this->paymentChannelsCacheKey();
+        if ($cacheKey === null || ! $this->secretKey) {
+            return [];
+        }
+
+        $codes = Cache::remember(
+            $cacheKey,
+            self::PAYMENT_CHANNELS_CACHE_TTL,
+            fn () => $this->fetchEnabledChannelCodes() ?? [],
+        );
+
+        return is_array($codes) ? array_values($codes) : [];
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace App\Services\Ticket;
 
-use App\Enums\Payment\CheckoutMethod;
+use App\Contracts\Payment\CreatesCheckout;
 use App\Enums\Ticketing\PurchaseType;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Jobs\Ticket\GenerateBulkAttendeesJob;
@@ -16,10 +16,10 @@ use App\Models\TicketOrderItem;
 use App\Models\TicketPricePhase;
 use App\Models\TicketSession;
 use App\Models\User;
+use App\Services\Payment\PaymentProviderFactory;
 use App\Services\Pricing\PricingService;
 use App\Services\Promotion\PromoCodeService;
 use App\Services\Xendit\XenditErrorMapper;
-use App\Services\Xendit\XenditService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -242,7 +242,7 @@ class TicketPurchaseService
      *
      * @param  array<string, mixed>  $data
      */
-    public function createOrder(array $data, ?XenditService $xendit = null): TicketOrder
+    public function createOrder(array $data, ?CreatesCheckout $checkoutClient = null): TicketOrder
     {
         $event = Event::with('project')->findOrFail($data['event_id']);
         abort_unless((bool) $event->tickets_enabled, 422, 'Tickets are not available for this event.');
@@ -431,7 +431,7 @@ class TicketPurchaseService
             return $order->fresh(['items.attendees', 'event']);
         });
 
-        return $this->resolvePayment($order, $data, $xendit);
+        return $this->resolvePayment($order, $data, $checkoutClient);
     }
 
     /**
@@ -439,7 +439,7 @@ class TicketPurchaseService
      *
      * @param  array<string, mixed>  $data
      */
-    protected function resolvePayment(TicketOrder $order, array $data, ?XenditService $xendit = null): TicketOrder
+    protected function resolvePayment(TicketOrder $order, array $data, ?CreatesCheckout $checkoutClient = null): TicketOrder
     {
         if ((float) $order->total <= 0) {
             $order->update([
@@ -458,47 +458,25 @@ class TicketPurchaseService
         }
 
         try {
-            $gateway = $order->event?->project?->resolvePaymentGateway('xendit', app()->environment('production') ? 'live' : 'test');
+            // Provider-agnostic: use whichever gateway the project has active
+            // (Xendit OR Midtrans), exactly like hotel reservations. The
+            // per-event channel allowlist + checkout-method dispatch live inside
+            // the payable / provider, so this path stays provider-neutral. The
+            // reference is stored in `xendit_invoice_id` (a generic column); the
+            // webhook matches the order by `order_number`, not this id.
+            $gateway = $order->event?->project?->activePaymentGateway();
             abort_unless($gateway, 422, 'No active payment gateway configured for this project.');
 
-            $client = $xendit ?? XenditService::forGateway($gateway);
+            $client = $checkoutClient ?? app(PaymentProviderFactory::class)->make($gateway);
             [$successUrl, $failureUrl] = $this->paymentRedirectUrls($order);
 
-            // Mirror reservations: use the Sessions API when the gateway is
-            // configured for it (the modern default) so the webhook can resolve
-            // the real card brand (Visa/Mastercard/Amex) instead of a generic
-            // "CREDIT_CARD" channel. Fall back to the legacy Invoices API
-            // otherwise. Both store their reference in `xendit_invoice_id` — the
-            // webhook matches the order by `order_number` (reference_id), not
-            // this id, so the two flows are interchangeable downstream.
-            if (($gateway->checkout_method ?? CheckoutMethod::PaymentLinkLegacy) === CheckoutMethod::PaymentLinkSessions) {
-                $session = $client->createTicketSession($order, $successUrl, $failureUrl);
+            $checkout = $client->createCheckout($order, $successUrl, $failureUrl);
 
-                $order->update([
-                    'xendit_invoice_id' => $session['session_id'],
-                    'payment_url' => $session['payment_url'],
-                    'payment_gateway_id' => $gateway->id,
-                ]);
-            } else {
-                $invoice = $client->createGenericInvoice(
-                    $order->order_number,
-                    (float) $order->total,
-                    "Ticket order {$order->order_number} - {$order->event?->title}",
-                    [
-                        'given_names' => $order->buyer_name,
-                        'email' => $order->buyer_email,
-                        'mobile_number' => $order->buyer_phone,
-                    ],
-                    $successUrl,
-                    $failureUrl,
-                );
-
-                $order->update([
-                    'xendit_invoice_id' => $invoice['invoice_id'],
-                    'payment_url' => $invoice['invoice_url'],
-                    'payment_gateway_id' => $gateway->id,
-                ]);
-            }
+            $order->update([
+                'xendit_invoice_id' => $checkout['reference'],
+                'payment_url' => $checkout['payment_url'],
+                'payment_gateway_id' => $client->gateway()?->id ?? $gateway->id,
+            ]);
         } catch (\Throwable $e) {
             $mapped = XenditErrorMapper::map($e);
             Log::log($mapped['log_level'], 'Ticket payment link creation failed - order kept for retry', [

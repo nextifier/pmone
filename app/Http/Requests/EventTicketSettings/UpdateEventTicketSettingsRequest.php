@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\EventTicketSettings;
 
+use App\Rules\KnownPaymentChannel;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateEventTicketSettingsRequest extends FormRequest
@@ -9,6 +10,22 @@ class UpdateEventTicketSettingsRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()?->can('events.update') ?? false;
+    }
+
+    /**
+     * Normalise channel codes to uppercase + unique before validation so a
+     * mixed-case payload still maps to the canonical catalog.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (is_array($this->input('allowed_payment_channels'))) {
+            $this->merge([
+                'allowed_payment_channels' => array_values(array_unique(array_map(
+                    fn ($code) => is_string($code) ? strtoupper($code) : $code,
+                    $this->input('allowed_payment_channels'),
+                ))),
+            ]);
+        }
     }
 
     /**
@@ -36,6 +53,11 @@ class UpdateEventTicketSettingsRequest extends FormRequest
             'terms.ja' => ['nullable', 'string'],
             'terms.ko' => ['nullable', 'string'],
             'terms.zh' => ['nullable', 'string'],
+
+            // Per-event ticket payment channel allowlist (canonical codes).
+            // Empty/absent = accept every channel enabled on the gateway.
+            'allowed_payment_channels' => ['sometimes', 'nullable', 'array'],
+            'allowed_payment_channels.*' => ['string', new KnownPaymentChannel],
         ];
     }
 

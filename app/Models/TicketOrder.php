@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Contracts\Payment\CheckoutPayable;
 use App\Contracts\Pricing\Purchasable;
 use App\Enums\Ticketing\TicketOrderStatus;
+use App\Support\PaymentChannels;
 use App\Traits\HasAdjustments;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -47,7 +49,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @mixin \Eloquent
  */
-class TicketOrder extends Model implements Purchasable
+class TicketOrder extends Model implements CheckoutPayable, Purchasable
 {
     use HasAdjustments;
     use HasFactory;
@@ -234,6 +236,51 @@ class TicketOrder extends Model implements Purchasable
     public function customerEmail(): ?string
     {
         return $this->buyer_email;
+    }
+
+    public function checkoutReference(): string
+    {
+        return (string) $this->order_number;
+    }
+
+    public function checkoutAmount(): float
+    {
+        return (float) $this->total;
+    }
+
+    public function checkoutDescription(): string
+    {
+        return "Ticket order {$this->order_number} - {$this->event?->title}";
+    }
+
+    public function checkoutCustomer(): array
+    {
+        return [
+            'given_names' => $this->buyer_name ?: null,
+            'email' => $this->buyer_email ?: null,
+            'mobile_number' => $this->buyer_phone ?: null,
+        ];
+    }
+
+    /**
+     * Canonical channel codes this event restricts ticket checkout to, or null
+     * for no restriction. Defensively drops any stored code we no longer know.
+     *
+     * @return array<int, string>|null
+     */
+    public function allowedPaymentChannels(): ?array
+    {
+        $codes = data_get($this->event?->settings, 'tickets.allowed_payment_channels');
+        if (! is_array($codes) || $codes === []) {
+            return null;
+        }
+
+        $valid = array_values(array_unique(array_filter(
+            array_map(fn ($code) => is_string($code) ? strtoupper($code) : null, $codes),
+            fn ($code) => $code !== null && PaymentChannels::isValid($code),
+        )));
+
+        return $valid === [] ? null : $valid;
     }
 
     /**

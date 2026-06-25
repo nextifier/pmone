@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api\Webhook;
 
 use App\Enums\ReservationStatus;
+use App\Enums\Ticketing\TicketOrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
+use App\Models\TicketOrder;
 use App\Services\Midtrans\MidtransService;
 use App\Services\Reservation\ReservationService;
+use App\Services\Ticket\TicketPurchaseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +30,7 @@ class MidtransWebhookController extends Controller
 {
     public function __construct(
         protected ReservationService $reservations,
+        protected TicketPurchaseService $tickets,
     ) {}
 
     /**
@@ -60,10 +64,20 @@ class MidtransWebhookController extends Controller
             ->first();
 
         if (! $reservation) {
+            // Ticket orders share this webhook (same Midtrans account/gateway).
+            // They are disambiguated by the `TIX-` prefix on the order number.
+            $order = TicketOrder::query()
+                ->where('order_number', $reservationNumber)
+                ->first();
+
+            if ($order) {
+                return $this->handleTicketOrder($request, $payload, $order);
+            }
+
             // Acknowledge with 200 so Midtrans does not retry — same rationale as
             // the Xendit handler (synthetic dashboard test pings, or a webhook
             // racing our create transaction).
-            Log::warning('Midtrans webhook: reservation not found', ['order_id' => $orderId]);
+            Log::warning('Midtrans webhook: reservation/order not found', ['order_id' => $orderId]);
 
             return response()->json(['message' => 'Reservation not found (acknowledged)']);
         }
@@ -111,6 +125,136 @@ class MidtransWebhookController extends Controller
 
         return $project->defaultPaymentGateway('midtrans', 'test')
             ?? $project->defaultPaymentGateway('midtrans', 'live');
+    }
+
+    /**
+     * Verify + process a Midtrans notification for a ticket order. Mirrors the
+     * reservation path: resolve the Midtrans gateway, verify the signature, then
+     * confirm or expire the order under a row lock.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function handleTicketOrder(Request $request, array $payload, TicketOrder $order): JsonResponse
+    {
+        $gateway = $this->resolveGatewayForTicket($order);
+
+        if (! $gateway) {
+            Log::warning('Midtrans webhook: no midtrans gateway to verify ticket signature', [
+                'order_number' => $order->order_number,
+            ]);
+
+            return response()->json(['message' => 'No matching gateway (acknowledged)']);
+        }
+
+        $service = MidtransService::forGateway($gateway);
+
+        if (! $service->verifySignature($payload)) {
+            Log::warning('Midtrans webhook signature mismatch (ticket)', [
+                'order_number' => $order->order_number,
+                'ip' => $request->ip(),
+            ]);
+
+            return response()->json(['message' => 'Invalid signature'], 401);
+        }
+
+        return $this->processTicket($payload, $order, $service);
+    }
+
+    private function resolveGatewayForTicket(TicketOrder $order): ?ProjectPaymentGateway
+    {
+        $bound = $order->paymentGateway;
+        if ($bound && $bound->provider === 'midtrans') {
+            return $bound;
+        }
+
+        $project = $order->event?->project;
+        if (! $project) {
+            return null;
+        }
+
+        return $project->defaultPaymentGateway('midtrans', 'test')
+            ?? $project->defaultPaymentGateway('midtrans', 'live');
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function processTicket(array $payload, TicketOrder $order, MidtransService $service): JsonResponse
+    {
+        $status = strtolower((string) ($payload['transaction_status'] ?? ''));
+        $fraud = strtolower((string) ($payload['fraud_status'] ?? ''));
+
+        return DB::transaction(function () use ($payload, $order, $service, $status, $fraud) {
+            $locked = TicketOrder::query()
+                ->whereKey($order->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $locked) {
+                return response()->json(['message' => 'Order not found (acknowledged)']);
+            }
+
+            $isPaid = $status === 'settlement'
+                || ($status === 'capture' && $fraud === 'accept');
+            $isExpiry = in_array($status, ['expire', 'cancel', 'deny', 'failure'], true);
+
+            if ($isPaid) {
+                if ($locked->status === TicketOrderStatus::Confirmed) {
+                    return response()->json(['message' => 'Order already confirmed']);
+                }
+
+                // markAsConfirmed flips PendingPayment -> Confirmed atomically and
+                // is a no-op for any other state, so it is safe to call here.
+                $this->tickets->markAsConfirmed($locked, [
+                    'id' => $payload['transaction_id'] ?? $locked->xendit_invoice_id,
+                    'payment_channel' => $service->resolveChannel($payload),
+                ]);
+
+                activity()
+                    ->performedOn($locked)
+                    ->event('payment_paid')
+                    ->withProperties([
+                        'project_id' => $locked->event?->project_id,
+                        'ticket_order_id' => $locked->id,
+                        'amount' => $payload['gross_amount'] ?? null,
+                        'transaction_id' => $payload['transaction_id'] ?? null,
+                        'payment_type' => $payload['payment_type'] ?? null,
+                        'transaction_status' => $status,
+                    ])
+                    ->log('Ticket payment received via Midtrans');
+
+                return response()->json(['message' => 'Ticket order confirmed']);
+            }
+
+            // Card capture flagged for manual fraud review — do not settle yet.
+            if ($status === 'capture' && $fraud === 'challenge') {
+                return response()->json(['message' => 'Payment under review (no action)']);
+            }
+
+            if ($isExpiry) {
+                if ($locked->status !== TicketOrderStatus::PendingPayment) {
+                    return response()->json(['message' => 'Order not eligible for expiry']);
+                }
+
+                $this->tickets->expireOrder($locked);
+
+                activity()
+                    ->performedOn($locked)
+                    ->event('payment_expired')
+                    ->withProperties([
+                        'project_id' => $locked->event?->project_id,
+                        'ticket_order_id' => $locked->id,
+                        'transaction_id' => $payload['transaction_id'] ?? null,
+                        'transaction_status' => $status,
+                    ])
+                    ->log('Midtrans ticket transaction '.$status);
+
+                return response()->json(['message' => 'Ticket order expired']);
+            }
+
+            // pending / authorize / unknown — acknowledge without action.
+            return response()->json(['message' => 'Webhook received but no action taken']);
+        });
     }
 
     /**
