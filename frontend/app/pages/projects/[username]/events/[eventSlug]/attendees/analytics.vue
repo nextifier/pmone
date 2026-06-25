@@ -141,14 +141,32 @@
             </Tabs>
           </CardHeader>
           <CardContent>
+            <!-- Revenue trend: filled area with glow line + dots. -->
             <ChartArea
-              v-if="trendData.length > 1"
+              v-if="trendData.length > 1 && metric === 'revenue'"
+              :data="trendData"
+              :config="trendConfig"
+              data-key="revenue"
+              x-key="date"
+              :svg-defs="areaGlowDefs"
+              area-fill="url(#att-area-fill)"
+              line-filter="url(#att-line-glow)"
+              dot-filter="url(#att-dot-glow)"
+              dots
+              :dot-size="5"
+              :stroke-width-by-key="{ revenue: 2 }"
+              grid
+              :y-tick-formatter="formatRupiahCompact"
+              :margin="trendAreaMargin"
+              class="h-64! w-full"
+            />
+            <!-- Tickets / orders trend: gradient line. -->
+            <ChartLine
+              v-else-if="trendData.length > 1"
               :key="metric"
               :data="trendData"
               :config="trendConfig"
               :data-key="metric"
-              :y-tick-formatter="metric === 'revenue' ? formatRupiahCompact : null"
-              :margin="trendAreaMargin"
               gradient
               class="h-64! w-full"
             />
@@ -185,15 +203,18 @@
               <CardDescription>Check-ins grouped by hour</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartBar
+              <!-- Striped area zone + line on top (Composed) for an emphasised wave. -->
+              <ChartComposed
                 v-if="checkInFlow.length"
                 :data="checkInFlow"
                 :config="{ count: { label: 'Check-ins', color: 'var(--chart-1)' } }"
-                data-key="count"
-                x-key="idx"
-                :x-tick-formatter="checkInLabel"
-                :bar-max-width="48"
-                :margin="{ top: 6, right: 10, bottom: 18, left: 16 }"
+                x-key="label"
+                area-key="count"
+                line-key="count"
+                area-fill="url(#att-stripe)"
+                :svg-defs="stripeDefs"
+                :num-x-ticks="8"
+                :margin="{ top: 12, right: 10, bottom: 18, left: 26 }"
                 class="h-56! w-full"
               />
               <p v-else class="text-muted-foreground py-14 text-center text-sm tracking-tight">
@@ -207,6 +228,7 @@
               <CardDescription>Checked in on each event day</CardDescription>
             </CardHeader>
             <CardContent>
+              <!-- Plain vertical bars: the clearest way to compare a few days. -->
               <ChartBar
                 v-if="attendanceData.length"
                 :data="attendanceData"
@@ -214,7 +236,9 @@
                 data-key="checked_in"
                 x-key="idx"
                 :x-tick-formatter="attendanceLabel"
-                :bar-max-width="100"
+                :svg-defs="barGradientDefs"
+                bar-fill="url(#att-bar-grad)"
+                :bar-max-width="90"
                 :margin="{ top: 6, right: 10, bottom: 18, left: 22 }"
                 class="h-56! w-full"
               />
@@ -224,6 +248,48 @@
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      <!-- Sessions: demand & attendance per session -->
+      <section
+        v-if="sessions.length"
+        class="t-panel-slide space-y-4"
+        :data-open="revealed"
+        :style="{ '--panel-translate-y': '18px', transitionDelay: '180ms' }"
+      >
+        <div class="flex flex-col gap-y-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-base font-medium tracking-tight">Sessions</h2>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              How each session filled up against its capacity.
+            </p>
+          </div>
+          <div class="text-sm tracking-tight">
+            <span class="text-foreground font-medium tabular-nums">{{ formatNumber(sessionTotals.booked) }}</span>
+            <span class="text-muted-foreground"> of {{ formatNumber(sessionTotals.capacity) }} seats booked</span>
+          </div>
+        </div>
+        <Card>
+          <CardContent class="pt-6">
+            <!-- One bar per session, length = capacity: the dark part is booked,
+                 the striped part is still available. Reads at a glance. -->
+            <ChartBar
+              :data="sessionBarData"
+              :config="sessionBarConfig"
+              :data-keys="['booked', 'free']"
+              x-key="label"
+              stacked
+              horizontal
+              legend
+              :svg-defs="sellStripeDefs"
+              :bar-fill="{ booked: 'var(--chart-1)', free: 'url(#att-sell-stripe)' }"
+              :value-formatter="formatNumber"
+              :margin="hbarMargin"
+              :style="{ height: `${Math.max(160, sessionBarData.length * 52)}px` }"
+              class="w-full"
+            />
+          </CardContent>
+        </Card>
       </section>
 
       <!-- Ticket type performance -->
@@ -239,6 +305,31 @@
             Sales, attendance and revenue for each ticket type.
           </p>
         </div>
+
+        <!-- Sell-through: sold vs remaining capacity, stacked. -->
+        <Card v-if="sellThroughData.length">
+          <CardHeader>
+            <CardTitle>Sell-through</CardTitle>
+            <CardDescription>Sold against remaining capacity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartBar
+              :data="sellThroughData"
+              :config="sellConfig"
+              :data-keys="['sold', 'remaining']"
+              x-key="label"
+              stacked
+              horizontal
+              :svg-defs="sellStripeDefs"
+              :bar-fill="{ sold: 'var(--chart-1)', remaining: 'url(#att-sell-stripe)' }"
+              :value-formatter="formatNumber"
+              :margin="hbarMargin"
+              :style="{ height: `${Math.max(150, sellThroughData.length * 48)}px` }"
+              class="w-full"
+            />
+          </CardContent>
+        </Card>
+
         <div class="overflow-hidden rounded-xl border">
           <div
             class="text-muted-foreground bg-muted/40 hidden grid-cols-[2fr_1fr_1.4fr_1.2fr] gap-x-4 px-4 py-2.5 text-xs font-medium tracking-tight sm:grid"
@@ -320,6 +411,8 @@
                 data-key="value"
                 x-key="idx"
                 horizontal
+                :svg-defs="duotoneDefs"
+                bar-fill="url(#att-duotone)"
                 :x-tick-formatter="paymentChartLabel"
                 :value-formatter="formatCurrency"
                 :margin="hbarMargin"
@@ -339,7 +432,15 @@
                 :config="orderStatusConfig"
                 value-key="count"
                 name-key="status"
+                :radius="100"
                 :arc-width="28"
+                :corner-radius="5"
+                :pad-angle="padAngle"
+                :segment-fill="orderSegmentFill"
+                segment-stroke-color="var(--background)"
+                :active-index="orderActiveIndex"
+                :active-outer-radius="113"
+                :svg-defs="pieStripeDefs"
                 :total="s.total_orders"
                 center-sub-label="orders"
                 class="mx-auto"
@@ -375,27 +476,25 @@
             <CardTitle>Business Matching</CardTitle>
             <CardDescription>Buyers who opted in and shared an intake profile.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div class="flex items-end justify-between gap-3">
-              <div>
-                <p class="text-2xl font-semibold tracking-tighter tabular-nums">
-                  {{ formatNumber(bm.opted_in) }}
-                  <span class="text-muted-foreground text-base font-normal tracking-tight">
-                    / {{ formatNumber(bm.buyers) }} buyers
-                  </span>
-                </p>
-                <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
-                  opted into Business Matching
-                </p>
-              </div>
-              <span class="text-2xl font-semibold tracking-tighter tabular-nums">{{ bm.opt_in_rate }}%</span>
+          <CardContent class="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div class="order-2 sm:order-1">
+              <p class="text-2xl font-semibold tracking-tighter tabular-nums">
+                {{ formatNumber(bm.opted_in) }}
+                <span class="text-muted-foreground text-base font-normal tracking-tight">
+                  / {{ formatNumber(bm.buyers) }} buyers
+                </span>
+              </p>
+              <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+                opted into Business Matching
+              </p>
             </div>
-            <div class="bg-muted mt-3 h-2 overflow-hidden rounded-full">
-              <div
-                class="h-full rounded-full transition-[width] duration-500"
-                :style="{ width: `${Math.min(bm.opt_in_rate, 100)}%`, backgroundColor: 'var(--chart-1)' }"
-              />
-            </div>
+            <ChartSemiCircle
+              :value="bm.opt_in_rate"
+              :max="100"
+              suffix="%"
+              center-label="opted in"
+              class="order-1 w-full max-w-[200px] sm:order-2"
+            />
           </CardContent>
         </Card>
       </section>
@@ -426,7 +525,20 @@
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <!-- Numeric distribution as a gradient area. -->
+              <ChartArea
+                v-if="demoKind(field) === 'area'"
+                :data="field.breakdown.map((b) => ({ label: b.value, value: b.count }))"
+                :config="{ value: { label: field.label, color: 'var(--chart-1)' } }"
+                data-key="value"
+                x-key="label"
+                gradient
+                :margin="{ top: 8, right: 10, bottom: 18, left: 26 }"
+                class="h-56! w-full"
+              />
+              <!-- Categorical options as a ranked horizontal bar. -->
               <ChartBar
+                v-else
                 :data="field.breakdown.map((b, i) => ({ idx: i, value: b.count }))"
                 :config="{ value: { label: field.label, color: 'var(--chart-1)' } }"
                 data-key="value"
@@ -470,6 +582,8 @@
                 data-key="value"
                 x-key="idx"
                 horizontal
+                :svg-defs="dotDefs"
+                bar-fill="url(#att-dots)"
                 :x-tick-formatter="leadsChartLabel"
                 :value-formatter="formatNumber"
                 :margin="hbarMargin"
@@ -619,6 +733,48 @@ const clampLabel = (value) => {
   return str.length > max ? `${str.slice(0, max - 1)}…` : str;
 };
 
+// ── Shared monochrome texture defs ───────────────────────────────────────────
+// The chart palette is grayscale (--chart-1..5); variety comes from chart TYPE
+// and texture, not colour. Each chart that needs a pattern/gradient/glow gets a
+// scoped <defs> with unique ids referenced via url(#id).
+const barGradientDefs = `<linearGradient id="att-bar-grad" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.95" />
+  <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="0.45" /></linearGradient>`;
+
+const areaGlowDefs = `
+  <linearGradient id="att-area-fill" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="5%" stop-color="var(--chart-1)" stop-opacity="0.45" />
+    <stop offset="95%" stop-color="var(--chart-1)" stop-opacity="0" />
+  </linearGradient>
+  <filter id="att-line-glow" x="-10%" y="-20%" width="120%" height="140%">
+    <feGaussianBlur stdDeviation="6" result="b" /><feComposite in="SourceGraphic" in2="b" operator="over" />
+  </filter>
+  <filter id="att-dot-glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="2.5" result="b" /><feComposite in="SourceGraphic" in2="b" operator="over" />
+  </filter>`;
+
+const stripeDefs = `<pattern id="att-stripe" patternUnits="userSpaceOnUse" width="6" height="6">
+  <rect width="6" height="6" fill="var(--chart-1)" opacity="0.05" />
+  <path d="M0,6 L6,0" stroke="var(--chart-1)" stroke-width="0.8" opacity="0.35" /></pattern>`;
+
+const duotoneDefs = `<linearGradient id="att-duotone" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.4" />
+  <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="1" /></linearGradient>`;
+
+const dotDefs = `<pattern id="att-dots" width="5" height="5" patternUnits="userSpaceOnUse">
+  <rect width="5" height="5" fill="var(--chart-1)" opacity="0.1" />
+  <circle cx="2.5" cy="2.5" r="1.2" fill="var(--chart-1)" opacity="0.55" /></pattern>`;
+
+const sellStripeDefs = `<pattern id="att-sell-stripe" patternUnits="userSpaceOnUse" width="6" height="6">
+  <rect width="6" height="6" fill="var(--chart-3)" opacity="0.18" />
+  <path d="M0,6 L6,0" stroke="var(--chart-3)" stroke-width="0.8" opacity="0.45" /></pattern>`;
+
+const pieStripeDefs = `<pattern id="att-pie-stripe" patternUnits="userSpaceOnUse" width="6" height="6">
+  <rect width="6" height="6" fill="var(--chart-2)" opacity="0.25" />
+  <path d="M0,6 L6,0" stroke="var(--chart-2)" stroke-width="1" opacity="0.5" /></pattern>`;
+
+const padAngle = (2 * Math.PI) / 180;
+
 const kpis = computed(() => [
   {
     label: "Attendees",
@@ -684,7 +840,7 @@ const trendData = computed(() => {
     tickets += row.tickets ?? 0;
     revenue += row.revenue ?? 0;
     orders += row.orders ?? 0;
-    // ChartLine scales x numerically, so x must be a Date (not a string).
+    // x must be a Date (ChartLine/ChartArea scale x numerically off d.date).
     return { date: new Date(row.date), tickets, revenue, orders };
   });
 });
@@ -701,16 +857,16 @@ const trendAreaMargin = computed(() => ({
 }));
 
 // Even index spacing (not the raw timestamp) so sparse hour buckets render as
-// tidy, evenly-spaced bars with non-overlapping labels.
+// tidy, evenly-spaced bars/areas with non-overlapping labels.
 const checkInFlow = computed(() =>
-  (d.value?.check_ins_over_time ?? []).map((row, i) => ({ idx: i, slot: row.slot, count: row.count }))
+  (d.value?.check_ins_over_time ?? []).map((row) => ({
+    label: new Date(row.slot).toLocaleTimeString("en-US", { hour: "numeric" }),
+    count: row.count,
+  }))
 );
-const checkInLabel = (i) => {
-  const slot = checkInFlow.value[i]?.slot;
-  return slot ? new Date(slot).toLocaleTimeString("en-US", { hour: "numeric" }) : "";
-};
 
-// Checked-in per event day as a bar chart (clearer than near-identical gauges).
+// Checked-in per event day as a plain vertical bar - the clearest read for
+// comparing a handful of days at a glance.
 const attendanceData = computed(() =>
   (d.value?.by_event_day ?? []).map((day, i) => ({
     idx: i,
@@ -719,6 +875,39 @@ const attendanceData = computed(() =>
   }))
 );
 const attendanceLabel = (i) => attendanceData.value[i]?.label ?? "";
+
+// Sessions ───────────────────────────────────────────────────────────────────
+const sessions = computed(() => d.value?.by_session ?? []);
+const sessionTotals = computed(() => ({
+  capacity: sessions.value.reduce((acc, x) => acc + (x.capacity ?? 0), 0),
+  booked: sessions.value.reduce((acc, x) => acc + (x.booked ?? 0), 0),
+}));
+const sessionBarData = computed(() =>
+  sessions.value.map((x) => ({
+    label: clampLabel(x.label),
+    booked: x.booked ?? 0,
+    free: Math.max(0, (x.capacity ?? 0) - (x.booked ?? 0)),
+  }))
+);
+const sessionBarConfig = {
+  booked: { label: "Booked", color: "var(--chart-1)" },
+  free: { label: "Available", color: "var(--chart-3)" },
+};
+
+// Sell-through: sold vs remaining capacity per ticket (only finite-stock types).
+const sellThroughData = computed(() =>
+  (d.value?.by_ticket_type ?? [])
+    .filter((t) => t.capacity && t.capacity > 0)
+    .map((t) => ({
+      label: clampLabel(t.title),
+      sold: t.sold ?? 0,
+      remaining: Math.max(0, t.capacity - (t.sold ?? 0)),
+    }))
+);
+const sellConfig = {
+  sold: { label: "Sold", color: "var(--chart-1)" },
+  remaining: { label: "Remaining", color: "var(--chart-3)" },
+};
 
 // Horizontal bar charts (shadcn "Bar Chart - Horizontal"): category on the left
 // axis, value via tooltip. Numeric idx keeps Unovis bars evenly spaced.
@@ -743,10 +932,13 @@ const CHART_VARS = [
 ];
 const orderStatusColor = (i) => CHART_VARS[i % CHART_VARS.length];
 const orderStatusData = computed(() =>
-  (d.value?.order_status ?? []).map((o) => ({
+  (d.value?.order_status ?? []).map((o, i) => ({
     status: o.status,
     count: o.count,
     label: o.label,
+    fill: CHART_VARS[i % CHART_VARS.length],
+    // Pending sits as a textured slice so an outstanding balance stands out.
+    patterned: o.status === "pending_payment",
   }))
 );
 const orderStatusConfig = computed(() => ({
@@ -758,6 +950,22 @@ const orderStatusConfig = computed(() => ({
     ])
   ),
 }));
+// Expand the busiest status outward for emphasis.
+const orderActiveIndex = computed(() => {
+  const rows = d.value?.order_status ?? [];
+  if (!rows.length) return null;
+  let best = 0;
+  rows.forEach((o, i) => {
+    if ((o.count ?? 0) > (rows[best].count ?? 0)) best = i;
+  });
+  return best;
+});
+const orderSegmentFill = (row) => (row.patterned ? "url(#att-pie-stripe)" : row.fill);
+
+// Demographics: pick the chart that best fits the field. Numeric distributions
+// read as an area; a handful of categorical options as a profile radar; long
+// option lists stay a ranked horizontal bar.
+const demoKind = (field) => (field.kind === "numeric" ? "area" : "bar");
 
 // Per-row sell bar inside the ticket table, scaled to the best-selling type so
 // the table reads as a ranked breakdown without a redundant standalone chart.

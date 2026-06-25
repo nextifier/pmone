@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\EventDayController;
 use App\Http\Controllers\Api\EventDocumentController;
 use App\Http\Controllers\Api\EventProductCategoryController;
 use App\Http\Controllers\Api\EventProductController;
+use App\Http\Controllers\Api\EventReservationAnalyticsController;
 use App\Http\Controllers\Api\EventTicketSettingsController;
 use App\Http\Controllers\Api\ExchangeRateController;
 use App\Http\Controllers\Api\ExhibitorDashboardController;
@@ -1158,6 +1159,12 @@ Route::middleware(['auth:sanctum', 'verified', 'hotel-reservation-enabled'])->pr
         Route::get('/export', [ReservationController::class, 'export'])
             ->middleware('can:reservations.export')
             ->name('events.reservations.export');
+        Route::get('/analytics/summary', [EventReservationAnalyticsController::class, 'summary'])
+            ->middleware('can:reservations.read')
+            ->name('events.reservations.analytics.summary');
+        Route::get('/analytics', [EventReservationAnalyticsController::class, 'detail'])
+            ->middleware('can:reservations.read')
+            ->name('events.reservations.analytics.detail');
         Route::post('/manual', [ReservationController::class, 'storeManual'])
             ->middleware('can:reservations.manual_entry')
             ->name('events.reservations.store-manual');

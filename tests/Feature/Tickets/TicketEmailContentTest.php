@@ -1,16 +1,24 @@
 <?php
 
+use App\Enums\Ticketing\TicketOrderStatus;
+use App\Jobs\Ticket\SendAttendeeETicketJob;
+use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
 use App\Mail\Ticket\AttendeeETicketMail;
 use App\Mail\Ticket\TicketOrderConfirmationMail;
+use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\EventDay;
 use App\Models\Project;
 use App\Models\Ticket;
+use App\Models\TicketOrder;
+use App\Models\TicketOrderItem;
 use App\Models\TicketPricePhase;
 use App\Services\Ticket\TicketPurchaseService;
 use App\Support\EventIcs;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -74,7 +82,7 @@ it('sends ONE consolidated e-ticket for a single-ticket self-purchase', function
     Mail::assertNotSent(TicketOrderConfirmationMail::class);
 });
 
-it('sends the order confirmation (not consolidated) for a multi-ticket order', function () {
+it('sends ONE order confirmation (carrying the buyer QR) for a multi-ticket self-purchase', function () {
     Mail::fake();
     $ticket = freeEntryTicket($this->event);
 
@@ -87,9 +95,59 @@ it('sends the order confirmation (not consolidated) for a multi-ticket order', f
         'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
     ]);
 
-    Mail::assertSent(TicketOrderConfirmationMail::class);
-    // The attending buyer (attendee #1, has the buyer email) still gets their e-ticket.
-    Mail::assertSent(AttendeeETicketMail::class);
+    // The attending buyer gets exactly one email - the order confirmation, which now
+    // carries their own QR inline - never a separate e-ticket on top of it.
+    Mail::assertSent(TicketOrderConfirmationMail::class, 1);
+    Mail::assertSent(TicketOrderConfirmationMail::class, fn (TicketOrderConfirmationMail $m) => $m->buyerAttendee?->email === 'anton@example.com');
+    Mail::assertNotSent(AttendeeETicketMail::class);
+});
+
+it('dispatches only the order confirmation (no separate e-ticket) for a multi-ticket self-purchase', function () {
+    Bus::fake();
+    $ticket = freeEntryTicket($this->event);
+
+    $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Anton',
+        'buyer_email' => 'anton@example.com',
+        'buyer_phone' => '0812',
+        'also_attending' => true,
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 3]],
+    ]);
+
+    Bus::assertDispatched(SendTicketOrderConfirmationJob::class, 1);
+    Bus::assertNotDispatched(SendAttendeeETicketJob::class);
+});
+
+it('emails the buyer once and e-tickets only the attendees with a distinct email', function () {
+    Bus::fake();
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
+    $order = TicketOrder::factory()->create([
+        'event_id' => $this->event->id,
+        'buyer_email' => 'buyer@example.com',
+        'subtotal' => 200000,
+        'discount_amount' => 0,
+        'total' => 200000,
+        'status' => TicketOrderStatus::PendingPayment,
+        'paid_at' => null,
+    ]);
+    $item = TicketOrderItem::factory()->create([
+        'ticket_order_id' => $order->id,
+        'ticket_id' => $ticket->id,
+        'quantity' => 2,
+        'unit_price' => 100000,
+        'subtotal' => 200000,
+    ]);
+    // Attendee #1 is the buyer themselves; #2 is a friend with their own email.
+    Attendee::factory()->create(['ticket_order_item_id' => $item->id, 'email' => 'buyer@example.com', 'qr_token' => Str::random(40)]);
+    $friend = Attendee::factory()->create(['ticket_order_item_id' => $item->id, 'email' => 'friend@example.com', 'qr_token' => Str::random(40)]);
+
+    $this->service->markAsConfirmed($order);
+
+    Bus::assertDispatched(SendTicketOrderConfirmationJob::class, 1);
+    // Only the friend gets a personal e-ticket - the buyer's own ticket rides on the confirmation.
+    Bus::assertDispatched(SendAttendeeETicketJob::class, 1);
+    Bus::assertDispatched(SendAttendeeETicketJob::class, fn (SendAttendeeETicketJob $j) => $j->attendeeId === $friend->id);
 });
 
 it('sends only the confirmation when the single buyer is not attending', function () {
@@ -242,4 +300,43 @@ it('renders an enriched order confirmation with line items, total and receipt li
     $mail->assertSeeInHtml('https://api.test/receipt.pdf', false);
 
     expect($mail->attachments())->toHaveCount(1);
+});
+
+it('embeds the buyer QR inline in the order confirmation for a multi-ticket self-purchase', function () {
+    Mail::fake();
+    $ticket = freeEntryTicket($this->event);
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Anton',
+        'buyer_email' => 'anton@example.com',
+        'buyer_phone' => '0812',
+        'also_attending' => true,
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+    ]);
+    $order->load(['event.project', 'items.ticket', 'attendees.ticket']);
+
+    $mail = TicketOrderConfirmationMail::for($order);
+
+    expect($mail->buyerAttendee?->email)->toBe('anton@example.com');
+    $mail->assertSeeInHtml('<img', false);
+    $mail->assertSeeInHtml('data:image/png', false); // buyer QR embedded inline, not the remote URL
+    $mail->assertSeeInHtml($order->order_number, false);
+});
+
+it('shows no QR on the order confirmation when the buyer is not attending', function () {
+    Mail::fake();
+    $ticket = freeEntryTicket($this->event);
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Anton',
+        'buyer_email' => 'anton@example.com',
+        'buyer_phone' => '0812',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+    ]);
+    $order->load(['event.project', 'items.ticket', 'attendees.ticket']);
+
+    $mail = TicketOrderConfirmationMail::for($order);
+
+    expect($mail->buyerAttendee)->toBeNull();
+    $mail->assertDontSeeInHtml('data:image/png', false);
 });

@@ -524,11 +524,15 @@ class TicketPurchaseService
     }
 
     /**
-     * Decide which post-confirmation emails to send. A single-ticket self-purchase
-     * (the buyer is the only attendee) gets ONE consolidated e-ticket - QR plus
-     * order summary - instead of a separate confirmation + e-ticket pair. Every
-     * other order sends the buyer an order confirmation, plus a personal e-ticket
-     * (with QR) to each attendee who has their own email.
+     * Decide which post-confirmation emails to send. The buyer always receives
+     * exactly ONE email:
+     *  - A single-ticket self-purchase (the buyer is the only attendee) gets one
+     *    consolidated e-ticket - QR plus order summary.
+     *  - Every other order sends the buyer one order confirmation; when the buyer
+     *    is also attending it carries their personal QR inline, so they never get
+     *    a separate e-ticket on top of it.
+     * A personal e-ticket (with QR) goes only to OTHER attendees who have their
+     * own email - the buyer's own ticket is already covered by the confirmation.
      */
     protected function dispatchConfirmationEmails(TicketOrder $order): void
     {
@@ -550,7 +554,8 @@ class TicketPurchaseService
         }
 
         foreach ($attendees as $attendee) {
-            if (filled($attendee->email)) {
+            $attendeeEmail = strtolower(trim((string) $attendee->email));
+            if ($attendeeEmail !== '' && $attendeeEmail !== $buyerEmail) {
                 SendAttendeeETicketJob::dispatch($attendee->id);
             }
         }

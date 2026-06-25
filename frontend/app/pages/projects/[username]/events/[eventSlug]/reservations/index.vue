@@ -61,10 +61,12 @@
       </div>
     </div>
 
-    <TableData
-      v-else
-      ref="tableRef"
-      :data="items"
+    <template v-else>
+      <ReservationAnalyticsSummary :event="event" :event-base="eventBase" />
+
+      <TableData
+        ref="tableRef"
+        :data="items"
       :columns="columns"
       :meta="meta"
       :pending="pending"
@@ -174,6 +176,7 @@
         </DialogResponsive>
       </template>
     </TableData>
+    </template>
   </div>
 </template>
 

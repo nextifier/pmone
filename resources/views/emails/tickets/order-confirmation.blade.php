@@ -43,6 +43,8 @@
         </table>
     </div>
 
+    @include('emails.tickets._partials.qr-code', ['qrCaption' => 'Your personal check-in QR. View or share the other tickets below.'])
+
     <a href="{{ $magicLinkUrl }}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;font-size:14px;font-weight:500;padding:12px 20px;border-radius:8px;">
         View &amp; manage your tickets
     </a>
