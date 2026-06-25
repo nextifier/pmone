@@ -141,6 +141,14 @@ export default defineNuxtConfig({
         "vaul-vue",
         "shiki",
         "dompurify",
+        // FilePond + plugins: pre-bundle so the first visit to an upload page
+        // (e.g. /partners, gallery) doesn't trigger a runtime dep discovery +
+        // forced re-optimization, which reloads the page. Surfaced by the
+        // vue-filepond v8 bump (Vite logs them as "discovered at runtime").
+        "vue-filepond",
+        "filepond-plugin-image-preview",
+        "filepond-plugin-file-validate-type",
+        "filepond-plugin-file-validate-size",
         "@vue/devtools-core",
         "@vue/devtools-kit",
       ],
