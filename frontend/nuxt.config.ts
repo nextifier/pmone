@@ -29,13 +29,6 @@ export default defineNuxtConfig({
     // (app/middleware/root-redirect.global.ts), not a routeRule - a routeRule
     // redirect on "/" is ignored while pages/index.vue exists.
     "/docs": { redirect: { to: "/docs/staff-dashboard-overview", statusCode: 302 } },
-    "/shaders/docs": { redirect: { to: "/shaders/docs/quickstart", statusCode: 302 } },
-    // The visual editor is a fully interactive WebGPU tool — render it client-side
-    // only (no SSR benefit, and reka-ui controls don't server-render cleanly).
-    "/shaders/editor": { ssr: false },
-    // Docs render client-side (markdown via marked/yaml + live shader previews);
-    // they are intentionally not indexed, so SSR buys nothing here.
-    "/shaders/docs/**": { ssr: false },
 
     // Admin / auth pages (everything behind sanctum) are excluded from the
     // sitemap and not indexed by search engines. Public, share-worthy routes are
@@ -95,28 +88,10 @@ export default defineNuxtConfig({
       // runs (especially useful behind a CDN tunnel where intermediate
       // caches respect Vite's `immutable` cache-control).
       force: true,
-      // The `shaders` WebGPU library must NOT be pre-bundled. Bundling its 122
-      // components into one giant dep file makes another plugin's code-filter
-      // RegExp (run via transform middleware) overflow V8's regex stack
-      // ("Maximum call stack size exceeded"). Excluded, it loads as small,
-      // per-module ESM files which the filter handles fine.
-      exclude: [
-        "shaders",
-        "shaders/vue",
-        "shaders/registry",
-        "shaders/vue/codegen",
-        "shaders/react/codegen",
-        "shaders/svelte/codegen",
-        "shaders/solid/codegen",
-        "shaders/js/codegen",
-        // vue-qrcode-reader loads a zxing wasm decoder at runtime (via
-        // barcode-detector). Pre-bundling the wasm-loading deps breaks Vite's
-        // optimizer, so exclude them and let them load as native ESM (mirrors
-        // the shaders rationale above).
-        "vue-qrcode-reader",
-        "barcode-detector",
-        "zxing-wasm",
-      ],
+      // vue-qrcode-reader loads a zxing wasm decoder at runtime (via
+      // barcode-detector). Pre-bundling the wasm-loading deps breaks Vite's
+      // optimizer, so exclude them and let them load as native ESM.
+      exclude: ["vue-qrcode-reader", "barcode-detector", "zxing-wasm"],
       include: [
         "nanoid",
         "embla-carousel-wheel-gestures",

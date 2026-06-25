@@ -1,8 +1,0 @@
-{
-  "name": "Grayscale",
-  "category": "Adjustments",
-  "description": "Convert colors to black and white",
-  "requiresChild": true,
-  "requiresRTT": false,
-  "props": {}
-}

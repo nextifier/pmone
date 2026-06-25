@@ -528,21 +528,6 @@ const navMainGroups = computed(() => {
       iconName: "hugeicons:book-open-01",
     },
     {
-      label: "UI Components",
-      path: "/ui",
-      iconName: "hugeicons:layer",
-    },
-    {
-      label: "Shaders",
-      path: "/shaders",
-      iconName: "hugeicons:pathfinder-unite",
-    },
-    {
-      label: "Colors",
-      path: "/colors",
-      iconName: "hugeicons:paint-board",
-    },
-    {
       label: "Exchange Rate",
       path: "/exchange-rate",
       iconName: "hugeicons:money-exchange-02",
@@ -563,11 +548,6 @@ const navMainGroups = computed(() => {
           label: "Print Test",
           path: "/tools/print-test",
           iconName: "hugeicons:printer",
-        },
-        {
-          label: "SDF Converter",
-          path: "/tools/sdf-converter",
-          iconName: "hugeicons:exchange-01",
         },
         {
           label: "WhatsApp Tester",

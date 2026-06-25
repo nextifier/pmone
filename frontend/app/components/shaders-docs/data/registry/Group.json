@@ -1,8 +1,0 @@
-{
-  "name": "Group",
-  "category": "Utilities",
-  "description": "Container for organizing and composing child effects",
-  "requiresChild": true,
-  "requiresRTT": false,
-  "props": {}
-}

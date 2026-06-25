@@ -1,8 +1,0 @@
-{
-  "name": "Invert",
-  "category": "Adjustments",
-  "description": "Invert RGB colors while preserving alpha",
-  "requiresChild": true,
-  "requiresRTT": false,
-  "props": {}
-}
