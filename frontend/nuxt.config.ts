@@ -280,6 +280,15 @@ export default defineNuxtConfig({
     url: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
   },
 
+  sitemap: {
+    // Generate the sitemap at build time (static) instead of shipping a runtime
+    // handler in the Cloudflare worker. The sitemap has no dynamic sources (it's
+    // built purely from routeRules), so this is lossless and trims the server
+    // bundle — part of fixing the Nitro worker-build OOM. Recommended in the
+    // build log by @nuxtjs/sitemap itself.
+    zeroRuntime: true,
+  },
+
   ogImage: {
     // Disabled. Build-time OG generation (zeroRuntime) REQUIRES prerendering the
     // public pages, which turns them into static HTML and breaks per-request SSR
