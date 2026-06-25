@@ -63,14 +63,51 @@ final class PaymentChannels
     ];
 
     /**
-     * Codes the Xendit Sessions API expects that differ from our canonical
-     * code. Everything not listed passes through unchanged.
+     * Canonical code -> Xendit Payment Sessions (v3) channel code for
+     * `allowed_payment_channels`. CRITICAL: the v3 Sessions API uses DIFFERENT
+     * codes from the legacy Invoice API / `/payment_channels` listing - virtual
+     * accounts carry a `_VIRTUAL_ACCOUNT` suffix, cards collapse to `CARDS`.
+     * Sending a bare `BCA` here makes Xendit reject the whole session (which is
+     * why a BCA-only restriction produced no payment link). This is an explicit
+     * whitelist: canonical codes without a v3 equivalent (e.g. NEXCASH) are
+     * dropped rather than sent as-is.
      *
      * @var array<string, string>
      */
-    private const XENDIT_SESSIONS_OVERRIDES = [
+    private const XENDIT_SESSIONS_MAP = [
         'CREDIT_CARD' => 'CARDS',
+        'BCA' => 'BCA_VIRTUAL_ACCOUNT',
+        'BNI' => 'BNI_VIRTUAL_ACCOUNT',
+        'BRI' => 'BRI_VIRTUAL_ACCOUNT',
+        'MANDIRI' => 'MANDIRI_VIRTUAL_ACCOUNT',
+        'PERMATA' => 'PERMATA_VIRTUAL_ACCOUNT',
+        'CIMB' => 'CIMB_VIRTUAL_ACCOUNT',
+        'BJB' => 'BJB_VIRTUAL_ACCOUNT',
+        'BSI' => 'BSI_VIRTUAL_ACCOUNT',
+        'NEOBANK' => 'BNC_VIRTUAL_ACCOUNT',
+        'BSS' => 'BSS_VIRTUAL_ACCOUNT',
+        'MUAMALAT' => 'MUAMALAT_VIRTUAL_ACCOUNT',
         'DD_BRI' => 'BRI_DIRECT_DEBIT',
+        'OVO' => 'OVO',
+        'DANA' => 'DANA',
+        'SHOPEEPAY' => 'SHOPEEPAY',
+        'LINKAJA' => 'LINKAJA',
+        'GOPAY' => 'GOPAY',
+        'ASTRAPAY' => 'ASTRAPAY',
+        'JENIUSPAY' => 'JENIUSPAY',
+        'QRIS' => 'QRIS',
+    ];
+
+    /**
+     * Canonical codes whose legacy Invoice `payment_methods` value differs from
+     * the canonical code. Bank Sahabat Sampoerna's legacy code is
+     * `SAHABAT_SAMPOERNA` (the v3 code is `BSS_VIRTUAL_ACCOUNT`). All other
+     * common banks/e-wallets use the canonical code verbatim in legacy.
+     *
+     * @var array<string, string>
+     */
+    private const XENDIT_INVOICE_OVERRIDES = [
+        'BSS' => 'SAHABAT_SAMPOERNA',
     ];
 
     /**
@@ -177,27 +214,40 @@ final class PaymentChannels
     }
 
     /**
-     * Map canonical codes to Xendit Sessions `allowed_payment_channels`.
+     * Map canonical codes to Xendit Sessions (v3) `allowed_payment_channels`.
+     * Uses an explicit whitelist of v3 codes; canonical codes without a v3
+     * equivalent are dropped so an unknown code can never break the session.
      *
      * @param  array<int, string>  $canonical
      * @return array<int, string>
      */
     public static function toXenditSessionsCodes(array $canonical): array
     {
-        return self::mapCodes($canonical, self::XENDIT_SESSIONS_OVERRIDES);
+        $out = [];
+        foreach ($canonical as $raw) {
+            $code = strtoupper((string) $raw);
+            if (in_array($code, self::CARD_ALIASES, true)) {
+                $code = 'CREDIT_CARD';
+            }
+            $mapped = self::XENDIT_SESSIONS_MAP[$code] ?? null;
+            if ($mapped !== null) {
+                $out[$mapped] = true;
+            }
+        }
+
+        return array_keys($out);
     }
 
     /**
-     * Map canonical codes to Xendit legacy Invoice `payment_methods`.
-     * Cards already canonicalise to CREDIT_CARD, which is what the Invoice
-     * API expects, so no overrides are needed.
+     * Map canonical codes to Xendit legacy Invoice `payment_methods` (bare bank
+     * codes, cards as CREDIT_CARD). Only BSS differs (-> SAHABAT_SAMPOERNA).
      *
      * @param  array<int, string>  $canonical
      * @return array<int, string>
      */
     public static function toXenditInvoiceCodes(array $canonical): array
     {
-        return self::mapCodes($canonical, []);
+        return self::mapCodes($canonical, self::XENDIT_INVOICE_OVERRIDES);
     }
 
     /**

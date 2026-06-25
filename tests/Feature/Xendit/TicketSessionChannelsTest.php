@@ -45,7 +45,7 @@ test('createSession restricts allowed_payment_channels from the ticket event all
         $body = $request->data();
 
         return $request->url() === 'https://api.xendit.co/sessions'
-            && ($body['allowed_payment_channels'] ?? null) === ['CARDS', 'BCA']
+            && ($body['allowed_payment_channels'] ?? null) === ['CARDS', 'BCA_VIRTUAL_ACCOUNT']
             && str_starts_with((string) $body['reference_id'], 'TIX-');
     });
 });
@@ -68,7 +68,7 @@ test('createCheckout on a sessions gateway carries the ticket allowlist', functi
     $result = XenditService::forGateway($gateway)->createCheckout($order, 'https://app.test/s', 'https://app.test/c');
 
     expect($result['reference'])->toBe('ps-tix');
-    Http::assertSent(fn ($request) => ($request->data()['allowed_payment_channels'] ?? null) === ['BCA']);
+    Http::assertSent(fn ($request) => ($request->data()['allowed_payment_channels'] ?? null) === ['BCA_VIRTUAL_ACCOUNT']);
 });
 
 test('enabledChannelCodes returns activated channel codes from the gateway', function () {

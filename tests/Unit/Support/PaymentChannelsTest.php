@@ -29,23 +29,30 @@ it('validates canonical codes and rejects unknown ones', function () {
     expect(PaymentChannels::isValid('VISA'))->toBeFalse();
 });
 
-it('maps canonical codes to Xendit Sessions channel codes (cards -> CARDS, deduped)', function () {
+it('maps canonical codes to Xendit Sessions v3 channel codes (VA suffix, cards -> CARDS, deduped)', function () {
+    // Virtual accounts MUST carry the _VIRTUAL_ACCOUNT suffix or Sessions rejects them.
     expect(PaymentChannels::toXenditSessionsCodes(['VISA', 'MASTERCARD', 'BCA']))
-        ->toBe(['CARDS', 'BCA']);
+        ->toBe(['CARDS', 'BCA_VIRTUAL_ACCOUNT']);
 
     expect(PaymentChannels::toXenditSessionsCodes(['CREDIT_CARD', 'QRIS', 'OVO']))
         ->toBe(['CARDS', 'QRIS', 'OVO']);
 
-    expect(PaymentChannels::toXenditSessionsCodes(['DD_BRI']))
-        ->toBe(['BRI_DIRECT_DEBIT']);
+    expect(PaymentChannels::toXenditSessionsCodes(['NEOBANK', 'BSS', 'DD_BRI']))
+        ->toBe(['BNC_VIRTUAL_ACCOUNT', 'BSS_VIRTUAL_ACCOUNT', 'BRI_DIRECT_DEBIT']);
+
+    // NEXCASH has no v3 Sessions channel code -> dropped (never sent bare).
+    expect(PaymentChannels::toXenditSessionsCodes(['NEXCASH']))->toBe([]);
 });
 
-it('maps canonical codes to Xendit Invoice payment methods (cards -> CREDIT_CARD)', function () {
+it('maps canonical codes to Xendit Invoice payment methods (bare codes, cards -> CREDIT_CARD)', function () {
     expect(PaymentChannels::toXenditInvoiceCodes(['VISA', 'BCA']))
         ->toBe(['CREDIT_CARD', 'BCA']);
 
     expect(PaymentChannels::toXenditInvoiceCodes(['CREDIT_CARD', 'CREDIT_CARD', 'QRIS']))
         ->toBe(['CREDIT_CARD', 'QRIS']);
+
+    // Bank Sahabat Sampoerna uses its legacy code in the Invoice API.
+    expect(PaymentChannels::toXenditInvoiceCodes(['BSS']))->toBe(['SAHABAT_SAMPOERNA']);
 });
 
 it('maps canonical codes to Midtrans enabled_payments and drops unsupported ones', function () {
@@ -70,7 +77,7 @@ it('exposes the Midtrans-supported canonical subset', function () {
 });
 
 it('drops unknown codes when mapping', function () {
-    expect(PaymentChannels::toXenditSessionsCodes(['FOO', 'BCA', 'BOGUS']))->toBe(['BCA']);
+    expect(PaymentChannels::toXenditSessionsCodes(['FOO', 'BCA', 'BOGUS']))->toBe(['BCA_VIRTUAL_ACCOUNT']);
     expect(PaymentChannels::toXenditInvoiceCodes(['FOO']))->toBe([]);
     expect(PaymentChannels::toXenditSessionsCodes([]))->toBe([]);
 });
