@@ -6,7 +6,8 @@
     </div>
 
     <p class="text-muted-foreground text-sm sm:text-base tracking-tight max-w-2xl">
-      Brand identity used on Hotel Reservation Invoice & Receipt PDF. Per-event override is available in Event details.
+      Brand identity used on every Invoice & Receipt PDF - Hotel Reservations, Tickets, and more.
+      Each project can override this in Project Settings → Branding.
     </p>
 
     <div v-if="loading" class="flex justify-center py-10">

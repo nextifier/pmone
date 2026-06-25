@@ -43,12 +43,21 @@ const settingsTabs = computed(() => {
       icon: "hugeicons:globe-02",
       to: `${settingsBase.value}/website-settings`,
     },
-    {
-      label: "Hotel Reservations",
-      icon: "hugeicons:hotel-01",
-      to: `${settingsBase.value}/hotel-reservations`,
-    },
   ];
+
+  if (hasPermission("events.update_branding")) {
+    tabs.push({
+      label: "Branding",
+      icon: "hugeicons:paint-board",
+      to: `${settingsBase.value}/branding`,
+    });
+  }
+
+  tabs.push({
+    label: "Hotel Reservations",
+    icon: "hugeicons:hotel-01",
+    to: `${settingsBase.value}/hotel-reservations`,
+  });
 
   if (hasPermission("payment_gateways.read")) {
     tabs.push({
