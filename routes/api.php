@@ -89,7 +89,6 @@ use App\Http\Controllers\Api\RolesPermissionsSyncController;
 use App\Http\Controllers\Api\RoomTypeController;
 use App\Http\Controllers\Api\RundownItemController;
 use App\Http\Controllers\Api\ScanController;
-use App\Http\Controllers\Api\Shaders\ShapeSdfController;
 use App\Http\Controllers\Api\SheetsController;
 use App\Http\Controllers\Api\ShortLinkController;
 use App\Http\Controllers\Api\SyncPermissionsController;
@@ -119,13 +118,6 @@ Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profi
 // permission-gated users group.
 Route::middleware(['auth:sanctum'])->post('/users/impersonate/leave', [UserImpersonationController::class, 'leave']);
 
-// Public: stream a generated SDF .bin THROUGH Laravel so the CORS middleware applies
-// (static /storage files bypass the kernel and get no CORS, which blocks the shader's
-// cross-origin fetch). Anyone can read these - they are public shader assets.
-Route::get('public/shaders/sdf/{filename}', [ShapeSdfController::class, 'serve'])
-    ->where('filename', '[A-Za-z0-9._-]+\\.bin')
-    ->name('shaders.sdf.serve');
-
 // Dashboard routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(function () {
     Route::get('/navigation', [DashboardController::class, 'navigation'])->name('dashboard.navigation');
@@ -145,18 +137,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/', [TemporaryUploadController::class, 'revert']);
         Route::get('/load', [TemporaryUploadController::class, 'load']);
         Route::get('/metadata', [TemporaryUploadController::class, 'metadata']);
-    });
-
-    // Shaders SDF converter + stored library (admin/master only - role gate in controller/request)
-    Route::prefix('shaders/sdf')->group(function () {
-        Route::get('/', [ShapeSdfController::class, 'index'])->name('shaders.sdf.index');
-        Route::post('/', [ShapeSdfController::class, 'store'])
-            ->middleware('throttle:sdf-convert')
-            ->name('shaders.sdf.store');
-        Route::delete('/bulk', [ShapeSdfController::class, 'bulkDestroy'])->name('shaders.sdf.bulk-destroy');
-        Route::delete('/{filename}', [ShapeSdfController::class, 'destroy'])
-            ->where('filename', '[A-Za-z0-9._-]+\\.bin')
-            ->name('shaders.sdf.destroy');
     });
 
     // Media endpoints

@@ -44,11 +44,6 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(300)->by($request->user()?->id ?: $request->ip());
         });
 
-        // SVG/PNG -> SDF conversion is CPU-intensive; throttle tighter than the API.
-        RateLimiter::for('sdf-convert', function (Request $request) {
-            return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
-        });
-
         // Public form submissions are anonymous writes; keep them tight per IP.
         // Uploads get their own (larger) bucket so a multi-file form does not
         // exhaust the submit allowance before the final submit happens.
