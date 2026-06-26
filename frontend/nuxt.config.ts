@@ -327,18 +327,16 @@ export default defineNuxtConfig({
       clientsClaim: true,
       navigateFallback: null,
       globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
-      // The shaders/vue bundle is a ~2.1 MB chunk. Workbox's default precache
-      // cap is 2 MiB, which failed the Cloudflare build ("Assets exceeding the
-      // limit ... won't be precached"). Raise it so large chunks precache
-      // cleanly (also lets /shaders work offline — aligned with the PWA goal).
+      // Raise Workbox's default 2 MiB precache cap so large JS chunks precache
+      // cleanly (the default failed the Cloudflare build: "Assets exceeding the
+      // limit ... won't be precached").
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     },
     injectManifest: {
       globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
-      // The shaders/vue bundle is a ~2.1 MB chunk. Workbox's default precache
-      // cap is 2 MiB, which failed the Cloudflare build ("Assets exceeding the
-      // limit ... won't be precached"). Raise it so large chunks precache
-      // cleanly (also lets /shaders work offline — aligned with the PWA goal).
+      // Raise Workbox's default 2 MiB precache cap so large JS chunks precache
+      // cleanly (the default failed the Cloudflare build: "Assets exceeding the
+      // limit ... won't be precached").
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     },
     client: {
