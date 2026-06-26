@@ -46,8 +46,6 @@ export default defineNuxtConfig({
     "/forms/**": { sitemap: true, robots: true },
     "/hotels": { sitemap: true, robots: true },
     "/hotels/**": { sitemap: true, robots: true },
-    "/accommodation": { sitemap: true, robots: true },
-    "/accommodation/**": { sitemap: true, robots: true },
   },
 
   app: {
