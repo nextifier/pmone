@@ -152,6 +152,33 @@ it('keeps user-provided unique slug as-is', function () {
     expect($post->slug)->toBe('totally-custom');
 });
 
+// ─── Non-Latin transliteration (CJK, Hangul, Arabic, Thai, ...) ──────
+
+it('transliterates non-Latin names into a meaningful slug', function (string $name, string $expected) {
+    $brand = Brand::factory()->create(['name' => $name]);
+
+    expect($brand->slug)->toBe($expected);
+})->with([
+    'chinese' => ['柒树', 'qi-shu'],
+    'chinese 2' => ['舟聪', 'zhou-cong'],
+    'korean' => ['안녕', 'annyeong'],
+    'thai' => ['สวัสดี', 'swasdi'],
+]);
+
+it('keeps transliterated slugs unique when two names collide', function () {
+    $first = Brand::factory()->create(['name' => '柒树']);
+    $second = Brand::factory()->create(['name' => '柒树']);
+
+    expect($first->slug)->toBe('qi-shu');
+    expect($second->slug)->toBe('qi-shu-1');
+});
+
+it('falls back to a non-empty slug when the name has no sluggable characters', function () {
+    $brand = Brand::factory()->create(['name' => '🎉🎊']);
+
+    expect($brand->slug)->toBe('brand');
+});
+
 // ─── Scoped uniqueness ───────────────────────────────────────────────
 
 it('scopes slug uniqueness per project_id for Event', function () {

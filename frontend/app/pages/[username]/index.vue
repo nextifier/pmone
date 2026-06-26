@@ -1,10 +1,7 @@
 <template>
-  <div v-if="resolvedType === 'shortlink'">
-    <ErrorState v-if="error" :error="error" />
-    <div v-else class="flex min-h-dvh items-center justify-center">
-      <div class="flex items-center justify-center gap-x-1.5 font-medium tracking-tight">
-        <Spinner class="size-8" />
-      </div>
+  <div v-if="resolvedType === 'shortlink'" class="flex min-h-dvh items-center justify-center">
+    <div class="flex items-center justify-center gap-x-1.5 font-medium tracking-tight">
+      <Spinner class="size-8" />
     </div>
   </div>
 
@@ -20,7 +17,6 @@
     :profile="user"
     profile-type="user"
     :loading="status === 'pending'"
-    :error="error"
     :can-edit="canEdit"
     :show-back-button="false"
     @track-click="trackClick"
@@ -43,7 +39,7 @@ const {
   data,
   status,
   error: fetchError,
-} = await useLazyFetch(() => `/api/resolve/${slug.value}`, {
+} = await useFetch(() => `/api/resolve/${slug.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `resolve-slug-${slug.value}`,
 });
@@ -55,26 +51,24 @@ const shortLinkData = computed(() =>
 );
 const linkPageData = computed(() => (resolvedType.value === "linkpage" ? data.value?.data : null));
 
-const error = computed(() => {
-  if (!fetchError.value && user.value && user.value.status !== "active") {
-    return {
-      statusCode: 403,
-      statusMessage: "Profile Not Available",
-      message: "This profile is not available.",
-      stack: null,
-    };
-  }
+// Genuine page errors surface through the shared error.vue boundary, not an
+// inline panel, so 404s look identical everywhere. An inactive profile is
+// treated as not-found (privacy: don't reveal that the account exists).
+if (fetchError.value) {
+  throw createError({
+    statusCode: fetchError.value.statusCode || 404,
+    statusMessage: fetchError.value.data?.message || fetchError.value.statusMessage || "Page not found",
+    fatal: true,
+  });
+}
 
-  if (!fetchError.value) return null;
-
-  const err = fetchError.value;
-  return {
-    statusCode: err.statusCode || 500,
-    statusMessage: err.data?.message || err.statusMessage || "Error",
-    message: err.data?.message || err.message || "Page not found",
-    stack: err.stack,
-  };
-});
+if (user.value && user.value.status !== "active") {
+  throw createError({
+    statusCode: 404,
+    statusMessage: "Page not found",
+    fatal: true,
+  });
+}
 
 // SEO for user profiles
 const title = computed(() => {

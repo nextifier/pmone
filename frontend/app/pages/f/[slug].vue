@@ -179,12 +179,23 @@ const {
   data: formResponse,
   status,
   error: fetchError,
-} = await useLazyFetch(() => `/api/public/forms/${slug.value}`, {
+} = await useFetch(() => `/api/public/forms/${slug.value}`, {
   baseURL: apiUrl,
   key: `public-form-${slug.value}`,
 });
 
 const form = computed(() => formResponse.value?.data || null);
+
+// A missing/unavailable form is a genuine not-found page, so surface it through
+// the shared error.vue boundary - except when embedded, where a full-page error
+// would hijack the host iframe, so the inline status card is kept instead.
+if (fetchError.value && !isEmbed.value) {
+  throw createError({
+    statusCode: fetchError.value.statusCode || fetchError.value.data?.statusCode || 404,
+    statusMessage: fetchError.value.data?.message || fetchError.value.statusMessage || "Form not found",
+    fatal: true,
+  });
+}
 
 const sortedFields = computed(() => {
   if (!form.value?.fields) return [];

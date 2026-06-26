@@ -3,7 +3,6 @@
     :profile="project"
     profile-type="project"
     :loading="status === 'pending'"
-    :error="error"
     :can-edit="canEdit"
     :show-back-button="authUser?.roles?.some((role) => ['master', 'admin', 'staff'].includes(role))"
     back-destination="/projects"
@@ -25,33 +24,31 @@ const {
   data,
   status,
   error: fetchError,
-} = await useLazyFetch(() => `/api/projects/${username.value}`, {
+} = await useFetch(() => `/api/projects/${username.value}`, {
   baseURL: useRuntimeConfig().public.apiUrl,
   key: `project-profile-${username.value}`,
 });
 
 const project = computed(() => data.value?.data || null);
 
-const error = computed(() => {
-  if (!fetchError.value && project.value && project.value.status !== "active") {
-    return {
-      statusCode: 403,
-      statusMessage: "Project Not Available",
-      message: "This project is not available.",
-      stack: null,
-    };
-  }
+// Genuine page errors surface through the shared error.vue boundary, not an
+// inline panel, so 404s look identical everywhere. An inactive project is
+// treated as not-found (privacy: don't reveal that the project exists).
+if (fetchError.value) {
+  throw createError({
+    statusCode: fetchError.value.statusCode || 404,
+    statusMessage: fetchError.value.data?.message || fetchError.value.statusMessage || "Page not found",
+    fatal: true,
+  });
+}
 
-  if (!fetchError.value) return null;
-
-  const err = fetchError.value;
-  return {
-    statusCode: err.statusCode || 500,
-    statusMessage: err.data?.message || err.statusMessage || "Error",
-    message: err.data?.message || err.message || "Failed to load project",
-    stack: err.stack,
-  };
-});
+if (project.value && project.value.status !== "active") {
+  throw createError({
+    statusCode: 404,
+    statusMessage: "Page not found",
+    fatal: true,
+  });
+}
 
 const title = project.value ? `${project.value.name} (@${project.value.username})` : "Project";
 const description = project.value?.bio || "View project";

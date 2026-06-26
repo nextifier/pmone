@@ -152,6 +152,15 @@ trait HasSlug
         }
 
         $slug = static::generateSlugString($source, $config);
+
+        if ($slug === '') {
+            $slug = static::transliterateToSlug($source, $config);
+        }
+
+        if ($slug === '') {
+            $slug = static::slugFallback($model, $config);
+        }
+
         $slug = static::validateSlugReserved($slug, $config);
 
         if ($config['unique']) {
@@ -224,6 +233,45 @@ trait HasSlug
         }
 
         return $slug;
+    }
+
+    /**
+     * Transliterate non-Latin scripts (CJK, Hangul, Arabic, Thai, Hebrew, ...)
+     * into an ASCII slug via ICU. Str::slug() only handles Latin, Cyrillic and
+     * Greek and strips everything else to an empty string, so this bridges
+     * arbitrary international names into a meaningful, route-safe slug
+     * (e.g. "柒树" => "qi-shu", "안녕" => "annyeong").
+     */
+    protected static function transliterateToSlug(string $source, array $config): string
+    {
+        if (! class_exists(\Transliterator::class)) {
+            return '';
+        }
+
+        $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII; Lower()');
+
+        if ($transliterator === null) {
+            return '';
+        }
+
+        $latin = $transliterator->transliterate($source);
+
+        if ($latin === false) {
+            return '';
+        }
+
+        return Str::slug($latin, $config['separator']);
+    }
+
+    /**
+     * Last-resort slug base when both Str::slug() and transliteration yield an
+     * empty string, e.g. a name made entirely of emoji or symbols. Without this
+     * the slug would be "" and route keys would resolve to broken paths like
+     * /brands//edit. Uniqueness suffixing still applies afterwards.
+     */
+    protected static function slugFallback(Model $model, array $config): string
+    {
+        return Str::slug(class_basename($model), $config['separator']) ?: 'item';
     }
 
     protected static function validateSlugReserved(string $slug, array $config): string
