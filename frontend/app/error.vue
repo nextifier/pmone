@@ -26,7 +26,7 @@
       </span>
 
       <h1
-        class="t-stagger-line text-primary text-2xl font-semibold tracking-tighter text-balance wrap-break-word sm:text-3xl md:text-4xl"
+        class="t-stagger-line text-primary text-3xl font-semibold tracking-tighter text-balance wrap-break-word sm:text-4xl"
         style="--err-i: 2"
       >
         {{ state.title }}
@@ -49,8 +49,9 @@
 
       <pre
         v-if="isDev && error?.stack && statusCode >= 500"
-        class="text-muted-foreground border-border bg-muted/40 mt-8 max-h-64 w-full max-w-full overflow-auto rounded-xl border px-4 py-3 text-left text-xs leading-relaxed whitespace-pre-wrap break-words"
-      >{{ error.stack }}</pre>
+        class="text-muted-foreground border-border bg-muted/40 mt-8 max-h-64 w-full max-w-full overflow-auto rounded-xl border px-4 py-3 text-left text-xs leading-relaxed break-words whitespace-pre-wrap"
+        >{{ error.stack }}</pre
+      >
     </div>
   </main>
 </template>
@@ -126,10 +127,33 @@ useSeoMeta({
   robots: "noindex, nofollow",
 });
 
+// The error page renders standalone (no app layout), so the document root keeps
+// no themed background and color-scheme defaults to light - which makes the
+// native scrollbar gutter render white over the dark page. Paint the root and
+// sync color-scheme to the active theme so the gutter matches.
+useHead({
+  style: [
+    {
+      innerHTML:
+        "html{background-color:var(--background)}html:not(.dark){color-scheme:light}html.dark{color-scheme:dark}",
+    },
+  ],
+});
+
 const handleError = () => clearError({ redirect: "/" });
 </script>
 
 <style scoped>
+/* Full-viewport height. The `min-h-dvh` utility isn't generated in every repo's
+   Tailwind build (this standalone file can fall outside content scanning, and
+   the class is used nowhere else), so guarantee it here instead of relying on
+   the utility - otherwise <main> collapses to content height and leaves a blank
+   strip below the page. */
+main {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 /* Texts-reveal (transitions.dev 18): staggered blurred rise on first paint.
    Implemented as an auto-playing keyframe (not a JS .is-shown toggle) so the
    content stays visible without JS and during SSR. Motion values match the
