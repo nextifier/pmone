@@ -51,7 +51,7 @@ const emit = defineEmits<{
 const colorClass = computed(() => {
   switch (props.color) {
     case "primary":
-      return "text-primary";
+      return "text-foreground";
     case "foreground":
       return "text-foreground";
     case "warning":

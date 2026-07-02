@@ -75,7 +75,7 @@
             <p class="text-muted-foreground text-xs tracking-tight">
               Exhibitors cannot submit orders after this date.
             </p>
-            <InputErrorMessage :errors="errors.order_form_deadline" />
+            <FieldError :errors="errors.order_form_deadline" />
           </div>
           <div class="space-y-2">
             <Label for="promotion_post_deadline">Promotion Post Deadline</Label>
@@ -88,7 +88,7 @@
             <p class="text-muted-foreground text-xs tracking-tight">
               Exhibitors cannot upload promotion posts after this date.
             </p>
-            <InputErrorMessage :errors="errors.promotion_post_deadline" />
+            <FieldError :errors="errors.promotion_post_deadline" />
           </div>
         </div>
       </div>
@@ -112,7 +112,7 @@
               :default-hour="0"
               :default-minute="0"
             />
-            <InputErrorMessage :errors="errors.normal_order_opens_at" />
+            <FieldError :errors="errors.normal_order_opens_at" />
           </div>
           <div class="space-y-2">
             <Label for="normal_order_closes_at">Normal Order Closes</Label>
@@ -122,7 +122,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <InputErrorMessage :errors="errors.normal_order_closes_at" />
+            <FieldError :errors="errors.normal_order_closes_at" />
           </div>
         </div>
 
@@ -135,7 +135,7 @@
               :default-hour="0"
               :default-minute="0"
             />
-            <InputErrorMessage :errors="errors.onsite_order_opens_at" />
+            <FieldError :errors="errors.onsite_order_opens_at" />
           </div>
           <div class="space-y-2">
             <Label for="onsite_order_closes_at">Onsite Order Closes</Label>
@@ -145,7 +145,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <InputErrorMessage :errors="errors.onsite_order_closes_at" />
+            <FieldError :errors="errors.onsite_order_closes_at" />
           </div>
         </div>
 
@@ -189,7 +189,7 @@
               Percentage added to orders placed in the onsite period. Kept in sync with a
               Promotion Rule automatically. Default: 50%.
             </p>
-            <InputErrorMessage :errors="errors.onsite_penalty_rate" />
+            <FieldError :errors="errors.onsite_penalty_rate" />
           </div>
         </div>
       </div>
@@ -213,7 +213,7 @@
             min-height="150px"
             placeholder="Write badge and VIP information for exhibitors..."
           />
-          <InputErrorMessage :errors="errors.badge_vip_info" />
+          <FieldError :errors="errors.badge_vip_info" />
         </div>
       </div>
 

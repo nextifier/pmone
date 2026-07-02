@@ -633,6 +633,14 @@ class UserController extends Controller
             'settings.timezone' => ['nullable', 'string', 'max:50'],
             'settings.email_notifications' => ['nullable', 'boolean'],
             'settings.push_notifications' => ['nullable', 'boolean'],
+            'settings.appearance' => ['nullable', 'array'],
+            'settings.appearance.baseColor' => ['nullable', 'string', 'in:neutral,stone,zinc,mauve,olive,mist,taupe'],
+            'settings.appearance.theme' => ['nullable', 'string', 'in:neutral,stone,zinc,mauve,olive,mist,taupe,amber,blue,cyan,emerald,fuchsia,green,indigo,lime,orange,pink,purple,red,rose,sky,teal,violet,yellow'],
+            'settings.appearance.chartColor' => ['nullable', 'string', 'in:neutral,stone,zinc,mauve,olive,mist,taupe,amber,blue,cyan,emerald,fuchsia,green,indigo,lime,orange,pink,purple,red,rose,sky,teal,violet,yellow'],
+            'settings.appearance.radius' => ['nullable', 'string', 'in:default,none,small,medium,large'],
+            'settings.appearance.style' => ['nullable', 'string', 'in:mono,vega,nova,maia,lyra,mira,luma,sera,rhea'],
+            'settings.appearance.font' => ['nullable', 'string', 'in:default,geist,inter,dm-sans,manrope,space-grotesk,outfit,geist-mono,jetbrains-mono,playfair-display,lora'],
+            'settings.appearance.fontHeading' => ['nullable', 'string', 'in:inherit,geist,inter,dm-sans,manrope,space-grotesk,outfit,geist-mono,jetbrains-mono,playfair-display,lora'],
         ]);
 
         if ($validator->fails()) {
@@ -645,7 +653,14 @@ class UserController extends Controller
         try {
             $user = $request->user();
             $currentSettings = $user->user_settings ?? [];
-            $newSettings = array_merge($currentSettings, $request->input('settings'));
+            // Use validated data only (never raw input) and deep-merge so a
+            // partial settings payload (e.g. only `appearance` or only `theme`)
+            // merges into existing settings instead of clobbering siblings —
+            // avoids concurrent appearance/color-mode writes overwriting each other.
+            $newSettings = array_replace_recursive(
+                $currentSettings,
+                $validator->validated()['settings'],
+            );
 
             $user->update(['user_settings' => $newSettings]);
 

@@ -152,7 +152,7 @@ function toggleExpand() {
           <span v-if="hotel.star_rating" class="inline-flex items-center gap-0.5">
             <Icon
               name="material-symbols:star-rounded"
-              class="text-primary size-3.5"
+              class="text-foreground size-3.5"
             />
             <span>{{ hotel.star_rating }}-star</span>
           </span>
@@ -164,7 +164,7 @@ function toggleExpand() {
       </div>
       <button
         type="button"
-        class="text-primary hover:bg-muted shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium tracking-tight transition active:scale-95 sm:text-sm"
+        class="text-foreground hover:bg-muted shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium tracking-tight transition active:scale-95 sm:text-sm"
         @click="toggleExpand"
       >
         <span class="hidden sm:inline">View details</span>

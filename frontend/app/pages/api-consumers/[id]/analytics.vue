@@ -29,12 +29,12 @@
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="border-border rounded-lg border p-6">
           <div class="flex items-center gap-2">
-            <div class="bg-muted text-primary rounded-lg p-2">
+            <div class="bg-muted text-foreground rounded-lg p-2">
               <Icon name="hugeicons:api" class="size-5" />
             </div>
             <div class="text-muted-foreground text-sm font-medium">Total Requests</div>
           </div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_requests.toLocaleString() }}
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
@@ -44,12 +44,12 @@
 
         <div class="border-border rounded-lg border p-6">
           <div class="flex items-center gap-2">
-            <div class="bg-muted text-primary rounded-lg p-2">
+            <div class="bg-muted text-foreground rounded-lg p-2">
               <Icon name="hugeicons:tick-02" class="size-5" />
             </div>
             <div class="text-muted-foreground text-sm font-medium">Success Rate</div>
           </div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.success_rate }}%
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
@@ -59,12 +59,12 @@
 
         <div class="border-border rounded-lg border p-6">
           <div class="flex items-center gap-2">
-            <div class="bg-muted text-primary rounded-lg p-2">
+            <div class="bg-muted text-foreground rounded-lg p-2">
               <Icon name="hugeicons:clock-02" class="size-5" />
             </div>
             <div class="text-muted-foreground text-sm font-medium">Avg Response Time</div>
           </div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.avg_response_time }}ms
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
@@ -74,12 +74,12 @@
 
         <div class="border-border rounded-lg border p-6">
           <div class="flex items-center gap-2">
-            <div class="bg-muted text-primary rounded-lg p-2">
+            <div class="bg-muted text-foreground rounded-lg p-2">
               <Icon name="hugeicons:calendar-03" class="size-5" />
             </div>
             <div class="text-muted-foreground text-sm font-medium">Period</div>
           </div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.period.days }} days
           </div>
           <div class="text-muted-foreground mt-1 text-xs">

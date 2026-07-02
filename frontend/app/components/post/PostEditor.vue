@@ -51,7 +51,7 @@
           <Icon name="hugeicons:delete-01" class="text-destructive-foreground size-5" />
         </div>
         <div class="grow">
-          <h3 class="text-primary text-lg font-semibold tracking-tighter">Delete Post?</h3>
+          <h3 class="text-foreground text-lg font-semibold tracking-tighter">Delete Post?</h3>
           <p
             class="text-muted-foreground mt-1.5 text-sm leading-relaxed tracking-tight text-pretty"
           >

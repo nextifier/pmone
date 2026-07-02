@@ -69,7 +69,7 @@
                 </SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.ticket_id" />
+            <FieldError :errors="errors.ticket_id" />
           </div>
 
           <div v-if="needsSession" class="space-y-2">
@@ -169,7 +169,7 @@
             <p v-if="form.delivery === 'auto_email'" class="text-muted-foreground text-xs tracking-tight">
               Every recipient needs an email (named list only).
             </p>
-            <InputErrorMessage :errors="errors.delivery" />
+            <FieldError :errors="errors.delivery" />
           </div>
 
           <div class="space-y-2">
@@ -195,7 +195,7 @@ import { Button } from "@/components/ui/button";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";

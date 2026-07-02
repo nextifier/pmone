@@ -2,7 +2,7 @@
   <button
     type="button"
     :disabled="disabled || loading"
-    class="flex shrink-0 items-center gap-x-1.5 rounded-full px-1.5 py-2 text-sm font-medium tracking-tight transition active:scale-98 disabled:opacity-50 sm:px-3"
+    class="flex shrink-0 items-center gap-x-1.5 rounded-full px-1.5 py-2 text-sm font-medium tracking-tight transition-[color,opacity,transform] active:scale-98 disabled:opacity-50 sm:px-3"
     :class="
       destructive
         ? 'text-destructive hover:bg-destructive/15'

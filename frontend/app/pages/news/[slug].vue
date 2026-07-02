@@ -10,7 +10,7 @@
         <button
           v-if="isMobile"
           @click="setOpenMobile(false)"
-          class="bg-muted text-primary absolute top-4 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
+          class="bg-muted text-foreground absolute top-4 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
         >
           <Icon name="lucide:x" class="size-4" />
         </button>
@@ -37,7 +37,7 @@
 
     <div v-if="pending" class="min-h-screen-offset grid place-items-center">
       <div class="flex items-center gap-2">
-        <Spinner class="size-4 text-primary" />
+        <Spinner class="size-4 text-foreground" />
         <span class="tracking-tight">{{ $t('ui.loading') }}</span>
       </div>
     </div>
@@ -53,13 +53,13 @@
           <div class="mt-4 flex flex-col items-center text-center xl:items-center xl:text-center">
             <span
               v-if="post.tags?.length > 0"
-              class="text-primary border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tighter capitalize sm:text-sm"
+              class="text-foreground border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tighter capitalize sm:text-sm"
             >
               {{ post.tags[0] }}
             </span>
 
             <h1
-              class="text-primary text-[clamp(2rem,9vw,3rem)] !leading-[1.2] font-semibold tracking-tighter text-balance xl:-mx-12"
+              class="text-foreground text-[clamp(2rem,9vw,3rem)] !leading-[1.2] font-semibold tracking-tighter text-balance xl:-mx-12"
             >
               {{ post.title }}
             </h1>
@@ -92,7 +92,7 @@
                 </div>
 
                 <div class="flex flex-col gap-y-1">
-                  <div class="text-primary line-clamp-1 font-medium tracking-tight">
+                  <div class="text-foreground line-clamp-1 font-medium tracking-tight">
                     <span v-for="(author, index) in post.authors" :key="index">
                       {{ author.name
                       }}<span v-if="index != Object.keys(post.authors).length - 1">, </span>
@@ -137,7 +137,7 @@
 
             <div
               v-if="post.excerpt"
-              class="text-primary mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
+              class="text-foreground mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
             >
               {{ post.excerpt }}
             </div>
@@ -188,7 +188,7 @@
           </div>
 
           <div class="mt-10 flex flex-col items-center gap-y-4">
-            <span class="text-primary text-center text-lg font-semibold tracking-tighter sm:text-xl"
+            <span class="text-foreground text-center text-lg font-semibold tracking-tighter sm:text-xl"
               >{{ $t('ui.shareThisPost') }}</span
             >
             <SharePage

@@ -13,7 +13,7 @@
         <button
           type="button"
           aria-label="Remove email"
-          class="text-destructive hover:text-destructive/80 flex size-9 shrink-0 items-center justify-center rounded-lg transition"
+          class="text-destructive hover:text-destructive/80 flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors"
           @click="remove(index)"
         >
           <Icon name="hugeicons:delete-01" class="size-4" />
@@ -23,7 +23,7 @@
 
     <button
       type="button"
-      class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition"
+      class="text-primary hover:text-primary/80 flex items-center gap-x-1 py-1 text-sm font-medium tracking-tight transition-colors"
       @click="add"
     >
       <Icon name="hugeicons:add-01" class="size-4" />

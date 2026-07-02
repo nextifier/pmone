@@ -192,7 +192,7 @@
                           <Icon
                             v-if="form.estimated_price_currency === currency.code"
                             name="hugeicons:tick-02"
-                            class="text-primary size-4 shrink-0"
+                            class="text-foreground size-4 shrink-0"
                           />
                         </CommandItem>
                       </CommandGroup>
@@ -444,7 +444,7 @@
     <DialogResponsive v-model:open="disableConfirmOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
             Disable hotel reservation?
           </div>
           <p class="text-body mt-1.5 text-sm tracking-tight">

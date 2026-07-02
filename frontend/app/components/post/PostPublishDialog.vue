@@ -2,7 +2,7 @@
   <DialogResponsive v-model:open="isOpen" dialog-max-width="400px">
     <div class="p-4 md:p-6">
       <div class="space-y-1">
-        <h3 class="text-primary text-lg font-semibold">Publish Post</h3>
+        <h3 class="text-foreground text-lg font-semibold">Publish Post</h3>
         <p class="text-muted-foreground text-sm">Choose when to publish your post.</p>
       </div>
 

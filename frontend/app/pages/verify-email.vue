@@ -2,10 +2,10 @@
   <div class="mx-auto flex h-full max-w-md items-center justify-center pt-4 pb-16">
     <div class="border-border grid gap-6 rounded-xl border p-6">
       <div class="flex flex-col items-center gap-y-4 text-center">
-        <Icon name="hugeicons:checkmark-badge-02" class="text-primary size-9" />
+        <Icon name="hugeicons:checkmark-badge-02" class="text-foreground size-9" />
 
         <div class="flex flex-col items-center gap-y-2 text-center">
-          <h1 class="text-primary text-xl font-semibold tracking-tighter sm:text-2xl">
+          <h1 class="text-foreground text-xl font-semibold tracking-tighter sm:text-2xl">
             Verify Email
           </h1>
 

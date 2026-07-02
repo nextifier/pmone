@@ -5,7 +5,7 @@ import {
   CollapsibleTrigger,
 } from "../ui/collapsible";
 import { Input } from "../ui/input";
-import { InputErrorMessage } from "../ui/input-error-message";
+import { FieldError } from "../ui/field";
 import { InputPhone } from "../ui/input-phone";
 import { Label } from "../ui/label";
 import { LocationCombobox } from "../ui/location-combobox";
@@ -18,7 +18,13 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import countries from "../../data/countries.json";
-import { computed, ref, watch } from "vue";
+import {
+  EMAIL_RE,
+  NIK_RE,
+  PASSPORT_RE,
+  PHONE_RE,
+} from "../../lib/guestValidation";
+import { computed, nextTick, ref, watch } from "vue";
 
 const props = defineProps({
   guest: { type: Object, required: true },
@@ -28,13 +34,9 @@ const props = defineProps({
 
 const emit = defineEmits(["update"]);
 
+const rootRef = ref(null);
 const showOptional = ref(!!(props.guest.company || props.guest.special_request));
 const clientErrors = ref({});
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NIK_RE = /^\d{16}$/;
-const PASSPORT_RE = /^[A-Z0-9]{6,15}$/i;
-const PHONE_RE = /^\+?\d[\d\s-]{5,20}$/;
 
 function update(field, value) {
   emit("update", { [field]: value });
@@ -72,10 +74,61 @@ const mergedErrors = computed(() => ({
 }));
 
 watch(() => props.guest.identity_type, () => validateField("identity_number"));
+
+// Validate every required field (presence + format) and surface all errors at
+// once. Called by the parent on "Continue" so invalid data shows a clear message
+// and blocks the step instead of silently disabling the button. Returns validity.
+async function validateAll() {
+  const errs = {};
+
+  if (!props.guest.name?.trim()) {
+    errs.name = ["Please enter the guest name."];
+  }
+
+  const email = (props.guest.email || "").trim();
+  if (!email) {
+    errs.email = ["Please enter an email address."];
+  } else if (!EMAIL_RE.test(email)) {
+    errs.email = ["Please enter a valid email address."];
+  }
+
+  const phone = String(props.guest.phone || "").trim();
+  if (!phone) {
+    errs.phone = ["Please enter a phone number."];
+  } else if (!PHONE_RE.test(phone)) {
+    errs.phone = ["Please enter a valid phone number."];
+  }
+
+  const id = (props.guest.identity_number || "").trim();
+  if (!id) {
+    errs.identity_number = [
+      props.guest.identity_type === "passport"
+        ? "Please enter the passport number."
+        : "Please enter the NIK.",
+    ];
+  } else if (props.guest.identity_type === "nik" && !NIK_RE.test(id)) {
+    errs.identity_number = ["NIK must be exactly 16 digits."];
+  } else if (props.guest.identity_type === "passport" && !PASSPORT_RE.test(id)) {
+    errs.identity_number = ["Passport must be 6-15 alphanumeric characters."];
+  }
+
+  clientErrors.value = errs;
+
+  const valid = Object.keys(errs).length === 0;
+  if (!valid) {
+    await nextTick();
+    rootRef.value
+      ?.querySelector('[data-slot="field-error"]')
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  return valid;
+}
+
+defineExpose({ validateAll });
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div ref="rootRef" class="space-y-6">
     <div>
       <h2 class="text-base font-medium tracking-tight">Primary Guest Information</h2>
       <p class="text-muted-foreground mt-1 text-sm tracking-tight">
@@ -100,7 +153,7 @@ watch(() => props.guest.identity_type, () => validateField("identity_number"));
           required
           @update:model-value="(v) => update('name', v)"
         />
-        <InputErrorMessage :errors="mergedErrors.name" />
+        <FieldError :errors="mergedErrors.name" />
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -114,7 +167,7 @@ watch(() => props.guest.identity_type, () => validateField("identity_number"));
             @update:model-value="(v) => update('email', v)"
             @blur="validateField('email')"
           />
-          <InputErrorMessage :errors="mergedErrors.email" />
+          <FieldError :errors="mergedErrors.email" />
         </div>
         <div class="space-y-2">
           <Label for="guest_phone">Phone</Label>
@@ -125,7 +178,7 @@ watch(() => props.guest.identity_type, () => validateField("identity_number"));
             @update:model-value="(v) => update('phone', v)"
             @blur="validateField('phone')"
           />
-          <InputErrorMessage :errors="mergedErrors.phone" />
+          <FieldError :errors="mergedErrors.phone" />
         </div>
       </div>
 
@@ -144,7 +197,7 @@ watch(() => props.guest.identity_type, () => validateField("identity_number"));
               <SelectItem value="passport">Passport</SelectItem>
             </SelectContent>
           </Select>
-          <InputErrorMessage :errors="mergedErrors.identity_type" />
+          <FieldError :errors="mergedErrors.identity_type" />
         </div>
         <div class="space-y-2">
           <Label for="identity_number">ID Number</Label>
@@ -156,7 +209,7 @@ watch(() => props.guest.identity_type, () => validateField("identity_number"));
             @update:model-value="(v) => update('identity_number', v)"
             @blur="validateField('identity_number')"
           />
-          <InputErrorMessage :errors="mergedErrors.identity_number" />
+          <FieldError :errors="mergedErrors.identity_number" />
         </div>
       </div>
 
@@ -169,7 +222,7 @@ watch(() => props.guest.identity_type, () => validateField("identity_number"));
           placeholder="Select country"
           @update:model-value="(v) => update('nationality', v)"
         />
-        <InputErrorMessage :errors="mergedErrors.nationality" />
+        <FieldError :errors="mergedErrors.nationality" />
       </div>
     </section>
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { InputGroup, InputGroupAddon } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-vue-next";
 import {
@@ -28,17 +29,22 @@ const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <div class="flex items-center border-b px-3" cmdk-input-wrapper>
-    <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
-    <ComboboxInput
-      v-bind="{ ...forwardedProps, ...$attrs }"
-      auto-focus
-      :class="
-        cn(
-          'flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
-          props.class,
-        )
-      "
-    />
+  <div class="cn-command-input-wrapper" cmdk-input-wrapper data-slot="command-input-wrapper">
+    <InputGroup class="cn-command-input-group">
+      <InputGroupAddon>
+        <Search class="cn-command-input-icon" />
+      </InputGroupAddon>
+      <ComboboxInput
+        v-bind="{ ...forwardedProps, ...$attrs }"
+        data-slot="command-input"
+        auto-focus
+        :class="
+          cn(
+            'cn-command-input outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+            props.class,
+          )
+        "
+      />
+    </InputGroup>
   </div>
 </template>

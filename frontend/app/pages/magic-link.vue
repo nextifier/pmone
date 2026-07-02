@@ -2,11 +2,11 @@
   <div class="min-h-screen-offset flex flex-col items-center justify-center py-6">
     <div class="container">
       <div class="mx-auto grid w-full max-w-sm gap-6">
-        <!-- <Logo class="text-primary mx-auto h-7" /> -->
+        <!-- <Logo class="text-foreground mx-auto h-7" /> -->
 
         <div class="grid gap-6">
           <div class="grid text-center">
-            <h1 class="text-primary text-xl font-semibold tracking-tighter">
+            <h1 class="text-foreground text-xl font-semibold tracking-tighter">
               Continue without password
             </h1>
 
@@ -28,7 +28,7 @@
                 :autofocus="true"
                 :disabled="emailSent"
               />
-              <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
+              <FieldError v-if="errors?.email" :errors="errors.email" />
             </div>
 
             <button

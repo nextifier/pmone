@@ -8,7 +8,7 @@
       :ref="(el) => (tabRefs[index] = el?.$el || el)"
       :to="tab.to"
       :class="[
-        'relative flex shrink-0 items-center justify-center gap-x-1.5 py-3 text-sm font-medium tracking-tight transition select-none',
+        'relative flex shrink-0 items-center justify-center gap-x-1.5 py-3 text-sm font-medium tracking-tight transition-colors select-none',
         isActive(tab) ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
       ]"
     >

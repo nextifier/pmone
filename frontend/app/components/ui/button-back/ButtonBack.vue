@@ -11,7 +11,7 @@
     <button
       @click="goBack"
       :class="[
-        'flex items-center justify-center gap-x-1 text-sm tracking-tight transition active:scale-98',
+        'flex items-center justify-center gap-x-1 text-sm tracking-tight transition-[color,transform] active:scale-98',
         variantClass,
       ]"
       v-ripple
@@ -63,9 +63,9 @@ const shortcutEnabled = computed(() => {
 const variantClass = computed(() => {
   switch (props.variant) {
     case "bordered":
-      return "text-primary lg:hover:bg-muted bg-background border-border rounded-full border p-3 lg:border-0";
+      return "text-foreground lg:hover:bg-muted bg-background border-border rounded-full border p-3 lg:border-0";
     case "semiTransparent":
-      return "text-primary bg-background/70 border border-white/10 shadow-lg backdrop-blur-sm rounded-full p-3";
+      return "text-foreground bg-background/70 border border-white/10 shadow-lg backdrop-blur-sm rounded-full p-3";
     default:
       return "text-primary/80 hover:text-primary";
   }

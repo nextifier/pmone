@@ -131,12 +131,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
   <CalendarRoot
     v-slot="{ grid, weekDays, date }"
+    weekday-format="short"
+    :weekStartsOn="1"
     v-bind="forwarded"
     v-model:placeholder="placeholder"
     data-slot="calendar"
-    weekday-format="short"
-    :weekStartsOn="1"
-    :class="cn('p-3', props.class)"
+    :class="cn('cn-calendar group/calendar bg-background in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent', props.class)"
   >
     <CalendarHeader class="pt-0">
       <nav

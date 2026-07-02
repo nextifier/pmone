@@ -28,12 +28,12 @@
             <div class="space-y-2">
               <Label for="promo_code">Promo Code</Label>
               <Input id="promo_code" v-model="form.promo_code" type="text" class="uppercase font-mono" placeholder="ENTER CODE" />
-              <InputErrorMessage :errors="errors.promo_code" />
+              <FieldError :errors="errors.promo_code" />
             </div>
             <div class="space-y-2">
               <Label for="promo_email">Customer Email</Label>
               <Input id="promo_email" v-model="form.email" type="email" :placeholder="targetEmail || 'guest@example.com'" />
-              <InputErrorMessage :errors="errors.email" />
+              <FieldError :errors="errors.email" />
             </div>
           </TabsContent>
 
@@ -49,17 +49,17 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.promotion_rule_id" />
+              <FieldError :errors="errors.promotion_rule_id" />
             </div>
             <div class="space-y-2">
               <Label for="override_value">Override Value (optional)</Label>
               <InputNumber id="override_value" v-model="form.override_value" :min="0" decimal placeholder="Use rule's default" />
-              <InputErrorMessage :errors="errors.override_value" />
+              <FieldError :errors="errors.override_value" />
             </div>
             <div class="space-y-2">
               <Label for="reason">Reason</Label>
               <Textarea id="reason" v-model="form.reason" rows="2" maxlength="500" />
-              <InputErrorMessage :errors="errors.reason" />
+              <FieldError :errors="errors.reason" />
             </div>
           </TabsContent>
 
@@ -75,7 +75,7 @@
                     <SelectItem value="penalty">Penalty</SelectItem>
                   </SelectContent>
                 </Select>
-                <InputErrorMessage :errors="errors.kind" />
+                <FieldError :errors="errors.kind" />
               </div>
               <div class="space-y-2">
                 <Label for="value_type">Type</Label>
@@ -86,7 +86,7 @@
                     <SelectItem value="fixed_amount">Fixed Amount</SelectItem>
                   </SelectContent>
                 </Select>
-                <InputErrorMessage :errors="errors.value_type" />
+                <FieldError :errors="errors.value_type" />
               </div>
             </div>
             <div class="space-y-2">
@@ -108,12 +108,12 @@
                   <InputGroupText>{{ form.value_type === "percentage" ? "%" : "Rp" }}</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
-              <InputErrorMessage :errors="errors.value" />
+              <FieldError :errors="errors.value" />
             </div>
             <div class="space-y-2">
               <Label for="manual_reason">Reason</Label>
               <Textarea id="manual_reason" v-model="form.reason" rows="2" maxlength="500" placeholder="Why is this adjustment applied?" />
-              <InputErrorMessage :errors="errors.reason" />
+              <FieldError :errors="errors.reason" />
             </div>
           </TabsContent>
         </Tabs>
@@ -134,7 +134,7 @@
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";

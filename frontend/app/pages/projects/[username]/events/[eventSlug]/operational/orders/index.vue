@@ -137,7 +137,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
                 {{ selectedRows.length }} selected
@@ -235,7 +235,7 @@
     <DialogResponsive v-model:open="cancelDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Cancel Order</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Cancel Order</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Provide a reason for cancelling this order.
           </p>

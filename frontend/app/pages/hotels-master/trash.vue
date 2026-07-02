@@ -112,7 +112,7 @@
     <DialogResponsive v-model:open="bulkForceConfirm">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">
+          <div class="text-foreground text-lg font-semibold tracking-tighter">
             Permanently delete {{ selectedIds.length }} hotel{{ selectedIds.length === 1 ? "" : "s" }}?
           </div>
           <p class="text-muted-foreground mt-2 text-sm tracking-tight">
@@ -133,7 +133,7 @@
     <DialogResponsive v-model:open="forceDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">
+          <div class="text-foreground text-lg font-semibold tracking-tighter">
             Permanently delete hotel?
           </div>
           <p class="text-muted-foreground mt-2 text-sm tracking-tight">

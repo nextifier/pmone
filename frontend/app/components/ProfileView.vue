@@ -14,7 +14,7 @@
         <button
           v-if="profile.cover_image?.md"
           type="button"
-          class="outline-primary/5 @container relative flex aspect-[3/1] w-full cursor-zoom-in items-center justify-center overflow-hidden outline -outline-offset-1 sm:rounded-xl"
+          class="outline-foreground/5 @container relative flex aspect-[3/1] w-full cursor-zoom-in items-center justify-center overflow-hidden outline -outline-offset-1 sm:rounded-xl"
           @click="openLightboxFor('cover')"
         >
           <img
@@ -32,7 +32,7 @@
           class="aspect-[3/1] overflow-hidden sm:rounded-xl"
           :style="!profile?.profile_image ? coverGradientStyle : undefined"
           :class="[
-            'outline-primary/5 @container relative flex items-center justify-center outline -outline-offset-1',
+            'outline-foreground/5 @container relative flex items-center justify-center outline -outline-offset-1',
           ]"
         >
           <img
@@ -142,7 +142,7 @@
               <p class="text-muted-foreground text-sm tracking-tight">@{{ profile.username }}</p>
             </div>
 
-            <p v-if="profile.title" class="text-primary text-base font-medium tracking-tight">
+            <p v-if="profile.title" class="text-foreground text-base font-medium tracking-tight">
               {{ profile.title }}
             </p>
 

@@ -5,8 +5,8 @@
       <!-- Poster Image -->
       <div class="bg-muted aspect-4/5 w-full shrink-0 overflow-hidden rounded-xl sm:w-40 lg:w-48">
         <img
-          v-if="event.poster_image?.lg || event.poster_image?.url"
-          :src="event.poster_image?.lg || event.poster_image?.url"
+          v-if="event.poster_image?.xl || event.poster_image?.url"
+          :src="event.poster_image?.xl || event.poster_image?.url"
           :alt="event.title"
           class="size-full object-cover select-none"
         />

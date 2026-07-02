@@ -1,5 +1,6 @@
 <?php
 
+use App\Agents\ChatAgent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -188,4 +189,18 @@ test('chat endpoint validates conversation_id exists', function () {
         ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['conversation_id']);
+});
+
+test('chat streams a faked AI response without calling Anthropic', function () {
+    ChatAgent::fake(['Halo, ada yang bisa saya bantu?']);
+
+    $response = $this->actingAs($this->user)
+        ->post('/api/ai/chat', ['message' => 'Hai'], ['Accept' => 'text/event-stream'])
+        ->assertOk();
+
+    $body = $response->streamedContent();
+
+    expect($body)
+        ->toContain('"type":"text_delta"')
+        ->and($body)->toContain('"type":"done"');
 });

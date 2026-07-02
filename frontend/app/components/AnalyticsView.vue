@@ -43,7 +43,7 @@
           <div class="frame">
             <div class="frame-panel">
               <div class="flex items-center gap-x-2">
-                <div class="bg-muted text-primary rounded-lg p-2">
+                <div class="bg-muted text-foreground rounded-lg p-2">
                   <Icon name="hugeicons:view" class="size-5" />
                 </div>
                 <h3 class="text-muted-foreground text-sm font-medium tracking-tight">
@@ -73,7 +73,7 @@
           <div class="frame">
             <div class="frame-panel">
               <div class="flex items-center gap-x-2">
-                <div class="bg-muted text-primary rounded-lg p-2">
+                <div class="bg-muted text-foreground rounded-lg p-2">
                   <Icon name="hugeicons:cursor-pointer-02" class="size-5" />
                 </div>
                 <h3 class="text-muted-foreground text-sm font-medium tracking-tight">
@@ -96,7 +96,7 @@
           <div class="frame sm:col-span-2 lg:col-span-1">
             <div class="frame-panel">
               <div class="flex items-center gap-x-2">
-                <div class="bg-muted text-primary rounded-lg p-2">
+                <div class="bg-muted text-foreground rounded-lg p-2">
                   <Icon name="hugeicons:analytics-02" class="size-5" />
                 </div>
                 <h3 class="text-muted-foreground text-sm font-medium tracking-tight">Period</h3>
@@ -141,7 +141,7 @@
               >
                 <div class="flex items-center justify-between gap-x-4">
                   <div class="flex min-w-0 flex-1 items-center gap-x-3">
-                    <div class="bg-muted text-primary rounded-lg p-2">
+                    <div class="bg-muted text-foreground rounded-lg p-2">
                       <Icon :name="getLinkIcon(link.label)" class="size-4" />
                     </div>
                     <div class="min-w-0 flex-1">
@@ -210,7 +210,7 @@
                 ]"
               >
                 <div class="flex min-w-0 flex-1 items-center gap-x-3">
-                  <div class="bg-muted text-primary rounded-lg p-2">
+                  <div class="bg-muted text-foreground rounded-lg p-2">
                     <Icon name="hugeicons:calendar-03" class="size-4" />
                   </div>
                   <div class="min-w-0 flex-1">
@@ -325,7 +325,7 @@
                   >
                     <Icon :name="getLinkIcon(link.label)" class="size-3" />
                     <span>{{ link.label }}</span>
-                    <span class="text-primary/60">{{ link.clicks || 0 }}×</span>
+                    <span class="text-foreground/60">{{ link.clicks || 0 }}×</span>
                   </span>
                 </div>
               </div>

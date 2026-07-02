@@ -62,10 +62,12 @@ class OrderDocumentMail extends Mailable
 
         // Read via the configured disk so attachments work on both local and
         // cloud disks (e.g. Cloudflare R2), mirroring HotelVoucherMail.
+        $downloadName = $media->name.($media->extension ? '.'.$media->extension : '');
+
         return [
             Attachment::fromData(
                 fn () => Storage::disk($media->disk)->get($media->getPathRelativeToRoot()),
-                $media->file_name,
+                $downloadName,
             )->withMime($media->mime_type),
         ];
     }

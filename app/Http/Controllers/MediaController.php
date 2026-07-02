@@ -124,13 +124,12 @@ class MediaController extends Controller
             // Upload the file with proper naming
             $mediaAdder = $model->addMediaFromRequest('file');
 
-            // Set a human-readable display name plus a guaranteed-unique disk
-            // file name. The collection-based path generator stores every file
-            // of a collection in one folder, so two uploads sharing an original
-            // name would otherwise overwrite each other on disk.
+            // Human-readable display name; the global UniqueFileNamer appends a
+            // random token to the stored disk file name, so two uploads sharing an
+            // original name never overwrite each other in the shared collection folder.
             $sanitizedName = $this->sanitizeFileName($file->getClientOriginalName());
             $mediaAdder->usingName($sanitizedName);
-            $mediaAdder->usingFileName($this->uniqueFileName($file->getClientOriginalName()));
+            $mediaAdder->usingFileName($sanitizedName);
 
             // Add metadata including dimensions
             $customProperties = [
@@ -291,12 +290,12 @@ class MediaController extends Controller
                     // Upload the file with proper naming
                     $mediaAdder = $model->addMediaFromRequest('files', $index);
 
-                    // Human-readable display name + unique disk file name (the
-                    // collection-based path generator keeps a whole collection in
-                    // one folder, so duplicate original names would clobber).
+                    // Human-readable display name; the global UniqueFileNamer appends
+                    // a random token to the stored disk file name, so duplicate original
+                    // names never clobber within the shared collection folder.
                     $sanitizedName = $this->sanitizeFileName($file->getClientOriginalName());
                     $mediaAdder->usingName($sanitizedName);
-                    $mediaAdder->usingFileName($this->uniqueFileName($file->getClientOriginalName()));
+                    $mediaAdder->usingFileName($sanitizedName);
 
                     // Add metadata including dimensions
                     $customProperties = [
@@ -590,7 +589,9 @@ class MediaController extends Controller
 
         $disk = Storage::disk($media->disk);
 
-        return $disk->download($media->getPathRelativeToRoot(), $media->file_name);
+        $downloadName = $media->name.($media->extension ? '.'.$media->extension : '');
+
+        return $disk->download($media->getPathRelativeToRoot(), $downloadName);
     }
 
     /**
@@ -792,19 +793,6 @@ class MediaController extends Controller
         $extension = $pathInfo['extension'] ?? '';
 
         return $name.($extension ? '.'.$extension : '');
-    }
-
-    /**
-     * Build a collision-proof, still-readable disk file name. Keeps the slugged
-     * base name and appends a short random token + the original extension.
-     */
-    protected function uniqueFileName(string $originalName): string
-    {
-        $sanitized = $this->sanitizeFileName($originalName);
-        $extension = pathinfo($sanitized, PATHINFO_EXTENSION);
-        $base = pathinfo($sanitized, PATHINFO_FILENAME) ?: 'file';
-
-        return $base.'-'.Str::lower(Str::random(6)).($extension ? '.'.$extension : '');
     }
 
     /**

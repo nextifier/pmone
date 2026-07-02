@@ -256,7 +256,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will delete {{ selectedRows.length }}
                 {{ selectedRows.length === 1 ? "contact" : "contacts" }}.
@@ -298,7 +298,7 @@
     <DialogResponsive v-model:open="dedupeDialogOpen" dialog-max-width="560px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">Remove Duplicates</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter">Remove Duplicates</div>
 
           <!-- Step 1: Explanation -->
           <div v-if="dedupeStep === 'explain'" class="mt-3">
@@ -311,18 +311,18 @@
               <div class="font-medium tracking-tight">Dua contact dianggap duplikat jika:</div>
               <ol class="text-body list-decimal space-y-1.5 pl-5 tracking-tight">
                 <li>
-                  <span class="text-primary font-medium">Nama sama</span>
+                  <span class="text-foreground font-medium">Nama sama</span>
                   (case-insensitive)
                 </li>
                 <li>
                   DAN salah satu dari:
                   <ul class="text-body mt-1 list-disc space-y-1 pl-5">
-                    <li><span class="text-primary font-medium">Company</span> sama</li>
+                    <li><span class="text-foreground font-medium">Company</span> sama</li>
                     <li>
-                      Ada <span class="text-primary font-medium">email</span> yang sama (minimal 1)
+                      Ada <span class="text-foreground font-medium">email</span> yang sama (minimal 1)
                     </li>
                     <li>
-                      Ada <span class="text-primary font-medium">phone</span> yang sama
+                      Ada <span class="text-foreground font-medium">phone</span> yang sama
                       (dibandingkan digit-only)
                     </li>
                   </ul>
@@ -332,11 +332,11 @@
 
             <div class="bg-muted/50 mt-3 rounded-lg p-2.5">
               <div class="tracking-tight">
-                <span class="text-primary font-medium">Yang dipertahankan:</span>
+                <span class="text-foreground font-medium">Yang dipertahankan:</span>
                 <span class="text-body"> contact paling lama (created_at terkecil)</span>
               </div>
               <div class="mt-1 tracking-tight">
-                <span class="text-primary font-medium">Data di-merge:</span>
+                <span class="text-foreground font-medium">Data di-merge:</span>
                 <span class="text-body">
                   emails, phones, tags, dan projects dari duplikat akan digabungkan ke contact yang
                   dipertahankan</span
@@ -372,9 +372,9 @@
           <div v-else-if="dedupeStep === 'preview'" class="mt-3">
             <p class="text-body text-sm tracking-tight">
               Found
-              <span class="text-primary font-medium">{{ dedupeScanResult.duplicate_count }}</span>
+              <span class="text-foreground font-medium">{{ dedupeScanResult.duplicate_count }}</span>
               duplicate contact(s) in
-              <span class="text-primary font-medium">{{ dedupeScanResult.group_count }}</span>
+              <span class="text-foreground font-medium">{{ dedupeScanResult.group_count }}</span>
               group(s).
             </p>
 
@@ -386,7 +386,7 @@
                 class="border-border rounded-lg border p-2.5"
               >
                 <div
-                  class="text-primary flex items-center gap-x-1 text-xs font-medium tracking-tight"
+                  class="text-foreground flex items-center gap-x-1 text-xs font-medium tracking-tight"
                 >
                   <Icon name="lucide:check" class="size-3 shrink-0 text-green-500" />
                   {{ group.keep.name }}
@@ -441,7 +441,7 @@
     <DialogResponsive v-model:open="unusedTagsDialogOpen" dialog-max-width="560px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">Remove Unused Tags</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter">Remove Unused Tags</div>
 
           <!-- Step 1: Explanation -->
           <div v-if="unusedTagsStep === 'explain'" class="mt-3">
@@ -453,14 +453,14 @@
             <div class="mt-3 space-y-2">
               <div class="font-medium tracking-tight">Tag yang di-scan:</div>
               <ul class="text-body list-disc space-y-1.5 pl-5 tracking-tight">
-                <li><span class="text-primary font-medium">Contact Tags</span></li>
-                <li><span class="text-primary font-medium">Contact Types</span></li>
+                <li><span class="text-foreground font-medium">Contact Tags</span></li>
+                <li><span class="text-foreground font-medium">Contact Types</span></li>
               </ul>
             </div>
 
             <div class="bg-muted/50 mt-3 rounded-lg p-2.5">
               <div class="tracking-tight">
-                <span class="text-primary font-medium">Aman:</span>
+                <span class="text-foreground font-medium">Aman:</span>
                 <span class="text-body">
                   Business Categories dan tag yang masih digunakan oleh model lain tidak akan
                   dihapus</span
@@ -496,7 +496,7 @@
           <div v-else-if="unusedTagsStep === 'preview'" class="mt-3">
             <p class="text-body text-sm tracking-tight">
               Found
-              <span class="text-primary font-medium">{{ unusedTagsScanResult.unused_count }}</span>
+              <span class="text-foreground font-medium">{{ unusedTagsScanResult.unused_count }}</span>
               unused tag(s).
             </p>
 
@@ -508,7 +508,7 @@
                 class="border-border rounded-lg border p-2.5"
               >
                 <div
-                  class="text-primary text-xs font-medium tracking-tight"
+                  class="text-foreground text-xs font-medium tracking-tight"
                 >
                   {{ group.label }}
                   <span class="text-muted-foreground font-normal">({{ group.tags.length }})</span>
@@ -554,7 +554,7 @@
     <DialogResponsive v-model:open="exportDialogOpen" dialog-max-width="400px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Exporting Contacts</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Exporting Contacts</div>
           <div class="mt-4 space-y-2">
             <div class="flex items-center justify-between text-sm tracking-tight">
               <span class="text-muted-foreground">{{ exportJob.progress.value?.message || "Preparing export..." }}</span>
@@ -570,12 +570,12 @@
     <DialogResponsive v-model:open="deleteAllDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
             Delete all contacts?
           </div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             This will move
-            <span class="text-primary font-medium">all {{ meta.total }}</span>
+            <span class="text-foreground font-medium">all {{ meta.total }}</span>
             {{ meta.total === 1 ? "contact" : "contacts" }} to trash.
           </p>
 
@@ -730,7 +730,7 @@
     <DialogResponsive v-model:open="showUnsavedWarning">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Unsaved changes</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved changes</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             You have unsaved changes. Are you sure you want to close?
           </p>
@@ -1828,7 +1828,7 @@ const RowActions = defineComponent({
               h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
                 h(
                   "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  { class: "text-foreground text-lg font-semibold tracking-tight" },
                   "Are you sure?"
                 ),
                 h(

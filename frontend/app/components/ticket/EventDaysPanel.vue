@@ -88,7 +88,7 @@
               <div class="space-y-2">
                 <Label>Day number</Label>
                 <InputNumber v-model="form.day_number" :min="1" required />
-                <InputErrorMessage :errors="errors.day_number" />
+                <FieldError :errors="errors.day_number" />
               </div>
               <div class="space-y-2">
                 <Label>Date</Label>
@@ -97,7 +97,7 @@
                   placeholder="Pick date"
                   @update:model-value="(d) => (form._date_obj = d)"
                 />
-                <InputErrorMessage :errors="errors.date" />
+                <FieldError :errors="errors.date" />
               </div>
             </div>
 
@@ -115,7 +115,7 @@
                 v-model="labelField"
                 :placeholder="activeLocale === 'en' ? 'e.g. Opening Day' : 'mis. Hari Pembukaan'"
               />
-              <InputErrorMessage :errors="localizedLabelErrors" />
+              <FieldError :errors="localizedLabelErrors" />
             </div>
 
             <div class="flex items-center gap-2">
@@ -139,7 +139,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">Delete event day?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter">Delete event day?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingItem ? dayLabel(deletingItem) : "This day" }}" will be removed. Tickets that
             referenced it will no longer admit on that day.
@@ -162,7 +162,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";

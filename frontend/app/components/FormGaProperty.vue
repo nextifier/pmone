@@ -19,7 +19,7 @@
                 </SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.project_id" />
+            <FieldError :errors="errors.project_id" />
             <p class="text-muted-foreground text-xs">
               Select the project this GA property belongs to
             </p>
@@ -34,7 +34,7 @@
               required
               placeholder="Main Website"
             />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
             <p class="text-muted-foreground text-xs">Friendly name for this GA4 property</p>
           </div>
 
@@ -47,7 +47,7 @@
               required
               placeholder="123456789"
             />
-            <InputErrorMessage :errors="errors.property_id" />
+            <FieldError :errors="errors.property_id" />
             <p class="text-muted-foreground text-xs">
               The Google Analytics 4 property ID (numbers only)
             </p>
@@ -62,7 +62,7 @@
               </TagsInputItem>
               <TagsInputInput placeholder="Add tags..." />
             </TagsInput>
-            <InputErrorMessage :errors="errors.tags" />
+            <FieldError :errors="errors.tags" />
             <p class="text-muted-foreground text-xs">Organize properties with tags</p>
           </div>
         </div>
@@ -85,7 +85,7 @@
               :max="60"
               placeholder="10"
             />
-            <InputErrorMessage :errors="errors.sync_frequency" />
+            <FieldError :errors="errors.sync_frequency" />
             <p class="text-muted-foreground text-xs">How often to sync data (5-60 minutes)</p>
           </div>
 

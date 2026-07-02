@@ -3,7 +3,7 @@
     <!-- Title & Description -->
     <div class="flex items-start gap-x-2 px-4 pt-2">
       <div class="flex grow flex-col gap-y-1">
-        <h1 class="text-primary text-2xl leading-[1.2]! font-medium tracking-tighter text-balance">
+        <h1 class="text-foreground text-2xl leading-[1.2]! font-medium tracking-tighter text-balance">
           {{ linkPage.title }}
         </h1>
         <p v-if="linkPage.description" class="text-body tracking-tight text-pretty">

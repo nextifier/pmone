@@ -51,7 +51,7 @@
               <div class="space-y-2">
                 <Label for="name">Full Name</Label>
                 <Input id="name" v-model="form.name" type="text" required autocomplete="off" />
-                <InputErrorMessage :errors="errors.name" />
+                <FieldError :errors="errors.name" />
               </div>
 
               <div class="space-y-2">
@@ -65,7 +65,7 @@
               <div class="space-y-2">
                 <Label for="phone">Phone</Label>
                 <InputPhone id="phone" v-model="form.phone" />
-                <InputErrorMessage :errors="errors.phone" />
+                <FieldError :errors="errors.phone" />
               </div>
 
               <div class="space-y-2">
@@ -80,7 +80,7 @@
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
-                <InputErrorMessage :errors="errors.gender" />
+                <FieldError :errors="errors.gender" />
               </div>
 
               <div class="space-y-2">
@@ -90,7 +90,7 @@
                   disable-future-dates
                   placeholder="Pick your birth date"
                 />
-                <InputErrorMessage :errors="errors.birth_date" />
+                <FieldError :errors="errors.birth_date" />
               </div>
             </div>
           </div>
@@ -110,13 +110,13 @@
                   :pinned="['Indonesia']"
                   placeholder="Select country"
                 />
-                <InputErrorMessage :errors="errors.country" />
+                <FieldError :errors="errors.country" />
               </div>
 
               <div class="space-y-2">
                 <Label for="city">City</Label>
                 <Input id="city" v-model="form.city" type="text" autocomplete="off" />
-                <InputErrorMessage :errors="errors.city" />
+                <FieldError :errors="errors.city" />
               </div>
             </div>
           </div>
@@ -131,19 +131,19 @@
               <div class="space-y-2">
                 <Label for="company_name">Company</Label>
                 <Input id="company_name" v-model="form.company_name" type="text" autocomplete="off" />
-                <InputErrorMessage :errors="errors.company_name" />
+                <FieldError :errors="errors.company_name" />
               </div>
 
               <div class="space-y-2">
                 <Label for="position">Position</Label>
                 <Input id="position" v-model="form.position" type="text" autocomplete="off" />
-                <InputErrorMessage :errors="errors.position" />
+                <FieldError :errors="errors.position" />
               </div>
 
               <div class="space-y-2 sm:col-span-2">
                 <Label for="profession">Profession</Label>
                 <Input id="profession" v-model="form.profession" type="text" autocomplete="off" />
-                <InputErrorMessage :errors="errors.profession" />
+                <FieldError :errors="errors.profession" />
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@
 import BusinessMatchingIntake from "@/components/BusinessMatchingIntake.vue";
 import countries from "@/data/countries.json";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { LocationCombobox } from "@/components/ui/location-combobox";
 import {
   Select,

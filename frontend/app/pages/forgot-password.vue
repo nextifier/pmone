@@ -2,7 +2,7 @@
   <div class="min-h-screen-offset flex flex-col items-center justify-center py-6">
     <div class="container">
       <div class="mx-auto grid w-full max-w-sm gap-6">
-        <!-- <Logo class="text-primary mx-auto h-7" /> -->
+        <!-- <Logo class="text-foreground mx-auto h-7" /> -->
 
         <div class="grid gap-6">
           <div class="grid text-center">
@@ -25,7 +25,7 @@
                 :autofocus="true"
                 :disabled="resetEmailSent"
               />
-              <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
+              <FieldError v-if="errors?.email" :errors="errors.email" />
             </div>
 
             <button
@@ -60,7 +60,7 @@
 
           <NuxtLink
             :to="`/magic-link`"
-            class="border-border bg-muted hover:bg-muted/80 text-primary flex items-center justify-center gap-3 rounded-lg border px-6 py-3 text-sm font-semibold tracking-tight transition active:scale-98"
+            class="border-border bg-muted hover:bg-muted/80 text-foreground flex items-center justify-center gap-3 rounded-lg border px-6 py-3 text-sm font-semibold tracking-tight transition active:scale-98"
           >
             <Icon name="hugeicons:mail-lock-02" class="size-5 shrink-0" />
             <span>{{ $t('auth.continueWithoutPassword') }}</span>

@@ -73,7 +73,7 @@ function jumpToTen(): void {
             >
               <div
                 class="rounded-lg border bg-card px-3 py-2 text-sm tracking-tight"
-                :class="item.anchor ? 'border-primary/30' : ''"
+                :class="item.anchor ? 'border-foreground/30' : ''"
               >
                 {{ item.text }}
                 <span v-if="item.anchor" class="text-muted-foreground"> · anchor</span>

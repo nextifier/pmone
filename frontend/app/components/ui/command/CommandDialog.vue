@@ -12,7 +12,7 @@ const forwarded = useForwardPropsEmits(props, emits);
 
 <template>
   <Dialog v-bind="forwarded">
-    <DialogContent class="overflow-hidden p-0 shadow-lg">
+    <DialogContent class="cn-command-dialog overflow-hidden p-0 shadow-lg">
       <VisuallyHidden>
         <DialogTitle>Command Menu</DialogTitle>
         <DialogDescription>Search and navigate</DialogDescription>

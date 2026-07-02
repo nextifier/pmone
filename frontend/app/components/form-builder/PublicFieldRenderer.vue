@@ -121,6 +121,7 @@
     <RangeCalendarPicker
       v-else-if="field.type === 'date_range'"
       :model-value="dateRangeValue"
+      size="default"
       :placeholder="field.placeholder || 'Pick a date range'"
       @update:model-value="handleDateRange"
     />
@@ -246,7 +247,7 @@
     <!-- Color -->
     <div v-else-if="field.type === 'color'" class="flex items-center gap-x-2">
       <label
-        class="border-input relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-md border shadow-xs"
+        class="border-border relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-md border shadow-xs"
         :style="{ backgroundColor: isValidHex(modelValue) ? modelValue : '#ffffff' }"
       >
         <input
@@ -278,30 +279,13 @@
     />
 
     <!-- Rating -->
-    <div v-else-if="field.type === 'rating'" class="flex gap-x-1">
-      <button
-        v-for="star in ratingMax"
-        :key="star"
-        type="button"
-        @click="$emit('update:modelValue', star)"
-        class="transition-transform active:scale-90"
-        :class="star <= (modelValue || 0) ? 'text-warning' : 'text-muted-foreground/40'"
-        :aria-label="`${star} of ${ratingMax}`"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          class="size-7 transition-colors"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          :fill="star <= (modelValue || 0) ? 'currentColor' : 'none'"
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      </button>
-    </div>
+    <Rating
+      v-else-if="field.type === 'rating'"
+      :model-value="Number(modelValue) || 0"
+      :max="ratingMax"
+      :aria-label="field.label || 'Rating'"
+      @update:model-value="$emit('update:modelValue', $event)"
+    />
 
     <!-- Slider -->
     <div v-else-if="field.type === 'slider'" class="space-y-2 pt-1">
@@ -333,11 +317,11 @@
           role="radio"
           :aria-checked="Number(modelValue) === n"
           :aria-label="String(n)"
-          class="flex h-10 w-full items-center justify-center rounded-lg border text-sm font-medium tracking-tight transition-colors active:scale-95"
+          class="cn-input flex h-10 w-full min-w-0 cursor-pointer items-center justify-center px-0 text-sm font-medium tracking-tight transition-colors active:scale-95"
           :class="
             Number(modelValue) === n
               ? 'border-primary bg-primary text-primary-foreground'
-              : 'border-input hover:bg-muted'
+              : 'hover:bg-muted'
           "
           @click="$emit('update:modelValue', n)"
         >

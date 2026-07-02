@@ -11,7 +11,7 @@ const props = defineProps<{
   <span
     :class="
       cn(
-        'text-muted-foreground/70 flex items-center gap-2 text-sm tracking-tight [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4',
+        'cn-input-group-text flex items-center [&_svg]:pointer-events-none',
         props.class
       )
     "

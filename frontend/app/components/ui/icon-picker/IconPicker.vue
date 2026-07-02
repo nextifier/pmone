@@ -378,7 +378,7 @@ watch(focusedIndex, (idx) => {
         :aria-label="modelValue || placeholder"
         :class="
           cn(
-            'border-border bg-background hover:bg-muted flex h-9 w-full items-center gap-x-2 rounded-md border px-3 text-sm tracking-tight shadow-xs transition-colors',
+            'border-border bg-transparent dark:bg-background hover:bg-muted flex h-9 w-full items-center gap-x-2 rounded-md border px-3 text-sm tracking-tight shadow-xs transition-colors',
             'focus-visible:border-ring focus-visible:ring-ring outline-none focus-visible:ring-[1px]',
             'disabled:pointer-events-none disabled:opacity-50',
             !modelValue && 'text-muted-foreground'

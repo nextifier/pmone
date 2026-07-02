@@ -13,6 +13,6 @@ const props = defineProps<
   <Separator
     data-slot="item-separator"
     orientation="horizontal"
-    :class="cn('my-0', props.class)"
+    :class="cn('cn-item-separator', props.class)"
   />
 </template>

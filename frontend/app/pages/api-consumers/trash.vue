@@ -81,7 +81,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">
+              <div class="text-foreground text-lg font-semibold tracking-tight">
                 Restore API consumers?
               </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
@@ -124,7 +124,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">
+              <div class="text-foreground text-lg font-semibold tracking-tight">
                 Are you absolutely sure?
               </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
@@ -614,7 +614,7 @@ const RowActions = defineComponent({
               h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
                 h(
                   "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  { class: "text-foreground text-lg font-semibold tracking-tight" },
                   "Restore API consumer?"
                 ),
                 h(
@@ -668,7 +668,7 @@ const RowActions = defineComponent({
               h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
                 h(
                   "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  { class: "text-foreground text-lg font-semibold tracking-tight" },
                   "Are you absolutely sure?"
                 ),
                 h(

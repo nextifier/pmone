@@ -252,7 +252,19 @@
     "chooseTheme": "Choose your preferred theme for the interface.",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "colorMode": "Color mode",
+    "baseColor": "Base Color",
+    "baseColorDesc": "Neutral palette for backgrounds, borders, and muted text.",
+    "themeDesc": "Accent color for buttons, links, and highlights.",
+    "chartColor": "Chart Color",
+    "chartColorDesc": "Palette used for charts and data visualizations.",
+    "radius": "Radius",
+    "radiusDesc": "Corner roundness for cards, buttons, and inputs.",
+    "resetToDefault": "Reset to default",
+    "default": "Default",
+    "style": "Style",
+    "styleDesc": "Component shape (radius, padding, borders). Composes with the colors below."
   },
   "auth": {
     "welcomeBack": "Welcome back",

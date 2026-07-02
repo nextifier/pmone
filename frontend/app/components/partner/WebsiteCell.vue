@@ -16,7 +16,7 @@
       v-else-if="canEdit"
       type="button"
       class="flex h-9 w-full items-center truncate rounded-md text-left text-sm tracking-tight"
-      :class="partner.website_url ? 'text-primary' : 'text-muted-foreground'"
+      :class="partner.website_url ? 'text-foreground' : 'text-muted-foreground'"
       @click="startEditing"
     >
       {{ partner.website_url ? displayUrl : "Add website" }}

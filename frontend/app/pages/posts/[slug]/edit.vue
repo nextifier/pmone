@@ -14,9 +14,9 @@
 
   <div v-else class="flex w-full flex-col items-center justify-center gap-y-3 text-center">
     <div class="bg-muted flex size-12 items-center justify-center rounded-full">
-      <Icon name="hugeicons:file-not-found" class="text-primary size-6" />
+      <Icon name="hugeicons:file-not-found" class="text-foreground size-6" />
     </div>
-    <p class="text-primary text-primary text-4xl font-medium tracking-tighter">Post not found.</p>
+    <p class="text-foreground text-foreground text-4xl font-medium tracking-tighter">Post not found.</p>
     <button
       @click="navigateTo('/posts')"
       class="bg-primary text-primary-foreground hover:bg-primary/80 mt-2 flex items-center justify-center gap-x-1 rounded-lg px-4 py-2 font-medium tracking-tight"

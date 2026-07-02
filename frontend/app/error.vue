@@ -26,7 +26,7 @@
       </span>
 
       <h1
-        class="t-stagger-line text-primary text-3xl font-semibold tracking-tighter text-balance wrap-break-word sm:text-4xl"
+        class="t-stagger-line text-foreground text-3xl font-semibold tracking-tighter text-balance wrap-break-word sm:text-4xl"
         style="--err-i: 2"
       >
         {{ state.title }}

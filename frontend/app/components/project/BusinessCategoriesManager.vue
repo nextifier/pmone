@@ -80,7 +80,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             Delete business category "{{ categoryToDelete?.name }}"? Brands that have this category
             selected will no longer show it.

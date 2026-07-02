@@ -10,7 +10,7 @@
         <SelectItem value="private">Private</SelectItem>
       </SelectContent>
     </Select>
-    <InputErrorMessage :errors="errors" />
+    <FieldError :errors="errors" />
     <p v-if="showDescription" class="text-muted-foreground text-xs">
       Public profiles can be viewed by anyone. Private profiles are only visible to you.
     </p>

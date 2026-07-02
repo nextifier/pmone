@@ -11,13 +11,13 @@
           <div class="space-y-2">
             <Label for="title">Title</Label>
             <Input id="title" v-model="form.title" type="text" required maxlength="255" />
-            <InputErrorMessage :errors="errors.title" />
+            <FieldError :errors="errors.title" />
           </div>
 
           <div class="space-y-2">
             <Label for="description">Description</Label>
             <Textarea id="description" v-model="form.description" rows="4" />
-            <InputErrorMessage :errors="errors.description" />
+            <FieldError :errors="errors.description" />
           </div>
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
@@ -35,7 +35,7 @@
                   <SelectItem value="marketing">Marketing</SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.type" />
+              <FieldError :errors="errors.type" />
             </div>
 
             <div class="space-y-2">
@@ -50,7 +50,7 @@
                   <SelectItem value="archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.status" />
+              <FieldError :errors="errors.status" />
             </div>
           </div>
         </div>
@@ -76,13 +76,13 @@
               v-model:delete-flag="deleteImage"
               container-class="relative isolate aspect-video max-w-full"
             />
-            <InputErrorMessage :errors="errors.tmp_image" />
+            <FieldError :errors="errors.tmp_image" />
           </div>
 
           <div class="space-y-2">
             <Label for="icon">Icon</Label>
             <IconPicker v-model="form.icon" placeholder="Pick an icon" />
-            <InputErrorMessage :errors="errors.icon" />
+            <FieldError :errors="errors.icon" />
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@
               placeholder="Select start time"
               :default-hour="8"
             />
-            <InputErrorMessage :errors="errors.start_time" />
+            <FieldError :errors="errors.start_time" />
           </div>
 
           <div class="space-y-2">
@@ -117,7 +117,7 @@
               placeholder="Select end time"
               :default-hour="23"
             />
-            <InputErrorMessage :errors="errors.end_time" />
+            <FieldError :errors="errors.end_time" />
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@
               <p class="text-muted-foreground text-xs">
                 User must hold any of these roles to see the announcement.
               </p>
-              <InputErrorMessage :errors="errors.target_roles" />
+              <FieldError :errors="errors.target_roles" />
             </div>
 
             <div class="space-y-2">
@@ -169,7 +169,7 @@
               <p class="text-muted-foreground text-xs">
                 Optional. Adds these users on top of role targeting.
               </p>
-              <InputErrorMessage :errors="errors.target_user_ids" />
+              <FieldError :errors="errors.target_user_ids" />
             </div>
 
             <div class="space-y-2">
@@ -183,7 +183,7 @@
               <p class="text-muted-foreground text-xs">
                 Optional. Members of the selected events' projects will see it.
               </p>
-              <InputErrorMessage :errors="errors.target_event_ids" />
+              <FieldError :errors="errors.target_event_ids" />
             </div>
 
             <div class="space-y-2">
@@ -197,7 +197,7 @@
               <p class="text-muted-foreground text-xs">
                 Optional. Members of these projects will see the announcement.
               </p>
-              <InputErrorMessage :errors="errors.target_project_ids" />
+              <FieldError :errors="errors.target_project_ids" />
             </div>
           </template>
         </div>
@@ -321,7 +321,7 @@
             <p class="text-muted-foreground text-xs">
               Lower numbers appear first.
             </p>
-            <InputErrorMessage :errors="errors.order_column" />
+            <FieldError :errors="errors.order_column" />
           </div>
         </div>
       </div>

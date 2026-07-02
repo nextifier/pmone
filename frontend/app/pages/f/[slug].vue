@@ -45,7 +45,8 @@
       <!-- Form -->
       <template v-else-if="form">
         <div class="bg-card relative overflow-hidden rounded-2xl border shadow-sm">
-          <div v-if="!isEmbed" class="absolute top-2.5 right-2.5 z-10">
+          <div v-if="!isEmbed" class="absolute top-2.5 right-2.5 z-10 flex items-center gap-x-1">
+            <AppearancePickerButton />
             <ColorModeToggle />
           </div>
           <img

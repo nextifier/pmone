@@ -78,7 +78,7 @@
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
-                <div class="text-primary text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
+                <div class="text-foreground text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
                 <p class="text-body mt-1.5 text-sm tracking-tight">
                   This action can't be undone. This will permanently delete
                   {{ selectedRows.length }}
@@ -114,7 +114,7 @@
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="space-y-6">
             <div>
-              <h2 class="text-primary text-lg font-semibold tracking-tight">
+              <h2 class="text-foreground text-lg font-semibold tracking-tight">
                 {{ editingCategory ? "Edit Category" : "New Category" }}
               </h2>
               <p class="text-muted-foreground mt-1 text-sm tracking-tight">
@@ -158,7 +158,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             This action can't be undone. This will permanently delete business category
             "<span class="font-medium">{{ categoryToDelete?.name }}</span>".

@@ -23,6 +23,8 @@ test('can delete profile image with delete flag', function () {
     $user->addMedia($file)->toMediaCollection('profile_image');
 
     expect($user->getMedia('profile_image'))->toHaveCount(1);
+    $path = $user->getFirstMedia('profile_image')->getPathRelativeToRoot();
+    Storage::disk('public')->assertExists($path);
 
     // Update user with delete flag
     $response = $this->actingAs($user, 'sanctum')
@@ -37,6 +39,7 @@ test('can delete profile image with delete flag', function () {
 
     $user->refresh();
     expect($user->getMedia('profile_image'))->toHaveCount(0);
+    Storage::disk('public')->assertMissing($path);
 });
 
 test('can delete cover image with delete flag', function () {
@@ -48,6 +51,8 @@ test('can delete cover image with delete flag', function () {
     $user->addMedia($file)->toMediaCollection('cover_image');
 
     expect($user->getMedia('cover_image'))->toHaveCount(1);
+    $path = $user->getFirstMedia('cover_image')->getPathRelativeToRoot();
+    Storage::disk('public')->assertExists($path);
 
     // Update user with delete flag
     $response = $this->actingAs($user, 'sanctum')
@@ -62,6 +67,7 @@ test('can delete cover image with delete flag', function () {
 
     $user->refresh();
     expect($user->getMedia('cover_image'))->toHaveCount(0);
+    Storage::disk('public')->assertMissing($path);
 });
 
 test('keeps existing image when no delete flag is sent', function () {
@@ -125,4 +131,40 @@ test('can delete and upload new image in same request', function () {
 
     $user->refresh();
     expect($user->getMedia('profile_image'))->toHaveCount(1);
+});
+
+test('replacing profile image with the SAME filename swaps the file and busts the URL', function () {
+    Storage::fake('local');
+
+    $user = User::factory()->create();
+    $user->assignRole('admin');
+
+    // Existing image named profile.jpg
+    $user->addMedia(UploadedFile::fake()->image('profile.jpg'))->toMediaCollection('profile_image');
+    $oldUrl = $user->getFirstMediaUrl('profile_image');
+    $oldPath = $user->getFirstMedia('profile_image')->getPathRelativeToRoot();
+    Storage::disk('public')->assertExists($oldPath);
+
+    // New upload with the IDENTICAL original filename
+    $newFile = UploadedFile::fake()->image('profile.jpg');
+    $tmpId = 'tmp-'.uniqid();
+    Storage::disk('local')->put("tmp/uploads/{$tmpId}/profile.jpg", $newFile->getContent());
+    Storage::disk('local')->put("tmp/uploads/{$tmpId}/metadata.json", json_encode([
+        'original_name' => 'profile.jpg',
+        'mime_type' => 'image/jpeg',
+        'size' => $newFile->getSize(),
+    ]));
+
+    $this->actingAs($user, 'sanctum')
+        ->putJson("/api/users/{$user->username}", [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'tmp_profile_image' => $tmpId,
+        ])->assertOk();
+
+    $user->refresh();
+    expect($user->getMedia('profile_image'))->toHaveCount(1)
+        ->and($user->getFirstMediaUrl('profile_image'))->not->toBe($oldUrl);
+    Storage::disk('public')->assertMissing($oldPath);
 });

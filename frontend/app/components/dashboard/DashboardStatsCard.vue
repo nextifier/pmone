@@ -16,7 +16,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  iconColor: "text-primary",
+  iconColor: "text-foreground",
   loading: false,
 });
 

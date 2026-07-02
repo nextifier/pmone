@@ -25,11 +25,12 @@ const forwardedProps = useForwardProps(delegatedProps);
 <template>
   <NavigationMenuTrigger
     v-bind="forwardedProps"
-    :class="cn('group flex items-center gap-x-1', props.class)"
+    data-slot="navigation-menu-trigger"
+    :class="cn(navigationMenuTriggerStyle(), 'group', props.class)"
   >
     <slot />
     <ChevronDown
-      class="relative size-3 transition duration-200 group-data-[state=open]:rotate-180"
+      class="cn-navigation-menu-trigger-icon"
       aria-hidden="true"
     />
   </NavigationMenuTrigger>

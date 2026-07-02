@@ -2,7 +2,7 @@
   <div class="min-h-screen-offset flex flex-col items-center justify-center py-6">
     <div class="container">
       <div class="mx-auto grid w-full max-w-sm gap-6">
-        <!-- <Logo class="text-primary mx-auto h-7" /> -->
+        <!-- <Logo class="text-foreground mx-auto h-7" /> -->
 
         <div class="grid gap-6">
           <div class="grid text-center">
@@ -23,13 +23,13 @@
             <div class="input-group">
               <Label for="name">{{ $t('auth.name') }}</Label>
               <Input v-model="form.name" type="text" name="name" id="name" required autofocus />
-              <InputErrorMessage v-if="errors?.name" :errors="errors.name" />
+              <FieldError v-if="errors?.name" :errors="errors.name" />
             </div>
 
             <div class="input-group">
               <Label for="email">{{ $t('auth.email') }}</Label>
               <Input v-model="form.email" type="email" name="email" id="email" required />
-              <InputErrorMessage v-if="errors?.email" :errors="errors.email" />
+              <FieldError v-if="errors?.email" :errors="errors.email" />
             </div>
 
             <div class="input-group">
@@ -43,7 +43,7 @@
                 :show-label="$t('auth.showPassword')"
                 :hide-label="$t('auth.hidePassword')"
               />
-              <InputErrorMessage v-if="errors?.password" :errors="errors.password" />
+              <FieldError v-if="errors?.password" :errors="errors.password" />
             </div>
 
             <div v-if="enablePasswordConfirmation" class="input-group">

@@ -75,7 +75,7 @@
           rel="noopener"
           class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
         >
-          <Icon name="hugeicons:download-01" class="text-primary size-4.5" />
+          <Icon name="hugeicons:download-01" class="text-foreground size-4.5" />
           {{ $t("ed.docs.downloadTemplateEn") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
@@ -86,7 +86,7 @@
           rel="noopener"
           class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
         >
-          <Icon name="hugeicons:download-01" class="text-primary size-4.5" />
+          <Icon name="hugeicons:download-01" class="text-foreground size-4.5" />
           {{ $t("ed.docs.downloadTemplateId") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>

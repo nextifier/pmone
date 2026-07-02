@@ -621,7 +621,7 @@
                 </div>
                 <button
                   type="button"
-                  class="text-primary hover:bg-muted inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm tracking-tight"
+                  class="text-foreground hover:bg-muted inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm tracking-tight"
                   @click="restoreGuest(guest)"
                 >
                   <Icon name="hugeicons:rotate-clockwise" class="size-4" />

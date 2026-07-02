@@ -114,7 +114,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Delete Project?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Delete Project?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete <strong>{{ projectToDelete?.name }}</strong
             >? This action cannot be undone.

@@ -11,7 +11,7 @@
           <div class="space-y-2">
             <Label for="name">Name</Label>
             <Input id="name" v-model="form.name" type="text" required maxlength="255" />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
@@ -25,13 +25,13 @@
               pattern="[a-z0-9\-]+"
             />
             <p class="text-muted-foreground text-xs tracking-tight">Lowercase letters, numbers, and dashes only.</p>
-            <InputErrorMessage :errors="errors.slug" />
+            <FieldError :errors="errors.slug" />
           </div>
 
           <div class="space-y-2">
             <Label for="description">Description</Label>
             <Textarea id="description" v-model="form.description" rows="3" maxlength="2000" />
-            <InputErrorMessage :errors="errors.description" />
+            <FieldError :errors="errors.description" />
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@
                   <SelectItem value="penalty">Penalty (adds to price)</SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.kind" />
+              <FieldError :errors="errors.kind" />
             </div>
 
             <div class="space-y-2">
@@ -72,7 +72,7 @@
                   <SelectItem v-if="form.kind === 'discount'" value="free_addon">Free Add-on</SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.value_type" />
+              <FieldError :errors="errors.value_type" />
             </div>
           </div>
 
@@ -97,7 +97,7 @@
                   <InputGroupText>{{ form.value_type === "percentage" ? "%" : "Rp" }}</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
-              <InputErrorMessage :errors="errors.value" />
+              <FieldError :errors="errors.value" />
             </div>
 
             <div class="space-y-2">
@@ -117,7 +117,7 @@
                 </InputGroupAddon>
               </InputGroup>
               <p class="text-muted-foreground text-xs tracking-tight">Only used for percentage discounts.</p>
-              <InputErrorMessage :errors="errors.max_discount_amount" />
+              <FieldError :errors="errors.max_discount_amount" />
             </div>
           </div>
 
@@ -127,13 +127,13 @@
               <Label for="buy_qty">Buy quantity (X)</Label>
               <InputNumber id="buy_qty" v-model="form.value_config.buy_qty" :min="1" />
               <p class="text-muted-foreground text-xs tracking-tight">Customer must purchase this many units.</p>
-              <InputErrorMessage :errors="errors['value_config.buy_qty']" />
+              <FieldError :errors="errors['value_config.buy_qty']" />
             </div>
             <div class="space-y-2">
               <Label for="get_free_qty">Get free (Y)</Label>
               <InputNumber id="get_free_qty" v-model="form.value_config.get_free_qty" :min="1" />
               <p class="text-muted-foreground text-xs tracking-tight">Cheapest units are picked for the free slots.</p>
-              <InputErrorMessage :errors="errors['value_config.get_free_qty']" />
+              <FieldError :errors="errors['value_config.get_free_qty']" />
             </div>
           </div>
 
@@ -181,7 +181,7 @@
               <p class="text-muted-foreground text-xs tracking-tight">
                 Highest matching tier wins. Example: min=3 → 5%, min=5 → 10%.
               </p>
-              <InputErrorMessage :errors="errors['value_config.tiers']" />
+              <FieldError :errors="errors['value_config.tiers']" />
             </div>
           </div>
 
@@ -191,7 +191,7 @@
               <Label for="bundle_qty">Bundle quantity</Label>
               <InputNumber id="bundle_qty" v-model="form.value_config.bundle_qty" :min="1" />
               <p class="text-muted-foreground text-xs tracking-tight">Every N units priced as a bundle.</p>
-              <InputErrorMessage :errors="errors['value_config.bundle_qty']" />
+              <FieldError :errors="errors['value_config.bundle_qty']" />
             </div>
             <div class="space-y-2">
               <Label for="bundle_price">Bundle price (Rp)</Label>
@@ -209,7 +209,7 @@
                 </InputGroupAddon>
               </InputGroup>
               <p class="text-muted-foreground text-xs tracking-tight">Fixed total for each bundle.</p>
-              <InputErrorMessage :errors="errors['value_config.bundle_price']" />
+              <FieldError :errors="errors['value_config.bundle_price']" />
             </div>
           </div>
 
@@ -219,7 +219,7 @@
               <Label for="max_free_qty">Max free units</Label>
               <InputNumber id="max_free_qty" v-model="form.value_config.max_free_qty" :min="1" placeholder="Unlimited" />
               <p class="text-muted-foreground text-xs tracking-tight">Limit how many add-ons can be free.</p>
-              <InputErrorMessage :errors="errors['value_config.max_free_qty']" />
+              <FieldError :errors="errors['value_config.max_free_qty']" />
             </div>
             <div class="space-y-2">
               <Label>Target Line Categories</Label>
@@ -252,14 +252,14 @@
                   <InputGroupText>Rp</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
-              <InputErrorMessage :errors="errors.min_purchase_amount" />
+              <FieldError :errors="errors.min_purchase_amount" />
             </div>
 
             <div class="space-y-2">
               <Label for="priority">Priority</Label>
               <InputNumber id="priority" v-model="form.priority" :min="0" :max="32000" />
               <p class="text-muted-foreground text-xs tracking-tight">Lower number applies first. Default 100.</p>
-              <InputErrorMessage :errors="errors.priority" />
+              <FieldError :errors="errors.priority" />
             </div>
           </div>
 
@@ -292,7 +292,7 @@
               <SelectItem value="combinable_with_all">Combinable with All</SelectItem>
             </SelectContent>
           </Select>
-          <InputErrorMessage :errors="errors.stacking_mode" />
+          <FieldError :errors="errors.stacking_mode" />
         </div>
       </div>
     </div>
@@ -314,7 +314,7 @@
               :default-hour="0"
               :default-minute="0"
             />
-            <InputErrorMessage :errors="errors.starts_at" />
+            <FieldError :errors="errors.starts_at" />
           </div>
 
           <div class="space-y-2">
@@ -326,7 +326,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <InputErrorMessage :errors="errors.ends_at" />
+            <FieldError :errors="errors.ends_at" />
           </div>
         </div>
 
@@ -366,7 +366,7 @@
                 <SelectItem value="cancellation_window">Cancellation Window (cancel near check-in)</SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.trigger_type" />
+            <FieldError :errors="errors.trigger_type" />
           </div>
 
           <!-- Trigger config inputs based on type -->
@@ -448,7 +448,7 @@
               </label>
             </div>
             <p class="text-muted-foreground text-xs tracking-tight">Empty = applies to all purchase types.</p>
-            <InputErrorMessage :errors="errors.target_types" />
+            <FieldError :errors="errors.target_types" />
           </div>
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
@@ -456,13 +456,13 @@
               <Label for="event_id">Event Scope (optional)</Label>
               <Input id="event_id" v-model.number="form.event_id" type="number" min="0" placeholder="Event ID" />
               <p class="text-muted-foreground text-xs tracking-tight">Restrict to specific event.</p>
-              <InputErrorMessage :errors="errors.event_id" />
+              <FieldError :errors="errors.event_id" />
             </div>
 
             <div class="space-y-2">
               <Label for="project_id">Project Scope (optional)</Label>
               <Input id="project_id" v-model.number="form.project_id" type="number" min="0" placeholder="Project ID" />
-              <InputErrorMessage :errors="errors.project_id" />
+              <FieldError :errors="errors.project_id" />
             </div>
           </div>
         </div>
@@ -535,7 +535,7 @@
             </Label>
           </div>
 
-          <InputErrorMessage :errors="errors.applicability" />
+          <FieldError :errors="errors.applicability" />
         </div>
       </div>
     </div>
@@ -555,7 +555,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";

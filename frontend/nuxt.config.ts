@@ -5,7 +5,7 @@ const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
 
 export default defineNuxtConfig({
   devtools: {
-    enabled: true,
+    enabled: false,
     componentInspector: false,
   },
 
@@ -241,6 +241,11 @@ export default defineNuxtConfig({
   },
 
   fonts: {
+    // MinusOne = app default (body). The 10 curated families below power the
+    // Appearance "Heading"/"Font" pickers. They MUST be declared explicitly:
+    // the families are applied at RUNTIME via injected CSS vars
+    // (lib/appearance + lib/fonts), which @nuxt/fonts' static scanner can't see,
+    // so auto-discovery would never self-host them.
     families: [
       {
         name: "MinusOne",
@@ -248,6 +253,16 @@ export default defineNuxtConfig({
         weight: "400 1000",
         display: "swap",
       },
+      { name: "Geist", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Inter", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "DM Sans", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Manrope", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Space Grotesk", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Outfit", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Geist Mono", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "JetBrains Mono", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Playfair Display", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      { name: "Lora", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
     ],
   },
 
@@ -279,7 +294,12 @@ export default defineNuxtConfig({
     fallback: "light",
     classSuffix: "",
     globalName: "__COLOR_MODE__",
-    storageKey: "color-mode",
+    // Cookie storage (not localStorage) so the preference is readable during SSR
+    // → the html class + colorMode.value resolve synchronously, no reactive desync
+    // / flash. App-scoped key so other apps on the dev localhost:3000 origin can't
+    // clobber it. useAppearance is the single gate over this.
+    storage: "cookie",
+    storageKey: "pmone-color-mode",
   },
 
   image: {

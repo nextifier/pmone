@@ -102,7 +102,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Restore contacts?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Restore contacts?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will restore {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "contact" : "contacts" }}.
@@ -143,7 +143,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">
+              <div class="text-foreground text-lg font-semibold tracking-tight">
                 Are you absolutely sure?
               </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
@@ -188,12 +188,12 @@
     <DialogResponsive v-model:open="deleteAllDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
             Delete all trashed contacts?
           </div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             This action can't be undone. This will permanently delete
-            <span class="text-primary font-medium">all {{ meta.total }}</span>
+            <span class="text-foreground font-medium">all {{ meta.total }}</span>
             trashed {{ meta.total === 1 ? "contact" : "contacts" }}.
           </p>
 

@@ -1,3 +1,5 @@
+import { isGuestValid } from "../lib/guestValidation";
+
 const STORAGE_KEY = "pmone.booking.v3";
 const TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -95,14 +97,10 @@ export const useBookingStore = defineStore("booking", {
       return this.canProceedStep1;
     },
     canProceedStep3(state) {
-      const g = state.guest;
-      return (
-        this.canProceedStep1 &&
-        !!g.name?.trim() &&
-        !!g.email?.trim() &&
-        !!g.phone?.trim() &&
-        !!g.identity_number?.trim()
-      );
+      // Requires every guest field to be present AND correctly formatted (email,
+      // phone, NIK/passport), not merely non-empty. Otherwise invalid input like
+      // "abc" would flash a field error yet still advance to the next step.
+      return this.canProceedStep1 && isGuestValid(state.guest);
     },
     canProceedStep4(state) {
       return this.canProceedStep3 && state.acceptTerms;

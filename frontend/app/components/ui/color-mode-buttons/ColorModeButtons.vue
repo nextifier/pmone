@@ -3,27 +3,27 @@
     <button
       v-for="mode in colorModeList"
       :key="mode.value"
-      class="flex flex-col items-center gap-y-1 rounded-xl p-1 text-center transition sm:px-2 lg:rounded-2xl"
+      class="flex flex-col items-center gap-y-1 rounded-xl p-1 text-center transition-colors sm:px-2 lg:rounded-2xl"
       @click="setColorMode(mode.value)"
     >
       <div
-        class="border-border aspect-64/54 w-full overflow-hidden rounded-xl border transition active:scale-98 lg:rounded-2xl"
+        class="border-border aspect-64/54 w-full overflow-hidden rounded-xl border transition-transform active:scale-98 lg:rounded-2xl"
       >
         <component :is="mode.component" class="h-full w-full object-cover" />
       </div>
       <div
         class="relative !leading-none"
-        :class="[mode.value === colorMode.value ? 'text-primary' : 'text-muted-foreground']"
+        :class="[mode.value === colorMode.value ? 'text-foreground' : 'text-muted-foreground']"
       >
-        <span class="text-xs tracking-tight transition sm:text-sm">{{ mode.label }}</span>
+        <span class="text-xs tracking-tight transition-colors sm:text-sm">{{ mode.label }}</span>
 
         <div class="absolute top-1/2 right-0 translate-x-full -translate-y-1/2 pt-0.5 pl-0.75">
           <Transition
             enter-from-class="opacity-0 scale-90 translate-y-4"
-            enter-active-class="transition-all duration-300 ease-out"
+            enter-active-class="transition-[opacity,transform] duration-300 ease-out"
             enter-to-class="opacity-100 scale-100 translate-y-0"
             leave-from-class="opacity-100 scale-100 translate-y-0"
-            leave-active-class="transition-all duration-200 ease-in"
+            leave-active-class="transition-[opacity,transform] duration-200 ease-in"
             leave-to-class="opacity-0 scale-90 translate-y-4"
           >
             <Icon

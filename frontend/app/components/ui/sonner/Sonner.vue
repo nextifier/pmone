@@ -60,6 +60,7 @@ watch(activeToasts, syncDurations, { deep: true, flush: "post" });
   <Sonner
     v-bind="forwardedProps"
     :class="['toaster group tracking-tight', props.class, { 'sonner-progress': showProgress }]"
+    :toast-options="{ classes: { toast: 'cn-toast' } }"
     :style="[
       {
         '--normal-bg': 'var(--popover)',

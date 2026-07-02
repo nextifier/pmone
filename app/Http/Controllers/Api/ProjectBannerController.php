@@ -342,14 +342,12 @@ class ProjectBannerController extends Controller
                     $caption = html_entity_decode($captionMatch[1]);
                 }
 
-                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME));
+                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME)) ?: 'image';
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                $uniqueBase = $baseName.'-'.substr($folder, -8);
-                $uniqueFileName = $uniqueBase.($extension ? '.'.$extension : '');
 
                 $mediaAdder = $banner->addMediaFromDisk($tempFilePath, 'local')
-                    ->usingName($uniqueBase)
-                    ->usingFileName($uniqueFileName);
+                    ->usingName($baseName)
+                    ->usingFileName($baseName.($extension ? '.'.$extension : ''));
 
                 if ($caption) {
                     $mediaAdder->withCustomProperties(['caption' => $caption]);

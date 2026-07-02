@@ -166,16 +166,15 @@ class GalleryController extends Controller
             $absolutePath = Storage::disk('local')->path($filePath);
             $dimensions = @getimagesize($absolutePath);
 
-            // Unique disk file name: the gallery collection keeps every photo in
-            // one folder, so two uploads sharing an original name would otherwise
-            // overwrite each other on disk.
+            // The gallery collection keeps every photo in one folder; the global
+            // UniqueFileNamer appends a random token to the stored file name so two
+            // uploads sharing an original name never overwrite each other on disk.
             $originalName = $metadata['original_name'] ?? basename($filePath);
             $extension = pathinfo($originalName, PATHINFO_EXTENSION);
             $base = Str::slug(pathinfo($originalName, PATHINFO_FILENAME)) ?: 'photo';
-            $uniqueFileName = $base.'-'.Str::lower(Str::random(6)).($extension ? '.'.$extension : '');
 
             $media = $event->addMedia($absolutePath)
-                ->usingFileName($uniqueFileName)
+                ->usingFileName($base.($extension ? '.'.$extension : ''))
                 ->toMediaCollection('gallery');
 
             if ($dimensions) {

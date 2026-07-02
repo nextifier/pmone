@@ -191,7 +191,7 @@ defineShortcuts({
       <p class="text-muted-foreground text-sm tracking-tight">
         Recommended ratio 4:5 (portrait), JPG/PNG/WEBP, max 20MB
       </p>
-      <InputErrorMessage :errors="errors.tmp_profile_image" />
+      <FieldError :errors="errors.tmp_profile_image" />
     </div>
 
     <div class="flex items-center justify-between gap-3">
@@ -210,12 +210,12 @@ defineShortcuts({
       <div class="space-y-2">
         <Label for="guest-name">Name</Label>
         <Input id="guest-name" v-model="form.name" auto-focus required />
-        <InputErrorMessage :errors="errors.name" />
+        <FieldError :errors="errors.name" />
       </div>
       <div class="space-y-2">
         <Label for="guest-organization">Organization</Label>
         <Input id="guest-organization" v-model="form.organization" />
-        <InputErrorMessage :errors="errors.organization" />
+        <FieldError :errors="errors.organization" />
       </div>
     </div>
 
@@ -226,7 +226,7 @@ defineShortcuts({
         v-model="form.title"
         placeholder="e.g. CEO, Founder, Keynote Speaker"
       />
-      <InputErrorMessage :errors="errors.title" />
+      <FieldError :errors="errors.title" />
     </div>
 
     <div class="space-y-2">
@@ -242,7 +242,7 @@ defineShortcuts({
       <p class="text-muted-foreground text-sm tracking-tight">
         Event day(s) this guest appears - shown as a date badge on the website.
       </p>
-      <InputErrorMessage :errors="errors.appearance_date" />
+      <FieldError :errors="errors.appearance_date" />
     </div>
 
     <div class="space-y-2">
@@ -255,7 +255,7 @@ defineShortcuts({
         min-height="180px"
         placeholder="Write a short bio..."
       />
-      <InputErrorMessage :errors="errors.bio" />
+      <FieldError :errors="errors.bio" />
     </div>
 
     <div class="space-y-2">
@@ -267,7 +267,7 @@ defineShortcuts({
         </TagsInputItem>
         <TagsInputInput placeholder="Add topic..." />
       </TagsInput>
-      <InputErrorMessage :errors="errors.tags" />
+      <FieldError :errors="errors.tags" />
     </div>
 
     <div class="space-y-2">
@@ -332,7 +332,7 @@ defineShortcuts({
           Add Link
         </button>
       </div>
-      <InputErrorMessage :errors="errors.links" />
+      <FieldError :errors="errors.links" />
     </div>
 
     <div class="flex items-center justify-between gap-3">
@@ -357,7 +357,7 @@ defineShortcuts({
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
-        <InputErrorMessage :errors="errors.status" />
+        <FieldError :errors="errors.status" />
       </div>
       <div class="space-y-2">
         <Label for="guest-visibility">Visibility</Label>
@@ -370,7 +370,7 @@ defineShortcuts({
             <SelectItem value="private">Private</SelectItem>
           </SelectContent>
         </Select>
-        <InputErrorMessage :errors="errors.visibility" />
+        <FieldError :errors="errors.visibility" />
       </div>
     </div>
 

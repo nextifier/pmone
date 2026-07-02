@@ -4,7 +4,7 @@
     <div class="space-y-2">
       <Label for="title">Event Title</Label>
       <Input id="title" v-model="form.title" type="text" required />
-      <InputErrorMessage :errors="errors.title" />
+      <FieldError :errors="errors.title" />
     </div>
 
     <!-- Slug | Edition Number -->
@@ -12,12 +12,12 @@
       <div class="space-y-2">
         <Label for="slug">Slug</Label>
         <Input id="slug" v-model="form.slug" type="text" />
-        <InputErrorMessage :errors="errors.slug" />
+        <FieldError :errors="errors.slug" />
       </div>
       <div class="space-y-2">
         <Label for="edition_number">Edition Number</Label>
         <InputNumber id="edition_number" v-model="form.edition_number" :min="1" />
-        <InputErrorMessage :errors="errors.edition_number" />
+        <FieldError :errors="errors.edition_number" />
       </div>
     </div>
 
@@ -31,7 +31,7 @@
           placeholder="Select start date & time"
           :default-hour="10"
         />
-        <InputErrorMessage :errors="errors.start_date" />
+        <FieldError :errors="errors.start_date" />
       </div>
       <div class="space-y-2">
         <Label for="end_date">End Date & Time</Label>
@@ -41,7 +41,7 @@
           placeholder="Select end date & time"
           :default-hour="18"
         />
-        <InputErrorMessage :errors="errors.end_date" />
+        <FieldError :errors="errors.end_date" />
       </div>
     </div>
 
@@ -49,7 +49,7 @@
       <div class="space-y-2">
         <Label for="location">Venue</Label>
         <Input id="location" v-model="form.location" type="text" />
-        <InputErrorMessage :errors="errors.location" />
+        <FieldError :errors="errors.location" />
       </div>
       <div class="space-y-2">
         <Label for="location_short">Venue Short</Label>
@@ -58,7 +58,7 @@
       <div class="space-y-2">
         <Label for="location_link">Location Link</Label>
         <Input id="location_link" v-model="form.location_link" type="url" />
-        <InputErrorMessage :errors="errors.location_link" />
+        <FieldError :errors="errors.location_link" />
       </div>
     </div>
 
@@ -66,7 +66,7 @@
       <div class="space-y-2">
         <Label for="hall">Hall</Label>
         <Input id="hall" v-model="form.hall" type="text" />
-        <InputErrorMessage :errors="errors.hall" />
+        <FieldError :errors="errors.hall" />
       </div>
       <!-- Saleable Area -->
       <div class="space-y-2">
@@ -78,7 +78,7 @@
           decimal
           placeholder="e.g. 5000"
         />
-        <InputErrorMessage :errors="errors.saleable_area" />
+        <FieldError :errors="errors.saleable_area" />
       </div>
     </div>
 
@@ -95,7 +95,7 @@
         v-model:delete-flag="deleteFlags.poster_image"
         container-class="relative isolate aspect-4/5 max-w-full"
       />
-      <InputErrorMessage :errors="errors.tmp_poster_image" />
+      <FieldError :errors="errors.tmp_poster_image" />
     </div>
 
     <!-- Teaser Video ID -->
@@ -117,7 +117,7 @@
         v-if="initialData?.visitor_eguide && !eguideFiles.length && !deleteFlags.visitor_eguide"
         class="border-border flex min-w-0 items-center gap-x-3 rounded-md border p-3"
       >
-        <Icon name="hugeicons:pdf-02" class="text-primary size-5 shrink-0" />
+        <Icon name="hugeicons:pdf-02" class="text-foreground size-5 shrink-0" />
         <div class="min-w-0 flex-1">
           <a
             :href="initialData.visitor_eguide.url"
@@ -159,7 +159,7 @@
       >
         Undo remove
       </button>
-      <InputErrorMessage :errors="errors.tmp_visitor_eguide" />
+      <FieldError :errors="errors.tmp_visitor_eguide" />
     </div>
 
     <!-- Description -->
@@ -173,7 +173,7 @@
         min-height="200px"
         placeholder="Write event description..."
       />
-      <InputErrorMessage :errors="errors.description" />
+      <FieldError :errors="errors.description" />
     </div>
 
     <!-- Status | Visibility -->
@@ -191,7 +191,7 @@
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
-        <InputErrorMessage :errors="errors.status" />
+        <FieldError :errors="errors.status" />
       </div>
       <div class="space-y-2">
         <Label for="visibility">Visibility</Label>
@@ -204,7 +204,7 @@
             <SelectItem value="private">Private</SelectItem>
           </SelectContent>
         </Select>
-        <InputErrorMessage :errors="errors.visibility" />
+        <FieldError :errors="errors.visibility" />
       </div>
     </div>
 

@@ -50,10 +50,10 @@
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div class="border-border rounded-lg border p-4">
               <div class="flex items-center gap-2">
-                <Icon name="hugeicons:api" class="text-primary size-4" />
+                <Icon name="hugeicons:api" class="text-foreground size-4" />
                 <span class="text-muted-foreground text-xs font-medium">Total Requests</span>
               </div>
-              <div class="text-primary mt-1 text-2xl font-semibold">
+              <div class="text-foreground mt-1 text-2xl font-semibold">
                 {{ analyticsData.summary.total_requests.toLocaleString() }}
               </div>
               <div class="text-muted-foreground text-xs">
@@ -63,10 +63,10 @@
 
             <div class="border-border rounded-lg border p-4">
               <div class="flex items-center gap-2">
-                <Icon name="hugeicons:tick-02" class="text-primary size-4" />
+                <Icon name="hugeicons:tick-02" class="text-foreground size-4" />
                 <span class="text-muted-foreground text-xs font-medium">Success Rate</span>
               </div>
-              <div class="text-primary mt-1 text-2xl font-semibold">
+              <div class="text-foreground mt-1 text-2xl font-semibold">
                 {{ analyticsData.summary.success_rate }}%
               </div>
               <div class="text-muted-foreground text-xs">
@@ -76,10 +76,10 @@
 
             <div class="border-border rounded-lg border p-4">
               <div class="flex items-center gap-2">
-                <Icon name="hugeicons:clock-02" class="text-primary size-4" />
+                <Icon name="hugeicons:clock-02" class="text-foreground size-4" />
                 <span class="text-muted-foreground text-xs font-medium">Avg Response</span>
               </div>
-              <div class="text-primary mt-1 text-2xl font-semibold">
+              <div class="text-foreground mt-1 text-2xl font-semibold">
                 {{ analyticsData.summary.avg_response_time }}ms
               </div>
               <div class="text-muted-foreground text-xs">Response time</div>
@@ -87,10 +87,10 @@
 
             <div class="border-border rounded-lg border p-4">
               <div class="flex items-center gap-2">
-                <Icon name="hugeicons:user-group" class="text-primary size-4" />
+                <Icon name="hugeicons:user-group" class="text-foreground size-4" />
                 <span class="text-muted-foreground text-xs font-medium">Consumers</span>
               </div>
-              <div class="text-primary mt-1 text-2xl font-semibold">
+              <div class="text-foreground mt-1 text-2xl font-semibold">
                 {{ analyticsData.summary.active_consumers }}
               </div>
               <div class="text-muted-foreground text-xs">
@@ -224,7 +224,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
                 {{ selectedRows.length }} selected
@@ -813,7 +813,7 @@ const RowActions = defineComponent({
               h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
                 h(
                   "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  { class: "text-foreground text-lg font-semibold tracking-tight" },
                   "Are you sure?"
                 ),
                 h(

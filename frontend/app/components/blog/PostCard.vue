@@ -46,7 +46,7 @@
     <div class="flex w-full flex-col items-start px-1">
       <nuxt-link
         :to="postUrl"
-        class="text-primary text-lg !leading-snug font-semibold tracking-[-0.04em] transition duration-300 lg:line-clamp-4 @sm:text-xl @lg:text-2xl"
+        class="text-foreground text-lg !leading-snug font-semibold tracking-[-0.04em] transition duration-300 lg:line-clamp-4 @sm:text-xl @lg:text-2xl"
         v-tippy="post.title"
         @click.native="active = post.slug"
         >{{ post.title }}</nuxt-link
@@ -95,7 +95,7 @@
           </div>
 
           <div class="flex flex-col gap-y-1">
-            <div class="text-primary line-clamp-1 text-sm font-semibold tracking-tight">
+            <div class="text-foreground line-clamp-1 text-sm font-semibold tracking-tight">
               <component
                 :is="author.website ? 'a' : 'span'"
                 v-for="(author, index) in post.authors"

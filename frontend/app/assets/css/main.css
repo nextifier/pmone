@@ -1,9 +1,78 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* shadcn-vue v4 "Style" system (Vega/Nova/Maia/Lyra/Mira/Luma/Sera/Rhea).
+   Each file scopes per-component `.cn-*` rules under `.style-X`. They @apply
+   token utilities, so Style (component shape) composes with the appearance
+   tokens (Base Color/Theme/Radius). Imported into layer(base) so per-call
+   `props.class` (utilities layer) still overrides. The active style is set on
+   <html> via useStyleClass (SSR cookie); a style is ALWAYS active (default vega). */
+@import "./styles/style-mono.css" layer(base);
+@import "./styles/style-vega.css" layer(base);
+@import "./styles/style-nova.css" layer(base);
+@import "./styles/style-maia.css" layer(base);
+@import "./styles/style-lyra.css" layer(base);
+@import "./styles/style-mira.css" layer(base);
+@import "./styles/style-luma.css" layer(base);
+@import "./styles/style-sera.css" layer(base);
+@import "./styles/style-rhea.css" layer(base);
+
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
+
+/* Reka/shadcn data-state variants the cn-* style rules rely on (from
+   shadcn-vue/tailwind.css). pmone already ships the accordion keyframes,
+   --animate-accordion-*, and `no-scrollbar`, so only these variants are added. */
+@custom-variant data-open (&:where([data-state="open"]), &:where([data-open]:not([data-open="false"])));
+@custom-variant data-closed (&:where([data-state="closed"]), &:where([data-closed]:not([data-closed="false"])));
+@custom-variant data-checked (&:where([data-state="checked"]), &:where([data-checked]:not([data-checked="false"])));
+@custom-variant data-unchecked (&:where([data-state="unchecked"]), &:where([data-unchecked]:not([data-unchecked="false"])));
+@custom-variant data-selected (&:where([data-selected="true"]));
+@custom-variant data-disabled (&:where([data-disabled="true"]), &:where([data-disabled]:not([data-disabled="false"])));
+@custom-variant data-active (&:where([data-state="active"]), &:where([data-active]:not([data-active="false"])));
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant data-vertical (&:where([data-orientation="vertical"]));
+
+/* Scope utilities to the active style, e.g. `style-nova:text-lg`. */
+@custom-variant style-mono (&:where(.style-mono *));
+@custom-variant style-vega (&:where(.style-vega *));
+@custom-variant style-nova (&:where(.style-nova *));
+@custom-variant style-maia (&:where(.style-maia *));
+@custom-variant style-lyra (&:where(.style-lyra *));
+@custom-variant style-mira (&:where(.style-mira *));
+@custom-variant style-luma (&:where(.style-luma *));
+@custom-variant style-sera (&:where(.style-sera *));
+@custom-variant style-rhea (&:where(.style-rhea *));
+
+/* Lyra & Sera are intentionally hard-edged. Unlayered + the `body.style-X`
+   selector (specificity 0,1,1) so it overrides the appearance `:root` --radius
+   injection (0,1,0) regardless of <head> order. Mirrors shadcn /create. */
+body.style-lyra,
+body.style-sera {
+  --radius: 0rem;
+}
+
+/* Appearance switch guard: while `<html>` has this class (set for ~1 frame by
+   useAppearance around every color-mode/style/token change), ALL transitions &
+   animations are killed so the whole-document restyle snaps instantly instead of
+   hundreds of `.cn-*` colors animating at once. Unlayered + !important so it wins
+   over every cn-* transition. */
+html.appearance-switching,
+html.appearance-switching *,
+html.appearance-switching *::before,
+html.appearance-switching *::after {
+  transition: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+}
+
+@layer base {
+  /* cn-* components may use `.cn-font-heading`; fall back to the sans stack. */
+  .cn-font-heading {
+    font-family: var(--font-heading, var(--font-sans, inherit));
+  }
+}
 
 @theme {
   --breakpoint-*: initial;
@@ -130,8 +199,8 @@
     --popover: var(--color-white);
     --popover-foreground: var(--color-gray-700);
 
-    --sidebar: var(--color-white);
-    --sidebar-foreground: var(--color-gray-950);
+    --sidebar: var(--background);
+    --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--color-black);
     --sidebar-primary-foreground: var(--color-white);
     --sidebar-accent: var(--color-gray-100);
@@ -186,8 +255,8 @@
     --popover: var(--color-gray-950);
     --popover-foreground: var(--color-gray-300);
 
-    --sidebar: var(--color-gray-950);
-    --sidebar-foreground: var(--color-gray-50);
+    --sidebar: var(--background);
+    --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--color-white);
     --sidebar-primary-foreground: var(--color-black);
     --sidebar-accent: var(--color-gray-900);
@@ -347,7 +416,7 @@
 }
 
 @utility keyboard-symbol {
-  @apply bg-muted text-primary ring-border hidden rounded-md p-1 px-2 py-0.5 text-xs ring-1 ring-inset pointer-fine:inline;
+  @apply bg-muted text-foreground ring-border hidden rounded-md p-1 px-2 py-0.5 text-xs ring-1 ring-inset pointer-fine:inline;
 }
 
 @utility skeleton {
@@ -537,12 +606,14 @@
 
   /* Only target non-touch devices */
   @media (hover: hover) and (pointer: fine) {
+    /* Reserve the scrollbar gutter PERMANENTLY so overlays (reka dropdowns,
+       popovers, dialogs) that lock body scroll via `overflow: hidden` never make
+       the gutter appear/disappear → zero layout shift on open/close. reka adds no
+       padding-right compensation here, so keeping the gutter constant is enough.
+       Do NOT flip to `auto` while a modal is open — that release is what caused
+       the shift. */
     html {
       scrollbar-gutter: stable;
-
-      &:has(body[style*="overflow: hidden"]) {
-        scrollbar-gutter: auto;
-      }
     }
 
     ::-webkit-scrollbar {
@@ -1219,7 +1290,7 @@
 }
 
 @utility outline-inside {
-  @apply outline-primary/10 outline -outline-offset-1;
+  @apply outline-foreground/10 outline -outline-offset-1;
 }
 
 .gallery-container .my-gallery {
@@ -1239,7 +1310,7 @@ img.pswp__img {
 }
 
 .section-title {
-  @apply text-primary text-4xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-5xl;
+  @apply text-foreground text-4xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-5xl;
 }
 
 .section-title-large {
@@ -1255,7 +1326,7 @@ img.pswp__img {
 }
 
 @utility page-title {
-  @apply text-primary text-xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-xl;
+  @apply text-foreground text-xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-xl;
 }
 
 @utility page-description {
@@ -1400,7 +1471,7 @@ img.pswp__img {
 }
 
 .sortable-drag {
-  @apply border-primary/15 rounded-xl border;
+  @apply border-foreground/15 rounded-xl border;
 }
 
 .frame {

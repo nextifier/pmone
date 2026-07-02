@@ -19,9 +19,11 @@ const props = defineProps<
   }
 >();
 
-const context = inject<{ variant?: GroupVariant; size?: ToggleGroupVariants["size"] }>(
-  "toggleGroup"
-);
+const context = inject<{
+  variant?: GroupVariant;
+  size?: ToggleGroupVariants["size"];
+  spacing?: number;
+}>("toggleGroup");
 
 const resolvedVariant = computed<GroupVariant>(
   () => context?.variant || props.variant || "default"
@@ -52,7 +54,12 @@ const forwardedProps = useForwardProps(delegatedProps);
               variant: cvaVariant,
               size: context?.size || size,
             }),
-            'min-w-0 flex-1 shrink-0 rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10 data-[variant=outline]:border-l-0 data-[variant=outline]:first:border-l',
+            'cn-toggle-group-item shrink-0 focus:z-10 focus-visible:z-10',
+            // spacing>0 → gapped, individually-rounded items (no flex-1 stretch,
+            // no border-collapse). spacing 0/undefined → joined segmented control.
+            context?.spacing
+              ? 'rounded-md'
+              : 'min-w-0 flex-1 rounded-none shadow-none first:rounded-l-md last:rounded-r-md data-[variant=outline]:border-l-0 data-[variant=outline]:first:border-l',
             props.class
           )
     "

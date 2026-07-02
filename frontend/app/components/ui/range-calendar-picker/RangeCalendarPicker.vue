@@ -1,27 +1,20 @@
 <template>
-  <!--
-    modal=true so the picker works correctly when nested inside a Dialog: a
-    non-modal popover's clicks register as "interact outside" and would dismiss
-    the parent dialog. Inside a dialog the scroll is already locked, so this
-    adds no extra layout shift.
-  -->
-  <Popover v-model:open="isOpen" :modal="true">
+  <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
-      <Button
-        variant="outline"
+      <button
         type="button"
-        :size="size"
         :disabled="disabled"
         :class="
           cn(
-            'w-full justify-start text-left text-sm font-normal',
+            'cn-input flex w-full min-w-0 items-center gap-2 text-left font-normal disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+            size === 'sm' && 'h-8',
             !modelValue?.start && 'text-muted-foreground'
           )
         "
       >
         <Icon name="hugeicons:calendar-04" class="size-4 shrink-0" />
         <span class="truncate">{{ displayText }}</span>
-      </Button>
+      </button>
     </PopoverTrigger>
     <PopoverContent class="w-auto rounded-xl p-0" align="start">
       <RangeCalendar

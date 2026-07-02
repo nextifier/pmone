@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\FileNamer\UniqueFileNamer;
 use App\Support\PathGenerator\CollectionBasedPathGenerator;
 use Spatie\ImageOptimizer\Optimizers\Avifenc;
 use Spatie\ImageOptimizer\Optimizers\Cwebp;
@@ -21,7 +22,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Observers\MediaObserver;
 use Spatie\MediaLibrary\ResponsiveImages\Jobs\GenerateResponsiveImagesJob;
 use Spatie\MediaLibrary\ResponsiveImages\TinyPlaceholderGenerator\Blurred;
 use Spatie\MediaLibrary\ResponsiveImages\WidthCalculator\FileSizeOptimizedWidthCalculator;
-use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 use Spatie\MediaLibrary\Support\FileRemover\DefaultFileRemover;
 use Spatie\MediaLibrary\Support\UrlGenerator\DefaultUrlGenerator;
 use Spatie\MediaLibraryPro\Models\TemporaryUpload;
@@ -102,7 +102,7 @@ return [
     /*
      * This is the class that is responsible for naming generated files.
      */
-    'file_namer' => DefaultFileNamer::class,
+    'file_namer' => UniqueFileNamer::class,
 
     /*
      * The class that contains the strategy for determining a media file's path.
@@ -148,7 +148,7 @@ return [
      */
     'image_optimizers' => [
         Jpegoptim::class => [
-            '-m85', // set maximum quality to 85%
+            '-m90', // set maximum quality to 90%
             '--force', // ensure that progressive generation is always done also if a little bigger
             '--strip-all', // this strips out all text information such as comments and EXIF data
             '--all-progressive', // this will make sure the resulting image is a progressive one

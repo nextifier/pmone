@@ -19,7 +19,7 @@
         <p class="text-muted-foreground text-xs">
           The number is normalized server-side (08xxx becomes 628xxx).
         </p>
-        <InputErrorMessage :errors="errors.to" />
+        <FieldError :errors="errors.to" />
       </div>
 
       <div class="space-y-2">
@@ -39,7 +39,7 @@
           Use hello_world first - it is pre-approved by Meta, so it confirms the token and phone number
           ID work before your custom template is live.
         </p>
-        <InputErrorMessage :errors="errors.template" />
+        <FieldError :errors="errors.template" />
       </div>
 
       <div v-if="activeTemplate.params.length" class="grid grid-cols-1 gap-y-4">

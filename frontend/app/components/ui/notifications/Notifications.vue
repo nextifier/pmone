@@ -3,7 +3,7 @@
     <Tippy>
       <PopoverTrigger as-child>
         <button
-          class="hover:bg-muted relative mr-2 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
+          class="hover:bg-muted relative mr-2 flex size-8 items-center justify-center rounded-lg transition-[color,box-shadow,transform] active:scale-98"
         >
           <svg
             class="text-foreground size-4.5 shrink-0"
@@ -49,7 +49,7 @@
         <div class="relative flex items-center gap-x-4">
           <button
             ref="tabUnreadRef"
-            class="relative flex items-center gap-x-1.5 py-2.5 text-sm font-medium tracking-tight transition"
+            class="relative flex items-center gap-x-1.5 py-2.5 text-sm font-medium tracking-tight transition-colors"
             :class="
               activeTab === 'unread'
                 ? 'text-foreground'
@@ -68,7 +68,7 @@
           </button>
           <button
             ref="tabAllRef"
-            class="relative py-2.5 text-sm font-medium tracking-tight transition"
+            class="relative py-2.5 text-sm font-medium tracking-tight transition-colors"
             :class="
               activeTab === 'all'
                 ? 'text-foreground'
@@ -86,7 +86,7 @@
         </div>
         <button
           v-if="unreadCount > 0"
-          class="text-primary hover:text-primary/80 py-2.5 text-sm font-medium tracking-tight transition"
+          class="text-primary hover:text-primary/80 py-2.5 text-sm font-medium tracking-tight transition-colors"
           @click="handleMarkAllAsRead"
         >
           Mark all as read
@@ -145,7 +145,7 @@
             </div>
             <PopoverClose v-for="notification in group" :key="notification.id" as-child>
               <button
-                class="hover:bg-muted/50 flex w-full items-start gap-x-3 px-4 py-2 text-left transition"
+                class="hover:bg-muted/50 flex w-full items-start gap-x-3 px-4 py-2 text-left transition-colors"
                 @click="handleClick(notification)"
               >
                 <div

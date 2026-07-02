@@ -29,7 +29,7 @@
               :disabled="attendee?.is_checked_in"
               autocomplete="off"
             />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
@@ -41,7 +41,7 @@
               :disabled="attendee?.is_checked_in"
               autocomplete="off"
             />
-            <InputErrorMessage :errors="errors.email" />
+            <FieldError :errors="errors.email" />
           </div>
 
           <div class="space-y-2">
@@ -52,7 +52,7 @@
             >
               <InputPhone id="attendee-phone" v-model="form.phone" />
             </div>
-            <InputErrorMessage :errors="errors.phone" />
+            <FieldError :errors="errors.phone" />
           </div>
         </div>
 
@@ -69,7 +69,7 @@
 </template>
 
 <script setup>
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

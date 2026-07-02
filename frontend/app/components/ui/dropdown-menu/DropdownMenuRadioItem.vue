@@ -21,12 +21,15 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     v-bind="forwarded"
     :class="
       cn(
-        `focus:bg-muted focus:text-foreground relative flex cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm tracking-tight outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4`,
+        'cn-dropdown-menu-radio-item relative flex cursor-pointer items-center outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
         props.class
       )
     "
   >
-    <span class="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+    <span
+      class="cn-dropdown-menu-item-indicator pointer-events-none"
+      data-slot="dropdown-menu-radio-item-indicator"
+    >
       <DropdownMenuItemIndicator>
         <Circle class="size-2 fill-current" />
       </DropdownMenuItemIndicator>

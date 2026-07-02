@@ -1,0 +1,997 @@
+/* style-mono — reproduces pmone's ORIGINAL (pre-cn-*) component look.
+   Default style. Generated from git HEAD component classes mapped to the
+   cn-* selectors the components now emit. Faithful (micro-diffs accepted).
+   group/* + peer/* markers are emitted by the components themselves. */
+
+/* ==========================================================================
+   shadcn "mono" style — reproduces pmone's ORIGINAL (pre-cn-*) component look.
+   Each rule re-applies the Tailwind that styled the same element/variant/size
+   in git HEAD, mapped onto the cn-* selectors the components now emit.
+   ========================================================================== */
+
+.style-mono {
+  --cn-input-h: --spacing(9);
+}
+
+/* button */
+.style-mono .cn-button {
+  @apply focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium tracking-tight whitespace-nowrap transition-[color,background-color,border-color,box-shadow] outline-none focus-visible:ring-[2px] disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-button-variant-default {
+  @apply bg-primary text-primary-foreground hover:bg-primary/80 shadow-xs;
+}
+.style-mono .cn-button-variant-destructive {
+  @apply bg-destructive hover:bg-destructive/90 text-white shadow-xs;
+}
+.style-mono .cn-button-variant-outline {
+  @apply hover:bg-primary/5 border-border border;
+}
+.style-mono .cn-button-variant-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-border shadow-xs;
+}
+.style-mono .cn-button-variant-ghost {
+  @apply hover:bg-muted hover:text-foreground font-normal;
+}
+.style-mono .cn-button-variant-link {
+  @apply text-primary underline-offset-4 hover:underline;
+}
+.style-mono .cn-button-size-default {
+  @apply h-9 px-4 py-2 has-[>svg]:px-3;
+}
+.style-mono .cn-button-size-sm {
+  @apply h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5;
+}
+.style-mono .cn-button-size-xs {
+  @apply h-7 gap-1 rounded-md px-2.5 text-xs has-[>svg]:px-2 [&_svg:not([class*='size-'])]:size-3.5;
+}
+.style-mono .cn-button-size-lg {
+  @apply h-10 rounded-md px-6 text-base font-semibold tracking-tight has-[>svg]:px-4;
+}
+.style-mono .cn-button-size-icon {
+  @apply size-9;
+}
+.style-mono .cn-button-size-icon-sm {
+  @apply size-8;
+}
+.style-mono .cn-button-size-icon-xs {
+  @apply size-7 [&_svg:not([class*='size-'])]:size-3.5;
+}
+
+/* input */
+.style-mono .cn-input {
+  @apply file:text-foreground placeholder:text-muted-foreground/70 selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[1px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* label */
+.style-mono .cn-label {
+  @apply flex items-center gap-1.5 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50;
+}
+
+/* kbd */
+.style-mono .cn-kbd {
+  @apply bg-muted text-muted-foreground in-data-[slot=tooltip-content]:bg-background/20 in-data-[slot=tooltip-content]:text-background dark:in-data-[slot=tooltip-content]:bg-background/10 in-data-[variant=default]:bg-primary-foreground/15 dark:in-data-[variant=default]:bg-primary-foreground/8 in-data-[variant=default]:text-primary-foreground pointer-events-none inline-flex h-5 w-fit min-w-5 items-center justify-center gap-1 rounded-sm px-1 font-sans text-xs font-medium select-none [&_svg:not([class*='size-'])]:size-3;
+}
+.style-mono .cn-kbd-group {
+  @apply hidden items-center gap-1 sm:inline-flex;
+}
+
+/* checkbox */
+.style-mono .cn-checkbox {
+  @apply border-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex size-4 shrink-0 items-center justify-center rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50;
+}
+.style-mono .cn-checkbox-indicator {
+  @apply grid place-content-center text-current;
+}
+
+/* radio-group */
+.style-mono .cn-radio-group {
+  @apply grid gap-2;
+}
+.style-mono .cn-radio-group-item {
+  @apply border-foreground/20 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-shadow outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50;
+}
+.style-mono .cn-radio-group-indicator {
+  @apply flex items-center justify-center text-current;
+}
+
+/* switch */
+.style-mono .cn-switch {
+  @apply data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50;
+}
+.style-mono .cn-switch-thumb {
+  @apply bg-background dark:data-[state=unchecked]:bg-foreground dark:data-[state=checked]:bg-primary-foreground pointer-events-none block size-4 rounded-full ring-0 transition-transform data-[state=checked]:translate-x-[calc(100%-2px)] data-[state=unchecked]:translate-x-0;
+}
+
+/* toggle */
+.style-mono .cn-toggle {
+  @apply hover:bg-muted hover:text-muted-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[1px] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-toggle-variant-default {
+  @apply bg-transparent;
+}
+.style-mono .cn-toggle-variant-outline {
+  @apply border-border hover:bg-muted hover:text-foreground border bg-transparent shadow-xs;
+}
+.style-mono .cn-toggle-size-default {
+  @apply h-9 min-w-9 px-2;
+}
+.style-mono .cn-toggle-size-sm {
+  @apply h-8 min-w-8 px-1.5;
+}
+.style-mono .cn-toggle-size-lg {
+  @apply h-10 min-w-10 px-2.5;
+}
+
+/* toggle-group */
+.style-mono .cn-toggle-group {
+  @apply flex items-center;
+}
+.style-mono .cn-toggle-group-item {
+  @apply min-w-0 flex-1 shrink-0 rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10 data-[variant=outline]:border-l-0 data-[variant=outline]:first:border-l;
+}
+
+/* slider */
+.style-mono .cn-slider {
+  @apply relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col;
+}
+.style-mono .cn-slider-track {
+  @apply bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5;
+}
+.style-mono .cn-slider-range {
+  @apply bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full;
+}
+.style-mono .cn-slider-thumb {
+  @apply border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50;
+}
+
+/* progress */
+.style-mono .cn-progress {
+  @apply bg-primary/10 relative h-2 w-full overflow-hidden rounded-full;
+}
+.style-mono .cn-progress-indicator {
+  @apply bg-primary h-full w-full flex-1 transition-all duration-500 ease-out;
+}
+
+/* textarea */
+.style-mono .cn-textarea {
+  @apply border-border placeholder:text-muted-foreground/70 focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-background flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* style-mono — reproduces pmone's ORIGINAL (pre-cn-*) component look.
+   Each rule re-applies the HEAD inline class string to the cn-* selector the
+   converted component now emits. Flat `.style-mono .cn-* { @apply ... }`.
+
+   NOTE: bare structural marker classes `group/<name>` and `peer/<name>` are
+   STRIPPED from @apply — Tailwind v4 errors ("Cannot apply unknown utility
+   class") on them, and they're still emitted inline by the components, so
+   nothing is lost. `@container/field-group` is kept (it @applies cleanly).
+   `cn-font-heading` is a shared token (main.css) and is never redefined here. */
+
+/* field */
+.style-mono .cn-field {
+  @apply data-[invalid=true]:text-destructive flex w-full gap-3;
+}
+.style-mono .cn-field-orientation-vertical {
+  @apply flex-col [&>*]:w-full [&>.sr-only]:w-auto;
+}
+.style-mono .cn-field-orientation-horizontal {
+  @apply flex-row items-center has-[>[data-slot=field-content]]:items-start [&>[data-slot=field-label]]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px;
+}
+.style-mono .cn-field-orientation-responsive {
+  @apply flex-col @md/field-group:flex-row @md/field-group:items-center @md/field-group:has-[>[data-slot=field-content]]:items-start [&>*]:w-full @md/field-group:[&>*]:w-auto [&>.sr-only]:w-auto @md/field-group:[&>[data-slot=field-label]]:flex-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px;
+}
+.style-mono .cn-field-content {
+  @apply flex flex-1 flex-col gap-1.5 leading-snug;
+}
+.style-mono .cn-field-description {
+  @apply text-muted-foreground [&>a:hover]:text-primary text-sm leading-normal font-normal group-has-[[data-orientation=horizontal]]/field:text-balance last:mt-0 nth-last-2:-mt-1 [&>a]:underline [&>a]:underline-offset-4 [[data-variant=legend]+&]:-mt-1.5;
+}
+.style-mono .cn-field-error {
+  @apply text-destructive-foreground text-sm font-normal;
+}
+.style-mono .cn-field-group {
+  @apply @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4;
+}
+.style-mono .cn-field-label {
+  @apply has-[[data-state=checked]]:bg-primary/5 has-[[data-state=checked]]:border-primary dark:has-[[data-state=checked]]:bg-primary/10 flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50 has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border [&_>[data-slot=field]]:p-4;
+}
+.style-mono .cn-field-legend {
+  @apply mb-3 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base;
+}
+.style-mono .cn-field-separator {
+  @apply relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2;
+}
+.style-mono .cn-field-separator-content {
+  @apply bg-background text-muted-foreground relative mx-auto block w-fit px-2;
+}
+.style-mono .cn-field-set {
+  @apply flex flex-col gap-6 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3;
+}
+.style-mono .cn-field-title {
+  @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium group-data-[disabled=true]/field:opacity-50;
+}
+
+/* input-group */
+.style-mono .cn-input-group-addon {
+  @apply text-muted-foreground flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-input-group-addon-align-inline-start {
+  @apply order-first pl-3 has-[>button]:ml-[-0.45rem] has-[>kbd]:ml-[-0.35rem];
+}
+.style-mono .cn-input-group-addon-align-inline-end {
+  @apply order-last pr-3 has-[>button]:mr-[-0.45rem] has-[>kbd]:mr-[-0.35rem];
+}
+.style-mono .cn-input-group-addon-align-block-start {
+  @apply order-first w-full justify-start px-3 pt-3 group-has-[>input]/input-group:pt-2.5 [.border-b]:pb-3;
+}
+.style-mono .cn-input-group-addon-align-block-end {
+  @apply order-last w-full justify-start px-3 pb-3 group-has-[>input]/input-group:pb-2.5 [.border-t]:pt-3;
+}
+.style-mono .cn-input-group-button {
+  @apply flex items-center gap-2 text-sm shadow-none;
+}
+.style-mono .cn-input-group-button-size-xs {
+  @apply h-6 gap-1 rounded-[calc(var(--radius)-5px)] px-2 has-[>svg]:px-2 [&>svg:not([class*='size-'])]:size-3.5;
+}
+.style-mono .cn-input-group-button-size-sm {
+  @apply h-8 gap-1.5 rounded-md px-2.5 has-[>svg]:px-2.5;
+}
+.style-mono .cn-input-group-button-size-icon-xs {
+  @apply size-6 rounded-[calc(var(--radius)-5px)] p-0 has-[>svg]:p-0;
+}
+.style-mono .cn-input-group-button-size-icon-sm {
+  @apply size-8 p-0 has-[>svg]:p-0;
+}
+.style-mono .cn-input-group {
+  @apply border-border dark:bg-background has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring relative flex h-9 w-full min-w-0 items-center rounded-md border shadow-xs outline-none has-[[data-slot=input-group-control]:focus-visible]:ring-[1px] has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>textarea]:h-auto has-[>[data-align=block-end]]:[&>input]:pt-3 has-[>[data-align=block-start]]:[&>input]:pb-3 has-[>[data-align=inline-end]]:[&>input]:pr-2 has-[>[data-align=inline-start]]:[&>input]:pl-2;
+}
+.style-mono .cn-input-group-input {
+  @apply flex-1 rounded-none border-0 bg-transparent ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent;
+}
+.style-mono .cn-input-group-text {
+  @apply text-muted-foreground/70 flex items-center gap-2 text-sm tracking-tight [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-input-group-textarea {
+  @apply flex-1 resize-none rounded-none border-0 bg-transparent py-3 shadow-none ring-offset-transparent focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent;
+}
+
+/* input-otp */
+.style-mono .cn-input-otp {
+  @apply flex items-center gap-2 has-disabled:opacity-50;
+}
+.style-mono .cn-input-otp-input {
+  @apply disabled:cursor-not-allowed;
+}
+.style-mono .cn-input-otp-group {
+  @apply flex items-center;
+}
+.style-mono .cn-input-otp-slot {
+  @apply data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 border-input relative flex h-9 w-9 items-center justify-center border-y border-r text-sm shadow-xs transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md data-[active=true]:z-10 data-[active=true]:ring-[3px];
+}
+.style-mono .cn-input-otp-caret {
+  @apply pointer-events-none absolute inset-0 flex items-center justify-center;
+}
+.style-mono .cn-input-otp-caret-line {
+  @apply animate-caret-blink bg-foreground h-4 w-px duration-1000;
+}
+
+/* select */
+.style-mono .cn-select-trigger {
+  @apply border-border data-[placeholder]:text-muted-foreground/70 [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-background flex w-full items-center justify-between gap-1.5 rounded-md border bg-transparent px-3 py-2 text-sm tracking-tight whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 [&_svg]:pointer-events-none [&_svg]:-me-1 [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-select-trigger-icon {
+  @apply size-3.5 opacity-50;
+}
+.style-mono .cn-select-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--reka-select-content-available-height) overflow-x-hidden overflow-y-auto rounded-md border shadow-md;
+}
+.style-mono .cn-select-viewport {
+  @apply p-1;
+}
+.style-mono .cn-select-item {
+  @apply focus:bg-muted focus:text-primary [&_svg:not([class*='text-'])]:text-muted-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm tracking-tight outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2;
+}
+.style-mono .cn-select-item-indicator {
+  @apply absolute right-2 flex size-3.5 items-center justify-center;
+}
+.style-mono .cn-select-item-indicator-icon {
+  @apply size-4;
+}
+.style-mono .cn-select-label {
+  @apply px-2 py-1.5 text-sm font-medium;
+}
+.style-mono .cn-select-separator {
+  @apply bg-border pointer-events-none -mx-1 my-1 h-px;
+}
+.style-mono .cn-select-scroll-up-button {
+  @apply flex cursor-default items-center justify-center py-1;
+}
+.style-mono .cn-select-scroll-down-button {
+  @apply flex cursor-default items-center justify-center py-1;
+}
+
+/* combobox */
+.style-mono .cn-combobox-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-[200px] origin-(--reka-combobox-content-transform-origin) overflow-hidden rounded-md border shadow-md outline-none;
+}
+.style-mono .cn-combobox-list {
+  @apply max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto;
+}
+.style-mono .cn-combobox-empty {
+  @apply py-6 text-center text-sm;
+}
+.style-mono .cn-combobox-group {
+  @apply text-foreground overflow-hidden p-1;
+}
+.style-mono .cn-combobox-label {
+  @apply text-muted-foreground px-2 py-1.5 text-xs font-medium;
+}
+.style-mono .cn-combobox-input {
+  @apply placeholder:text-muted-foreground/70 flex h-9 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
+}
+.style-mono .cn-combobox-item {
+  @apply data-[highlighted]:bg-muted data-[highlighted]:text-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-combobox-item-indicator {
+  @apply ml-auto;
+}
+.style-mono .cn-combobox-separator {
+  @apply bg-border -mx-1 h-px;
+}
+
+/* command */
+.style-mono .cn-command {
+  @apply bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md;
+}
+.style-mono .cn-command-dialog {
+  @apply overflow-hidden p-0 shadow-lg;
+}
+.style-mono .cn-command-empty {
+  @apply py-6 text-center text-sm;
+}
+.style-mono .cn-command-group {
+  @apply text-foreground [&_[cmdk-group-heading]]:text-muted-foreground overflow-hidden p-1 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium;
+}
+.style-mono .cn-command-group-heading {
+  @apply text-muted-foreground px-2 py-1.5 text-xs font-medium tracking-tight;
+}
+.style-mono .cn-command-input-wrapper {
+  @apply border-b;
+}
+.style-mono .cn-command-input-group {
+  @apply rounded-none border-0 bg-transparent px-3 shadow-none dark:bg-transparent *:data-[slot=input-group-addon]:pl-0!;
+}
+.style-mono .cn-command-input-icon {
+  @apply text-popover-foreground size-4 shrink-0 opacity-50;
+}
+.style-mono .cn-command-input {
+  @apply placeholder:text-muted-foreground/70 flex h-9 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
+}
+.style-mono .cn-command-item {
+  @apply data-highlighted:bg-muted data-highlighted:text-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50;
+}
+.style-mono .cn-command-list {
+  @apply max-h-[60vh] overflow-x-hidden overflow-y-auto;
+}
+.style-mono .cn-command-separator {
+  @apply bg-border -mx-1 h-px;
+}
+.style-mono .cn-command-shortcut {
+  @apply text-muted-foreground ml-auto text-xs tracking-widest;
+}
+
+/* item */
+.style-mono .cn-item {
+  @apply [a]:hover:bg-accent/50 focus-visible:border-ring focus-visible:ring-offset-background focus-visible:ring-ring flex flex-wrap items-center rounded-md border border-transparent text-sm transition-colors duration-100 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 [a]:transition-colors;
+}
+.style-mono .cn-item-variant-default {
+  @apply bg-transparent;
+}
+.style-mono .cn-item-variant-outline {
+  @apply border-border;
+}
+.style-mono .cn-item-variant-muted {
+  @apply bg-muted/50;
+}
+.style-mono .cn-item-size-default {
+  @apply gap-4 p-4;
+}
+.style-mono .cn-item-size-sm {
+  @apply gap-2.5 px-4 py-3;
+}
+.style-mono .cn-item-size-xs {
+  @apply gap-2 px-2.5 py-2;
+}
+.style-mono .cn-item-media {
+  @apply flex shrink-0 items-center justify-center gap-2 group-has-[[data-slot=item-description]]/item:translate-y-0.5 group-has-[[data-slot=item-description]]/item:self-start [&_svg]:pointer-events-none;
+}
+.style-mono .cn-item-media-variant-default {
+  @apply bg-transparent;
+}
+.style-mono .cn-item-media-variant-icon {
+  @apply bg-muted size-8 rounded-sm border [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-item-media-variant-image {
+  @apply size-10 overflow-hidden rounded-sm [&_img]:size-full [&_img]:object-cover;
+}
+.style-mono .cn-item-content {
+  @apply flex flex-1 flex-col gap-1 [&+[data-slot=item-content]]:flex-none;
+}
+.style-mono .cn-item-title {
+  @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium;
+}
+.style-mono .cn-item-description {
+  @apply text-muted-foreground [&>a:hover]:text-primary line-clamp-2 text-sm leading-normal font-normal text-balance [&>a]:underline [&>a]:underline-offset-4;
+}
+.style-mono .cn-item-actions {
+  @apply flex items-center gap-2;
+}
+.style-mono .cn-item-header {
+  @apply flex basis-full items-center justify-between gap-2;
+}
+.style-mono .cn-item-footer {
+  @apply flex basis-full items-center justify-between gap-2;
+}
+.style-mono .cn-item-group {
+  @apply flex flex-col;
+}
+.style-mono .cn-item-separator {
+  @apply my-0;
+}
+
+/* empty */
+.style-mono .cn-empty-media {
+  @apply mb-2 flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0;
+}
+.style-mono .cn-empty-media-default {
+  @apply bg-transparent;
+}
+.style-mono .cn-empty-media-icon {
+  @apply bg-muted text-foreground flex size-10 shrink-0 items-center justify-center rounded-lg [&_svg:not([class*='size-'])]:size-6;
+}
+.style-mono .cn-empty {
+  @apply flex min-w-0 flex-1 flex-col items-center justify-center gap-6 rounded-lg border-dashed p-6 text-center text-balance md:p-12;
+}
+.style-mono .cn-empty-header {
+  @apply flex max-w-sm flex-col items-center gap-1.5 text-center;
+}
+.style-mono .cn-empty-title {
+  @apply text-xl font-medium tracking-[-0.04em];
+}
+.style-mono .cn-empty-description {
+  @apply text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed tracking-tight [&>a]:underline [&>a]:underline-offset-4;
+}
+.style-mono .cn-empty-content {
+  @apply flex w-full max-w-sm min-w-0 flex-col items-center justify-center text-sm text-balance;
+}
+
+/* tabs */
+.style-mono .cn-tabs-trigger {
+  @apply ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap outline-hidden transition-colors select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+}
+.style-mono .cn-tabs-content {
+  @apply ring-offset-background focus-visible:ring-ring mt-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden data-[state=inactive]:hidden;
+}
+
+/* ==========================================================================
+   shadcn style: "mono"
+   Re-applies pmone's ORIGINAL (pre-cn-*) component look onto the cn-* selectors
+   the converted components now emit. Sourced verbatim from git HEAD inline
+   Tailwind. Additive — each rule restores the original class string.
+   ========================================================================== */
+
+/* dialog */
+.style-mono .cn-dialog-content {
+  @apply bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100%-4rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border p-6 shadow-lg duration-200 sm:max-w-lg;
+}
+.style-mono .cn-dialog-overlay {
+  @apply data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80;
+}
+.style-mono .cn-dialog-header {
+  @apply flex flex-col gap-2 text-center sm:text-left;
+}
+.style-mono .cn-dialog-footer {
+  @apply flex flex-col-reverse gap-2 sm:flex-row sm:justify-end;
+}
+.style-mono .cn-dialog-title {
+  @apply text-lg leading-none font-semibold;
+}
+.style-mono .cn-dialog-description {
+  @apply text-muted-foreground text-sm;
+}
+
+/* sheet */
+.style-mono .cn-sheet-content {
+  @apply bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[side=right]:data-[state=closed]:slide-out-to-right data-[side=right]:data-[state=open]:slide-in-from-right data-[side=left]:data-[state=closed]:slide-out-to-left data-[side=left]:data-[state=open]:slide-in-from-left data-[side=top]:data-[state=closed]:slide-out-to-top data-[side=top]:data-[state=open]:slide-in-from-top data-[side=bottom]:data-[state=closed]:slide-out-to-bottom data-[side=bottom]:data-[state=open]:slide-in-from-bottom fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[side=left]:sm:max-w-sm data-[side=right]:sm:max-w-sm;
+}
+.style-mono .cn-sheet-overlay {
+  @apply data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80;
+}
+.style-mono .cn-sheet-header {
+  @apply flex flex-col gap-1.5 p-4;
+}
+.style-mono .cn-sheet-footer {
+  @apply mt-auto flex flex-col gap-2 p-4;
+}
+.style-mono .cn-sheet-title {
+  @apply text-foreground font-semibold;
+}
+.style-mono .cn-sheet-description {
+  @apply text-muted-foreground text-sm;
+}
+
+/* drawer */
+.style-mono .cn-drawer-content {
+  @apply fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[80vh] flex-col rounded-t-2xl border-t bg-white outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))] dark:bg-gray-950;
+}
+.style-mono .cn-drawer-handle {
+  @apply mx-auto mt-2 mb-4 h-1.5 w-[100px] shrink-0 rounded-full bg-gray-200 dark:bg-gray-800;
+}
+.style-mono .cn-drawer-overlay {
+  @apply fixed inset-0 z-50 bg-black/80;
+}
+
+/* alert-dialog */
+.style-mono .cn-alert-dialog-overlay {
+  @apply data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80;
+}
+.style-mono .cn-alert-dialog-content {
+  @apply bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg;
+}
+.style-mono .cn-alert-dialog-header {
+  @apply flex flex-col gap-2 text-center sm:text-left;
+}
+.style-mono .cn-alert-dialog-footer {
+  @apply flex flex-col-reverse gap-2 sm:flex-row sm:justify-end;
+}
+.style-mono .cn-alert-dialog-title {
+  @apply text-lg font-semibold;
+}
+.style-mono .cn-alert-dialog-description {
+  @apply text-muted-foreground text-sm;
+}
+.style-mono .cn-alert-dialog-cancel {
+  @apply mt-2 sm:mt-0;
+}
+
+/* popover */
+.style-mono .cn-popover-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 rounded-md border p-4 shadow-md outline-hidden;
+}
+
+/* hover-card */
+.style-mono .cn-hover-card-content {
+  @apply bg-card text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-64 rounded-md border p-4 shadow-md outline-hidden;
+}
+
+/* tooltip */
+.style-mono .cn-tooltip-content {
+  @apply bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance;
+}
+.style-mono .cn-tooltip-arrow {
+  @apply bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px];
+}
+
+/* dropdown-menu */
+.style-mono .cn-dropdown-menu-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--reka-dropdown-menu-content-available-height) min-w-[8rem] origin-(--reka-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md;
+}
+.style-mono .cn-dropdown-menu-item {
+  @apply focus:bg-muted focus:text-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/40 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:!text-destructive-foreground relative flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm tracking-tight outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-dropdown-menu-checkbox-item {
+  @apply focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-dropdown-menu-radio-item {
+  @apply focus:bg-muted focus:text-foreground relative flex cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm tracking-tight outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-dropdown-menu-item-indicator {
+  @apply pointer-events-none absolute left-2 flex size-3.5 items-center justify-center;
+}
+.style-mono .cn-dropdown-menu-label {
+  @apply text-muted-foreground px-2 py-1.5 text-sm font-medium tracking-tight data-[inset]:pl-8;
+}
+.style-mono .cn-dropdown-menu-separator {
+  @apply bg-border -mx-1 my-1 h-px;
+}
+.style-mono .cn-dropdown-menu-shortcut {
+  @apply text-muted-foreground ml-auto text-xs tracking-widest;
+}
+.style-mono .cn-dropdown-menu-sub-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--reka-dropdown-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg;
+}
+.style-mono .cn-dropdown-menu-sub-trigger {
+  @apply focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8;
+}
+
+/* context-menu */
+.style-mono .cn-context-menu-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--reka-context-menu-content-available-height) min-w-[8rem] overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md;
+}
+.style-mono .cn-context-menu-item {
+  @apply focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/40 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:!text-destructive-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-context-menu-checkbox-item {
+  @apply focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-context-menu-radio-item {
+  @apply focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-context-menu-item-indicator {
+  @apply pointer-events-none absolute left-2 flex size-3.5 items-center justify-center;
+}
+.style-mono .cn-context-menu-label {
+  @apply text-foreground px-2 py-1.5 text-sm font-medium data-[inset]:pl-8;
+}
+.style-mono .cn-context-menu-separator {
+  @apply bg-border -mx-1 my-1 h-px;
+}
+.style-mono .cn-context-menu-shortcut {
+  @apply text-muted-foreground ml-auto text-xs tracking-widest;
+}
+.style-mono .cn-context-menu-sub-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--reka-context-menu-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg;
+}
+.style-mono .cn-context-menu-sub-trigger {
+  @apply focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+
+/* menubar */
+.style-mono .cn-menubar {
+  @apply bg-background flex h-9 items-center gap-1 rounded-md border p-1 shadow-xs;
+}
+.style-mono .cn-menubar-trigger {
+  @apply focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex items-center rounded-sm px-2 py-1 text-sm font-medium outline-hidden select-none;
+}
+.style-mono .cn-menubar-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[12rem] origin-(--reka-menubar-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-md;
+}
+.style-mono .cn-menubar-item {
+  @apply focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/40 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:!text-destructive-foreground [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-menubar-checkbox-item {
+  @apply focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-xs py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-menubar-checkbox-item-indicator {
+  @apply pointer-events-none absolute left-2 flex size-3.5 items-center justify-center;
+}
+.style-mono .cn-menubar-radio-item {
+  @apply focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-xs py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-menubar-radio-item-indicator {
+  @apply pointer-events-none absolute left-2 flex size-3.5 items-center justify-center;
+}
+.style-mono .cn-menubar-label {
+  @apply px-2 py-1.5 text-sm font-medium data-[inset]:pl-8;
+}
+.style-mono .cn-menubar-separator {
+  @apply bg-border -mx-1 my-1 h-px;
+}
+.style-mono .cn-menubar-shortcut {
+  @apply text-muted-foreground ml-auto text-xs tracking-widest;
+}
+.style-mono .cn-menubar-sub-content {
+  @apply bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--reka-menubar-content-transform-origin) overflow-hidden rounded-md border p-1 shadow-lg;
+}
+.style-mono .cn-menubar-sub-trigger {
+  @apply focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none select-none data-[inset]:pl-8;
+}
+
+/* alert */
+.style-mono .cn-alert {
+  @apply relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-lg border px-4 py-3 text-sm has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current;
+}
+.style-mono .cn-alert-variant-default {
+  @apply bg-card text-card-foreground;
+}
+.style-mono .cn-alert-variant-destructive {
+  @apply text-destructive bg-card *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current;
+}
+.style-mono .cn-alert-title {
+  @apply col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight;
+}
+.style-mono .cn-alert-description {
+  @apply text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed;
+}
+
+/* accordion */
+.style-mono .cn-accordion {
+  @apply space-y-2 lg:space-y-3;
+}
+.style-mono .cn-accordion-item {
+  @apply rounded-2xl border border-gray-200 px-4 lg:rounded-3xl lg:px-6 dark:border-gray-800;
+}
+.style-mono .cn-accordion-trigger {
+  @apply flex flex-1 items-center justify-between gap-x-2 py-4 text-left text-base font-semibold tracking-tight text-black outline-hidden transition-all sm:py-6 dark:text-white [&[data-state=open]>svg]:rotate-180;
+}
+.style-mono .cn-accordion-content {
+  @apply data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-base transition-all sm:text-lg;
+}
+.style-mono .cn-accordion-content-inner {
+  @apply pt-0 pb-6 sm:pb-8;
+}
+
+/* breadcrumb */
+.style-mono .cn-breadcrumb-list {
+  @apply text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5;
+}
+.style-mono .cn-breadcrumb-item {
+  @apply inline-flex items-center gap-1.5;
+}
+.style-mono .cn-breadcrumb-link {
+  @apply hover:text-foreground transition-colors;
+}
+.style-mono .cn-breadcrumb-page {
+  @apply text-foreground font-normal;
+}
+.style-mono .cn-breadcrumb-separator {
+  @apply [&>svg]:size-3.5;
+}
+.style-mono .cn-breadcrumb-ellipsis {
+  @apply flex size-9 items-center justify-center;
+}
+
+/* ============================================================
+   style "mono" - reproduces pmone's ORIGINAL (pre-cn-*) look.
+   Each rule re-applies the original HEAD Tailwind classes onto
+   the cn-* selectors the converted components now emit.
+   ============================================================ */
+
+/* card */
+.style-mono .cn-card {
+  @apply bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6;
+}
+.style-mono .cn-card-header {
+  @apply @container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6;
+}
+.style-mono .cn-card-title {
+  @apply leading-none font-semibold;
+}
+.style-mono .cn-card-description {
+  @apply text-muted-foreground text-sm;
+}
+.style-mono .cn-card-action {
+  @apply col-start-2 row-span-2 row-start-1 self-start justify-self-end;
+}
+.style-mono .cn-card-content {
+  @apply px-6;
+}
+.style-mono .cn-card-footer {
+  @apply flex items-center px-6 [.border-t]:pt-6;
+}
+
+/* table */
+.style-mono .cn-table-container {
+  @apply relative w-full overflow-auto;
+}
+.style-mono .cn-table {
+  @apply w-full caption-bottom text-sm;
+}
+.style-mono .cn-table-header {
+  @apply [&_tr]:border-b;
+}
+.style-mono .cn-table-body {
+  @apply [&_tr:last-child]:border-0;
+}
+.style-mono .cn-table-footer {
+  @apply bg-muted/50 border-t font-medium [&>tr]:last:border-b-0;
+}
+.style-mono .cn-table-row {
+  @apply hover:bg-muted/50 data-[state=selected]:bg-muted border-b;
+}
+.style-mono .cn-table-head {
+  @apply text-muted-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
+}
+.style-mono .cn-table-cell {
+  @apply p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
+}
+.style-mono .cn-table-caption {
+  @apply text-muted-foreground mt-4 text-sm;
+}
+
+/* pagination */
+.style-mono .cn-pagination {
+  @apply mx-auto flex w-full justify-center;
+}
+.style-mono .cn-pagination-content {
+  @apply flex flex-row items-center gap-1;
+}
+.style-mono .cn-pagination-ellipsis {
+  @apply flex size-9 items-center justify-center;
+}
+.style-mono .cn-pagination-first-text {
+  @apply hidden sm:block;
+}
+.style-mono .cn-pagination-last-text {
+  @apply hidden sm:block;
+}
+.style-mono .cn-pagination-next-text {
+  @apply hidden sm:block;
+}
+.style-mono .cn-pagination-previous-text {
+  @apply hidden sm:block;
+}
+
+/* navigation-menu */
+.style-mono .cn-navigation-menu {
+  @apply relative z-10 flex max-w-max flex-1 items-center justify-center;
+}
+.style-mono .cn-navigation-menu-list {
+  @apply flex flex-1 list-none items-center justify-center gap-x-0.5;
+}
+.style-mono .cn-navigation-menu-trigger {
+  @apply bg-background hover:bg-muted hover:text-muted-foreground focus:bg-muted focus:text-muted-foreground data-active:bg-muted/50 data-[state=open]:bg-muted/50 inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-hidden disabled:pointer-events-none disabled:opacity-50;
+}
+.style-mono .cn-navigation-menu-trigger-icon {
+  @apply relative size-3 transition duration-200 group-data-[state=open]:rotate-180;
+}
+.style-mono .cn-navigation-menu-content {
+  @apply data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-50 border-border bg-popover absolute top-full right-0 mt-3 flex w-56 origin-top-right flex-col gap-y-1 rounded-xl border px-2 py-4;
+}
+.style-mono .cn-navigation-menu-indicator {
+  @apply data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in top-full z-1 flex h-1.5 items-end justify-center overflow-hidden;
+}
+.style-mono .cn-navigation-menu-indicator-arrow {
+  @apply bg-border relative top-[60%] h-2 w-2 rotate-45 rounded-tl-sm shadow-md;
+}
+
+/* sidebar */
+.style-mono .cn-sidebar-gap {
+  @apply relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear;
+}
+.style-mono .cn-sidebar-inner {
+  @apply bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm;
+}
+.style-mono .cn-sidebar-header {
+  @apply flex flex-col gap-2 p-2;
+}
+.style-mono .cn-sidebar-footer {
+  @apply flex flex-col gap-2 p-2;
+}
+.style-mono .cn-sidebar-content {
+  @apply flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden;
+}
+.style-mono .cn-sidebar-separator {
+  @apply bg-sidebar-border mx-2 w-auto;
+}
+.style-mono .cn-sidebar-input {
+  @apply bg-background h-8 w-full shadow-none;
+}
+.style-mono .cn-sidebar-inset {
+  @apply bg-background relative flex w-full flex-1 flex-col lg:peer-data-[variant=inset]:m-2 lg:peer-data-[variant=inset]:ml-0 lg:peer-data-[variant=inset]:rounded-xl lg:peer-data-[variant=inset]:shadow-sm lg:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2;
+}
+.style-mono .cn-sidebar-rail {
+  @apply hover:after:bg-sidebar-border hover:group-data-[collapsible=offcanvas]:bg-sidebar absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[collapsible=offcanvas]:translate-x-0 group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] group-data-[collapsible=offcanvas]:after:left-full in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize sm:flex [[data-side=left][data-collapsible=offcanvas]_&]:-right-2 [[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-collapsible=offcanvas]_&]:-left-2 [[data-side=right][data-state=collapsed]_&]:cursor-w-resize;
+}
+.style-mono .cn-sidebar-group {
+  @apply relative flex w-full min-w-0 flex-col p-2;
+}
+.style-mono .cn-sidebar-group-label {
+  @apply text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0 focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0;
+}
+.style-mono .cn-sidebar-group-action {
+  @apply text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform group-data-[collapsible=icon]:hidden after:absolute after:-inset-2 focus-visible:ring-2 lg:after:hidden [&>svg]:size-4 [&>svg]:shrink-0;
+}
+.style-mono .cn-sidebar-group-content {
+  @apply w-full text-sm;
+}
+.style-mono .cn-sidebar-menu {
+  @apply flex w-full min-w-0 flex-col gap-1;
+}
+.style-mono .cn-sidebar-menu-action {
+  @apply text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground peer-hover/menu-button:text-sidebar-accent-foreground absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 outline-hidden transition-transform group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 after:absolute after:-inset-2 focus-visible:ring-2 lg:after:hidden [&>svg]:size-4 [&>svg]:shrink-0;
+}
+.style-mono .cn-sidebar-menu-badge {
+  @apply text-sidebar-foreground peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[active=true]/menu-button:text-sidebar-accent-foreground pointer-events-none absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums select-none group-data-[collapsible=icon]:hidden peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1;
+}
+.style-mono .cn-sidebar-menu-skeleton {
+  @apply flex h-8 items-center gap-2 rounded-md px-2;
+}
+.style-mono .cn-sidebar-menu-skeleton-icon {
+  @apply size-4 rounded-md;
+}
+.style-mono .cn-sidebar-menu-skeleton-text {
+  @apply h-4 max-w-(--skeleton-width) flex-1;
+}
+.style-mono .cn-sidebar-menu-sub {
+  @apply border-sidebar-border mx-2 flex min-w-0 translate-x-[9px] flex-col gap-1 border-l px-2.5 py-0.5 group-data-[collapsible=icon]:hidden;
+}
+.style-mono .cn-sidebar-menu-sub-button {
+  @apply text-sidebar-foreground ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground [&>svg]:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 outline-hidden group-data-[collapsible=icon]:hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[size=md]:text-sm data-[size=sm]:text-xs [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0;
+}
+/* sidebar - sidebarMenuButtonVariants cva (base + variant/size keys) */
+.style-mono .cn-sidebar-menu-button {
+  @apply ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0;
+}
+.style-mono .cn-sidebar-menu-button-variant-default {
+  @apply hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+}
+.style-mono .cn-sidebar-menu-button-variant-outline {
+  @apply bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))];
+}
+.style-mono .cn-sidebar-menu-button-size-default {
+  @apply h-8 text-sm;
+}
+.style-mono .cn-sidebar-menu-button-size-sm {
+  @apply h-7 text-xs;
+}
+.style-mono .cn-sidebar-menu-button-size-lg {
+  @apply h-12 text-sm group-data-[collapsible=icon]:p-0!;
+}
+
+/* scroll-area */
+.style-mono .cn-scroll-area {
+  @apply relative overflow-hidden;
+}
+.style-mono .cn-scroll-area-viewport {
+  @apply h-full w-full rounded-[inherit] outline-hidden;
+}
+.style-mono .cn-scroll-area-scrollbar {
+  @apply flex touch-none transition-colors select-none data-[orientation=horizontal]:h-2 data-[orientation=horizontal]:flex-col data-[orientation=horizontal]:border-t data-[orientation=horizontal]:border-t-transparent data-[orientation=horizontal]:p-px data-[orientation=vertical]:h-full data-[orientation=vertical]:w-2 data-[orientation=vertical]:border-l data-[orientation=vertical]:border-l-transparent data-[orientation=vertical]:p-px;
+}
+.style-mono .cn-scroll-area-thumb {
+  @apply bg-border relative flex-1 rounded-full;
+}
+
+/* resizable */
+.style-mono .cn-resizable-panel-group {
+  @apply flex h-full w-full data-[orientation=vertical]:flex-col;
+}
+.style-mono .cn-resizable-handle {
+  @apply bg-border focus-visible:ring-ring relative flex w-px items-center justify-center after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:outline-hidden data-[orientation=vertical]:h-px data-[orientation=vertical]:w-full data-[orientation=vertical]:after:left-0 data-[orientation=vertical]:after:h-1 data-[orientation=vertical]:after:w-full data-[orientation=vertical]:after:translate-x-0 data-[orientation=vertical]:after:-translate-y-1/2 [&[data-orientation=vertical]>div]:rotate-90;
+}
+.style-mono .cn-resizable-handle-icon {
+  @apply bg-border z-10 flex h-4 w-3 items-center justify-center rounded-xs border;
+}
+
+/* calendar */
+.style-mono .cn-calendar {
+  @apply p-3;
+}
+
+/* carousel */
+.style-mono .cn-carousel-previous {
+  @apply absolute h-8 w-8 touch-manipulation rounded-full p-0;
+}
+.style-mono .cn-carousel-next {
+  @apply absolute h-8 w-8 touch-manipulation rounded-full p-0;
+}
+
+/* button-group */
+.style-mono .cn-button-group {
+  @apply flex w-fit items-stretch has-[>[data-slot=button-group]]:gap-2 [&>*:focus-visible]:relative [&>*:focus-visible]:z-10 has-[select[aria-hidden=true]:last-child]:[&>[data-slot=select-trigger]:last-of-type]:rounded-r-md [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1;
+}
+.style-mono .cn-button-group-orientation-horizontal {
+  @apply [&>*:not(:first-child)]:rounded-l-none [&>*:not(:first-child)]:border-l-0 [&>*:not(:last-child)]:rounded-r-none;
+}
+.style-mono .cn-button-group-orientation-vertical {
+  @apply flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none;
+}
+.style-mono .cn-button-group-text {
+  @apply bg-muted flex items-center gap-2 rounded-md border px-4 text-sm font-medium shadow-xs [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4;
+}
+.style-mono .cn-button-group-separator {
+  @apply bg-input relative !m-0 self-stretch data-[orientation=vertical]:h-auto;
+}
+
+/* tabs (partial conversion) */
+.style-mono .cn-tabs-trigger {
+  @apply ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap outline-hidden transition-colors select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+}
+.style-mono .cn-tabs-content {
+  @apply ring-offset-background focus-visible:ring-ring mt-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden data-[state=inactive]:hidden;
+}
+
+/* --- completeness gaps: skeleton / pagination nav / chart tooltip (HEAD originals) --- */
+.style-mono .cn-skeleton {
+  @apply animate-skeleton rounded-md [--skeleton-highlight:--alpha(var(--color-white)/64%)] [background:linear-gradient(120deg,transparent_40%,var(--skeleton-highlight),transparent_60%)_var(--color-muted)_0_0/200%_100%_fixed] dark:[--skeleton-highlight:--alpha(var(--color-white)/4%)];
+}
+.style-mono .cn-pagination-first,
+.style-mono .cn-pagination-last,
+.style-mono .cn-pagination-next,
+.style-mono .cn-pagination-previous {
+  @apply hidden sm:block;
+}
+.style-mono .cn-chart-tooltip {
+  @apply border-border/50 bg-background grid min-w-9 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl;
+}

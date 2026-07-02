@@ -19,7 +19,7 @@
             placeholder="Post title..."
             class="placeholder:text-muted-foreground/50 leading-tighter w-full resize-none border-0 bg-transparent px-0 text-3xl leading-tight! font-semibold tracking-tighter shadow-none outline-none focus-visible:ring-0 lg:text-4xl"
           />
-          <InputErrorMessage :errors="editor.errors.value.title" />
+          <FieldError :errors="editor.errors.value.title" />
         </div>
 
         <!-- Featured Image -->
@@ -42,7 +42,7 @@
             v-model:delete-flag="editor.deleteFlags.value.featured_image"
             container-class="relative isolate aspect-video w-full"
           />
-          <InputErrorMessage :errors="editor.errors.value.tmp_featured_image" />
+          <FieldError :errors="editor.errors.value.tmp_featured_image" />
 
           <!-- Featured Image Caption -->
           <div v-if="showCaptionInput" class="!mt-2">
@@ -54,7 +54,7 @@
               placeholder="Add a caption..."
               class="text-muted-foreground w-full border-none bg-transparent text-center text-sm outline-none placeholder:text-muted-foreground/50 focus:text-foreground"
             />
-            <InputErrorMessage :errors="editor.errors.value.featured_image_caption" />
+            <FieldError :errors="editor.errors.value.featured_image_caption" />
           </div>
         </div>
 
@@ -66,7 +66,7 @@
             :post-id="editor.postId.value"
             placeholder="Start writing your post content..."
           />
-          <InputErrorMessage :errors="editor.errors.value.content" />
+          <FieldError :errors="editor.errors.value.content" />
         </div>
       </div>
     </TabsContent>
@@ -78,14 +78,14 @@
           <!-- First Tag Badge -->
           <span
             v-if="previewTags?.length > 0"
-            class="text-primary border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tighter capitalize sm:text-sm"
+            class="text-foreground border-border mb-3 flex items-center justify-center rounded-full border px-3 py-2 text-xs font-semibold tracking-tighter capitalize sm:text-sm"
           >
             {{ previewTags[0] }}
           </span>
 
           <!-- Title -->
           <h1
-            class="text-primary text-[clamp(2rem,9vw,3rem)] !leading-[1.2] font-semibold tracking-tighter text-balance xl:-mx-12"
+            class="text-foreground text-[clamp(2rem,9vw,3rem)] !leading-[1.2] font-semibold tracking-tighter text-balance xl:-mx-12"
           >
             {{ editor.previewData.value.title || "Untitled Post" }}
           </h1>
@@ -123,7 +123,7 @@
               </div>
 
               <div class="flex flex-col gap-y-1">
-                <div class="text-primary line-clamp-1 font-medium tracking-tight">
+                <div class="text-foreground line-clamp-1 font-medium tracking-tight">
                   <span v-for="(author, index) in previewAuthors" :key="index">
                     {{ author.name }}<span v-if="index != previewAuthors.length - 1">, </span>
                   </span>
@@ -150,7 +150,7 @@
           <!-- Excerpt -->
           <div
             v-if="editor.previewData.value.excerpt"
-            class="text-primary mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
+            class="text-foreground mt-10 text-xl font-semibold tracking-tighter text-pretty sm:text-2xl"
           >
             {{ editor.previewData.value.excerpt }}
           </div>

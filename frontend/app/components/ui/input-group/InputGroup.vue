@@ -13,18 +13,7 @@ const props = defineProps<{
     role="group"
     :class="
       cn(
-        'group/input-group border-border dark:bg-background relative flex w-full items-center rounded-md border shadow-xs outline-none',
-        'h-9 min-w-0 has-[>textarea]:h-auto',
-
-        // Variants based on alignment.
-        'has-[>[data-align=inline-start]]:[&>input]:pl-2',
-        'has-[>[data-align=inline-end]]:[&>input]:pr-2',
-        'has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-start]]:[&>input]:pb-3',
-        'has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3',
-
-        // Focus state.
-        'has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring has-[[data-slot=input-group-control]:focus-visible]:ring-[1px]',
-
+        'group/input-group cn-input-group relative flex w-full min-w-0 items-center outline-none has-[>textarea]:h-auto',
         props.class
       )
     "

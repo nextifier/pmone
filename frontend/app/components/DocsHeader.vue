@@ -7,16 +7,16 @@
         <button
           data-sidebar="trigger"
           data-slot="sidebar-trigger"
-          class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
+          class="text-foreground hover:bg-muted flex size-8 items-center justify-center rounded-lg"
           @click="toggleSidebar"
         >
           <ClientOnly>
             <Icon
               v-if="open && !isMobile"
               name="hugeicons:sidebar-left-01"
-              class="text-primary size-5"
+              class="text-foreground size-5"
             />
-            <Icon v-else name="hugeicons:sidebar-left" class="text-primary size-5" />
+            <Icon v-else name="hugeicons:sidebar-left" class="text-foreground size-5" />
             <template #fallback>
               <span class="size-5" aria-hidden="true" />
             </template>

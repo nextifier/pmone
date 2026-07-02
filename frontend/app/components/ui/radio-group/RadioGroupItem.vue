@@ -18,16 +18,17 @@ const forwardedProps = useForwardProps(delegatedProps);
     v-bind="forwardedProps"
     :class="
       cn(
-        'border-border data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-shadow outline-none focus-visible:ring-[1px] disabled:cursor-not-allowed disabled:opacity-50',
+        'cn-radio-group-item group/radio-group-item peer relative aspect-square shrink-0 border outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50',
         props.class
       )
     "
   >
     <RadioGroupIndicator
       data-slot="radio-group-indicator"
-      class="flex items-center justify-center text-current"
+      class="cn-radio-group-indicator"
     >
       <svg
+        class="cn-radio-group-indicator-icon"
         width="6"
         height="6"
         viewBox="0 0 6 6"

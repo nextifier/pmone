@@ -76,7 +76,7 @@
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span
                 v-if="hotel.star_rating"
-                class="text-primary inline-flex items-center gap-x-0.5 text-sm font-medium tracking-tight"
+                class="text-foreground inline-flex items-center gap-x-0.5 text-sm font-medium tracking-tight"
               >
                 <Icon
                   v-for="i in Number(hotel.star_rating)"

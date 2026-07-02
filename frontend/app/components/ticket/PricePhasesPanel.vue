@@ -88,7 +88,7 @@
             <div class="space-y-2">
               <Label for="phase-label">Label</Label>
               <Input id="phase-label" v-model="form.label" placeholder="Early Bird / Regular / On-site" />
-              <InputErrorMessage :errors="errors.label" />
+              <FieldError :errors="errors.label" />
             </div>
 
             <div class="space-y-2">
@@ -105,7 +105,7 @@
                   <InputGroupText>Rp</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
-              <InputErrorMessage :errors="errors.price" />
+              <FieldError :errors="errors.price" />
             </div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -117,7 +117,7 @@
                   placeholder="Optional start"
                   @update:model-value="(d) => (form._starts_at_obj = d)"
                 />
-                <InputErrorMessage :errors="errors.starts_at" />
+                <FieldError :errors="errors.starts_at" />
               </div>
               <div class="space-y-2">
                 <Label>Ends at</Label>
@@ -127,7 +127,7 @@
                   placeholder="Optional end"
                   @update:model-value="(d) => (form._ends_at_obj = d)"
                 />
-                <InputErrorMessage :errors="errors.ends_at" />
+                <FieldError :errors="errors.ends_at" />
               </div>
             </div>
 
@@ -137,7 +137,7 @@
               <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                 Cap the number sold during this phase. Leave empty for no phase quota.
               </p>
-              <InputErrorMessage :errors="errors.quota" />
+              <FieldError :errors="errors.quota" />
             </div>
 
             <div class="flex items-center gap-2">
@@ -161,7 +161,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">Delete price phase?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter">Delete price phase?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingItem?.label || "This phase" }}" will be removed.
           </p>
@@ -183,7 +183,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";

@@ -99,7 +99,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">
+          <div class="text-foreground text-lg font-semibold tracking-tighter">
             Move hotel to trash?
           </div>
           <p class="text-muted-foreground mt-2 text-sm tracking-tight">

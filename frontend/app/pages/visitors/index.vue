@@ -91,7 +91,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Verify visitors?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Verify visitors?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will verify {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "visitor" : "visitors" }}.
@@ -127,7 +127,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Send password reset?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Send password reset?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This emails a password reset link to {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "visitor" : "visitors" }}.
@@ -163,7 +163,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Are you sure?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
                 {{ selectedRows.length }} selected {{ selectedRows.length === 1 ? "row" : "rows" }}.
@@ -300,7 +300,7 @@ const columns = [
       const isVerified = !!emailVerifiedAt;
       const icon = h(resolveComponent("Icon"), {
         name: "material-symbols:verified",
-        class: isVerified ? "text-info size-4.5 shrink-0" : "text-primary/25 size-4.5 shrink-0",
+        class: isVerified ? "text-info size-4.5 shrink-0" : "text-foreground/25 size-4.5 shrink-0",
       });
       return isVerified
         ? withDirectives(h("div", { class: "flex items-center" }, icon), [

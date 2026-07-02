@@ -48,7 +48,7 @@
           <div class="space-y-2">
             <Label for="ac-name">Batch name</Label>
             <Input id="ac-name" v-model="form.name" placeholder="e.g. VIP invitations - speakers" />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
           </div>
 
           <!-- Unlocked tickets -->
@@ -72,7 +72,7 @@
                 </Label>
               </div>
             </div>
-            <InputErrorMessage :errors="errors.unlocks" />
+            <FieldError :errors="errors.unlocks" />
           </div>
 
           <!-- Kind -->
@@ -148,7 +148,7 @@
                 {{ form.price_effect === "percentage" ? "Percent (%)" : "Value (IDR)" }}
               </Label>
               <InputNumber id="ac-value" v-model="form.price_value" :min="0" />
-              <InputErrorMessage :errors="errors.price_value" />
+              <FieldError :errors="errors.price_value" />
             </div>
           </div>
 
@@ -220,7 +220,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";

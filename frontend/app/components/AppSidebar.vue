@@ -7,9 +7,9 @@
         @click="setOpenMobile(false)"
       >
         <div
-          class="bg-sidebar-primary text-sidebar-primary-foreground squircle flex aspect-square size-10 items-center justify-center rounded-lg group-data-[state=collapsed]:size-8"
+          class="bg-foreground text-background squircle flex aspect-square size-10 items-center justify-center rounded-lg group-data-[state=collapsed]:size-8"
         >
-          <LogoMark class="text-primary-foreground size-4 group-data-[state=expanded]:size-5" />
+          <LogoMark class="text-background size-4 group-data-[state=expanded]:size-5" />
         </div>
 
         <div class="flex flex-col group-data-[state=collapsed]:hidden">

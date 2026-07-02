@@ -12,7 +12,7 @@
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated from email if left empty." : "" }}
             </p>
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
@@ -27,7 +27,7 @@
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated if left empty." : "" }}
             </p>
-            <InputErrorMessage :errors="errors.username" />
+            <FieldError :errors="errors.username" />
           </div>
 
           <div class="space-y-2">
@@ -39,19 +39,19 @@
               required
               autocomplete="one-time-code"
             />
-            <InputErrorMessage :errors="errors.email" />
+            <FieldError :errors="errors.email" />
           </div>
 
           <div class="space-y-2">
             <Label for="phone">Phone Number</Label>
             <InputPhone v-model="form.phone" id="phone" />
-            <InputErrorMessage :errors="errors.phone" />
+            <FieldError :errors="errors.phone" />
           </div>
 
           <div class="space-y-2">
             <Label for="title">Job Title</Label>
             <Input id="title" v-model="form.title" type="text" autocomplete="one-time-code" />
-            <InputErrorMessage :errors="errors.title" />
+            <FieldError :errors="errors.title" />
           </div>
 
           <div class="space-y-2">
@@ -76,7 +76,7 @@
                 </div>
               </div>
             </RadioGroup>
-            <InputErrorMessage :errors="errors.gender" />
+            <FieldError :errors="errors.gender" />
           </div>
 
           <div class="space-y-2">
@@ -86,13 +86,13 @@
               disable-future-dates
               placeholder="Pick your birth date"
             />
-            <InputErrorMessage :errors="errors.birth_date" />
+            <FieldError :errors="errors.birth_date" />
           </div>
 
           <div class="space-y-2">
             <Label for="bio">Bio</Label>
             <Textarea id="bio" v-model="form.bio" maxlength="1000" />
-            <InputErrorMessage :errors="errors.bio" />
+            <FieldError :errors="errors.bio" />
           </div>
         </div>
       </div>
@@ -113,7 +113,7 @@
               v-model:delete-flag="deleteFlags.profile_image"
               container-class="squircle relative isolate aspect-square max-w-40"
             />
-            <InputErrorMessage :errors="errors.tmp_profile_image" />
+            <FieldError :errors="errors.tmp_profile_image" />
           </div>
 
           <div class="space-y-4">
@@ -124,7 +124,7 @@
               :initial-image="initialData?.cover_image"
               v-model:delete-flag="deleteFlags.cover_image"
             />
-            <InputErrorMessage :errors="errors.tmp_cover_image" />
+            <FieldError :errors="errors.tmp_cover_image" />
           </div>
         </div>
       </div>
@@ -186,7 +186,7 @@
             <Icon name="hugeicons:add-01" class="size-4" />
             Add Link
           </button>
-          <InputErrorMessage :errors="errors.links" />
+          <FieldError :errors="errors.links" />
         </div>
       </div>
     </div>
@@ -212,7 +212,7 @@
                   : "Leave empty to keep current password."
               }}
             </p>
-            <InputErrorMessage :errors="errors.password" />
+            <FieldError :errors="errors.password" />
           </div>
 
           <div v-if="showAccountSettings" class="space-y-5">
@@ -229,7 +229,7 @@
                     <SelectItem value="suspended">Suspended</SelectItem>
                   </SelectContent>
                 </Select>
-                <InputErrorMessage :errors="errors.status" />
+                <FieldError :errors="errors.status" />
               </div>
 
               <ProfileVisibilityField v-model="form.visibility" :errors="errors.visibility" />
@@ -249,7 +249,7 @@
                   </Label>
                 </div>
               </div>
-              <InputErrorMessage :errors="errors.roles" />
+              <FieldError :errors="errors.roles" />
             </div>
           </div>
 
@@ -278,7 +278,7 @@
             open-on-focus
           />
           <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
-          <InputErrorMessage :errors="errors.project_ids" />
+          <FieldError :errors="errors.project_ids" />
         </div>
       </div>
     </div>

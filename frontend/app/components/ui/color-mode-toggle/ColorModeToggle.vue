@@ -2,7 +2,7 @@
   <Tippy>
     <SwitchRoot
       v-model:model-value="isDarkMode"
-      class="text-primary hover:bg-muted relative flex size-8 rounded-lg"
+      class="text-foreground hover:bg-muted relative flex size-8 rounded-lg"
       aria-label="Toggle Dark Mode"
     >
       <SwitchThumb class="absolute inset-0 flex items-center justify-center">
@@ -16,7 +16,7 @@
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              class="size-4.5 transition duration-500 ease-out"
+              class="size-4.5 transition-transform duration-500 ease-out"
               :class="{
                 'rotate-180': isDarkMode,
               }"

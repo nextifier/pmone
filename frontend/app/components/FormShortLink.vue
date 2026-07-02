@@ -50,12 +50,12 @@
               />
             </InputGroupAddon>
           </InputGroup>
-          <InputErrorMessage v-if="hasUppercase" :errors="['BACA PETUNJUK DI BAWAH!']" />
-          <InputErrorMessage
+          <FieldError v-if="hasUppercase" :errors="['BACA PETUNJUK DI BAWAH!']" />
+          <FieldError
             v-else-if="hasInvalidChars"
             :errors="['Slug hanya boleh huruf, angka, dan tanda hubung (-).']"
           />
-          <InputErrorMessage v-else-if="errors.slug" :errors="errors.slug" />
+          <FieldError v-else-if="errors.slug" :errors="errors.slug" />
           <p
             v-else-if="slugAvailable === false"
             class="text-destructive text-xs tracking-tight sm:text-sm"

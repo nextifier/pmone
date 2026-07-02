@@ -35,14 +35,14 @@ import {
   AttachmentTitle,
   AttachmentTrigger,
 } from "@/components/ui/attachment";
-import MessageResponse from "@/components/ai-elements/message/MessageResponse.vue";
+import AiMarkdown from "@/components/ai/AiMarkdown.vue";
 import ScrollerPlaygroundInner from "@/components/demo/ScrollerPlaygroundInner.vue";
 
 definePageMeta({ layout: "default" });
 usePageMeta(null, { title: "Chat · MessageScroller" });
 
 // Original demo transcript - the assistant replies use markdown so inline code
-// and lists render through vue-stream-markdown.
+// and lists render through markstream-vue.
 const script: ScriptTurn[] = [
   {
     role: "user",
@@ -191,24 +191,13 @@ const bubbleVariants = [
                               </p>
                             </BubbleContent>
                           </Bubble>
-                          <!-- Assistant: markdown via vue-stream-markdown -->
+                          <!-- Assistant: markdown via markstream-vue -->
                           <Bubble v-else variant="ghost" align="start">
                             <BubbleContent class="leading-relaxed">
-                              <ClientOnly>
-                                <MessageResponse
-                                  :content="message.text"
-                                  :mode="message.id === streamingId ? 'streaming' : 'static'"
-                                />
-                                <template #fallback>
-                                  <p
-                                    v-for="(p, i) in paragraphs(message.text)"
-                                    :key="i"
-                                    class="whitespace-pre-wrap"
-                                  >
-                                    {{ p }}
-                                  </p>
-                                </template>
-                              </ClientOnly>
+                              <AiMarkdown
+                                :content="message.text"
+                                :streaming="message.id === streamingId"
+                              />
                             </BubbleContent>
                           </Bubble>
                         </MessageContent>

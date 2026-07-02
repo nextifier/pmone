@@ -22,7 +22,7 @@
         :placeholder="isSection ? 'Section title' : 'Field label'"
         :class="{ 'border-destructive': errors.label }"
       />
-      <InputErrorMessage :errors="errors.label" />
+      <FieldError :errors="errors.label" />
     </div>
 
     <!-- Section description -->
@@ -106,7 +106,7 @@
           Add {{ bulkOptionsCount }} {{ bulkOptionsCount === 1 ? "option" : "options" }}
         </Button>
       </div>
-      <InputErrorMessage :errors="errors.options" />
+      <FieldError :errors="errors.options" />
     </div>
 
     <!-- Validation & settings -->
@@ -212,7 +212,7 @@
           <p class="text-muted-foreground text-xs">
             Prefill this field from the public URL, e.g. ?ticket=vip. Letters, numbers, dashes and underscores only.
           </p>
-          <InputErrorMessage :errors="errors['settings.param_key']" />
+          <FieldError :errors="errors['settings.param_key']" />
         </div>
       </div>
     </div>
@@ -250,7 +250,7 @@ import FieldTypeSelector from "@/components/form-builder/FieldTypeSelector.vue";
 import PublicFieldRenderer from "@/components/form-builder/PublicFieldRenderer.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { InputNumber } from "@/components/ui/input-number";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";

@@ -6,7 +6,7 @@
           class="flex flex-col gap-x-6 gap-y-6 lg:flex-row lg:items-end lg:justify-between"
         >
           <h1
-            class="text-primary text-4xl font-medium tracking-[-0.06em] sm:text-5xl"
+            class="text-foreground text-4xl font-medium tracking-[-0.06em] sm:text-5xl"
           >
             Latest updates
           </h1>
@@ -76,7 +76,7 @@
             v-else-if="error"
             class="flex items-center justify-center text-center"
           >
-            <span class="text-primary text-2xl font-semibold tracking-tighter"
+            <span class="text-foreground text-2xl font-semibold tracking-tighter"
               >Failed to get the data.</span
             >
           </div>
@@ -161,7 +161,7 @@
 
             <!-- Pagination - show for both regular browsing and search results -->
             <div v-if="meta.last_page > 1" class="mt-12">
-              <PaginationCustom
+              <Pagination
                 v-model:page="currentPage"
                 :total="meta.total"
                 :items-per-page="meta.per_page"

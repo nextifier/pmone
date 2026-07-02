@@ -115,7 +115,7 @@
                 :required="activeLocale === 'en'"
                 :placeholder="activeLocale === 'en' ? 'e.g. Company name' : 'Nama perusahaan'"
               />
-              <InputErrorMessage :errors="localizedLabelErrors" />
+              <FieldError :errors="localizedLabelErrors" />
             </div>
 
             <div class="space-y-2">
@@ -144,7 +144,7 @@
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.type" />
+              <FieldError :errors="errors.type" />
             </div>
 
             <div v-if="showOptions" class="space-y-2">
@@ -175,7 +175,7 @@
                 <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
                 Add option
               </Button>
-              <InputErrorMessage :errors="errors.options" />
+              <FieldError :errors="errors.options" />
             </div>
 
             <div class="flex items-center gap-2">
@@ -204,7 +204,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">Delete field?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tight">Delete field?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingItem?.label || "This field" }}" will be removed from the Business Matching
             form. Existing responses are not deleted.
@@ -226,7 +226,7 @@
 import { Button } from "@/components/ui/button";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import {
   Select,

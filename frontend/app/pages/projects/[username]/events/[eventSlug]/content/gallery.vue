@@ -139,7 +139,7 @@
       <!-- Drag overlay -->
       <div
         v-if="isDragging"
-        class="border-primary bg-background/80 text-primary pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-y-2 rounded-xl border-2 border-dashed backdrop-blur-sm"
+        class="border-foreground bg-background/80 text-foreground pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-y-2 rounded-xl border-2 border-dashed backdrop-blur-sm"
       >
         <Icon name="hugeicons:image-add-02" class="size-7" />
         <p class="font-medium tracking-tight">Drop photos to upload</p>

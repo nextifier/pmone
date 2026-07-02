@@ -24,13 +24,13 @@ const delegatedProps = reactiveOmit(props, "class", "indicatorClass");
   <ProgressRoot
     data-slot="progress"
     v-bind="delegatedProps"
-    :class="cn('bg-primary/10 relative h-2 w-full overflow-hidden rounded-full', props.class)"
+    :class="cn('cn-progress relative flex w-full items-center overflow-x-hidden', props.class)"
   >
     <ProgressIndicator
       data-slot="progress-indicator"
       :class="
         cn(
-          'bg-primary h-full w-full flex-1 transition-all duration-500 ease-out',
+          'cn-progress-indicator size-full flex-1 transition-transform',
           props.indicatorClass
         )
       "

@@ -2,15 +2,13 @@
 import {
   ComboboxAnchor,
   ComboboxEmpty,
-  ComboboxGroup,
   ComboboxItem,
   ComboboxItemIndicator,
   ComboboxList,
-  ComboboxSeparator,
   ComboboxViewport,
 } from "@/components/ui/combobox";
 import { LucideCheck, LucideChevronsUpDown } from "lucide-vue-next";
-import { ComboboxInput, ComboboxRoot, useFilter } from "reka-ui";
+import { ComboboxInput, ComboboxRoot, ComboboxVirtualizer, useFilter } from "reka-ui";
 import { computed, ref, watch } from "vue";
 
 interface Option {
@@ -59,6 +57,14 @@ const isSearching = computed(
   () => searchTerm.value !== "" && searchTerm.value !== modelValue.value
 );
 
+const flatOptions = computed<Option[]>(() => [
+  ...(!isSearching.value ? [noneOption] : []),
+  ...pinnedOptions.value,
+  ...remainingOptions.value,
+]);
+
+const lastPinnedValue = computed(() => pinnedOptions.value.at(-1)?.value);
+
 function handleSelect(option: Option) {
   if (option.value === "__none__") {
     modelValue.value = "";
@@ -93,48 +99,51 @@ watch(modelValue, () => {
   >
     <ComboboxAnchor class="w-full">
       <div
-        class="border-input focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative flex h-9 w-full items-center rounded-md border text-sm tracking-tight transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
+        class="cn-select-trigger focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative flex h-auto min-h-(--cn-input-h,2.25rem) w-full min-w-0 cursor-text items-center py-0 tracking-tight transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
+        @pointerdown="
+          (e: PointerEvent) => {
+            if ((e.target as HTMLElement).tagName === 'INPUT') return;
+            e.preventDefault();
+            (e.currentTarget as HTMLElement).querySelector('input')?.focus();
+          }
+        "
       >
         <ComboboxInput
           v-model="searchTerm"
           :display-value="() => modelValue || ''"
           :placeholder="placeholder || 'Select...'"
-          class="placeholder:text-muted-foreground/70 h-full w-full flex-1 bg-transparent px-3 py-1 text-sm outline-hidden"
+          class="placeholder:text-muted-foreground h-full w-full flex-1 bg-transparent px-0 py-0 text-sm outline-hidden"
         />
-        <LucideChevronsUpDown class="text-muted-foreground mr-2 size-4 shrink-0" />
+        <LucideChevronsUpDown class="cn-select-trigger-icon shrink-0" />
       </div>
     </ComboboxAnchor>
 
     <ComboboxList class="w-(--reka-combobox-trigger-width)">
-      <ComboboxViewport>
+      <ComboboxViewport class="p-1">
         <ComboboxEmpty class="px-2 py-4 text-sm">No results found.</ComboboxEmpty>
 
-        <ComboboxGroup>
+        <ComboboxVirtualizer
+          v-slot="{ option }"
+          :options="flatOptions"
+          :estimate-size="32"
+          :text-content="(opt: Option) => opt.label"
+        >
           <ComboboxItem
-            v-if="!isSearching"
-            :value="noneOption"
-            class="text-muted-foreground italic"
+            :value="option"
+            class="h-8 w-full"
+            :class="[
+              option.value === '__none__' && 'text-muted-foreground italic',
+              option.value === lastPinnedValue &&
+                remainingOptions.length > 0 &&
+                'border-border rounded-b-none border-b',
+            ]"
           >
-            None
-          </ComboboxItem>
-
-          <template v-if="pinnedOptions.length">
-            <ComboboxItem v-for="option in pinnedOptions" :key="option.value" :value="option">
-              {{ option.label }}
-              <ComboboxItemIndicator>
-                <LucideCheck class="ml-auto size-4" />
-              </ComboboxItemIndicator>
-            </ComboboxItem>
-            <ComboboxSeparator v-if="remainingOptions.length" />
-          </template>
-
-          <ComboboxItem v-for="option in remainingOptions" :key="option.value" :value="option">
-            {{ option.label }}
+            <span class="truncate">{{ option.label }}</span>
             <ComboboxItemIndicator>
               <LucideCheck class="ml-auto size-4" />
             </ComboboxItemIndicator>
           </ComboboxItem>
-        </ComboboxGroup>
+        </ComboboxVirtualizer>
       </ComboboxViewport>
     </ComboboxList>
   </ComboboxRoot>

@@ -24,8 +24,9 @@ import "vue-sonner/style.css";
 const route = useRoute();
 const isTasksPage = computed(() => route.path === "/tasks");
 
-onMounted(() => {
-  const { updateMetaThemeColor } = useThemeSync();
-  updateMetaThemeColor();
-});
+// Single source of truth for ALL theming (color mode + style + design tokens).
+// Self-registers the SSR-rendered <body class="style-X">, the appearance-vars
+// <style>, and the reactive theme-color meta — cookie-backed, so the first paint
+// is already correct (no flash, no hydration mismatch).
+useAppearance();
 </script>

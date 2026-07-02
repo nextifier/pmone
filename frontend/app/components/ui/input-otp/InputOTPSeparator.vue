@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
 import { MinusIcon } from "lucide-vue-next"
 import { useForwardProps } from "reka-ui"
+import { cn } from "@/lib/utils"
 
 const props = defineProps<{ class?: HTMLAttributes["class"] }>()
 
-const forwarded = useForwardProps(props)
+const delegatedProps = reactiveOmit(props, "class")
+
+const forwarded = useForwardProps(delegatedProps)
 </script>
 
 <template>
@@ -13,6 +17,7 @@ const forwarded = useForwardProps(props)
     data-slot="input-otp-separator"
     role="separator"
     v-bind="forwarded"
+    :class="cn('cn-input-otp-separator flex items-center', props.class)"
   >
     <slot>
       <MinusIcon />

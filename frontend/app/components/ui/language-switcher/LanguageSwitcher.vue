@@ -1,7 +1,7 @@
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger
-      class="text-primary hover:bg-muted relative flex size-8 items-center justify-center rounded-lg"
+      class="text-foreground hover:bg-muted relative flex size-8 items-center justify-center rounded-lg"
       aria-label="Switch language"
     >
       <Icon name="lucide:languages" class="size-4.5 shrink-0" />

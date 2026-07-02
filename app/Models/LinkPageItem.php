@@ -149,22 +149,26 @@ class LinkPageItem extends Model implements HasMedia
         $this->addMediaConversion('sm')
             ->width(300)
             ->quality(85)
+            ->sharpen(10)
             ->performOnCollections('poster')
             ->nonQueued();
 
         $this->addMediaConversion('md')
             ->width(600)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster');
 
         $this->addMediaConversion('lg')
-            ->width(900)
+            ->width(1200)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster');
 
         $this->addMediaConversion('xl')
-            ->width(1200)
+            ->width(1600)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster');
     }
 

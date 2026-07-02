@@ -11,7 +11,7 @@
         <Icon name="hugeicons:tag-01" class="size-5 sm:size-6" />
         <h1 class="page-title">
           Posts tagged with
-          <span v-if="tag" class="text-primary">{{ tagName }}</span>
+          <span v-if="tag" class="text-foreground">{{ tagName }}</span>
         </h1>
       </div>
     </div>

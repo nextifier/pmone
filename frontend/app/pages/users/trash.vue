@@ -95,7 +95,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">Restore users?</div>
+              <div class="text-foreground text-lg font-semibold tracking-tight">Restore users?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will restore {{ selectedRows.length }} selected
                 {{ selectedRows.length === 1 ? "user" : "users" }}.
@@ -136,7 +136,7 @@
           </template>
           <template #default>
             <div class="px-4 pb-10 md:px-6 md:py-5">
-              <div class="text-primary text-lg font-semibold tracking-tight">
+              <div class="text-foreground text-lg font-semibold tracking-tight">
                 Are you absolutely sure?
               </div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
@@ -291,7 +291,7 @@ const columns = [
       const isVerified = !!emailVerifiedAt;
       const icon = h(resolveComponent("Icon"), {
         name: "material-symbols:verified",
-        class: isVerified ? "text-info size-4.5 shrink-0" : "text-primary/25 size-4.5 shrink-0",
+        class: isVerified ? "text-info size-4.5 shrink-0" : "text-foreground/25 size-4.5 shrink-0",
       });
       return isVerified
         ? withDirectives(h("div", { class: "flex items-center" }, icon), [

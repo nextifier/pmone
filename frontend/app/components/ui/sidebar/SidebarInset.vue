@@ -12,8 +12,7 @@ const props = defineProps<{
     data-slot="sidebar-inset"
     :class="
       cn(
-        'bg-background relative flex w-full flex-1 flex-col',
-        'lg:peer-data-[variant=inset]:m-2 lg:peer-data-[variant=inset]:ml-0 lg:peer-data-[variant=inset]:rounded-xl lg:peer-data-[variant=inset]:shadow-sm lg:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+        'cn-sidebar-inset relative flex w-full flex-1 flex-col',
         props.class
       )
     "

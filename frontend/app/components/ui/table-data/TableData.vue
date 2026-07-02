@@ -386,7 +386,7 @@
               </NuxtLink>
               <button
                 v-if="hasActiveFilters"
-                class="border-border hover:bg-muted text-primary flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
+                class="border-border hover:bg-muted text-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
                 @click="table.resetColumnFilters()"
               >
                 <Icon name="lucide:x" class="size-4 shrink-0" />

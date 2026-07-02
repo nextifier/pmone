@@ -1,44 +1,37 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { computed } from "vue"
-import { cn } from "@/lib/utils"
+import type { HTMLAttributes } from "vue";
+import { computed } from "vue";
+import { cn } from "@/lib/utils";
 
+/**
+ * Field-level error list. Accepts plain strings (Laravel-style validation) or
+ * reka/vee-validate `{ message }` objects, and renders them as a list. This is
+ * the single canonical error renderer (it supersedes the old bespoke
+ * `InputErrorMessage` and renders pixel-identically to it).
+ */
 const props = defineProps<{
-  class?: HTMLAttributes["class"]
-  errors?: Array<{ message?: string } | undefined>
-}>()
+  class?: HTMLAttributes["class"];
+  errors?: Array<string | { message?: string } | undefined | null>;
+}>();
 
-const content = computed(() => {
-  if (!props.errors || props.errors.length === 0)
-    return null
-
-  if (props.errors.length === 1 && props.errors[0]?.message) {
-    return props.errors[0].message
-  }
-
-  return props.errors.some(e => e?.message)
-    ? props.errors
-    : null
-})
+const messages = computed(() =>
+  (props.errors ?? [])
+    .map((e) => (typeof e === "string" ? e : e?.message))
+    .filter((m): m is string => !!m),
+);
 </script>
 
 <template>
-  <div
-    v-if="$slots.default || content"
+  <ul
+    v-if="$slots.default || messages.length"
     role="alert"
     data-slot="field-error"
-    :class="cn('text-destructive text-sm font-normal', props.class)"
+    :class="cn('cn-field-error flex flex-col gap-y-1 tracking-tight', props.class)"
   >
-    <slot v-if="$slots.default" />
-
-    <template v-else-if="typeof content === 'string'">
-      {{ content }}
-    </template>
-
-    <ul v-else-if="Array.isArray(content)" class="ml-4 flex list-disc flex-col gap-1">
-      <li v-for="(error, index) in content" :key="index">
-        {{ error?.message }}
+    <slot>
+      <li v-for="(message, index) in messages" :key="index">
+        {{ message }}
       </li>
-    </ul>
-  </div>
+    </slot>
+  </ul>
 </template>

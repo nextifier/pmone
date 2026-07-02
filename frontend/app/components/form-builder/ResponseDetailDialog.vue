@@ -5,7 +5,7 @@
         <!-- Header: title + meta on the left, status away from the close button -->
         <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 md:pe-9">
           <div class="min-w-0">
-            <h3 class="text-primary text-lg font-semibold tracking-tighter">Response details</h3>
+            <h3 class="text-foreground text-lg font-semibold tracking-tighter">Response details</h3>
             <div
               class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tracking-tight tabular-nums sm:text-sm"
             >

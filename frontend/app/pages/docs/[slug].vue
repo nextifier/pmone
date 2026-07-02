@@ -3,7 +3,7 @@
     <!-- Not found -->
             <div v-if="!doc && docStatus === 'success'" class="my-6 min-w-0 flex-1 sm:p-10">
               <div class="mx-auto max-w-2xl text-center">
-                <h1 class="text-primary text-3xl font-semibold tracking-tighter">Page not found</h1>
+                <h1 class="text-foreground text-3xl font-semibold tracking-tighter">Page not found</h1>
                 <p class="text-muted-foreground mt-3 tracking-tight">
                   The documentation page you're looking for doesn't exist.
                 </p>
@@ -66,7 +66,7 @@
               <!-- Main content card -->
               <main class="my-6 min-w-0 flex-1 sm:p-10">
                 <h1
-                  class="text-primary mx-auto max-w-2xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-[2.5rem]"
+                  class="text-foreground mx-auto max-w-2xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-[2.5rem]"
                 >
                   {{ doc.title }}
                 </h1>

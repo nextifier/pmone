@@ -59,10 +59,12 @@ class HotelVoucherMail extends Mailable
         // local and cloud disks (e.g. Cloudflare R2). `$media->getPath()`
         // returns a non-resolvable path on remote disks, which previously
         // caused the mail transport to send an empty attachment body.
+        $downloadName = $media->name.($media->extension ? '.'.$media->extension : '');
+
         return [
             Attachment::fromData(
                 fn () => Storage::disk($media->disk)->get($media->getPathRelativeToRoot()),
-                $media->file_name,
+                $downloadName,
             )->withMime($media->mime_type),
         ];
     }

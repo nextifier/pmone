@@ -177,7 +177,7 @@
         </TableData>
       </div>
       <div v-else-if="syncHistoryLoading" class="p-12 text-center">
-        <Icon name="hugeicons:loading-03" class="text-primary mx-auto size-8 animate-spin" />
+        <Icon name="hugeicons:loading-03" class="text-foreground mx-auto size-8 animate-spin" />
         <p class="text-muted-foreground mt-3 text-sm">Loading sync history...</p>
       </div>
       <div v-else class="p-12 text-center">

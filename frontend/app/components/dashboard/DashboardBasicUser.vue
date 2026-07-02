@@ -14,7 +14,7 @@
         title="My Tickets"
         description="Tickets you hold"
         icon="hugeicons:ticket-01"
-        icon-color="text-primary"
+        icon-color="text-foreground"
         :value="tickets.length"
         :loading="pending"
         href="/account/tickets"

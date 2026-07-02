@@ -9,7 +9,7 @@
           <div class="space-y-2">
             <Label for="name">Name</Label>
             <Input id="name" v-model="form.name" placeholder="Grand Mercure Jakarta" required />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
@@ -20,7 +20,7 @@
               rows="4"
               placeholder="Hotel description, facilities, ambience..."
             />
-            <InputErrorMessage :errors="errors.description" />
+            <FieldError :errors="errors.description" />
           </div>
 
           <div class="space-y-2">
@@ -41,7 +41,7 @@
                 <SelectItem value="5">5 Stars</SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.star_rating" />
+            <FieldError :errors="errors.star_rating" />
           </div>
 
           <div class="space-y-2">
@@ -56,7 +56,7 @@
               </TagsInputItem>
               <TagsInputInput placeholder="Add facility..." />
             </TagsInput>
-            <InputErrorMessage :errors="errors.facilities" />
+            <FieldError :errors="errors.facilities" />
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@
               :pinned="['Indonesia']"
               placeholder="Select country"
             />
-            <InputErrorMessage :errors="errors['address.country']" />
+            <FieldError :errors="errors['address.country']" />
           </div>
 
           <div v-if="isIndonesia" class="grid gap-4 lg:grid-cols-2">
@@ -88,7 +88,7 @@
                 :pinned="['DKI Jakarta']"
                 placeholder="Select province"
               />
-              <InputErrorMessage :errors="errors['address.province']" />
+              <FieldError :errors="errors['address.province']" />
             </div>
             <div class="space-y-2">
               <Label>City</Label>
@@ -98,7 +98,7 @@
                 :disabled="!form.address.province"
                 placeholder="Select city"
               />
-              <InputErrorMessage :errors="errors['address.city']" />
+              <FieldError :errors="errors['address.city']" />
             </div>
           </div>
 
@@ -110,7 +110,7 @@
               rows="2"
               placeholder="Street, building, area"
             />
-            <InputErrorMessage :errors="errors['address.street']" />
+            <FieldError :errors="errors['address.street']" />
           </div>
 
           <div class="space-y-2">
@@ -124,7 +124,7 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Paste the share link from Google Maps. Used for the "Get Directions" button.
             </p>
-            <InputErrorMessage :errors="errors.google_maps_link" />
+            <FieldError :errors="errors.google_maps_link" />
           </div>
 
           <div class="space-y-2">
@@ -138,7 +138,7 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               From Google Maps → Share → Embed a map, copy the <code>src</code> value of the iframe.
             </p>
-            <InputErrorMessage :errors="errors.google_maps_embed_src" />
+            <FieldError :errors="errors.google_maps_embed_src" />
           </div>
 
           <div class="grid gap-4 lg:grid-cols-2">
@@ -150,12 +150,12 @@
                 type="email"
                 placeholder="reservation@hotel.com"
               />
-              <InputErrorMessage :errors="errors.contact_email" />
+              <FieldError :errors="errors.contact_email" />
             </div>
             <div class="space-y-2">
               <Label for="contact_phone">Contact Phone</Label>
               <InputPhone id="contact_phone" v-model="form.contact_phone" />
-              <InputErrorMessage :errors="errors.contact_phone" />
+              <FieldError :errors="errors.contact_phone" />
             </div>
           </div>
         </div>
@@ -175,7 +175,7 @@
             rows="3"
             placeholder="Free cancellation up to 7 days before check-in..."
           />
-          <InputErrorMessage :errors="errors.cancellation_policy" />
+          <FieldError :errors="errors.cancellation_policy" />
         </div>
       </div>
     </div>
@@ -202,7 +202,7 @@
                 <InputGroupText>%</InputGroupText>
               </InputGroupAddon>
             </InputGroup>
-            <InputErrorMessage :errors="errors.commission_rate" />
+            <FieldError :errors="errors.commission_rate" />
           </div>
 
           <div class="grid gap-4 lg:grid-cols-2">
@@ -222,7 +222,7 @@
                   <InputGroupText>%</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
-              <InputErrorMessage :errors="errors.tax_percentage" />
+              <FieldError :errors="errors.tax_percentage" />
             </div>
             <div class="space-y-2">
               <Label for="service_charge_percentage">Service Charge (%)</Label>
@@ -240,7 +240,7 @@
                   <InputGroupText>%</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
-              <InputErrorMessage :errors="errors.service_charge_percentage" />
+              <FieldError :errors="errors.service_charge_percentage" />
             </div>
           </div>
 
@@ -254,7 +254,7 @@
             </div>
             <Switch id="is_active" v-model="form.is_active" />
           </div>
-          <InputErrorMessage :errors="errors.is_active" />
+          <FieldError :errors="errors.is_active" />
         </div>
       </div>
     </div>
@@ -276,7 +276,7 @@
               container-class="relative isolate aspect-video w-full max-w-2xl overflow-hidden rounded-lg"
               image-class="size-full object-cover"
             />
-            <InputErrorMessage :errors="errors.tmp_featured" />
+            <FieldError :errors="errors.tmp_featured" />
           </div>
 
           <div class="space-y-2">
@@ -294,7 +294,7 @@
               :max-file-size="'20MB'"
               :accepted-file-types="['image/jpeg', 'image/png', 'image/webp']"
             />
-            <InputErrorMessage :errors="errors.gallery_files" />
+            <FieldError :errors="errors.gallery_files" />
           </div>
         </div>
       </div>
@@ -318,7 +318,7 @@ import GalleryManager from "@/components/GalleryManager.vue";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
 import { LocationCombobox } from "@/components/ui/location-combobox";

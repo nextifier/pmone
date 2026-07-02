@@ -14,17 +14,17 @@
             <div class="space-y-2 sm:col-span-2">
               <Label for="att-name">Name</Label>
               <Input id="att-name" v-model="form.name" placeholder="Attendee name" />
-              <InputErrorMessage :errors="errors.name" />
+              <FieldError :errors="errors.name" />
             </div>
             <div class="space-y-2">
               <Label for="att-email">Email</Label>
               <Input id="att-email" v-model="form.email" type="email" placeholder="name@example.com" />
-              <InputErrorMessage :errors="errors.email" />
+              <FieldError :errors="errors.email" />
             </div>
             <div class="space-y-2">
               <Label for="att-phone">Phone</Label>
               <InputPhone id="att-phone" v-model="form.phone" />
-              <InputErrorMessage :errors="errors.phone" />
+              <FieldError :errors="errors.phone" />
             </div>
           </div>
 
@@ -92,7 +92,7 @@
 import { Button } from "@/components/ui/button";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

@@ -24,7 +24,7 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Entry tickets control event admission by day. Add-on tickets can host sessions.
             </p>
-            <InputErrorMessage :errors="errors.kind" />
+            <FieldError :errors="errors.kind" />
           </div>
 
           <!-- Translatable title -->
@@ -43,7 +43,7 @@
               :required="activeLocale === 'en'"
               :placeholder="activeLocale === 'en' ? 'Ticket title' : 'Judul tiket'"
             />
-            <InputErrorMessage :errors="localizedTitleErrors" />
+            <FieldError :errors="localizedTitleErrors" />
           </div>
 
           <div class="space-y-2">
@@ -52,19 +52,19 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Optional grouping label shown alongside the ticket.
             </p>
-            <InputErrorMessage :errors="errors.tier" />
+            <FieldError :errors="errors.tier" />
           </div>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div class="space-y-2">
               <Label for="ticket-day-pass">Day pass label</Label>
               <Input id="ticket-day-pass" v-model="form.day_pass" placeholder="All-day pass / One-day pass" />
-              <InputErrorMessage :errors="errors['more_details.day_pass']" />
+              <FieldError :errors="errors['more_details.day_pass']" />
             </div>
             <div class="space-y-2">
               <Label for="ticket-entrance">Entrance label</Label>
               <Input id="ticket-entrance" v-model="form.entrance" placeholder="Regular entrance / VIP entrance" />
-              <InputErrorMessage :errors="errors['more_details.entrance']" />
+              <FieldError :errors="errors['more_details.entrance']" />
             </div>
           </div>
           <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
@@ -83,7 +83,7 @@
               </TagsInputItem>
               <TagsInputInput placeholder="Add benefit..." />
             </TagsInput>
-            <InputErrorMessage :errors="errors.benefits" />
+            <FieldError :errors="errors.benefits" />
           </div>
         </div>
       </div>
@@ -110,7 +110,7 @@
                 <SelectItem value="external">External - link to another store</SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.purchase_type" />
+            <FieldError :errors="errors.purchase_type" />
           </div>
 
           <div v-if="form.purchase_type === 'external'" class="space-y-2">
@@ -125,7 +125,7 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Buyers are redirected here instead of checking out on the event website.
             </p>
-            <InputErrorMessage :errors="errors.external_url" />
+            <FieldError :errors="errors.external_url" />
           </div>
 
           <div class="space-y-2">
@@ -140,7 +140,7 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               3-letter ISO currency code. Defaults to IDR.
             </p>
-            <InputErrorMessage :errors="errors.currency" />
+            <FieldError :errors="errors.currency" />
           </div>
         </div>
       </div>
@@ -159,14 +159,14 @@
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Total tickets available. Leave empty for unlimited stock.
             </p>
-            <InputErrorMessage :errors="errors.stock" />
+            <FieldError :errors="errors.stock" />
           </div>
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
               <Label for="ticket-min-qty">Min quantity per order</Label>
               <InputNumber id="ticket-min-qty" v-model="form.min_quantity" :min="1" />
-              <InputErrorMessage :errors="errors.min_quantity" />
+              <FieldError :errors="errors.min_quantity" />
             </div>
             <div class="space-y-2">
               <Label for="ticket-max-qty">Max quantity per order</Label>
@@ -176,7 +176,7 @@
                 :min="1"
                 placeholder="No limit"
               />
-              <InputErrorMessage :errors="errors.max_quantity" />
+              <FieldError :errors="errors.max_quantity" />
             </div>
           </div>
 
@@ -225,7 +225,7 @@
               </SelectItem>
             </SelectContent>
           </Select>
-          <InputErrorMessage :errors="errors.visibility" />
+          <FieldError :errors="errors.visibility" />
         </div>
       </div>
     </div>
@@ -269,7 +269,7 @@
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
-        <InputErrorMessage :errors="errors.valid_days" class="mt-2" />
+        <FieldError :errors="errors.valid_days" class="mt-2" />
       </div>
     </div>
 
@@ -291,7 +291,7 @@
             container-class="relative isolate aspect-square w-full max-w-[16rem] overflow-hidden rounded-lg"
             image-class="size-full object-cover"
           />
-          <InputErrorMessage :errors="errors.tmp_poster" />
+          <FieldError :errors="errors.tmp_poster" />
         </div>
       </div>
     </div>
@@ -311,7 +311,7 @@
           </div>
           <Switch id="ticket-active" v-model="form.is_active" />
         </div>
-        <InputErrorMessage :errors="errors.is_active" />
+        <FieldError :errors="errors.is_active" />
       </div>
     </div>
 
@@ -330,7 +330,7 @@ import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import {
   Select,

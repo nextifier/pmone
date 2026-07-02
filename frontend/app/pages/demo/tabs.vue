@@ -1,7 +1,7 @@
 <template>
   <div id="demo-tabs-page" class="container max-w-4xl py-10">
     <div class="mb-10">
-      <h1 class="text-primary text-3xl font-semibold tracking-tighter sm:text-4xl">
+      <h1 class="text-foreground text-3xl font-semibold tracking-tighter sm:text-4xl">
         Tabs — Variants Showcase
       </h1>
       <p class="text-muted-foreground mt-2 tracking-tight">
@@ -13,7 +13,7 @@
     <div class="space-y-12">
       <!-- 1. Pill (default) -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           1. Variant: <code class="bg-muted rounded px-1.5 py-0.5 text-base">pill</code> (default)
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
@@ -47,7 +47,7 @@
 
       <!-- 2. Segmented — text -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           2. Variant: <code class="bg-muted rounded px-1.5 py-0.5 text-base">segmented</code>
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
@@ -75,7 +75,7 @@
 
       <!-- 3. Segmented — multi-line text (Rundown style) -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           3. Segmented + multi-line trigger
           <span class="text-muted-foreground text-sm font-normal">(Rundown style)</span>
         </h2>
@@ -110,7 +110,7 @@
 
       <!-- 4. Segmented — icon-only (BrandViewSwitcher style) -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           4. Segmented + icon-only trigger
           <span class="text-muted-foreground text-sm font-normal">(BrandViewSwitcher style)</span>
         </h2>
@@ -137,7 +137,7 @@
 
       <!-- 5. Underline -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           5. Variant: <code class="bg-muted rounded px-1.5 py-0.5 text-base">underline</code>
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
@@ -170,7 +170,7 @@
 
       <!-- 6. Sizes -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">6. Sizes</h2>
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">6. Sizes</h2>
         <p class="text-muted-foreground mb-4 text-sm">
           Tiga ukuran: <code>sm</code>, <code>md</code> (default), <code>lg</code>.
         </p>
@@ -192,7 +192,7 @@
 
       <!-- 7. Disabled trigger -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           7. Disabled trigger
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
@@ -211,7 +211,7 @@
 
       <!-- 8. Many tabs (overflow) -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           8. Many tabs (overflow scroll)
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">
@@ -236,7 +236,7 @@
 
       <!-- 9. Swipe -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">9. Swipe gesture</h2>
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">9. Swipe gesture</h2>
         <p class="text-muted-foreground mb-4 text-sm">
           Set <code class="bg-muted rounded px-1.5 py-0.5">swipe</code> agar tab bisa di-switch
           dengan swipe horizontal di area Tabs root. Default exclude: <code>[role='tablist']</code>,
@@ -276,7 +276,7 @@
 
       <!-- 10. Controlled with external buttons -->
       <section>
-        <h2 class="text-primary mb-3 text-xl font-semibold tracking-tighter">
+        <h2 class="text-foreground mb-3 text-xl font-semibold tracking-tighter">
           10. Controlled state (v-model)
         </h2>
         <p class="text-muted-foreground mb-4 text-sm">

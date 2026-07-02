@@ -27,7 +27,7 @@
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Total Visits</div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_visits.toLocaleString() }}
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
@@ -38,7 +38,7 @@
 
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Published Posts</div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_posts.toLocaleString() }}
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
@@ -49,7 +49,7 @@
 
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Avg. Visits/Post</div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{
               analyticsData.summary.total_posts > 0
                 ? Math.round(analyticsData.summary.total_visits / analyticsData.summary.total_posts)
@@ -105,7 +105,7 @@
             </div>
 
             <div class="min-w-0 flex-1">
-              <h3 class="text-primary truncate font-medium tracking-tight">{{ post.title }}</h3>
+              <h3 class="text-foreground truncate font-medium tracking-tight">{{ post.title }}</h3>
               <p
                 v-if="post.excerpt"
                 class="text-muted-foreground mt-0.5 line-clamp-1 text-sm tracking-tight"

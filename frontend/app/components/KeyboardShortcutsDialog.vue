@@ -3,7 +3,7 @@
     <template #trigger>
       <Tippy>
         <button
-          class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
+          class="text-foreground hover:bg-muted flex size-8 items-center justify-center rounded-lg"
           @click="shortcutsDialogOpen = true"
         >
           <Icon name="hugeicons:keyboard" class="size-5" />
@@ -19,7 +19,7 @@
 
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5">
-        <h2 class="text-primary pr-8 text-lg font-semibold tracking-tight">
+        <h2 class="text-foreground pr-8 text-lg font-semibold tracking-tight">
           Keyboard Shortcuts
         </h2>
 

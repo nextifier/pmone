@@ -43,7 +43,7 @@
 
             <!-- Event info -->
             <div class="min-w-0 flex-1">
-              <p class="text-primary truncate font-medium tracking-tight">{{ ev.title }}</p>
+              <p class="text-foreground truncate font-medium tracking-tight">{{ ev.title }}</p>
               <p
                 v-if="ev.date_label"
                 class="text-muted-foreground mt-0.5 flex items-center gap-x-1 truncate text-xs tracking-tight sm:text-sm"

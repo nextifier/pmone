@@ -536,15 +536,13 @@ class TaskController extends Controller
                     $caption = html_entity_decode($captionMatch[1]);
                 }
 
-                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME));
+                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME)) ?: 'image';
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                $uniqueBase = $baseName.'-'.substr($folder, -8);
-                $uniqueFileName = $uniqueBase.($extension ? '.'.$extension : '');
 
                 // Move file from temp storage to permanent storage
                 $mediaAdder = $task->addMediaFromDisk($tempFilePath, 'local')
-                    ->usingName($uniqueBase)
-                    ->usingFileName($uniqueFileName);
+                    ->usingName($baseName)
+                    ->usingFileName($baseName.($extension ? '.'.$extension : ''));
 
                 if ($caption) {
                     $mediaAdder->withCustomProperties(['caption' => $caption]);

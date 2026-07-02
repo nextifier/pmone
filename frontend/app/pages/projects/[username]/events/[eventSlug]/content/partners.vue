@@ -70,7 +70,7 @@
       >
         <!-- Floating category badge (matches Credits) -->
         <span
-          class="text-primary bg-background xs:text-sm pointer-events-none absolute top-0 left-1/2 z-50 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
+          class="text-foreground bg-background xs:text-sm pointer-events-none absolute top-0 left-1/2 z-50 flex max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-1/2 items-center rounded-lg px-2.5 py-1 text-xs font-semibold tracking-tighter text-nowrap"
         >
           <span class="truncate"
             >{{ category.name }}
@@ -141,7 +141,7 @@
         >
           <div
             v-if="dropZones[category.id]?.over"
-            class="border-primary bg-background/80 text-primary pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center gap-y-2 rounded-xl border-2 border-dashed backdrop-blur-sm"
+            class="border-foreground bg-background/80 text-foreground pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center gap-y-2 rounded-xl border-2 border-dashed backdrop-blur-sm"
           >
             <Icon name="hugeicons:image-add-02" class="size-6" />
             <p class="text-sm font-medium tracking-tight">Drop logos to add partners</p>
@@ -153,7 +153,7 @@
           v-if="dropZones[category.id]?.busy"
           class="bg-background/85 text-muted-foreground absolute inset-0 z-40 flex flex-col items-center justify-center gap-y-2 rounded-xl backdrop-blur-sm"
         >
-          <Icon name="svg-spinners:ring-resize" class="text-primary size-6" />
+          <Icon name="svg-spinners:ring-resize" class="text-foreground size-6" />
           <p class="text-sm font-medium tracking-tight">
             Adding {{ dropZones[category.id].done }}/{{ dropZones[category.id].total }}…
           </p>

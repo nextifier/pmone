@@ -15,7 +15,7 @@
           :class="{ 'border-destructive': errors?.current_password }"
           required
         />
-        <InputErrorMessage v-if="errors?.current_password" :errors="errors.current_password" />
+        <FieldError v-if="errors?.current_password" :errors="errors.current_password" />
       </div>
 
       <!-- New Password -->
@@ -27,7 +27,7 @@
           :class="{ 'border-destructive': errors?.password }"
           required
         />
-        <InputErrorMessage v-if="errors?.password" :errors="errors.password" />
+        <FieldError v-if="errors?.password" :errors="errors.password" />
       </div>
 
       <!-- Confirm New Password -->
@@ -39,7 +39,7 @@
           :class="{ 'border-destructive': errors?.password_confirmation }"
           required
         />
-        <InputErrorMessage
+        <FieldError
           v-if="errors?.password_confirmation"
           :errors="errors.password_confirmation"
         />

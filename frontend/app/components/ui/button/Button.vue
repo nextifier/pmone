@@ -31,6 +31,7 @@ const isExternal = computed(() => props.to?.startsWith("http"))
     :rel="isExternal ? 'noopener noreferrer' : undefined"
     data-slot="button"
     :data-variant="variant ?? 'default'"
+    :data-size="size ?? 'default'"
     :class="cn(buttonVariants({ variant, size }), props.class)"
   >
     <slot />

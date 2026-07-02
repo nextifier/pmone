@@ -245,22 +245,26 @@ class RundownItem extends Model implements HasMedia, Sortable
         $this->addMediaConversion('sm')
             ->width(450)
             ->quality(85)
+            ->sharpen(10)
             ->performOnCollections('poster')
             ->nonQueued();
 
         $this->addMediaConversion('md')
             ->width(900)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster');
 
         $this->addMediaConversion('lg')
             ->width(1200)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster');
 
         $this->addMediaConversion('xl')
-            ->width(1500)
+            ->width(1600)
             ->quality(95)
+            ->sharpen(10)
             ->performOnCollections('poster');
     }
 

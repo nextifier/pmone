@@ -63,7 +63,7 @@
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
-                <div class="text-primary text-lg font-semibold tracking-tight">Restore item?</div>
+                <div class="text-foreground text-lg font-semibold tracking-tight">Restore item?</div>
                 <p class="text-body mt-1.5 text-sm tracking-tight">
                   This will restore "{{ item.label }}" back to the items list.
                 </p>
@@ -94,7 +94,7 @@
             </template>
             <template #default>
               <div class="px-4 pb-10 md:px-6 md:py-5">
-                <div class="text-primary text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
+                <div class="text-foreground text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
                 <p class="text-body mt-1.5 text-sm tracking-tight">
                   This action can't be undone. This will permanently delete "{{ item.label }}".
                 </p>

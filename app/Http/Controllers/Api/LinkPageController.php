@@ -192,6 +192,7 @@ class LinkPageController extends Controller
 
             if ($request->hasFile('cover_image')) {
                 ImageOptimizer::compressInPlace($request->file('cover_image')->getPathname());
+                $linkPage->clearMediaCollection('cover_image');
                 $linkPage->addMediaFromRequest('cover_image')->toMediaCollection('cover_image');
             }
 

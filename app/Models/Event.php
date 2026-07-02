@@ -387,7 +387,7 @@ class Event extends Model implements HasMedia, Sortable
 
     public function registerMediaConversions($media = null): void
     {
-        // Poster image conversions (square-ish)
+        // Poster image conversions (width-only, preserves aspect ratio)
         $this->addMediaConversion('lqip')
             ->width(20)
             ->height(20)
@@ -397,29 +397,29 @@ class Event extends Model implements HasMedia, Sortable
             ->nonQueued();
 
         $this->addMediaConversion('sm')
-            ->width(200)
-            ->height(200)
+            ->width(450)
             ->quality(85)
+            ->sharpen(10)
             ->performOnCollections('poster_image')
             ->nonQueued();
 
         $this->addMediaConversion('md')
-            ->width(400)
-            ->height(400)
+            ->width(900)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster_image')
             ->nonQueued();
 
         $this->addMediaConversion('lg')
-            ->width(800)
-            ->height(800)
+            ->width(1200)
             ->quality(90)
+            ->sharpen(10)
             ->performOnCollections('poster_image');
 
         $this->addMediaConversion('xl')
-            ->width(1080)
-            ->height(1080)
+            ->width(1600)
             ->quality(95)
+            ->sharpen(10)
             ->performOnCollections('poster_image');
 
         // Description content image conversions

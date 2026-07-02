@@ -34,13 +34,13 @@ const handleScroll = () => {
       v-bind="forwarded"
       :class="
         cn(
-          'fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[80vh] flex-col rounded-t-2xl border-t bg-white outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))] dark:bg-gray-950',
+          'cn-drawer-content group/drawer-content fixed z-50',
           props.class,
         )
       "
     >
       <div
-        class="mx-auto mt-2 mb-4 h-1.5 w-[100px] shrink-0 rounded-full bg-gray-200 dark:bg-gray-800"
+        class="cn-drawer-handle mx-auto hidden shrink-0 group-data-[vaul-drawer-direction=bottom]/drawer-content:block"
       />
 
       <div

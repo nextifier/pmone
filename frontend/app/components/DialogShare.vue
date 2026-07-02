@@ -13,7 +13,7 @@
 
     <template #default="{ data }">
       <div class="px-4 pb-6 md:p-8">
-        <div class="text-primary text-center text-lg font-semibold tracking-tight sm:text-xl">
+        <div class="text-foreground text-center text-lg font-semibold tracking-tight sm:text-xl">
           Share this page
         </div>
         <SharePage :title="data.title || ''" :url="fullUrl" class="mt-4" />

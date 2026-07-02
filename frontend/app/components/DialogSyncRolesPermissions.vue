@@ -14,7 +14,7 @@
 
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
             Export Roles & Permissions
           </div>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
@@ -55,7 +55,7 @@
 
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
             Import Roles & Permissions
           </div>
 

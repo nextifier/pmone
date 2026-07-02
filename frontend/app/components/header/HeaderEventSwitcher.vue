@@ -45,7 +45,7 @@
               <Icon
                 v-if="event.slug === currentEventSlug && event.projectUsername === currentUsername"
                 name="lucide:check"
-                class="text-primary ml-auto size-3.5 shrink-0"
+                class="text-foreground ml-auto size-3.5 shrink-0"
               />
             </CommandItem>
           </CommandGroup>

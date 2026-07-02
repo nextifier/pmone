@@ -1,67 +1,43 @@
 <template>
-  <div class="mx-auto max-w-sm space-y-6 pt-4 pb-16">
-    <div class="flex items-center gap-x-2.5">
-      <Icon name="hugeicons:colors" class="size-5 sm:size-6" />
-      <h1 class="page-title">{{ $t("settings.appearance") }}</h1>
-    </div>
+  <div class="flex h-[calc(100svh-var(--navbar-height-desktop,3.5rem))] min-w-0 flex-col overflow-hidden py-4">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 lg:flex-row">
+      <!-- Controls (left) — the Customizer. Uses `border` (not `ring`): a ring
+           paints OUTSIDE the box and its left edge would be clipped by the
+           container's `overflow-hidden`; a border sits inside the box. -->
+      <div class="bg-card border-border shrink-0 overflow-y-auto rounded-2xl border p-4 lg:w-72">
+        <AppearanceCustomizer />
+      </div>
 
-    <div class="mt-8 space-y-6">
-      <!-- Theme Selection -->
-      <div class="space-y-4">
-        <div>
-          <h3 class="font-medium tracking-tight">{{ $t("settings.theme") }}</h3>
-          <p class="text-muted-foreground mt-1 text-sm tracking-tight">
-            {{ $t("settings.chooseTheme") }}
+      <!-- Preview (right) — clearly labelled so it reads as a live preview of
+           the chosen style, not editable settings. `min-w-0` lets this column
+           shrink below the (very wide) showcase grid so the horizontal scroll
+           is contained INSIDE the preview panel, not the whole page. -->
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:w-0">
+        <div class="min-w-0">
+          <h2 class="text-foreground text-base font-medium tracking-tight">Live Preview</h2>
+          <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
+            A live preview of the components in your selected style. Changes apply instantly, no reload.
           </p>
         </div>
 
-        <RadioGroup
-          v-model="selectedTheme"
-          class="grid grid-cols-3 gap-3"
-          @update:model-value="updateTheme"
-        >
-          <Label
-            v-for="opt in themeOptions"
-            :key="opt.value"
-            :for="`theme-${opt.value}`"
-            class="flex cursor-pointer flex-col items-center gap-y-2"
-          >
-            <RadioGroupItem :id="`theme-${opt.value}`" :value="opt.value" class="sr-only" />
-            <div
-              class="border-border aspect-64/54 w-full overflow-hidden rounded-xl border transition active:scale-98"
-              :class="{
-                'ring-primary ring-offset-background ring-2 ring-offset-2':
-                  selectedTheme === opt.value,
-                'hover:border-muted-foreground': selectedTheme !== opt.value,
-              }"
-            >
-              <component :is="opt.thumbnail" class="h-full w-full object-cover" />
-            </div>
-            <span
-              class="text-center text-sm font-medium"
-              :class="{
-                'text-primary': selectedTheme === opt.value,
-                'text-muted-foreground/80': selectedTheme !== opt.value,
-              }"
-            >
-              {{ opt.label }}
-            </span>
-          </Label>
-        </RadioGroup>
+        <!-- Client-only: the showcase is a live preview (not SEO content) and its
+             ~70 reka-ui components would otherwise cause SSR/client `useId`
+             hydration drift. Rendering it only on the client removes the mismatch
+             and keeps SSR light. -->
+        <ClientOnly>
+          <AppearancePreviewPanel class="min-h-[60svh] lg:min-h-0" />
+          <template #fallback>
+            <div class="bg-muted dark:bg-background min-h-[60svh] flex-1 rounded-2xl lg:min-h-0" />
+          </template>
+        </ClientOnly>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import {
-  ColorModeThumbnailDark,
-  ColorModeThumbnailLight,
-  ColorModeThumbnailSystem,
-} from "@/components/ui/color-mode-buttons";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "vue-sonner";
+import AppearanceCustomizer from "@/components/appearance/AppearanceCustomizer.vue";
+import AppearancePreviewPanel from "@/components/appearance/showcase/PreviewPanel.vue";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -69,47 +45,4 @@ definePageMeta({
 });
 
 usePageMeta(null, { title: "Appearance" });
-
-const { t } = useI18n();
-
-const { colorMode, setTheme, isSyncing, lastSyncedAt, syncError } = useThemeSync();
-
-// Reactive state
-const selectedTheme = ref("system");
-const lastUpdated = ref(false);
-
-const themeOptions = computed(() => [
-  { value: "light", label: t("settings.light"), thumbnail: ColorModeThumbnailLight },
-  { value: "dark", label: t("settings.dark"), thumbnail: ColorModeThumbnailDark },
-  { value: "system", label: t("settings.system"), thumbnail: ColorModeThumbnailSystem },
-]);
-
-// Load current theme preference from user settings
-const loadThemePreference = () => {
-  selectedTheme.value = colorMode.preference || "system";
-};
-
-// Update theme preference
-const updateTheme = () => {
-  // Use the centralized setTheme function with debounced sync
-  setTheme(selectedTheme.value);
-
-  // Show temporary success feedback
-  lastUpdated.value = true;
-  setTimeout(() => {
-    lastUpdated.value = false;
-  }, 2000);
-};
-
-// Watch for sync errors
-watch(syncError, (error) => {
-  if (error) {
-    toast.error(error);
-  }
-});
-
-// Load theme preference when component mounts
-onMounted(() => {
-  loadThemePreference();
-});
 </script>

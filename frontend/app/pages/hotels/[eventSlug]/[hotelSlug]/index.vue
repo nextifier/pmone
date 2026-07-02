@@ -147,6 +147,7 @@
 
             <BookingStep3Guest
               v-else-if="currentStep === 3"
+              ref="guestStepRef"
               :guest="bookingStore.guest"
               :errors="submitErrors"
               :prefilled-from-profile="prefilledFromProfile"
@@ -255,6 +256,8 @@ const bookingStore = useBookingStore();
 const hasAddons = computed(
   () => (hotel.value?.transfer_options?.length ?? 0) > 0
 );
+
+const guestStepRef = ref(null);
 
 const currentStep = computed({
   get: () => bookingStore.currentStep,
@@ -424,7 +427,9 @@ const ctaLabel = computed(() => {
 const ctaEnabled = computed(() => {
   if (currentStep.value === 1) return bookingStore.canProceedStep1;
   if (currentStep.value === 2) return bookingStore.canProceedStep2;
-  if (currentStep.value === 3) return bookingStore.canProceedStep3;
+  // Guest step stays enabled: clicking runs validateAll() which surfaces the
+  // field errors (better UX than a silently-disabled button).
+  if (currentStep.value === 3) return true;
   if (currentStep.value === 4) return bookingStore.canProceedStep4;
   return false;
 });
@@ -452,9 +457,15 @@ const mobileTotal = computed(() => {
   return sub + tax + svc;
 });
 
-function handlePrimary() {
+async function handlePrimary() {
   if (currentStep.value < 4) {
     if (!ctaEnabled.value) return;
+    // On the guest step, validate everything on click so all field errors show
+    // (and the first scrolls into view) instead of failing silently.
+    if (currentStep.value === 3) {
+      const valid = await guestStepRef.value?.validateAll();
+      if (!valid) return;
+    }
     let next = currentStep.value + 1;
     // Skip the add-ons step entirely when the hotel has no transfer options.
     if (next === 2 && !hasAddons.value) {

@@ -57,7 +57,7 @@
           <Icon name="hugeicons:dice" class="size-6" />
         </div>
         <div class="space-y-1">
-          <p class="text-primary text-lg font-medium tracking-tighter">Add entries to start</p>
+          <p class="text-foreground text-lg font-medium tracking-tighter">Add entries to start</p>
           <p class="text-muted-foreground text-sm tracking-tight">Paste your names or items, then spin to pick a winner.</p>
         </div>
         <Button @click="entriesOpen = true">
@@ -72,7 +72,7 @@
           <Icon name="hugeicons:champion" class="size-6" />
         </div>
         <div class="space-y-1">
-          <p class="text-primary text-lg font-medium tracking-tighter">All entries drawn</p>
+          <p class="text-foreground text-lg font-medium tracking-tighter">All entries drawn</p>
           <p class="text-muted-foreground text-sm tracking-tight">{{ state.winners.length }} winners picked. Reset to start over.</p>
         </div>
         <Button @click="reset">
@@ -85,7 +85,7 @@
       <template v-else>
         <h1
           v-if="state.prize"
-          class="text-primary shrink-0 text-center text-2xl font-semibold tracking-tighter text-balance sm:text-4xl"
+          class="text-foreground shrink-0 text-center text-2xl font-semibold tracking-tighter text-balance sm:text-4xl"
         >
           {{ state.prize }}
         </h1>
@@ -104,7 +104,7 @@
               >
                 <svg width="40" height="34" viewBox="0 0 40 34" fill="none">
                   <path d="M2 17 L28 4 A14 14 0 1 1 28 30 Z" fill="white" />
-                  <circle cx="26" cy="17" r="5" class="fill-primary" />
+                  <circle cx="26" cy="17" r="5" class="fill-foreground" />
                 </svg>
               </div>
               <svg
@@ -136,7 +136,7 @@
               <button
                 type="button"
                 :disabled="busy || pool.length < 1"
-                class="bg-card text-primary absolute top-1/2 left-1/2 z-10 grid size-[14%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white shadow-lg transition active:scale-95 disabled:opacity-60"
+                class="bg-card text-foreground absolute top-1/2 left-1/2 z-10 grid size-[14%] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white shadow-lg transition active:scale-95 disabled:opacity-60"
                 @click="spin"
               >
                 <span
@@ -171,8 +171,8 @@
               </div>
               <div class="from-background via-background/0 to-background pointer-events-none absolute inset-0 z-20 bg-linear-to-b" />
               <div class="pointer-events-none absolute inset-x-0 top-1/2 z-20 flex -translate-y-1/2 items-center justify-between">
-                <svg class="text-primary size-10 -rotate-90 sm:size-14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 8C2 4 6 2 12 2C18 2 22 4 22 8C22 14 14 22 12 22C10 22 2 14 2 8Z" /></svg>
-                <svg class="text-primary size-10 rotate-90 sm:size-14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 8C2 4 6 2 12 2C18 2 22 4 22 8C22 14 14 22 12 22C10 22 2 14 2 8Z" /></svg>
+                <svg class="text-foreground size-10 -rotate-90 sm:size-14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 8C2 4 6 2 12 2C18 2 22 4 22 8C22 14 14 22 12 22C10 22 2 14 2 8Z" /></svg>
+                <svg class="text-foreground size-10 rotate-90 sm:size-14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 8C2 4 6 2 12 2C18 2 22 4 22 8C22 14 14 22 12 22C10 22 2 14 2 8Z" /></svg>
               </div>
             </div>
           </Transition>
@@ -180,7 +180,7 @@
           <!-- Countdown overlay -->
           <Transition name="cd">
             <div v-if="countdownValue" class="bg-background/30 absolute inset-0 z-30 grid place-items-center backdrop-blur-[2px]">
-              <span class="text-primary text-[22vw] leading-none font-semibold tracking-tighter sm:text-[160px]">{{ countdownValue }}</span>
+              <span class="text-foreground text-[22vw] leading-none font-semibold tracking-tighter sm:text-[160px]">{{ countdownValue }}</span>
             </div>
           </Transition>
         </div>
@@ -198,7 +198,7 @@
                 <p v-if="!state.settings.winnerMessage" class="text-muted-foreground text-sm tracking-tight">Winner</p>
                 <p
                   :class="[
-                    'text-primary font-semibold tracking-tighter',
+                    'text-foreground font-semibold tracking-tighter',
                     presenting ? 'text-5xl sm:text-7xl' : 'text-2xl sm:text-4xl',
                   ]"
                 >
@@ -206,7 +206,7 @@
                 </p>
                 <p
                   v-if="state.settings.winnerMessage"
-                  :class="['text-primary font-medium tracking-tighter', presenting ? 'text-2xl sm:text-3xl' : 'text-lg']"
+                  :class="['text-foreground font-medium tracking-tighter', presenting ? 'text-2xl sm:text-3xl' : 'text-lg']"
                 >
                   {{ currentWinners[0].name }}
                 </p>
@@ -218,7 +218,7 @@
                     v-for="(w, i) in currentWinners"
                     :key="i"
                     :class="[
-                      'text-primary font-semibold tracking-tighter',
+                      'text-foreground font-semibold tracking-tighter',
                       presenting ? 'text-3xl sm:text-5xl' : 'text-xl sm:text-2xl',
                     ]"
                     >{{ w.name }}</span
@@ -257,7 +257,7 @@
     <DialogResponsive v-model:open="entriesOpen" dialog-max-width="32rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
-          <h3 class="text-primary text-lg font-semibold tracking-tighter">Entries</h3>
+          <h3 class="text-foreground text-lg font-semibold tracking-tighter">Entries</h3>
           <p class="page-description">Set the prize and the names or items to draw from.</p>
         </div>
         <div class="mt-4 space-y-4">
@@ -303,7 +303,7 @@
     <DialogResponsive v-model:open="settingsOpen" dialog-max-width="32rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
-          <h3 class="text-primary text-lg font-semibold tracking-tighter">Settings</h3>
+          <h3 class="text-foreground text-lg font-semibold tracking-tighter">Settings</h3>
           <p class="page-description">Customize how the draw looks and behaves.</p>
         </div>
         <div class="mt-4 space-y-5">
@@ -380,7 +380,7 @@
     <!-- Clear confirm -->
     <DialogResponsive v-model:open="clearConfirmOpen">
       <div class="px-4 pb-10 md:px-6 md:py-5">
-        <div class="text-primary text-lg font-semibold tracking-tighter">Clear entries & prize?</div>
+        <div class="text-foreground text-lg font-semibold tracking-tighter">Clear entries & prize?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           This removes all entries and the prize from this browser. This can't be undone.
         </p>
@@ -395,7 +395,7 @@
     <DialogResponsive v-model:open="forceWinnerOpen" dialog-max-width="28rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
-          <h3 class="text-primary text-lg font-semibold tracking-tighter">Force winner</h3>
+          <h3 class="text-foreground text-lg font-semibold tracking-tighter">Force winner</h3>
           <p class="page-description">Pick who wins the next spin. The result still animates normally.</p>
         </div>
         <div class="mt-4 space-y-2">
@@ -408,7 +408,7 @@
               @click="setForced(null)"
             >
               <span>Random (off)</span>
-              <Icon v-if="!forcedWinnerLabel" name="hugeicons:tick-02" class="text-primary size-4" />
+              <Icon v-if="!forcedWinnerLabel" name="hugeicons:tick-02" class="text-foreground size-4" />
             </button>
             <button
               v-for="o in forceMatches"
@@ -422,7 +422,7 @@
               <Icon
                 v-if="forcedWinnerLabel === o.label"
                 name="hugeicons:tick-02"
-                class="text-primary size-4 shrink-0"
+                class="text-foreground size-4 shrink-0"
               />
             </button>
             <p v-if="!pool.length" class="text-muted-foreground px-3 py-2 text-sm tracking-tight">No entries to pick from.</p>
@@ -443,7 +443,7 @@
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="flex items-start justify-between gap-2">
           <div class="space-y-1">
-            <h3 class="text-primary text-lg font-semibold tracking-tighter">Winners</h3>
+            <h3 class="text-foreground text-lg font-semibold tracking-tighter">Winners</h3>
             <p class="page-description">{{ state.winners.length }} drawn this session.</p>
           </div>
           <div v-if="state.winners.length" class="flex items-center gap-1">
@@ -474,7 +474,7 @@
     <!-- Clear all confirm -->
     <DialogResponsive v-model:open="clearAllConfirmOpen">
       <div class="px-4 pb-10 md:px-6 md:py-5">
-        <div class="text-primary text-lg font-semibold tracking-tighter">Clear all settings and data?</div>
+        <div class="text-foreground text-lg font-semibold tracking-tighter">Clear all settings and data?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           This removes the entries, prize, winner history, and all settings from this browser and resets everything to
           defaults. This can't be undone.

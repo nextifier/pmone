@@ -134,7 +134,7 @@
         <div class="flex flex-col gap-x-2 gap-y-10 lg:flex-row lg:gap-x-8">
           <div class="flex shrink-0 flex-col items-center gap-y-1 lg:items-start">
             <NuxtLink to="/">
-              <Logo class="text-primary h-6" />
+              <Logo class="text-foreground h-6" />
             </NuxtLink>
             <p
               class="text-muted-foreground mt-4 max-w-xs text-center text-sm leading-relaxed tracking-tight lg:text-left"
@@ -156,7 +156,7 @@
                   v-for="link in section.links"
                   :key="link.to"
                   :to="link.to"
-                  class="text-primary hover:bg-muted rounded-lg px-3 py-1 text-base font-medium tracking-[-0.04em]"
+                  class="text-foreground hover:bg-muted rounded-lg px-3 py-1 text-base font-medium tracking-[-0.04em]"
                 >
                   {{ link.label }}
                 </NuxtLink>

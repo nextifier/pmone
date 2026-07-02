@@ -3,27 +3,37 @@ import { cva } from "class-variance-authority";
 
 export { default as Button } from "./Button.vue";
 
+// shadcn-vue v4 cn-* button. Shape/colour come from the active `.style-X .cn-button*`
+// rules (app/assets/css/styles). pmone keeps its cva KEYS (so call sites are
+// untouched) and remaps the VALUES to cn-* classes: the extra `outline-destructive`
+// composes outline + `text-destructive`; `iconSm`/`iconXs` map to the registry's
+// `icon-sm`/`icon-xs`.
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium tracking-tight transition-[color,background-color,border-color,box-shadow] disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-[2px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap transition-[color,box-shadow,transform] outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-xs hover:bg-primary/80",
-        destructive: "bg-destructive text-white shadow-xs hover:bg-destructive/90",
-        outline: "border hover:bg-primary/5 border-border",
-        "outline-destructive":
-          "border hover:bg-primary/5 border-border text-destructive-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-border",
-        ghost: "hover:bg-muted hover:text-foreground font-normal",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: "cn-button-variant-default",
+        destructive: "cn-button-variant-destructive",
+        outline: "cn-button-variant-outline",
+        "outline-destructive": "cn-button-variant-outline text-destructive-foreground",
+        secondary: "cn-button-variant-secondary",
+        ghost: "cn-button-variant-ghost",
+        link: "cn-button-variant-link",
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4 text-base font-semibold tracking-tight",
-        icon: "size-9",
-        iconSm: "size-8",
-        iconXs: "size-7 [&_svg:not([class*='size-'])]:size-3.5",
+        default: "cn-button-size-default",
+        xs: "cn-button-size-xs",
+        sm: "cn-button-size-sm",
+        lg: "cn-button-size-lg",
+        icon: "cn-button-size-icon",
+        iconSm: "cn-button-size-icon-sm",
+        iconXs: "cn-button-size-icon-xs",
+        // Kebab aliases so the ported shadcn showcase (which uses the registry's
+        // `icon-sm`/`icon-xs` names) resolves to the same CSS as pmone's camelCase
+        // `iconSm`/`iconXs` call sites. Both are kept — additive, no breakage.
+        "icon-sm": "cn-button-size-icon-sm",
+        "icon-xs": "cn-button-size-icon-xs",
       },
     },
     defaultVariants: {

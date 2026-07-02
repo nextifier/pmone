@@ -32,6 +32,18 @@ test('downscales a large original in place and reports changed', function () {
     @unlink($path);
 });
 
+test('uses the configured 2560px original cap by default', function () {
+    $path = tmpImageFile('jpg', 4000, 3000);
+
+    expect(ImageOptimizer::compressInPlace($path))->toBeTrue();
+
+    [$w, $h] = getimagesize($path);
+    expect(max($w, $h))->toBeLessThanOrEqual(2560)
+        ->and(max($w, $h))->toBeGreaterThan(1920); // proves the new cap, not the old 1920
+
+    @unlink($path);
+});
+
 test('skips images already within the cap and small', function () {
     $path = tmpImageFile('jpg', 300, 300);
 
@@ -64,7 +76,7 @@ test('tmp-upload downscales the stored original', function () {
 
     $path = Storage::disk('local')->path("tmp/uploads/{$folder}/huge.jpg");
     [$w, $h] = getimagesize($path);
-    expect(max($w, $h))->toBeLessThanOrEqual(1920);
+    expect(max($w, $h))->toBeLessThanOrEqual(2560);
 });
 
 // ─── Backfill command ───────────────────────────────────────────────
@@ -95,7 +107,7 @@ test('media:compress-originals downscales large existing originals (idempotent)'
     // Apply.
     $this->artisan('media:compress-originals --force')->assertSuccessful();
     [$w1, $h1] = getimagesizefromstring($disk->get($relative));
-    expect(max($w1, $h1))->toBeLessThanOrEqual(1920);
+    expect(max($w1, $h1))->toBeLessThanOrEqual(2560);
 
     // Idempotent: second run leaves it as-is.
     $sizeAfter = $disk->size($relative);

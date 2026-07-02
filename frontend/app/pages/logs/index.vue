@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:analytics-02" class="text-primary size-5 shrink-0 sm:size-6" />
+        <Icon name="hugeicons:analytics-02" class="text-foreground size-5 shrink-0 sm:size-6" />
         <h1 class="page-title">Activity Logs</h1>
       </div>
 
@@ -242,7 +242,7 @@
     <DialogResponsive v-model:open="clearDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tight">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
             Clear all activity logs?
           </div>
           <p class="text-body mt-1.5 text-sm tracking-tight">

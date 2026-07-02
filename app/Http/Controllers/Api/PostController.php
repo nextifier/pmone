@@ -979,17 +979,16 @@ class PostController extends Controller
                     $caption = html_entity_decode($captionMatch[1]);
                 }
 
-                // Generate unique filename to prevent collision when path generator
-                // stores all media of a collection in the same directory per model.
-                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME));
+                // The global UniqueFileNamer appends a random token to the stored
+                // file name, so each upload lands on its own path/URL even when two
+                // images share an original name in this shared collection directory.
+                $baseName = Str::slug(pathinfo($filename, PATHINFO_FILENAME)) ?: 'image';
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                $uniqueBase = $baseName.'-'.substr($folder, -8);
-                $uniqueFileName = $uniqueBase.($extension ? '.'.$extension : '');
 
                 // Move file from temp storage to permanent storage
                 $mediaAdder = $post->addMediaFromDisk($tempFilePath, 'local')
-                    ->usingName($uniqueBase)
-                    ->usingFileName($uniqueFileName);
+                    ->usingName($baseName)
+                    ->usingFileName($baseName.($extension ? '.'.$extension : ''));
 
                 // Build custom properties with caption and dimensions
                 $customProps = [];

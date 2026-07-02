@@ -2,7 +2,7 @@
 import TermsCheckbox from "./TermsCheckbox.vue";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { InputErrorMessage } from "../ui/input-error-message";
+import { FieldError } from "../ui/field";
 import { useBookingStore } from "../../stores/booking";
 import { useTimeoutFn } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
@@ -497,7 +497,7 @@ watch(promoError, (val) => {
         :model-value="acceptTerms"
         @update:model-value="(v) => emit('accept-terms', v)"
       />
-      <InputErrorMessage :errors="errors.accept_terms" />
+      <FieldError :errors="errors.accept_terms" />
     </section>
 
     <Button

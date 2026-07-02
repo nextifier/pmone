@@ -8,7 +8,7 @@
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-6">
           <div>
-            <h2 class="text-primary text-lg font-semibold tracking-tight">Import Business Categories</h2>
+            <h2 class="text-foreground text-lg font-semibold tracking-tight">Import Business Categories</h2>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">
               Upload an Excel file to import business categories for this project
             </p>
@@ -16,7 +16,7 @@
 
           <div class="bg-muted/50 rounded-lg border p-4">
             <div class="flex items-start gap-3">
-              <Icon name="lucide:info" class="text-primary mt-0.5 size-5 shrink-0" />
+              <Icon name="lucide:info" class="text-foreground mt-0.5 size-5 shrink-0" />
               <div class="space-y-2 text-sm tracking-tight">
                 <p class="font-medium">Import Instructions:</p>
                 <ul class="text-muted-foreground list-inside list-disc space-y-1">

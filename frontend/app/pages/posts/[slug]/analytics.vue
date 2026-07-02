@@ -42,7 +42,7 @@
           </div>
 
           <div class="min-w-0 flex-1">
-            <h2 class="text-primary text-lg font-semibold tracking-tight">
+            <h2 class="text-foreground text-lg font-semibold tracking-tight">
               {{ post?.title }}
             </h2>
             <p
@@ -76,21 +76,21 @@
       <div class="grid gap-4 sm:grid-cols-3">
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Total Visits</div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_visits.toLocaleString() }}
           </div>
         </div>
 
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Authenticated</div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.authenticated_visits.toLocaleString() }}
           </div>
         </div>
 
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Anonymous</div>
-          <div class="text-primary mt-2 text-4xl font-semibold">
+          <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.anonymous_visits.toLocaleString() }}
           </div>
         </div>
@@ -132,7 +132,7 @@
               </div>
 
               <div class="min-w-0 flex-1">
-                <div v-if="visitorData.visitor" class="text-primary truncate text-sm font-medium">
+                <div v-if="visitorData.visitor" class="text-foreground truncate text-sm font-medium">
                   {{ visitorData.visitor.name }}
                 </div>
                 <div v-else class="text-muted-foreground truncate text-sm italic">Anonymous</div>

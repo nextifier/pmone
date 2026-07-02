@@ -63,7 +63,7 @@
     <div v-for="i in 3" :key="i" class="flex items-center gap-1.5">
       <div
         class="size-2.5 shrink-0 rounded-full border"
-        :class="i === 1 ? 'border-primary border-[3px]' : 'border-muted-foreground/40'"
+        :class="i === 1 ? 'border-foreground border-[3px]' : 'border-muted-foreground/40'"
       />
       <div class="bg-muted-foreground/25 h-1.5 flex-1 rounded-full" />
     </div>
@@ -160,14 +160,8 @@
   </div>
 
   <!-- Rating -->
-  <div v-else-if="type === 'rating'" class="flex max-w-28 items-center gap-0.5">
-    <Icon
-      v-for="i in 5"
-      :key="i"
-      name="lucide:star"
-      class="size-4"
-      :class="i <= 3 ? 'text-warning fill-warning' : 'text-muted-foreground/25'"
-    />
+  <div v-else-if="type === 'rating'" class="flex max-w-28 items-center">
+    <Rating :model-value="3" readonly size="sm" aria-label="Rating illustration" />
   </div>
 
   <!-- Linear Scale -->

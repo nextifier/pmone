@@ -108,7 +108,7 @@
             >
               <Icon
                 name="hugeicons:cancel-01"
-                class="size-4 opacity-60 transition group-hover:opacity-100"
+                class="size-4 opacity-60 transition-opacity group-hover:opacity-100"
               />
               <span class="sr-only">Close</span>
             </button>
@@ -118,7 +118,7 @@
             >
               <Icon
                 name="hugeicons:cancel-01"
-                class="size-4 opacity-60 transition group-hover:opacity-100"
+                class="size-4 opacity-60 transition-opacity group-hover:opacity-100"
               />
               <span class="sr-only">Close</span>
             </DrawerClose>

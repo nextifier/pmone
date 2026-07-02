@@ -29,7 +29,7 @@ const isLiteral = computed(() => props.part === "literal");
         'selection:bg-primary selection:text-primary-foreground',
         isLiteral
           ? 'text-muted-foreground inline px-px'
-          : 'border-border bg-muted hover:bg-muted/70 focus:bg-accent focus:text-accent-foreground data-[placeholder]:text-muted-foreground data-[invalid]:border-destructive/50 data-[invalid]:bg-destructive/10 data-[invalid]:text-destructive squircle inline-flex size-7 items-center justify-center rounded-sm border',
+          : 'cn-input hover:bg-muted/50 focus:bg-muted focus:text-foreground not-focus:data-[placeholder]:text-muted-foreground data-[invalid]:border-destructive/50 data-[invalid]:bg-destructive/10 data-[invalid]:text-destructive squircle inline-flex size-8 items-center justify-center rounded-sm p-0 shadow-none',
         showCaret && !isLiteral && 'caret-foreground! focus:caret-accent-foreground!',
         'aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
         props.class

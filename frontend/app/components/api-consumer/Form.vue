@@ -16,7 +16,7 @@
               required
               placeholder="My Blog Website"
             />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
             <p class="text-muted-foreground text-xs">Friendly name for this API consumer</p>
           </div>
 
@@ -29,7 +29,7 @@
               required
               placeholder="https://example.com"
             />
-            <InputErrorMessage :errors="errors.website_url" />
+            <FieldError :errors="errors.website_url" />
             <p class="text-muted-foreground text-xs">The primary URL of your website</p>
           </div>
 
@@ -41,7 +41,7 @@
               placeholder="Brief description of this API consumer..."
               rows="3"
             />
-            <InputErrorMessage :errors="errors.description" />
+            <FieldError :errors="errors.description" />
             <p class="text-muted-foreground text-xs">Optional description for this consumer</p>
           </div>
         </div>
@@ -64,7 +64,7 @@
               inputmode="numeric"
               placeholder="60"
             />
-            <InputErrorMessage :errors="errors.rate_limit" />
+            <FieldError :errors="errors.rate_limit" />
             <p class="text-muted-foreground text-xs">
               Set to <strong>0</strong> for unlimited access, or <strong>10-10000</strong> to limit
               requests per minute. Default is 60.
@@ -80,7 +80,7 @@
               </TagsInputItem>
               <TagsInputInput placeholder="https://example.com" />
             </TagsInput>
-            <InputErrorMessage :errors="errors.allowed_origins" />
+            <FieldError :errors="errors.allowed_origins" />
             <p class="text-muted-foreground text-xs">
               URLs allowed to make API requests from browsers. Add multiple origins for www/non-www
               variants. <strong>Leave empty to allow all origins</strong> (not recommended for
@@ -127,7 +127,7 @@
                 </template>
                 <template #default>
                   <div class="px-4 pb-10 md:px-6 md:py-5">
-                    <div class="text-primary text-lg font-semibold tracking-tight">
+                    <div class="text-foreground text-lg font-semibold tracking-tight">
                       Regenerate API Key?
                     </div>
                     <p class="text-body mt-1.5 text-sm tracking-tight">

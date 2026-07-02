@@ -26,9 +26,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <NavigationMenuContent
     v-bind="forwarded"
+    data-slot="navigation-menu-content"
     :class="
       cn(
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-50 border-border bg-popover absolute top-full right-0 mt-3 flex w-56 origin-top-right flex-col gap-y-1 rounded-xl border px-2 py-4',
+        'cn-navigation-menu-content top-0 left-0 w-full group-data-[viewport=false]/navigation-menu:top-full group-data-[viewport=false]/navigation-menu:mt-1.5 group-data-[viewport=false]/navigation-menu:overflow-hidden **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none md:absolute md:w-auto',
         props.class,
       )
     "

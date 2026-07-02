@@ -284,7 +284,7 @@
           setOpen(false);
           setOpenMobile(false);
         "
-        class="text-primary bg-muted hover:bg-border absolute top-3 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
+        class="text-foreground bg-muted hover:bg-border absolute top-3 right-4 flex size-8 items-center justify-center rounded-lg transition active:scale-98"
       >
         <Icon name="lucide:x" class="size-4" />
       </button>

@@ -178,7 +178,7 @@
     <DialogResponsive :open="deleteDialogOpen" @update:open="onDeleteDialogOpenChange">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">Delete images?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter">Delete images?</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             {{ selectedCount }} selected image{{ selectedCount > 1 ? "s" : "" }} will be permanently
             deleted. This action can't be undone.

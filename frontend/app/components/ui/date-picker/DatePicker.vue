@@ -1,20 +1,19 @@
 <template>
   <Popover v-model:open="isOpen" :modal="false">
     <PopoverTrigger as-child>
-      <Button
-        variant="outline"
+      <button
         type="button"
         :disabled="disabled"
         :class="
           cn(
-            'w-full justify-start text-left text-sm font-normal',
+            'cn-input flex w-full min-w-0 items-center gap-2 text-left font-normal disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
             !modelValue && 'text-muted-foreground'
           )
         "
       >
         <Icon name="hugeicons:calendar-04" class="size-4 shrink-0" />
         <span class="truncate">{{ displayText }}</span>
-      </Button>
+      </button>
     </PopoverTrigger>
     <PopoverContent class="w-auto rounded-xl p-0" align="start">
       <Calendar
@@ -33,7 +32,7 @@
         class="border-border flex items-center justify-center gap-2 border-t px-2.5 py-2"
       >
         <Select v-model="selectedHour">
-          <SelectTrigger size="sm" class="bg-card">
+          <SelectTrigger size="sm">
             <SelectValue placeholder="HH" />
           </SelectTrigger>
           <SelectContent class="min-w-0!">
@@ -44,7 +43,7 @@
         </Select>
         <span class="text-muted-foreground text-sm">:</span>
         <Select v-model="selectedMinute">
-          <SelectTrigger size="sm" class="bg-card">
+          <SelectTrigger size="sm">
             <SelectValue placeholder="MM" />
           </SelectTrigger>
           <SelectContent class="!min-w-0">

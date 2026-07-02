@@ -60,7 +60,7 @@ const toggleShowPassword = () => {
       <button
         type="button"
         tabindex="-1"
-        class="hover:bg-muted flex size-7 items-center justify-center rounded-full transition active:scale-95"
+        class="hover:bg-muted flex size-7 items-center justify-center rounded-full transition-[background-color,transform] active:scale-95"
         @click="toggleShowPassword"
       >
         <Icon

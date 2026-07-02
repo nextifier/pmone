@@ -520,7 +520,7 @@ const RowActions = defineComponent({
               h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
                 h(
                   "div",
-                  { class: "text-primary text-lg font-semibold tracking-tight" },
+                  { class: "text-foreground text-lg font-semibold tracking-tight" },
                   "Are you sure?",
                 ),
                 h(

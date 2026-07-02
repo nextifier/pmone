@@ -11,7 +11,7 @@
           container-class="relative isolate aspect-[3/1] max-w-full"
         />
         <p class="text-muted-foreground text-xs sm:text-sm">1500x500 pixels recommended</p>
-        <InputErrorMessage :errors="errors.tmp_cover_image" />
+        <FieldError :errors="errors.tmp_cover_image" />
       </div>
 
       <div class="space-y-2">
@@ -23,7 +23,7 @@
           placeholder="My Form"
           :class="{ 'border-destructive': errors.title }"
         />
-        <InputErrorMessage :errors="errors.title" />
+        <FieldError :errors="errors.title" />
       </div>
 
       <!-- Description with TipTapEditor -->
@@ -35,7 +35,7 @@
           :sticky="false"
           min-height="150px"
         />
-        <InputErrorMessage :errors="errors.description" />
+        <FieldError :errors="errors.description" />
       </div>
 
       <div class="space-y-2">
@@ -47,7 +47,7 @@
           :class="{ 'border-destructive': errors.slug }"
         />
         <p class="text-muted-foreground text-xs sm:text-sm">Leave empty to auto-generate from title</p>
-        <InputErrorMessage :errors="errors.slug" />
+        <FieldError :errors="errors.slug" />
       </div>
 
       <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
@@ -63,7 +63,7 @@
               <SelectItem value="closed">Closed</SelectItem>
             </SelectContent>
           </Select>
-          <InputErrorMessage :errors="errors.status" />
+          <FieldError :errors="errors.status" />
         </div>
 
         <!-- Project with Avatar -->
@@ -100,7 +100,7 @@
               </SelectItem>
             </SelectContent>
           </Select>
-          <InputErrorMessage :errors="errors.project_id" />
+          <FieldError :errors="errors.project_id" />
         </div>
       </div>
 
@@ -144,7 +144,7 @@
                 :default-hour="0"
                 :default-minute="0"
               />
-              <InputErrorMessage :errors="errors.opens_at" />
+              <FieldError :errors="errors.opens_at" />
             </div>
 
             <div class="space-y-2">
@@ -155,7 +155,7 @@
                 :default-hour="23"
                 :default-minute="59"
               />
-              <InputErrorMessage :errors="errors.closes_at" />
+              <FieldError :errors="errors.closes_at" />
             </div>
           </div>
 
@@ -171,7 +171,7 @@
             <p class="text-muted-foreground text-xs sm:text-sm">
               Maximum number of responses. Leave empty for unlimited.
             </p>
-            <InputErrorMessage :errors="errors.response_limit" />
+            <FieldError :errors="errors.response_limit" />
           </div>
         </div>
       </div>
@@ -239,7 +239,7 @@
               description="Optional BCC recipients"
               add-label="Add BCC Email"
             />
-            <InputErrorMessage :errors="errors['settings.notification_emails.to']" />
+            <FieldError :errors="errors['settings.notification_emails.to']" />
           </div>
 
           <div class="flex items-center gap-2">
@@ -291,7 +291,7 @@ import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
 import { EmailRecipientsInput } from "@/components/ui/email-recipients-input";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { InputLink } from "@/components/ui/input-link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";

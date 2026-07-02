@@ -15,7 +15,7 @@
       <!-- Docs mobile: Menu button replacing logo -->
       <button
         v-if="isDocsPage"
-        class="text-primary flex items-center gap-x-1.5 rounded-lg text-sm font-medium tracking-tight lg:hidden"
+        class="text-foreground flex items-center gap-x-1.5 rounded-lg text-sm font-medium tracking-tight lg:hidden"
         @click="toggleSidebar"
       >
         <Icon name="lucide:menu" class="size-4" />
@@ -36,7 +36,7 @@
           <LogoMark class="size-4" />
         </div>
 
-        <span class="text-primary text-base font-semibold tracking-tighter sm:text-lg">PM One</span>
+        <span class="text-foreground text-base font-semibold tracking-tighter sm:text-lg">PM One</span>
       </nuxt-link>
 
       <div class="ml-auto flex h-full items-center gap-x-6">
@@ -59,15 +59,15 @@
             <button
               data-sidebar="trigger"
               data-slot="sidebar-trigger"
-              class="text-primary hover:bg-muted flex size-8 items-center justify-center rounded-lg"
+              class="text-foreground hover:bg-muted flex size-8 items-center justify-center rounded-lg"
               @click="toggleSidebar"
             >
               <Icon
                 v-if="open && !isMobile"
                 name="hugeicons:sidebar-right-01"
-                class="text-primary size-5"
+                class="text-foreground size-5"
               />
-              <Icon v-else name="hugeicons:sidebar-right" class="text-primary size-5" />
+              <Icon v-else name="hugeicons:sidebar-right" class="text-foreground size-5" />
             </button>
             <template #content>
               <span class="inline-flex items-center gap-x-1.5 tracking-tight">

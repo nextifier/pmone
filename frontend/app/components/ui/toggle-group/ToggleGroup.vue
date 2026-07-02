@@ -15,6 +15,9 @@ const props = defineProps<
     class?: HTMLAttributes["class"];
     variant?: ToggleGroupVariants["variant"] | "pill";
     size?: ToggleGroupVariants["size"];
+    // >0 = gapped, individually-rounded items (mirrors shadcn `spacing`);
+    // 0/undefined = joined segmented control (pmone default, unchanged).
+    spacing?: number;
   }
 >();
 const emits = defineEmits<ToggleGroupRootEmits>();
@@ -22,9 +25,10 @@ const emits = defineEmits<ToggleGroupRootEmits>();
 provide("toggleGroup", {
   variant: props.variant,
   size: props.size,
+  spacing: props.spacing,
 });
 
-const delegatedProps = reactiveOmit(props, "class", "size", "variant");
+const delegatedProps = reactiveOmit(props, "class", "size", "variant", "spacing");
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
@@ -34,13 +38,17 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     data-slot="toggle-group"
     :data-size="size"
     :data-variant="variant"
+    :data-spacing="spacing"
+    :style="spacing ? { gap: `calc(${spacing} * 0.25rem)` } : undefined"
     v-bind="forwarded"
     :class="
       cn(
-        'group/toggle-group flex items-center',
+        'cn-toggle-group group/toggle-group flex items-center',
         variant === 'pill'
           ? 'flex-wrap gap-2'
-          : 'w-fit rounded-md data-[variant=outline]:shadow-xs',
+          : spacing
+            ? 'w-fit'
+            : 'w-fit rounded-md data-[variant=outline]:shadow-xs',
         props.class
       )
     "

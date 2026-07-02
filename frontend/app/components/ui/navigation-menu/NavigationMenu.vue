@@ -26,9 +26,11 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <NavigationMenuRoot
     v-bind="forwarded"
+    data-slot="navigation-menu"
+    data-viewport="false"
     :class="
       cn(
-        'relative z-10 flex max-w-max flex-1 items-center justify-center',
+        'cn-navigation-menu group/navigation-menu relative z-10 flex max-w-max flex-1 items-center justify-center',
         props.class,
       )
     "

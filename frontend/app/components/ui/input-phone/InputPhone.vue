@@ -11,39 +11,44 @@
     <template #selector="{ inputValue, updateInputValue, countries }">
       <Popover v-model:open="open">
         <PopoverTrigger as-child>
-          <Button
-            variant="outline"
-            class="border-border flex h-9 gap-1 rounded-s-lg rounded-e-none border border-e-0 px-3"
+          <button
+            type="button"
+            class="cn-input flex w-auto min-w-0 shrink-0 items-center gap-1 rounded-e-none border-e-0"
             aria-label="Select country"
           >
             <Flag :country="inputValue" />
             <ChevronsUpDown class="h-4 w-4 opacity-50" />
-          </Button>
+          </button>
         </PopoverTrigger>
-        <PopoverContent class="w-[300px] p-0">
-          <Command>
-            <CommandInput placeholder="Search country..." />
+        <PopoverContent class="w-[300px] p-0" :align="align">
+          <Command :ignore-filter="true">
+            <CommandInput v-model="countrySearch" placeholder="Search country..." />
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  v-for="option in countries"
-                  :key="option.iso2"
-                  :value="option.name"
-                  class="gap-2"
-                  @select="
-                    () => {
-                      updateInputValue(option.iso2);
-                      open = false;
-                      focused = true;
-                    }
-                  "
+              <ComboboxViewport class="max-h-72 p-1">
+                <ComboboxVirtualizer
+                  v-slot="{ option }"
+                  :options="filterCountries(countries)"
+                  :estimate-size="32"
+                  :text-content="(opt: any) => opt.name"
                 >
-                  <Flag :country="option?.iso2" />
-                  <span class="flex-1 text-sm">{{ option.name }}</span>
-                  <span class="text-foreground/50 text-sm">{{ option.dialCode }}</span>
-                </CommandItem>
-              </CommandGroup>
+                  <CommandItem
+                    :value="option.name"
+                    class="h-8 w-full gap-2"
+                    @select="
+                      () => {
+                        updateInputValue(option.iso2);
+                        open = false;
+                        focused = true;
+                      }
+                    "
+                  >
+                    <Flag :country="option?.iso2" />
+                    <span class="flex-1 truncate text-sm">{{ option.name }}</span>
+                    <span class="text-foreground/50 text-sm">{{ option.dialCode }}</span>
+                  </CommandItem>
+                </ComboboxVirtualizer>
+              </ComboboxViewport>
             </CommandList>
           </Command>
         </PopoverContent>
@@ -53,7 +58,7 @@
     <template #input="{ inputValue, updateInputValue, placeholder }">
       <Input
         ref="phoneInput"
-        class="rounded-s-none! rounded-e-lg"
+        class="rounded-s-none"
         type="text"
         :model-value="inputValue"
         @input="updateInputValue"
@@ -68,11 +73,18 @@
 import { useFocus } from "@vueuse/core";
 import PhoneInput from "base-vue-phone-input";
 import { ChevronsUpDown } from "lucide-vue-next";
+import { ComboboxVirtualizer, useFilter } from "reka-ui";
 
-const props = defineProps<{
-  modelValue?: string;
-  required?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string;
+    required?: boolean;
+    align?: "start" | "center" | "end";
+  }>(),
+  {
+    align: "start",
+  }
+);
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];
@@ -83,6 +95,23 @@ const { getCountryCode } = usePhoneCountry();
 const open = ref(false);
 const phoneInput = ref(null);
 const { focused } = useFocus(phoneInput);
+
+const countrySearch = ref("");
+const { contains } = useFilter({ sensitivity: "base" });
+
+const filterCountries = (countries: any[]) =>
+  countrySearch.value
+    ? countries.filter(
+        (c) =>
+          contains(c.name, countrySearch.value) ||
+          c.dialCode?.includes(countrySearch.value) ||
+          contains(c.iso2, countrySearch.value)
+      )
+    : countries;
+
+watch(open, (isOpen) => {
+  if (isOpen) countrySearch.value = "";
+});
 
 const phoneValue = ref(props.modelValue || "");
 const activeCountry = ref<string>(

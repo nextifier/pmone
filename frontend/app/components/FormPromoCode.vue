@@ -18,20 +18,20 @@
                 </SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.promotion_rule_id" />
+            <FieldError :errors="errors.promotion_rule_id" />
           </div>
 
           <div class="space-y-2">
             <Label for="code">Code</Label>
             <Input id="code" v-model="form.code" type="text" required maxlength="60" pattern="[A-Za-z0-9_-]+" class="uppercase font-mono" />
             <p class="text-muted-foreground text-xs tracking-tight">Uppercase letters, numbers, dashes only. Stored uppercase.</p>
-            <InputErrorMessage :errors="errors.code" />
+            <FieldError :errors="errors.code" />
           </div>
 
           <div class="space-y-2">
             <Label for="issued_to_email">Issued To Email (optional)</Label>
             <Input id="issued_to_email" v-model="form.issued_to_email" type="email" maxlength="255" placeholder="Restrict to specific email" />
-            <InputErrorMessage :errors="errors.issued_to_email" />
+            <FieldError :errors="errors.issued_to_email" />
           </div>
         </div>
       </div>
@@ -49,14 +49,14 @@
             <Label for="usage_limit">Usage Limit (total)</Label>
             <InputNumber id="usage_limit" v-model="form.usage_limit" :min="1" placeholder="Unlimited" />
             <p class="text-muted-foreground text-xs tracking-tight">Leave empty for unlimited.</p>
-            <InputErrorMessage :errors="errors.usage_limit" />
+            <FieldError :errors="errors.usage_limit" />
           </div>
 
           <div class="space-y-2">
             <Label for="usage_limit_per_email">Per Email</Label>
             <InputNumber id="usage_limit_per_email" v-model="form.usage_limit_per_email" :min="1" placeholder="1" />
             <p class="text-muted-foreground text-xs tracking-tight">Max times each email can use this code.</p>
-            <InputErrorMessage :errors="errors.usage_limit_per_email" />
+            <FieldError :errors="errors.usage_limit_per_email" />
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@
               :default-hour="0"
               :default-minute="0"
             />
-            <InputErrorMessage :errors="errors.valid_from" />
+            <FieldError :errors="errors.valid_from" />
           </div>
 
           <div class="space-y-2">
@@ -91,7 +91,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <InputErrorMessage :errors="errors.valid_until" />
+            <FieldError :errors="errors.valid_until" />
           </div>
         </div>
 
@@ -116,7 +116,7 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";

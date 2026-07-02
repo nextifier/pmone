@@ -13,7 +13,7 @@ const props = defineProps<{
     data-slot="breadcrumb-ellipsis"
     role="presentation"
     aria-hidden="true"
-    :class="cn('flex size-9 items-center justify-center', props.class)"
+    :class="cn('cn-breadcrumb-ellipsis flex items-center justify-center', props.class)"
   >
     <slot>
       <MoreHorizontal class="size-4" />

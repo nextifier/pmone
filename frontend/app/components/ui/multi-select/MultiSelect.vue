@@ -37,8 +37,13 @@ const modelValue = defineModel<Option[]>("modelValue", {
   default: () => [],
 });
 
-const { defaultOptions, options, placeholder, openOnFocus, openOnClick } =
-  defineProps<MultySelectProps>();
+const {
+  defaultOptions,
+  options,
+  placeholder,
+  openOnFocus = true,
+  openOnClick = true,
+} = defineProps<MultySelectProps>();
 
 const emits = defineEmits<{
   (e: "update:modelValue", payload: Option[]): void;
@@ -66,6 +71,13 @@ watch(
 const removeTag = (index: number) => {
   modelValue.value = modelValue.value.filter((item, i) => i !== index);
 };
+
+const focusInnerInput = (event: PointerEvent) => {
+  const target = event.target as HTMLElement;
+  if (target.closest("button") || target.tagName === "INPUT") return;
+  event.preventDefault();
+  (event.currentTarget as HTMLElement).querySelector("input")?.focus();
+};
 </script>
 
 <template>
@@ -80,18 +92,15 @@ const removeTag = (index: number) => {
       <TagsInputRoot
         v-model="modelValue"
         delimiter=""
-        class="border-input focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative min-h-[38px] cursor-text rounded-md border p-1 text-sm transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
-        :class="{
-          'pe-8': !modelValue.length || hideClearAllButton,
-          'pe-12': modelValue.length && !hideClearAllButton,
-        }"
+        class="cn-select-trigger focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative flex h-auto min-h-(--cn-input-h,2.25rem) w-full min-w-0 cursor-text items-center gap-1 py-0 transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
+        @pointerdown="focusInnerInput"
       >
-        <div class="flex flex-wrap gap-1">
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1">
           <TagsInputItem
             v-for="(item, index) in modelValue"
             :key="item.value"
             :value="item.label"
-            class="animate-fadeIn bg-background text-secondary-foreground hover:bg-background relative inline-flex h-7 cursor-default items-center rounded-md border ps-2 pe-7 pl-2 text-sm font-medium transition-all disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-fixed:pe-2"
+            class="animate-fadeIn bg-background text-secondary-foreground hover:bg-background relative inline-flex h-7 cursor-default items-center rounded-md border ps-2 pe-7 pl-2 text-sm font-medium transition-[color,opacity] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-fixed:pe-2"
           >
             <TagsInputItemText />
             <TagsInputItemDelete
@@ -105,15 +114,12 @@ const removeTag = (index: number) => {
           <ComboboxInput v-model="query" as-child>
             <TagsInputInput
               :placeholder="placeholder || 'Select'"
-              class="placeholder:text-muted-foreground/70 flex-1 bg-transparent px-2 py-1 outline-hidden disabled:cursor-not-allowed"
-              :class="{
-                '-ml-1': modelValue.length !== 0,
-              }"
+              class="placeholder:text-muted-foreground min-w-16 flex-1 bg-transparent px-0 py-0 outline-hidden disabled:cursor-not-allowed"
               @keydown.enter.prevent
             />
           </ComboboxInput>
         </div>
-        <div class="pointer-events-none absolute end-2 top-0 flex h-9 items-center gap-0.5">
+        <div class="pointer-events-none flex shrink-0 items-center gap-0.5">
           <button
             v-if="!hideClearAllButton && modelValue.length"
             type="button"
@@ -123,31 +129,30 @@ const removeTag = (index: number) => {
           >
             <LucideX class="size-4" aria-hidden="true" />
           </button>
-          <LucideChevronsUpDown
-            class="text-muted-foreground size-3.5 shrink-0 opacity-50"
-            aria-hidden="true"
-          />
+          <LucideChevronsUpDown class="cn-select-trigger-icon shrink-0" aria-hidden="true" />
         </div>
       </TagsInputRoot>
     </ComboboxAnchor>
 
     <ComboboxList class="w-(--reka-combobox-trigger-width)">
-      <ComboboxEmpty class="px-2 py-4">No results found.</ComboboxEmpty>
+      <ComboboxViewport>
+        <ComboboxEmpty class="px-2 py-4">No results found.</ComboboxEmpty>
 
-      <ComboboxGroup v-if="filteredOptions.length">
-        <ComboboxItem
-          v-for="option in filteredOptions"
-          :key="option.value"
-          :value="option"
-          :disabled="option.disabled"
-        >
-          {{ option.label }}
+        <ComboboxGroup v-if="filteredOptions.length">
+          <ComboboxItem
+            v-for="option in filteredOptions"
+            :key="option.value"
+            :value="option"
+            :disabled="option.disabled"
+          >
+            {{ option.label }}
 
-          <ComboboxItemIndicator>
-            <LucideCheck class="ml-auto size-4" />
-          </ComboboxItemIndicator>
-        </ComboboxItem>
-      </ComboboxGroup>
+            <ComboboxItemIndicator>
+              <LucideCheck class="ml-auto size-4" />
+            </ComboboxItemIndicator>
+          </ComboboxItem>
+        </ComboboxGroup>
+      </ComboboxViewport>
     </ComboboxList>
   </ComboboxRoot>
 </template>

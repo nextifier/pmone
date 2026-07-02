@@ -73,7 +73,7 @@ watch(isSwiping, () => {
     <div
       :class="
         cn(
-          'relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
+          'cn-sidebar-gap relative w-(--sidebar-width) bg-transparent',
           'group-data-[collapsible=offcanvas]:w-0',
           variant === 'floating' || variant === 'inset'
             ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]'
@@ -99,7 +99,8 @@ watch(isSwiping, () => {
     >
       <div
         data-sidebar="sidebar"
-        class="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+        data-slot="sidebar-inner"
+        class="cn-sidebar-inner flex size-full flex-col"
       >
         <slot />
       </div>

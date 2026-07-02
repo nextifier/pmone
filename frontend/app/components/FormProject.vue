@@ -9,7 +9,7 @@
           <div class="space-y-2">
             <Label for="name">Project Name</Label>
             <Input id="name" v-model="form.name" type="text" required />
-            <InputErrorMessage :errors="errors.name" />
+            <FieldError :errors="errors.name" />
           </div>
 
           <div class="space-y-2">
@@ -18,13 +18,13 @@
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated if left empty." : "" }}
             </p>
-            <InputErrorMessage :errors="errors.username" />
+            <FieldError :errors="errors.username" />
           </div>
 
           <div class="space-y-2">
             <Label for="email">Email Address</Label>
             <Input id="email" v-model="form.email" type="email" />
-            <InputErrorMessage :errors="errors.email" />
+            <FieldError :errors="errors.email" />
           </div>
 
           <div class="space-y-2">
@@ -37,7 +37,7 @@
               min-height="200px"
               placeholder="Write project description..."
             />
-            <InputErrorMessage :errors="errors.bio" />
+            <FieldError :errors="errors.bio" />
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@
               v-model:delete-flag="deleteFlags.profile_image"
               container-class="squircle relative isolate aspect-square max-w-40"
             />
-            <InputErrorMessage :errors="errors.tmp_profile_image" />
+            <FieldError :errors="errors.tmp_profile_image" />
           </div>
 
           <div class="space-y-4">
@@ -69,7 +69,7 @@
               :initial-image="initialData?.cover_image"
               v-model:delete-flag="deleteFlags.cover_image"
             />
-            <InputErrorMessage :errors="errors.tmp_cover_image" />
+            <FieldError :errors="errors.tmp_cover_image" />
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@
               <Icon name="hugeicons:add-01" class="size-4" />
               Add Phone
             </button>
-            <InputErrorMessage :errors="errors.phones" />
+            <FieldError :errors="errors.phones" />
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@
               <Icon name="hugeicons:add-01" class="size-4" />
               Add Link
             </button>
-            <InputErrorMessage :errors="errors.links" />
+            <FieldError :errors="errors.links" />
           </div>
         </div>
       </div>
@@ -232,7 +232,7 @@
                   <SelectItem value="archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.status" />
+              <FieldError :errors="errors.status" />
             </div>
 
             <div class="space-y-2">
@@ -247,7 +247,7 @@
                   <SelectItem value="members_only">Members Only</SelectItem>
                 </SelectContent>
               </Select>
-              <InputErrorMessage :errors="errors.visibility" />
+              <FieldError :errors="errors.visibility" />
             </div>
           </div>
 
@@ -282,7 +282,7 @@
                 <SelectItem value="Custom">Custom</SelectItem>
               </SelectContent>
             </Select>
-            <InputErrorMessage :errors="errors.organization" />
+            <FieldError :errors="errors.organization" />
           </div>
         </div>
       </div>

@@ -2,7 +2,7 @@
   <DialogResponsive :open="open" @update:open="(v) => emit('update:open', v)">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5">
-        <div class="text-primary text-lg font-semibold tracking-tight">Mark order as paid?</div>
+        <div class="text-foreground text-lg font-semibold tracking-tight">Mark order as paid?</div>
         <p class="text-body mt-1.5 text-sm tracking-tight">
           This confirms order
           <span class="text-foreground font-medium">{{ attendee.order?.number }}</span>

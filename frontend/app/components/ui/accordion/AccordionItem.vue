@@ -25,7 +25,7 @@ const forwardedProps = useForwardProps(delegatedProps);
     v-bind="forwardedProps"
     :class="
       cn(
-        'rounded-2xl border border-gray-200 px-4 dark:border-gray-800 lg:rounded-3xl lg:px-6',
+        'cn-accordion-item',
         props.class,
       )
     "

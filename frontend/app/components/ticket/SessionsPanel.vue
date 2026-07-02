@@ -97,7 +97,7 @@
             <div class="space-y-2">
               <Label for="session-label">Label</Label>
               <Input id="session-label" v-model="form.label" placeholder="Keynote / Workshop A" required />
-              <InputErrorMessage :errors="errors.label" />
+              <FieldError :errors="errors.label" />
             </div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -109,7 +109,7 @@
                   placeholder="Optional start"
                   @update:model-value="(d) => (form._starts_at_obj = d)"
                 />
-                <InputErrorMessage :errors="errors.starts_at" />
+                <FieldError :errors="errors.starts_at" />
               </div>
               <div class="space-y-2">
                 <Label>Ends at</Label>
@@ -119,26 +119,26 @@
                   placeholder="Optional end"
                   @update:model-value="(d) => (form._ends_at_obj = d)"
                 />
-                <InputErrorMessage :errors="errors.ends_at" />
+                <FieldError :errors="errors.ends_at" />
               </div>
             </div>
 
             <div class="space-y-2">
               <Label for="session-location">Location</Label>
               <Input id="session-location" v-model="form.location" placeholder="Hall B, Level 2" />
-              <InputErrorMessage :errors="errors.location" />
+              <FieldError :errors="errors.location" />
             </div>
 
             <div class="space-y-2">
               <Label for="session-host">Host</Label>
               <Input id="session-host" v-model="form.host" placeholder="Speaker or facilitator" />
-              <InputErrorMessage :errors="errors.host" />
+              <FieldError :errors="errors.host" />
             </div>
 
             <div class="space-y-2">
               <Label>Capacity</Label>
               <InputNumber v-model="form.capacity" :min="0" placeholder="Unlimited" />
-              <InputErrorMessage :errors="errors.capacity" />
+              <FieldError :errors="errors.capacity" />
             </div>
 
             <div class="flex items-center gap-2">
@@ -162,7 +162,7 @@
     <DialogResponsive v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
-          <div class="text-primary text-lg font-semibold tracking-tighter">Delete session?</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter">Delete session?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingItem?.label || "This session" }}" will be removed.
           </p>
@@ -184,7 +184,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
-import { InputErrorMessage } from "@/components/ui/input-error-message";
+import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";

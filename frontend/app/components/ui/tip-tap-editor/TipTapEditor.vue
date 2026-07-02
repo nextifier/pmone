@@ -1,5 +1,8 @@
 <template>
-  <div class="tiptap-editor" :style="{ '--editor-min-h': minHeight }">
+  <div
+    class="tiptap-editor cn-input flex h-auto w-full min-w-0 flex-col items-stretch p-0"
+    :style="{ '--editor-min-h': minHeight }"
+  >
     <!-- Toolbar -->
     <div v-if="editor" :class="['editor-toolbar', sticky ? 'editor-toolbar-sticky' : '']">
       <div class="toolbar-group">
@@ -607,16 +610,12 @@ const handleImageUpload = async (event) => {
 <style scoped>
 @reference "../../../assets/css/main.css";
 
-.tiptap-editor {
-  @apply border-border rounded-lg border;
-}
-
 .editor-toolbar {
-  @apply border-border bg-background z-10 flex flex-wrap items-center gap-1 rounded-t-lg border-b p-2;
+  @apply border-border z-10 flex flex-wrap items-center gap-1 rounded-t-[inherit] border-b bg-transparent p-2;
 }
 
 .editor-toolbar-sticky {
-  @apply sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop);
+  @apply bg-background sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop);
 }
 
 .toolbar-group {

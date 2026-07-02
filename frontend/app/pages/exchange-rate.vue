@@ -76,7 +76,7 @@
                       <Icon
                         v-if="calculatorFrom === currency.code"
                         name="hugeicons:tick-02"
-                        class="text-primary size-4 shrink-0"
+                        class="text-foreground size-4 shrink-0"
                       />
                     </CommandItem>
                   </CommandGroup>
@@ -147,7 +147,7 @@
                       <Icon
                         v-if="calculatorTo === currency.code"
                         name="hugeicons:tick-02"
-                        class="text-primary size-4 shrink-0"
+                        class="text-foreground size-4 shrink-0"
                       />
                     </CommandItem>
                   </CommandGroup>
@@ -228,7 +228,7 @@
                   <Icon
                     v-if="baseCurrency === currency.code"
                     name="hugeicons:tick-02"
-                    class="text-primary size-4 shrink-0"
+                    class="text-foreground size-4 shrink-0"
                   />
                 </CommandItem>
               </CommandGroup>
@@ -328,13 +328,13 @@
               <div class="text-muted-foreground text-sm tracking-tight tabular-nums">
                 <template v-if="invertRates">
                   {{ rate.code }} 1 =
-                  <span class="text-primary font-medium"
+                  <span class="text-foreground font-medium"
                     >{{ baseCurrency }} {{ formatNumber(1 / rate.rate) }}</span
                   >
                 </template>
                 <template v-else>
                   {{ baseCurrency }} 1 =
-                  <span class="text-primary font-medium"
+                  <span class="text-foreground font-medium"
                     >{{ rate.code }} {{ formatNumber(rate.rate) }}</span
                   >
                 </template>
@@ -371,13 +371,13 @@
               <div class="text-muted-foreground text-sm tracking-tight tabular-nums">
                 <template v-if="invertRates">
                   {{ rate.code }} 1 =
-                  <span class="text-primary font-medium"
+                  <span class="text-foreground font-medium"
                     >{{ baseCurrency }} {{ formatNumber(1 / rate.rate) }}</span
                   >
                 </template>
                 <template v-else>
                   {{ baseCurrency }} 1 =
-                  <span class="text-primary font-medium"
+                  <span class="text-foreground font-medium"
                     >{{ rate.code }} {{ formatNumber(rate.rate) }}</span
                   >
                 </template>
@@ -441,13 +441,13 @@
             <div class="text-sm tracking-tight whitespace-nowrap tabular-nums">
               <template v-if="invertRates">
                 <span class="text-muted-foreground">{{ rate.code }} 1 = </span>
-                <span class="text-primary font-medium">
+                <span class="text-foreground font-medium">
                   {{ baseCurrency }} {{ formatNumber(1 / rate.rate) }}</span
                 >
               </template>
               <template v-else>
                 <span class="text-muted-foreground">{{ baseCurrency }} 1 = </span>
-                <span class="text-primary font-medium">
+                <span class="text-foreground font-medium">
                   {{ rate.code }} {{ formatNumber(rate.rate) }}</span
                 >
               </template>
