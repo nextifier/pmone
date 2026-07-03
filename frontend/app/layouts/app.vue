@@ -3,7 +3,7 @@
     <AppSidebar v-if="!isExcluded && !isProjectPage" class="select-none" />
 
     <SidebarInset
-      :class="isExcluded ? 'contents' : 'mx-auto min-h-screen max-w-[1920px]'"
+      :class="isExcluded ? 'contents' : 'mx-auto min-h-screen min-w-0 max-w-[1920px]'"
     >
       <ImpersonateExitBanner />
       <AppHeader v-if="!isExcluded" :hide-sidebar="isProjectPage" />

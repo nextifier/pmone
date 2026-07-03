@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppearanceCustomizer from "@/components/appearance/AppearanceCustomizer.vue";
 import AppearancePreviewPanel from "@/components/appearance/showcase/PreviewPanel.vue";
 

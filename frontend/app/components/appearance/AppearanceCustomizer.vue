@@ -10,16 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import { DARK_ITEM as darkItem, DARK_MENU as darkMenu } from "@/lib/appearance/customizer-classes";
 import {
   BASE_COLOR_OPTIONS,
   CHART_COLOR_OPTIONS,
@@ -100,11 +92,18 @@ function copyPreset() {
   if (!presetCode.value) {
     return;
   }
-  navigator.clipboard?.writeText(`--preset ${presetCode.value}`).then(() => {
-    hasCopied.value = true;
-    clearTimeout(copyTimer);
-    copyTimer = setTimeout(() => (hasCopied.value = false), 2000);
-  });
+  if (!navigator.clipboard?.writeText) {
+    toast.error("Clipboard is not available");
+    return;
+  }
+  navigator.clipboard
+    .writeText(`--preset ${presetCode.value}`)
+    .then(() => {
+      hasCopied.value = true;
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => (hasCopied.value = false), 2000);
+    })
+    .catch(() => toast.error("Failed to copy preset"));
 }
 
 function shuffle() {
@@ -134,13 +133,10 @@ function confirmReset() {
   showResetDialog.value = false;
 }
 
-// Shared button classes (adapt to the page theme via tokens).
+// Shared button chrome (adapts to the page theme via tokens). The forced-dark
+// menu/item classes are shared via `@/lib/appearance/customizer-classes`.
 const chromeBtn =
   "touch-manipulation ring-1 ring-foreground/10 transition-colors outline-none select-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/50";
-const darkItem =
-  "rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-100 focus:bg-neutral-700/70 focus:text-neutral-100 data-highlighted:bg-neutral-700/70";
-const darkMenu =
-  "dark rounded-xl border-0 bg-neutral-900/90 p-1.5 text-neutral-100 ring-1 ring-neutral-700/60 shadow-xl backdrop-blur-xl";
 
 watch(syncError, (error) => {
   if (error) {
@@ -274,7 +270,7 @@ watch(syncError, (error) => {
     >
       <button
         type="button"
-        :title="copyLabel"
+        v-tippy="copyLabel"
         :class="[chromeBtn, 'inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-2 text-sm font-medium', embedded ? '' : 'md:w-full md:flex-none']"
         @click="copyPreset"
       >
@@ -300,7 +296,7 @@ watch(syncError, (error) => {
           <button
             type="button"
             aria-label="More actions"
-            :class="[chromeBtn, 'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg data-[state=open]:bg-muted', embedded ? '' : 'md:w-full']"
+            :class="[chromeBtn, 'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg data-[state=open]:bg-muted', embedded ? '' : 'md:hidden']"
           >
             <Icon name="lucide:ellipsis" class="size-4" />
           </button>
@@ -323,19 +319,13 @@ watch(syncError, (error) => {
   <!-- Open Preset dialog. -->
   <AppearanceOpenPresetDialog v-model:open="showOpenPreset" :on-apply="applyPreset" />
 
-  <!-- Reset confirmation. -->
-  <AlertDialog v-model:open="showResetDialog">
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
-        <AlertDialogDescription>
-          This will reset all customization options to their default values.
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction @click="confirmReset">Reset</AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  </AlertDialog>
+  <!-- Reset confirmation (DialogResponsive-based: modal on desktop, drawer on mobile). -->
+  <ConfirmDialog
+    v-model:open="showResetDialog"
+    title="Reset to defaults?"
+    description="This will reset all customization options to their default values."
+    confirm-label="Reset"
+    variant="destructive"
+    @confirm="confirmReset"
+  />
 </template>

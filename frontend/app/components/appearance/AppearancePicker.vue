@@ -8,6 +8,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DARK_ITEM, DARK_MENU } from "@/lib/appearance/customizer-classes";
 
 interface PickerOption {
   value: string;
@@ -113,8 +114,8 @@ const fontFamily = computed(() =>
     <DropdownMenuContent
       :side="isMobile ? 'top' : 'right'"
       :align="isMobile ? 'center' : 'start'"
-      :side-offset="isMobile ? 12 : 12"
-      class="dark z-50 w-56 max-w-[calc(100vw-2rem)] min-w-52 rounded-xl border-0 bg-neutral-900/90 p-1.5 text-neutral-100 ring-1 ring-neutral-700/60 shadow-xl backdrop-blur-xl [scrollbar-width:none]"
+      :side-offset="12"
+      :class="[DARK_MENU, 'z-50 w-56 max-w-[calc(100vw-2rem)] min-w-52 [scrollbar-width:none]']"
     >
       <DropdownMenuRadioGroup
         :model-value="modelValue"
@@ -124,7 +125,7 @@ const fontFamily = computed(() =>
           v-for="o in options"
           :key="o.value"
           :value="o.value"
-          class="gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-100 focus:bg-neutral-700/70 focus:text-neutral-100 focus:**:text-neutral-100 data-highlighted:bg-neutral-700/70"
+          :class="[DARK_ITEM, 'gap-2']"
         >
           <span class="flex min-w-0 flex-col gap-0.5">
             <span

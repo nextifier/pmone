@@ -114,7 +114,7 @@ export function decodePreset(code: string): PresetConfig | null {
 
 /** Strip a leading `--preset` / whitespace, then decode. Returns null when invalid. */
 export function parsePresetInput(input: string): PresetConfig | null {
-  const cleaned = input.trim().replace(/^--preset\s+/i, "").trim();
+  const cleaned = input.trim().replace(/^--preset[=\s]*/i, "").trim();
   if (!cleaned) {
     return null;
   }
@@ -135,7 +135,7 @@ export function randomPreset(): PresetConfig {
     style: pick(STYLE_NAMES),
     baseColor: pick(BASE_COLOR_NAMES),
     theme: pick(THEME_NAMES),
-    chartColor: pick(THEME_NAMES),
+    chartColor: pick(CHART_COLOR_NAMES),
     radius: pick(RADIUS_NAMES),
     font: Math.random() < 0.6 ? "default" : pick(FONT_VALUES),
     fontHeading: Math.random() < 0.6 ? "inherit" : pick(HEADING_VALUES),

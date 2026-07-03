@@ -5,8 +5,10 @@ import {
   appearanceCss,
   DEFAULT_APPEARANCE,
   DEFAULT_STYLE,
+  RADIUS_LOCKED_STYLES,
   STYLE_NAMES,
 } from "@/lib/appearance";
+import { toPresetConfig } from "@/lib/appearance/preset";
 
 /** The persisted appearance selection (short names only — never the token CSS). */
 interface AppearanceCookie {
@@ -192,19 +194,20 @@ export function useAppearance() {
 
   /** Apply a full selection at once (Shuffle / Open Preset) — one write, opt-in on. */
   const applyConfig = (next: Partial<AppearanceConfig>) => {
-    writeCookie({ ...DEFAULT_APPEARANCE, ...config.value, ...next });
+    writeCookie(toPresetConfig({ ...config.value, ...next }));
   };
 
-  /** The current selection resolved to the 7 preset fields (defaults for unset). */
-  const presetConfig = computed(() => ({
-    style: style.value,
-    baseColor: config.value?.baseColor ?? DEFAULT_APPEARANCE.baseColor,
-    theme: config.value?.theme ?? DEFAULT_APPEARANCE.theme,
-    chartColor: config.value?.chartColor ?? DEFAULT_APPEARANCE.chartColor,
-    radius: config.value?.radius ?? DEFAULT_APPEARANCE.radius,
-    font: config.value?.font ?? DEFAULT_APPEARANCE.font,
-    fontHeading: config.value?.fontHeading ?? DEFAULT_APPEARANCE.fontHeading,
-  }));
+  /**
+   * The current selection resolved to the 7 preset fields (defaults for unset).
+   * `radius` mirrors the UI: styles that lock radius show/copy "none" so a copied
+   * preset always matches the visible chip.
+   */
+  const presetConfig = computed(() => {
+    const resolved = toPresetConfig(config.value);
+    resolved.style = style.value;
+    const radiusLocked = (RADIUS_LOCKED_STYLES as readonly string[]).includes(resolved.style);
+    return radiusLocked ? { ...resolved, radius: "none" } : resolved;
+  });
 
   // ---- Seed cookies from the backend (cross-device, first authed render) ------
   // Runs when the authenticated identity resolves. Because Sanctum runs an
