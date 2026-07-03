@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed } from "vue";
 import { toast } from "vue-sonner";
 import AppearancePicker from "@/components/appearance/AppearancePicker.vue";
-import AppearanceOpenPresetDialog from "@/components/appearance/AppearanceOpenPresetDialog.vue";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { DARK_ITEM as darkItem, DARK_MENU as darkMenu } from "@/lib/appearance/customizer-classes";
 import {
   BASE_COLOR_OPTIONS,
@@ -20,7 +18,6 @@ import {
   THEME_OPTIONS,
 } from "@/lib/appearance";
 import { STYLES } from "@/lib/appearance/styles";
-import { encodePreset, parsePresetInput, randomPreset } from "@/lib/appearance/preset";
 import { FONTS, FONT_HEADING_OPTIONS } from "@/lib/fonts";
 
 // `embedded` renders a compact, page-themed, always-vertical panel for the
@@ -39,11 +36,12 @@ const {
   setRadius,
   setFont,
   setFontHeading,
-  reset,
-  applyConfig,
-  presetConfig,
   syncError,
 } = useAppearance();
+
+// Copy / Open / Shuffle actions + preset label (shared). The Reset + Open-Preset
+// DIALOGS are mounted once in <AppearanceDialogs>, not here.
+const { shuffle, copyPreset, copyLabel, openReset, openPreset } = useAppearanceActions();
 
 // ---- Option lists -----------------------------------------------------------
 const styleOptions = STYLES.map(s => ({ value: s.name, label: s.title, description: s.description }));
@@ -73,64 +71,8 @@ const radius = computed(() =>
   radiusLocked.value ? "none" : (appearance.value?.radius ?? "default"),
 );
 
-// ---- Preset code (client-only: btoa + avoids an SSR hydration text mismatch) --
-const mounted = ref(false);
-onMounted(() => {
-  mounted.value = true;
-});
-const presetCode = computed(() => (mounted.value ? encodePreset(presetConfig.value) : ""));
-const hasCopied = ref(false);
-let copyTimer: ReturnType<typeof setTimeout> | undefined;
-const copyLabel = computed(() => {
-  if (hasCopied.value) {
-    return "Copied";
-  }
-  return presetCode.value ? `--preset ${presetCode.value}` : "Copy Preset";
-});
-
-function copyPreset() {
-  if (!presetCode.value) {
-    return;
-  }
-  if (!navigator.clipboard?.writeText) {
-    toast.error("Clipboard is not available");
-    return;
-  }
-  navigator.clipboard
-    .writeText(`--preset ${presetCode.value}`)
-    .then(() => {
-      hasCopied.value = true;
-      clearTimeout(copyTimer);
-      copyTimer = setTimeout(() => (hasCopied.value = false), 2000);
-    })
-    .catch(() => toast.error("Failed to copy preset"));
-}
-
-function shuffle() {
-  applyConfig(randomPreset());
-}
-
-function applyPreset(input: string): boolean {
-  const next = parsePresetInput(input);
-  if (!next) {
-    toast.error("Invalid preset code");
-    return false;
-  }
-  applyConfig(next);
-  return true;
-}
-
 function toggleMode() {
   setColorMode(colorMode.value === "dark" ? "light" : "dark");
-}
-
-// ---- Dialog state -----------------------------------------------------------
-const showResetDialog = ref(false);
-const showOpenPreset = ref(false);
-
-function confirmReset() {
-  reset();
-  showResetDialog.value = false;
 }
 
 // Shared button chrome (adapts to the page theme via tokens). The forced-dark
@@ -170,7 +112,7 @@ watch(syncError, (error) => {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" :align-offset="-8" :class="[darkMenu, 'w-52']">
-          <DropdownMenuItem :class="darkItem" @click="showOpenPreset = true">
+          <DropdownMenuItem :class="darkItem" @click="openPreset">
             <Icon name="lucide:square-arrow-out-up-right" class="size-4" />
             Open Preset
           </DropdownMenuItem>
@@ -183,7 +125,7 @@ watch(syncError, (error) => {
             Light / Dark
           </DropdownMenuItem>
           <DropdownMenuSeparator class="-mx-1.5 my-1.5 h-px bg-neutral-700" />
-          <DropdownMenuItem :class="darkItem" @click="showResetDialog = true">
+          <DropdownMenuItem :class="darkItem" @click="openReset">
             <Icon name="lucide:rotate-ccw" class="size-4" />
             Reset
           </DropdownMenuItem>
@@ -279,7 +221,7 @@ watch(syncError, (error) => {
       <button
         type="button"
         :class="[chromeBtn, 'inline-flex h-9 min-w-0 max-w-20 flex-1 items-center justify-center rounded-lg px-2 text-sm font-medium sm:max-w-none', embedded ? '' : 'md:w-full md:max-w-none md:flex-none']"
-        @click="showOpenPreset = true"
+        @click="openPreset"
       >
         <span class="w-full truncate text-center">Open</span>
       </button>
@@ -307,7 +249,7 @@ watch(syncError, (error) => {
             Light / Dark
           </DropdownMenuItem>
           <DropdownMenuSeparator class="-mx-1.5 my-1.5 h-px bg-neutral-700" />
-          <DropdownMenuItem :class="darkItem" @click="showResetDialog = true">
+          <DropdownMenuItem :class="darkItem" @click="openReset">
             <Icon name="lucide:rotate-ccw" class="size-4" />
             Reset
           </DropdownMenuItem>
@@ -315,17 +257,4 @@ watch(syncError, (error) => {
       </DropdownMenu>
     </div>
   </div>
-
-  <!-- Open Preset dialog. -->
-  <AppearanceOpenPresetDialog v-model:open="showOpenPreset" :on-apply="applyPreset" />
-
-  <!-- Reset confirmation (DialogResponsive-based: modal on desktop, drawer on mobile). -->
-  <ConfirmDialog
-    v-model:open="showResetDialog"
-    title="Reset to defaults?"
-    description="This will reset all customization options to their default values."
-    confirm-label="Reset"
-    variant="destructive"
-    @confirm="confirmReset"
-  />
 </template>

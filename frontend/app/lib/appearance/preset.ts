@@ -48,18 +48,48 @@ const FIELDS: FieldSpec[] = [
 
 const VERSION = 1;
 
+// Manual base64url (no btoa/atob) so encoding is identical on the server and the
+// client — lets `presetCode` render during SSR with no hydration text swap.
+const B64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
 function bytesToBase64Url(bytes: number[]): string {
-  let binary = "";
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
+  let out = "";
+  for (let i = 0; i < bytes.length; i += 3) {
+    const b0 = bytes[i]!;
+    const b1 = bytes[i + 1];
+    const b2 = bytes[i + 2];
+    out += B64_ALPHABET[b0 >> 2];
+    out += B64_ALPHABET[((b0 & 0b11) << 4) | ((b1 ?? 0) >> 4)];
+    if (b1 === undefined) {
+      break;
+    }
+    out += B64_ALPHABET[((b1 & 0b1111) << 2) | ((b2 ?? 0) >> 6)];
+    if (b2 === undefined) {
+      break;
+    }
+    out += B64_ALPHABET[b2 & 0b111111];
   }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  return out;
 }
 
 function base64UrlToBytes(value: string): number[] {
-  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const binary = atob(base64);
-  return Array.from(binary, char => char.charCodeAt(0));
+  const bytes: number[] = [];
+  let buffer = 0;
+  let bits = 0;
+  for (let i = 0; i < value.length; i++) {
+    const index = B64_ALPHABET.indexOf(value[i]!);
+    if (index < 0) {
+      continue; // skip padding / stray characters
+    }
+    buffer = (buffer << 6) | index;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      bytes.push((buffer >> bits) & 0xff);
+      buffer &= (1 << bits) - 1;
+    }
+  }
+  return bytes;
 }
 
 /** Resolve a (possibly partial) config to the 7 preset fields, filling defaults. */

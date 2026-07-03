@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useMediaQuery } from "@vueuse/core";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +44,7 @@ const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
 
 // Mobile opens the dropdown UPWARD (the customizer sits at the bottom of the
 // screen) and centered; desktop opens to the RIGHT, floating over the preview.
-const isMobile = useMediaQuery("(max-width: 767px)");
+const isMobile = useIsMobile();
 
 const current = computed(
   () => props.options.find(o => o.value === props.modelValue) ?? props.options[0],

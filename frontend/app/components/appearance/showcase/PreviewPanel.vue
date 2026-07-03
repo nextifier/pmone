@@ -40,7 +40,7 @@ const PREVIEW_ITEMS = [
         type="button"
         :aria-label="`Show preview block ${item.label}`"
         :data-active="params.item.value === item.value"
-        class="text-muted-foreground inline-flex h-7 min-w-8 cursor-pointer items-center justify-center rounded-lg px-2.5 text-xs font-medium tracking-tight tabular-nums transition-colors hover:text-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+        class="text-muted-foreground inline-flex h-7 min-w-8 cursor-pointer items-center justify-center rounded-lg px-2.5 text-xs font-medium tracking-tight tabular-nums hover:text-foreground motion-safe:transition-colors data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
         @click="params.item.value = item.value"
       >
         {{ item.label }}

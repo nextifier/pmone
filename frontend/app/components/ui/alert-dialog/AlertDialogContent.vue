@@ -32,7 +32,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     />
     <AlertDialogContent
       data-slot="alert-dialog-content"
-      :data-size="size === 'sm' ? 'sm' : undefined"
+      :data-size="size"
       v-bind="forwarded"
       :class="
         cn(

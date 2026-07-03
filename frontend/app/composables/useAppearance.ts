@@ -44,8 +44,10 @@ export function useAppearance() {
   const { user } = useSanctumAuth();
   const sanctumFetch = useSanctumClient();
 
-  const isSyncing = ref(false);
-  const syncError = ref(null as string | null);
+  // Shared (useState) so the two live customizer instances (settings page +
+  // header popover) report the same sync state instead of diverging refs.
+  const isSyncing = useState("appearance:syncing", () => false);
+  const syncError = useState<string | null>("appearance:sync-error", () => null);
 
   // ONE cookie PERSISTS the appearance selection (SSR Set-Cookie + document.cookie).
   // Absent (null) = the user has not customized → native palette + default style.
@@ -197,6 +199,11 @@ export function useAppearance() {
     writeCookie(toPresetConfig({ ...config.value, ...next }));
   };
 
+  /** Write an EXACT config (or null) verbatim — used by undo to restore a snapshot. */
+  const setConfig = (next: AppearanceCookie | null) => {
+    writeCookie(next);
+  };
+
   /**
    * The current selection resolved to the 7 preset fields (defaults for unset).
    * `radius` mirrors the UI: styles that lock radius show/copy "none" so a copied
@@ -288,6 +295,8 @@ export function useAppearance() {
     setFontHeading,
     reset,
     applyConfig,
+    setConfig,
+    config,
     presetConfig,
     isSyncing,
     syncError,
