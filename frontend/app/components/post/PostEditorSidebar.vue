@@ -98,9 +98,14 @@
 
           <!-- Excerpt -->
           <div class="space-y-2">
-            <Label class="text-xs">Excerpt</Label>
+            <Label class="text-xs">
+              Excerpt
+              <span v-if="activeLocaleLabel" class="text-muted-foreground">
+                ({{ activeLocaleLabel }})
+              </span>
+            </Label>
             <Textarea
-              v-model="editor.form.excerpt"
+              v-model="excerptField"
               placeholder="Brief description of the post..."
               maxlength="500"
               class="min-h-[80px] resize-none text-sm"
@@ -314,7 +319,7 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
-import { usePostEditorOptional } from "@/composables/usePostEditor";
+import { usePostEditorOptional, EMPTY_LOCALES, POST_LOCALES } from "@/composables/usePostEditor";
 import { toLocalDateTimeString } from "@/lib/utils";
 
 const props = defineProps({
@@ -337,12 +342,12 @@ const editor = computed(() => {
     form: reactive({
       slug: "",
       tags: [],
-      excerpt: "",
+      excerpt: EMPTY_LOCALES(),
       featured: false,
       visibility: "public",
       authors: [],
-      meta_title: "",
-      meta_description: "",
+      meta_title: EMPTY_LOCALES(),
+      meta_description: EMPTY_LOCALES(),
       status: "draft",
       published_at: null,
     }),
@@ -391,6 +396,25 @@ const publishDateTime = computed({
   set: (value: Date | null) => {
     editor.value.form.published_at = value ? toLocalDateTimeString(value) : null;
   },
+});
+
+// Excerpt follows the locale tab that is active in the editor content area
+const excerptField = computed({
+  get: () => {
+    if (!editorContext) return "";
+    return editorContext.form.excerpt[editorContext.activeLocale.value] ?? "";
+  },
+  set: (value: string) => {
+    if (!editorContext) return;
+    editorContext.form.excerpt[editorContext.activeLocale.value] = value;
+  },
+});
+
+const activeLocaleLabel = computed(() => {
+  if (!editorContext) return "";
+  return (
+    POST_LOCALES.find((locale) => locale.value === editorContext.activeLocale.value)?.label ?? ""
+  );
 });
 
 function resetSlugSync() {

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
+use Spatie\Translatable\Facades\Translatable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +33,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Translatable fallback chain: requested locale -> en -> any filled
+        // locale. Posts are authored Indonesian-first (stored under "id"), so
+        // without fallbackAny an id-only record would render empty on the
+        // English-default public sites.
+        Translatable::fallback(fallbackLocale: 'en', fallbackAny: true);
+
         // Configure rate limiters
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());

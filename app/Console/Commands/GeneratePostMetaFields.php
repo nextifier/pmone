@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Post;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class GeneratePostMetaFields extends Command
@@ -18,36 +19,19 @@ class GeneratePostMetaFields extends Command
     {
         $isDryRun = $this->option('dry-run');
 
-        $postsNeedingMetaTitle = Post::query()
-            ->where(function ($query) {
-                $query->whereNull('meta_title')
-                    ->orWhere('meta_title', '');
-            })
-            ->whereNotNull('title')
-            ->where('title', '!=', '')
-            ->count();
+        $candidates = $this->candidates();
 
-        $postsNeedingMetaDescription = Post::query()
-            ->where(function ($query) {
-                $query->whereNull('meta_description')
-                    ->orWhere('meta_description', '');
-            })
-            ->whereNotNull('excerpt')
-            ->where('excerpt', '!=', '')
-            ->count();
-
-        if ($postsNeedingMetaTitle === 0 && $postsNeedingMetaDescription === 0) {
+        if ($candidates->isEmpty()) {
             $this->info('All posts already have meta_title and meta_description filled.');
 
             return self::SUCCESS;
         }
 
-        $this->info("Found {$postsNeedingMetaTitle} posts needing meta_title");
-        $this->info("Found {$postsNeedingMetaDescription} posts needing meta_description");
+        $this->info("Found {$candidates->count()} posts needing meta backfill");
 
         if ($isDryRun) {
             $this->warn('Dry run mode - no changes will be made.');
-            $this->showPreview();
+            $this->showPreview($candidates->take(10));
 
             return self::SUCCESS;
         }
@@ -58,81 +42,75 @@ class GeneratePostMetaFields extends Command
             return self::SUCCESS;
         }
 
-        $this->updateMetaFields();
+        $this->updateMetaFields($candidates);
 
         return self::SUCCESS;
     }
 
-    protected function showPreview(): void
+    /**
+     * Posts with at least one locale that has a title/excerpt but no matching
+     * meta value. The columns hold locale-keyed json, so the check runs in PHP
+     * via the same helper the model uses on save.
+     *
+     * @return Collection<int, Post>
+     */
+    protected function candidates()
     {
-        $posts = Post::query()
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->whereNull('meta_title')->orWhere('meta_title', '');
-                })->orWhere(function ($q) {
-                    $q->whereNull('meta_description')->orWhere('meta_description', '');
-                });
+        return Post::query()
+            ->withTrashed()
+            ->get(['id', 'title', 'excerpt', 'meta_title', 'meta_description'])
+            ->filter(function (Post $post) {
+                foreach ($post->getTranslations('title') as $locale => $title) {
+                    if (blank($post->getTranslation('meta_title', $locale, false))) {
+                        return true;
+                    }
+                }
+
+                foreach ($post->getTranslations('excerpt') as $locale => $excerpt) {
+                    if (blank($post->getTranslation('meta_description', $locale, false))) {
+                        return true;
+                    }
+                }
+
+                return false;
             })
-            ->limit(10)
-            ->get(['id', 'title', 'excerpt', 'meta_title', 'meta_description']);
+            ->values();
+    }
 
-        if ($posts->isEmpty()) {
-            return;
-        }
-
+    protected function showPreview($posts): void
+    {
         $this->newLine();
         $this->info('Preview of changes (showing first 10):');
 
-        $tableData = $posts->map(function ($post) {
+        $tableData = $posts->map(function (Post $post) {
             return [
                 'ID' => $post->id,
                 'Title' => Str::limit($post->title, 30),
-                'New Meta Title' => empty($post->meta_title) ? Str::limit($post->title, 30) : '(no change)',
-                'New Meta Desc' => empty($post->meta_description) && ! empty($post->excerpt)
-                    ? Str::limit($post->excerpt, 30)
-                    : '(no change)',
+                'New Meta Title' => Str::limit($post->title, 30),
+                'New Meta Desc' => Str::limit($post->excerpt ?? '', 30) ?: '(no excerpt)',
             ];
         })->toArray();
 
         $this->table(['ID', 'Title', 'New Meta Title', 'New Meta Desc'], $tableData);
     }
 
-    protected function updateMetaFields(): void
+    protected function updateMetaFields($candidates): void
     {
-        $metaTitleUpdated = 0;
-        $metaDescriptionUpdated = 0;
+        $updated = 0;
 
         $this->withProgressBar(
-            Post::query()
-                ->where(function ($query) {
-                    $query->where(function ($q) {
-                        $q->whereNull('meta_title')->orWhere('meta_title', '');
-                    })->orWhere(function ($q) {
-                        $q->whereNull('meta_description')->orWhere('meta_description', '');
-                    });
-                })
-                ->cursor(),
-            function ($post) use (&$metaTitleUpdated, &$metaDescriptionUpdated) {
-                $updates = [];
+            Post::query()->withTrashed()->whereIn('id', $candidates->pluck('id'))->cursor(),
+            function (Post $post) use (&$updated) {
+                $post->fillMissingMetaTranslations();
 
-                if (empty($post->meta_title) && ! empty($post->title)) {
-                    $updates['meta_title'] = $post->title;
-                    $metaTitleUpdated++;
-                }
-
-                if (empty($post->meta_description) && ! empty($post->excerpt)) {
-                    $updates['meta_description'] = Str::limit($post->excerpt, 160);
-                    $metaDescriptionUpdated++;
-                }
-
-                if (! empty($updates)) {
-                    $post->updateQuietly($updates);
+                if ($post->isDirty(['meta_title', 'meta_description'])) {
+                    $post->saveQuietly();
+                    $updated++;
                 }
             }
         );
 
         $this->newLine(2);
-        $this->info("Updated {$metaTitleUpdated} meta_title fields");
-        $this->info("Updated {$metaDescriptionUpdated} meta_description fields");
+        $this->info("Updated {$updated} posts");
     }
 }

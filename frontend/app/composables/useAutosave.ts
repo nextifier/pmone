@@ -4,13 +4,13 @@ import { toast } from "vue-sonner";
 
 export interface AutosaveData {
   post_id?: number | null;
-  title?: string;
+  title?: Record<string, string | null>;
   slug?: string;
-  excerpt?: string;
-  content?: string;
+  excerpt?: Record<string, string | null>;
+  content?: Record<string, string | null>;
   content_format?: string;
-  meta_title?: string;
-  meta_description?: string;
+  meta_title?: Record<string, string | null>;
+  meta_description?: Record<string, string | null>;
   featured_image_caption?: string;
   status?: string;
   visibility?: string;

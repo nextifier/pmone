@@ -10,15 +10,32 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Spatie\Tags\Tag;
 
 class PublicBlogController extends Controller
 {
     /**
+     * Set the application locale from the request so translatable post fields
+     * resolve to the requested language. The response cache hashes the full
+     * URI including the query string, so each locale is cached separately.
+     */
+    protected function applyLocale(Request $request): string
+    {
+        $locale = (string) $request->input('locale', config('app.locale', 'en'));
+
+        App::setLocale($locale);
+
+        return $locale;
+    }
+
+    /**
      * Get list of published posts
      */
     public function posts(Request $request): JsonResponse
     {
+        $this->applyLocale($request);
+
         // Responses are cached at the route level via the CacheResponse
         // middleware ('blog-posts' tag) and invalidated by Post's
         // ClearsResponseCache trait, so this method always fetches fresh data.
@@ -63,6 +80,8 @@ class PublicBlogController extends Controller
      */
     public function post(Request $request, string $slug): JsonResponse
     {
+        $this->applyLocale($request);
+
         $post = Post::query()
             ->with([
                 'primaryAuthor.media',
@@ -92,6 +111,8 @@ class PublicBlogController extends Controller
      */
     public function postsByCategory(Request $request, string $slug): JsonResponse
     {
+        $this->applyLocale($request);
+
         $category = Tag::where('slug->en', $slug)->where('type', 'category')->firstOrFail();
 
         $query = Post::query()
@@ -124,6 +145,8 @@ class PublicBlogController extends Controller
      */
     public function postsByTag(Request $request, string $tag): JsonResponse
     {
+        $this->applyLocale($request);
+
         $query = Post::query()
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
@@ -151,6 +174,8 @@ class PublicBlogController extends Controller
      */
     public function postsByAuthor(Request $request, string $username): JsonResponse
     {
+        $this->applyLocale($request);
+
         $author = User::where('username', $username)->firstOrFail();
 
         $query = Post::query()
@@ -180,6 +205,8 @@ class PublicBlogController extends Controller
      */
     public function featured(Request $request): JsonResponse
     {
+        $this->applyLocale($request);
+
         $query = Post::query()
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
@@ -206,6 +233,8 @@ class PublicBlogController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
+        $this->applyLocale($request);
+
         $searchTerm = $request->input('q');
 
         if (! $searchTerm) {
@@ -304,9 +333,11 @@ class PublicBlogController extends Controller
         $field = ltrim($sortField, '-');
 
         // Allowed direct column sorting
-        $allowedFields = ['title', 'published_at', 'created_at', 'reading_time'];
+        $allowedFields = ['published_at', 'created_at', 'reading_time'];
 
-        if (in_array($field, $allowedFields)) {
+        if ($field === 'title') {
+            $query->orderByTitle($direction);
+        } elseif (in_array($field, $allowedFields)) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'view_count' || $field === 'visits_count') {
             // Sort by visits count using withCount (polymorphic visits relationship)

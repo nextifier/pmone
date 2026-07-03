@@ -42,7 +42,7 @@ test('user can create a post', function () {
         ]);
 
     $this->assertDatabaseHas('posts', [
-        'title' => 'Test Post Title',
+        'title' => json_encode(['en' => 'Test Post Title']),
         'slug' => 'test-post-title',
         'status' => 'draft',
     ]);
@@ -75,7 +75,7 @@ test('user can create post with authors', function () {
 
     $response->assertSuccessful();
 
-    $post = Post::where('title', 'Post with Relations')->first();
+    $post = Post::where('title->en', 'Post with Relations')->first();
 
     expect($post->authors)->toHaveCount(2);
 

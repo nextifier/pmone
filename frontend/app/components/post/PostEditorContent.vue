@@ -3,6 +3,16 @@
     <!-- Editor Tab -->
     <TabsContent value="editor" class="mt-0" force-mount>
       <div class="mx-auto max-w-2xl space-y-8 py-6 pb-20">
+        <!-- Locale switcher -->
+        <Tabs v-model="editor.activeLocale.value" variant="segmented">
+          <TabsList>
+            <TabsIndicator />
+            <TabsTrigger v-for="locale in POST_LOCALES" :key="locale.value" :value="locale.value">
+              {{ locale.label }}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         <!-- Title -->
         <div class="space-y-2">
           <DevOnly>
@@ -13,13 +23,13 @@
           <Label for="title" class="sr-only">Title</Label>
           <Textarea
             id="title"
-            v-model="editor.form.title"
+            v-model="titleField"
             required
             rows="1"
             placeholder="Post title..."
             class="placeholder:text-muted-foreground/50 leading-tighter w-full resize-none border-0 bg-transparent px-0 text-3xl leading-tight! font-semibold tracking-tighter shadow-none outline-none focus-visible:ring-0 lg:text-4xl"
           />
-          <FieldError :errors="editor.errors.value.title" />
+          <FieldError :errors="localizedErrors('title')" />
         </div>
 
         <!-- Featured Image -->
@@ -62,11 +72,11 @@
         <div class="space-y-2">
           <Label class="sr-only">Content</Label>
           <TipTapEditor
-            v-model="editor.form.content"
+            v-model="contentField"
             :post-id="editor.postId.value"
             placeholder="Start writing your post content..."
           />
-          <FieldError :errors="editor.errors.value.content" />
+          <FieldError :errors="localizedErrors('content')" />
         </div>
       </div>
     </TabsContent>
@@ -214,11 +224,32 @@
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { usePostEditor } from "@/composables/usePostEditor";
+import { usePostEditor, POST_LOCALES } from "@/composables/usePostEditor";
 
 const editor = usePostEditor();
+
+// Bind the single title/content inputs to whichever locale tab is active
+const titleField = computed({
+  get: () => editor.form.title[editor.activeLocale.value] ?? "",
+  set: (value: string) => {
+    editor.form.title[editor.activeLocale.value] = value;
+  },
+});
+
+const contentField = computed({
+  get: () => editor.form.content[editor.activeLocale.value] ?? "",
+  set: (value: string) => {
+    editor.form.content[editor.activeLocale.value] = value;
+  },
+});
+
+function localizedErrors(field: string) {
+  return (
+    editor.errors.value[`${field}.${editor.activeLocale.value}`] ?? editor.errors.value[field]
+  );
+}
 const { sanitizeHtml, wrapCaptionedImages } = useSanitize();
 const { highlighter } = useShiki();
 const client = useSanctumClient();

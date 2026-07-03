@@ -52,7 +52,7 @@
             v-if="editor.mode.value === 'create'"
             variant="outline"
             size="sm"
-            :disabled="editor.loading.value || !editor.form.title"
+            :disabled="editor.loading.value || !editor.hasTitle.value"
             @click="editor.saveDraft"
           >
             <Icon name="hugeicons:file-edit" class="size-4 shrink-0" />

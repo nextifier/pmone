@@ -1003,7 +1003,7 @@
 
   /* MARK: Sheet */
   .cn-sheet-overlay {
-    @apply bg-black/10 text-xs/relaxed supports-backdrop-filter:backdrop-blur-xs;
+    @apply bg-black/80 text-xs/relaxed;
   }
 
   .cn-sheet-content {

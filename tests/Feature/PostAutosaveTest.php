@@ -42,7 +42,7 @@ test('user can autosave a new post', function () {
     $this->assertDatabaseHas('post_autosaves', [
         'user_id' => $this->user->id,
         'post_id' => null, // New post
-        'title' => 'Draft Post Title',
+        'title' => json_encode(['en' => 'Draft Post Title']),
     ]);
 });
 
@@ -51,8 +51,8 @@ test('autosave for new post can be retrieved', function () {
     $autosave = PostAutosave::factory()->create([
         'user_id' => $this->user->id,
         'post_id' => null, // New post
-        'title' => 'Autosaved Title',
-        'content' => '<p>Autosaved content</p>',
+        'title' => ['en' => 'Autosaved Title'],
+        'content' => ['en' => '<p>Autosaved content</p>'],
     ]);
 
     // Retrieve autosave
@@ -62,7 +62,7 @@ test('autosave for new post can be retrieved', function () {
         ->assertJson([
             'data' => [
                 'id' => $autosave->id,
-                'title' => 'Autosaved Title',
+                'title' => ['en' => 'Autosaved Title'],
                 'is_for_new_post' => true,
             ],
         ]);
@@ -80,7 +80,7 @@ test('autosave allows incomplete data', function () {
 
     $this->assertDatabaseHas('post_autosaves', [
         'user_id' => $this->user->id,
-        'content' => '<p>Some content...</p>',
+        'content' => json_encode(['en' => '<p>Some content...</p>']),
     ]);
 });
 
@@ -113,8 +113,8 @@ test('user can autosave an existing post', function () {
     $this->assertDatabaseHas('post_autosaves', [
         'user_id' => $this->user->id,
         'post_id' => $post->id,
-        'title' => 'Updated Title (Draft)',
-        'content' => '<p>Updated content (not published yet)</p>',
+        'title' => json_encode(['en' => 'Updated Title (Draft)']),
+        'content' => json_encode(['en' => '<p>Updated content (not published yet)</p>']),
     ]);
 });
 
@@ -126,7 +126,7 @@ test('autosave for existing post can be retrieved', function () {
     $autosave = PostAutosave::factory()->create([
         'user_id' => $this->user->id,
         'post_id' => $post->id,
-        'title' => 'Autosaved Changes',
+        'title' => ['en' => 'Autosaved Changes'],
     ]);
 
     $response = $this->getJson('/api/posts/autosave?post_id='.$post->id);
@@ -136,7 +136,7 @@ test('autosave for existing post can be retrieved', function () {
             'data' => [
                 'id' => $autosave->id,
                 'post_id' => $post->id,
-                'title' => 'Autosaved Changes',
+                'title' => ['en' => 'Autosaved Changes'],
                 'is_for_existing_post' => true,
             ],
         ]);
@@ -167,7 +167,7 @@ test('autosave upserts correctly - only one autosave per user per post', functio
         ->get();
 
     expect($autosaves)->toHaveCount(1);
-    expect($autosaves->first()->title)->toBe('Second Version');
+    expect($autosaves->first()->title)->toBe(['en' => 'Second Version']);
 });
 
 test('different users can have separate autosaves for same post', function () {
@@ -198,13 +198,13 @@ test('different users can have separate autosaves for same post', function () {
     $this->assertDatabaseHas('post_autosaves', [
         'user_id' => $this->user->id,
         'post_id' => $post->id,
-        'title' => 'User 1 Version',
+        'title' => json_encode(['en' => 'User 1 Version']),
     ]);
 
     $this->assertDatabaseHas('post_autosaves', [
         'user_id' => $user2->id,
         'post_id' => $post->id,
-        'title' => 'User 2 Version',
+        'title' => json_encode(['en' => 'User 2 Version']),
     ]);
 });
 
@@ -269,8 +269,8 @@ test('user can preview changes between published and autosave', function () {
     PostAutosave::factory()->create([
         'user_id' => $this->user->id,
         'post_id' => $post->id,
-        'title' => 'Modified Title',
-        'content' => '<p>Modified content</p>',
+        'title' => ['en' => 'Modified Title'],
+        'content' => ['en' => '<p>Modified content</p>'],
     ]);
 
     $response = $this->getJson("/api/posts/{$post->slug}/preview");
@@ -290,8 +290,8 @@ test('user can preview changes between published and autosave', function () {
                     'content' => '<p>Original content</p>',
                 ],
                 'autosave' => [
-                    'title' => 'Modified Title',
-                    'content' => '<p>Modified content</p>',
+                    'title' => ['en' => 'Modified Title'],
+                    'content' => ['en' => '<p>Modified content</p>'],
                 ],
                 'has_changes' => true,
             ],
@@ -361,7 +361,7 @@ test('autosave can store media and relationships as JSON', function () {
 
     $this->assertDatabaseHas('post_autosaves', [
         'user_id' => $this->user->id,
-        'title' => 'Post with Media',
+        'title' => json_encode(['en' => 'Post with Media']),
     ]);
 
     $autosave = PostAutosave::where('user_id', $this->user->id)->first();

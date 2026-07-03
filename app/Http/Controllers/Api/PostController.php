@@ -171,7 +171,9 @@ class PostController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
-        if (in_array($field, ['title', 'status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+        if ($field === 'title') {
+            $query->orderByTitle($direction);
+        } elseif (in_array($field, ['status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'creator') {
             $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
@@ -408,9 +410,6 @@ class PostController extends Controller
                 unset($data['slug']);
             }
 
-            // Store old content before update for cleanup comparison
-            $oldContent = $post->content;
-
             // Update post
             $post->update($data);
 
@@ -443,7 +442,7 @@ class PostController extends Controller
             $this->processContentImages($post);
 
             // Cleanup removed content images
-            $this->cleanupRemovedContentImages($post, $oldContent);
+            $this->cleanupRemovedContentImages($post);
 
             // $post->update() above fires the trait clear BEFORE media, author
             // (pivot) and tag changes are persisted, so a concurrent public hit
@@ -599,7 +598,9 @@ class PostController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
-        if (in_array($field, ['title', 'status', 'deleted_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+        if ($field === 'title') {
+            $query->orderByTitle($direction);
+        } elseif (in_array($field, ['status', 'deleted_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'creator') {
             $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
@@ -941,23 +942,34 @@ class PostController extends Controller
      */
     private function processContentImages(Post $post): void
     {
-        if (! $post->content) {
+        $translations = array_filter($post->getTranslations('content'));
+
+        if ($translations === []) {
             return;
         }
 
-        $content = $post->content;
         // Match both relative URLs (/api/tmp-media/...) and absolute URLs (http://host/api/tmp-media/...)
         $pattern = '/<img[^>]+src="(?:https?:\/\/[^\/]+)?\/api\/tmp-media\/(tmp-media-[a-zA-Z0-9._-]+)"[^>]*>/';
 
-        // Find all temporary media URLs in content with full img tags
-        if (! preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
+        // Collect every unique temp folder across all locales first: the temp
+        // directory is deleted after processing, so an image reused in more
+        // than one locale must be converted into a single media item.
+        $folders = [];
+        foreach ($translations as $content) {
+            if (preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
+                foreach ($matches as $match) {
+                    $folders[$match[1]][] = $match[0];
+                }
+            }
+        }
+
+        if ($folders === []) {
             return;
         }
 
-        foreach ($matches as $match) {
-            $fullImgTag = $match[0];
-            $folder = $match[1];
+        $replacements = [];
 
+        foreach ($folders as $folder => $imgTags) {
             try {
                 $metadataPath = "tmp/uploads/{$folder}/metadata.json";
 
@@ -975,8 +987,11 @@ class PostController extends Controller
 
                 // Extract caption from data-caption attribute if exists
                 $caption = null;
-                if (preg_match('/data-caption="([^"]*)"/', $fullImgTag, $captionMatch)) {
-                    $caption = html_entity_decode($captionMatch[1]);
+                foreach ($imgTags as $imgTag) {
+                    if (preg_match('/data-caption="([^"]*)"/', $imgTag, $captionMatch)) {
+                        $caption = html_entity_decode($captionMatch[1]);
+                        break;
+                    }
                 }
 
                 // The global UniqueFileNamer appends a random token to the stored
@@ -1012,8 +1027,9 @@ class PostController extends Controller
                 // Build responsive image HTML with srcset
                 $responsiveImg = $this->buildResponsiveImageHtml($media, $caption);
 
-                // Replace entire img tag with responsive version
-                $content = str_replace($fullImgTag, $responsiveImg, $content);
+                foreach (array_unique($imgTags) as $imgTag) {
+                    $replacements[$imgTag] = $responsiveImg;
+                }
 
                 // Clean up temporary storage
                 Storage::disk('local')->deleteDirectory("tmp/uploads/{$folder}");
@@ -1026,16 +1042,29 @@ class PostController extends Controller
             }
         }
 
-        // Update post content with new URLs
-        if ($content !== $post->content) {
-            $post->update(['content' => $content]);
+        if ($replacements === []) {
+            return;
+        }
+
+        // Apply the replacements to every locale and persist once
+        $dirty = false;
+        foreach ($translations as $locale => $content) {
+            $updated = strtr($content, $replacements);
+            if ($updated !== $content) {
+                $post->setTranslation('content', $locale, $updated);
+                $dirty = true;
+            }
+        }
+
+        if ($dirty) {
+            $post->save();
         }
     }
 
     /**
      * Cleanup content images that were removed from post content
      */
-    private function cleanupRemovedContentImages(Post $post, ?string $oldContent): void
+    private function cleanupRemovedContentImages(Post $post): void
     {
         // Get all content_images media for this post
         $contentImages = $post->getMedia('content_images');
@@ -1044,8 +1073,9 @@ class PostController extends Controller
             return;
         }
 
-        // Get current content
-        $currentContent = $post->content ?? '';
+        // An image only referenced by a non-English locale must survive, so
+        // the haystack spans every locale's content.
+        $currentContent = implode(' ', array_filter($post->getTranslations('content')));
 
         // Check each media file - if its filename is not found in current content, delete it
         foreach ($contentImages as $media) {

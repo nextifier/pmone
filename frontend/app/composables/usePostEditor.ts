@@ -1,16 +1,30 @@
 import type { Ref, ComputedRef } from "vue";
 
+// Posts are authored Indonesian-first: only these two locales are editable
+// for now (the backend supports en/id/zh/ja/ko). Locales not listed here are
+// left untouched on save, since the payload only carries these keys.
+export const POST_LOCALES = [
+  { value: "id", label: "Indonesia" },
+  { value: "en", label: "English" },
+] as const;
+
+export type PostLocale = (typeof POST_LOCALES)[number]["value"];
+
+export type LocaleMap = Record<PostLocale, string>;
+
+export const EMPTY_LOCALES = (): LocaleMap => ({ id: "", en: "" });
+
 export interface PostForm {
-  title: string;
+  title: LocaleMap;
   slug: string;
-  excerpt: string;
-  content: string;
+  excerpt: LocaleMap;
+  content: LocaleMap;
   status: "draft" | "published" | "scheduled" | "archived";
   visibility: "public" | "private" | "members_only";
   published_at: string | null;
   featured: boolean;
-  meta_title: string;
-  meta_description: string;
+  meta_title: LocaleMap;
+  meta_description: LocaleMap;
   featured_image_caption: string;
   tags: string[];
   authors: Array<{ user_id: number | null; order: number }>;
@@ -62,6 +76,7 @@ export interface PostEditorContext {
 
   // UI state
   activeTab: Ref<"editor" | "preview">;
+  activeLocale: Ref<PostLocale>;
   showRestoreDialog: Ref<boolean>;
 
   // Actions
@@ -79,6 +94,7 @@ export interface PostEditorContext {
   moveAuthorDown: (index: number) => void;
 
   // Computed
+  hasTitle: ComputedRef<boolean>;
   canPublish: ComputedRef<boolean>;
   canUnpublish: ComputedRef<boolean>;
   canUpdate: ComputedRef<boolean>;

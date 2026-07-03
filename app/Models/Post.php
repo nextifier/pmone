@@ -24,6 +24,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
 use Spatie\Tags\Tag;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * @property int $id
@@ -50,20 +51,21 @@ use Spatie\Tags\Tag;
  * @property int|null $deleted_by
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read Collection<int, \App\Models\User> $authors
+ * @property-read Collection<int, User> $authors
  * @property-read int|null $authors_count
  * @property-read Collection<int, Tag> $categories
  * @property-read int|null $categories_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\User|null $primaryAuthor
+ * @property-read User|null $primaryAuthor
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
- * @property-read Collection<int, \App\Models\Visit> $visits
+ * @property-read User|null $updater
+ * @property-read Collection<int, Visit> $visits
  * @property-read int|null $visits_count
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byAuthor(int $authorId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byCreator(int $userId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post byStatus(string $status)
@@ -112,6 +114,7 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Post extends Model implements HasMedia
@@ -121,9 +124,12 @@ class Post extends Model implements HasMedia
     use HasMediaManager;
     use HasSlug;
     use HasTags;
+    use HasTranslations;
     use InteractsWithMedia;
     use LogsActivity;
     use SoftDeletes;
+
+    public array $translatable = ['title', 'excerpt', 'content', 'meta_title', 'meta_description'];
 
     protected $fillable = [
         'title',
@@ -183,19 +189,14 @@ class Post extends Model implements HasMedia
                 $model->ulid = (string) Str::ulid();
             }
 
-            // Auto-calculate reading time based on content
-            if (! empty($model->content) && empty($model->reading_time)) {
-                $model->reading_time = $model->calculateReadingTime($model->content);
+            // Auto-calculate reading time; the accessor resolves through the
+            // global fallback chain (requested -> en -> any filled locale)
+            $content = (string) $model->content;
+            if ($content !== '' && empty($model->reading_time)) {
+                $model->reading_time = $model->calculateReadingTime($content);
             }
 
-            // Auto-generate meta fields if empty
-            if (empty($model->meta_title)) {
-                $model->meta_title = $model->title;
-            }
-
-            if (empty($model->meta_description) && ! empty($model->excerpt)) {
-                $model->meta_description = Str::limit($model->excerpt, 160);
-            }
+            $model->fillMissingMetaTranslations();
 
             // Auto-set published_at when status is published
             if ($model->status === 'published' && empty($model->published_at)) {
@@ -211,17 +212,13 @@ class Post extends Model implements HasMedia
         static::updating(function ($model) {
             // Recalculate reading time if content changed
             if ($model->isDirty('content')) {
-                $model->reading_time = $model->calculateReadingTime($model->content);
+                $content = (string) $model->content;
+                if ($content !== '') {
+                    $model->reading_time = $model->calculateReadingTime($content);
+                }
             }
 
-            // Auto-generate meta fields if empty
-            if (empty($model->meta_title) && ! empty($model->title)) {
-                $model->meta_title = $model->title;
-            }
-
-            if (empty($model->meta_description) && ! empty($model->excerpt)) {
-                $model->meta_description = Str::limit($model->excerpt, 160);
-            }
+            $model->fillMissingMetaTranslations();
 
             // Auto-set published_at when status changes to published
             if ($model->isDirty('status') && $model->status === 'published' && empty($model->published_at)) {
@@ -249,6 +246,25 @@ class Post extends Model implements HasMedia
             }
         });
 
+    }
+
+    /**
+     * Backfill meta_title from title and meta_description from excerpt for
+     * every locale that has a source value but no meta value yet.
+     */
+    public function fillMissingMetaTranslations(): void
+    {
+        foreach ($this->getTranslations('title') as $locale => $title) {
+            if (filled($title) && blank($this->getTranslation('meta_title', $locale, false))) {
+                $this->setTranslation('meta_title', $locale, $title);
+            }
+        }
+
+        foreach ($this->getTranslations('excerpt') as $locale => $excerpt) {
+            if (filled($excerpt) && blank($this->getTranslation('meta_description', $locale, false))) {
+                $this->setTranslation('meta_description', $locale, Str::limit($excerpt, 160));
+            }
+        }
     }
 
     /**
@@ -502,17 +518,45 @@ class Post extends Model implements HasMedia
     }
 
     /**
-     * Scope: Search posts by title, excerpt, or content (case-insensitive)
+     * Scope: Search posts by title, excerpt, or content (case-insensitive).
+     * Columns hold locale-keyed json, so the search spans every locale;
+     * PostgreSQL json columns have no LIKE operator and need a text cast.
      */
     public function scopeSearch($query, string $search)
     {
-        $likeOperator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+        if (config('database.default') === 'pgsql') {
+            return $query->where(function ($q) use ($search) {
+                $q->whereRaw('title::text ILIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('excerpt::text ILIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('content::text ILIKE ?', ["%{$search}%"]);
+            });
+        }
 
-        return $query->where(function ($q) use ($search, $likeOperator) {
-            $q->where('title', $likeOperator, "%{$search}%")
-                ->orWhere('excerpt', $likeOperator, "%{$search}%")
-                ->orWhere('content', $likeOperator, "%{$search}%");
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('excerpt', 'like', "%{$search}%")
+                ->orWhere('content', 'like', "%{$search}%");
         });
+    }
+
+    /**
+     * Scope: Order by the resolved title. Plain ORDER BY on a PostgreSQL json
+     * column has no ordering operator, so sort on the extracted value using
+     * the same precedence as the display fallback (en, then other locales).
+     */
+    public function scopeOrderByTitle($query, string $direction = 'asc')
+    {
+        $direction = strtolower($direction) === 'desc' ? 'desc' : 'asc';
+
+        if (config('database.default') === 'pgsql') {
+            return $query->orderByRaw(
+                "COALESCE(title->>'en', title->>'id', title->>'zh', title->>'ja', title->>'ko') {$direction}"
+            );
+        }
+
+        return $query->orderByRaw(
+            "COALESCE(json_extract(title, '$.en'), json_extract(title, '$.id'), json_extract(title, '$.zh'), json_extract(title, '$.ja'), json_extract(title, '$.ko')) {$direction}"
+        );
     }
 
     /**

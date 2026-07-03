@@ -34,9 +34,9 @@ class PostResource extends JsonResource
             return [
                 'id' => $this->id,
                 'ulid' => $this->ulid,
-                'title' => $this->title,
+                'title' => $this->translated('title'),
                 'slug' => $this->slug,
-                'excerpt' => $this->excerpt,
+                'excerpt' => $this->translated('excerpt'),
                 'status' => $this->status,
                 'visibility' => $this->visibility,
                 'published_at' => $this->published_at,
@@ -60,13 +60,22 @@ class PostResource extends JsonResource
         return [
             'id' => $this->id,
             'ulid' => $this->ulid,
-            'title' => $this->title,
+            'title' => $this->translated('title'),
             'slug' => $this->slug,
-            'excerpt' => $this->excerpt,
-            'content' => $this->injectContentImageLqip($this->content),
+            'excerpt' => $this->translated('excerpt'),
+            'content' => $this->injectContentImageLqip($this->translated('content')),
             'content_format' => $this->content_format,
-            'meta_title' => $this->meta_title,
-            'meta_description' => $this->meta_description,
+            'meta_title' => $this->translated('meta_title'),
+            'meta_description' => $this->translated('meta_description'),
+            $this->mergeWhen(! $request->is('api/public/*'), fn () => [
+                'title_translations' => $this->getTranslations('title'),
+                'excerpt_translations' => $this->getTranslations('excerpt'),
+                'content_translations' => collect($this->getTranslations('content'))
+                    ->map(fn ($html) => $this->injectContentImageLqip($html))
+                    ->all(),
+                'meta_title_translations' => $this->getTranslations('meta_title'),
+                'meta_description_translations' => $this->getTranslations('meta_description'),
+            ]),
             'og_image' => $this->when(
                 $this->relationLoaded('media') && $this->hasMedia('og_image'),
                 fn () => $this->getMediaUrlsDetailed('og_image')
@@ -91,6 +100,15 @@ class PostResource extends JsonResource
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,
         ];
+    }
+
+    /**
+     * Resolve a translatable field to the current locale via the global
+     * fallback chain (requested -> en -> any filled locale).
+     */
+    private function translated(string $field): ?string
+    {
+        return $this->getTranslation($field, app()->getLocale()) ?: null;
     }
 
     /**

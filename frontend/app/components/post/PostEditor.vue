@@ -84,7 +84,14 @@
 <script setup lang="ts">
 import { useSidebar } from "@/components/ui/sidebar/utils";
 import { toLocalDateTimeString } from "@/lib/utils";
-import { providePostEditor, type PostForm } from "@/composables/usePostEditor";
+import {
+  providePostEditor,
+  EMPTY_LOCALES,
+  POST_LOCALES,
+  type LocaleMap,
+  type PostForm,
+  type PostLocale,
+} from "@/composables/usePostEditor";
 import { TabsRoot } from "reka-ui";
 import { toast } from "vue-sonner";
 
@@ -117,22 +124,67 @@ const initialData = ref(props.initialData || null);
 const postId = ref<number | null>(props.initialData?.id || null);
 const postSlug = ref<string | null>(props.postSlug || null);
 
-// Form state
+// Form state - title/excerpt/content/meta fields are locale-keyed objects
 const form = reactive<PostForm>({
-  title: "",
+  title: EMPTY_LOCALES(),
   slug: "",
-  excerpt: "",
-  content: "",
+  excerpt: EMPTY_LOCALES(),
+  content: EMPTY_LOCALES(),
   status: "draft",
   visibility: "public",
   published_at: null,
   featured: false,
-  meta_title: "",
-  meta_description: "",
+  meta_title: EMPTY_LOCALES(),
+  meta_description: EMPTY_LOCALES(),
   featured_image_caption: "",
   tags: [],
   authors: [],
 });
+
+const activeLocale = ref<PostLocale>("id");
+
+const TRANSLATABLE_FIELDS = ["title", "excerpt", "content", "meta_title", "meta_description"] as const;
+
+// Seed a locale map from an API translations object, falling back to wrapping
+// a plain string as English (legacy payloads).
+function seedLocales(translations: any, plain?: any): LocaleMap {
+  const src =
+    translations && typeof translations === "object"
+      ? translations
+      : typeof translations === "string" && translations
+        ? { en: translations }
+        : plain
+          ? { en: plain }
+          : {};
+  const out = EMPTY_LOCALES();
+  for (const key of Object.keys(out) as PostLocale[]) {
+    out[key] = src[key] ?? "";
+  }
+  return out;
+}
+
+// Drop empty locales (and TipTap's empty "<p></p>" document) so the backend
+// stores null and the public English fallback keeps working.
+function cleanTranslatable(t: LocaleMap): Record<string, string | null> {
+  const out: Record<string, string | null> = {};
+  for (const [key, value] of Object.entries(t)) {
+    const trimmed = (value ?? "").trim();
+    out[key] = trimmed && trimmed !== "<p></p>" ? value : null;
+  }
+  return out;
+}
+
+// Non-empty locale values only, for change comparison
+function normalizedLocales(value: any): Record<string, string> {
+  const src = typeof value === "string" ? { en: value } : ((value ?? {}) as Record<string, any>);
+  const out: Record<string, string> = {};
+  for (const [key, item] of Object.entries(src)) {
+    if (typeof item === "string" && item.trim() && item.trim() !== "<p></p>") {
+      out[key] = item;
+    }
+  }
+  return out;
+}
 
 const imageFiles = ref({
   featured_image: [] as any[],
@@ -195,22 +247,29 @@ watch(autosaveEnabled, (newValue) => {
   }
 });
 
-// Slug auto-sync with title
-watch(
-  () => form.title,
-  (newTitle) => {
-    if (!slugManuallyEdited.value && newTitle) {
-      form.slug = slugify(newTitle);
-    }
+// The title that drives slug generation and quick checks: first filled
+// locale in tab order (Indonesia first, then English)
+const primaryTitle = computed(() => {
+  for (const locale of POST_LOCALES) {
+    const value = form.title[locale.value]?.trim();
+    if (value) return value;
   }
-);
+  return "";
+});
+
+// Slug auto-sync with the primary title
+watch(primaryTitle, (newTitle) => {
+  if (!slugManuallyEdited.value && newTitle) {
+    form.slug = slugify(newTitle);
+  }
+});
 
 // Watch slug for manual edits
 watch(
   () => form.slug,
   (newSlug, oldSlug) => {
     // If slug is edited and doesn't match slugified title, mark as manually edited
-    if (oldSlug !== undefined && newSlug !== slugify(form.title)) {
+    if (oldSlug !== undefined && newSlug !== slugify(primaryTitle.value)) {
       slugManuallyEdited.value = true;
     }
 
@@ -277,15 +336,22 @@ function populateForm() {
   if (!props.initialData) return;
 
   const data = props.initialData;
-  form.title = data.title || "";
+  form.title = seedLocales(data.title_translations, data.title);
   form.slug = data.slug || "";
-  form.excerpt = data.excerpt || "";
-  form.content = data.content || "";
+  form.excerpt = seedLocales(data.excerpt_translations, data.excerpt);
+  form.content = seedLocales(data.content_translations, data.content);
+
+  // Open on the first locale tab that actually has content
+  const firstFilled = POST_LOCALES.find((locale) => form.title[locale.value]?.trim());
+  if (firstFilled) {
+    activeLocale.value = firstFilled.value;
+  }
+
   form.status = data.status || "draft";
   form.visibility = data.visibility || "public";
   form.featured = data.featured || false;
-  form.meta_title = data.meta_title || "";
-  form.meta_description = data.meta_description || "";
+  form.meta_title = seedLocales(data.meta_title_translations, data.meta_title);
+  form.meta_description = seedLocales(data.meta_description_translations, data.meta_description);
   form.featured_image_caption = data.featured_image?.caption || "";
 
   if (data.published_at) {
@@ -384,10 +450,21 @@ function hasAutosaveChanges(savedData: any): boolean {
   const data = props.initialData;
 
   if (!data) {
-    return !!(savedData.title || savedData.content || savedData.excerpt);
+    return TRANSLATABLE_FIELDS.some(
+      (field) => Object.keys(normalizedLocales(savedData[field])).length > 0
+    );
   }
 
-  const fieldsToCompare = ["title", "excerpt", "content", "status", "visibility", "featured"];
+  for (const field of TRANSLATABLE_FIELDS) {
+    if (savedData[field] === undefined) continue;
+    const savedValue = normalizedLocales(savedData[field]);
+    const initialValue = normalizedLocales(data[`${field}_translations`] ?? data[field]);
+    if (JSON.stringify(savedValue) !== JSON.stringify(initialValue)) {
+      return true;
+    }
+  }
+
+  const fieldsToCompare = ["status", "visibility", "featured"];
   for (const field of fieldsToCompare) {
     const savedValue = savedData[field];
     const initialValue = data[field];
@@ -397,11 +474,7 @@ function hasAutosaveChanges(savedData: any): boolean {
     }
   }
 
-  if (
-    (savedData.meta_title || "") !== (data.meta_title || "") ||
-    (savedData.meta_description || "") !== (data.meta_description || "") ||
-    (savedData.featured_image_caption || "") !== (data.featured_image?.caption || "")
-  ) {
+  if ((savedData.featured_image_caption || "") !== (data.featured_image?.caption || "")) {
     return true;
   }
 
@@ -435,15 +508,15 @@ async function checkAndRestoreAutosave() {
 async function handleRestoreChanges() {
   const savedData = pendingRestoreData.value;
   if (savedData) {
-    if (savedData.title !== undefined) form.title = savedData.title;
+    if (savedData.title !== undefined) form.title = seedLocales(savedData.title);
     if (savedData.slug !== undefined) form.slug = savedData.slug;
-    if (savedData.excerpt !== undefined) form.excerpt = savedData.excerpt;
-    if (savedData.content !== undefined) form.content = savedData.content;
+    if (savedData.excerpt !== undefined) form.excerpt = seedLocales(savedData.excerpt);
+    if (savedData.content !== undefined) form.content = seedLocales(savedData.content);
     if (savedData.status) form.status = savedData.status;
     if (savedData.visibility) form.visibility = savedData.visibility;
-    if (savedData.meta_title !== undefined) form.meta_title = savedData.meta_title;
+    if (savedData.meta_title !== undefined) form.meta_title = seedLocales(savedData.meta_title);
     if (savedData.meta_description !== undefined)
-      form.meta_description = savedData.meta_description;
+      form.meta_description = seedLocales(savedData.meta_description);
     if (savedData.featured_image_caption !== undefined)
       form.featured_image_caption = savedData.featured_image_caption;
     if (savedData.featured !== undefined) form.featured = savedData.featured;
@@ -491,15 +564,27 @@ function getPreviewFeaturedImage() {
   return null;
 }
 
+// Preview resolves the active locale, falling back to the first filled locale
+// (mirrors the public API fallback behavior)
+function pickLocale(t: LocaleMap): string {
+  const active = t[activeLocale.value]?.trim();
+  if (active && active !== "<p></p>") return t[activeLocale.value];
+  for (const locale of POST_LOCALES) {
+    const value = t[locale.value]?.trim();
+    if (value && value !== "<p></p>") return t[locale.value];
+  }
+  return "";
+}
+
 const previewData = computed(() => ({
-  title: form.title || "Untitled Post",
-  excerpt: form.excerpt || "",
-  content: form.content || "",
+  title: pickLocale(form.title) || "Untitled Post",
+  excerpt: pickLocale(form.excerpt) || "",
+  content: pickLocale(form.content) || "",
   status: form.status || "draft",
   visibility: form.visibility || "public",
   featured: form.featured || false,
-  meta_title: form.meta_title || form.title || "",
-  meta_description: form.meta_description || form.excerpt || "",
+  meta_title: pickLocale(form.meta_title) || pickLocale(form.title) || "",
+  meta_description: pickLocale(form.meta_description) || pickLocale(form.excerpt) || "",
   featured_image: getPreviewFeaturedImage(),
   featured_image_caption: form.featured_image_caption || "",
   tags: form.tags || [],
@@ -556,6 +641,13 @@ async function handleSubmit() {
     console.error("Failed to save post:", error);
     if (error?.data?.errors) {
       errors.value = error.data.errors;
+      // Jump to the locale tab whose field failed validation
+      const localeError = Object.keys(error.data.errors)
+        .map((key) => key.match(/^(?:title|content|excerpt)\.(\w{2})$/)?.[1])
+        .find((locale) => POST_LOCALES.some((l) => l.value === locale));
+      if (localeError) {
+        activeLocale.value = localeError as PostLocale;
+      }
     }
     toast.error(error?.data?.message || "Failed to save post. Please try again.");
   } finally {
@@ -614,16 +706,16 @@ async function confirmDelete() {
 
 function buildPayload() {
   const payload: any = {
-    title: form.title,
+    title: cleanTranslatable(form.title),
     slug: form.slug || null,
-    excerpt: form.excerpt,
-    content: form.content,
+    excerpt: cleanTranslatable(form.excerpt),
+    content: cleanTranslatable(form.content),
     content_format: "html",
     status: form.status,
     visibility: form.visibility,
     featured: form.featured,
-    meta_title: form.meta_title || null,
-    meta_description: form.meta_description || null,
+    meta_title: cleanTranslatable(form.meta_title),
+    meta_description: cleanTranslatable(form.meta_description),
     published_at: form.published_at || null,
     tags: form.tags,
   };
@@ -656,11 +748,21 @@ function buildPayload() {
   return payload;
 }
 
-// Computed for action visibility
+// Computed for action visibility - a post is savable once title and content
+// exist in at least one language
+function hasAnyLocale(t: LocaleMap): boolean {
+  return Object.values(t).some((value) => {
+    const trimmed = (value ?? "").trim();
+    return trimmed !== "" && trimmed !== "<p></p>";
+  });
+}
+
+const hasTitle = computed(() => hasAnyLocale(form.title));
+
 const canPublish = computed(() => {
   return (
-    form.title &&
-    form.content &&
+    hasTitle.value &&
+    hasAnyLocale(form.content) &&
     (props.mode === "create" || (props.mode === "edit" && form.status === "draft"))
   );
 });
@@ -670,7 +772,7 @@ const canUnpublish = computed(() => {
 });
 
 const canUpdate = computed(() => {
-  return props.mode === "edit" && form.title && form.content;
+  return props.mode === "edit" && hasTitle.value && hasAnyLocale(form.content);
 });
 
 const canDelete = computed(() => {
@@ -703,6 +805,7 @@ providePostEditor({
   slugAvailable,
   availableUsers,
   activeTab,
+  activeLocale,
   showRestoreDialog,
   handleSubmit,
   saveDraft,
@@ -714,6 +817,7 @@ providePostEditor({
   removeAuthor,
   moveAuthorUp,
   moveAuthorDown,
+  hasTitle,
   canPublish,
   canUnpublish,
   canUpdate,

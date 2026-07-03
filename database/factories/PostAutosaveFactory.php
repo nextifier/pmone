@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PostAutosave>
+ * @extends Factory<PostAutosave>
  */
 class PostAutosaveFactory extends Factory
 {
@@ -24,12 +24,12 @@ class PostAutosaveFactory extends Factory
         return [
             'post_id' => null, // Default to new post
             'user_id' => User::factory(),
-            'title' => fake()->sentence(rand(3, 8)),
-            'excerpt' => fake()->paragraph(3),
-            'content' => fake()->paragraphs(rand(5, 15), true),
+            'title' => ['en' => fake()->sentence(rand(3, 8))],
+            'excerpt' => ['en' => fake()->paragraph(3)],
+            'content' => ['en' => fake()->paragraphs(rand(5, 15), true)],
             'content_format' => fake()->randomElement(['html', 'markdown', 'lexical']),
-            'meta_title' => fake()->sentence(),
-            'meta_description' => fake()->text(160),
+            'meta_title' => ['en' => fake()->sentence()],
+            'meta_description' => ['en' => fake()->text(160)],
             'status' => 'draft',
             'visibility' => 'public',
             'published_at' => null,

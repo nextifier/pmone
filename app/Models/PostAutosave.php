@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -18,17 +19,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $meta_description
  * @property string $status
  * @property string $visibility
- * @property \Illuminate\Support\Carbon|null $published_at
+ * @property Carbon|null $published_at
  * @property bool $featured
  * @property int|null $reading_time
  * @property array<array-key, mixed> $settings
  * @property array<array-key, mixed>|null $tmp_media
  * @property array<array-key, mixed>|null $tags
  * @property array<array-key, mixed>|null $authors
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\Post|null $post
- * @property-read \App\Models\User|null $user
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Post|null $post
+ * @property-read User|null $user
+ *
  * @method static \Database\Factories\PostAutosaveFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave newQuery()
@@ -53,6 +55,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|PostAutosave whereVisibility($value)
+ *
  * @mixin \Eloquent
  */
 class PostAutosave extends Model
@@ -82,6 +85,11 @@ class PostAutosave extends Model
     protected function casts(): array
     {
         return [
+            'title' => 'array',
+            'excerpt' => 'array',
+            'content' => 'array',
+            'meta_title' => 'array',
+            'meta_description' => 'array',
             'settings' => 'array',
             'tmp_media' => 'array',
             'tags' => 'array',

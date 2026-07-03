@@ -200,7 +200,9 @@ class PostsExport extends BaseExport
     {
         [$field, $direction] = $this->parseSortField($this->sort);
 
-        if (in_array($field, ['title', 'status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+        if ($field === 'title') {
+            $query->orderByTitle($direction);
+        } elseif (in_array($field, ['status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'creator') {
             $query->leftJoin('users', 'posts.created_by', '=', 'users.id')

@@ -606,14 +606,22 @@ html.appearance-switching *::after {
 
   /* Only target non-touch devices */
   @media (hover: hover) and (pointer: fine) {
-    /* Reserve the scrollbar gutter PERMANENTLY so overlays (reka dropdowns,
-       popovers, dialogs) that lock body scroll via `overflow: hidden` never make
-       the gutter appear/disappear → zero layout shift on open/close. reka adds no
-       padding-right compensation here, so keeping the gutter constant is enough.
-       Do NOT flip to `auto` while a modal is open — that release is what caused
-       the shift. */
+    /* Reserve the scrollbar gutter so page content doesn't shift when routes
+       change scrollability. When a reka overlay locks body scroll it DOES add
+       padding-right compensation equal to the scrollbar width (measured: 11px
+       with classic macOS scrollbars), so the gutter must be RELEASED while
+       locked: with `stable` kept, the fixed-position containing block still
+       excludes the gutter, so overlays can't cover it → a bare white gutter
+       strip appears next to the overlay AND reka's padding double-compensates,
+       shifting the content. Flipping to `auto` while locked lets the viewport
+       reclaim the gutter; reka's body padding then keeps content exactly in
+       place (verified: zero anchor shift, overlay spans the full viewport). */
     html {
       scrollbar-gutter: stable;
+
+      &:has(body[style*="overflow: hidden"]) {
+        scrollbar-gutter: auto;
+      }
     }
 
     ::-webkit-scrollbar {

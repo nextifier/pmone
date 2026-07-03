@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="rootEl"
     class="tiptap-editor cn-input flex h-auto w-full min-w-0 flex-col items-stretch p-0"
     :style="{ '--editor-min-h': minHeight }"
   >
@@ -481,6 +482,33 @@ onBeforeUnmount(() => {
   editor.value?.destroy();
 });
 
+// The wrapper's cn-input surface is a semi-transparent tint that differs per
+// appearance style, so the sticky toolbar can't hardcode one solid color.
+// Read the wrapper's computed tint and layer it over --background so the
+// toolbar composites to exactly the same solid color as the editor body.
+const rootEl = ref(null);
+let surfaceObserver = null;
+
+function syncToolbarSurfaceTint() {
+  if (!rootEl.value) return;
+  const tint = getComputedStyle(rootEl.value).backgroundColor;
+  rootEl.value.style.setProperty("--editor-surface-tint", tint || "transparent");
+}
+
+onMounted(() => {
+  syncToolbarSurfaceTint();
+  // Dark mode and appearance styles are toggled via classes on <html>
+  surfaceObserver = new MutationObserver(() => nextTick(syncToolbarSurfaceTint));
+  surfaceObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+});
+
+onBeforeUnmount(() => {
+  surfaceObserver?.disconnect();
+});
+
 // Helper function to extract temp image folders from content
 function extractTempImageFolders(content) {
   const folders = new Set();
@@ -614,8 +642,16 @@ const handleImageUpload = async (event) => {
   @apply border-border z-10 flex flex-wrap items-center gap-1 rounded-t-[inherit] border-b bg-transparent p-2;
 }
 
+/* Solid two-layer background: page --background below plus the wrapper's
+   cn-input tint on top (set as --editor-surface-tint from JS), so the stuck
+   toolbar is opaque yet identical in color to the editor body. */
 .editor-toolbar-sticky {
-  @apply bg-background sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop);
+  @apply sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop);
+  background-color: var(--background);
+  background-image: linear-gradient(
+    var(--editor-surface-tint, transparent),
+    var(--editor-surface-tint, transparent)
+  );
 }
 
 .toolbar-group {

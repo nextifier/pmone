@@ -3,6 +3,7 @@
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 
 uses(RefreshDatabase::class);
 
@@ -22,7 +23,7 @@ it('creates posts with unique slugs via API when titles are duplicated', functio
     ]);
 
     $response1->assertCreated();
-    $post1 = Post::where('title', 'Test Article')->first();
+    $post1 = Post::where('title->en', 'Test Article')->first();
     expect($post1->slug)->toBe('test-article');
 
     // Create second post with same title via API
@@ -35,14 +36,14 @@ it('creates posts with unique slugs via API when titles are duplicated', functio
     ]);
 
     $response2->assertCreated();
-    $post2 = Post::where('title', 'Test Article')->orderBy('id', 'desc')->first();
+    $post2 = Post::where('title->en', 'Test Article')->orderBy('id', 'desc')->first();
 
     // Should have unique slug with suffix
     expect($post2->slug)->not->toBe('test-article')
         ->and($post2->slug)->toStartWith('test-article-');
 
     // Verify both posts exist in database
-    expect(Post::where('title', 'Test Article')->count())->toBe(2);
+    expect(Post::where('title->en', 'Test Article')->count())->toBe(2);
 });
 
 it('auto-fills published_at when creating post with published status via API', function () {
@@ -56,9 +57,9 @@ it('auto-fills published_at when creating post with published status via API', f
 
     $response->assertCreated();
 
-    $post = Post::where('title', 'Published Article')->first();
+    $post = Post::where('title->en', 'Published Article')->first();
     expect($post->published_at)->not->toBeNull()
-        ->and($post->published_at)->toBeInstanceOf(\Illuminate\Support\Carbon::class);
+        ->and($post->published_at)->toBeInstanceOf(Carbon::class);
 });
 
 it('uses custom slug from request when provided', function () {
@@ -73,7 +74,7 @@ it('uses custom slug from request when provided', function () {
 
     $response->assertCreated();
 
-    $post = Post::where('title', 'My Great Article')->first();
+    $post = Post::where('title->en', 'My Great Article')->first();
 
     expect($post->slug)->toBe('custom-slug');
 });
@@ -90,7 +91,7 @@ it('auto-generates slug when slug is empty', function () {
 
     $response->assertCreated();
 
-    $post = Post::where('title', 'My Great Article')->first();
+    $post = Post::where('title->en', 'My Great Article')->first();
 
     expect($post->slug)->toBe('my-great-article');
 });

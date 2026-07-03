@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AutosavePostRequest extends FormRequest
@@ -15,23 +16,47 @@ class AutosavePostRequest extends FormRequest
     }
 
     /**
+     * Accept legacy plain-string payloads for the translatable fields by
+     * coercing them into the English locale.
+     */
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+
+        foreach (['title', 'excerpt', 'content', 'meta_title', 'meta_description'] as $field) {
+            if (is_string($this->input($field))) {
+                $merge[$field] = ['en' => $this->input($field) ?: null];
+            }
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * For autosave, we're more lenient - title and content can be empty/incomplete
      * since the user is still working on the post.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'post_id' => ['nullable', 'exists:posts,id'],
-            'title' => ['nullable', 'string', 'max:255'],
-            'excerpt' => ['nullable', 'string', 'max:500'],
-            'content' => ['nullable', 'string'],
+            'title' => ['nullable', 'array'],
+            'title.*' => ['nullable', 'string', 'max:255'],
+            'excerpt' => ['nullable', 'array'],
+            'excerpt.*' => ['nullable', 'string', 'max:500'],
+            'content' => ['nullable', 'array'],
+            'content.*' => ['nullable', 'string'],
             'content_format' => ['sometimes', 'string', 'in:html,markdown,lexical'],
-            'meta_title' => ['nullable', 'string'],
-            'meta_description' => ['nullable', 'string'],
+            'meta_title' => ['nullable', 'array'],
+            'meta_title.*' => ['nullable', 'string'],
+            'meta_description' => ['nullable', 'array'],
+            'meta_description.*' => ['nullable', 'string'],
             'status' => ['sometimes', 'string', 'in:draft,published,scheduled,archived'],
             'visibility' => ['sometimes', 'string', 'in:public,private,members_only'],
             'published_at' => ['nullable', 'date'],
@@ -62,7 +87,7 @@ class AutosavePostRequest extends FormRequest
     {
         return [
             'post_id.exists' => 'The post you are trying to autosave does not exist.',
-            'title.max' => 'Title must not exceed 255 characters.',
+            'title.*.max' => 'Title must not exceed 255 characters.',
             'content_format.in' => 'Content format must be html, markdown, or lexical.',
             'status.in' => 'Status must be draft, published, scheduled, or archived.',
             'visibility.in' => 'Visibility must be public, private, or members_only.',

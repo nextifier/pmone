@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePostRequest extends FormRequest
@@ -15,20 +16,73 @@ class StorePostRequest extends FormRequest
     }
 
     /**
+     * Accept legacy plain-string payloads for the translatable fields by
+     * coercing them into the English locale.
+     */
+    protected function prepareForValidation(): void
+    {
+        $merge = [];
+
+        foreach (['title', 'excerpt', 'content', 'meta_title', 'meta_description'] as $field) {
+            if (is_string($this->input($field))) {
+                $merge[$field] = ['en' => $this->input($field) ?: null];
+            }
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
+    }
+
+    /**
+     * Posts are authored Indonesian-first, so no single locale is mandatory;
+     * title and content just need at least one filled language.
+     *
+     * @return array<int, callable>
+     */
+    public function after(): array
+    {
+        return [
+            function ($validator) {
+                foreach (['title', 'content'] as $field) {
+                    $values = $this->input($field);
+
+                    if (! is_array($values)) {
+                        continue;
+                    }
+
+                    $hasValue = collect($values)->contains(
+                        fn ($value) => is_string($value) && trim($value) !== ''
+                    );
+
+                    if (! $hasValue) {
+                        $validator->errors()->add($field, "The post {$field} is required in at least one language.");
+                    }
+                }
+            },
+        ];
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['required', 'array'],
+            'title.*' => ['nullable', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:posts,slug'],
-            'excerpt' => ['nullable', 'string', 'max:500'],
-            'content' => ['required', 'string'],
+            'excerpt' => ['nullable', 'array'],
+            'excerpt.*' => ['nullable', 'string', 'max:500'],
+            'content' => ['required', 'array'],
+            'content.*' => ['nullable', 'string'],
             'content_format' => ['sometimes', 'string', 'in:html,markdown,lexical'],
-            'meta_title' => ['nullable', 'string'],
-            'meta_description' => ['nullable', 'string'],
+            'meta_title' => ['nullable', 'array'],
+            'meta_title.*' => ['nullable', 'string'],
+            'meta_description' => ['nullable', 'array'],
+            'meta_description.*' => ['nullable', 'string'],
             'status' => ['sometimes', 'string', 'in:draft,published,scheduled,archived'],
             'visibility' => ['sometimes', 'string', 'in:public,private,members_only'],
             'published_at' => ['nullable', 'date'],
@@ -67,7 +121,7 @@ class StorePostRequest extends FormRequest
     {
         return [
             'title.required' => 'The post title is required.',
-            'title.max' => 'Title must not exceed 255 characters.',
+            'title.*.max' => 'Title must not exceed 255 characters.',
             'slug.unique' => 'This slug is already taken by another post.',
             'content.required' => 'Post content is required.',
             'content_format.in' => 'Content format must be html, markdown, or lexical.',

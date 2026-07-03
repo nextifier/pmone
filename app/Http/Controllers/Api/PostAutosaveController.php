@@ -39,9 +39,9 @@ class PostAutosaveController extends Controller
                     'user_id' => $user->id,
                 ],
                 [
-                    'title' => $data['title'] ?? '',
+                    'title' => $data['title'] ?? [],
                     'excerpt' => $data['excerpt'] ?? null,
-                    'content' => $data['content'] ?? '',
+                    'content' => $data['content'] ?? [],
                     'content_format' => $data['content_format'] ?? 'html',
                     'meta_title' => $data['meta_title'] ?? null,
                     'meta_description' => $data['meta_description'] ?? null,
@@ -177,13 +177,22 @@ class PostAutosaveController extends Controller
      */
     private function hasChanges(Post $post, PostAutosave $autosave): bool
     {
+        $translatableFields = ['title', 'excerpt', 'content', 'meta_title', 'meta_description'];
+
+        foreach ($translatableFields as $field) {
+            $postValue = $post->getTranslations($field);
+            $autosaveValue = array_filter(
+                (array) $autosave->{$field},
+                fn ($value) => $value !== null && $value !== ''
+            );
+
+            if (json_encode($postValue) !== json_encode($autosaveValue)) {
+                return true;
+            }
+        }
+
         $fieldsToCompare = [
-            'title',
-            'excerpt',
-            'content',
             'content_format',
-            'meta_title',
-            'meta_description',
             'status',
             'visibility',
             'featured',
