@@ -190,6 +190,22 @@ export function useAppearance() {
     writeCookie(null);
   };
 
+  /** Apply a full selection at once (Shuffle / Open Preset) — one write, opt-in on. */
+  const applyConfig = (next: Partial<AppearanceConfig>) => {
+    writeCookie({ ...DEFAULT_APPEARANCE, ...config.value, ...next });
+  };
+
+  /** The current selection resolved to the 7 preset fields (defaults for unset). */
+  const presetConfig = computed(() => ({
+    style: style.value,
+    baseColor: config.value?.baseColor ?? DEFAULT_APPEARANCE.baseColor,
+    theme: config.value?.theme ?? DEFAULT_APPEARANCE.theme,
+    chartColor: config.value?.chartColor ?? DEFAULT_APPEARANCE.chartColor,
+    radius: config.value?.radius ?? DEFAULT_APPEARANCE.radius,
+    font: config.value?.font ?? DEFAULT_APPEARANCE.font,
+    fontHeading: config.value?.fontHeading ?? DEFAULT_APPEARANCE.fontHeading,
+  }));
+
   // ---- Seed cookies from the backend (cross-device, first authed render) ------
   // Runs when the authenticated identity resolves. Because Sanctum runs an
   // initial SSR request, `user` is available server-side, so seeding here writes
@@ -268,6 +284,8 @@ export function useAppearance() {
     setFont,
     setFontHeading,
     reset,
+    applyConfig,
+    presetConfig,
     isSyncing,
     syncError,
   };

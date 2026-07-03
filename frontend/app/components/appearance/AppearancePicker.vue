@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,7 @@ interface PickerOption {
   value: string;
   label: string;
   swatch?: string;
+  swatchDark?: string;
   family?: string;
   description?: string;
 }
@@ -21,52 +23,98 @@ const props = withDefaults(
     label: string;
     modelValue: string;
     options: PickerOption[];
-    /** How each option is previewed. */
-    variant?: "swatch" | "font" | "plain";
+    /** How each option is previewed on the trigger. */
+    variant?: "swatch" | "font" | "radius" | "plain";
+    disabled?: boolean;
+    /** Force full-width at every breakpoint (embedded/popover layouts). */
+    fluid?: boolean;
   }>(),
-  { variant: "plain" },
+  { variant: "plain", disabled: false, fluid: false },
+);
+
+// In the customizer the trigger is a fixed 144px chip (mobile → horizontal
+// scroll) that becomes full-width on desktop. `fluid` forces full-width always.
+const triggerClass = computed(() =>
+  props.fluid
+    ? "w-full rounded-lg px-2.5 py-2"
+    : "w-36 shrink-0 rounded-xl p-3 md:w-full md:rounded-lg md:px-2.5 md:py-2",
 );
 
 const emit = defineEmits<{ (e: "update:modelValue", value: string): void }>();
 
+// Mobile opens the dropdown UPWARD (the customizer sits at the bottom of the
+// screen) and centered; desktop opens to the RIGHT, floating over the preview.
+const isMobile = useMediaQuery("(max-width: 767px)");
+
 const current = computed(
   () => props.options.find(o => o.value === props.modelValue) ?? props.options[0],
+);
+
+const fontFamily = computed(() =>
+  props.variant === "font" && current.value?.family && current.value.family !== "inherit"
+    ? current.value.family
+    : undefined,
 );
 </script>
 
 <template>
   <DropdownMenu>
-    <DropdownMenuTrigger as-child>
+    <DropdownMenuTrigger as-child :disabled="disabled">
       <button
         type="button"
-        class="ring-border hover:bg-muted/60 focus-visible:ring-ring/50 relative flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left ring-1 outline-none transition-colors focus-visible:ring-2"
+        :disabled="disabled"
+        :class="[
+          triggerClass,
+          'relative touch-manipulation text-left ring-1 ring-foreground/10 outline-none select-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/50 disabled:pointer-events-none disabled:opacity-50 data-[state=open]:bg-muted',
+        ]"
       >
-        <span class="min-w-0 flex-1">
-          <span class="text-muted-foreground block text-xs tracking-tight">{{ label }}</span>
+        <div class="flex min-w-0 flex-col justify-start pr-5">
+          <span class="text-muted-foreground text-xs tracking-tight">{{ label }}</span>
           <span
-            class="text-foreground block truncate text-sm font-medium tracking-tight"
-            :style="variant === 'font' && current?.family ? { fontFamily: current.family } : undefined"
-          >
-            {{ current?.label }}
-          </span>
-        </span>
+            class="text-foreground truncate text-sm font-medium tracking-tight"
+            :style="fontFamily ? { fontFamily } : undefined"
+          >{{ current?.label }}</span>
+        </div>
+
+        <!-- Indicator, absolutely positioned (right-4 mobile / right-2.5 desktop) -->
         <span
           v-if="variant === 'swatch'"
-          class="border-border size-4 shrink-0 rounded-full border"
-          :style="{ backgroundColor: current?.swatch }"
+          class="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 rounded-full ring-1 ring-foreground/15 select-none md:right-2.5"
+          :style="{ backgroundColor: current?.swatchDark || current?.swatch }"
         />
         <span
           v-else-if="variant === 'font'"
-          class="text-muted-foreground shrink-0 text-base leading-none"
-          :style="current?.family && current.family !== 'inherit' ? { fontFamily: current.family } : undefined"
+          class="text-foreground pointer-events-none absolute top-1/2 right-4 flex size-4 -translate-y-1/2 items-center justify-center text-base leading-none select-none md:right-2.5"
+          :style="fontFamily ? { fontFamily } : undefined"
         >Aa</span>
-        <Icon v-else name="lucide:chevrons-up-down" class="text-muted-foreground size-4 shrink-0" />
+        <span
+          v-else-if="variant === 'radius'"
+          class="text-foreground pointer-events-none absolute top-1/2 right-4 flex size-4 -translate-y-1/2 rotate-90 items-center justify-center select-none md:right-2.5"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+            <path
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 20v-5C4 8.925 8.925 4 15 4h5"
+            />
+          </svg>
+        </span>
+        <Icon
+          v-else
+          name="lucide:chevrons-up-down"
+          class="text-muted-foreground pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 md:right-2.5"
+        />
       </button>
     </DropdownMenuTrigger>
 
     <DropdownMenuContent
-      align="start"
-      class="max-h-[min(24rem,var(--reka-dropdown-menu-content-available-height))] w-(--reka-dropdown-menu-trigger-width) min-w-52 overflow-y-auto"
+      :side="isMobile ? 'top' : 'right'"
+      :align="isMobile ? 'center' : 'start'"
+      :side-offset="isMobile ? 12 : 12"
+      class="dark z-50 w-56 max-w-[calc(100vw-2rem)] min-w-52 rounded-xl border-0 bg-neutral-900/90 p-1.5 text-neutral-100 ring-1 ring-neutral-700/60 shadow-xl backdrop-blur-xl [scrollbar-width:none]"
     >
       <DropdownMenuRadioGroup
         :model-value="modelValue"
@@ -76,13 +124,8 @@ const current = computed(
           v-for="o in options"
           :key="o.value"
           :value="o.value"
-          class="gap-2 pr-2 focus:bg-muted! focus:text-foreground! focus:**:text-foreground!"
+          class="gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-100 focus:bg-neutral-700/70 focus:text-neutral-100 focus:**:text-neutral-100 data-highlighted:bg-neutral-700/70"
         >
-          <span
-            v-if="variant === 'swatch'"
-            class="border-border size-3.5 shrink-0 rounded-full border"
-            :style="{ backgroundColor: o.swatch }"
-          />
           <span class="flex min-w-0 flex-col gap-0.5">
             <span
               class="truncate"
@@ -90,7 +133,7 @@ const current = computed(
             >{{ o.label }}</span>
             <span
               v-if="o.description"
-              class="text-muted-foreground text-xs leading-snug font-normal tracking-tight whitespace-normal"
+              class="text-xs leading-snug font-normal tracking-tight whitespace-normal text-neutral-400"
             >{{ o.description }}</span>
           </span>
         </DropdownMenuRadioItem>

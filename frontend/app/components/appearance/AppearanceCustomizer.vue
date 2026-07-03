@@ -1,18 +1,39 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { toast } from "vue-sonner";
 import AppearancePicker from "@/components/appearance/AppearancePicker.vue";
-import { Button } from "@/components/ui/button";
+import AppearanceOpenPresetDialog from "@/components/appearance/AppearanceOpenPresetDialog.vue";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   BASE_COLOR_OPTIONS,
   CHART_COLOR_OPTIONS,
   RADII,
+  RADIUS_LOCKED_STYLES,
   THEME_OPTIONS,
 } from "@/lib/appearance";
 import { STYLES } from "@/lib/appearance/styles";
+import { encodePreset, parsePresetInput, randomPreset } from "@/lib/appearance/preset";
 import { FONTS, FONT_HEADING_OPTIONS } from "@/lib/fonts";
 
-withDefaults(defineProps<{ showColorMode?: boolean }>(), { showColorMode: true });
+// `embedded` renders a compact, page-themed, always-vertical panel for the
+// header popover; the default renders the full forced-dark customizer card.
+withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 
 const {
   colorMode,
@@ -27,6 +48,8 @@ const {
   setFont,
   setFontHeading,
   reset,
+  applyConfig,
+  presetConfig,
   syncError,
 } = useAppearance();
 
@@ -47,15 +70,77 @@ const headingOptions = FONT_HEADING_OPTIONS.map(f => ({
 const baseColor = computed(() => appearance.value?.baseColor ?? "neutral");
 const theme = computed(() => appearance.value?.theme ?? "neutral");
 const chartColor = computed(() => appearance.value?.chartColor ?? "neutral");
-const radius = computed(() => appearance.value?.radius ?? "default");
 const font = computed(() => appearance.value?.font ?? "default");
 const fontHeading = computed(() => appearance.value?.fontHeading ?? "inherit");
 
-const colorModes = [
-  { value: "light", label: "Light", icon: "lucide:sun" },
-  { value: "dark", label: "Dark", icon: "lucide:moon" },
-  { value: "system", label: "System", icon: "lucide:monitor" },
-];
+// Some styles force square corners — mirror shadcn: show "None" + disable the picker.
+const radiusLocked = computed(() =>
+  (RADIUS_LOCKED_STYLES as readonly string[]).includes(currentStyle.value),
+);
+const radius = computed(() =>
+  radiusLocked.value ? "none" : (appearance.value?.radius ?? "default"),
+);
+
+// ---- Preset code (client-only: btoa + avoids an SSR hydration text mismatch) --
+const mounted = ref(false);
+onMounted(() => {
+  mounted.value = true;
+});
+const presetCode = computed(() => (mounted.value ? encodePreset(presetConfig.value) : ""));
+const hasCopied = ref(false);
+let copyTimer: ReturnType<typeof setTimeout> | undefined;
+const copyLabel = computed(() => {
+  if (hasCopied.value) {
+    return "Copied";
+  }
+  return presetCode.value ? `--preset ${presetCode.value}` : "Copy Preset";
+});
+
+function copyPreset() {
+  if (!presetCode.value) {
+    return;
+  }
+  navigator.clipboard?.writeText(`--preset ${presetCode.value}`).then(() => {
+    hasCopied.value = true;
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => (hasCopied.value = false), 2000);
+  });
+}
+
+function shuffle() {
+  applyConfig(randomPreset());
+}
+
+function applyPreset(input: string): boolean {
+  const next = parsePresetInput(input);
+  if (!next) {
+    toast.error("Invalid preset code");
+    return false;
+  }
+  applyConfig(next);
+  return true;
+}
+
+function toggleMode() {
+  setColorMode(colorMode.value === "dark" ? "light" : "dark");
+}
+
+// ---- Dialog state -----------------------------------------------------------
+const showResetDialog = ref(false);
+const showOpenPreset = ref(false);
+
+function confirmReset() {
+  reset();
+  showResetDialog.value = false;
+}
+
+// Shared button classes (adapt to the page theme via tokens).
+const chromeBtn =
+  "touch-manipulation ring-1 ring-foreground/10 transition-colors outline-none select-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-foreground/50";
+const darkItem =
+  "rounded-lg px-2 py-1.5 text-sm font-medium text-neutral-100 focus:bg-neutral-700/70 focus:text-neutral-100 data-highlighted:bg-neutral-700/70";
+const darkMenu =
+  "dark rounded-xl border-0 bg-neutral-900/90 p-1.5 text-neutral-100 ring-1 ring-neutral-700/60 shadow-xl backdrop-blur-xl";
 
 watch(syncError, (error) => {
   if (error) {
@@ -65,83 +150,192 @@ watch(syncError, (error) => {
 </script>
 
 <template>
-  <div class="space-y-3">
-    <!-- Color mode (optional — hidden in the header where ColorModeToggle sits) -->
-    <div v-if="showColorMode" class="space-y-1.5">
-      <span class="text-muted-foreground px-1 text-xs tracking-tight">Color mode</span>
-      <div class="bg-muted/60 ring-border grid grid-cols-3 gap-1 rounded-xl p-1 ring-1">
-        <button
-          v-for="m in colorModes"
-          :key="m.value"
-          type="button"
-          :aria-pressed="colorMode.preference === m.value"
-          class="flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium tracking-tight transition-colors"
-          :class="colorMode.preference === m.value
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground'"
-          @click="setColorMode(m.value)"
-        >
-          <Icon :name="m.icon" class="size-4" />
-          <span class="hidden sm:inline">{{ m.label }}</span>
-        </button>
+  <!-- Forced-dark, translucent, blurred card (page) / compact page-themed panel
+       (embedded). The card is always `dark` so it reads identically over a light
+       OR dark preview — matches shadcn /create Customizer. -->
+  <div
+    :class="embedded
+      ? 'flex w-full flex-col gap-3'
+      : 'dark isolate z-10 flex max-h-full min-h-0 w-full flex-col self-start overflow-hidden rounded-2xl bg-card/90 text-sm text-card-foreground ring-1 ring-foreground/10 backdrop-blur-xl md:w-(--customizer-width)'"
+  >
+    <!-- Header (page, desktop only) — the Menu dropdown. -->
+    <div
+      v-if="!embedded"
+      class="hidden items-center justify-between gap-2 border-b border-foreground/10 px-3 py-2.5 md:flex"
+    >
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button
+            type="button"
+            :class="[chromeBtn, 'flex w-full items-center justify-between gap-2 rounded-lg px-1.75 py-1 data-[state=open]:bg-muted']"
+          >
+            <span class="text-foreground text-sm font-medium tracking-tight">Menu</span>
+            <Icon name="lucide:menu" class="text-foreground size-5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start" :align-offset="-8" :class="[darkMenu, 'w-52']">
+          <DropdownMenuItem :class="darkItem" @click="showOpenPreset = true">
+            <Icon name="lucide:square-arrow-out-up-right" class="size-4" />
+            Open Preset
+          </DropdownMenuItem>
+          <DropdownMenuItem :class="darkItem" @click="shuffle">
+            <Icon name="lucide:dices" class="size-4" />
+            Shuffle
+          </DropdownMenuItem>
+          <DropdownMenuItem :class="darkItem" @click="toggleMode">
+            <Icon name="lucide:sun-moon" class="size-4" />
+            Light / Dark
+          </DropdownMenuItem>
+          <DropdownMenuSeparator class="-mx-1.5 my-1.5 h-px bg-neutral-700" />
+          <DropdownMenuItem :class="darkItem" @click="showResetDialog = true">
+            <Icon name="lucide:rotate-ccw" class="size-4" />
+            Reset
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+
+    <!-- Content — horizontal scroll (row) on mobile / vertical scroll (column) on
+         desktop for the page; plain vertical stack for embedded. -->
+    <div
+      :class="embedded
+        ? ''
+        : 'min-h-0 flex-1 overflow-x-auto overflow-y-hidden px-3 py-3 md:overflow-x-hidden md:overflow-y-auto [scrollbar-width:none]'"
+    >
+      <div :class="embedded ? 'flex flex-col gap-3' : 'flex flex-row gap-2.5 md:flex-col md:gap-3'">
+        <AppearancePicker
+          label="Style"
+          variant="plain"
+          :fluid="embedded"
+          :model-value="currentStyle"
+          :options="styleOptions"
+          @update:model-value="setStyle"
+        />
+        <div :class="embedded ? 'bg-border h-px' : 'hidden h-px bg-foreground/10 md:block'" />
+        <AppearancePicker
+          label="Base Color"
+          variant="swatch"
+          :fluid="embedded"
+          :model-value="baseColor"
+          :options="BASE_COLOR_OPTIONS"
+          @update:model-value="setBaseColor"
+        />
+        <AppearancePicker
+          label="Theme"
+          variant="swatch"
+          :fluid="embedded"
+          :model-value="theme"
+          :options="THEME_OPTIONS"
+          @update:model-value="setTheme"
+        />
+        <AppearancePicker
+          label="Chart Color"
+          variant="swatch"
+          :fluid="embedded"
+          :model-value="chartColor"
+          :options="CHART_COLOR_OPTIONS"
+          @update:model-value="setChartColor"
+        />
+        <div :class="embedded ? 'bg-border h-px' : 'hidden h-px bg-foreground/10 md:block'" />
+        <AppearancePicker
+          label="Heading"
+          variant="font"
+          :fluid="embedded"
+          :model-value="fontHeading"
+          :options="headingOptions"
+          @update:model-value="setFontHeading"
+        />
+        <AppearancePicker
+          label="Font"
+          variant="font"
+          :fluid="embedded"
+          :model-value="font"
+          :options="fontOptions"
+          @update:model-value="setFont"
+        />
+        <div :class="embedded ? 'bg-border h-px' : 'hidden h-px bg-foreground/10 md:block'" />
+        <AppearancePicker
+          label="Radius"
+          variant="radius"
+          :fluid="embedded"
+          :model-value="radius"
+          :options="radiusOptions"
+          :disabled="radiusLocked"
+          @update:model-value="setRadius"
+        />
       </div>
     </div>
 
-    <AppearancePicker
-      label="Style"
-      variant="plain"
-      :model-value="currentStyle"
-      :options="styleOptions"
-      @update:model-value="setStyle"
-    />
-    <AppearancePicker
-      label="Base Color"
-      variant="swatch"
-      :model-value="baseColor"
-      :options="BASE_COLOR_OPTIONS"
-      @update:model-value="setBaseColor"
-    />
-    <AppearancePicker
-      label="Theme"
-      variant="swatch"
-      :model-value="theme"
-      :options="THEME_OPTIONS"
-      @update:model-value="setTheme"
-    />
-    <AppearancePicker
-      label="Chart Color"
-      variant="swatch"
-      :model-value="chartColor"
-      :options="CHART_COLOR_OPTIONS"
-      @update:model-value="setChartColor"
-    />
-    <AppearancePicker
-      label="Heading"
-      variant="font"
-      :model-value="fontHeading"
-      :options="headingOptions"
-      @update:model-value="setFontHeading"
-    />
-    <AppearancePicker
-      label="Font"
-      variant="font"
-      :model-value="font"
-      :options="fontOptions"
-      @update:model-value="setFont"
-    />
-    <AppearancePicker
-      label="Radius"
-      variant="plain"
-      :model-value="radius"
-      :options="radiusOptions"
-      @update:model-value="setRadius"
-    />
+    <!-- Footer — buttons row (mobile) / column (desktop) for the page. -->
+    <div
+      :class="embedded
+        ? 'flex min-w-0 items-center gap-2 pt-1'
+        : 'flex min-w-0 items-center gap-2 border-t border-foreground/10 bg-muted/30 p-3 md:flex-col'"
+    >
+      <button
+        type="button"
+        :title="copyLabel"
+        :class="[chromeBtn, 'inline-flex h-9 min-w-0 flex-1 items-center justify-center rounded-lg px-2 text-sm font-medium', embedded ? '' : 'md:w-full md:flex-none']"
+        @click="copyPreset"
+      >
+        <span class="block min-w-0 truncate">{{ copyLabel }}</span>
+      </button>
+      <button
+        type="button"
+        :class="[chromeBtn, 'inline-flex h-9 min-w-0 max-w-20 flex-1 items-center justify-center rounded-lg px-2 text-sm font-medium sm:max-w-none', embedded ? '' : 'md:w-full md:max-w-none md:flex-none']"
+        @click="showOpenPreset = true"
+      >
+        <span class="w-full truncate text-center">Open</span>
+      </button>
+      <button
+        type="button"
+        :class="[chromeBtn, 'inline-flex h-9 min-w-0 max-w-20 flex-1 items-center justify-center rounded-lg px-2 text-sm font-medium sm:max-w-none', embedded ? '' : 'md:w-full md:max-w-none md:flex-none']"
+        @click="shuffle"
+      >
+        <span class="w-full truncate text-center">Shuffle</span>
+      </button>
 
-    <div class="pt-1">
-      <Button variant="ghost" size="sm" class="text-muted-foreground w-full" @click="reset">
-        <Icon name="lucide:rotate-ccw" class="size-3.5" />
-        Reset to default
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button
+            type="button"
+            aria-label="More actions"
+            :class="[chromeBtn, 'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg data-[state=open]:bg-muted', embedded ? '' : 'md:w-full']"
+          >
+            <Icon name="lucide:ellipsis" class="size-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="top" align="end" :side-offset="8" :class="[darkMenu, 'w-48']">
+          <DropdownMenuItem :class="darkItem" @click="toggleMode">
+            <Icon name="lucide:sun-moon" class="size-4" />
+            Light / Dark
+          </DropdownMenuItem>
+          <DropdownMenuSeparator class="-mx-1.5 my-1.5 h-px bg-neutral-700" />
+          <DropdownMenuItem :class="darkItem" @click="showResetDialog = true">
+            <Icon name="lucide:rotate-ccw" class="size-4" />
+            Reset
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   </div>
+
+  <!-- Open Preset dialog. -->
+  <AppearanceOpenPresetDialog v-model:open="showOpenPreset" :on-apply="applyPreset" />
+
+  <!-- Reset confirmation. -->
+  <AlertDialog v-model:open="showResetDialog">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This will reset all customization options to their default values.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction @click="confirmReset">Reset</AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
 </template>

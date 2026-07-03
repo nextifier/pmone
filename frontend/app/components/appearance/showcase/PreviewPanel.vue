@@ -8,37 +8,42 @@ import PreviewBlock02 from "./preview-02/page.vue";
 import { useDesignSystemSearchParams } from "@/composables/useDesignSystemSearchParams";
 
 const params = useDesignSystemSearchParams();
+
+// Match shadcn /create: 01 = preview-02 (default), 02 = preview.
+const PREVIEW_ITEMS = [
+  { label: "01", value: "preview-02" },
+  { label: "02", value: "preview" },
+];
 </script>
 
 <template>
-  <div class="bg-muted dark:bg-background relative min-h-0 flex-1 overflow-hidden rounded-2xl">
-    <div class="h-full overflow-auto">
-      <PreviewBlock v-if="params.item.value !== 'preview-02'" />
-      <PreviewBlock02 v-else />
+  <div
+    class="relative flex min-h-0 flex-1 flex-col justify-center overflow-hidden rounded-2xl ring ring-foreground/10 md:ring-muted dark:ring-foreground/10"
+  >
+    <div class="relative z-0 mx-auto flex w-full min-h-0 flex-1 flex-col overflow-hidden">
+      <div class="absolute inset-0 bg-muted dark:bg-muted/30" />
+      <!-- Scroll container (iframe replacement): fills the panel and scrolls on
+           every breakpoint, including mobile. -->
+      <div class="relative z-10 size-full flex-1 overflow-auto overscroll-contain">
+        <PreviewBlock v-if="params.item.value !== 'preview-02'" />
+        <PreviewBlock02 v-else />
+      </div>
     </div>
 
-    <!-- Preview switcher — segmented Tabs look (bg-muted track, active raised
-         bg-background + shadow), matching TabsList/TabsTrigger. -->
+    <!-- Preview switcher — forced-dark, translucent, blurred pill (bottom-right). -->
     <div
-      class="bg-muted text-muted-foreground absolute right-4 bottom-4 z-50 inline-flex h-8 items-center justify-center rounded-lg p-[3px] shadow-sm"
+      class="dark absolute right-3 bottom-3 z-20 flex items-center gap-1 rounded-xl bg-card/90 p-1 shadow-xl backdrop-blur-xl"
     >
       <button
+        v-for="item in PREVIEW_ITEMS"
+        :key="item.value"
         type="button"
-        aria-label="Show preview block 1"
-        class="inline-flex h-full items-center justify-center rounded-md px-2.5 text-xs font-medium tracking-tight tabular-nums transition-[color,box-shadow]"
-        :class="params.item.value !== 'preview-02' ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground'"
-        @click="params.item.value = 'preview'"
+        :aria-label="`Show preview block ${item.label}`"
+        :data-active="params.item.value === item.value"
+        class="text-muted-foreground inline-flex h-7 min-w-8 cursor-pointer items-center justify-center rounded-lg px-2.5 text-xs font-medium tracking-tight tabular-nums transition-colors hover:text-foreground data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+        @click="params.item.value = item.value"
       >
-        01
-      </button>
-      <button
-        type="button"
-        aria-label="Show preview block 2"
-        class="inline-flex h-full items-center justify-center rounded-md px-2.5 text-xs font-medium tracking-tight tabular-nums transition-[color,box-shadow]"
-        :class="params.item.value === 'preview-02' ? 'bg-background text-foreground shadow-sm' : 'hover:text-foreground'"
-        @click="params.item.value = 'preview-02'"
-      >
-        02
+        {{ item.label }}
       </button>
     </div>
   </div>

@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
       </template>
     </Tippy>
     <PopoverContent align="end" :collision-padding="8" class="w-72 rounded-xl p-3">
-      <AppearanceCustomizer :show-color-mode="false" />
+      <AppearanceCustomizer embedded />
     </PopoverContent>
   </Popover>
 </template>

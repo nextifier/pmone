@@ -92,7 +92,10 @@ export function getAppearanceTheme(name: string): AppearanceTheme | undefined {
 export interface AppearanceOption {
   value: string;
   label: string;
+  /** Swatch resolved from the LIGHT token set (for light surfaces). */
   swatch: string;
+  /** Swatch resolved from the DARK token set (the customizer is always dark). */
+  swatchDark: string;
 }
 
 function toOptions(names: readonly string[], swatchKey: string): AppearanceOption[] {
@@ -106,6 +109,7 @@ function toOptions(names: readonly string[], swatchKey: string): AppearanceOptio
         value: name,
         label: t.title,
         swatch: t.cssVars.light[swatchKey] ?? t.cssVars.light.primary ?? "",
+        swatchDark: t.cssVars.dark[swatchKey] ?? t.cssVars.dark.primary ?? "",
       };
     })
     .filter((o): o is AppearanceOption => o !== null);
