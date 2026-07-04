@@ -55,6 +55,48 @@
           </PopoverContent>
         </Popover>
 
+        <!-- Regenerate OG images (master only) -->
+        <DialogResponsive v-if="isMaster" v-model:open="regenerateOgDialogOpen">
+          <template #trigger="{ open }">
+            <button
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
+              :disabled="regenerateOgPending"
+              @click="open()"
+            >
+              <Spinner v-if="regenerateOgPending" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:image-02" class="size-4 shrink-0" />
+              <span>Regenerate OG</span>
+            </button>
+          </template>
+          <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="text-foreground text-lg font-semibold tracking-tight">
+              Regenerate all OG images?
+            </div>
+            <p class="text-body mt-1.5 text-sm tracking-tight">
+              This replaces the generated OG card of every post that has a featured image. Jobs
+              run in the background and can take about an hour to finish. Manually uploaded OG
+              images are not affected.
+            </p>
+            <div class="mt-3 flex justify-end gap-2">
+              <button
+                class="border-border hover:bg-muted rounded-lg border px-4 py-2 text-sm font-medium tracking-tight active:scale-98"
+                :disabled="regenerateOgPending"
+                @click="regenerateOgDialogOpen = false"
+              >
+                Cancel
+              </button>
+              <button
+                class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+                :disabled="regenerateOgPending"
+                @click="handleBulkRegenerateOg"
+              >
+                <Spinner v-if="regenerateOgPending" class="size-4" />
+                <span v-else>Regenerate All</span>
+              </button>
+            </div>
+          </div>
+        </DialogResponsive>
+
         <nuxt-link
           to="/posts/analytics"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
@@ -227,7 +269,7 @@ const { formatDate } = useFormatters();
 const { getRefreshSignal, clearRefreshSignal } = useDataRefresh();
 
 // Permission checking using composable
-const { hasPermission, canEditPost, canDeletePost } = usePermission();
+const { hasPermission, canEditPost, canDeletePost, isMaster } = usePermission();
 
 // Permission checks for buttons
 const canCreate = computed(() => hasPermission("posts.create"));
@@ -683,6 +725,40 @@ const handleDeleteSingleRow = async (slug) => {
   }
 };
 
+// OG regeneration (master only)
+const regenerateOgDialogOpen = ref(false);
+const regenerateOgPending = ref(false);
+
+const handleBulkRegenerateOg = async () => {
+  regenerateOgPending.value = true;
+  try {
+    const client = useSanctumClient();
+    const res = await client("/api/posts/bulk/regenerate-og", { method: "POST" });
+    regenerateOgDialogOpen.value = false;
+    toast.success(`${res?.dispatched ?? 0} jobs queued`, {
+      description: `Estimated completion in ~${res?.estimated_minutes ?? "?"} minutes. Monitor progress in Horizon.`,
+    });
+  } catch (error) {
+    toast.error("Failed to queue OG regeneration", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    regenerateOgPending.value = false;
+  }
+};
+
+const handleRegenerateSingleRow = async (slug) => {
+  try {
+    const client = useSanctumClient();
+    await client(`/api/posts/${slug}/regenerate-og`, { method: "POST" });
+    toast.success("OG image regeneration queued");
+  } catch (error) {
+    toast.error("Failed to queue OG regeneration", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  }
+};
+
 // Row Actions Component
 const RowActions = defineComponent({
   props: {
@@ -807,6 +883,33 @@ const RowActions = defineComponent({
                             ),
                         }
                       ),
+                      // Regenerate OG image (master only, needs a featured image)
+                      ...(isMaster.value && props.post.featured_image
+                        ? [
+                            h(
+                              PopoverClose,
+                              { asChild: true },
+                              {
+                                default: () =>
+                                  h(
+                                    "button",
+                                    {
+                                      class:
+                                        "hover:bg-muted rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                      onClick: () => handleRegenerateSingleRow(props.post.slug),
+                                    },
+                                    [
+                                      h(resolveComponent("Icon"), {
+                                        name: "lucide:image",
+                                        class: "size-4 shrink-0",
+                                      }),
+                                      h("span", {}, "Regenerate OG"),
+                                    ]
+                                  ),
+                              }
+                            ),
+                          ]
+                        : []),
                       // Delete button (only if user has permission)
                       ...(canDelete.value
                         ? [

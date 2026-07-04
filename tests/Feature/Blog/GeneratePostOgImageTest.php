@@ -142,6 +142,22 @@ test('the job is idempotent for an unchanged title and featured image', function
     expect($post->fresh()->getFirstMedia('og_image_generated')->id)->toBe($firstId);
 });
 
+test('force bypasses the idempotency hash and replaces the card', function () {
+    $post = Post::factory()->create(['title' => ['en' => 'Same title']]);
+    $post->addMedia(UploadedFile::fake()->image('featured.jpg', 1600, 900))
+        ->toMediaCollection('featured_image');
+
+    $fake = app(OgScreenshotService::class);
+
+    (new GeneratePostOgImage($post->id))->handle($fake);
+    $firstId = $post->fresh()->getFirstMedia('og_image_generated')->id;
+
+    (new GeneratePostOgImage($post->id, force: true))->handle($fake);
+
+    expect($fake->capturedHtml)->toHaveCount(2);
+    expect($post->fresh()->getFirstMedia('og_image_generated')->id)->not->toBe($firstId);
+});
+
 test('a changed title regenerates the card', function () {
     $post = Post::factory()->create(['title' => ['en' => 'First title']]);
     $post->addMedia(UploadedFile::fake()->image('featured.jpg', 1600, 900))
@@ -158,6 +174,23 @@ test('a changed title regenerates the card', function () {
     $media = $post->fresh()->getFirstMedia('og_image_generated');
     expect($media->id)->not->toBe($firstId);
     expect($fake->capturedHtml[1])->toContain('Second title');
+});
+
+test('media urls with spaces and special characters are encoded for the http fallback', function () {
+    expect(GeneratePostOgImage::encodeMediaUrl(
+        'https://cdn.pmone.id/posts/featured_image/636/conversions/Screenshot-2026-03-10-at-2.43.05 PM-lg.jpg'
+    ))->toBe('https://cdn.pmone.id/posts/featured_image/636/conversions/Screenshot-2026-03-10-at-2.43.05%20PM-lg.jpg');
+
+    expect(GeneratePostOgImage::encodeMediaUrl('https://cdn.pmone.id/img/kopi (1).jpg?v=2'))
+        ->toBe('https://cdn.pmone.id/img/kopi%20(1).jpg?v=2');
+
+    expect(GeneratePostOgImage::encodeMediaUrl('https://cdn.pmone.id/img/plain.jpg'))
+        ->toBe('https://cdn.pmone.id/img/plain.jpg');
+
+    // macOS screenshot names use a narrow no-break space (U+202F) before AM/PM
+    expect(GeneratePostOgImage::encodeMediaUrl(
+        "https://cdn.pmone.id/posts/featured_image/636/conversions/Screenshot-at-2.43.05\u{202F}PM-lg.jpg"
+    ))->toBe('https://cdn.pmone.id/posts/featured_image/636/conversions/Screenshot-at-2.43.05%E2%80%AFPM-lg.jpg');
 });
 
 test('the job clears the generated image when the featured image is gone', function () {

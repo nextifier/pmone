@@ -948,6 +948,8 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::get('/export/with-images', [PostController::class, 'exportWithImages'])->name('posts.export-with-images');
     Route::delete('/bulk', [PostController::class, 'bulkDestroy'])->name('posts.bulk-destroy');
     Route::post('/bulk/status', [PostController::class, 'bulkUpdateStatus'])->name('posts.bulk-update-status');
+    // OG regeneration: master-only (enforced inside the controller, never a permission)
+    Route::post('/bulk/regenerate-og', [PostController::class, 'bulkRegenerateOgImages'])->name('posts.bulk-regenerate-og');
     Route::get('/trash', [PostController::class, 'trash'])->name('posts.trash');
     Route::get('/trash/eligible-authors', [PostController::class, 'trashEligibleAuthors'])->name('posts.trash-eligible-authors');
     Route::post('/trash/restore/bulk', [PostController::class, 'bulkRestore'])->name('posts.bulk-restore');
@@ -965,6 +967,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::post('/{post:slug}/revisions/compare', [PostController::class, 'compareRevisions'])->name('posts.compare-revisions');
     Route::get('/{post:slug}/analytics', [PostController::class, 'analytics'])->name('posts.analytics');
     Route::get('/{post:slug}/preview', [PostAutosaveController::class, 'preview'])->name('posts.autosave.preview');
+    Route::post('/{post:slug}/regenerate-og', [PostController::class, 'regenerateOgImage'])->name('posts.regenerate-og');
     Route::put('/{post:slug}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
 });

@@ -490,6 +490,54 @@ class PostController extends Controller
         }
     }
 
+    /**
+     * Queue a forced regeneration of one post's OG card (master only, never a
+     * grantable permission). The existing card keeps serving until the new
+     * one replaces it.
+     */
+    public function regenerateOgImage(Request $request, Post $post): JsonResponse
+    {
+        abort_unless($request->user()->hasRole('master'), 403, 'Only master users can regenerate OG images.');
+        abort_if(! $post->hasMedia('featured_image'), 422, 'This post has no featured image to generate an OG card from.');
+
+        GeneratePostOgImage::dispatch($post->id, force: true);
+
+        return response()->json([
+            'message' => 'OG image regeneration queued',
+        ]);
+    }
+
+    /**
+     * Queue forced OG regeneration for every post with a featured image
+     * (master only). Jobs are staggered so the pdf-batch queue and the
+     * server stay responsive while the batch works through in the background.
+     */
+    public function bulkRegenerateOgImages(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->hasRole('master'), 403, 'Only master users can regenerate OG images.');
+
+        $delay = 6;
+
+        $postIds = Post::query()
+            ->whereHas('media', fn ($q) => $q->where('collection_name', 'featured_image'))
+            ->orderBy('id')
+            ->pluck('id');
+
+        foreach ($postIds->values() as $i => $postId) {
+            $dispatch = GeneratePostOgImage::dispatch($postId, force: true);
+
+            if ($i > 0) {
+                $dispatch->delay(now()->addSeconds($i * $delay));
+            }
+        }
+
+        return response()->json([
+            'message' => "Queued OG regeneration for {$postIds->count()} posts",
+            'dispatched' => $postIds->count(),
+            'estimated_minutes' => (int) ceil($postIds->count() * max($delay, 8) / 60),
+        ]);
+    }
+
     public function destroy(Post $post): JsonResponse
     {
         $this->authorize('delete', $post);

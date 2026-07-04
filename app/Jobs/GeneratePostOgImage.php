@@ -36,10 +36,11 @@ class GeneratePostOgImage implements ShouldQueue
      * idempotency hash misses and posts regenerate with the new design the
      * next time their job runs.
      */
-    private const TEMPLATE_VERSION = 2;
+    private const TEMPLATE_VERSION = 3;
 
     public function __construct(
         public int $postId,
+        public bool $force = false,
     ) {
         $this->onQueue('pdf-batch');
     }
@@ -67,7 +68,7 @@ class GeneratePostOgImage implements ShouldQueue
         $sourceHash = md5(self::TEMPLATE_VERSION.'|'.$title.'|'.$featured->uuid);
         $current = $post->getFirstMedia('og_image_generated');
 
-        if ($current && $current->getCustomProperty('source_hash') === $sourceHash) {
+        if (! $this->force && $current && $current->getCustomProperty('source_hash') === $sourceHash) {
             return;
         }
 
@@ -128,7 +129,7 @@ class GeneratePostOgImage implements ShouldQueue
         // Remote disk fallback: fetch over HTTP so the job still works when
         // media files are not locally readable.
         $url = $media->hasGeneratedConversion('lg') ? $media->getUrl('lg') : $media->getUrl();
-        $contents = file_get_contents($url);
+        $contents = @file_get_contents(self::encodeMediaUrl($url));
 
         if ($contents === false) {
             throw new \RuntimeException("Unable to read featured image for post {$this->postId}");
@@ -137,5 +138,23 @@ class GeneratePostOgImage implements ShouldQueue
         $mime = $media->mime_type ?: 'image/jpeg';
 
         return "data:{$mime};base64,".base64_encode($contents);
+    }
+
+    /**
+     * Media file names keep their original characters (spaces, multibyte
+     * unicode such as U+202F in macOS screenshot names), but raw bytes like
+     * these in an HTTP request line are rejected with 400 Bad Request.
+     * Percent-encode every byte that is not a valid raw URL character, in
+     * place - parse_url is not binary-safe (it mangles bytes >= 0x80), so the
+     * URL is never split apart. Structural characters and existing percent
+     * escapes pass through untouched.
+     */
+    public static function encodeMediaUrl(string $url): string
+    {
+        return preg_replace_callback(
+            '/[^A-Za-z0-9\-._~:\/?#\[\]@!$&\'()*+,;=%]/',
+            fn (array $match) => rawurlencode($match[0]),
+            $url,
+        );
     }
 }
