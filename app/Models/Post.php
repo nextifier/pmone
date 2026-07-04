@@ -184,6 +184,20 @@ class Post extends Model implements HasMedia
     {
         parent::boot();
 
+        // The status follows the publish date (Ghost-style): a "published"
+        // post dated in the future is really scheduled, and a "scheduled"
+        // post whose date has passed (or is missing) is really published.
+        // Normalizing here keeps every write path consistent - editor, API,
+        // and the posts:publish-scheduled command.
+        static::saving(function ($model) {
+            if ($model->status === 'published' && $model->published_at?->isFuture()) {
+                $model->status = 'scheduled';
+            } elseif ($model->status === 'scheduled' && (! $model->published_at || $model->published_at->isPast())) {
+                $model->status = 'published';
+                $model->published_at ??= now();
+            }
+        });
+
         static::creating(function ($model) {
             if (empty($model->ulid)) {
                 $model->ulid = (string) Str::ulid();

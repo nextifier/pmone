@@ -143,7 +143,13 @@
             </div>
           </div>
 
-          <div v-if="post.featured_image" class="mx-auto mt-10 block overflow-hidden rounded-xl">
+          <button
+            v-if="post.featured_image"
+            type="button"
+            class="mx-auto mt-10 block w-full cursor-zoom-in overflow-hidden rounded-xl"
+            aria-label="View image"
+            @click="openArticleLightbox(0)"
+          >
             <BlurImage
               :src="
                 post.featured_image?.lg?.url ||
@@ -160,7 +166,7 @@
                 'view-transition-name': `post-feature-img-${post.slug}`,
               }"
             />
-          </div>
+          </button>
           <p
             v-if="post.featured_image?.caption"
             class="text-muted-foreground mt-2 text-center text-sm"
@@ -169,7 +175,7 @@
           </p>
 
           <div
-            class="format-html prose-img:rounded-xl prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
+            class="format-html prose-img:rounded-xl prose-img:cursor-zoom-in prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
           >
             <article :id="post.slug" v-html="processedHtml"></article>
 
@@ -186,6 +192,23 @@
               </div>
             </div>
           </div>
+
+          <!-- Article lightbox: featured + content images, swipeable -->
+          <Lightbox
+            v-if="lightboxItems.length"
+            v-model:open="lightboxOpen"
+            v-model:index="lightboxIndex"
+            :items="lightboxItems"
+            full-key="lg"
+            show-counter
+            show-caption
+            :show-thumbnails="lightboxItems.length > 1"
+            :loop="lightboxItems.length > 1"
+          >
+            <template #trigger>
+              <span class="hidden" aria-hidden="true" />
+            </template>
+          </Lightbox>
 
           <div class="mt-10 flex flex-col items-center gap-y-4">
             <span class="text-foreground text-center text-lg font-semibold tracking-tighter sm:text-xl"
@@ -276,6 +299,89 @@ const { processedHtml } = useProcessedContent(rawHtml);
 // Apply LQIP blur effect to content images
 const articleSelector = computed(() => (post.value?.slug ? `#${post.value.slug}` : null));
 useContentImageBlur(articleSelector);
+
+// --- Article lightbox: featured image + every content image in one
+// swipeable gallery. Content images live inside v-html, so they are
+// collected from the DOM after mount and opened via event delegation.
+const lightboxOpen = ref(false);
+const lightboxIndex = ref(0);
+const contentLightboxItems = ref([]);
+let contentImageNodes = [];
+let lightboxContainer = null;
+
+const featuredLightboxItem = computed(() => {
+  const featured = post.value?.featured_image;
+  if (!featured) return null;
+
+  return {
+    url: featured.original || featured.lg?.url || featured.md?.url,
+    lg: featured.lg?.url,
+    alt: post.value?.title,
+    caption: featured.caption || undefined,
+  };
+});
+
+const lightboxItems = computed(() => [
+  ...(featuredLightboxItem.value ? [featuredLightboxItem.value] : []),
+  ...contentLightboxItems.value,
+]);
+
+const featuredOffset = computed(() => (featuredLightboxItem.value ? 1 : 0));
+
+function openArticleLightbox(index) {
+  lightboxIndex.value = index;
+  lightboxOpen.value = true;
+}
+
+function collectContentImages() {
+  const container = post.value?.slug ? document.getElementById(post.value.slug) : null;
+  if (!container) return;
+
+  // Exclude the aria-hidden LQIP <img> that useContentImageBlur adds
+  // alongside each real image inside its .blur-image-content wrapper.
+  contentImageNodes = Array.from(container.querySelectorAll("img:not([aria-hidden='true'])"));
+  contentLightboxItems.value = contentImageNodes.map((img) => ({
+    url: img.currentSrc || img.src,
+    alt: img.alt || post.value?.title,
+    caption: img.dataset.caption || undefined,
+  }));
+}
+
+// One delegated listener survives v-html re-renders and clicks on the
+// LQIP/blur wrapper that useContentImageBlur adds around each image.
+function handleArticleClick(event) {
+  const hit = event.target.closest?.("img, .blur-image-content");
+  if (!hit) return;
+
+  const img =
+    hit.tagName === "IMG" && hit.getAttribute("aria-hidden") !== "true"
+      ? hit
+      : hit.querySelector("img:not([aria-hidden='true'])");
+  if (!img) return;
+
+  const index = contentImageNodes.indexOf(img);
+  if (index === -1) return;
+
+  openArticleLightbox(featuredOffset.value + index);
+}
+
+onMounted(async () => {
+  await nextTick();
+  collectContentImages();
+
+  lightboxContainer = post.value?.slug ? document.getElementById(post.value.slug) : null;
+  lightboxContainer?.addEventListener("click", handleArticleClick);
+});
+
+onBeforeUnmount(() => {
+  lightboxContainer?.removeEventListener("click", handleArticleClick);
+});
+
+// Locale switches swap the v-html content; re-collect the fresh nodes
+watch(processedHtml, async () => {
+  await nextTick();
+  collectContentImages();
+});
 
 const foundHeadings = ref([]);
 

@@ -95,6 +95,7 @@ export interface PostEditorContext {
 
   // Computed
   hasTitle: ComputedRef<boolean>;
+  contentReady: ComputedRef<boolean>;
   canPublish: ComputedRef<boolean>;
   canUnpublish: ComputedRef<boolean>;
   canUpdate: ComputedRef<boolean>;

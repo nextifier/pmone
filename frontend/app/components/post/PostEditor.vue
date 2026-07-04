@@ -635,6 +635,18 @@ async function handleSubmit() {
       toast.success("Post created successfully!");
     }
 
+    // The backend normalizes status from the publish date (future date on a
+    // published post becomes scheduled, and vice versa) - adopt its verdict
+    // so the header buttons and hints stay truthful.
+    if (response?.data?.status) {
+      form.status = response.data.status;
+    }
+    if (response?.data?.published_at !== undefined) {
+      form.published_at = response.data.published_at
+        ? toLocalDateTimeString(new Date(response.data.published_at))
+        : null;
+    }
+
     await autosave.discardAutosave();
     emit("success", response.data);
   } catch (error: any) {
@@ -662,7 +674,9 @@ async function saveDraft() {
 
 async function publish(scheduledAt?: Date) {
   if (scheduledAt) {
-    form.status = "scheduled";
+    // The status follows the date: future = scheduled, past = backdated
+    // publish. The backend normalizes this too (Post::boot saving hook).
+    form.status = scheduledAt.getTime() > Date.now() ? "scheduled" : "published";
     form.published_at = toLocalDateTimeString(scheduledAt);
   } else {
     form.status = "published";
@@ -759,20 +773,22 @@ function hasAnyLocale(t: LocaleMap): boolean {
 
 const hasTitle = computed(() => hasAnyLocale(form.title));
 
+// Buttons stay visible based on mode/status; incomplete content only
+// disables them (via contentReady) so users always see the action exists.
+const contentReady = computed(() => hasTitle.value && hasAnyLocale(form.content));
+
 const canPublish = computed(() => {
   return (
-    hasTitle.value &&
-    hasAnyLocale(form.content) &&
-    (props.mode === "create" || (props.mode === "edit" && form.status === "draft"))
+    props.mode === "create" || (props.mode === "edit" && ["draft", "scheduled"].includes(form.status))
   );
 });
 
 const canUnpublish = computed(() => {
-  return props.mode === "edit" && form.status === "published";
+  return props.mode === "edit" && ["published", "scheduled"].includes(form.status);
 });
 
 const canUpdate = computed(() => {
-  return props.mode === "edit" && hasTitle.value && hasAnyLocale(form.content);
+  return props.mode === "edit";
 });
 
 const canDelete = computed(() => {
@@ -818,6 +834,7 @@ providePostEditor({
   moveAuthorUp,
   moveAuthorDown,
   hasTitle,
+  contentReady,
   canPublish,
   canUnpublish,
   canUpdate,

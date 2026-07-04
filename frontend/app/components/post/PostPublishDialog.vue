@@ -41,8 +41,8 @@
             <Icon name="hugeicons:calendar-03" class="size-5" />
           </div>
           <div class="flex-1">
-            <div class="font-medium">Schedule for Later</div>
-            <p class="text-muted-foreground text-xs">Set a specific date and time to publish</p>
+            <div class="font-medium">Set a Publish Date</div>
+            <p class="text-muted-foreground text-xs">Schedule for later or backdate to the past</p>
           </div>
           <Icon
             :name="showSchedulePicker ? 'hugeicons:arrow-down-01' : 'hugeicons:arrow-right-01'"
@@ -68,11 +68,14 @@
               <DatePicker
                 v-model="scheduledDateTime"
                 with-time
-                disable-past-dates
                 placeholder="Pick date and time"
                 :default-hour="new Date().getHours()"
                 :default-minute="0"
               />
+              <p class="text-muted-foreground text-xs">
+                A future date schedules the post; a past date publishes it immediately as
+                backdated.
+              </p>
             </div>
 
             <!-- Schedule Button -->
@@ -83,7 +86,7 @@
               class="w-full"
             >
               <Icon name="hugeicons:calendar-check-out-02" class="mr-2 size-4" />
-              Schedule{{ scheduledDateTime ? ` for ${formatScheduledDateTime(scheduledDateTime)}` : "" }}
+              {{ scheduleButtonLabel }}
             </Button>
           </div>
         </Transition>
@@ -103,6 +106,7 @@ import { Label } from "@/components/ui/label";
 
 const props = defineProps<{
   open: boolean;
+  initialDate?: Date | null;
 }>();
 
 const emit = defineEmits<{
@@ -127,6 +131,15 @@ function formatScheduledDateTime(date: Date): string {
   });
 }
 
+const scheduleButtonLabel = computed(() => {
+  const date = scheduledDateTime.value;
+  if (!date) return "Schedule";
+
+  return date.getTime() > Date.now()
+    ? `Schedule for ${formatScheduledDateTime(date)}`
+    : `Publish backdated to ${formatScheduledDateTime(date)}`;
+});
+
 function handlePublishNow() {
   emit("publish");
   isOpen.value = false;
@@ -138,9 +151,14 @@ function handleSchedule() {
   isOpen.value = false;
 }
 
-// Reset state when dialog closes
+// Prefill from the sidebar's Publish Date when opening; reset on close
 watch(isOpen, (value) => {
-  if (!value) {
+  if (value) {
+    if (props.initialDate) {
+      scheduledDateTime.value = props.initialDate;
+      showSchedulePicker.value = true;
+    }
+  } else {
     showSchedulePicker.value = false;
     scheduledDateTime.value = null;
   }

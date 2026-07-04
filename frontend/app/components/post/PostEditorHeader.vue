@@ -48,36 +48,40 @@
         <!-- Action Buttons -->
         <div class="flex items-center gap-x-2">
           <!-- Save to Draft (Create mode only) -->
-          <Button
-            v-if="editor.mode.value === 'create'"
-            variant="outline"
-            size="sm"
-            :disabled="editor.loading.value || !editor.hasTitle.value"
-            @click="editor.saveDraft"
-          >
-            <Icon name="hugeicons:file-edit" class="size-4 shrink-0" />
-            Save Draft
-            <KbdGroup>
-              <Kbd>{{ metaSymbol }}</Kbd>
-              <Kbd>S</Kbd>
-            </KbdGroup>
-          </Button>
+          <span v-tippy="{ content: incompleteHint, onShow: () => !editor.contentReady.value }">
+            <Button
+              v-if="editor.mode.value === 'create'"
+              variant="outline"
+              size="sm"
+              :disabled="editor.loading.value || !editor.contentReady.value"
+              @click="editor.saveDraft"
+            >
+              <Icon name="hugeicons:file-edit" class="size-4 shrink-0" />
+              Save Draft
+              <KbdGroup>
+                <Kbd>{{ metaSymbol }}</Kbd>
+                <Kbd>S</Kbd>
+              </KbdGroup>
+            </Button>
+          </span>
 
-          <!-- Publish Button -->
-          <Button
-            v-if="editor.canPublish.value"
-            size="sm"
-            :disabled="editor.loading.value"
-            @click="showPublishDialog = true"
-          >
-            <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
-            <Icon v-else name="hugeicons:sent" class="size-4 shrink-0" />
-            Publish
-            <KbdGroup>
-              <Kbd>{{ metaSymbol }}</Kbd>
-              <Kbd>S</Kbd>
-            </KbdGroup>
-          </Button>
+          <!-- Publish Button (always visible for drafts/scheduled; disabled until ready) -->
+          <span v-tippy="{ content: incompleteHint, onShow: () => !editor.contentReady.value }">
+            <Button
+              v-if="editor.canPublish.value"
+              size="sm"
+              :disabled="editor.loading.value || !editor.contentReady.value"
+              @click="showPublishDialog = true"
+            >
+              <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:sent" class="size-4 shrink-0" />
+              Publish
+              <KbdGroup>
+                <Kbd>{{ metaSymbol }}</Kbd>
+                <Kbd>S</Kbd>
+              </KbdGroup>
+            </Button>
+          </span>
 
           <!-- Unpublish Button (Edit mode, status=published) -->
           <Button
@@ -91,21 +95,23 @@
             Unpublish
           </Button>
 
-          <!-- Update Button (Edit mode) -->
-          <Button
-            v-if="editor.canUpdate.value"
-            size="sm"
-            :disabled="editor.loading.value"
-            @click="editor.handleSubmit"
-          >
-            <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
-            <Icon v-else name="hugeicons:checkmark-circle-01" class="size-4 shrink-0" />
-            Update
-            <KbdGroup>
-              <Kbd>{{ metaSymbol }}</Kbd>
-              <Kbd>S</Kbd>
-            </KbdGroup>
-          </Button>
+          <!-- Update Button (Edit mode; disabled until content is complete) -->
+          <span v-tippy="{ content: incompleteHint, onShow: () => !editor.contentReady.value }">
+            <Button
+              v-if="editor.canUpdate.value"
+              size="sm"
+              :disabled="editor.loading.value || !editor.contentReady.value"
+              @click="editor.handleSubmit"
+            >
+              <Spinner v-if="editor.loading.value" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:checkmark-circle-01" class="size-4 shrink-0" />
+              Update
+              <KbdGroup>
+                <Kbd>{{ metaSymbol }}</Kbd>
+                <Kbd>S</Kbd>
+              </KbdGroup>
+            </Button>
+          </span>
         </div>
 
         <!-- Utilities -->
@@ -148,7 +154,11 @@
   </header>
 
   <!-- Publish Dialog (outside header to not affect flex layout) -->
-  <PostPublishDialog v-model:open="showPublishDialog" @publish="handlePublish" />
+  <PostPublishDialog
+    v-model:open="showPublishDialog"
+    :initial-date="publishDialogInitialDate"
+    @publish="handlePublish"
+  />
 </template>
 
 <script setup lang="ts">
@@ -162,6 +172,13 @@ const { metaSymbol } = useShortcuts();
 const { isAuthenticated } = useSanctumAuth();
 
 const showPublishDialog = ref(false);
+
+const incompleteHint = "Add a title and some content first";
+
+// Prefill the dialog's date picker with the sidebar's Publish Date, if set
+const publishDialogInitialDate = computed(() =>
+  editor.form.published_at ? new Date(editor.form.published_at) : null
+);
 
 function handlePublish(scheduledAt?: Date) {
   editor.publish(scheduledAt);

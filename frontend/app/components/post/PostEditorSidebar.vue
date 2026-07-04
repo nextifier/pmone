@@ -67,20 +67,12 @@
             </div>
           </div>
 
-          <!-- Publish Date (only if published_at exists) -->
-          <div v-if="editor.form.published_at" class="space-y-2">
+          <!-- Publish Date: always available - empty publishes now, a future
+               date schedules, a past date backdates -->
+          <div class="space-y-2">
             <Label class="text-xs">Publish Date</Label>
-            <DatePicker
-              with-time
-              v-model="publishDateTime"
-              :disabled="editor.form.status === 'draft'"
-              placeholder="Not scheduled"
-            />
-            <p class="text-muted-foreground text-xs">
-              {{
-                editor.form.status === "draft" ? "Set when publishing" : "When this post goes live"
-              }}
-            </p>
+            <DatePicker with-time v-model="publishDateTime" placeholder="Publish immediately" />
+            <p class="text-muted-foreground text-xs">{{ publishDateHint }}</p>
           </div>
 
           <!-- Tags -->
@@ -272,6 +264,17 @@
                   <p class="text-muted-foreground text-xs">
                     Auto-generated from the featured image. Upload your own to override.
                   </p>
+                  <button
+                    v-if="isMaster"
+                    type="button"
+                    :disabled="regeneratingOg"
+                    @click="regenerateOgImage"
+                    class="border-input hover:bg-muted flex w-full items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-medium tracking-tight transition disabled:opacity-50"
+                  >
+                    <Spinner v-if="regeneratingOg" class="size-3.5" />
+                    <Icon v-else name="hugeicons:reload" class="size-3.5" />
+                    Regenerate OG Image
+                  </button>
                 </div>
               </div>
             </div>
@@ -334,6 +337,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { usePostEditorOptional, EMPTY_LOCALES, POST_LOCALES } from "@/composables/usePostEditor";
 import { toLocalDateTimeString } from "@/lib/utils";
+import { toast } from "vue-sonner";
 
 const props = defineProps({
   collapsible: {
@@ -411,6 +415,29 @@ const publishDateTime = computed({
   },
 });
 
+// The status follows the date: empty = publish now, future = scheduled,
+// past = backdated. Mirrors the backend normalization in Post::boot().
+const publishDateHint = computed(() => {
+  const value = editor.value.form.published_at;
+  const status = editor.value.form.status;
+
+  if (!value) {
+    return status === "published"
+      ? "When this post goes live"
+      : "Leave empty to publish immediately";
+  }
+
+  const date = new Date(value);
+
+  if (date.getTime() > Date.now()) {
+    return "Scheduled - goes live at this time";
+  }
+
+  return status === "published"
+    ? "Backdated - this post is already live"
+    : "A past date publishes as backdated";
+});
+
 // Excerpt follows the locale tab that is active in the editor content area
 const excerptField = computed({
   get: () => {
@@ -468,6 +495,31 @@ const showGeneratedPreview = computed(() => {
 
   return initial?.og_image_source === "generated" && !hasTmpUpload;
 });
+
+// Force-regenerate the generated OG card (master only - mirrors the /posts
+// row action). The job runs in the background; the preview updates on reload.
+const isMaster = computed(() => hasRole("master"));
+const regeneratingOg = ref(false);
+
+async function regenerateOgImage() {
+  const slug = editor.value.initialData.value?.slug;
+  if (!slug) return;
+
+  regeneratingOg.value = true;
+  try {
+    const client = useSanctumClient();
+    await client(`/api/posts/${slug}/regenerate-og`, { method: "POST" });
+    toast.success("OG image regeneration queued", {
+      description: "The new card replaces this preview shortly. Reload to see it.",
+    });
+  } catch (error: any) {
+    toast.error("Failed to queue OG regeneration", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    regeneratingOg.value = false;
+  }
+}
 
 function resetSlugSync() {
   if (editorContext) {
