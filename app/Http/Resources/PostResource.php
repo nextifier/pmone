@@ -76,10 +76,11 @@ class PostResource extends JsonResource
                 'meta_title_translations' => $this->getTranslations('meta_title'),
                 'meta_description_translations' => $this->getTranslations('meta_description'),
             ]),
-            'og_image' => $this->when(
-                $this->relationLoaded('media') && $this->hasMedia('og_image'),
-                fn () => $this->getMediaUrlsDetailed('og_image')
-            ),
+            'og_image' => $this->effectiveOgImageUrl(),
+            $this->mergeWhen(! $request->is('api/public/*'), fn () => [
+                'og_image_source' => $this->hasMedia('og_image') ? 'manual'
+                    : ($this->hasMedia('og_image_generated') ? 'generated' : null),
+            ]),
             'status' => $this->status,
             'visibility' => $this->visibility,
             'published_at' => $this->published_at,

@@ -67,4 +67,50 @@ class ImageOptimizer
             return false;
         }
     }
+
+    /**
+     * Crop + compress an image IN PLACE to the canonical OG size (1200x630).
+     * Images smaller than the target on either axis are only re-encoded
+     * (never upscaled). Same never-throws contract as compressInPlace.
+     *
+     * @return bool true if the file was modified
+     */
+    public static function cropToOg(string $absolutePath, int $quality = 82): bool
+    {
+        if (! is_file($absolutePath)) {
+            return false;
+        }
+
+        $info = @getimagesize($absolutePath);
+        if ($info === false) {
+            return false;
+        }
+
+        $mime = $info['mime'] ?? '';
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            return false;
+        }
+
+        [$width, $height] = $info;
+
+        try {
+            $driver = config('media-library.image_driver', 'imagick');
+            $image = Image::useImageDriver($driver)->loadFile($absolutePath);
+
+            if ($width >= OgPages::WIDTH && $height >= OgPages::HEIGHT) {
+                $image->fit(Fit::Crop, OgPages::WIDTH, OgPages::HEIGHT);
+            }
+
+            $image->quality($quality)->optimize()->save($absolutePath);
+
+            return true;
+        } catch (\Throwable $e) {
+            logger()->warning('ImageOptimizer cropToOg failed', [
+                'path' => $absolutePath,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
 }

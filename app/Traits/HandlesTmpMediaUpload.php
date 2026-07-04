@@ -13,6 +13,7 @@ trait HandlesTmpMediaUpload
         string $tmpFolder,
         string $collection,
         bool $clearFirst = true,
+        ?\Closure $beforeAdd = null,
     ): void {
         if (! Str::startsWith($tmpFolder, 'tmp-')) {
             return;
@@ -33,6 +34,10 @@ trait HandlesTmpMediaUpload
 
         if ($clearFirst) {
             $model->clearMediaCollection($collection);
+        }
+
+        if ($beforeAdd !== null) {
+            $beforeAdd(Storage::disk('local')->path($filePath));
         }
 
         $model->addMedia(Storage::disk('local')->path($filePath))

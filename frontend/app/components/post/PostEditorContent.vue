@@ -51,6 +51,7 @@
             :initial-image="editor.initialData.value?.featured_image"
             v-model:delete-flag="editor.deleteFlags.value.featured_image"
             container-class="relative isolate aspect-video w-full"
+            image-class="border-border size-full rounded-lg border object-cover"
           />
           <FieldError :errors="editor.errors.value.tmp_featured_image" />
 

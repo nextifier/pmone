@@ -293,35 +293,37 @@ class Post extends Model implements HasMedia
 
     public function registerMediaConversions($media = null): void
     {
-        // Featured image conversions (maintain aspect ratio, no crop)
+        // Featured image conversions (maintain aspect ratio, no crop).
+        // og_image collections get no conversions: only the 1200x630 original
+        // is ever served, so extra sizes would just waste disk.
         $this->addMediaConversion('lqip')
             ->width(20)
             ->quality(10)
             ->blur(10)
-            ->performOnCollections('featured_image', 'og_image')
+            ->performOnCollections('featured_image')
             ->nonQueued();
 
         $this->addMediaConversion('sm')
             ->width(450)
             ->quality(85)
-            ->performOnCollections('featured_image', 'og_image')
+            ->performOnCollections('featured_image')
             ->nonQueued();
 
         $this->addMediaConversion('md')
             ->width(900)
             ->quality(90)
-            ->performOnCollections('featured_image', 'og_image');
+            ->performOnCollections('featured_image');
 
         $this->addMediaConversion('lg')
             ->width(1200)
             ->quality(90)
-            ->performOnCollections('featured_image', 'og_image')
+            ->performOnCollections('featured_image')
             ->nonQueued();
 
         $this->addMediaConversion('xl')
             ->width(1500)
             ->quality(95)
-            ->performOnCollections('featured_image', 'og_image');
+            ->performOnCollections('featured_image');
 
         // Content images conversions (maintain aspect ratio, no crop)
         $this->addMediaConversion('lqip')
@@ -365,8 +367,14 @@ class Post extends Model implements HasMedia
             ],
             'og_image' => [
                 'single_file' => true,
-                'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+                // No SVG: crawlers don't support SVG og:images and cropToOg
+                // can't normalize them to 1200x630.
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
                 'max_size' => 20480, // 20MB
+            ],
+            'og_image_generated' => [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
             ],
             'content_images' => [
                 'single_file' => false,
@@ -374,6 +382,17 @@ class Post extends Model implements HasMedia
                 'max_size' => 20480, // 20MB per image
             ],
         ];
+    }
+
+    /**
+     * The OG image URL to serve: a manual upload always wins over the
+     * auto-generated card; null means the website renders its default card.
+     */
+    public function effectiveOgImageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('og_image')
+            ?: $this->getFirstMediaUrl('og_image_generated')
+            ?: null;
     }
 
     /**

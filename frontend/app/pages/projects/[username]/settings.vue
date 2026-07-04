@@ -43,6 +43,11 @@ const settingsTabs = computed(() => {
       icon: "hugeicons:globe-02",
       to: `${settingsBase.value}/website-settings`,
     },
+    {
+      label: "OG Images",
+      icon: "hugeicons:image-02",
+      to: `${settingsBase.value}/og-images`,
+    },
   ];
 
   if (hasPermission("events.update_branding")) {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\OgPages;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -372,7 +373,7 @@ class Project extends Model implements HasMedia, Sortable
 
     public function getMediaCollections(): array
     {
-        return [
+        $collections = [
             'profile_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
@@ -391,6 +392,16 @@ class Project extends Model implements HasMedia, Sortable
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
             ],
         ];
+
+        foreach (OgPages::KEYS as $key) {
+            $collections[OgPages::collectionFor($key)] = [
+                'single_file' => true,
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+                'max_size' => 20480,
+            ];
+        }
+
+        return $collections;
     }
 
     public function events(): HasMany

@@ -65,10 +65,8 @@ class PostsExport extends BaseExport
             ? $post->getFirstMediaUrl('featured_image', 'original')
             : '-';
 
-        // Get OG image URL
-        $ogImage = $post->hasMedia('og_image')
-            ? $post->getFirstMediaUrl('og_image', 'original')
-            : '-';
+        // Effective OG image URL: manual upload wins over the generated card
+        $ogImage = $post->effectiveOgImageUrl() ?? '-';
 
         // Format creator
         $creator = $post->creator

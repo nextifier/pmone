@@ -477,7 +477,7 @@ class PostExportService
                 $post->visits_count ?? 0,
                 $post->media_count ?? 0,
                 $post->hasMedia('featured_image') ? $post->getFirstMediaUrl('featured_image', 'original') : '',
-                $post->hasMedia('og_image') ? $post->getFirstMediaUrl('og_image', 'original') : '',
+                $post->effectiveOgImageUrl() ?? '',
                 $post->created_at?->format('Y-m-d H:i:s'),
                 $post->updated_at?->format('Y-m-d H:i:s'),
             ];

@@ -8,10 +8,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
+use App\Jobs\GeneratePostOgImage;
 use App\Models\Post;
 use App\Models\User;
 use App\Models\Visit;
 use App\Services\PostExportService;
+use App\Support\ImageOptimizer;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -379,6 +381,10 @@ class PostController extends Controller
             // Process content images (move from temp to permanent storage)
             $this->processContentImages($post);
 
+            if ($post->hasMedia('featured_image')) {
+                GeneratePostOgImage::dispatch($post->id)->afterCommit();
+            }
+
             $post->load(['creator', 'authors', 'tags', 'media']);
 
             return response()->json([
@@ -413,6 +419,10 @@ class PostController extends Controller
             // Update post
             $post->update($data);
 
+            // Captured immediately after save: later media/pivot writes would
+            // reset the dirty-tracking this regeneration trigger relies on.
+            $titleChanged = $post->wasChanged('title');
+
             // Update tags if provided with 'post' type
             if (isset($data['tags']) && is_array($data['tags'])) {
                 $post->syncPostTags($data['tags']);
@@ -443,6 +453,17 @@ class PostController extends Controller
 
             // Cleanup removed content images
             $this->cleanupRemovedContentImages($post);
+
+            $featuredTouched = Str::startsWith((string) $request->input('tmp_featured_image'), 'tmp-')
+                || $request->boolean('delete_featured_image');
+
+            if ($request->boolean('delete_featured_image')) {
+                $post->clearMediaCollection('og_image_generated');
+            }
+
+            if ($titleChanged || $featuredTouched) {
+                GeneratePostOgImage::dispatch($post->id)->afterCommit();
+            }
 
             // $post->update() above fires the trait clear BEFORE media, author
             // (pivot) and tag changes are persisted, so a concurrent public hit
@@ -909,6 +930,13 @@ class PostController extends Controller
 
         // Construct full path to the file in temporary storage
         $tempFilePath = "tmp/uploads/{$value}/{$filename}";
+        $tempFullPath = Storage::disk('local')->path($tempFilePath);
+
+        // OG images are only ever served at 1200x630, so crop + compress the
+        // upload in place before it becomes the stored original.
+        if ($collection === 'og_image') {
+            ImageOptimizer::cropToOg($tempFullPath);
+        }
 
         // Move file from temp storage to permanent storage
         $mediaAdder = $post->addMediaFromDisk($tempFilePath, 'local')
@@ -920,7 +948,6 @@ class PostController extends Controller
             $customProps['caption'] = $caption;
         }
 
-        $tempFullPath = Storage::disk('local')->path($tempFilePath);
         $imageInfo = @getimagesize($tempFullPath);
         if ($imageInfo) {
             $customProps['width'] = $imageInfo[0];

@@ -21,6 +21,7 @@ use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
 use App\Services\Rundown\RundownGrouper;
+use App\Support\OgPages;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -675,6 +676,7 @@ class PublicProjectController extends Controller
         $bookSpaceForm = data_get($settings, 'book_space_form', []);
         $terms = data_get($settings, 'terms', []);
         $dataFallback = data_get($settings, 'data_fallback', []);
+        $ogPages = $this->ogPagesPayload($project);
 
         return response()->json([
             'data' => [
@@ -729,9 +731,46 @@ class PublicProjectController extends Controller
                         'gallery' => (bool) ($dataFallback['gallery'] ?? true),
                         'media_coverages' => (bool) ($dataFallback['media_coverages'] ?? true),
                     ],
+                    'og_pages' => $ogPages,
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Per-page OG overrides for the event website. Only keys with an image,
+     * title, or description are included; the website falls back to its
+     * generated OG card for anything absent.
+     *
+     * @return array<string, array{title: ?string, description: ?string, image: ?array{url: string, width: ?int, height: ?int}}>
+     */
+    protected function ogPagesPayload(Project $project): array
+    {
+        $ogPages = data_get($project->settings, 'website_settings.og_pages', []);
+
+        $payload = [];
+
+        foreach (OgPages::KEYS as $key) {
+            $media = $project->getFirstMedia(OgPages::collectionFor($key));
+            $title = data_get($ogPages, "{$key}.title");
+            $description = data_get($ogPages, "{$key}.description");
+
+            if (! $media && ! $title && ! $description) {
+                continue;
+            }
+
+            $payload[$key] = [
+                'title' => $title,
+                'description' => $description,
+                'image' => $media ? [
+                    'url' => $media->getUrl(),
+                    'width' => $media->getCustomProperty('width'),
+                    'height' => $media->getCustomProperty('height'),
+                ] : null,
+            ];
+        }
+
+        return $payload;
     }
 
     /**

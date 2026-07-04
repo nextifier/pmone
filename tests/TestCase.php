@@ -2,7 +2,9 @@
 
 namespace Tests;
 
+use App\Services\Og\OgScreenshotService;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Tests\Support\FakeOgScreenshotService;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -17,5 +19,10 @@ abstract class TestCase extends BaseTestCase
         $_SERVER['REDIS_CLIENT'] = 'predis';
 
         parent::setUp();
+
+        // Browsershot cannot run in CI; the sync queue would invoke it from
+        // any test saving a post with a featured image. Tests needing to
+        // inspect captures can resolve or re-bind this singleton themselves.
+        $this->app->singleton(OgScreenshotService::class, FakeOgScreenshotService::class);
     }
 }

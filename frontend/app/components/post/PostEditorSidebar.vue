@@ -219,7 +219,7 @@
           </template>
 
           <!-- SEO Section -->
-          <!-- <div class="space-y-4">
+          <div class="space-y-4">
             <SidebarGroupLabel
               class="text-muted-foreground px-0 text-xs font-medium tracking-tight"
             >
@@ -231,7 +231,7 @@
                 <Label for="meta_title" class="text-xs">Meta Title</Label>
                 <Input
                   id="meta_title"
-                  v-model="editor.form.meta_title"
+                  v-model="metaTitleField"
                   type="text"
                   placeholder="Auto-generated from title"
                   class="text-sm"
@@ -242,7 +242,7 @@
                 <Label for="meta_description" class="text-xs">Meta Description</Label>
                 <Textarea
                   id="meta_description"
-                  v-model="editor.form.meta_description"
+                  v-model="metaDescriptionField"
                   placeholder="Auto-generated from excerpt"
                   class="min-h-[60px] resize-none text-sm"
                 />
@@ -253,16 +253,29 @@
                 <InputFileImage
                   ref="ogImageInput"
                   v-model="editor.imageFiles.value.og_image"
-                  :initial-image="editor.initialData.value?.og_image"
+                  :initial-image="manualOgImage"
                   v-model:delete-flag="editor.deleteFlags.value.og_image"
-                  container-class="relative isolate aspect-video w-full"
+                  container-class="relative isolate aspect-[1200/630] w-full"
+                  image-class="border-border size-full rounded-lg border object-cover"
                 />
                 <p class="text-muted-foreground -mt-1 text-xs">
                   Image for social sharing. Recommended: 1200x630px
                 </p>
+
+                <div v-if="showGeneratedPreview" class="space-y-1.5 pt-1">
+                  <img
+                    :src="editor.initialData.value?.og_image"
+                    alt=""
+                    class="border-border aspect-[1200/630] w-full rounded-lg border object-cover"
+                    loading="lazy"
+                  />
+                  <p class="text-muted-foreground text-xs">
+                    Auto-generated from the featured image. Upload your own to override.
+                  </p>
+                </div>
               </div>
             </div>
-          </div> -->
+          </div>
 
           <!-- Delete Section (Edit mode only) -->
           <template v-if="editor.mode.value === 'edit'">
@@ -415,6 +428,45 @@ const activeLocaleLabel = computed(() => {
   return (
     POST_LOCALES.find((locale) => locale.value === editorContext.activeLocale.value)?.label ?? ""
   );
+});
+
+// Meta fields follow the locale tab that is active in the editor content area
+const metaTitleField = computed({
+  get: () => {
+    if (!editorContext) return "";
+    return editorContext.form.meta_title[editorContext.activeLocale.value] ?? "";
+  },
+  set: (value: string) => {
+    if (!editorContext) return;
+    editorContext.form.meta_title[editorContext.activeLocale.value] = value;
+  },
+});
+
+const metaDescriptionField = computed({
+  get: () => {
+    if (!editorContext) return "";
+    return editorContext.form.meta_description[editorContext.activeLocale.value] ?? "";
+  },
+  set: (value: string) => {
+    if (!editorContext) return;
+    editorContext.form.meta_description[editorContext.activeLocale.value] = value;
+  },
+});
+
+// A manual OG upload is the only thing the input manages; the generated card
+// is read-only and rendered separately below it.
+const manualOgImage = computed(() => {
+  const initial = editor.value.initialData.value;
+  return initial?.og_image_source === "manual" ? initial?.og_image : null;
+});
+
+const showGeneratedPreview = computed(() => {
+  const initial = editor.value.initialData.value;
+  const hasTmpUpload =
+    typeof editor.value.imageFiles.value.og_image?.[0] === "string" &&
+    editor.value.imageFiles.value.og_image[0].startsWith("tmp-");
+
+  return initial?.og_image_source === "generated" && !hasTmpUpload;
 });
 
 function resetSlugSync() {
