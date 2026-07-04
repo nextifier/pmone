@@ -32,8 +32,8 @@
         color: #fff;
         font-size: 62px;
         line-height: 1.15;
-        font-weight: 600;
-        letter-spacing: -0.025em;
+        font-weight: 500;
+        letter-spacing: -0.04em;
         text-shadow: 0 2px 12px rgba(0, 0, 0, .45);
         display: -webkit-box;
         -webkit-line-clamp: 3;
