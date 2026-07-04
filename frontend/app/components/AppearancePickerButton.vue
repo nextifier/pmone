@@ -26,6 +26,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
   </Popover>
 
   <!-- Reset + Open-Preset dialogs, mounted once here (present wherever the
-       customizer can be triggered) so they never duplicate across instances. -->
-  <AppearanceDialogs />
+       customizer can be triggered) so they never duplicate across instances.
+       Teleported to <body> so their (closed) DialogResponsive <div> roots don't
+       sit as extra zero-width flex items beside the button in the header row. -->
+  <Teleport to="body">
+    <AppearanceDialogs />
+  </Teleport>
 </template>

@@ -3,9 +3,9 @@
     <div class="space-y-1">
       <h2 class="page-title">Branding</h2>
       <p class="page-description">
-        Logo, company info, and footer used on every Invoice & Receipt PDF for this project -
-        Hotel Reservations, Tickets, and other documents. Leave the override off to fall back to
-        the global branding.
+        Logo, company info, and footer used on every Invoice & Receipt PDF for this project - Hotel
+        Reservations, Tickets, and other documents. Leave the override off to fall back to the
+        global branding.
       </p>
     </div>
 
