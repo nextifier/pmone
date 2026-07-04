@@ -27,9 +27,11 @@ class GeneratePostOgImage implements ShouldQueue
     public int $backoff = 30;
 
     /**
-     * Browsershot times out at 110s; stay under the pdf-batch supervisor's 120s.
+     * Browsershot times out at 70s; the 80s job timeout stays under the redis
+     * retry_after (90s) so a still-running job is never re-reserved by a second
+     * worker, and under the pdf-batch supervisor's 120s.
      */
-    public int $timeout = 115;
+    public int $timeout = 80;
 
     /**
      * Bump when resources/views/og/post.blade.php changes visually, so the

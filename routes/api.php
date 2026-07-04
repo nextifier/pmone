@@ -1422,7 +1422,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/projects/{project}/og-images', [ProjectOgImageController::class, 'show'])->name('projects.og-images.show');
     Route::put('/projects/{project}/og-images', [ProjectOgImageController::class, 'update'])->name('projects.og-images.update');
     Route::post('/projects/{project}/og-images/capture-all', [ProjectOgImageController::class, 'captureAll'])
-        ->middleware('throttle:2,1')
         ->name('projects.og-images.capture-all');
     Route::post('/projects/{project}/og-images/{pageKey}/capture', [ProjectOgImageController::class, 'capture'])
         ->middleware('throttle:12,1')

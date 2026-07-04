@@ -25,8 +25,12 @@ class OgScreenshotService
 
     /**
      * Screenshot a live page at a desktop viewport, 2x for crisp text
-     * (2880x1512 raw output). waitUntilNetworkIdle + delay let the page fully
-     * render, hydrate, and finish loading images before capture.
+     * (2880x1512 raw output). We deliberately do NOT waitUntilNetworkIdle:
+     * heavy event sites (three.js/shaders, analytics beacons, web fonts,
+     * autoplay video) keep the network busy forever so networkidle0 never
+     * fires and the capture hangs until the process timeout. Instead we let
+     * Browsershot use Puppeteer's default `waitUntil: 'load'` (bounded) and
+     * rely on the fixed delay to let the page hydrate and paint before capture.
      */
     public function captureUrl(string $url, string $outputPath): void
     {
@@ -38,10 +42,9 @@ class OgScreenshotService
             ->emulateMediaFeatures([
                 ['name' => 'prefers-reduced-motion', 'value' => 'reduce'],
             ])
-            ->waitUntilNetworkIdle()
-            ->setDelay(4000)
+            ->setDelay(5000)
             ->dismissDialogs()
-            ->timeout(110)
+            ->timeout(70)
             ->save($outputPath);
     }
 
@@ -58,7 +61,7 @@ class OgScreenshotService
             ->deviceScaleFactor(2)
             ->setDelay(500)
             ->dismissDialogs()
-            ->timeout(110)
+            ->timeout(70)
             ->save($outputPath);
     }
 
