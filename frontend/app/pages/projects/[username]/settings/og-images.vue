@@ -87,7 +87,6 @@ const pages = [
   { key: "tickets", label: "Tickets", path: "/tickets" },
   { key: "gallery", label: "Gallery", path: "/gallery" },
   { key: "partners", label: "Partners", path: "/partners" },
-  { key: "winner", label: "Winner", path: "/winner" },
   { key: "guests", label: "Guests", path: "/guests" },
 ];
 

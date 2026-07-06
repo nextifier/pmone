@@ -16,6 +16,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Notifications\ProjectMemberAddedNotification;
 use App\Notifications\ProjectMemberRemovedNotification;
+use App\Support\HomeSectionCatalog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -402,6 +403,20 @@ class ProjectController extends Controller
             // programs/faqs/gallery/media_coverages).
             'data_fallback' => ['sometimes', 'array'],
             'data_fallback.*' => ['sometimes', 'boolean'],
+            // Home-page section visibility. A generic { sectionKey => bool } map
+            // driven by config/home_sections.php; unknown keys are rejected so a
+            // typo never lands in storage.
+            'home_sections' => [
+                'sometimes', 'array',
+                function (string $attribute, mixed $value, callable $fail): void {
+                    $unknown = array_diff(array_keys((array) $value), HomeSectionCatalog::keys());
+
+                    if (! empty($unknown)) {
+                        $fail('Unknown home section keys: '.implode(', ', $unknown));
+                    }
+                },
+            ],
+            'home_sections.*' => ['sometimes', 'boolean'],
         ]);
 
         $settings = $project->settings ?? [];

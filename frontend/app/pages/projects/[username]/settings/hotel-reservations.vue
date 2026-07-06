@@ -97,31 +97,6 @@
           <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
             <div class="space-y-1">
               <Label
-                for="hotels-show-section-on-home"
-                class="cursor-pointer text-sm font-medium tracking-tight"
-              >
-                Show Hotel section in the Home page
-              </Label>
-              <p class="text-muted-foreground text-sm tracking-tight">
-                When on, the home page of the public event website includes the Hotels section.
-              </p>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                For private testing, add
-                <code class="bg-muted text-foreground rounded-md px-1.5 py-0.5 font-mono"
-                  >?show-hotel=true</code
-                >
-                to the home page URL to force-show this section even while this toggle is off.
-              </p>
-            </div>
-            <Switch
-              id="hotels-show-section-on-home"
-              v-model="form.show_hotel_section_on_home_page"
-            />
-          </div>
-
-          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
-            <div class="space-y-1">
-              <Label
                 for="hotels-show-estimated-price"
                 class="cursor-pointer text-sm font-medium tracking-tight"
               >
@@ -586,7 +561,6 @@ const confirmForceDisable = () => performToggle(false, true);
 
 // ----- Website settings (hotels + email subjects) -----
 const form = ref({
-  show_hotel_section_on_home_page: false,
   show_estimated_price_in_foreign_currency: false,
   estimated_price_currency: "USD",
   hotel_notification: {
@@ -613,7 +587,6 @@ let savePending = false;
 function buildPayload() {
   return {
     hotels: {
-      show_hotel_section_on_home_page: form.value.show_hotel_section_on_home_page,
       show_estimated_price_in_foreign_currency: form.value.show_estimated_price_in_foreign_currency,
       estimated_price_currency: form.value.estimated_price_currency,
       notification_email: {
@@ -644,7 +617,6 @@ async function load() {
     hotelEnabled.value = !!response.data?.hotel_reservation_enabled;
 
     form.value = {
-      show_hotel_section_on_home_page: hotels.show_hotel_section_on_home_page ?? false,
       show_estimated_price_in_foreign_currency:
         hotels.show_estimated_price_in_foreign_currency ?? false,
       estimated_price_currency: hotels.estimated_price_currency ?? "USD",
@@ -713,10 +685,7 @@ function removeRecipient(list, index) {
 // Section toggles persist immediately on change. Watching only the booleans
 // keeps recipient typing (saved on blur) from triggering a save per keystroke.
 watch(
-  () => [
-    form.value.show_hotel_section_on_home_page,
-    form.value.show_estimated_price_in_foreign_currency,
-  ],
+  () => [form.value.show_estimated_price_in_foreign_currency],
   () => save()
 );
 

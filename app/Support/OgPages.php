@@ -24,7 +24,6 @@ class OgPages
         'tickets',
         'gallery',
         'partners',
-        'winner',
         'guests',
     ];
 

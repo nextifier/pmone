@@ -501,3 +501,126 @@ it('exposes website display settings with base defaults in the public response',
         ->assertJsonPath('data.settings.blog.show_post_card_author', true)
         ->assertJsonPath('data.settings.terms.last_update', '2025-12-30');
 });
+
+it('persists the home_sections visibility map and preserves other settings', function () {
+    $this->actingAs($this->user);
+
+    $response = $this->patchJson($this->endpoint, [
+        'home_sections' => [
+            'rundown' => true,
+            'about_event' => false,
+        ],
+    ]);
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.website_settings.home_sections.rundown', true)
+        ->assertJsonPath('data.website_settings.home_sections.about_event', false);
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.home_sections.rundown'))->toBeTrue();
+    expect(data_get($this->project->settings, 'website_settings.home_sections.about_event'))->toBeFalse();
+    // Unrelated settings remain intact.
+    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
+});
+
+it('rejects a non-boolean home_sections value', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'home_sections' => ['rundown' => 'maybe'],
+    ])->assertUnprocessable();
+});
+
+it('rejects an unknown home_sections key', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'home_sections' => ['not_a_real_section' => true],
+    ])->assertUnprocessable();
+});
+
+it('exposes the home_sections map with catalog defaults in the public response', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_home_sections',
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    // Unconfigured project reflects the catalog defaults: the four original
+    // toggles keep their historical defaults, new sections default to visible.
+    $this->withHeaders(['X-API-Key' => 'pk_test_home_sections'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.home_sections.rundown', false)
+        ->assertJsonPath('data.settings.home_sections.brand_preview', false)
+        ->assertJsonPath('data.settings.home_sections.hotels', false)
+        ->assertJsonPath('data.settings.home_sections.partners', true)
+        ->assertJsonPath('data.settings.home_sections.hero', true)
+        ->assertJsonPath('data.settings.home_sections.about_event', true);
+});
+
+it('derives the legacy nested visibility keys from home_sections', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_home_derive',
+        'is_active' => true,
+    ]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    $this->actingAs($this->user);
+    $this->patchJson($this->endpoint, [
+        'home_sections' => [
+            'rundown' => true,
+            'brand_preview' => true,
+            'partners' => false,
+            'hotels' => true,
+        ],
+    ])->assertSuccessful();
+
+    // Deployed event sites read the nested shape; it must agree with the map.
+    $this->withHeaders(['X-API-Key' => 'pk_test_home_derive'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.home_sections.rundown', true)
+        ->assertJsonPath('data.settings.rundown.show_rundown_on_home_page', true)
+        ->assertJsonPath('data.settings.brands.show_brand_preview_on_home_page', true)
+        ->assertJsonPath('data.settings.partners.show_partners_on_home_page', false)
+        ->assertJsonPath('data.settings.hotels.show_hotel_section_on_home_page', true);
+});
+
+it('falls back to a legacy stored visibility flag when home_sections is absent', function () {
+    ApiConsumer::factory()->create([
+        'api_key' => 'pk_test_home_legacy',
+        'is_active' => true,
+    ]);
+
+    // Simulate a project configured through the old UI: value stored at the
+    // legacy nested path, with no home_sections map yet.
+    $settings = $this->project->settings;
+    data_set($settings, 'website_settings.rundown.show_rundown_on_home_page', true);
+    $this->project->update(['settings' => $settings]);
+
+    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_home_legacy'])
+        ->getJson($publicEndpoint)
+        ->assertJsonPath('data.settings.home_sections.rundown', true)
+        ->assertJsonPath('data.settings.rundown.show_rundown_on_home_page', true);
+});
+
+it('exposes the home sections catalog and resolved values to the admin', function () {
+    $this->actingAs($this->user);
+
+    $this->patchJson($this->endpoint, [
+        'home_sections' => ['about_event' => false],
+    ])->assertSuccessful();
+
+    $response = $this->getJson("/api/projects/{$this->project->username}");
+
+    $response->assertSuccessful()
+        ->assertJsonPath('data.home_sections.about_event', false)
+        ->assertJsonPath('data.home_sections.partners', true);
+
+    $catalog = $response->json('data.home_sections_catalog');
+    expect($catalog)->toBeArray()->not->toBeEmpty();
+    expect($catalog[0])->toHaveKeys(['key', 'label', 'default']);
+});

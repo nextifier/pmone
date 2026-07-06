@@ -21,6 +21,7 @@ use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
 use App\Services\Rundown\RundownGrouper;
+use App\Support\HomeSectionCatalog;
 use App\Support\OgPages;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -668,15 +669,18 @@ class PublicProjectController extends Controller
 
         $settings = data_get($project->settings, 'website_settings', []);
         $rundown = data_get($settings, 'rundown', []);
-        $brands = data_get($settings, 'brands', []);
-        $partners = data_get($settings, 'partners', []);
-        $hotels = data_get($settings, 'hotels', []);
         $blog = data_get($settings, 'blog', []);
         $ticketTabs = data_get($settings, 'ticket_tabs', []);
         $bookSpaceForm = data_get($settings, 'book_space_form', []);
         $terms = data_get($settings, 'terms', []);
         $dataFallback = data_get($settings, 'data_fallback', []);
         $ogPages = $this->ogPagesPayload($project);
+
+        // Generic home-page section visibility map. The four legacy nested keys
+        // below are derived from this so already-deployed event sites (which read
+        // the nested shape) and newer sites (which read `home_sections`) always
+        // agree. See config/home_sections.php.
+        $homeSections = HomeSectionCatalog::resolveAll($settings);
 
         return response()->json([
             'data' => [
@@ -685,19 +689,19 @@ class PublicProjectController extends Controller
                         'show_search_bar' => (bool) ($rundown['show_search_bar'] ?? true),
                         'show_location_filter' => (bool) ($rundown['show_location_filter'] ?? true),
                         'show_all_rundown_details' => (bool) ($rundown['show_all_rundown_details'] ?? false),
-                        'show_rundown_on_home_page' => (bool) ($rundown['show_rundown_on_home_page'] ?? false),
+                        'show_rundown_on_home_page' => $homeSections['rundown'],
                     ],
                     'brands' => [
-                        'show_brand_preview_on_home_page' => (bool) ($brands['show_brand_preview_on_home_page'] ?? false),
+                        'show_brand_preview_on_home_page' => $homeSections['brand_preview'],
                     ],
-                    // Defaults true: the Credits section has always rendered when
-                    // partners exist, so an unconfigured project keeps showing it.
                     'partners' => [
-                        'show_partners_on_home_page' => (bool) ($partners['show_partners_on_home_page'] ?? true),
+                        'show_partners_on_home_page' => $homeSections['partners'],
                     ],
                     'hotels' => [
-                        'show_hotel_section_on_home_page' => (bool) ($hotels['show_hotel_section_on_home_page'] ?? false),
+                        'show_hotel_section_on_home_page' => $homeSections['hotels'],
                     ],
+                    // Full { sectionKey => bool } map for newer event sites.
+                    'home_sections' => $homeSections,
                     // Defaults mirror the base app.config.ts in pmone-events so a
                     // project that has never saved these still renders identically.
                     'blog' => [

@@ -1,12 +1,20 @@
-import { createInjectionState, useEventListener, useVModel } from "@vueuse/core";
+import {
+  createInjectionState,
+  useEventListener,
+  useMediaQuery,
+  useVModel,
+} from "@vueuse/core";
 import Autoplay from "embla-carousel-autoplay";
 import { computed, ref, shallowRef, watch } from "vue";
 import type { EmblaCarouselType } from "embla-carousel";
 import type {
+  LightboxBreakpoint,
   LightboxCounterFormat,
   LightboxEmits,
   LightboxItem,
   LightboxProps,
+  LightboxResponsiveKey,
+  LightboxThumbnailKey,
   LightboxVideoSource,
 } from "./interface";
 
@@ -153,6 +161,33 @@ const [useProvideLightbox, useInjectLightbox] = createInjectionState(
     const items = computed(() => props.items || []);
     const current = computed(() => items.value[index.value] || null);
     const isMultiple = computed(() => items.value.length > 1);
+
+    // Tailwind breakpoints, created once per lightbox so every slide can resolve a
+    // responsive `fullKey` (e.g. mobile reuses the lighter thumbnail conversion while
+    // larger screens load a bigger one) without each image registering its own listeners.
+    const breakpointMatches: Record<LightboxBreakpoint, ReturnType<typeof useMediaQuery>> = {
+      sm: useMediaQuery("(min-width: 640px)"),
+      md: useMediaQuery("(min-width: 768px)"),
+      lg: useMediaQuery("(min-width: 1024px)"),
+      xl: useMediaQuery("(min-width: 1280px)"),
+      "2xl": useMediaQuery("(min-width: 1536px)"),
+    };
+    const breakpointOrder: LightboxBreakpoint[] = ["sm", "md", "lg", "xl", "2xl"];
+
+    function resolveResponsiveKey(
+      key: LightboxResponsiveKey | undefined,
+    ): LightboxThumbnailKey {
+      if (!key || typeof key === "string") {
+        return key || "lg";
+      }
+      let resolved: LightboxThumbnailKey = key.base || "lg";
+      for (const bp of breakpointOrder) {
+        if (breakpointMatches[bp].value && key[bp]) {
+          resolved = key[bp] as LightboxThumbnailKey;
+        }
+      }
+      return resolved;
+    }
 
     const mainApi = shallowRef<EmblaCarouselType | null>(null);
     const thumbsApi = shallowRef<EmblaCarouselType | null>(null);
@@ -310,6 +345,7 @@ const [useProvideLightbox, useInjectLightbox] = createInjectionState(
       controlsVisible,
       toggleControls,
       counterLabel,
+      resolveResponsiveKey,
       setCanScroll,
       emitChange,
       goTo,

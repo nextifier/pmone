@@ -8,6 +8,19 @@ export type LightboxEmblaPlugin = CreatePluginType<object, object>;
 
 export type LightboxThumbnailKey = "sm" | "md" | "lg" | "xl";
 
+export type LightboxBreakpoint = "sm" | "md" | "lg" | "xl" | "2xl";
+
+/**
+ * A conversion key for the full-size image. Either a single key applied at every
+ * viewport, or a breakpoint map (`base` for mobile, then min-width overrides) so
+ * small screens can reuse a lighter conversion while larger screens load a bigger one.
+ */
+export type LightboxResponsiveKey =
+  | LightboxThumbnailKey
+  | ({ base?: LightboxThumbnailKey } & Partial<
+      Record<LightboxBreakpoint, LightboxThumbnailKey>
+    >);
+
 export type LightboxCounterFormat = (
   index: number,
   total: number,
@@ -59,7 +72,7 @@ export interface LightboxProps {
   zoomable?: boolean;
   swipeToClose?: boolean;
   thumbnailKey?: LightboxThumbnailKey;
-  fullKey?: LightboxThumbnailKey;
+  fullKey?: LightboxResponsiveKey;
   counterFormat?: LightboxCounterFormat;
   imageProps?: ImgHTMLAttributes;
   gridClass?: string;

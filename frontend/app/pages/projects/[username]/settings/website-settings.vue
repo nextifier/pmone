@@ -13,6 +13,36 @@
     </div>
 
     <div v-else class="flex flex-col gap-y-4">
+      <!-- Home page sections -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:home-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Home Page</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Choose which sections appear on the public home page. The list is specific to this
+              event.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel divide-border divide-y !px-0 !py-0">
+          <div
+            v-for="section in homeSectionsCatalog"
+            :key="section.key"
+            class="flex items-center justify-between gap-4 px-4 py-5 lg:px-6"
+          >
+            <Label
+              :for="`home-${section.key}`"
+              class="cursor-pointer text-sm font-medium tracking-tight"
+            >
+              {{ section.label }}
+            </Label>
+            <Switch :id="`home-${section.key}`" v-model="form.home_sections[section.key]" />
+          </div>
+        </div>
+      </div>
+
       <div class="frame">
         <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
           <Icon name="hugeicons:time-schedule" class="mt-0.5 size-5 shrink-0" />
@@ -25,28 +55,6 @@
         </div>
 
         <div class="frame-panel divide-border divide-y !px-0 !py-0">
-          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
-            <div class="space-y-1">
-              <Label
-                for="rundown-show-on-home"
-                class="cursor-pointer text-sm font-medium tracking-tight"
-              >
-                Show Rundown section in the Home page
-              </Label>
-              <p class="text-muted-foreground text-sm tracking-tight">
-                When on, the home page of the public event website includes the Rundown section.
-              </p>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                For private testing, add
-                <code class="bg-muted text-foreground rounded-md px-1.5 py-0.5 font-mono"
-                  >?show-rundown=true</code
-                >
-                to the home page URL to force-show this section even while this toggle is off.
-              </p>
-            </div>
-            <Switch id="rundown-show-on-home" v-model="form.show_rundown_on_home_page" />
-          </div>
-
           <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
             <div class="space-y-1">
               <Label
@@ -90,84 +98,6 @@
               </p>
             </div>
             <Switch id="rundown-show-all-details" v-model="form.show_all_rundown_details" />
-          </div>
-        </div>
-      </div>
-
-      <div class="frame">
-        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
-          <Icon name="hugeicons:store-04" class="mt-0.5 size-5 shrink-0" />
-          <div class="min-w-0 space-y-1">
-            <h3 class="text-base font-semibold tracking-tight">Brands</h3>
-            <p class="text-muted-foreground text-sm tracking-tight">
-              Configure how the Brands section behaves on the public event website.
-            </p>
-          </div>
-        </div>
-
-        <div class="frame-panel divide-border divide-y !px-0 !py-0">
-          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
-            <div class="space-y-1">
-              <Label
-                for="brands-show-preview-on-home"
-                class="cursor-pointer text-sm font-medium tracking-tight"
-              >
-                Show Brand Preview section in the Home page
-              </Label>
-              <p class="text-muted-foreground text-sm tracking-tight">
-                When on, the home page of the public event website includes a Brand Preview
-                carousel.
-              </p>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                For private testing, add
-                <code class="bg-muted text-foreground rounded-md px-1.5 py-0.5 font-mono"
-                  >?show-brands=true</code
-                >
-                to the home page URL to force-show this section even while this toggle is off.
-              </p>
-            </div>
-            <Switch
-              id="brands-show-preview-on-home"
-              v-model="form.show_brand_preview_on_home_page"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="frame">
-        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
-          <Icon name="hugeicons:agreement-02" class="mt-0.5 size-5 shrink-0" />
-          <div class="min-w-0 space-y-1">
-            <h3 class="text-base font-semibold tracking-tight">Partners</h3>
-            <p class="text-muted-foreground text-sm tracking-tight">
-              Configure how the Partners section behaves on the public event website.
-            </p>
-          </div>
-        </div>
-
-        <div class="frame-panel divide-border divide-y !px-0 !py-0">
-          <div class="flex items-start justify-between gap-4 px-4 py-5 lg:px-6">
-            <div class="space-y-1">
-              <Label
-                for="partners-show-on-home"
-                class="cursor-pointer text-sm font-medium tracking-tight"
-              >
-                Show Partners section in the Home page
-              </Label>
-              <p class="text-muted-foreground text-sm tracking-tight">
-                When on, the home page of the public event website includes the Partners (Credits)
-                section. If the active event has no partners yet, the most recent previous event with
-                partners is shown instead.
-              </p>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                For private testing, add
-                <code class="bg-muted text-foreground rounded-md px-1.5 py-0.5 font-mono"
-                  >?show-partners=true</code
-                >
-                to the home page URL to force-show this section even while this toggle is off.
-              </p>
-            </div>
-            <Switch id="partners-show-on-home" v-model="form.show_partners_on_home_page" />
           </div>
         </div>
       </div>
@@ -354,6 +284,10 @@ const client = useSanctumClient();
 
 const loading = ref(true);
 
+// Home page section toggles are data-driven: the catalog (labels + order) comes
+// from the backend config/home_sections.php and is specific to this project.
+const homeSectionsCatalog = ref([]);
+
 const ticketTabFields = [
   { key: "show_tickets", label: "Tickets" },
   { key: "show_guests", label: "Guests" },
@@ -433,12 +367,10 @@ const dataFallbackDefaults = () => ({
 });
 
 const form = ref({
-  show_rundown_on_home_page: false,
   show_search_bar: true,
   show_location_filter: true,
   show_all_rundown_details: false,
-  show_brand_preview_on_home_page: false,
-  show_partners_on_home_page: true,
+  home_sections: {},
   blog: { show_post_card_author: false, show_post_card_excerpt: false },
   ticket_tabs: ticketTabDefaults(),
   book_space_form: bookSpaceDefaults(),
@@ -464,17 +396,11 @@ let savePending = false;
 function buildPayload() {
   return {
     rundown: {
-      show_rundown_on_home_page: form.value.show_rundown_on_home_page,
       show_search_bar: form.value.show_search_bar,
       show_location_filter: form.value.show_location_filter,
       show_all_rundown_details: form.value.show_all_rundown_details,
     },
-    brands: {
-      show_brand_preview_on_home_page: form.value.show_brand_preview_on_home_page,
-    },
-    partners: {
-      show_partners_on_home_page: form.value.show_partners_on_home_page,
-    },
+    home_sections: { ...form.value.home_sections },
     blog: { ...form.value.blog },
     ticket_tabs: { ...form.value.ticket_tabs },
     book_space_form: { ...form.value.book_space_form },
@@ -487,11 +413,13 @@ async function load() {
   loading.value = true;
   try {
     const response = await client(`/api/projects/${route.params.username}`);
+    homeSectionsCatalog.value = response.data?.home_sections_catalog ?? [];
+    // Resolved current values (stored -> legacy -> default) from the backend, so
+    // the switches reflect real state on first load.
+    const resolvedHomeSections = response.data?.home_sections ?? {};
     const settings = response.data?.settings ?? {};
     const ws = settings.website_settings ?? {};
     const rundown = ws.rundown ?? {};
-    const brands = ws.brands ?? {};
-    const partners = ws.partners ?? {};
     const blog = ws.blog ?? {};
     const ticketTabs = ws.ticket_tabs ?? {};
     const bookSpaceForm = ws.book_space_form ?? {};
@@ -499,12 +427,15 @@ async function load() {
     const dataFallback = ws.data_fallback ?? {};
 
     form.value = {
-      show_rundown_on_home_page: rundown.show_rundown_on_home_page ?? false,
       show_search_bar: rundown.show_search_bar ?? true,
       show_location_filter: rundown.show_location_filter ?? true,
       show_all_rundown_details: rundown.show_all_rundown_details ?? false,
-      show_brand_preview_on_home_page: brands.show_brand_preview_on_home_page ?? false,
-      show_partners_on_home_page: partners.show_partners_on_home_page ?? true,
+      home_sections: Object.fromEntries(
+        homeSectionsCatalog.value.map((section) => [
+          section.key,
+          resolvedHomeSections[section.key] ?? section.default,
+        ]),
+      ),
       blog: {
         show_post_card_author: blog.show_post_card_author ?? false,
         show_post_card_excerpt: blog.show_post_card_excerpt ?? false,

@@ -2,20 +2,23 @@
 import { cn } from "@/lib/utils";
 import { computed, ref, watch, type HTMLAttributes } from "vue";
 import { Spinner } from "@/components/ui/spinner";
-import type { LightboxImageSource, LightboxThumbnailKey } from "./interface";
+import type { LightboxImageSource, LightboxResponsiveKey } from "./interface";
 import { pickAlt, pickImageSrc, useLightbox } from "./useLightbox";
 
 const props = defineProps<{
   item: LightboxImageSource;
   index: number;
-  fullKey?: LightboxThumbnailKey;
+  fullKey?: LightboxResponsiveKey;
   class?: HTMLAttributes["class"];
 }>();
 
 const state = useLightbox();
 
 const src = computed(() =>
-  pickImageSrc(props.item, props.fullKey || state.props.fullKey || "lg"),
+  pickImageSrc(
+    props.item,
+    state.resolveResponsiveKey(props.fullKey || state.props.fullKey),
+  ),
 );
 
 const alt = computed(() => pickAlt(props.item, state.props.alt));

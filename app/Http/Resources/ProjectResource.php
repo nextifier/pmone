@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\HomeSectionCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -49,6 +50,13 @@ class ProjectResource extends JsonResource
             'phone' => $this->phone,
             'user_id' => $this->created_by,
             'settings' => $this->settings,
+            // Catalog drives which toggles the Website Settings page renders;
+            // home_sections carries the resolved current value per section
+            // (stored -> legacy -> default), so the switches reflect real state.
+            'home_sections_catalog' => HomeSectionCatalog::forResource($this->username),
+            'home_sections' => HomeSectionCatalog::resolveAll(
+                data_get($this->settings, 'website_settings', [])
+            ),
             'more_details' => $this->more_details,
             'status' => $this->status,
             'visibility' => $this->visibility,
