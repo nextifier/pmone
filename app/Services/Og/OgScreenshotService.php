@@ -31,6 +31,12 @@ class OgScreenshotService
      * fires and the capture hangs until the process timeout. Instead we let
      * Browsershot use Puppeteer's default `waitUntil: 'load'` (bounded) and
      * rely on the fixed delay to let the page hydrate and paint before capture.
+     *
+     * enable-unsafe-swiftshader keeps WebGL working on the GPU-less production
+     * server: Chrome 128+ disables the SwiftShader (software) WebGL fallback by
+     * default, which would render shader/three.js heroes (e.g. the Global AI
+     * Expo home) as a blank canvas. The flag is a harmless no-op for pages that
+     * do not use WebGL.
      */
     public function captureUrl(string $url, string $outputPath): void
     {
@@ -42,6 +48,7 @@ class OgScreenshotService
             ->emulateMediaFeatures([
                 ['name' => 'prefers-reduced-motion', 'value' => 'reduce'],
             ])
+            ->addChromiumArguments(['enable-unsafe-swiftshader'])
             ->setDelay(5000)
             ->dismissDialogs()
             ->timeout(70)
