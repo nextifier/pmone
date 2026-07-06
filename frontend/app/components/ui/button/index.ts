@@ -9,7 +9,7 @@ export { default as Button } from "./Button.vue";
 // composes outline + `text-destructive`; `iconSm`/`iconXs` map to the registry's
 // `icon-sm`/`icon-xs`.
 export const buttonVariants = cva(
-  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap transition-[color,box-shadow,transform] outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap transition-[color,box-shadow,transform] outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 tracking-tight",
   {
     variants: {
       variant: {

@@ -37,6 +37,13 @@ class OgScreenshotService
      * default, which would render shader/three.js heroes (e.g. the Global AI
      * Expo home) as a blank canvas. The flag is a harmless no-op for pages that
      * do not use WebGL.
+     *
+     * protocolTimeout is raised from Browsershot's 30s default because software
+     * WebGL rendering pins the CPU and starves the Page.captureScreenshot CDP
+     * command; 30s is not enough for a shader-heavy hero so the screenshot call
+     * itself throws a protocolTimeout. 55s stays under the 70s process timeout
+     * so a genuine hang still fails cleanly first. Light pages screenshot in
+     * well under a second, so they are unaffected.
      */
     public function captureUrl(string $url, string $outputPath): void
     {
@@ -51,6 +58,7 @@ class OgScreenshotService
             ->addChromiumArguments(['enable-unsafe-swiftshader'])
             ->setDelay(5000)
             ->dismissDialogs()
+            ->protocolTimeout(55)
             ->timeout(70)
             ->save($outputPath);
     }

@@ -1,16 +1,7 @@
 <template>
   <div class="frame">
     <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
-      <Icon name="hugeicons:image-02" class="mt-0.5 size-5 shrink-0" />
-      <div class="min-w-0 flex-1 space-y-1">
-        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h3 class="text-base font-semibold tracking-tight">{{ label }}</h3>
-          <Badge variant="muted" plain>{{ path }}</Badge>
-        </div>
-        <p class="text-muted-foreground text-sm tracking-tight">
-          Shown when the {{ label }} page is shared on social media.
-        </p>
-      </div>
+      <h3 class="text-base font-semibold tracking-tight">{{ label }}</h3>
     </div>
 
     <div class="frame-panel space-y-4">
@@ -73,7 +64,6 @@
 </template>
 
 <script setup>
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,7 +106,7 @@ watch(
 
     if (titleWasClean) form.title = current.title ?? "";
     if (descriptionWasClean) form.description = current.description ?? "";
-  },
+  }
 );
 
 const tmpFiles = ref([]);
@@ -124,7 +114,7 @@ const deleteFlag = ref(false);
 const saving = ref(false);
 
 const hasTmpUpload = computed(
-  () => typeof tmpFiles.value[0] === "string" && tmpFiles.value[0].startsWith("tmp-"),
+  () => typeof tmpFiles.value[0] === "string" && tmpFiles.value[0].startsWith("tmp-")
 );
 
 const dirty = computed(
@@ -132,7 +122,7 @@ const dirty = computed(
     form.title !== (current.title ?? "") ||
     form.description !== (current.description ?? "") ||
     hasTmpUpload.value ||
-    (deleteFlag.value && !!current.image),
+    (deleteFlag.value && !!current.image)
 );
 
 async function save() {
@@ -186,7 +176,7 @@ const captureLabel = computed(() => {
 const captureTooltip = computed(() =>
   props.websiteUrl
     ? `Screenshot ${props.websiteUrl.replace(/\/$/, "")}${props.path === "/" ? "" : props.path}`
-    : "Add a Website link to the project first",
+    : "Add a Website link to the project first"
 );
 
 async function startCapture() {
@@ -218,6 +208,6 @@ watch(
       });
       capture.reset();
     }
-  },
+  }
 );
 </script>
