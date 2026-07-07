@@ -838,7 +838,10 @@ class UserController extends Controller
             // Handle cover image upload from temporary storage
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
-            ResponseCache::clear(['short-links']);
+            // Same fields as the admin update(): the avatar and name/title
+            // feed project member lists and blog author bylines, not just the
+            // /resolve profile.
+            ResponseCache::clear(['short-links', 'projects', 'blog-posts']);
 
             $user->load(['roles', 'media', 'links']);
 

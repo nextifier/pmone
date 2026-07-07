@@ -9,6 +9,7 @@ use App\Models\Hotel;
 use App\Models\HotelTransferOption;
 use App\Models\Partner;
 use App\Models\Post;
+use App\Models\Project;
 use App\Models\PromotionPost;
 use App\Models\RoomType;
 use App\Support\ImageOptimizer;
@@ -150,6 +151,8 @@ class MediaController extends Controller
             // Serialize order_column assignment per model+collection so
             // concurrent uploads can't read the same "highest order" and collide.
             $media = $this->withOrderLock($modelType, $modelId, $collection, fn () => $mediaAdder->toMediaCollection($collection));
+
+            $this->clearOwnerResponseCache($media);
 
             // Get media URLs including conversions
             $mediaUrls = $this->getMediaResponse($media, $model, $collection);
@@ -318,6 +321,8 @@ class MediaController extends Controller
                     // Serialize order_column assignment to avoid concurrent collisions.
                     $media = $this->withOrderLock($modelType, $modelId, $collection, fn () => $mediaAdder->toMediaCollection($collection));
 
+                    $lastUploaded = $media;
+
                     // Get media URLs including conversions
                     $uploadedMedia[] = $this->getMediaResponse($media, $model, $collection);
 
@@ -337,6 +342,11 @@ class MediaController extends Controller
                         'collection' => $collection,
                     ]);
                 }
+            }
+
+            // One clear per batch is enough - every file targets the same owner.
+            if (isset($lastUploaded)) {
+                $this->clearOwnerResponseCache($lastUploaded);
             }
 
             $response = [
@@ -612,7 +622,12 @@ class MediaController extends Controller
             PromotionPost::class => ['brands', 'promotion-posts'],
             Partner::class => ['partners'],
             Guest::class => ['guests'],
-            Event::class => ['gallery'],
+            // Event media spans the gallery collection AND the poster_image /
+            // visitor_eguide embedded in cached event payloads.
+            Event::class => ['gallery', 'events'],
+            // Project profile_image is embedded in every cached event payload
+            // (EventResource) besides the project profile itself.
+            Project::class => ['projects', 'events'],
             Post::class => ['blog-posts'],
             default => [],
         };

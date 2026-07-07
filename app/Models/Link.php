@@ -71,16 +71,19 @@ class Link extends Model
     protected static function booted(): void
     {
         $clearCache = function (Link $link): void {
-            $tag = match ($link->linkable_type) {
-                Brand::class => 'brands',
-                Guest::class => 'guests',
-                Project::class => 'projects',
-                User::class => 'short-links',
-                default => null,
+            $tags = match ($link->linkable_type) {
+                Brand::class => ['brands'],
+                Guest::class => ['guests'],
+                // The project's "Website" link is embedded as website_url in
+                // every cached public event payload (EventResource), including
+                // conjunction projects.
+                Project::class => ['projects', 'events'],
+                User::class => ['short-links'],
+                default => [],
             };
 
-            if ($tag !== null) {
-                DB::afterCommit(fn () => ResponseCache::clear([$tag]));
+            if ($tags !== []) {
+                DB::afterCommit(fn () => ResponseCache::clear($tags));
             }
         };
 

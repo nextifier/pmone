@@ -105,7 +105,9 @@ class CaptureAllProjectOgImages implements ShouldQueue
 
     protected function finish(): void
     {
-        ResponseCache::clear(['website-settings']);
+        $username = Project::find($this->projectId)?->username;
+
+        ResponseCache::clear([$username ? "website-settings:{$username}" : 'website-settings']);
 
         $failed = count($this->failedKeys);
         $captured = $this->totalKeys - $failed;

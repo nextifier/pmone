@@ -283,7 +283,7 @@ test('updating a project with settings busts website-settings, rundown and event
         'settings' => ['contact_form' => ['enabled' => true]],
     ])->assertOk();
 
-    $spy->shouldHaveReceived('clear')->with(Project::SETTINGS_RESPONSE_CACHE_TAGS);
+    $spy->shouldHaveReceived('clear')->with($this->project->settingsResponseCacheTags());
 });
 
 test('updating website settings busts all settings-backed caches', function () {
@@ -293,7 +293,16 @@ test('updating website settings busts all settings-backed caches', function () {
         'home_sections' => ['hero' => false],
     ])->assertOk();
 
-    $spy->shouldHaveReceived('clear')->with(Project::SETTINGS_RESPONSE_CACHE_TAGS);
+    $spy->shouldHaveReceived('clear')->with($this->project->settingsResponseCacheTags());
+});
+
+test('settings cache tags are tenant-scoped except the global hotels tag', function () {
+    $tags = $this->project->settingsResponseCacheTags();
+
+    expect($tags)->toContain("website-settings:{$this->project->username}")
+        ->toContain("rundown:{$this->project->username}")
+        ->toContain('hotels')
+        ->not->toContain('website-settings');
 });
 
 // ---------------------------------------------------------------------------
@@ -341,7 +350,38 @@ test('the hotel reservation toggle endpoint busts hotels, events and website-set
         'enabled' => false,
     ])->assertOk();
 
-    $spy->shouldHaveReceived('clear')->with(['hotels', 'events', 'website-settings']);
+    $spy->shouldHaveReceived('clear')->with([
+        'hotels',
+        "events:{$this->project->username}",
+        "website-settings:{$this->project->username}",
+    ]);
+});
+
+test('a settings write on one project leaves another project\'s cached responses warm', function () {
+    ResponseCache::clear();
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_cache_key', 'is_active' => true]);
+
+    $other = Project::factory()->create();
+
+    $fetch = fn (string $username) => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key'])
+        ->getJson("/api/public/projects/{$username}/website-settings");
+
+    expect($fetch($this->project->username)->assertOk()->json('data.settings.home_sections.hero'))->toBeTrue();
+    expect($fetch($other->username)->assertOk()->json('data.settings.home_sections.hero'))->toBeTrue();
+
+    // Flip BOTH projects' stored settings, but $other quietly (no events, no
+    // clear) - its cached response must keep serving the OLD payload.
+    $other->updateQuietly([
+        'settings' => ['website_settings' => ['home_sections' => ['hero' => false]]],
+    ]);
+    $this->project->update([
+        'settings' => ['website_settings' => ['home_sections' => ['hero' => false]]],
+    ]);
+
+    expect($fetch($this->project->username)->assertOk()->json('data.settings.home_sections.hero'))
+        ->toBeFalse();
+    expect($fetch($other->username)->assertOk()->json('data.settings.home_sections.hero'))
+        ->toBeTrue();
 });
 
 // ---------------------------------------------------------------------------
@@ -363,8 +403,75 @@ test('deleting hotel media via the generic media endpoint busts the hotels cache
 });
 
 // ---------------------------------------------------------------------------
+// Event conjunctions — pivot writes, embedded in cached activeEvent payload
+// ---------------------------------------------------------------------------
+test('linking a conjunction event busts the brands and events caches', function () {
+    $other = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'edition_number' => 2,
+    ]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson(route('event-conjunctions.store', [
+        'username' => $this->project->username,
+        'eventSlug' => $this->event->slug,
+    ]), ['conjunction_event_id' => $other->id])->assertCreated();
+
+    $spy->shouldHaveReceived('clear')->with(['brands', 'events']);
+});
+
+// ---------------------------------------------------------------------------
+// Generic media upload — never fires the owner's model events
+// ---------------------------------------------------------------------------
+test('uploading media via the generic endpoint busts the owner cache tags', function () {
+    Storage::fake('public');
+
+    $partner = Partner::factory()->create();
+
+    $spy = ResponseCache::spy();
+
+    $this->post('/api/media/upload', [
+        'file' => UploadedFile::fake()->image('logo.png', 10, 10),
+        'collection' => 'partner_logo',
+        'model_type' => Partner::class,
+        'model_id' => $partner->id,
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['partners']);
+});
+
+// ---------------------------------------------------------------------------
 // User public profile (/resolve/{slug}, tag short-links)
 // ---------------------------------------------------------------------------
+test('saving a link owned by a project busts the projects and events caches', function () {
+    $spy = ResponseCache::spy();
+
+    $this->project->links()->create(['label' => 'Website', 'url' => 'https://example.com']);
+
+    $spy->shouldHaveReceived('clear')->with(['projects', 'events']);
+});
+
+test('changing a user public profile field via the model busts short-links, projects and blog-posts', function () {
+    $target = User::factory()->create(['email_verified_at' => now()]);
+
+    $spy = ResponseCache::spy();
+
+    $target->update(['title' => 'Head of Events']);
+
+    $spy->shouldHaveReceived('clear')->with(['short-links', 'projects', 'blog-posts']);
+});
+
+test('a last_seen touch does not clear the response cache', function () {
+    $target = User::factory()->create(['email_verified_at' => now()]);
+
+    $spy = ResponseCache::spy();
+
+    $target->update(['last_seen' => now()]);
+
+    $spy->shouldNotHaveReceived('clear');
+});
+
 test('saving a link owned by a user busts the short-links cache', function () {
     $spy = ResponseCache::spy();
 

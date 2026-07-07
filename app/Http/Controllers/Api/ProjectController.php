@@ -286,7 +286,7 @@ class ProjectController extends Controller
         // save touching settings must also bust the dependent public-cache tags,
         // mirroring updateWebsiteSettings().
         if (array_key_exists('settings', $validated)) {
-            ResponseCache::clear(Project::SETTINGS_RESPONSE_CACHE_TAGS);
+            ResponseCache::clear($project->settingsResponseCacheTags());
         }
 
         if (isset($validated['member_ids'])) {
@@ -334,6 +334,13 @@ class ProjectController extends Controller
         // Process content images in bio
         $this->processContentImages($project);
         $this->cleanupRemovedContentImages($project, $oldBio);
+
+        // The link mass-delete above bypasses Link model events entirely, and
+        // media ops never fire Project events. Both the Website link and the
+        // profile image are embedded in cached public event payloads
+        // (EventResource website_url / profile_image), so bust both tags after
+        // all mutations are written.
+        ResponseCache::clear(['projects', 'events']);
 
         return response()->json([
             'message' => 'Project updated successfully',
@@ -440,7 +447,7 @@ class ProjectController extends Controller
         // clears the 'projects' tag on save, so explicitly invalidate the
         // dependent caches here. The data_fallback toggles change the output of
         // every fallback-backed section, so bust those tags too.
-        ResponseCache::clear(Project::SETTINGS_RESPONSE_CACHE_TAGS);
+        ResponseCache::clear($project->settingsResponseCacheTags());
 
         return response()->json([
             'message' => 'Website settings updated successfully',
@@ -485,7 +492,9 @@ class ProjectController extends Controller
 
         $project->update(['hotel_reservation_enabled' => $validated['enabled']]);
 
-        ResponseCache::clear(['hotels', 'events', 'website-settings']);
+        ResponseCache::clear([
+            'hotels', "events:{$project->username}", "website-settings:{$project->username}",
+        ]);
 
         return response()->json([
             'message' => $validated['enabled']

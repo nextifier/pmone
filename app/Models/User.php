@@ -17,6 +17,7 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
@@ -32,6 +33,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 /**
  * @property int $id
@@ -350,6 +352,34 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
                 $model->clearMediaCollection();
             }
         });
+
+        static::saved(function (User $user) {
+            if ($user->wasChanged(self::PUBLIC_PROFILE_FIELDS)) {
+                self::clearPublicProfileResponseCache();
+            }
+        });
+
+        static::deleted(fn () => self::clearPublicProfileResponseCache());
+        static::restored(fn () => self::clearPublicProfileResponseCache());
+    }
+
+    /**
+     * Fields embedded in publicly cached payloads: the /resolve/{slug} profile
+     * (short-links), project member lists (projects) and blog author bylines
+     * (blog-posts). Deliberately EXCLUDES high-frequency columns such as
+     * last_seen (written by the UpdateLastSeen middleware up to once a minute
+     * per user) so routine traffic never flushes the response cache.
+     *
+     * @var string[]
+     */
+    public const PUBLIC_PROFILE_FIELDS = [
+        'name', 'username', 'email', 'phone', 'birth_date',
+        'gender', 'title', 'bio', 'status', 'visibility',
+    ];
+
+    protected static function clearPublicProfileResponseCache(): void
+    {
+        DB::afterCommit(fn () => ResponseCache::clear(['short-links', 'projects', 'blog-posts']));
     }
 
     /**

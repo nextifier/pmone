@@ -385,6 +385,11 @@ class PostController extends Controller
                 GeneratePostOgImage::dispatch($post->id)->afterCommit();
             }
 
+            // The trait clear fired on Post::create, BEFORE tags, authors and
+            // media were written; clear again so no public request re-caches
+            // the half-built post (mirrors the trailing clear in update()).
+            ResponseCache::clear(['blog-posts']);
+
             $post->load(['creator', 'authors', 'tags', 'media']);
 
             return response()->json([

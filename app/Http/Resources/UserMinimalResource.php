@@ -18,7 +18,9 @@ class UserMinimalResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'username' => $this->username,
-            'email' => $this->email,
+            // Blog author bylines are served (and cached for an hour) on the
+            // unauthenticated /api/public/* endpoints; never expose emails there.
+            'email' => $this->when(! $request->is('api/public/*'), $this->email),
             'title' => $this->title,
             'profile_image' => $this->getProfileImageFromLoadedMedia(),
             'pivot' => $this->when(

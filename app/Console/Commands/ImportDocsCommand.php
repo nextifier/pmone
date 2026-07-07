@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class ImportDocsCommand extends Command
 {
@@ -35,6 +36,11 @@ class ImportDocsCommand extends Command
                 Post::where('settings->docs_audience', 'staff')
                     ->orWhere('settings->docs_audience', 'exhibitor')
                     ->forceDelete();
+
+                // Builder forceDelete bypasses Post model events, so the
+                // ClearsResponseCache trait never fires for these rows.
+                ResponseCache::clear(['blog-posts']);
+
                 $this->info("Deleted {$count} existing docs posts.");
             }
         }

@@ -69,7 +69,7 @@ class ProjectOgImageController extends Controller
         $project->settings = $settings;
         $project->save();
 
-        ResponseCache::clear(['website-settings']);
+        ResponseCache::clear(["website-settings:{$project->username}"]);
 
         return response()->json([
             'project_id' => $project->id,

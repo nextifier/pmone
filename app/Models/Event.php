@@ -242,12 +242,18 @@ class Event extends Model implements HasMedia, Sortable
     protected static function responseCacheTags(): array
     {
         // Public website data is resolved per project's active event (is_active).
-        // Changing an event (esp. is_active) must bust every section whose active
-        // resolution is cached server-side, so the site reflects the new active
-        // event. 'brands' is resolved+cached server-side (activeBrands); rundown/
-        // programs re-resolve via the cached events/active ('events') so they
-        // follow automatically. 'faqs' also embeds event context tokens.
-        return ['events', 'faqs', 'brands', 'gallery'];
+        // Changing an event (esp. is_active, published state, slug, title,
+        // edition_number, dates) must bust every section endpoint whose payload
+        // is resolved+cached server-side against event state: the section
+        // routes gate on published() and, when empty, fall back to a sibling
+        // edition picked by start_date and embed that source event's
+        // title/edition/slug into the cached JSON (fallbackEventWithItems /
+        // fallbackMeta in PublicProjectController). The public hotels listing
+        // also filters on events.is_active.
+        return [
+            'events', 'faqs', 'brands', 'gallery',
+            'partners', 'programs', 'guests', 'media-coverages', 'rundown', 'hotels',
+        ];
     }
 
     public function getEditionNumberWithOrdinalAttribute(): ?string

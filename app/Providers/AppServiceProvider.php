@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\TenantCacheResponse;
 use App\Models\ContactFormSubmission;
 use App\Models\LinkPageItem;
 use App\Models\Project;
@@ -25,7 +26,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Spatie binds only its own CacheResponse middleware as a singleton.
+        // The middleware carries pending cache state from handle() to
+        // terminate() on the instance, so the subclass MUST be a singleton
+        // too - a fresh instance at terminate() time would silently never
+        // store anything.
+        $this->app->singleton(TenantCacheResponse::class);
     }
 
     /**

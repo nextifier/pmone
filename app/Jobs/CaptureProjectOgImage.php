@@ -66,7 +66,7 @@ class CaptureProjectOgImage implements ShouldQueue
 
         $this->updateProgress(2, 'Saving image...');
 
-        ResponseCache::clear(['website-settings']);
+        ResponseCache::clear(["website-settings:{$project->username}"]);
 
         $this->completeProgress('Capture complete', [
             'image' => [

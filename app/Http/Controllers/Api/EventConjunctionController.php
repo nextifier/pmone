@@ -62,7 +62,7 @@ class EventConjunctionController extends Controller
             ->whereIn('conjunction_event_id', $memberIds)
             ->update(['allow_cross_scan' => $validated['allow_cross_scan']]);
 
-        ResponseCache::clear(['brands']);
+        ResponseCache::clear(['brands', 'events']);
 
         activity()
             ->causedBy($request->user())
@@ -131,7 +131,7 @@ class EventConjunctionController extends Controller
             }
         }
 
-        ResponseCache::clear(['brands']);
+        ResponseCache::clear(['brands', 'events']);
 
         activity()
             ->causedBy($request->user())
@@ -164,7 +164,7 @@ class EventConjunctionController extends Controller
         // Remove reverse direction
         $conjunctionEvent?->conjunctionEvents()->detach($event->id);
 
-        ResponseCache::clear(['brands']);
+        ResponseCache::clear(['brands', 'events']);
 
         activity()
             ->causedBy(auth()->user())
@@ -199,7 +199,7 @@ class EventConjunctionController extends Controller
             ]);
         }
 
-        ResponseCache::clear(['brands']);
+        ResponseCache::clear(['brands', 'events']);
 
         return response()->json(['message' => 'Order updated.']);
     }

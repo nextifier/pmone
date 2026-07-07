@@ -176,6 +176,24 @@ class Project extends Model implements HasMedia, Sortable
     }
 
     /**
+     * Tenant-scoped variants of SETTINGS_RESPONSE_CACHE_TAGS for this project.
+     * Public routes under /public/projects/{username} are dual-tagged by
+     * TenantCacheResponse, so clearing `{tag}:{username}` busts only this
+     * project's entries and leaves the other event sites' caches warm. The
+     * public hotels routes carry no username parameter, so 'hotels' stays
+     * global.
+     *
+     * @return string[]
+     */
+    public function settingsResponseCacheTags(): array
+    {
+        return array_map(
+            fn (string $tag) => $tag === 'hotels' ? $tag : "{$tag}:{$this->username}",
+            self::SETTINGS_RESPONSE_CACHE_TAGS,
+        );
+    }
+
+    /**
      * Safety net on top of the per-controller manual clears: the trait above
      * only busts 'projects'/'faqs', so a settings or hotel-toggle write from
      * any code path that skips the manual clear would otherwise leave the
@@ -185,13 +203,32 @@ class Project extends Model implements HasMedia, Sortable
     {
         static::saved(function (Project $project): void {
             if ($project->wasChanged('settings')) {
-                DB::afterCommit(fn () => ResponseCache::clear(self::SETTINGS_RESPONSE_CACHE_TAGS));
+                DB::afterCommit(fn () => ResponseCache::clear($project->settingsResponseCacheTags()));
             }
 
             if ($project->wasChanged('hotel_reservation_enabled')) {
-                DB::afterCommit(fn () => ResponseCache::clear(['hotels', 'events', 'website-settings']));
+                DB::afterCommit(fn () => ResponseCache::clear([
+                    'hotels', "events:{$project->username}", "website-settings:{$project->username}",
+                ]));
+            }
+
+            // Every public section route resolves the project through the
+            // active() scope and by username, and event payloads embed the
+            // project name; archiving or renaming must drop all of them, not
+            // just the 'projects' tag the trait clears. Deliberately GLOBAL:
+            // a username change leaves the old entries under the OLD tenant
+            // tags, which a scoped clear would miss.
+            if ($project->wasChanged(['status', 'username', 'name'])) {
+                DB::afterCommit(fn () => ResponseCache::clear(self::SETTINGS_RESPONSE_CACHE_TAGS));
             }
         });
+
+        static::deleted(fn () => DB::afterCommit(
+            fn () => ResponseCache::clear(self::SETTINGS_RESPONSE_CACHE_TAGS)
+        ));
+        static::restored(fn () => DB::afterCommit(
+            fn () => ResponseCache::clear(self::SETTINGS_RESPONSE_CACHE_TAGS)
+        ));
     }
 
     public function getRouteKeyName(): string
