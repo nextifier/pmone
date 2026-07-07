@@ -17,12 +17,14 @@ PMONE="${PMONE:-$HOME/Herd/pmone/frontend}"
 EVENTS="${EVENTS:-$HOME/Frontend/pmone-events}"
 LEVENIUM="${LEVENIUM:-$HOME/Frontend/levenium}"
 
-# The 4 component trees. pmone is canonical; the others are compared against it.
+# The component trees. pmone is canonical; the others are compared against it.
+# Each entry: name|<engine tree: lib/appearance>|<ui tree: style css + components/ui>.
+# events keeps everything under one root; levenium splits the engine (layers/base)
+# from styles/components (layers/ui, single-sourced into apps/ui via vite redirect).
 CANON="$PMONE/app"
 declare -a TREES=(
-  "events|$EVENTS/layers/base/app"
-  "lev-base|$LEVENIUM/layers/base/app"
-  "lev-ui|$LEVENIUM/apps/ui/app"
+  "events|$EVENTS/layers/base/app|$EVENTS/layers/base/app"
+  "levenium|$LEVENIUM/layers/base/app|$LEVENIUM/layers/ui/app"
 )
 
 # Bespoke components that are INTENTIONALLY per-repo (do NOT flag as errors).
@@ -66,8 +68,9 @@ for f in "$CANON"/lib/appearance/index.ts "$CANON"/lib/appearance/themes.ts "$CA
 done
 
 for entry in "${TREES[@]}"; do
-  name="${entry%%|*}"; tree="${entry##*|}"
+  IFS='|' read -r name libtree uitree <<< "$entry"
   for rel in "${tier1_files[@]}"; do
+    case "$rel" in lib/*) tree="$libtree" ;; *) tree="$uitree" ;; esac
     a="$CANON/$rel"; b="$tree/$rel"
     if [ ! -f "$b" ]; then
       echo "  ${RED}MISSING${RST} $name: $rel"; fail=1
@@ -82,7 +85,7 @@ echo
 # ---- Single source of truth: active @import must match DEFAULT_STYLE --------
 echo "SINGLE-SOURCE — active style @import matches DEFAULT_STYLE"
 def_style="$(grep -oE 'DEFAULT_STYLE = "[a-z]+"' "$CANON/lib/appearance/index.ts" | grep -oE '"[a-z]+"' | tr -d '"')"
-for entry in "events|$EVENTS/layers/base/app" "lev-base|$LEVENIUM/layers/base/app" "lev-ui|$LEVENIUM/apps/ui/app"; do
+for entry in "${TREES[@]}"; do
   name="${entry%%|*}"; tree="${entry##*|}"
   mc="$tree/assets/css/main.css"
   [ -f "$mc" ] || continue

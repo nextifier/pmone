@@ -1,15 +1,19 @@
 <?php
 
 use App\Jobs\ExtractOpenGraphMetadata;
+use App\Models\ApiConsumer;
 use App\Models\Brand;
 use App\Models\BrandEvent;
+use App\Models\Contact;
 use App\Models\Event;
 use App\Models\Hotel;
+use App\Models\HotelEvent;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
 use App\Models\PromotionPost;
+use App\Models\RoomType;
 use App\Models\ShortLink;
 use App\Models\User;
 use App\Services\OpenGraph\OpenGraphExtractor;
@@ -279,7 +283,65 @@ test('updating a project with settings busts website-settings, rundown and event
         'settings' => ['contact_form' => ['enabled' => true]],
     ])->assertOk();
 
-    $spy->shouldHaveReceived('clear')->with(['rundown', 'events', 'website-settings', 'hotels']);
+    $spy->shouldHaveReceived('clear')->with(Project::SETTINGS_RESPONSE_CACHE_TAGS);
+});
+
+test('updating website settings busts all settings-backed caches', function () {
+    $spy = ResponseCache::spy();
+
+    $this->patchJson("/api/projects/{$this->project->username}/website-settings", [
+        'home_sections' => ['hero' => false],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(Project::SETTINGS_RESPONSE_CACHE_TAGS);
+});
+
+// ---------------------------------------------------------------------------
+// Project model hook — settings/hotel-toggle writes from ANY code path.
+// Asserted end-to-end against the real (array) response cache: a facade spy
+// swallows model-event clears in this suite, so we prove the behaviour by
+// priming the cached public endpoint and asserting the payload refreshes.
+// ---------------------------------------------------------------------------
+test('writing project settings via the model busts the cached public website-settings response', function () {
+    ResponseCache::clear();
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_cache_key', 'is_active' => true]);
+
+    $fetch = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key'])
+        ->getJson("/api/public/projects/{$this->project->username}/website-settings");
+
+    expect($fetch()->assertOk()->json('data.settings.home_sections.hero'))->toBeTrue();
+
+    $this->project->update([
+        'settings' => ['website_settings' => ['home_sections' => ['hero' => false]]],
+    ]);
+
+    expect($fetch()->assertOk()->json('data.settings.home_sections.hero'))->toBeFalse();
+});
+
+test('toggling hotel_reservation_enabled via the model busts the cached public event payload', function () {
+    ResponseCache::clear();
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_cache_key', 'is_active' => true]);
+
+    $fetch = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key'])
+        ->getJson("/api/public/projects/{$this->project->username}/events/active");
+
+    $initial = $fetch()->assertOk()->json('data.hotel_reservation_enabled');
+
+    $this->project->update(['hotel_reservation_enabled' => ! $initial]);
+
+    expect($fetch()->assertOk()->json('data.hotel_reservation_enabled'))->toBe(! $initial);
+});
+
+test('the hotel reservation toggle endpoint busts hotels, events and website-settings caches', function () {
+    $this->project->update(['hotel_reservation_enabled' => true]);
+
+    $spy = ResponseCache::spy();
+
+    $this->patchJson("/api/projects/{$this->project->username}/hotel-reservation-toggle", [
+        'enabled' => false,
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['hotels', 'events', 'website-settings']);
 });
 
 // ---------------------------------------------------------------------------
@@ -298,6 +360,110 @@ test('deleting hotel media via the generic media endpoint busts the hotels cache
     $this->deleteJson("/api/media/{$media->id}")->assertOk();
 
     $spy->shouldHaveReceived('clear')->with(['hotels']);
+});
+
+// ---------------------------------------------------------------------------
+// User public profile (/resolve/{slug}, tag short-links)
+// ---------------------------------------------------------------------------
+test('saving a link owned by a user busts the short-links cache', function () {
+    $spy = ResponseCache::spy();
+
+    $this->user->links()->create(['label' => 'Website', 'url' => 'https://example.com']);
+
+    $spy->shouldHaveReceived('clear')->with(['short-links']);
+});
+
+test('deleting a user busts the short-links cache', function () {
+    $target = User::factory()->create(['email_verified_at' => now()]);
+
+    $spy = ResponseCache::spy();
+
+    $this->deleteJson("/api/users/{$target->username}")->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['short-links']);
+});
+
+test('restoring a user busts the short-links cache', function () {
+    $target = User::factory()->create(['email_verified_at' => now()]);
+    $target->delete();
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/users/trash/{$target->id}/restore")->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['short-links']);
+});
+
+// ---------------------------------------------------------------------------
+// Hotels — controller paths that skip the Hotel/HotelEvent model events
+// ---------------------------------------------------------------------------
+test('updating a hotel with a media-only payload busts the hotels cache', function () {
+    $hotel = Hotel::factory()->create();
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson("/api/hotels/{$hotel->slug}", [])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['hotels']);
+});
+
+test('detaching a hotel from an event busts the hotels cache', function () {
+    $this->project->update(['hotel_reservation_enabled' => true]);
+    ProjectPaymentGateway::factory()->create(['project_id' => $this->project->id, 'is_active' => true]);
+
+    $hotel = Hotel::factory()->create();
+    HotelEvent::create(['hotel_id' => $hotel->id, 'event_id' => $this->event->id, 'is_active' => true]);
+
+    $spy = ResponseCache::spy();
+
+    $this->deleteJson("/api/events/{$this->event->id}/hotels/{$hotel->slug}")->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['hotels']);
+});
+
+test('reordering hotel media busts the hotels cache', function () {
+    $this->project->update(['hotel_reservation_enabled' => true]);
+    ProjectPaymentGateway::factory()->create(['project_id' => $this->project->id, 'is_active' => true]);
+
+    $hotel = Hotel::factory()->create();
+    HotelEvent::create(['hotel_id' => $hotel->id, 'event_id' => $this->event->id, 'is_active' => true]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$this->event->id}/hotels/{$hotel->slug}/media/gallery/reorder", [
+        'media_ids' => [1],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['hotels']);
+});
+
+test('reordering room type media busts the hotels cache', function () {
+    $this->project->update(['hotel_reservation_enabled' => true]);
+    ProjectPaymentGateway::factory()->create(['project_id' => $this->project->id, 'is_active' => true]);
+
+    $hotel = Hotel::factory()->create();
+    HotelEvent::create(['hotel_id' => $hotel->id, 'event_id' => $this->event->id, 'is_active' => true]);
+    $roomType = RoomType::factory()->create(['hotel_id' => $hotel->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson(
+        "/api/events/{$this->event->id}/hotels/{$hotel->slug}/room-types/{$roomType->slug}/media/reorder",
+        ['media_ids' => [1]],
+    )->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['hotels']);
+});
+
+// ---------------------------------------------------------------------------
+// Contacts — tag was orphaned (no route caches 'contacts'); trait removed
+// ---------------------------------------------------------------------------
+test('saving a contact no longer clears the response cache', function () {
+    $spy = ResponseCache::spy();
+
+    Contact::factory()->create();
+
+    $spy->shouldNotHaveReceived('clear');
 });
 
 test('OG metadata job busts the short-links cache after updateQuietly', function () {

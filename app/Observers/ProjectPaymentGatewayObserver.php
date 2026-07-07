@@ -6,6 +6,7 @@ use App\Models\ProjectPaymentGateway;
 use App\Services\Payment\PaymentBalanceCache;
 use App\Services\Xendit\XenditService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
 class ProjectPaymentGatewayObserver
@@ -50,6 +51,8 @@ class ProjectPaymentGatewayObserver
         // The public project payload exposes has_active_payment_gateway /
         // has_xendit_gateway, derived from these rows. Gateway writes do not
         // touch the Project model, so bust the 'projects'-tagged cache here.
-        ResponseCache::clear(['projects']);
+        // Deferred to afterCommit so a concurrent request cannot re-cache the
+        // pre-commit payload (observer events fire inside the transaction).
+        DB::afterCommit(fn () => ResponseCache::clear(['projects']));
     }
 }

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class RoomTypeController extends Controller
 {
@@ -76,6 +77,10 @@ class RoomTypeController extends Controller
         $this->syncAmenities($roomType, $request->input('amenities'));
         $this->handleGalleryUpload($request, $roomType);
 
+        // The trait clear fired on create, BEFORE amenities/media were written;
+        // clear again so no request re-caches the half-built payload.
+        ResponseCache::clear(['hotels']);
+
         $roomType->load(['media', 'tags', 'pricingPeriods']);
 
         return response()->json([
@@ -104,6 +109,10 @@ class RoomTypeController extends Controller
         }
 
         $this->handleGalleryUpload($request, $roomType);
+
+        // The trait clear fired on $roomType->update(), BEFORE the pricing
+        // periods (query-builder update), amenities and media were written.
+        ResponseCache::clear(['hotels']);
 
         $roomType->load(['media', 'tags', 'pricingPeriods']);
 
@@ -185,6 +194,8 @@ class RoomTypeController extends Controller
         }
 
         Media::setNewOrder($valid);
+
+        ResponseCache::clear(['hotels']);
 
         return response()->json(['message' => 'Order updated']);
     }

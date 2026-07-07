@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\ContactStatus;
 use App\Helpers\PhoneCountryHelper;
-use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,16 +40,17 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
  * @property-read array<string> $business_categories_list
  * @property-read array<string> $contact_types_list
  * @property-read array<string> $tags_list
- * @property-read Collection<int, \App\Models\Project> $projects
+ * @property-read Collection<int, Project> $projects
  * @property-read int|null $projects_count
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact byStatus(string $status)
  * @method static \Database\Factories\ContactFactory factory($count = null, $state = [])
@@ -86,11 +86,11 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withoutTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Contact withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Contact extends Model
 {
-    use ClearsResponseCache;
     use HasFactory;
     use HasTags;
     use LogsActivity;
@@ -119,11 +119,6 @@ class Contact extends Model
             'more_details' => 'array',
             'status' => ContactStatus::class,
         ];
-    }
-
-    protected static function responseCacheTags(): array
-    {
-        return ['contacts'];
     }
 
     public function getRouteKeyName(): string

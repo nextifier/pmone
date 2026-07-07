@@ -83,6 +83,9 @@ class ProgramController extends Controller
 
         $this->handleTemporaryUpload($tmpImage, $deleteImage, $program, 'image');
 
+        // The trait clear fired on create, BEFORE the image was attached.
+        $this->clearProgramCache();
+
         $program->load(['media', 'creator', 'updater']);
 
         return response()->json([
@@ -124,6 +127,9 @@ class ProgramController extends Controller
         $program->update($validated);
 
         $this->handleTemporaryUpload($tmpImage, $deleteImage, $program, 'image');
+
+        // The trait clear fired on $program->update(), BEFORE the image changed.
+        $this->clearProgramCache();
 
         $program->load(['media', 'creator', 'updater']);
 

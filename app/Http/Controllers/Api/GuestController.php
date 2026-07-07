@@ -165,6 +165,10 @@ class GuestController extends Controller
         $this->syncLinks($guest, $links);
         $this->handleTemporaryUpload($tmpProfileImage, $deleteProfileImage, $guest, 'profile_image');
 
+        // The trait clear fired on create, BEFORE tags/links/media were
+        // written; clear again so no request re-caches the half-built payload.
+        $this->clearGuestCache();
+
         $guest->load(['media', 'tags', 'links', 'creator', 'updater']);
 
         return response()->json([
@@ -227,6 +231,9 @@ class GuestController extends Controller
         }
 
         $this->handleTemporaryUpload($tmpProfileImage, $deleteProfileImage, $guest, 'profile_image');
+
+        // The trait clear fired on $guest->update(), BEFORE tags/links/media.
+        $this->clearGuestCache();
 
         $guest->load(['media', 'tags', 'links', 'creator', 'updater']);
 

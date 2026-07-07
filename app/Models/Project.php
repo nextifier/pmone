@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -27,6 +28,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 use Spatie\Permission\Exceptions\RoleDoesNotExist;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -120,6 +122,19 @@ class Project extends Model implements HasMedia, Sortable
     use SoftDeletes;
     use SortableTrait;
 
+    /**
+     * Public-cache tags backed by the settings JSON column. The website
+     * settings (home sections, data_fallback, rundown/blog display config)
+     * feed every one of these public endpoints, so any settings write must
+     * bust them all.
+     *
+     * @var string[]
+     */
+    public const SETTINGS_RESPONSE_CACHE_TAGS = [
+        'website-settings', 'rundown', 'events', 'hotels',
+        'brands', 'partners', 'programs', 'faqs', 'media-coverages', 'gallery', 'guests',
+    ];
+
     protected $fillable = [
         'name',
         'username',
@@ -158,6 +173,25 @@ class Project extends Model implements HasMedia, Sortable
     protected static function responseCacheTags(): array
     {
         return ['projects', 'faqs'];
+    }
+
+    /**
+     * Safety net on top of the per-controller manual clears: the trait above
+     * only busts 'projects'/'faqs', so a settings or hotel-toggle write from
+     * any code path that skips the manual clear would otherwise leave the
+     * dependent public caches stale for up to their full TTL.
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (Project $project): void {
+            if ($project->wasChanged('settings')) {
+                DB::afterCommit(fn () => ResponseCache::clear(self::SETTINGS_RESPONSE_CACHE_TAGS));
+            }
+
+            if ($project->wasChanged('hotel_reservation_enabled')) {
+                DB::afterCommit(fn () => ResponseCache::clear(['hotels', 'events', 'website-settings']));
+            }
+        });
     }
 
     public function getRouteKeyName(): string

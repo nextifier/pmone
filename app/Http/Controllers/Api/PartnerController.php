@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PartnerController extends Controller
@@ -121,6 +122,10 @@ class PartnerController extends Controller
 
         $this->handleTemporaryUpload($request, $partner, 'tmp_partner_logo', 'partner_logo');
 
+        // The trait clear fired on create, BEFORE the logo was attached; clear
+        // again so no request re-caches the logo-less payload.
+        ResponseCache::clear(['partners']);
+
         $partner->load('media');
 
         return response()->json([
@@ -154,6 +159,9 @@ class PartnerController extends Controller
         $partner->update($validated);
 
         $this->handleTemporaryUpload($request, $partner, 'tmp_partner_logo', 'partner_logo');
+
+        // The trait clear fired on update, BEFORE the logo changed.
+        ResponseCache::clear(['partners']);
 
         $partner->load('media');
 

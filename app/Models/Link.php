@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
 /**
@@ -63,7 +64,9 @@ class Link extends Model
 
     /**
      * Bust the response cache of the owning resource so brand/guest/project
-     * profiles (and their completeness scores) refresh when links change.
+     * profiles (and their completeness scores) and public user profiles
+     * (served via /resolve/{slug}, tag 'short-links') refresh when links
+     * change.
      */
     protected static function booted(): void
     {
@@ -72,11 +75,12 @@ class Link extends Model
                 Brand::class => 'brands',
                 Guest::class => 'guests',
                 Project::class => 'projects',
+                User::class => 'short-links',
                 default => null,
             };
 
             if ($tag !== null) {
-                ResponseCache::clear([$tag]);
+                DB::afterCommit(fn () => ResponseCache::clear([$tag]));
             }
         };
 

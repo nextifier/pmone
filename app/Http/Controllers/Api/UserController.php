@@ -512,6 +512,10 @@ class UserController extends Controller
             // Or for hard delete:
             $user->delete();
 
+            // The public profile at /resolve/{username} (tag 'short-links') must
+            // stop serving the deleted user immediately.
+            ResponseCache::clear(['short-links']);
+
             return response()->json([
                 'message' => 'User deleted successfully',
             ]);
@@ -576,6 +580,8 @@ class UserController extends Controller
             }
 
             if ($deletedCount > 0) {
+                ResponseCache::clear(['short-links']);
+
                 activity()
                     ->causedBy($currentUser)
                     ->event('bulk_deleted')
@@ -1152,6 +1158,8 @@ class UserController extends Controller
             }
 
             $user->restore();
+
+            ResponseCache::clear(['short-links']);
 
             return response()->json([
                 'message' => 'User restored successfully',

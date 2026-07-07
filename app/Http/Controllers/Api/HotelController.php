@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class HotelController extends Controller
@@ -156,6 +157,10 @@ class HotelController extends Controller
         $this->handleFeaturedUpload($request, $hotel);
         $this->handleGalleryUpload($request, $hotel);
 
+        // Media-only payloads and the query-builder pivot update above never
+        // fire Hotel/HotelEvent model events, so clear explicitly.
+        ResponseCache::clear(['hotels']);
+
         $hotel->load(['media', 'tags', 'events' => fn ($q) => $q->where('events.id', $event->id)]);
 
         return response()->json([
@@ -174,6 +179,9 @@ class HotelController extends Controller
         HotelEvent::query()
             ->where(['hotel_id' => $hotel->id, 'event_id' => $event->id])
             ->delete();
+
+        // Query-builder delete bypasses HotelEvent model events.
+        ResponseCache::clear(['hotels']);
 
         return response()->json(['message' => 'Hotel detached from event']);
     }
@@ -201,6 +209,8 @@ class HotelController extends Controller
         }
 
         Media::setNewOrder($valid);
+
+        ResponseCache::clear(['hotels']);
 
         return response()->json(['message' => 'Order updated']);
     }
@@ -289,6 +299,10 @@ class HotelController extends Controller
 
         $this->handleFeaturedUpload($request, $hotel);
         $this->handleGalleryUpload($request, $hotel);
+
+        // Media-only or facilities-only payloads skip $hotel->update(), so the
+        // ClearsResponseCache trait never fires for them.
+        ResponseCache::clear(['hotels']);
 
         $hotel->load(['media', 'tags']);
 
