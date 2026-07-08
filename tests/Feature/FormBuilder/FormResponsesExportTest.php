@@ -1,8 +1,8 @@
 <?php
 
 use App\Exports\FormResponsesExport;
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,8 +29,8 @@ beforeEach(function () {
 });
 
 it('excludes section fields from headings', function () {
-    FormField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Name']);
-    FormField::factory()->type('section')->create(['form_id' => $this->form->id, 'label' => 'A Section']);
+    CustomField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Name']);
+    CustomField::factory()->type('section')->create(['form_id' => $this->form->id, 'label' => 'A Section']);
 
     $export = new FormResponsesExport($this->form->fresh());
 
@@ -39,7 +39,7 @@ it('excludes section fields from headings', function () {
 });
 
 it('formats values per field type in mapped rows', function () {
-    $select = FormField::factory()->type('select')->create([
+    $select = CustomField::factory()->type('select')->create([
         'form_id' => $this->form->id,
         'label' => 'Ticket',
         'options' => [
@@ -47,7 +47,7 @@ it('formats values per field type in mapped rows', function () {
             ['value' => 'regular', 'label' => 'Regular'],
         ],
     ]);
-    $multi = FormField::factory()->type('multi_select')->create([
+    $multi = CustomField::factory()->type('multi_select')->create([
         'form_id' => $this->form->id,
         'label' => 'Sessions',
         'options' => [
@@ -55,10 +55,10 @@ it('formats values per field type in mapped rows', function () {
             ['value' => 'workshop', 'label' => 'Workshop'],
         ],
     ]);
-    $range = FormField::factory()->type('date_range')->create(['form_id' => $this->form->id, 'label' => 'Stay']);
-    $switch = FormField::factory()->type('switch')->create(['form_id' => $this->form->id, 'label' => 'Newsletter']);
-    $rich = FormField::factory()->type('rich_text')->create(['form_id' => $this->form->id, 'label' => 'Letter']);
-    $file = FormField::factory()->type('file')->create(['form_id' => $this->form->id, 'label' => 'CV']);
+    $range = CustomField::factory()->type('date_range')->create(['form_id' => $this->form->id, 'label' => 'Stay']);
+    $switch = CustomField::factory()->type('switch')->create(['form_id' => $this->form->id, 'label' => 'Newsletter']);
+    $rich = CustomField::factory()->type('rich_text')->create(['form_id' => $this->form->id, 'label' => 'Letter']);
+    $file = CustomField::factory()->type('file')->create(['form_id' => $this->form->id, 'label' => 'CV']);
 
     $response = FormResponse::factory()->create([
         'form_id' => $this->form->id,
@@ -85,7 +85,7 @@ it('formats values per field type in mapped rows', function () {
 });
 
 it('downloads responses as an xlsx file', function () {
-    FormField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Name']);
+    CustomField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Name']);
     FormResponse::factory()->create(['form_id' => $this->form->id]);
 
     $this->get("/api/forms/{$this->form->slug}/responses/export")
@@ -108,7 +108,7 @@ it('exports only the selected response ids', function () {
 });
 
 it('downloads responses as a csv file', function () {
-    FormField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Name']);
+    CustomField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Name']);
     FormResponse::factory()->create(['form_id' => $this->form->id]);
 
     $response = $this->get("/api/forms/{$this->form->slug}/responses/export?format=csv")

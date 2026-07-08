@@ -3,99 +3,68 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProjectCustomField\StoreProjectCustomFieldRequest;
+use App\Http\Requests\ProjectCustomField\UpdateProjectCustomFieldRequest;
+use App\Http\Resources\ProjectCustomFieldResource;
+use App\Models\CustomField;
 use App\Models\Project;
+use App\Services\CustomFields\CustomFieldService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
+/**
+ * CRUD for a project's brand fields. Thin adapter over CustomFieldService
+ * with context CustomField::CONTEXT_BRAND and the Project as owner; responses
+ * keep the legacy ProjectCustomField shape via ProjectCustomFieldResource.
+ */
 class ProjectCustomFieldController extends Controller
 {
+    public function __construct(private CustomFieldService $customFields) {}
+
     /**
      * List all custom fields for a project.
      */
     public function index(string $username): JsonResponse
     {
-        $project = Project::where('username', $username)->firstOrFail();
+        $project = $this->resolveProject($username);
+
+        $fields = $this->customFields->list($project, CustomField::CONTEXT_BRAND);
 
         return response()->json([
-            'data' => $project->customFields()->ordered()->get(),
+            'data' => ProjectCustomFieldResource::collection($fields),
         ]);
     }
 
     /**
      * Create a new custom field.
      */
-    public function store(Request $request, string $username): JsonResponse
+    public function store(StoreProjectCustomFieldRequest $request, string $username): JsonResponse
     {
-        $project = Project::where('username', $username)->firstOrFail();
+        $project = $this->resolveProject($username);
 
-        $validated = $request->validate([
-            'label' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'in:text,number,select,year_select,textarea'],
-            'options' => ['nullable', 'array'],
-            'options.*' => ['string'],
-            'is_required' => ['nullable', 'boolean'],
-        ]);
-
-        $key = Str::snake(Str::ascii($validated['label']));
-
-        // Check for duplicate key in same project
-        if ($project->customFields()->where('key', $key)->exists()) {
-            return response()->json([
-                'message' => 'A custom field with this label already exists.',
-            ], 422);
-        }
-
-        $field = $project->customFields()->create([
-            'label' => $validated['label'],
-            'key' => $key,
-            'type' => $validated['type'],
-            'options' => $validated['options'] ?? null,
-            'is_required' => $validated['is_required'] ?? false,
-        ]);
+        $field = $this->customFields->create($project, CustomField::CONTEXT_BRAND, $request->validated());
 
         return response()->json([
             'message' => 'Custom field created successfully.',
-            'data' => $field,
+            'data' => new ProjectCustomFieldResource($field),
         ], 201);
     }
 
     /**
-     * Update a custom field definition.
+     * Update a custom field definition. The storage key is immutable after
+     * create (the service strips it), so label edits never orphan stored
+     * brand values.
      */
-    public function update(Request $request, string $username, int $id): JsonResponse
+    public function update(UpdateProjectCustomFieldRequest $request, string $username, int $id): JsonResponse
     {
-        $project = Project::where('username', $username)->firstOrFail();
+        $project = $this->resolveProject($username);
         $field = $project->customFields()->findOrFail($id);
 
-        $validated = $request->validate([
-            'label' => ['required', 'string', 'max:255'],
-            'type' => ['required', 'string', 'in:text,number,select,year_select,textarea'],
-            'options' => ['nullable', 'array'],
-            'options.*' => ['string'],
-            'is_required' => ['nullable', 'boolean'],
-        ]);
-
-        $newKey = Str::snake(Str::ascii($validated['label']));
-
-        // Check for duplicate key (excluding current field)
-        if ($newKey !== $field->key && $project->customFields()->where('key', $newKey)->where('id', '!=', $field->id)->exists()) {
-            return response()->json([
-                'message' => 'A custom field with this label already exists.',
-            ], 422);
-        }
-
-        $field->update([
-            'label' => $validated['label'],
-            'key' => $newKey,
-            'type' => $validated['type'],
-            'options' => $validated['options'] ?? null,
-            'is_required' => $validated['is_required'] ?? false,
-        ]);
+        $field = $this->customFields->update($field, $request->validated());
 
         return response()->json([
             'message' => 'Custom field updated successfully.',
-            'data' => $field,
+            'data' => new ProjectCustomFieldResource($field->fresh()),
         ]);
     }
 
@@ -104,10 +73,10 @@ class ProjectCustomFieldController extends Controller
      */
     public function destroy(string $username, int $id): JsonResponse
     {
-        $project = Project::where('username', $username)->firstOrFail();
+        $project = $this->resolveProject($username);
         $field = $project->customFields()->findOrFail($id);
 
-        $field->delete();
+        $this->customFields->delete($field);
 
         return response()->json([
             'message' => 'Custom field deleted successfully.',
@@ -119,35 +88,23 @@ class ProjectCustomFieldController extends Controller
      */
     public function reorder(Request $request, string $username): JsonResponse
     {
-        $project = Project::where('username', $username)->firstOrFail();
+        $project = $this->resolveProject($username);
 
         $validated = $request->validate([
-            'orders' => ['required', 'array'],
-            'orders.*.id' => ['required', 'integer', 'exists:project_custom_fields,id'],
+            'orders' => ['required', 'array', 'min:1'],
+            'orders.*.id' => ['required', 'integer', 'distinct'],
             'orders.*.order' => ['required', 'integer', 'min:1'],
         ]);
 
-        $cases = [];
-        $ids = [];
-        $params = [];
-
-        foreach ($validated['orders'] as $orderData) {
-            $cases[] = 'WHEN id = ? THEN ?::integer';
-            $params[] = $orderData['id'];
-            $params[] = $orderData['order'];
-            $ids[] = $orderData['id'];
-        }
-
-        $idsString = implode(',', $ids);
-        $casesString = implode(' ', $cases);
-
-        \DB::statement(
-            "UPDATE project_custom_fields SET order_column = CASE {$casesString} END WHERE id IN ({$idsString}) AND project_id = ?",
-            [...$params, $project->id]
-        );
+        $this->customFields->reorder($project, CustomField::CONTEXT_BRAND, $validated['orders']);
 
         return response()->json([
             'message' => 'Custom field order updated successfully.',
         ]);
+    }
+
+    private function resolveProject(string $username): Project
+    {
+        return Project::query()->where('username', $username)->firstOrFail();
     }
 }

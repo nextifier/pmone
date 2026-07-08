@@ -3,9 +3,11 @@
 namespace App\Exports;
 
 use App\Models\Brand;
-use App\Models\EventCustomField;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
+use App\Models\Event;
 use App\Models\ExhibitorLead;
-use App\Models\FieldResponse;
+use App\Models\User;
 use App\Support\FormFieldTypes;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -19,7 +21,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
  */
 class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
 {
-    /** @var Collection<int, EventCustomField>|null */
+    /** @var Collection<int, CustomField>|null */
     private ?Collection $customFieldsCache = null;
 
     /** @var array<int, array<int, mixed>> Buyer answers keyed by [user_id][field_id]. */
@@ -43,7 +45,7 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
     {
         return array_merge(
             ['Name', 'Email', 'Phone', 'Ticket Tier', 'Event', 'Scanned At'],
-            $this->customFields()->map(fn (EventCustomField $f) => $this->fieldLabel($f))->all(),
+            $this->customFields()->map(fn (CustomField $f) => $this->fieldLabel($f))->all(),
         );
     }
 
@@ -79,7 +81,7 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
      * Active business-matching custom fields across every event this brand has
      * leads in (columns), loaded once with every buyer's answers.
      *
-     * @return Collection<int, EventCustomField>
+     * @return Collection<int, CustomField>
      */
     private function customFields(): Collection
     {
@@ -96,26 +98,29 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
             return $this->customFieldsCache = collect();
         }
 
-        $this->customFieldsCache = EventCustomField::query()
-            ->whereIn('event_id', $eventIds)
+        $this->customFieldsCache = CustomField::query()
+            ->where('fieldable_type', Event::class)
+            ->whereIn('fieldable_id', $eventIds)
+            ->where('context', CustomField::CONTEXT_BUSINESS_MATCHING)
             ->where('is_active', true)
-            ->orderBy('event_id')
+            ->orderBy('fieldable_id')
             ->orderBy('order_column')
             ->get();
 
         if ($this->customFieldsCache->isNotEmpty()) {
-            FieldResponse::query()
-                ->whereIn('event_custom_field_id', $this->customFieldsCache->pluck('id'))
-                ->get(['user_id', 'event_custom_field_id', 'value'])
-                ->each(function (FieldResponse $r): void {
-                    $this->answersByUser[$r->user_id][$r->event_custom_field_id] = $r->value;
+            CustomFieldValue::query()
+                ->whereIn('custom_field_id', $this->customFieldsCache->pluck('id'))
+                ->where('subject_type', User::class)
+                ->get(['subject_id', 'custom_field_id', 'value'])
+                ->each(function (CustomFieldValue $r): void {
+                    $this->answersByUser[$r->subject_id][$r->custom_field_id] = $r->value;
                 });
         }
 
         return $this->customFieldsCache;
     }
 
-    private function fieldLabel(EventCustomField $field): string
+    private function fieldLabel(CustomField $field): string
     {
         return $field->getTranslation('label', app()->getLocale(), false)
             ?: $field->getTranslation('label', 'en', false)

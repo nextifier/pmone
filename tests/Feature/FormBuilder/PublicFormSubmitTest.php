@@ -1,15 +1,15 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-function fb_submit_field(Form $form, string $type, array $overrides = []): FormField
+function fb_submit_field(Form $form, string $type, array $overrides = []): CustomField
 {
-    return FormField::factory()->type($type)->create(array_merge(
+    return CustomField::factory()->type($type)->create(array_merge(
         ['form_id' => $form->id, 'label' => "Field {$type}"],
         $overrides
     ));

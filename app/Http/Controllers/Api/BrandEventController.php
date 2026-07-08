@@ -12,6 +12,7 @@ use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
 use App\Http\Resources\EventDocumentResource;
 use App\Http\Resources\EventDocumentSubmissionResource;
+use App\Http\Resources\ProjectCustomFieldResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Imports\BrandEventsImport;
 use App\Jobs\BulkPermanentDeleteBrands;
@@ -26,6 +27,7 @@ use App\Models\PromotionPost;
 use App\Models\User;
 use App\Notifications\BrandInvitedToEventNotification;
 use App\Notifications\PromotionPostUploadedNotification;
+use App\Support\CustomFieldValidation;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +39,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -297,7 +300,7 @@ class BrandEventController extends Controller
         $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         // Load custom field definitions and values
-        $customFieldDefinitions = $project->customFields()->ordered()->get();
+        $customFieldDefinitions = $project->customFields()->get();
 
         // Load predefined business category options for this project
         $businessCategoryOptions = Tag::withType("business_category:{$project->id}")
@@ -307,7 +310,7 @@ class BrandEventController extends Controller
 
         return response()->json([
             'data' => new BrandEventResource($brandEvent),
-            'project_custom_field_definitions' => $customFieldDefinitions,
+            'project_custom_field_definitions' => ProjectCustomFieldResource::collection($customFieldDefinitions),
             'brand_custom_fields' => $brandEvent->brand->custom_fields ?? (object) [],
             'business_category_options' => $businessCategoryOptions,
         ]);
@@ -468,9 +471,23 @@ class BrandEventController extends Controller
             $brand->syncBusinessCategories($validated['business_categories'], $project->id);
         }
 
-        // Save project custom field values to brands.custom_fields
+        // Save project custom field values to brands.custom_fields; values are
+        // only validated when the payload actually carries the key, so partial
+        // updates that skip brand fields are never blocked.
         if (isset($validated['project_custom_fields'])) {
             $customFieldDefinitions = $project->customFields()->get();
+
+            $errors = CustomFieldValidation::errorsFor(
+                $customFieldDefinitions,
+                (array) $request->input('project_custom_fields'),
+                'project_custom_fields',
+                'key',
+            );
+
+            if ($errors !== []) {
+                throw ValidationException::withMessages($errors);
+            }
+
             $cleanedValues = $brand->custom_fields ?? [];
 
             foreach ($customFieldDefinitions as $fieldDef) {
@@ -506,7 +523,7 @@ class BrandEventController extends Controller
         $brandEvent->load(['brand.media', 'brand.tags', 'brand.links', 'brand.creator', 'brand.updater', 'brand.users.media', 'sales', 'promotionPosts.media']);
 
         // Reload custom field data for response
-        $customFieldDefinitions = $project->customFields()->ordered()->get();
+        $customFieldDefinitions = $project->customFields()->get();
 
         // Load predefined business category options for response
         $businessCategoryOptions = Tag::withType("business_category:{$project->id}")
@@ -517,7 +534,7 @@ class BrandEventController extends Controller
         return response()->json([
             'message' => 'Brand profile updated successfully.',
             'data' => new BrandEventResource($brandEvent),
-            'project_custom_field_definitions' => $customFieldDefinitions,
+            'project_custom_field_definitions' => ProjectCustomFieldResource::collection($customFieldDefinitions),
             'brand_custom_fields' => $brand->fresh()->custom_fields ?? (object) [],
             'business_category_options' => $businessCategoryOptions,
         ]);

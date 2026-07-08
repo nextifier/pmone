@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Helpers\DateRangeHelper;
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Support\FormFieldTypes;
 use Illuminate\Support\Carbon;
 
@@ -93,7 +93,7 @@ class FormAnalyticsService
     private function aggregateFields(Form $form): array
     {
         $fields = $form->fields->reject(
-            fn (FormField $field) => $field->type === FormField::TYPE_SECTION
+            fn (CustomField $field) => $field->type === CustomField::TYPE_SECTION
         )->values();
 
         if ($fields->isEmpty()) {
@@ -134,11 +134,11 @@ class FormAnalyticsService
             });
 
         return $fields->map(
-            fn (FormField $field) => $this->buildFieldResult($field, $accumulators[$field->ulid], $totalResponses)
+            fn (CustomField $field) => $this->buildFieldResult($field, $accumulators[$field->ulid], $totalResponses)
         )->all();
     }
 
-    private function accumulate(FormField $field, mixed $value, array &$acc): void
+    private function accumulate(CustomField $field, mixed $value, array &$acc): void
     {
         $acc['answered']++;
 
@@ -163,7 +163,7 @@ class FormAnalyticsService
                 break;
 
             case 'text':
-                if ($field->type === FormField::TYPE_FILE) {
+                if ($field->type === CustomField::TYPE_FILE) {
                     break;
                 }
                 $formatted = FormFieldTypes::formatValue($field, $value);
@@ -178,9 +178,9 @@ class FormAnalyticsService
     /**
      * @return array<int, string>
      */
-    private function normalizeOptionValues(FormField $field, mixed $value): array
+    private function normalizeOptionValues(CustomField $field, mixed $value): array
     {
-        if (in_array($field->type, [FormField::TYPE_CHECKBOX, FormField::TYPE_SWITCH], true)) {
+        if (in_array($field->type, [CustomField::TYPE_CHECKBOX, CustomField::TYPE_SWITCH], true)) {
             return [$value ? 'Yes' : 'No'];
         }
 
@@ -192,7 +192,7 @@ class FormAnalyticsService
         ), fn ($v) => $v !== null && $v !== ''));
     }
 
-    private function buildFieldResult(FormField $field, array $acc, int $totalResponses): array
+    private function buildFieldResult(CustomField $field, array $acc, int $totalResponses): array
     {
         $kind = FormFieldTypes::analyticsKind($field->type);
         $answered = $acc['answered'];
@@ -214,17 +214,17 @@ class FormAnalyticsService
             $result['max'] = $acc['max'];
             $result['distribution'] = $this->buildDistribution($field, $acc['counts']);
         } else {
-            $result['latest'] = $field->type === FormField::TYPE_FILE ? [] : array_reverse($acc['samples']);
+            $result['latest'] = $field->type === CustomField::TYPE_FILE ? [] : array_reverse($acc['samples']);
         }
 
         return $result;
     }
 
-    private function buildOptionRows(FormField $field, array $counts, int $answered): array
+    private function buildOptionRows(CustomField $field, array $counts, int $answered): array
     {
         $rows = [];
 
-        if (in_array($field->type, [FormField::TYPE_CHECKBOX, FormField::TYPE_SWITCH], true)) {
+        if (in_array($field->type, [CustomField::TYPE_CHECKBOX, CustomField::TYPE_SWITCH], true)) {
             $definedOptions = collect([
                 ['value' => 'Yes', 'label' => 'Yes'],
                 ['value' => 'No', 'label' => 'No'],
@@ -266,11 +266,11 @@ class FormAnalyticsService
         ];
     }
 
-    private function buildDistribution(FormField $field, array $counts): array
+    private function buildDistribution(CustomField $field, array $counts): array
     {
-        if (in_array($field->type, [FormField::TYPE_RATING, FormField::TYPE_LINEAR_SCALE], true)) {
-            $min = $field->type === FormField::TYPE_RATING ? 1 : (int) ($field->validation['min'] ?? 1);
-            $max = $field->type === FormField::TYPE_RATING
+        if (in_array($field->type, [CustomField::TYPE_RATING, CustomField::TYPE_LINEAR_SCALE], true)) {
+            $min = $field->type === CustomField::TYPE_RATING ? 1 : (int) ($field->validation['min'] ?? 1);
+            $max = $field->type === CustomField::TYPE_RATING
                 ? (int) ($field->settings['max'] ?? 5)
                 : (int) ($field->validation['max'] ?? 5);
 

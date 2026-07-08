@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use App\Support\FormFieldTypes;
@@ -187,7 +187,10 @@ class ExampleFormsSeeder extends Seeder
 
             if ($form->wasRecentlyCreated) {
                 foreach (array_values($definition['fields']) as $index => $field) {
-                    $form->fields()->create($field + ['order_column' => $index + 1]);
+                    $form->fields()->create($field + [
+                        'context' => CustomField::CONTEXT_FORM,
+                        'order_column' => $index + 1,
+                    ]);
                 }
             }
 
@@ -223,7 +226,7 @@ class ExampleFormsSeeder extends Seeder
             $data = [];
 
             foreach ($form->fields as $field) {
-                if ($field->type === FormField::TYPE_SECTION) {
+                if ($field->type === CustomField::TYPE_SECTION) {
                     continue;
                 }
 
@@ -303,52 +306,52 @@ class ExampleFormsSeeder extends Seeder
     /**
      * @param  array<string, string>  $persona
      */
-    private function makeValue(FormField $field, array $persona): mixed
+    private function makeValue(CustomField $field, array $persona): mixed
     {
         $validation = $field->validation ?? [];
         $optionValues = FormFieldTypes::optionValues($field);
         $label = strtolower($field->label);
 
         return match ($field->type) {
-            FormField::TYPE_TEXT => $this->makeText($field, $persona),
-            FormField::TYPE_TEXTAREA => $this->pickFrom(
+            CustomField::TYPE_TEXT => $this->makeText($field, $persona),
+            CustomField::TYPE_TEXTAREA => $this->pickFrom(
                 self::FREE_TEXT[$field->label] ?? self::FALLBACK_LONG
             ),
-            FormField::TYPE_RICH_TEXT => $this->pickFrom(
+            CustomField::TYPE_RICH_TEXT => $this->pickFrom(
                 self::FREE_TEXT[$field->label] ?? self::FALLBACK_RICH
             ),
-            FormField::TYPE_EMAIL => str_contains($label, 'work') ? $persona['company_email'] : $persona['email'],
-            FormField::TYPE_PHONE => $persona['phone'],
-            FormField::TYPE_URL => $this->makeUrl($field, $persona),
-            FormField::TYPE_DATE => now()->addDays(mt_rand(3, 60))->format('Y-m-d'),
-            FormField::TYPE_TIME => sprintf('%02d:%02d', mt_rand(8, 20), [0, 15, 30, 45][mt_rand(0, 3)]),
-            FormField::TYPE_DATETIME => now()->addDays(mt_rand(3, 30))->setTime(mt_rand(9, 17), [0, 30][mt_rand(0, 1)])->format('Y-m-d H:i'),
-            FormField::TYPE_DATE_RANGE => $this->makeDateRange(),
-            FormField::TYPE_SELECT, FormField::TYPE_RADIO => $optionValues
+            CustomField::TYPE_EMAIL => str_contains($label, 'work') ? $persona['company_email'] : $persona['email'],
+            CustomField::TYPE_PHONE => $persona['phone'],
+            CustomField::TYPE_URL => $this->makeUrl($field, $persona),
+            CustomField::TYPE_DATE => now()->addDays(mt_rand(3, 60))->format('Y-m-d'),
+            CustomField::TYPE_TIME => sprintf('%02d:%02d', mt_rand(8, 20), [0, 15, 30, 45][mt_rand(0, 3)]),
+            CustomField::TYPE_DATETIME => now()->addDays(mt_rand(3, 30))->setTime(mt_rand(9, 17), [0, 30][mt_rand(0, 1)])->format('Y-m-d H:i'),
+            CustomField::TYPE_DATE_RANGE => $this->makeDateRange(),
+            CustomField::TYPE_SELECT, CustomField::TYPE_RADIO => $optionValues
                 ? $optionValues[$this->weightedIndex(count($optionValues))]
                 : null,
-            FormField::TYPE_MULTI_SELECT, FormField::TYPE_CHECKBOX_GROUP => $this->pickMany(
+            CustomField::TYPE_MULTI_SELECT, CustomField::TYPE_CHECKBOX_GROUP => $this->pickMany(
                 $optionValues,
                 min((int) ($validation['max_selections'] ?? 3), 3)
             ),
-            FormField::TYPE_TAGS => $this->pickMany(
+            CustomField::TYPE_TAGS => $this->pickMany(
                 self::SKILLS,
                 min((int) ($validation['max_selections'] ?? 4), 5)
             ),
-            FormField::TYPE_CHECKBOX => mt_rand(1, 100) <= 85,
-            FormField::TYPE_SWITCH => mt_rand(1, 100) <= 60,
-            FormField::TYPE_FILE => null,
-            FormField::TYPE_RATING => $this->weightedPick([1 => 2, 2 => 4, 3 => 12, 4 => 36, 5 => 46]),
-            FormField::TYPE_LINEAR_SCALE => $this->makeScaleValue(
+            CustomField::TYPE_CHECKBOX => mt_rand(1, 100) <= 85,
+            CustomField::TYPE_SWITCH => mt_rand(1, 100) <= 60,
+            CustomField::TYPE_FILE => null,
+            CustomField::TYPE_RATING => $this->weightedPick([1 => 2, 2 => 4, 3 => 12, 4 => 36, 5 => 46]),
+            CustomField::TYPE_LINEAR_SCALE => $this->makeScaleValue(
                 (int) ($validation['min'] ?? 1),
                 (int) ($validation['max'] ?? 5)
             ),
-            FormField::TYPE_SLIDER => $this->makeSliderValue($field),
-            FormField::TYPE_NUMBER => mt_rand((int) ($validation['min'] ?? 1), (int) ($validation['max'] ?? 100)),
-            FormField::TYPE_COLOR => fake()->randomElement([
+            CustomField::TYPE_SLIDER => $this->makeSliderValue($field),
+            CustomField::TYPE_NUMBER => mt_rand((int) ($validation['min'] ?? 1), (int) ($validation['max'] ?? 100)),
+            CustomField::TYPE_COLOR => fake()->randomElement([
                 '#2563eb', '#16a34a', '#db2777', '#f59e0b', '#7c3aed', '#0f172a', '#dc2626',
             ]),
-            FormField::TYPE_COUNTRY => $persona['country'],
+            CustomField::TYPE_COUNTRY => $persona['country'],
             default => null,
         };
     }
@@ -356,7 +359,7 @@ class ExampleFormsSeeder extends Seeder
     /**
      * @param  array<string, string>  $persona
      */
-    private function makeText(FormField $field, array $persona): string
+    private function makeText(CustomField $field, array $persona): string
     {
         $label = strtolower($field->label);
 
@@ -374,7 +377,7 @@ class ExampleFormsSeeder extends Seeder
     /**
      * @param  array<string, string>  $persona
      */
-    private function makeUrl(FormField $field, array $persona): string
+    private function makeUrl(CustomField $field, array $persona): string
     {
         $label = strtolower($field->label);
 
@@ -427,7 +430,7 @@ class ExampleFormsSeeder extends Seeder
         return max($min, min($max, $skewed));
     }
 
-    private function makeSliderValue(FormField $field): int
+    private function makeSliderValue(CustomField $field): int
     {
         $min = (int) ($field->validation['min'] ?? 0);
         $max = (int) ($field->validation['max'] ?? 100);

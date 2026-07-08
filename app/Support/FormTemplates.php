@@ -7,7 +7,7 @@ class FormTemplates
     /**
      * Ready-to-use form definitions shared by the create-from-template
      * endpoint and ExampleFormsSeeder. Each entry: title, description,
-     * settings, fields (FormField attribute arrays, in display order).
+     * settings, fields (CustomField attribute arrays, in display order).
      *
      * @return array<string, array{title: string, description: string, settings: array, fields: array}>
      */

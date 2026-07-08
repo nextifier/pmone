@@ -33,7 +33,7 @@ class EventDocumentController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $query = $event->eventDocuments()->with('media');
+        $query = $event->eventDocuments()->with(['media', 'fields']);
 
         if ($request->has('filter.search')) {
             $search = $request->input('filter.search');
@@ -58,10 +58,14 @@ class EventDocumentController extends Controller
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
 
-        $document = $event->eventDocuments()->create($request->validated());
+        $data = $request->validated();
+        // document_type is a legacy marker; multi-field documents default to 'custom'.
+        $data['document_type'] ??= 'custom';
+
+        $document = $event->eventDocuments()->create($data);
 
         $this->handleTemporaryUploads($request, $document);
-        $document->load('media');
+        $document->load(['media', 'fields']);
 
         return response()->json([
             'message' => 'Document created successfully',
@@ -73,7 +77,7 @@ class EventDocumentController extends Controller
     {
         $project = $this->resolveProject($username);
         $event = $this->resolveEvent($project, $eventSlug);
-        $document = $event->eventDocuments()->with('media')->where('ulid', $ulid)->firstOrFail();
+        $document = $event->eventDocuments()->with(['media', 'fields'])->where('ulid', $ulid)->firstOrFail();
 
         return response()->json([
             'data' => new EventDocumentResource($document),
@@ -95,7 +99,7 @@ class EventDocumentController extends Controller
         }
 
         $this->handleTemporaryUploads($request, $document);
-        $document->load('media');
+        $document->load(['media', 'fields']);
 
         return response()->json([
             'message' => 'Document updated successfully',

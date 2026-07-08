@@ -18,9 +18,9 @@
     <!-- Fields (only when opted in) -->
     <template v-else-if="optIn">
       <div v-if="fields.length" class="mt-5 space-y-6 border-t pt-5">
-        <PublicFieldRenderer
-          v-for="(field, index) in rendererFields"
-          :key="field.ulid"
+        <CustomFieldRenderer
+          v-for="(field, index) in fields"
+          :key="field.id"
           :field="field"
           :is-first="index === 0"
           :model-value="responses[field.id]"
@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import PublicFieldRenderer from "@/components/form-builder/PublicFieldRenderer.vue";
+import { CustomFieldRenderer, normalizeStoredValue } from "@/components/ui/custom-field";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -67,18 +67,6 @@ const fields = ref([]);
 const responses = reactive({});
 const optIn = ref(false);
 
-/**
- * PublicFieldRenderer keys fields by `ulid` and reads `validation.required`.
- * The BM endpoint returns flat fields, so adapt them to that shape.
- */
-const rendererFields = computed(() =>
-  fields.value.map((field) => ({
-    ...field,
-    ulid: field.ulid || `bm-field-${field.id}`,
-    validation: { ...(field.validation || {}), required: field.required },
-  }))
-);
-
 const fetchFields = async () => {
   pending.value = true;
   try {
@@ -86,24 +74,18 @@ const fetchFields = async () => {
     const data = response?.data || {};
     fields.value = data.fields || [];
     optIn.value = !!data.opt_in;
+    const byId = new Map(fields.value.map((field) => [String(field.id), field]));
     Object.keys(responses).forEach((key) => delete responses[key]);
     Object.entries(data.responses || {}).forEach(([fieldId, value]) => {
-      responses[fieldId] = normalizeResponse(value);
+      const field = byId.get(String(fieldId));
+      // Stored answers are [value]-wrapped; unwrap per the field's type.
+      responses[fieldId] = field ? normalizeStoredValue(field, value) : value;
     });
   } catch (err) {
     console.error("Failed to load business matching fields:", err);
   } finally {
     pending.value = false;
   }
-};
-
-/**
- * Stored responses are persisted as arrays. Multi-value field types keep the
- * array; single-value types take the first element.
- */
-const normalizeResponse = (value) => {
-  if (!Array.isArray(value)) return value;
-  return value.length <= 1 ? (value[0] ?? null) : value;
 };
 
 const save = async () => {

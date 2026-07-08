@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\User;
 use App\Support\FormFieldTypes;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,7 +60,7 @@ it('requires options for choice types', function () {
 });
 
 it('updates a field', function () {
-    $field = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
     $this->putJson("/api/forms/{$this->form->slug}/fields/{$field->ulid}", [
         'label' => 'Updated Label',
@@ -73,17 +73,17 @@ it('updates a field', function () {
 });
 
 it('deletes a field', function () {
-    $field = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
     $this->deleteJson("/api/forms/{$this->form->slug}/fields/{$field->ulid}")->assertSuccessful();
 
-    expect(FormField::find($field->id))->toBeNull();
+    expect(CustomField::find($field->id))->toBeNull();
 });
 
 it('persists reordered fields', function () {
-    $first = FormField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'First']);
-    $second = FormField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Second']);
-    $third = FormField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Third']);
+    $first = CustomField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'First']);
+    $second = CustomField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Second']);
+    $third = CustomField::factory()->type('text')->create(['form_id' => $this->form->id, 'label' => 'Third']);
 
     $this->putJson("/api/forms/{$this->form->slug}/fields/reorder", [
         'orders' => [
@@ -118,11 +118,11 @@ it('rejects invalid url parameter keys', function () {
 
 it('rejects reordering fields of another form', function () {
     $otherForm = Form::factory()->create();
-    $foreignField = FormField::factory()->type('text')->create(['form_id' => $otherForm->id]);
+    $foreignField = CustomField::factory()->type('text')->create(['form_id' => $otherForm->id]);
 
     $this->putJson("/api/forms/{$this->form->slug}/fields/reorder", [
         'orders' => [['id' => $foreignField->id, 'order' => 99]],
-    ])->assertSuccessful();
+    ])->assertUnprocessable();
 
     expect($foreignField->fresh()->order_column)->not->toBe(99);
 });

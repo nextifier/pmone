@@ -7,6 +7,7 @@ use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
 use App\Http\Resources\FormIndexResource;
 use App\Http\Resources\FormResource;
+use App\Models\CustomField;
 use App\Models\Form;
 use App\Models\ShortLink;
 use App\Services\FormAnalyticsService;
@@ -72,7 +73,10 @@ class FormController extends Controller
 
         if (($templateKey = $request->input('template')) && ($template = FormTemplates::get($templateKey))) {
             foreach (array_values($template['fields']) as $index => $field) {
-                $form->fields()->create($field + ['order_column' => $index + 1]);
+                $form->fields()->create($field + [
+                    'context' => CustomField::CONTEXT_FORM,
+                    'order_column' => $index + 1,
+                ]);
             }
         }
 
@@ -154,9 +158,9 @@ class FormController extends Controller
         $copy->save();
 
         foreach ($form->fields as $field) {
-            $newField = $field->replicate(['ulid']);
+            $newField = $field->replicate(['ulid', 'legacy_id']);
             $newField->ulid = null;
-            $newField->form_id = $copy->id;
+            $newField->fieldable_id = $copy->id;
             $newField->save();
         }
 

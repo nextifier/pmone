@@ -11,7 +11,7 @@
     <div
       class="rounded-md border border-dashed p-4 transition-colors"
       :class="isDragging ? 'border-primary bg-primary/5' : 'border-border'"
-      @dragover.prevent="!preview && (isDragging = true)"
+      @dragover.prevent="canUpload && (isDragging = true)"
       @dragleave.prevent="isDragging = false"
       @drop.prevent="handleDrop"
     >
@@ -20,7 +20,7 @@
           type="button"
           variant="outline"
           size="sm"
-          :disabled="preview || uploadingFile || maxFilesReached"
+          :disabled="!canUpload || uploadingFile || maxFilesReached"
           @click="fileInputRef?.click()"
         >
           <Spinner v-if="uploadingFile" class="size-4" />
@@ -65,18 +65,23 @@
     <p v-if="fileConstraintText" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
       {{ fileConstraintText }}
     </p>
-    <p v-if="fileError" class="text-destructive text-sm tracking-tight">{{ fileError }}</p>
+    <FieldError :errors="fileError ? [fileError] : []" />
   </div>
 </template>
 
 <script setup>
-import { Button } from "@/components/ui/button";
+import { computed, ref } from "vue";
+import { Button } from "../button";
+import { FieldError } from "../field";
 
 const props = defineProps({
   field: { type: Object, required: true },
   modelValue: { default: null },
-  formSlug: { type: String, default: null },
-  preview: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
+  // async (file, onProgress) => { folder, name?, size? }
+  uploadHandler: { type: Function, default: null },
+  // async (folder) => void
+  revertHandler: { type: Function, default: null },
 });
 
 const emit = defineEmits(["update:modelValue", "uploading"]);
@@ -85,6 +90,9 @@ const fileInputRef = ref(null);
 const uploadingFile = ref(false);
 const fileError = ref(null);
 const uploadedFiles = ref([]);
+
+// No handler (preview / render mode) disables the whole control.
+const canUpload = computed(() => !props.disabled && typeof props.uploadHandler === "function");
 
 const isMultipleFile = computed(() => !!props.field.settings?.multiple);
 const maxFiles = computed(() => Number(props.field.validation?.max_files) || 5);
@@ -129,7 +137,7 @@ const uploadingName = ref(null);
 
 const handleDrop = (event) => {
   isDragging.value = false;
-  if (props.preview) return;
+  if (!canUpload.value) return;
   processFiles(Array.from(event.dataTransfer?.files || []));
 };
 
@@ -140,7 +148,7 @@ const handleFileSelect = (event) => {
 };
 
 const processFiles = async (files) => {
-  if (!files.length || !props.formSlug || props.preview) return;
+  if (!files.length || !canUpload.value) return;
 
   fileError.value = null;
 
@@ -165,37 +173,6 @@ const processFiles = async (files) => {
   }
 };
 
-// XMLHttpRequest instead of $fetch so we can report upload progress
-const xhrUpload = (url, formData, onProgress) =>
-  new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", url);
-
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        onProgress(Math.round((event.loaded / event.total) * 100));
-      }
-    };
-
-    xhr.onload = () => {
-      let data = null;
-      try {
-        data = JSON.parse(xhr.responseText);
-      } catch {
-        data = null;
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(data);
-      } else {
-        reject({ data });
-      }
-    };
-
-    xhr.onerror = () => reject(new Error("Upload failed"));
-    xhr.send(formData);
-  });
-
 const uploadFile = async (file) => {
   uploadingFile.value = true;
   uploadProgress.value = 0;
@@ -203,25 +180,20 @@ const uploadFile = async (file) => {
   emit("uploading", true);
 
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("field", props.field.ulid);
-
-    const apiUrl = useRuntimeConfig().public.apiUrl;
-    const response = await xhrUpload(
-      `${apiUrl}/api/public/forms/${props.formSlug}/upload`,
-      formData,
-      (progress) => {
-        uploadProgress.value = progress;
-      }
-    );
+    const response = await props.uploadHandler(file, (progress) => {
+      uploadProgress.value = progress;
+    });
 
     if (!isMultipleFile.value && uploadedFiles.value.length) {
       await revertFolder(uploadedFiles.value[0].folder);
       uploadedFiles.value = [];
     }
 
-    uploadedFiles.value.push({ folder: response.folder, name: file.name, size: file.size });
+    uploadedFiles.value.push({
+      folder: response.folder,
+      name: response.name ?? file.name,
+      size: response.size ?? file.size,
+    });
     syncFileModel();
   } catch (e) {
     fileError.value =
@@ -240,12 +212,9 @@ const removeFile = async (file) => {
 };
 
 const revertFolder = async (folder) => {
+  if (typeof props.revertHandler !== "function") return;
   try {
-    const apiUrl = useRuntimeConfig().public.apiUrl;
-    await $fetch(`${apiUrl}/api/public/forms/${props.formSlug}/upload`, {
-      method: "DELETE",
-      body: folder,
-    });
+    await props.revertHandler(folder);
   } catch {
     // Temp uploads are cleaned up server-side eventually; ignore revert errors.
   }

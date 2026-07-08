@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,11 +29,11 @@ beforeEach(function () {
 });
 
 it('duplicates a form with its fields as a fresh draft', function () {
-    $select = FormField::factory()->type('select')->create([
+    $select = CustomField::factory()->type('select')->create([
         'form_id' => $this->form->id,
         'label' => 'Ticket',
     ]);
-    $text = FormField::factory()->type('text')->create([
+    $text = CustomField::factory()->type('text')->create([
         'form_id' => $this->form->id,
         'label' => 'Name',
         'validation' => ['required' => true, 'max' => 100],

@@ -59,7 +59,7 @@ use Spatie\Translatable\HasTranslations;
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ContactFormSubmission> $contactFormSubmissions
  * @property-read int|null $contact_form_submissions_count
  * @property-read User|null $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, ProjectCustomField> $customFields
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, CustomField> $customFields
  * @property-read int|null $custom_fields_count
  * @property-read User|null $deleter
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Event> $events
@@ -480,9 +480,11 @@ class Project extends Model implements HasMedia, Sortable
         return $this->hasMany(Event::class)->ordered();
     }
 
-    public function customFields(): HasMany
+    public function customFields(): MorphMany
     {
-        return $this->hasMany(ProjectCustomField::class)->ordered();
+        return $this->morphMany(CustomField::class, 'fieldable')
+            ->where('context', CustomField::CONTEXT_BRAND)
+            ->ordered();
     }
 
     public function banners(): HasMany

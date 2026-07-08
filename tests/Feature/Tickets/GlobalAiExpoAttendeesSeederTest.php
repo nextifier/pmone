@@ -1,11 +1,11 @@
 <?php
 
 use App\Models\Attendee;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\EventDay;
 use App\Models\ExhibitorLead;
-use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
@@ -47,10 +47,10 @@ it('seeds a rich, varied demo dataset', function () {
 
     $this->seed(GlobalAiExpoAttendeesSeeder::class);
 
-    expect(EventCustomField::where('event_id', $event->id)->where('settings->seeded', true)->count())->toBe(13)
+    expect(CustomField::where('fieldable_type', Event::class)->where('fieldable_id', $event->id)->where('settings->seeded', true)->count())->toBe(13)
         ->and(TicketOrder::where('event_id', $event->id)->count())->toBe(110)
         ->and(Attendee::forEvent($event->id)->count())->toBeGreaterThan(100)
-        ->and(FieldResponse::query()->count())->toBeGreaterThan(0)
+        ->and(CustomFieldValue::query()->count())->toBeGreaterThan(0)
         ->and(ExhibitorLead::where('event_id', $event->id)->count())->toBeGreaterThan(0)
         ->and(User::where('email', 'like', '%@gae-demo.test')->count())->toBe(110);
 
@@ -72,7 +72,7 @@ it('is idempotent and never touches real public data', function () {
     $this->seed(GlobalAiExpoAttendeesSeeder::class);
     $this->seed(GlobalAiExpoAttendeesSeeder::class);
 
-    expect(EventCustomField::where('event_id', $event->id)->where('settings->seeded', true)->count())->toBe(13)
+    expect(CustomField::where('fieldable_type', Event::class)->where('fieldable_id', $event->id)->where('settings->seeded', true)->count())->toBe(13)
         ->and(User::where('email', 'like', '%@gae-demo.test')->count())->toBe(110)
         ->and(TicketOrder::where('event_id', $event->id)->where('batch_label', 'Seeder: Global AI Expo Demo')->count())->toBe(110)
         ->and(TicketOrder::query()->whereKey($real->id)->exists())->toBeTrue();

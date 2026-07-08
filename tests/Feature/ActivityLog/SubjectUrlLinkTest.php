@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\LogController;
 use App\Models\ApiConsumer;
+use App\Models\CustomField;
 use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventProductCategory;
@@ -16,7 +17,6 @@ use App\Models\PartnerCategory;
 use App\Models\Program;
 use App\Models\Project;
 use App\Models\ProjectBanner;
-use App\Models\ProjectCustomField;
 use App\Models\RundownItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,13 +76,14 @@ it('links a logged subject to the correct admin page', function (Closure $make, 
         fn ($t) => ProjectBanner::factory()->create(['project_id' => $t->project->id]),
         '/projects/acme/content/banners',
     ],
-    'ProjectCustomField -> project settings brand-fields' => [
-        fn ($t) => ProjectCustomField::create([
-            'project_id' => $t->project->id,
-            'label' => 'Phone',
-            'key' => 'phone',
-            'type' => 'text',
-        ]),
+    'CustomField (brand) -> project settings brand-fields' => [
+        fn ($t) => tap(
+            CustomField::factory()->brand($t->project)->create([
+                'label' => ['en' => 'Phone'],
+                'key' => 'phone',
+            ]),
+            fn ($field) => activity()->performedOn($field)->causedBy($t->user)->event('created')->log('created'),
+        ),
         '/projects/acme/settings/brand-fields',
     ],
     'Faq -> event content faq tab' => [
@@ -145,21 +146,29 @@ it('injects project_id so event-scoped models surface in the per-project feed', 
     expect($activity->properties['project_id'] ?? null)->toBe($this->project->id);
 });
 
-it('injects project_id for project-scoped custom fields', function () {
-    $field = ProjectCustomField::create([
-        'project_id' => $this->project->id,
-        'label' => 'Phone',
-        'key' => 'phone',
-        'type' => 'text',
+it('resolves legacy ProjectCustomField activity rows without crashing', function () {
+    // Rows written before the centralized custom-fields migration keep the
+    // retired FQCN and an id that no longer matches custom_fields; the link
+    // must still build from the project_id stored in properties.
+    $activity = Activity::query()->create([
+        'log_name' => 'default',
+        'description' => 'updated',
+        'event' => 'updated',
+        'subject_type' => 'App\\Models\\ProjectCustomField',
+        'subject_id' => 999999,
+        'causer_type' => $this->user->getMorphClass(),
+        'causer_id' => $this->user->id,
+        'properties' => [
+            'project_id' => $this->project->id,
+            'attributes' => ['label' => 'Phone'],
+        ],
     ]);
 
-    $activity = Activity::query()
-        ->where('subject_type', $field->getMorphClass())
-        ->where('subject_id', $field->id)
-        ->where('event', 'created')
-        ->firstOrFail();
+    $loaded = LogController::eagerLoadActivity(Activity::query()->whereKey($activity->id))->firstOrFail();
+    $formatted = LogController::formatActivity($loaded);
 
-    expect($activity->properties['project_id'] ?? null)->toBe($this->project->id);
+    expect($formatted['subject_url'])->toBe('/projects/acme/settings/brand-fields')
+        ->and($formatted['subject_name'])->toBe('Phone');
 });
 
 it('injects a projects own id so it appears in its own activity feed', function () {

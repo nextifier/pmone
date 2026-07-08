@@ -30,6 +30,7 @@ class EventAttendeeController extends Controller
     private const WITH = [
         'ticket',
         'checkedInBy',
+        'customFieldValues.customField',
         'ticketOrderItem.selectedEventDay',
         'ticketOrderItem.ticketSession',
         'ticketOrderItem.ticketOrder.paymentGateway',

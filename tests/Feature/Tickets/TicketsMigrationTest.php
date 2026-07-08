@@ -2,11 +2,11 @@
 
 use App\Models\Attendee;
 use App\Models\Brand;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\EventDay;
 use App\Models\ExhibitorLead;
-use App\Models\FieldResponse;
 use App\Models\Ticket;
 use App\Models\TicketOrderItem;
 use App\Models\User;
@@ -60,8 +60,8 @@ it('enforces unique exhibitor lead per brand and attendee', function () {
 
 it('enforces unique field response per user and custom field', function () {
     $user = User::factory()->create();
-    $field = EventCustomField::factory()->create();
+    $field = CustomField::factory()->create();
 
-    FieldResponse::create(['user_id' => $user->id, 'event_custom_field_id' => $field->id, 'value' => ['a']]);
-    FieldResponse::create(['user_id' => $user->id, 'event_custom_field_id' => $field->id, 'value' => ['b']]);
+    CustomFieldValue::create(['subject_type' => User::class, 'subject_id' => $user->id, 'custom_field_id' => $field->id, 'value' => ['a']]);
+    CustomFieldValue::create(['subject_type' => User::class, 'subject_id' => $user->id, 'custom_field_id' => $field->id, 'value' => ['b']]);
 })->throws(QueryException::class);

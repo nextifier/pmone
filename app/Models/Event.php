@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Number;
@@ -656,18 +657,27 @@ class Event extends Model implements HasMedia, Sortable
         return $this->hasMany(AccessCodeBatch::class);
     }
 
-    public function eventCustomFields(): HasMany
+    public function eventCustomFields(): MorphMany
     {
-        return $this->hasMany(EventCustomField::class)->ordered();
+        return $this->morphMany(CustomField::class, 'fieldable')
+            ->where('context', CustomField::CONTEXT_BUSINESS_MATCHING)
+            ->ordered();
     }
 
     /**
-     * Alias of {@see eventCustomFields()} so scoped route-model binding can
-     * resolve `{customField}` against this relation.
+     * Alias of {@see eventCustomFields()} kept for its many call sites.
      */
-    public function customFields(): HasMany
+    public function customFields(): MorphMany
     {
-        return $this->hasMany(EventCustomField::class);
+        return $this->morphMany(CustomField::class, 'fieldable')
+            ->where('context', CustomField::CONTEXT_BUSINESS_MATCHING);
+    }
+
+    public function registrationFields(): MorphMany
+    {
+        return $this->morphMany(CustomField::class, 'fieldable')
+            ->where('context', CustomField::CONTEXT_TICKET_REGISTRATION)
+            ->ordered();
     }
 
     public function ticketOrders(): HasMany

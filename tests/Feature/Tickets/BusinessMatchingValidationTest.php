@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\ApiConsumer;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
-use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +38,7 @@ function postBmOrder(array $businessMatching): TestResponse
 }
 
 it('rejects an order when a required business-matching field is empty', function () {
-    $field = EventCustomField::factory()->create([
+    $field = CustomField::factory()->create([
         'event_id' => $this->event->id,
         'type' => 'text',
         'required' => true,
@@ -51,7 +51,7 @@ it('rejects an order when a required business-matching field is empty', function
 });
 
 it('rejects a malformed date value', function () {
-    $field = EventCustomField::factory()->create([
+    $field = CustomField::factory()->create([
         'event_id' => $this->event->id,
         'type' => 'date',
         'required' => false,
@@ -66,7 +66,7 @@ it('rejects a malformed date value', function () {
 });
 
 it('rejects a select value outside the configured options', function () {
-    $field = EventCustomField::factory()->create([
+    $field = CustomField::factory()->create([
         'event_id' => $this->event->id,
         'type' => 'select',
         'options' => ['Tech', 'Sales'],
@@ -82,7 +82,7 @@ it('rejects a select value outside the configured options', function () {
 });
 
 it('does not enforce required fields when the buyer opted out', function () {
-    EventCustomField::factory()->create([
+    CustomField::factory()->create([
         'event_id' => $this->event->id,
         'type' => 'text',
         'required' => true,
@@ -91,17 +91,17 @@ it('does not enforce required fields when the buyer opted out', function () {
 
     postBmOrder(['opt_in' => false, 'responses' => []])->assertCreated();
 
-    expect(FieldResponse::count())->toBe(0);
+    expect(CustomFieldValue::count())->toBe(0);
 });
 
 it('accepts and stores valid typed business-matching answers', function () {
-    $text = EventCustomField::factory()->create([
+    $text = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'text', 'required' => true, 'is_active' => true,
     ]);
-    $date = EventCustomField::factory()->create([
+    $date = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'date', 'required' => false, 'is_active' => true,
     ]);
-    $select = EventCustomField::factory()->create([
+    $select = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'select', 'options' => ['Tech', 'Sales'], 'is_active' => true,
     ]);
 
@@ -113,12 +113,12 @@ it('accepts and stores valid typed business-matching answers', function () {
 
     $buyer = User::where('email', 'buyer@example.com')->first();
     expect($buyer->business_matching_opt_in)->toBeTrue()
-        ->and(FieldResponse::where('user_id', $buyer->id)->count())->toBe(3)
-        ->and(FieldResponse::where('event_custom_field_id', $date->id)->first()->value)->toBe(['2026-02-03']);
+        ->and(CustomFieldValue::where('subject_type', User::class)->where('subject_id', $buyer->id)->count())->toBe(3)
+        ->and(CustomFieldValue::where('custom_field_id', $date->id)->first()->value)->toBe(['2026-02-03']);
 });
 
 it('enforces required business-matching fields on the attendee dashboard', function () {
-    $field = EventCustomField::factory()->create([
+    $field = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'text', 'required' => true, 'is_active' => true,
     ]);
     $user = User::factory()->create(['email_verified_at' => now()]);

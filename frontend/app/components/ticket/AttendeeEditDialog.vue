@@ -73,6 +73,19 @@
             </div>
           </div>
 
+          <div v-if="registrationFields.length" class="space-y-4 border-t pt-4">
+            <h3 class="text-muted-foreground text-sm font-semibold tracking-tighter">
+              Registration answers
+            </h3>
+            <CustomFieldGroup
+              :fields="registrationFields"
+              v-model="registrationValues"
+              value-key="ulid"
+              :errors="errors"
+              error-prefix="registration."
+            />
+          </div>
+
           <div class="flex justify-end gap-2 border-t pt-4">
             <Button type="button" variant="outline" :disabled="saving" @click="openModel = false">
               Cancel
@@ -97,6 +110,7 @@ import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { CustomFieldGroup } from "@/components/ui/custom-field";
 import { computed, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
@@ -119,6 +133,12 @@ const validDays = ref([]);
 const sessions = ref([]);
 const errors = ref({});
 const saving = ref(false);
+
+// Ticket-registration answers (the same fields shown at checkout / on ticket
+// links). Fetched once per dialog mount; values seed from the attendee.
+const registrationFields = ref([]);
+const registrationValues = ref({});
+const registrationLoaded = ref(false);
 
 const form = reactive({
   name: "",
@@ -145,9 +165,22 @@ watch(
       ticket_session_id: props.attendee.session?.id ?? null,
       checked_in: !!props.attendee.is_checked_in,
     });
-    await loadTicket();
+    registrationValues.value = { ...(props.attendee.registration_answers ?? {}) };
+    await Promise.all([loadTicket(), loadRegistrationFields()]);
   }
 );
+
+async function loadRegistrationFields() {
+  if (registrationLoaded.value) return;
+  try {
+    const res = await client(`/api/events/${props.event.id}/custom-fields?context=ticket_registration`);
+    registrationFields.value = (res?.data ?? []).filter((f) => f.is_active !== false);
+    registrationLoaded.value = true;
+  } catch {
+    // 404 TICKETS_DISABLED (or any error) simply hides the section.
+    registrationFields.value = [];
+  }
+}
 
 async function loadTicket() {
   validDays.value = [];
@@ -188,6 +221,7 @@ async function save() {
   };
   if (needsDay.value) body.selected_event_day_id = form.selected_event_day_id;
   if (hasSessions.value) body.ticket_session_id = form.ticket_session_id;
+  if (registrationFields.value.length) body.registration = registrationValues.value;
 
   try {
     await client(`/api/events/${props.event.id}/attendees/${props.attendee.id}`, {

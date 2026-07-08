@@ -6,15 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreFormFieldRequest;
 use App\Http\Requests\UpdateFormFieldRequest;
 use App\Http\Resources\FormFieldResource;
+use App\Models\CustomField;
 use App\Models\Form;
+use App\Services\CustomFields\CustomFieldService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\ResponseCache\Facades\ResponseCache;
 
 class FormFieldController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(private readonly CustomFieldService $customFields) {}
 
     public function index(Form $form): JsonResponse
     {
@@ -29,7 +32,7 @@ class FormFieldController extends Controller
     {
         $this->authorize('update', $form);
 
-        $field = $form->fields()->create($request->validated());
+        $field = $this->customFields->create($form, CustomField::CONTEXT_FORM, $request->validated());
 
         return response()->json([
             'message' => 'Field created successfully',
@@ -43,11 +46,11 @@ class FormFieldController extends Controller
 
         $field = $form->fields()->where('ulid', $ulid)->firstOrFail();
 
-        $field->update($request->validated());
+        $this->customFields->update($field, $request->validated());
 
         return response()->json([
             'message' => 'Field updated successfully',
-            'data' => new FormFieldResource($field),
+            'data' => new FormFieldResource($field->fresh()),
         ]);
     }
 
@@ -57,7 +60,7 @@ class FormFieldController extends Controller
 
         $field = $form->fields()->where('ulid', $ulid)->firstOrFail();
 
-        $field->delete();
+        $this->customFields->delete($field);
 
         return response()->json([
             'message' => 'Field deleted successfully',
@@ -70,30 +73,11 @@ class FormFieldController extends Controller
 
         $validated = $request->validate([
             'orders' => ['required', 'array'],
-            'orders.*.id' => ['required', 'integer', 'exists:form_fields,id'],
+            'orders.*.id' => ['required', 'integer', 'exists:custom_fields,id'],
             'orders.*.order' => ['required', 'integer', 'min:1'],
         ]);
 
-        $cases = [];
-        $ids = [];
-        $params = [];
-
-        foreach ($validated['orders'] as $orderData) {
-            $cases[] = 'WHEN id = ? THEN CAST(? AS INTEGER)';
-            $params[] = $orderData['id'];
-            $params[] = $orderData['order'];
-            $ids[] = $orderData['id'];
-        }
-
-        $idsString = implode(',', $ids);
-        $casesString = implode(' ', $cases);
-
-        \DB::statement(
-            "UPDATE form_fields SET order_column = CASE {$casesString} END WHERE id IN ({$idsString}) AND form_id = ?",
-            [...$params, $form->id]
-        );
-
-        ResponseCache::clear(['forms-public']);
+        $this->customFields->reorder($form, CustomField::CONTEXT_FORM, $validated['orders']);
 
         return response()->json([
             'message' => 'Field order updated successfully',

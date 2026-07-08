@@ -2,8 +2,8 @@
 
 namespace App\Exports;
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Support\FormFieldTypes;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,7 +28,7 @@ class FormResponsesExport extends BaseExport
     protected function exportableFields(): Collection
     {
         return $this->form->fields
-            ->reject(fn (FormField $field) => $field->type === FormField::TYPE_SECTION)
+            ->reject(fn (CustomField $field) => $field->type === CustomField::TYPE_SECTION)
             ->sortBy('order_column')
             ->values();
     }

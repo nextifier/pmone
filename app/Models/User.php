@@ -663,9 +663,9 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         return $this->hasMany(Attendee::class, 'claimed_by_user_id');
     }
 
-    public function fieldResponses(): HasMany
+    public function customFieldValues(): MorphMany
     {
-        return $this->hasMany(FieldResponse::class);
+        return $this->morphMany(CustomFieldValue::class, 'subject');
     }
 
     /**

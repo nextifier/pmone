@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -38,7 +38,7 @@ it('uploads a file to temporary storage', function () {
 });
 
 it('rejects files larger than the field limit', function () {
-    $field = FormField::factory()->type('file')->create([
+    $field = CustomField::factory()->type('file')->create([
         'form_id' => $this->form->id,
         'validation' => ['max_file_size' => 100, 'allowed_file_types' => ['pdf']],
     ]);
@@ -48,7 +48,7 @@ it('rejects files larger than the field limit', function () {
 });
 
 it('rejects disallowed file extensions', function () {
-    $field = FormField::factory()->type('file')->create([
+    $field = CustomField::factory()->type('file')->create([
         'form_id' => $this->form->id,
         'validation' => ['max_file_size' => 5120, 'allowed_file_types' => ['pdf']],
     ]);
@@ -58,7 +58,7 @@ it('rejects disallowed file extensions', function () {
 });
 
 it('moves a single uploaded file on submit', function () {
-    $field = FormField::factory()->type('file')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('file')->create(['form_id' => $this->form->id]);
 
     $folder = fb_upload($this, $this->form, UploadedFile::fake()->create('cv.pdf', 100), $field->ulid)
         ->json('folder');
@@ -76,7 +76,7 @@ it('moves a single uploaded file on submit', function () {
 });
 
 it('moves multiple uploaded files on submit', function () {
-    $field = FormField::factory()->type('file')->create([
+    $field = CustomField::factory()->type('file')->create([
         'form_id' => $this->form->id,
         'settings' => ['multiple' => true],
         'validation' => ['max_files' => 3],
@@ -99,7 +99,7 @@ it('moves multiple uploaded files on submit', function () {
 });
 
 it('rejects more folders than max_files allows', function () {
-    $field = FormField::factory()->type('file')->create([
+    $field = CustomField::factory()->type('file')->create([
         'form_id' => $this->form->id,
         'settings' => ['multiple' => true],
         'validation' => ['max_files' => 2],
@@ -127,7 +127,7 @@ it('reverts an uploaded file', function () {
 });
 
 it('rejects uploads for a non-file field ulid', function () {
-    $field = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
     fb_upload($this, $this->form, UploadedFile::fake()->create('cv.pdf', 100), $field->ulid)
         ->assertNotFound();

@@ -8,12 +8,14 @@ use App\Http\Resources\AttendeeResource;
 use App\Http\Resources\EventCustomFieldResource;
 use App\Http\Resources\PublicTicketOrderResource;
 use App\Models\Attendee;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\TicketOrder;
 use App\Models\User;
 use App\Support\BusinessMatchingValidation;
+use App\Support\CustomFieldValidation;
+use App\Support\CustomFieldValues;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -95,6 +97,7 @@ class MyTicketsController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
+            'registration' => ['sometimes', 'array'],
         ]);
 
         $attendee->update([
@@ -104,10 +107,40 @@ class MyTicketsController extends Controller
             'personalized_at' => $attendee->personalized_at ?? now(),
         ]);
 
+        $this->saveRegistrationAnswers($attendee, (array) ($validated['registration'] ?? []));
+
         return response()->json([
             'message' => 'Attendee updated.',
-            'data' => new AttendeeResource($attendee->fresh('ticket')),
+            'data' => new AttendeeResource($attendee->fresh(['ticket', 'customFieldValues.customField'])),
         ]);
+    }
+
+    /**
+     * Persist registration answers for an attendee (partial fills allowed):
+     * only the provided fields are validated, so `required` never blocks a
+     * name-only edit. Values are type-checked against the event's catalog.
+     *
+     * @param  array<string, mixed>  $registration
+     */
+    private function saveRegistrationAnswers(Attendee $attendee, array $registration): void
+    {
+        if ($registration === []) {
+            return;
+        }
+
+        $event = $attendee->ticketOrderItem?->ticketOrder?->event;
+        $fields = $event
+            ? $event->registrationFields()->where('is_active', true)->get()
+            : collect();
+
+        $provided = $fields->filter(fn ($field) => array_key_exists($field->ulid, $registration));
+
+        $errors = CustomFieldValidation::errorsFor($provided, $registration, 'registration');
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        CustomFieldValues::store($attendee, $provided, $registration, 'ulid');
     }
 
     /**
@@ -137,11 +170,12 @@ class MyTicketsController extends Controller
         $fields = $event->business_matching_enabled
             ? $event->eventCustomFields()->where('is_active', true)->orderBy('order_column')->get()
             : collect();
-        $responses = FieldResponse::query()
-            ->where('user_id', $request->user()->id)
-            ->whereIn('event_custom_field_id', $fields->pluck('id'))
+        $responses = CustomFieldValue::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $request->user()->id)
+            ->whereIn('custom_field_id', $fields->pluck('id'))
             ->get()
-            ->keyBy('event_custom_field_id');
+            ->keyBy('custom_field_id');
 
         return response()->json([
             'data' => [
@@ -181,20 +215,20 @@ class MyTicketsController extends Controller
             $user->forceFill(['business_matching_opt_in' => (bool) $validated['opt_in']])->save();
         }
 
-        $fieldIds = $event->business_matching_enabled
-            ? $event->eventCustomFields()->where('is_active', true)->pluck('id')
+        $fields = $event->business_matching_enabled
+            ? $event->eventCustomFields()->where('is_active', true)->get()
             : collect();
+
+        $values = [];
         foreach ($validated['responses'] ?? [] as $resp) {
             $fieldId = (int) $resp['custom_field_id'];
-            if (! $fieldIds->contains($fieldId)) {
-                continue;
+            $field = $fields->first(fn ($f) => $f->id === $fieldId || $f->legacy_id === $fieldId);
+            if ($field !== null) {
+                $values[(string) $field->id] = $resp['value'] ?? null;
             }
-            $value = $resp['value'] ?? null;
-            FieldResponse::query()->updateOrCreate(
-                ['user_id' => $user->id, 'event_custom_field_id' => $fieldId],
-                ['value' => is_array($value) ? $value : [$value]],
-            );
         }
+
+        CustomFieldValues::store($user, $fields, $values, 'id');
 
         return response()->json(['message' => 'Business matching answers saved.']);
     }

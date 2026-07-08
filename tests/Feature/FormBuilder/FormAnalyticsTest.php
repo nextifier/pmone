@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +28,7 @@ beforeEach(function () {
 });
 
 it('returns the full analytics contract', function () {
-    $select = FormField::factory()->type('select')->create([
+    $select = CustomField::factory()->type('select')->create([
         'form_id' => $this->form->id,
         'label' => 'Ticket',
         'options' => [
@@ -36,9 +36,9 @@ it('returns the full analytics contract', function () {
             ['value' => 'regular', 'label' => 'Regular'],
         ],
     ]);
-    $rating = FormField::factory()->type('rating')->create(['form_id' => $this->form->id, 'label' => 'Rating']);
-    $text = FormField::factory()->type('textarea')->create(['form_id' => $this->form->id, 'label' => 'Feedback']);
-    FormField::factory()->type('section')->create(['form_id' => $this->form->id, 'label' => 'Section']);
+    $rating = CustomField::factory()->type('rating')->create(['form_id' => $this->form->id, 'label' => 'Rating']);
+    $text = CustomField::factory()->type('textarea')->create(['form_id' => $this->form->id, 'label' => 'Feedback']);
+    CustomField::factory()->type('section')->create(['form_id' => $this->form->id, 'label' => 'Section']);
 
     FormResponse::factory()->create([
         'form_id' => $this->form->id,
@@ -108,7 +108,7 @@ it('returns the full analytics contract', function () {
 });
 
 it('counts each selection for multi-value fields', function () {
-    $multi = FormField::factory()->type('multi_select')->create([
+    $multi = CustomField::factory()->type('multi_select')->create([
         'form_id' => $this->form->id,
         'options' => [
             ['value' => 'a', 'label' => 'A'],
@@ -133,7 +133,7 @@ it('counts each selection for multi-value fields', function () {
 });
 
 it('aggregates switch fields as yes/no', function () {
-    $switch = FormField::factory()->type('switch')->create(['form_id' => $this->form->id]);
+    $switch = CustomField::factory()->type('switch')->create(['form_id' => $this->form->id]);
 
     FormResponse::factory()->create([
         'form_id' => $this->form->id,
@@ -152,7 +152,7 @@ it('aggregates switch fields as yes/no', function () {
 });
 
 it('caps text samples at five most recent answers', function () {
-    $text = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $text = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
     foreach (range(1, 7) as $i) {
         FormResponse::factory()->create([
@@ -168,7 +168,7 @@ it('caps text samples at five most recent answers', function () {
 });
 
 it('returns empty samples for file fields', function () {
-    $file = FormField::factory()->type('file')->create(['form_id' => $this->form->id]);
+    $file = CustomField::factory()->type('file')->create(['form_id' => $this->form->id]);
 
     FormResponse::factory()->create([
         'form_id' => $this->form->id,

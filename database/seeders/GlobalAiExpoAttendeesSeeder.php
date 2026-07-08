@@ -7,11 +7,11 @@ use App\Enums\Ticketing\TicketOrderStatus;
 use App\Models\Attendee;
 use App\Models\Brand;
 use App\Models\BrandEvent;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\EventDay;
 use App\Models\ExhibitorLead;
-use App\Models\FieldResponse;
 use App\Models\ScanLog;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
@@ -145,13 +145,12 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
             }
 
             // This seeder owns the demo event's Business Matching field set, so
-            // it replaces every custom field (cascade their FieldResponses).
-            EventCustomField::query()
-                ->where('event_id', $event->id)
+            // it replaces every custom field (cascade their stored answers).
+            $event->eventCustomFields()->withTrashed()
                 ->get()
-                ->each(fn (EventCustomField $f) => $f->forceDelete());
+                ->each(fn (CustomField $f) => $f->forceDelete());
 
-            // Seeded buyers (cascade any remaining FieldResponses).
+            // Seeded buyers (cascade any remaining stored answers).
             User::withTrashed()
                 ->where('email', 'like', '%@'.self::EMAIL_DOMAIN)
                 ->get()
@@ -165,7 +164,7 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
     // -- Custom fields (Business Matching) -------------------------------------
 
     /**
-     * @return Collection<string, EventCustomField> keyed by field key
+     * @return Collection<string, CustomField> keyed by field key
      */
     private function seedCustomFields(Event $event): Collection
     {
@@ -173,12 +172,12 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
         $fields = collect();
 
         foreach ($defs as $order => $def) {
-            $fields[$def['key']] = EventCustomField::query()->create([
-                'event_id' => $event->id,
+            $fields[$def['key']] = $event->eventCustomFields()->create([
+                'context' => CustomField::CONTEXT_BUSINESS_MATCHING,
                 'label' => $def['label'],
                 'type' => $def['type'],
                 'options' => $def['options'] ?? null,
-                'required' => false,
+                'validation' => ['required' => false],
                 'is_active' => true,
                 'settings' => ['seeded' => true],
                 'order_column' => $order + 1,
@@ -221,7 +220,7 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
 
     /**
      * @param  Collection<int, Ticket>  $entryTickets
-     * @param  Collection<string, EventCustomField>  $fields
+     * @param  Collection<string, CustomField>  $fields
      * @param  array<string, int>  $stats
      * @return Collection<int, Attendee> confirmed attendees (for lead scanning)
      */
@@ -318,7 +317,7 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
     }
 
     /**
-     * @param  Collection<string, EventCustomField>  $fields
+     * @param  Collection<string, CustomField>  $fields
      */
     private function seedBusinessMatching(User $buyer, Collection $fields): int
     {
@@ -335,9 +334,10 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
                 continue;
             }
 
-            FieldResponse::query()->create([
-                'user_id' => $buyer->id,
-                'event_custom_field_id' => $field->id,
+            CustomFieldValue::query()->create([
+                'subject_type' => User::class,
+                'subject_id' => $buyer->id,
+                'custom_field_id' => $field->id,
                 'value' => is_array($value) ? $value : [$value],
             ]);
             $count++;
@@ -346,7 +346,7 @@ class GlobalAiExpoAttendeesSeeder extends Seeder
         return $count;
     }
 
-    private function bmValue(string $key, EventCustomField $field): mixed
+    private function bmValue(string $key, CustomField $field): mixed
     {
         // Choice answers must come from THIS field's own options (two different
         // select fields exist), not a shared per-type list.

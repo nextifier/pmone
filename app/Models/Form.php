@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -49,7 +50,7 @@ use Spatie\Tags\Tag;
  * @property-read int|null $activities_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
- * @property-read Collection<int, FormField> $fields
+ * @property-read Collection<int, CustomField> $fields
  * @property-read int|null $fields_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
@@ -274,9 +275,11 @@ class Form extends Model implements HasMedia
         return $this->belongsTo(Project::class);
     }
 
-    public function fields(): HasMany
+    public function fields(): MorphMany
     {
-        return $this->hasMany(FormField::class)->orderBy('order_column');
+        return $this->morphMany(CustomField::class, 'fieldable')
+            ->where('context', CustomField::CONTEXT_FORM)
+            ->orderBy('order_column');
     }
 
     public function responses(): HasMany

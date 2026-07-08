@@ -9,35 +9,6 @@
       </p>
     </div>
 
-    <!-- Document Type -->
-    <div class="space-y-2">
-      <Label for="document_type">Type</Label>
-      <Select v-model="form.document_type" required>
-        <SelectTrigger id="document_type" class="w-full">
-          <SelectValue placeholder="Select type" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="checkbox_agreement">Checkbox Agreement</SelectItem>
-          <SelectItem value="file_upload">File Upload</SelectItem>
-          <SelectItem value="text_input">Text Input</SelectItem>
-        </SelectContent>
-      </Select>
-      <p class="text-muted-foreground text-xs">
-        <template v-if="form.document_type === 'checkbox_agreement'">
-          Exhibitors must agree to the content by checking a checkbox.
-        </template>
-        <template v-else-if="form.document_type === 'file_upload'">
-          Exhibitors must upload a file (PDF, image, etc.).
-        </template>
-        <template v-else-if="form.document_type === 'text_input'">
-          Exhibitors must provide a text response.
-        </template>
-      </p>
-      <p v-if="errors.document_type" class="text-destructive mt-1 text-xs">
-        {{ Array.isArray(errors.document_type) ? errors.document_type[0] : errors.document_type }}
-      </p>
-    </div>
-
     <!-- Description -->
     <div class="space-y-2">
       <Label for="description">Description / Content</Label>
@@ -206,6 +177,27 @@
       </div>
     </div>
 
+    <!-- Fields (mini-form) -->
+    <div class="space-y-3 border-t pt-4">
+      <div>
+        <h4 class="text-sm font-semibold tracking-tighter">Fields</h4>
+        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Questions exhibitors answer when submitting this document.
+        </p>
+      </div>
+      <DocumentFieldsBuilder
+        v-if="isEdit && props.document?.ulid"
+        :fields-base="`${props.apiBase}/${props.document.ulid}/fields`"
+        :initial-fields="props.document.fields || []"
+      />
+      <p
+        v-else
+        class="text-muted-foreground rounded-md border border-dashed px-3 py-4 text-sm tracking-tight"
+      >
+        Save the document first, then add its fields.
+      </p>
+    </div>
+
     <!-- Increment Version (edit only) -->
     <div v-if="isEdit" class="space-y-2">
       <div class="flex items-center gap-x-2">
@@ -236,18 +228,12 @@
 <script setup>
 
 import InputFile from "@/components/InputFile.vue";
+import DocumentFieldsBuilder from "@/components/event/DocumentFieldsBuilder.vue";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
@@ -276,7 +262,6 @@ const existingExampleFile = computed(() => props.document?.example_file || null)
 
 const form = reactive({
   title: "",
-  document_type: "checkbox_agreement",
   description: "",
   is_required: true,
   blocks_next_step: false,
@@ -296,7 +281,6 @@ watch(
     deleteExampleFile.value = false;
     if (newDoc) {
       form.title = newDoc.title || "";
-      form.document_type = newDoc.document_type || "checkbox_agreement";
       form.description = newDoc.description || "";
       form.is_required = newDoc.is_required ?? true;
       form.blocks_next_step = newDoc.blocks_next_step ?? false;
@@ -304,7 +288,6 @@ watch(
       form.booth_types = newDoc.booth_types || [];
     } else {
       form.title = "";
-      form.document_type = "checkbox_agreement";
       form.description = "";
       form.is_required = true;
       form.blocks_next_step = false;
@@ -351,7 +334,6 @@ async function handleSubmit() {
     const method = isEdit.value ? "PUT" : "POST";
     const body = {
       title: form.title,
-      document_type: form.document_type,
       description: form.description || null,
       is_required: form.is_required,
       blocks_next_step: form.blocks_next_step,

@@ -3,10 +3,10 @@
 use App\Models\ApiConsumer;
 use App\Models\Attendee;
 use App\Models\Brand;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\ExhibitorLead;
-use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
@@ -113,7 +113,7 @@ it('manages business-matching custom fields as admin', function () {
     $this->postJson($base, ['label' => 'Position', 'type' => 'select', 'options' => ['CEO', 'Manager'], 'required' => true])
         ->assertCreated()->assertJsonPath('data.label', 'Position');
 
-    $field = EventCustomField::first();
+    $field = CustomField::first();
     $this->putJson("{$base}/{$field->id}", ['label' => 'Job Position', 'type' => 'select', 'options' => ['CEO']])
         ->assertSuccessful()->assertJsonPath('data.label', 'Job Position');
 
@@ -122,8 +122,8 @@ it('manages business-matching custom fields as admin', function () {
 
 it('lists active custom fields publicly for the checkout form', function () {
     ApiConsumer::factory()->create(['api_key' => 'pk_bm']);
-    EventCustomField::factory()->create(['event_id' => $this->event->id, 'label' => 'Interests', 'is_active' => true]);
-    EventCustomField::factory()->create(['event_id' => $this->event->id, 'is_active' => false]);
+    CustomField::factory()->create(['event_id' => $this->event->id, 'label' => 'Interests', 'is_active' => true]);
+    CustomField::factory()->create(['event_id' => $this->event->id, 'is_active' => false]);
 
     $this->withHeaders(['X-API-Key' => 'pk_bm'])
         ->getJson("/api/public/events/{$this->event->slug}/custom-fields")
@@ -173,7 +173,7 @@ it('manages staff terms and serves them localized at the public tickets endpoint
 });
 
 it('stores buyer business-matching answers on order creation', function () {
-    $field = EventCustomField::factory()->create(['event_id' => $this->event->id, 'type' => 'text', 'is_active' => true]);
+    $field = CustomField::factory()->create(['event_id' => $this->event->id, 'type' => 'text', 'is_active' => true]);
     $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
     TicketPricePhase::factory()->free()->create(['ticket_id' => $ticket->id, 'starts_at' => now()->subDay(), 'ends_at' => now()->addDay()]);
 
@@ -189,11 +189,11 @@ it('stores buyer business-matching answers on order creation', function () {
 
     $buyer = User::where('email', 'bm@example.com')->first();
     expect($buyer->business_matching_opt_in)->toBeTrue();
-    expect(FieldResponse::where('user_id', $buyer->id)->where('event_custom_field_id', $field->id)->exists())->toBeTrue();
+    expect(CustomFieldValue::where('subject_type', User::class)->where('subject_id', $buyer->id)->where('custom_field_id', $field->id)->exists())->toBeTrue();
 });
 
 it('saves and reads business-matching answers from the dashboard', function () {
-    $field = EventCustomField::factory()->create(['event_id' => $this->event->id, 'type' => 'text', 'is_active' => true]);
+    $field = CustomField::factory()->create(['event_id' => $this->event->id, 'type' => 'text', 'is_active' => true]);
     $user = User::factory()->create(['email_verified_at' => now()]);
     $this->actingAs($user);
 
@@ -206,5 +206,5 @@ it('saves and reads business-matching answers from the dashboard', function () {
         ->assertSuccessful()
         ->assertJsonPath('data.opt_in', true);
 
-    expect(FieldResponse::where('user_id', $user->id)->count())->toBe(1);
+    expect(CustomFieldValue::where('subject_type', User::class)->where('subject_id', $user->id)->count())->toBe(1);
 });

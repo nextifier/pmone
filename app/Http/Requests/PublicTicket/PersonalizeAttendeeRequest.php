@@ -20,6 +20,9 @@ class PersonalizeAttendeeRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
+            // Registration answers keyed by field ulid; per-type validation
+            // happens against the event's field catalog in the controller.
+            'registration' => ['sometimes', 'array'],
         ];
     }
 }

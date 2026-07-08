@@ -3,6 +3,8 @@
 namespace App\Http\Resources;
 
 use App\Models\Attendee;
+use App\Models\CustomField;
+use App\Support\FormFieldTypes;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -52,6 +54,13 @@ class AttendeeResource extends JsonResource
                 'id' => $this->ticketOrderItem->ticketSession->id,
                 'label' => $this->ticketOrderItem->ticketSession->label,
             ] : null),
+            // Ticket-registration answers keyed by field ulid (logical values,
+            // scalar wrapping already unwrapped). Only when eager-loaded.
+            'registration_answers' => $this->whenLoaded('customFieldValues', fn () => $this->customFieldValues
+                ->filter(fn ($value) => $value->customField?->context === CustomField::CONTEXT_TICKET_REGISTRATION)
+                ->mapWithKeys(fn ($value) => [
+                    $value->customField->ulid => FormFieldTypes::normalizeStored($value->customField->type, $value->value),
+                ])),
         ];
     }
 }

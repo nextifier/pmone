@@ -104,8 +104,36 @@
 
           <!-- Submission Form -->
           <div class="mt-4 space-y-3">
-            <!-- Checkbox Agreement -->
-            <template v-if="item.document.document_type === 'checkbox_agreement'">
+            <!-- Centralized custom fields (multi-field mini-form) -->
+            <template v-if="item.document.fields?.length">
+              <CustomFieldGroup
+                :fields="activeFields(item)"
+                :model-value="customValues[item.document.id] || {}"
+                value-key="ulid"
+                :errors="customErrors[item.document.id] || {}"
+                error-prefix="field_values."
+                :upload-handler="uploadHandlers.uploadHandler"
+                :revert-handler="uploadHandlers.revertHandler"
+                @update:model-value="(v) => (customValues[item.document.id] = v)"
+              />
+              <Button
+                size="sm"
+                :disabled="submittingId === item.document.id"
+                @click="handleCustomSubmit(item)"
+              >
+                <Spinner v-if="submittingId === item.document.id" class="mr-1.5 size-4" />
+                {{ item.submission ? "Update" : "Submit" }}
+              </Button>
+              <p
+                v-if="item.submission?.submitted_at"
+                class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+              >
+                Last submitted: {{ formatDate(item.submission.submitted_at) }}
+              </p>
+            </template>
+
+            <!-- TODO remove after production custom-fields migration: legacy single-value documents -->
+            <template v-else-if="item.document.document_type === 'checkbox_agreement'">
               <div class="flex items-start gap-x-2">
                 <Checkbox
                   :id="`agree_${item.document.id}`"
@@ -247,6 +275,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CustomFieldGroup } from "@/components/ui/custom-field";
+import { createTmpUploadHandlers } from "@/lib/uploadHandlers";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -264,6 +294,15 @@ const submittingId = ref(null);
 const selectedFiles = ref({});
 const textInputs = ref({});
 const fileInputRefs = ref({});
+
+// Centralized custom-field state (keyed by document id).
+const customValues = ref({});
+const customErrors = ref({});
+const uploadHandlers = createTmpUploadHandlers(client);
+
+function activeFields(item) {
+  return (item.document.fields || []).filter((f) => f.is_active !== false);
+}
 
 const documentTypeLabels = {
   checkbox_agreement: "Checkbox Agreement",
@@ -317,6 +356,9 @@ async function fetchDocuments() {
     documents.value.forEach((item) => {
       if (item.document.document_type === "text_input" && item.submission?.text_value) {
         textInputs.value[item.document.id] = item.submission.text_value;
+      }
+      if (item.document.fields?.length) {
+        customValues.value[item.document.id] = { ...(item.submission?.field_values || {}) };
       }
     });
   } catch (err) {
@@ -376,6 +418,46 @@ async function handleFileUpload(item) {
     toast.success("File uploaded successfully");
   } catch (err) {
     toast.error(err?.data?.message || "Failed to upload file");
+  } finally {
+    submittingId.value = null;
+  }
+}
+
+async function handleCustomSubmit(item) {
+  const values = customValues.value[item.document.id] || {};
+  const fileUlids = new Set(
+    activeFields(item)
+      .filter((f) => f.type === "file")
+      .map((f) => f.ulid)
+  );
+
+  const field_values = {};
+  const files = {};
+  for (const [ulid, value] of Object.entries(values)) {
+    if (fileUlids.has(ulid)) {
+      const list = Array.isArray(value) ? value : value ? [value] : [];
+      const tmp = list.filter((v) => typeof v === "string" && v.startsWith("tmp-"));
+      if (tmp.length) files[ulid] = tmp.length === 1 ? tmp[0] : tmp;
+    } else {
+      field_values[ulid] = value;
+    }
+  }
+
+  submittingId.value = item.document.id;
+  customErrors.value[item.document.id] = {};
+  try {
+    const res = await client(
+      `/api/exhibitor/brands/${route.params.slug}/events/${route.params.brandEventId}/documents/${item.document.ulid}`,
+      { method: "POST", body: { field_values, files } }
+    );
+    item.submission = res.data;
+    customValues.value[item.document.id] = { ...(res.data?.field_values || {}) };
+    toast.success("Response submitted");
+  } catch (err) {
+    if (err?.response?.status === 422 && err?.data?.errors) {
+      customErrors.value[item.document.id] = err.data.errors;
+    }
+    toast.error(err?.data?.message || "Failed to submit");
   } finally {
     submittingId.value = null;
   }

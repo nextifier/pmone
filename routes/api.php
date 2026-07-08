@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventCustomFieldController;
 use App\Http\Controllers\Api\EventDayController;
 use App\Http\Controllers\Api\EventDocumentController;
+use App\Http\Controllers\Api\EventDocumentFieldController;
 use App\Http\Controllers\Api\EventProductCategoryController;
 use App\Http\Controllers\Api\EventProductController;
 use App\Http\Controllers\Api\EventReservationAnalyticsController;
@@ -75,6 +76,7 @@ use App\Http\Controllers\Api\Public\PublicAccessCodeController;
 use App\Http\Controllers\Api\Public\PublicAttendeeController;
 use App\Http\Controllers\Api\Public\PublicBannerController;
 use App\Http\Controllers\Api\Public\PublicHotelController;
+use App\Http\Controllers\Api\Public\PublicProjectFormController;
 use App\Http\Controllers\Api\Public\PublicPromoCodeController;
 use App\Http\Controllers\Api\Public\PublicReservationController;
 use App\Http\Controllers\Api\Public\PublicTicketController;
@@ -270,11 +272,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Project custom fields endpoints
     Route::prefix('projects/{username}/custom-fields')->group(function () {
-        Route::get('/', [ProjectCustomFieldController::class, 'index'])->name('projects.custom-fields.index');
-        Route::post('/', [ProjectCustomFieldController::class, 'store'])->name('projects.custom-fields.store');
-        Route::put('/reorder', [ProjectCustomFieldController::class, 'reorder'])->name('projects.custom-fields.reorder');
-        Route::put('/{id}', [ProjectCustomFieldController::class, 'update'])->name('projects.custom-fields.update');
-        Route::delete('/{id}', [ProjectCustomFieldController::class, 'destroy'])->name('projects.custom-fields.destroy');
+        Route::get('/', [ProjectCustomFieldController::class, 'index'])->middleware('can:projects.read')->name('projects.custom-fields.index');
+        Route::post('/', [ProjectCustomFieldController::class, 'store'])->middleware('can:projects.update')->name('projects.custom-fields.store');
+        Route::put('/reorder', [ProjectCustomFieldController::class, 'reorder'])->middleware('can:projects.update')->name('projects.custom-fields.reorder');
+        Route::put('/{id}', [ProjectCustomFieldController::class, 'update'])->middleware('can:projects.update')->name('projects.custom-fields.update');
+        Route::delete('/{id}', [ProjectCustomFieldController::class, 'destroy'])->middleware('can:projects.update')->name('projects.custom-fields.destroy');
     });
 
     // Project banners endpoints (project-level website banners)
@@ -458,6 +460,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{ulid}', [EventDocumentController::class, 'show'])->name('event-documents.show');
         Route::put('/{ulid}', [EventDocumentController::class, 'update'])->name('event-documents.update');
         Route::delete('/{ulid}', [EventDocumentController::class, 'destroy'])->name('event-documents.destroy');
+    });
+
+    // Document mini-form fields (centralized custom fields, context: document)
+    Route::prefix('projects/{username}/events/{eventSlug}/documents/{document}/fields')->group(function () {
+        Route::get('/', [EventDocumentFieldController::class, 'index'])->name('event-document-fields.index');
+        Route::post('/', [EventDocumentFieldController::class, 'store'])->name('event-document-fields.store');
+        Route::put('/reorder', [EventDocumentFieldController::class, 'reorder'])->name('event-document-fields.reorder');
+        Route::put('/{field}', [EventDocumentFieldController::class, 'update'])->name('event-document-fields.update');
+        Route::delete('/{field}', [EventDocumentFieldController::class, 'destroy'])->name('event-document-fields.destroy');
     });
 
     // Order management endpoints (nested under events)
@@ -1341,14 +1352,19 @@ Route::middleware(['auth:sanctum', 'verified', 'tickets-enabled', 'can:scan.chec
         Route::post('/sync', [ScanController::class, 'sync'])->name('events.scan.sync');
     });
 
-// Business-matching field builder (admin, event-scoped).
+// Event custom-field builder (admin, event-scoped): business-matching +
+// ticket-registration contexts via ?context=/body context, plus the
+// predefined-library toggles. {customField} binds by id and is asserted
+// against the event in the controller (filtered morphs cannot scope-bind).
 Route::middleware(['auth:sanctum', 'verified', 'tickets-enabled'])->prefix('events/{event}/custom-fields')->group(function () {
     Route::get('/', [EventCustomFieldController::class, 'index'])->middleware('can:event_custom_fields.read')->name('events.custom-fields.index');
     Route::post('/', [EventCustomFieldController::class, 'store'])->middleware('can:event_custom_fields.create')->name('events.custom-fields.store');
     Route::post('/reorder', [EventCustomFieldController::class, 'reorder'])->middleware('can:event_custom_fields.update')->name('events.custom-fields.reorder');
-    Route::get('/{customField}', [EventCustomFieldController::class, 'show'])->scopeBindings()->middleware('can:event_custom_fields.read')->name('events.custom-fields.show');
-    Route::put('/{customField}', [EventCustomFieldController::class, 'update'])->scopeBindings()->middleware('can:event_custom_fields.update')->name('events.custom-fields.update');
-    Route::delete('/{customField}', [EventCustomFieldController::class, 'destroy'])->scopeBindings()->middleware('can:event_custom_fields.delete')->name('events.custom-fields.destroy');
+    Route::get('/predefined', [EventCustomFieldController::class, 'predefined'])->middleware('can:event_custom_fields.read')->name('events.custom-fields.predefined');
+    Route::put('/predefined/{systemKey}', [EventCustomFieldController::class, 'togglePredefined'])->middleware('can:event_custom_fields.update')->name('events.custom-fields.predefined-toggle');
+    Route::get('/{customField}', [EventCustomFieldController::class, 'show'])->middleware('can:event_custom_fields.read')->name('events.custom-fields.show');
+    Route::put('/{customField}', [EventCustomFieldController::class, 'update'])->middleware('can:event_custom_fields.update')->name('events.custom-fields.update');
+    Route::delete('/{customField}', [EventCustomFieldController::class, 'destroy'])->middleware('can:event_custom_fields.delete')->name('events.custom-fields.destroy');
 });
 
 // Staff attendee management (list + edit + soft-delete/trash/export; mirrors reservations).
@@ -1531,6 +1547,21 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(TenantCacheResponse::for(86400, 'faqs'));
     Route::get('/{username}/events/{eventSlug}/media-coverages', [PublicProjectController::class, 'mediaCoverages'])
         ->middleware(TenantCacheResponse::for(86400, 'media-coverages'));
+
+    // ── Form Builder embeds (event websites) ─────────────────────────────
+    // Project-scoped: a site can only render forms owned by its own project.
+    // Same pipeline (throttles, honeypot, duplicate prevention, cache tag) as
+    // the global /public/forms surface used by pmone.id /f/{slug}.
+    Route::get('/{username}/forms/{slug}', [PublicProjectFormController::class, 'show'])
+        ->middleware(CacheResponse::for(120, 'forms-public'));
+    Route::post('/{username}/forms/{slug}/submit', [PublicProjectFormController::class, 'submit'])
+        ->middleware('throttle:form-submit');
+    Route::post('/{username}/forms/{slug}/upload', [PublicProjectFormController::class, 'upload'])
+        ->middleware('throttle:form-upload');
+    Route::delete('/{username}/forms/{slug}/upload', [PublicProjectFormController::class, 'revert'])
+        ->middleware('throttle:form-upload');
+    Route::get('/{username}/forms/{slug}/check', [PublicProjectFormController::class, 'checkDuplicate'])
+        ->middleware('throttle:form-upload');
     Route::get('/{username}/events/{eventSlug}/gallery', [PublicProjectController::class, 'gallery'])
         ->middleware(TenantCacheResponse::for(86400, 'gallery'));
     Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
@@ -1591,6 +1622,8 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
     Route::get('/events/{eventSlug}/tickets', [PublicTicketController::class, 'index'])
         ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
     Route::get('/events/{eventSlug}/custom-fields', [PublicTicketController::class, 'customFields'])
+        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+    Route::get('/events/{eventSlug}/registration-fields', [PublicTicketController::class, 'registrationFields'])
         ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
     Route::post('/tickets/preview', [PublicTicketController::class, 'preview'])
         ->middleware(['throttle:60,1', 'tickets-enabled']);

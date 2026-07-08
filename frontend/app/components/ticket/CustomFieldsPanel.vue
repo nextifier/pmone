@@ -1,22 +1,24 @@
 <template>
   <div class="space-y-4">
-    <div class="flex items-center justify-between gap-2">
-      <p class="text-muted-foreground text-sm tracking-tight">
-        Custom intake fields shown to visitors who opt into Business Matching. Order them to control
-        how they appear on the form.
-      </p>
-      <Button v-if="canCreate" size="sm" @click="openCreateDialog">
-        <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-        Add Field
-      </Button>
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-muted-foreground text-sm tracking-tight">{{ panelIntro }}</p>
+      <div class="flex shrink-0 items-center gap-2">
+        <Button v-if="library && canCreate" size="sm" variant="outline" @click="libraryOpen = true">
+          <Icon name="hugeicons:library" class="-ml-1 size-4 shrink-0" />
+          Add from library
+        </Button>
+        <Button v-if="canCreate" size="sm" @click="openCreateDialog">
+          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          Add field
+        </Button>
+      </div>
     </div>
 
     <div
       v-if="isDisabled"
       class="text-muted-foreground rounded-md border border-dashed py-10 text-center text-sm tracking-tight"
     >
-      Business Matching fields are available once ticketing is enabled. Enable it in the Settings
-      tab.
+      {{ disabledMessage }}
     </div>
 
     <div v-else-if="pending" class="flex justify-center py-6">
@@ -27,7 +29,7 @@
       v-else-if="!fields.length"
       class="text-muted-foreground rounded-md border border-dashed py-10 text-center text-sm tracking-tight"
     >
-      No fields yet. Add the first field to start collecting business matching details.
+      {{ emptyMessage }}
     </div>
 
     <div v-else ref="listContainer" class="space-y-2">
@@ -206,8 +208,8 @@
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete field?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
-            "{{ deletingItem?.label || "This field" }}" will be removed from the Business Matching
-            form. Existing responses are not deleted.
+            "{{ deletingItem?.label || "This field" }}" will be removed from the {{ formNoun }}.
+            Existing responses are not deleted.
           </p>
           <div class="mt-3 flex justify-end gap-2">
             <Button variant="outline" type="button" @click="deleteDialogOpen = false">Cancel</Button>
@@ -219,12 +221,22 @@
         </div>
       </template>
     </DialogResponsive>
+
+    <!-- Predefined field library -->
+    <PredefinedFieldsDialog
+      v-if="library"
+      v-model:open="libraryOpen"
+      :event-id="event.id"
+      :context="context"
+      @changed="refresh"
+    />
   </div>
 </template>
 
 <script setup>
 import { Button } from "@/components/ui/button";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import PredefinedFieldsDialog from "@/components/ticket/PredefinedFieldsDialog.vue";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
@@ -253,10 +265,41 @@ import { toast } from "vue-sonner";
 
 const props = defineProps({
   event: { type: Object, required: true },
+  // Which centralized context these fields belong to. Defaults to the historical
+  // Business Matching behavior so existing callers stay unchanged.
+  context: { type: String, default: "business_matching" },
+  // Show the "Add from library" action + predefined-field dialog.
+  library: { type: Boolean, default: false },
 });
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
+
+const isRegistration = computed(() => props.context === "ticket_registration");
+
+const panelIntro = computed(() =>
+  isRegistration.value
+    ? "Questions every attendee answers - the buyer at checkout and other attendees via their ticket links. Drag to reorder."
+    : "Custom intake fields shown to visitors who opt into Business Matching. Order them to control how they appear on the form."
+);
+
+const disabledMessage = computed(() =>
+  isRegistration.value
+    ? "Registration fields are available once ticketing is enabled. Enable it in the Settings tab."
+    : "Business Matching fields are available once ticketing is enabled. Enable it in the Settings tab."
+);
+
+const emptyMessage = computed(() =>
+  isRegistration.value
+    ? "No fields yet. Add the first field to start collecting registration details."
+    : "No fields yet. Add the first field to start collecting business matching details."
+);
+
+const formNoun = computed(() =>
+  isRegistration.value ? "registration form" : "Business Matching form"
+);
+
+const libraryOpen = ref(false);
 
 const LOCALES = [
   { value: "en", label: "English" },
@@ -275,9 +318,10 @@ const canUpdate = computed(() => hasPermission("event_custom_fields.update"));
 const canDelete = computed(() => hasPermission("event_custom_fields.delete"));
 
 const baseUrl = computed(() => `/api/events/${props.event.id}/custom-fields`);
+const listUrl = computed(() => `${baseUrl.value}?context=${props.context}`);
 
-const { data, pending, error, refresh } = await useLazySanctumFetch(() => baseUrl.value, {
-  key: () => `event-custom-fields-${props.event.id}`,
+const { data, pending, error, refresh } = await useLazySanctumFetch(() => listUrl.value, {
+  key: () => `event-custom-fields-${props.context}-${props.event.id}`,
 });
 
 const fields = ref([]);
@@ -295,15 +339,18 @@ const isDisabled = computed(
   () => !pending.value && error.value?.data?.error_code === "TICKETS_DISABLED"
 );
 
-// Types that don't fit a ticket-checkout intake: file needs upload infra that
-// business matching doesn't wire, and section is a layout-only divider.
-const EXCLUDED_TYPES = ["file", "section"];
+// Types that don't fit a ticket-checkout intake: file needs upload infra these
+// contexts don't wire, and section is a layout-only divider. Ticket registration
+// additionally drops rich_text (matches the backend allowedTypesFor catalog).
+const EXCLUDED_TYPES = computed(() =>
+  isRegistration.value ? ["file", "section", "rich_text"] : ["file", "section"]
+);
 
 // Build the field-type Select options grouped exactly like the form builder catalog.
 const typesByGroup = computed(() => {
   const grouped = {};
   for (const [value, config] of Object.entries(FIELD_TYPES)) {
-    if (EXCLUDED_TYPES.includes(value)) continue;
+    if (EXCLUDED_TYPES.value.includes(value)) continue;
     const groupKey = config.group;
     if (!grouped[groupKey]) grouped[groupKey] = [];
     grouped[groupKey].push({ value, label: config.label, icon: config.icon });
@@ -403,6 +450,7 @@ const handleSubmit = async () => {
     label.en = String(form.label.en).trim();
 
     const payload = {
+      context: props.context,
       label,
       type: form.type,
       required: form.required,
@@ -463,7 +511,10 @@ useSortableList(listContainer, fields, {
   onReorder: async () => {
     const orders = fields.value.map((f, idx) => ({ id: f.id, order: idx + 1 }));
     try {
-      await client(`${baseUrl.value}/reorder`, { method: "POST", body: { orders } });
+      await client(`${baseUrl.value}/reorder`, {
+        method: "POST",
+        body: { context: props.context, orders },
+      });
       fields.value.forEach((f, idx) => (f.order_column = idx + 1));
     } catch (err) {
       toast.error("Failed to reorder fields");

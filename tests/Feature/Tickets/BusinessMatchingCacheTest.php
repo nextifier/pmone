@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\EventCustomField;
+use App\Models\CustomField;
 use App\Models\Project;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -32,7 +32,7 @@ it('busts the tickets cache when a custom field is created', function () {
 
 it('busts the tickets cache when a custom field is updated', function () {
     $event = bmEvent($this->project, true);
-    $field = EventCustomField::factory()->create(['event_id' => $event->id, 'type' => 'text']);
+    $field = CustomField::factory()->create(['event_id' => $event->id, 'type' => 'text']);
 
     ResponseCache::spy();
 
@@ -46,8 +46,8 @@ it('busts the tickets cache when a custom field is updated', function () {
 
 it('busts the tickets cache when custom fields are reordered', function () {
     $event = bmEvent($this->project, true);
-    $a = EventCustomField::factory()->create(['event_id' => $event->id, 'type' => 'text']);
-    $b = EventCustomField::factory()->create(['event_id' => $event->id, 'type' => 'text']);
+    $a = CustomField::factory()->create(['event_id' => $event->id, 'type' => 'text']);
+    $b = CustomField::factory()->create(['event_id' => $event->id, 'type' => 'text']);
 
     ResponseCache::spy();
 

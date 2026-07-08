@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\FormField;
+use App\Models\CustomField;
 use App\Support\FormFieldTypes;
 
 it('builds the expected rules per field type', function () {
@@ -59,7 +59,7 @@ it('formats stored business-matching values per type (unwrapping scalars)', func
 });
 
 it('keeps rulesFor delegating identically to rulesForType', function () {
-    $field = new FormField;
+    $field = new CustomField;
     $field->type = 'email';
     $field->validation = ['required' => true];
     $field->options = [];
@@ -68,7 +68,7 @@ it('keeps rulesFor delegating identically to rulesForType', function () {
     expect(FormFieldTypes::rulesFor($field, 'answer'))
         ->toBe(FormFieldTypes::rulesForType('email', 'answer', true));
 
-    $select = new FormField;
+    $select = new CustomField;
     $select->type = 'select';
     $select->validation = [];
     $select->options = [['value' => 'a', 'label' => 'A'], ['value' => 'b', 'label' => 'B']];

@@ -280,7 +280,10 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const imageInput = ref(null);
-const client = useSanctumClient();
+// Image upload uses the authenticated Sanctum client, which only exists in the
+// admin app. In public/event contexts (allowImages is false there) the module
+// is absent, so guard the auto-import to keep this component portable.
+const client = typeof useSanctumClient === "function" ? useSanctumClient() : null;
 
 // Shiki syntax highlighting
 const { highlighter } = useShiki();

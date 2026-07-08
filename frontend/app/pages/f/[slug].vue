@@ -118,7 +118,7 @@
               </div>
 
               <!-- Dynamic fields -->
-              <PublicFieldRenderer
+              <CustomFieldRenderer
                 v-for="(field, index) in sortedFields"
                 :key="field.ulid"
                 :data-field-error="formErrors[`responses.${field.ulid}`] ? field.ulid : undefined"
@@ -126,7 +126,8 @@
                 :is-first="index === 0"
                 :model-value="responses[field.ulid]"
                 :error="firstFieldError(field)"
-                :form-slug="slug"
+                :upload-handler="uploadHandlers.uploadHandler"
+                :revert-handler="uploadHandlers.revertHandler"
                 @update:model-value="responses[field.ulid] = $event"
                 @uploading="handleUploading"
               />
@@ -157,13 +158,13 @@
 </template>
 
 <script setup>
-import PublicFieldRenderer from "@/components/form-builder/PublicFieldRenderer.vue";
+import { CustomFieldRenderer, defaultValueFor, prefillValueFor as coercePrefill, supportsPrefill } from "@/components/ui/custom-field";
 import { Button } from "@/components/ui/button";
 import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { defaultValueFor, supportsPrefill } from "@/lib/formFieldTypes";
+import { createPublicFormUploadHandlers } from "@/lib/uploadHandlers";
 
 definePageMeta({
   layout: "empty",
@@ -172,6 +173,8 @@ definePageMeta({
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 const apiUrl = useRuntimeConfig().public.apiUrl;
+
+const uploadHandlers = computed(() => createPublicFormUploadHandlers(apiUrl, slug.value));
 
 const isEmbed = computed(() => ["1", "true"].includes(String(route.query.embed)));
 
@@ -279,52 +282,15 @@ const generateHoneypotToken = () => {
   return btoa(`${rand()}_${Math.floor(Date.now() / 1000)}_${rand()}`);
 };
 
-// Prefill a field from URL query params (?{ulid}=value or ?{param_key}=value)
+// Prefill a field from URL query params (?{ulid}=value or ?{param_key}=value).
+// The page owns query extraction; per-type coercion lives in the shared core.
 const prefillValueFor = (field) => {
   if (!supportsPrefill(field.type)) return undefined;
 
   const raw =
     route.query[field.ulid] ?? (field.settings?.param_key && route.query[field.settings.param_key]);
-  if (raw === undefined || raw === null || raw === false || raw === "") return undefined;
 
-  const value = String(Array.isArray(raw) ? raw[0] : raw);
-  const optionValues = (field.options || []).map((o) => String(o.value ?? o));
-
-  switch (field.type) {
-    case "multi_select":
-    case "checkbox_group": {
-      const values = value
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
-      const valid = values.filter((v) => optionValues.includes(v));
-      return valid.length ? valid : undefined;
-    }
-    case "tags":
-      return value
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
-    case "select":
-    case "radio":
-      return optionValues.includes(value) ? value : undefined;
-    case "checkbox":
-    case "switch":
-      return ["1", "true", "yes", "on"].includes(value.toLowerCase());
-    case "number":
-    case "slider":
-    case "rating":
-    case "linear_scale": {
-      const number = Number(value);
-      return Number.isNaN(number) ? undefined : number;
-    }
-    case "date_range": {
-      const [start, end] = value.split(",").map((v) => v.trim());
-      return start && end ? { start, end } : undefined;
-    }
-    default:
-      return value;
-  }
+  return coercePrefill(field, raw);
 };
 
 // Initialize default values per field type once the form loads

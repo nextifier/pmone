@@ -2,8 +2,8 @@
 
 use App\Jobs\ProcessFormResponseNotification;
 use App\Mail\FormResponseSubmitted;
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use App\Notifications\FormResponseReceivedNotification;
@@ -172,16 +172,16 @@ it('renders formatted answers in the mail body', function () {
         'settings' => ['notification_emails' => ['admin@example.com']],
     ]);
 
-    $select = FormField::factory()->type('select')->create([
+    $select = CustomField::factory()->type('select')->create([
         'form_id' => $form->id,
         'label' => 'Ticket Type',
         'options' => [['value' => 'vip', 'label' => 'VIP Pass']],
     ]);
-    $switch = FormField::factory()->type('switch')->create([
+    $switch = CustomField::factory()->type('switch')->create([
         'form_id' => $form->id,
         'label' => 'Newsletter',
     ]);
-    FormField::factory()->type('section')->create([
+    CustomField::factory()->type('section')->create([
         'form_id' => $form->id,
         'label' => 'Hidden Section Heading',
     ]);

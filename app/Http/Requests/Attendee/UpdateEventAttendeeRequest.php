@@ -24,6 +24,9 @@ class UpdateEventAttendeeRequest extends FormRequest
             'selected_event_day_id' => ['sometimes', 'nullable', 'integer', 'exists:event_days,id'],
             'ticket_session_id' => ['sometimes', 'nullable', 'integer', 'exists:ticket_sessions,id'],
             'checked_in' => ['sometimes', 'boolean'],
+            // Registration answers keyed by field ulid; per-type validation
+            // happens against the event's field catalog in AttendeeService.
+            'registration' => ['sometimes', 'array'],
         ];
     }
 }

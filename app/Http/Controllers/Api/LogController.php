@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\BrandEvent;
+use App\Models\CustomField;
 use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventProduct;
@@ -15,8 +16,8 @@ use App\Models\MediaCoverage;
 use App\Models\Order;
 use App\Models\PartnerCategory;
 use App\Models\Program;
+use App\Models\Project;
 use App\Models\ProjectBanner;
-use App\Models\ProjectCustomField;
 use App\Models\ProjectPaymentGateway;
 use App\Models\PromotionPost;
 use App\Models\Reservation;
@@ -226,7 +227,7 @@ class LogController extends Controller
                     EventDocument::class => ['event.project'],
                     HotelEvent::class => ['hotel', 'event.project'],
                     ProjectBanner::class => ['project'],
-                    ProjectCustomField::class => ['project'],
+                    CustomField::class => ['fieldable'],
                 ]);
             },
         ]);
@@ -280,7 +281,7 @@ class LogController extends Controller
                 ?? $attrs['title']
                 ?? $attrs['reservation_number']
                 ?? $attrs['code']
-                ?? null;
+                ?? self::scalarLabel($attrs['label'] ?? null);
         }
 
         // User model: always use name (title = job title, not identifier)
@@ -322,9 +323,35 @@ class LogController extends Controller
         return $subject->title ?? $subject->name ?? $subject->slug ?? null;
     }
 
+    /**
+     * Legacy brand-field logs stored a plain-string label; centralized
+     * CustomField logs would store a translation map. Resolve either to a
+     * displayable string.
+     */
+    private static function scalarLabel(mixed $label): ?string
+    {
+        if (is_array($label)) {
+            $label = $label['en'] ?? reset($label);
+        }
+
+        return is_scalar($label) ? (string) $label : null;
+    }
+
     private static function getSubjectUrl(Activity $activity): ?string
     {
-        if (! $activity->subject_type || ! $activity->subject) {
+        if (! $activity->subject_type) {
+            return null;
+        }
+
+        // Brand-field logs resolve through the project_id stashed in the
+        // activity properties: legacy ProjectCustomField subjects no longer
+        // match the migrated custom_fields rows by id, so the subject itself
+        // may be missing or wrong.
+        if (in_array(class_basename($activity->subject_type), ['ProjectCustomField', 'CustomField'], true)) {
+            return self::getCustomFieldUrl($activity);
+        }
+
+        if (! $activity->subject) {
             return null;
         }
 
@@ -357,7 +384,6 @@ class LogController extends Controller
             'Form' => $subject->slug ? "/forms/{$subject->slug}" : null,
             'ApiConsumer' => $subject->id ? "/api-consumers/{$subject->id}/edit" : null,
             'ProjectBanner' => self::getProjectBannerUrl($subject),
-            'ProjectCustomField' => self::getProjectCustomFieldUrl($subject),
             'Faq' => self::getEventContentTabUrl($subject, 'faq'),
             'Program' => self::getEventContentTabUrl($subject, 'programs'),
             'Guest' => self::getEventContentTabUrl($subject, 'guests'),
@@ -496,9 +522,14 @@ class LogController extends Controller
         return "/projects/{$project->username}/content/banners";
     }
 
-    private static function getProjectCustomFieldUrl(mixed $subject): ?string
+    private static function getCustomFieldUrl(Activity $activity): ?string
     {
-        $project = $subject->project;
+        $subject = class_basename($activity->subject_type) === 'CustomField' ? $activity->subject : null;
+
+        $project = $subject instanceof CustomField && $subject->fieldable instanceof Project
+            ? $subject->fieldable
+            : Project::find($activity->properties['project_id'] ?? null);
+
         if (! $project?->username) {
             return null;
         }

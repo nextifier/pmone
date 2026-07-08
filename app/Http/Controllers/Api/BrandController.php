@@ -7,18 +7,23 @@ use App\Exports\BrandsTemplateExport;
 use App\Helpers\LinkNormalizer;
 use App\Helpers\PhoneCountryHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectCustomFieldResource;
 use App\Imports\BrandsImport;
 use App\Jobs\BulkSoftDeleteBrands;
 use App\Jobs\ProcessExcelImport;
 use App\Models\Brand;
-use App\Models\ProjectCustomField;
+use App\Models\CustomField;
+use App\Models\Project;
 use App\Models\User;
+use App\Support\CustomFieldValidation;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Tags\Tag;
@@ -104,9 +109,7 @@ class BrandController extends Controller
         $businessCategoryOptions = array_values(array_unique($businessCategoryOptions));
 
         // Collect custom field definitions from all associated projects
-        $customFieldDefinitions = ProjectCustomField::whereIn('project_id', $projectIds)
-            ->ordered()
-            ->get();
+        $customFieldDefinitions = $this->brandFieldDefinitionsFor($projectIds->all());
 
         return response()->json([
             'data' => [
@@ -154,7 +157,7 @@ class BrandController extends Controller
                 'updated_by' => $brand->updater ? ['id' => $brand->updater->id, 'name' => $brand->updater->name] : null,
             ],
             'business_category_options' => $businessCategoryOptions,
-            'custom_field_definitions' => $customFieldDefinitions,
+            'custom_field_definitions' => ProjectCustomFieldResource::collection($customFieldDefinitions),
         ]);
     }
 
@@ -209,10 +212,24 @@ class BrandController extends Controller
 
         $this->handleTemporaryUpload($request, $brand, 'tmp_brand_logo', 'brand_logo');
 
-        // Save project custom field values to brands.custom_fields
+        // Save project custom field values to brands.custom_fields; values are
+        // only validated when the payload actually carries the key, so partial
+        // updates that skip brand fields are never blocked.
         if ($projectCustomFields !== null) {
             $projectIds = $brand->brandEvents()->with('event')->get()->pluck('event.project_id')->filter()->unique();
-            $customFieldDefinitions = ProjectCustomField::whereIn('project_id', $projectIds)->get();
+            $customFieldDefinitions = $this->brandFieldDefinitionsFor($projectIds->all());
+
+            $errors = CustomFieldValidation::errorsFor(
+                $customFieldDefinitions,
+                (array) $request->input('project_custom_fields'),
+                'project_custom_fields',
+                'key',
+            );
+
+            if ($errors !== []) {
+                throw ValidationException::withMessages($errors);
+            }
+
             $cleanedValues = $brand->custom_fields ?? [];
 
             foreach ($customFieldDefinitions as $fieldDef) {
@@ -658,6 +675,22 @@ class BrandController extends Controller
         } else {
             $query->orderBy('name', 'asc');
         }
+    }
+
+    /**
+     * Brand-field definitions across every project the brand participates in.
+     *
+     * @param  array<int, int>  $projectIds
+     * @return Collection<int, CustomField>
+     */
+    private function brandFieldDefinitionsFor(array $projectIds): Collection
+    {
+        return CustomField::query()
+            ->context(CustomField::CONTEXT_BRAND)
+            ->where('fieldable_type', Project::class)
+            ->whereIn('fieldable_id', $projectIds)
+            ->ordered()
+            ->get();
     }
 
     /**

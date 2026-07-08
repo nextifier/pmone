@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
@@ -48,8 +48,8 @@ it('busts the public forms cache when a field is created', function () {
 });
 
 it('busts the public forms cache on raw-SQL field reorder', function () {
-    $first = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
-    $second = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $first = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $second = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
     $spy = ResponseCache::spy();
 

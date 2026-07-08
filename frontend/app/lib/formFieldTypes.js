@@ -1,6 +1,22 @@
-// Single source of truth for form builder field types.
-// Consumed by FieldTypeSelector, FieldCard, FieldEditor, PublicFieldRenderer,
-// the responses table, the response detail dialog, and the analytics page.
+// Admin-editor metadata catalog for the Form Builder (icons, groups, per-type
+// editor capability flags). The runtime core (defaultValueFor, option/label
+// normalization, response formatting, prefill coercion) lives in the portable
+// components/ui/custom-field folder and is re-exported here so admin code has
+// one import surface without duplicating logic.
+// Consumed by FieldTypeSelector, FieldCard, FieldEditor, the responses table,
+// the response detail dialog, and the analytics page.
+export {
+  defaultValueFor,
+  supportsPrefill,
+  isInputType,
+  formatResponseValue,
+  fileName,
+  normalizeOptions,
+  normalizeField,
+  normalizeStoredValue,
+  prefillValueFor,
+  localizedLabel,
+} from "@/components/ui/custom-field";
 
 export const FIELD_GROUPS = [
   { key: "text", label: "Text" },
@@ -182,81 +198,6 @@ export const getTypeLabel = (type) => FIELD_TYPES[type]?.label || type;
 
 export const getTypeIcon = (type) => FIELD_TYPES[type]?.icon || "lucide:type";
 
+// Editor-metadata view of hasOptions (whether the editor shows an options
+// panel). The runtime hasOptions lives in the ui core; they agree.
 export const hasOptions = (type) => Boolean(FIELD_TYPES[type]?.hasOptions);
-
-export const isInputType = (type) => !FIELD_TYPES[type]?.isLayout;
-
-export const supportsPrefill = (type) => !FIELD_TYPES[type]?.noPrefill;
-
-export const defaultValueFor = (field) => {
-  switch (field.type) {
-    case "checkbox":
-    case "switch":
-      return false;
-    case "multi_select":
-    case "checkbox_group":
-    case "tags":
-      return [];
-    case "file":
-      return field.settings?.multiple ? [] : null;
-    case "text":
-    case "textarea":
-    case "email":
-    case "phone":
-    case "url":
-    case "rich_text":
-      return "";
-    default:
-      return null;
-  }
-};
-
-const optionLabel = (field, value) => {
-  const option = (field.options || []).find((o) => o.value === value);
-  return option?.label ?? String(value);
-};
-
-const stripHtml = (html) =>
-  String(html)
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-export const fileName = (path) => String(path).split("/").pop();
-
-export const formatResponseValue = (field, value) => {
-  if (value === null || value === undefined || value === "") return "-";
-  if (Array.isArray(value) && !value.length) return "-";
-
-  switch (field?.type) {
-    case "select":
-    case "radio":
-      return optionLabel(field, value);
-    case "multi_select":
-    case "checkbox_group":
-      return (Array.isArray(value) ? value : [value])
-        .map((v) => optionLabel(field, v))
-        .join(", ");
-    case "tags":
-      return (Array.isArray(value) ? value : [value]).join(", ");
-    case "checkbox":
-    case "switch":
-      return value ? "Yes" : "No";
-    case "date_range": {
-      if (typeof value === "object") {
-        const range = [value.start, value.end].filter(Boolean).join(" - ");
-        return range || "-";
-      }
-      return String(value);
-    }
-    case "rich_text":
-      return stripHtml(value) || "-";
-    case "file":
-      return (Array.isArray(value) ? value : [value]).map(fileName).join(", ") || "-";
-    default:
-      if (Array.isArray(value)) return value.map((v) => String(v)).join(", ");
-      if (typeof value === "object") return JSON.stringify(value);
-      return String(value);
-  }
-};

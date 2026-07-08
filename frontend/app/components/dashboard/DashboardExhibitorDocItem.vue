@@ -116,6 +116,28 @@
         {{ $t("ed.docs.deadlinePassed") }}
       </div>
 
+      <!-- Centralized custom fields (multi-field mini-form) -->
+      <template v-else-if="doc.fields?.length">
+        <div class="space-y-3">
+          <CustomFieldGroup
+            :fields="activeFields"
+            :model-value="customValues"
+            value-key="ulid"
+            :locale="locale"
+            :errors="customErrors"
+            error-prefix="field_values."
+            :upload-handler="uploadHandlers.uploadHandler"
+            :revert-handler="uploadHandlers.revertHandler"
+            @update:model-value="(v) => (customValues = v)"
+          />
+          <Button size="sm" :disabled="submitting" @click="handleCustomSubmit">
+            <Spinner v-if="submitting" class="mr-1.5 size-4" />
+            {{ currentSubmission ? $t("ed.docs.update") : $t("ed.docs.submit") }}
+          </Button>
+        </div>
+      </template>
+
+      <!-- TODO remove after production custom-fields migration: legacy single-value documents -->
       <!-- File Upload type -->
       <template v-else-if="doc.document_type === 'file_upload'">
         <!-- Existing uploaded file: show file info + replace option -->
@@ -220,6 +242,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { CustomFieldGroup } from "@/components/ui/custom-field";
+import { createTmpUploadHandlers } from "@/lib/uploadHandlers";
 import { toast } from "vue-sonner";
 
 const { t, locale } = useI18n();
@@ -273,11 +297,18 @@ const textValue = ref(props.submission?.text_value || "");
 const isEditingText = ref(false);
 const isReplacingFile = ref(false);
 
+// Centralized custom-field state.
+const uploadHandlers = createTmpUploadHandlers(client);
+const activeFields = computed(() => (props.doc.fields || []).filter((f) => f.is_active !== false));
+const customValues = ref({ ...(props.submission?.field_values || {}) });
+const customErrors = ref({});
+
 watch(
   () => props.submission,
   (val) => {
     currentSubmission.value = val;
     textValue.value = val?.text_value || "";
+    customValues.value = { ...(val?.field_values || {}) };
   }
 );
 
@@ -302,6 +333,46 @@ async function handleFileUpload() {
     emit("submitted", res.data);
   } catch (err) {
     toast.error(err?.data?.message || t("ed.docs.failedToUpload"));
+  } finally {
+    submitting.value = false;
+  }
+}
+
+async function handleCustomSubmit() {
+  if (!props.apiBase) return;
+
+  const fileUlids = new Set(
+    activeFields.value.filter((f) => f.type === "file").map((f) => f.ulid)
+  );
+
+  const field_values = {};
+  const files = {};
+  for (const [ulid, value] of Object.entries(customValues.value)) {
+    if (fileUlids.has(ulid)) {
+      const list = Array.isArray(value) ? value : value ? [value] : [];
+      const tmp = list.filter((v) => typeof v === "string" && v.startsWith("tmp-"));
+      if (tmp.length) files[ulid] = tmp.length === 1 ? tmp[0] : tmp;
+    } else {
+      field_values[ulid] = value;
+    }
+  }
+
+  submitting.value = true;
+  customErrors.value = {};
+  try {
+    const res = await client(`${props.apiBase}/${props.doc.ulid}`, {
+      method: "POST",
+      body: { field_values, files },
+    });
+    currentSubmission.value = res.data;
+    customValues.value = { ...(res.data?.field_values || {}) };
+    toast.success(t("ed.docs.responseSubmitted"));
+    emit("submitted", res.data);
+  } catch (err) {
+    if (err?.response?.status === 422 && err?.data?.errors) {
+      customErrors.value = err.data.errors;
+    }
+    toast.error(err?.data?.message || t("ed.docs.failedToSubmit"));
   } finally {
     submitting.value = false;
   }

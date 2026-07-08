@@ -71,6 +71,24 @@ class PublicTicketController extends Controller
     }
 
     /**
+     * Active ticket-registration fields for an event (predefined + custom),
+     * answered per attendee: the buyer at checkout, other attendees via their
+     * magic links. Labels localized via `?locale=`. Empty list when the event
+     * has none, so websites that never configure this see no change.
+     */
+    public function registrationFields(Request $request, string $eventSlug): JsonResponse
+    {
+        $event = Event::query()->where('slug', $eventSlug)->firstOrFail();
+        $this->applyLocale($request);
+
+        $fields = $event->registrationFields()->where('is_active', true)->get();
+
+        return response()->json([
+            'data' => EventCustomFieldResource::collection($fields),
+        ]);
+    }
+
+    /**
      * Resolve and apply the request locale (default: app locale) for translatable
      * resources, returning the resolved locale string.
      */

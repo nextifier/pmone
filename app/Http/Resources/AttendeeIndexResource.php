@@ -3,6 +3,8 @@
 namespace App\Http\Resources;
 
 use App\Models\Attendee;
+use App\Models\CustomField;
+use App\Support\FormFieldTypes;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -73,6 +75,13 @@ class AttendeeIndexResource extends JsonResource
             'is_free' => $isFree,
             'can_delete' => (bool) auth()->user()?->can('attendees.delete'),
             'can_view_documents' => $canViewDocuments && $order !== null && ! $isFree,
+            // Ticket-registration answers keyed by field ulid; lets the staff edit
+            // dialog pre-fill existing answers so a save never blanks them.
+            'registration_answers' => $this->whenLoaded('customFieldValues', fn () => $this->customFieldValues
+                ->filter(fn ($value) => $value->customField?->context === CustomField::CONTEXT_TICKET_REGISTRATION)
+                ->mapWithKeys(fn ($value) => [
+                    $value->customField->ulid => FormFieldTypes::normalizeStored($value->customField->type, $value->value),
+                ])),
             'created_at' => $this->created_at?->toIso8601String(),
             'deleted_at' => $this->deleted_at?->toIso8601String(),
         ];

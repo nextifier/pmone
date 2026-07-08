@@ -3,17 +3,17 @@
 namespace App\Support;
 
 use App\Models\Event;
-use Illuminate\Support\Facades\Validator;
 
+/**
+ * Thin adapter over CustomFieldValidation for the public business-matching
+ * payload shape ({custom_field_id, value} rows keyed by numeric id). Posted
+ * ids resolve by id OR legacy_id: event-website checkouts opened before the
+ * custom-fields migration deploy still post the old event_custom_fields ids
+ * for one release.
+ */
 class BusinessMatchingValidation
 {
     /**
-     * Validate business-matching intake answers against each active custom
-     * field's type + required flag, reusing the shared Form Builder rules.
-     * Returns a map of error path => message (empty when everything is valid),
-     * so any caller (public ticket order, attendee dashboard) can surface the
-     * same errors regardless of its own payload shape.
-     *
      * @param  array<int, array<string, mixed>>  $responses  List of {custom_field_id, value}.
      * @return array<string, string>
      */
@@ -28,47 +28,22 @@ class BusinessMatchingValidation
             return [];
         }
 
-        $valuesById = [];
-        foreach ($responses as $resp) {
-            $id = (int) ($resp['custom_field_id'] ?? 0);
-            if ($id > 0) {
-                $valuesById[$id] = $resp['value'] ?? null;
-            }
-        }
-
-        $errors = [];
-
         $fields = $event->eventCustomFields()->where('is_active', true)->get();
 
-        foreach ($fields as $field) {
-            $value = $valuesById[$field->id] ?? null;
-            // Treat blank strings as absent so `required` fails and `nullable`
-            // short-circuits, matching how the checkout drops empty answers.
-            if ($value === '') {
-                $value = null;
+        $values = [];
+        foreach ($responses as $resp) {
+            $id = (int) ($resp['custom_field_id'] ?? 0);
+            if ($id <= 0) {
+                continue;
             }
 
-            $optionValues = array_map('strval', (array) ($field->options ?? []));
+            $field = $fields->first(fn ($f) => $f->id === $id || $f->legacy_id === $id);
 
-            $rules = FormFieldTypes::rulesForType(
-                $field->type,
-                'value',
-                (bool) $field->required,
-                $optionValues,
-            );
-
-            $validator = Validator::make(
-                ['value' => $value],
-                $rules,
-                [],
-                ['value' => $field->label],
-            );
-
-            if ($validator->fails()) {
-                $errors[$keyPrefix.'.'.$field->id] = $validator->errors()->first();
+            if ($field !== null) {
+                $values[(string) $field->id] = $resp['value'] ?? null;
             }
         }
 
-        return $errors;
+        return CustomFieldValidation::errorsFor($fields, $values, $keyPrefix, 'id');
     }
 }

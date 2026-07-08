@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,7 +60,7 @@ it('searches responses by respondent email', function () {
 });
 
 it('searches answer contents only on postgres without erroring on sqlite', function () {
-    $field = FormField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
     FormResponse::factory()->create([
         'form_id' => $this->form->id,
@@ -105,7 +105,7 @@ it('deletes a single response', function () {
 it('downloads an uploaded response file', function () {
     Storage::fake('local');
 
-    $field = FormField::factory()->type('file')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('file')->create(['form_id' => $this->form->id]);
     $path = "form-uploads/{$this->form->id}/1/cv.pdf";
     Storage::disk('local')->put($path, 'fake-pdf-content');
 
@@ -123,7 +123,7 @@ it('blocks file downloads outside the form upload directory', function () {
     Storage::fake('local');
     Storage::disk('local')->put('secrets/env.txt', 'top-secret');
 
-    $field = FormField::factory()->type('file')->create(['form_id' => $this->form->id]);
+    $field = CustomField::factory()->type('file')->create(['form_id' => $this->form->id]);
     $response = FormResponse::factory()->create([
         'form_id' => $this->form->id,
         'response_data' => [$field->ulid => 'secrets/env.txt'],

@@ -15,6 +15,24 @@
     <TicketSettingsForm :event="event" />
 
     <EventDaysToggle v-if="event?.id" :event="event" />
+
+    <NuxtLink
+      :to="`${ticketsBase}/registration-fields`"
+      class="bg-card hover:border-foreground/20 flex items-center gap-x-3 rounded-xl border p-4 transition-colors sm:p-5"
+    >
+      <div
+        class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg"
+      >
+        <Icon name="hugeicons:license" class="size-4" />
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium tracking-tight">Registration Fields</p>
+        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Custom questions every attendee answers at checkout and on their ticket links.
+        </p>
+      </div>
+      <Icon name="hugeicons:arrow-right-01" class="text-muted-foreground size-4 shrink-0" />
+    </NuxtLink>
   </div>
 </template>
 

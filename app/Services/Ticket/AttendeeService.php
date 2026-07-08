@@ -5,7 +5,10 @@ namespace App\Services\Ticket;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\TicketSession;
+use App\Support\CustomFieldValidation;
+use App\Support\CustomFieldValues;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Staff-side edits to an issued attendee: contact details, moving a single
@@ -43,8 +46,33 @@ class AttendeeService
                 $this->setCheckIn($attendee, (bool) $data['checked_in'], $staffId, $event->id);
             }
 
-            return $attendee->fresh(['ticket', 'ticketOrderItem.selectedEventDay', 'ticketOrderItem.ticketSession', 'ticketOrderItem.ticketOrder']);
+            if (! empty($data['registration']) && is_array($data['registration'])) {
+                $this->saveRegistrationResponses($attendee, $event, $data['registration']);
+            }
+
+            return $attendee->fresh(['ticket', 'ticketOrderItem.selectedEventDay', 'ticketOrderItem.ticketSession', 'ticketOrderItem.ticketOrder', 'customFieldValues.customField']);
         });
+    }
+
+    /**
+     * Persist registration answers for an attendee (partial fills allowed):
+     * only the provided fields are validated, so `required` never blocks a
+     * contact-only edit. Values are type-checked against the event's catalog.
+     *
+     * @param  array<string, mixed>  $registration  Keyed by field ulid.
+     */
+    public function saveRegistrationResponses(Attendee $attendee, Event $event, array $registration): void
+    {
+        $fields = $event->registrationFields()->where('is_active', true)->get();
+
+        $provided = $fields->filter(fn ($field) => array_key_exists($field->ulid, $registration));
+
+        $errors = CustomFieldValidation::errorsFor($provided, $registration, 'registration');
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        CustomFieldValues::store($attendee, $provided, $registration, 'ulid');
     }
 
     /**

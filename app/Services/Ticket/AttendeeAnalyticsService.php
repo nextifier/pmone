@@ -5,14 +5,15 @@ namespace App\Services\Ticket;
 use App\Enums\Ticketing\TicketKind;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Models\Attendee;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\EventDay;
 use App\Models\ExhibitorLead;
-use App\Models\FieldResponse;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
 use App\Models\TicketSession;
+use App\Models\User;
 use App\Support\FormFieldTypes;
 use Illuminate\Support\Collection;
 
@@ -74,8 +75,10 @@ class AttendeeAnalyticsService
      */
     private function businessMatching(Event $event, Collection $orders): array
     {
-        $fieldIds = EventCustomField::query()
-            ->where('event_id', $event->id)
+        $fieldIds = CustomField::query()
+            ->where('fieldable_type', Event::class)
+            ->where('fieldable_id', $event->id)
+            ->where('context', CustomField::CONTEXT_BUSINESS_MATCHING)
             ->where('is_active', true)
             ->pluck('id');
 
@@ -87,10 +90,11 @@ class AttendeeAnalyticsService
 
         $responded = $fieldIds->isEmpty()
             ? collect()
-            : FieldResponse::query()
-                ->whereIn('event_custom_field_id', $fieldIds)
+            : CustomFieldValue::query()
+                ->whereIn('custom_field_id', $fieldIds)
+                ->where('subject_type', User::class)
                 ->distinct()
-                ->pluck('user_id')
+                ->pluck('subject_id')
                 ->filter()
                 ->unique();
 
@@ -407,24 +411,26 @@ class AttendeeAnalyticsService
      */
     private function demographics(Event $event, int $respondents = 0): array
     {
-        $fields = EventCustomField::query()
-            ->where('event_id', $event->id)
+        $fields = CustomField::query()
+            ->where('fieldable_type', Event::class)
+            ->where('fieldable_id', $event->id)
+            ->where('context', CustomField::CONTEXT_BUSINESS_MATCHING)
             ->where('is_active', true)
             ->orderBy('order_column')
             ->get()
-            ->filter(fn (EventCustomField $field): bool => in_array(FormFieldTypes::analyticsKind($field->type), ['options', 'numeric'], true));
+            ->filter(fn (CustomField $field): bool => in_array(FormFieldTypes::analyticsKind($field->type), ['options', 'numeric'], true));
 
         if ($fields->isEmpty()) {
             return [];
         }
 
-        $responses = FieldResponse::query()
-            ->whereIn('event_custom_field_id', $fields->pluck('id'))
-            ->get(['event_custom_field_id', 'value'])
-            ->groupBy('event_custom_field_id');
+        $responses = CustomFieldValue::query()
+            ->whereIn('custom_field_id', $fields->pluck('id'))
+            ->get(['custom_field_id', 'value'])
+            ->groupBy('custom_field_id');
 
         return $fields
-            ->map(fn (EventCustomField $field): array => FormFieldTypes::analyticsKind($field->type) === 'numeric'
+            ->map(fn (CustomField $field): array => FormFieldTypes::analyticsKind($field->type) === 'numeric'
                 ? $this->numericField($field, $responses->get($field->id, collect()))
                 : $this->optionsField($field, $responses->get($field->id, collect())))
             ->filter(fn (array $field): bool => $field['total_responses'] > 0)
@@ -442,10 +448,10 @@ class AttendeeAnalyticsService
      * Distribution of a choice-type field, with Yes/No labels for boolean
      * checkbox/switch answers.
      *
-     * @param  Collection<int, FieldResponse>  $responses
+     * @param  Collection<int, CustomFieldValue>  $responses
      * @return array<string, mixed>
      */
-    private function optionsField(EventCustomField $field, Collection $responses): array
+    private function optionsField(CustomField $field, Collection $responses): array
     {
         $optionLabels = $this->optionLabelMap($field);
         $boolean = in_array($field->type, ['checkbox', 'switch'], true);
@@ -482,10 +488,10 @@ class AttendeeAnalyticsService
      * Distribution + average for a numeric field (number, slider, rating,
      * linear scale). Breakdown is ordered by value for a natural scale view.
      *
-     * @param  Collection<int, FieldResponse>  $responses
+     * @param  Collection<int, CustomFieldValue>  $responses
      * @return array<string, mixed>
      */
-    private function numericField(EventCustomField $field, Collection $responses): array
+    private function numericField(CustomField $field, Collection $responses): array
     {
         $numbers = [];
         foreach ($responses as $response) {
@@ -587,7 +593,7 @@ class AttendeeAnalyticsService
         return $this->translatable($day->label, 'Day '.$day->day_number);
     }
 
-    private function fieldLabel(EventCustomField $field): string
+    private function fieldLabel(CustomField $field): string
     {
         return $this->translatable($field->label, 'Field');
     }
@@ -621,7 +627,7 @@ class AttendeeAnalyticsService
     /**
      * @return array<string, string>
      */
-    private function optionLabelMap(EventCustomField $field): array
+    private function optionLabelMap(CustomField $field): array
     {
         $map = [];
 

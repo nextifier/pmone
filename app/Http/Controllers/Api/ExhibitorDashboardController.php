@@ -13,6 +13,7 @@ use App\Mail\OrderConfirmationMail;
 use App\Mail\OrderSubmittedMail;
 use App\Models\Brand;
 use App\Models\BrandEvent;
+use App\Models\CustomField;
 use App\Models\EventDocumentSubmission;
 use App\Models\EventProduct;
 use App\Models\Order;
@@ -21,12 +22,15 @@ use App\Notifications\OrderSubmittedNotification;
 use App\Services\Pricing\PricingService;
 use App\Services\Promotion\PenaltyService;
 use App\Services\Promotion\PromoCodeService;
+use App\Support\CustomFieldValidation;
+use App\Support\CustomFieldValues;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Tags\Tag;
@@ -46,7 +50,7 @@ class ExhibitorDashboardController extends Controller
             'media',
             'brandEvents' => function ($q) {
                 $q->with(['event.media', 'event.eventDocuments' => function ($q2) {
-                    $q2->with('media')->ordered();
+                    $q2->with(['media', 'fields'])->ordered();
                 }])
                     ->withCount(['promotionPosts', 'orders']);
             },
@@ -127,6 +131,8 @@ class ExhibitorDashboardController extends Controller
                         } elseif ($doc->document_type === 'file_upload' && $submission->hasMedia('submission_file')) {
                             $status = 'completed';
                         } elseif ($doc->document_type === 'text_input' && $submission->text_value) {
+                            $status = 'completed';
+                        } elseif (! empty($submission->field_values)) {
                             $status = 'completed';
                         }
                     }
@@ -906,7 +912,7 @@ class ExhibitorDashboardController extends Controller
 
         // Get all documents for this event, filtered by booth type
         $documents = $event->eventDocuments()
-            ->with('media')
+            ->with(['media', 'fields'])
             ->ordered()
             ->get()
             ->filter(fn ($doc) => $doc->appliesToBoothType($brandEvent->booth_type?->value))
@@ -952,7 +958,11 @@ class ExhibitorDashboardController extends Controller
     }
 
     /**
-     * Submit/agree to an event document.
+     * Submit a document mini-form (multi-field answers keyed by field ulid,
+     * files via tmp uploads keyed by field ulid). The legacy single-value
+     * payload (text_value / tmp_submission_file / implicit agreement) is
+     * still accepted for one release and mapped onto the synthesized
+     * system_key fields.
      */
     public function submitDocument(Request $request, string $brandSlug, int $brandEventId, string $documentUlid): JsonResponse
     {
@@ -972,55 +982,249 @@ class ExhibitorDashboardController extends Controller
 
         $boothIdentifier = $brandEvent->booth_number ?: "be-{$brandEvent->id}";
 
-        $rules = [
+        $validated = $request->validate([
+            'field_values' => ['nullable', 'array'],
+            'files' => ['nullable', 'array'],
             'text_value' => ['nullable', 'string', 'max:5000'],
             'tmp_submission_file' => ['nullable', 'string'],
-        ];
+            'agreement' => ['nullable', 'boolean'],
+        ]);
 
-        if ($document->document_type === 'file_upload' && $document->is_required) {
-            // Check if there's already a submission with a file
-            $existingSubmission = EventDocumentSubmission::query()
-                ->where('event_document_id', $document->id)
-                ->where('booth_identifier', $boothIdentifier)
-                ->where('event_id', $event->id)
-                ->first();
+        $fields = $document->fields()->active()->get();
+        $fileFields = $fields->filter(fn (CustomField $field) => $field->type === CustomField::TYPE_FILE);
+        $inputFields = $fields->reject(fn (CustomField $field) => $field->type === CustomField::TYPE_FILE);
 
-            if (! $existingSubmission || ! $existingSubmission->hasMedia('submission_file')) {
-                $rules['tmp_submission_file'] = ['required', 'string'];
+        // The agreed_at mirror targets the backfilled agreement checkbox; new
+        // builder-made rule documents fall back to their required checkbox.
+        $agreementField = $fields->first(fn (CustomField $field) => $field->type === CustomField::TYPE_CHECKBOX && $field->system_key === 'agreement')
+            ?? $fields->first(fn (CustomField $field) => $field->type === CustomField::TYPE_CHECKBOX && ! empty($field->validation['required']));
+        $legacyTextField = $fields->first(fn (CustomField $field) => $field->type === CustomField::TYPE_TEXTAREA && $field->system_key === 'legacy_text');
+        $legacyFileField = $fileFields->first(fn (CustomField $field) => $field->system_key === 'legacy_file');
+
+        $incoming = is_array($validated['field_values'] ?? null) ? $validated['field_values'] : [];
+        $incomingFiles = $this->normalizedTmpFileMap(is_array($validated['files'] ?? null) ? $validated['files'] : []);
+
+        // Legacy payload bridge (accepted for one release).
+        if ($legacyTextField !== null && $request->exists('text_value') && ! array_key_exists($legacyTextField->ulid, $incoming)) {
+            $incoming[$legacyTextField->ulid] = $validated['text_value'] ?? null;
+        }
+
+        if ($legacyFileField !== null && ! empty($validated['tmp_submission_file']) && ! isset($incomingFiles[$legacyFileField->ulid])) {
+            $incomingFiles += $this->normalizedTmpFileMap([$legacyFileField->ulid => $validated['tmp_submission_file']]);
+        }
+
+        if ($agreementField !== null && ! array_key_exists($agreementField->ulid, $incoming)) {
+            if ($request->exists('agreement')) {
+                $incoming[$agreementField->ulid] = (bool) ($validated['agreement'] ?? false);
+            } elseif (! $request->exists('field_values') && $document->document_type === 'checkbox_agreement') {
+                // The old portal (re)agrees to a rule document by posting an empty body.
+                $incoming[$agreementField->ulid] = true;
             }
         }
 
-        $validated = $request->validate($rules);
+        $existing = EventDocumentSubmission::query()
+            ->where('event_document_id', $document->id)
+            ->where('booth_identifier', $boothIdentifier)
+            ->where('event_id', $event->id)
+            ->first();
 
-        // Upsert submission
-        $submission = EventDocumentSubmission::updateOrCreate(
-            [
-                'event_document_id' => $document->id,
-                'booth_identifier' => $boothIdentifier,
-                'event_id' => $event->id,
-            ],
-            [
-                'agreed_at' => $document->document_type === 'checkbox_agreement' ? now() : null,
-                'text_value' => $validated['text_value'] ?? null,
-                'document_version' => $document->content_version,
-                'submitted_by' => $request->user()->id,
-                'submitted_at' => now(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-            ]
-        );
+        // Validate the prospective (merged) answers so a partial re-submit does
+        // not fail `required` on fields that were already answered before.
+        $merged = CustomFieldValues::mergeUlidKeyed($existing?->field_values, $fields, $incoming);
 
-        // Handle file upload
-        if ($request->has('tmp_submission_file')) {
+        $errors = CustomFieldValidation::errorsFor($inputFields, $merged, 'field_values', 'ulid');
+
+        foreach ($fileFields as $field) {
+            if (empty($field->validation['required'])) {
+                continue;
+            }
+
+            if (isset($incomingFiles[$field->ulid]) || $this->submissionHasFileForField($existing, $field)) {
+                continue;
+            }
+
+            $errors['field_values.'.$field->ulid] = 'The '.$field->label.' file is required.';
+        }
+
+        // Legacy documents without a mini-form keep the old required-file rule.
+        if ($fileFields->isEmpty()
+            && $document->document_type === 'file_upload'
+            && $document->is_required
+            && (! $existing || ! $existing->hasMedia('submission_file'))
+            && empty($validated['tmp_submission_file'])) {
+            $errors['tmp_submission_file'] = 'The submission file is required.';
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        $submission = $existing ?? new EventDocumentSubmission([
+            'event_document_id' => $document->id,
+            'booth_identifier' => $boothIdentifier,
+            'event_id' => $event->id,
+        ]);
+
+        $submission->fill([
+            'document_version' => $document->content_version,
+            'submitted_by' => $request->user()->id,
+            'submitted_at' => now(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        // Mirror the agreement answer into the legacy agreed_at column so
+        // needsReagreement() and the dashboard "agreed" status keep working.
+        if ($agreementField !== null) {
+            $submission->agreed_at = ! empty($merged[$agreementField->ulid]) ? now() : null;
+        } elseif ($fields->isEmpty()) {
+            $submission->agreed_at = $document->document_type === 'checkbox_agreement' ? now() : null;
+        }
+
+        // Mirror the synthesized textarea into the legacy text_value column.
+        if ($legacyTextField !== null && array_key_exists($legacyTextField->ulid, $merged)) {
+            $submission->text_value = $merged[$legacyTextField->ulid];
+        } elseif ($fields->isEmpty()) {
+            $submission->text_value = $validated['text_value'] ?? null;
+        }
+
+        $submission->save();
+
+        foreach ($fileFields as $field) {
+            $merged = $this->storeSubmissionFieldFiles($submission, $field, $incomingFiles[$field->ulid] ?? [], $merged);
+        }
+
+        // Legacy documents without a file field keep the old single-file flow.
+        if ($fileFields->isEmpty() && $request->has('tmp_submission_file')) {
             $this->handleTemporaryUpload($request, $submission, 'tmp_submission_file', 'submission_file');
         }
 
-        $submission->load(['eventDocument', 'media', 'submitter']);
+        $submission->field_values = $merged;
+        $submission->save();
+
+        $submission->load(['eventDocument.fields', 'eventDocument.media', 'media', 'submitter']);
 
         return response()->json([
             'message' => 'Document submitted successfully',
             'data' => new EventDocumentSubmissionResource($submission),
         ]);
+    }
+
+    /**
+     * Whether an existing submission already holds a file for the given field,
+     * counting untagged legacy media for the synthesized legacy_file field.
+     */
+    private function submissionHasFileForField(?EventDocumentSubmission $submission, CustomField $field): bool
+    {
+        if ($submission === null) {
+            return false;
+        }
+
+        if (! empty($submission->field_values[$field->ulid] ?? null)) {
+            return true;
+        }
+
+        return $submission->getMedia('submission_file')->contains(
+            fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid
+                || ($field->system_key === 'legacy_file' && $media->getCustomProperty('field_ulid') === null)
+        );
+    }
+
+    /**
+     * Attach tmp uploads to the submission for one file field, replacing the
+     * field's previous file(s) unless settings.multiple is enabled, and return
+     * the field_values map with the field's media ids refreshed.
+     *
+     * @param  array<int, string>  $tmpIds
+     * @param  array<string, mixed>  $merged
+     * @return array<string, mixed>
+     */
+    private function storeSubmissionFieldFiles(EventDocumentSubmission $submission, CustomField $field, array $tmpIds, array $merged): array
+    {
+        if ($tmpIds === []) {
+            return $merged;
+        }
+
+        $multiple = ! empty($field->settings['multiple']);
+        $keptIds = [];
+
+        if ($multiple) {
+            $keptIds = $submission->getMedia('submission_file')
+                ->filter(fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+        } else {
+            $submission->getMedia('submission_file')
+                ->filter(fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid
+                    || ($field->system_key === 'legacy_file' && $media->getCustomProperty('field_ulid') === null))
+                ->each(fn (Media $media) => $media->delete());
+
+            $tmpIds = array_slice($tmpIds, 0, 1);
+        }
+
+        $newIds = [];
+
+        foreach ($tmpIds as $tmpId) {
+            $media = $this->addSubmissionFileFromTmp($submission, $field, $tmpId);
+
+            if ($media !== null) {
+                $newIds[] = $media->id;
+            }
+        }
+
+        $merged[$field->ulid] = array_values(array_merge($keptIds, $newIds));
+
+        return $merged;
+    }
+
+    private function addSubmissionFileFromTmp(EventDocumentSubmission $submission, CustomField $field, string $tmpId): ?Media
+    {
+        $metadataPath = "tmp/uploads/{$tmpId}/metadata.json";
+
+        if (! Storage::disk('local')->exists($metadataPath)) {
+            return null;
+        }
+
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
+        $filePath = "tmp/uploads/{$tmpId}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            return null;
+        }
+
+        $media = $submission->addMedia(Storage::disk('local')->path($filePath))
+            ->withCustomProperties(['field_ulid' => $field->ulid])
+            ->toMediaCollection('submission_file');
+
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$tmpId}");
+
+        return $media;
+    }
+
+    /**
+     * Canonicalize the files payload to {field_ulid: [tmp ids]}, dropping
+     * anything that is not a tmp-upload reference.
+     *
+     * @param  array<string, mixed>  $files
+     * @return array<string, array<int, string>>
+     */
+    private function normalizedTmpFileMap(array $files): array
+    {
+        $map = [];
+
+        foreach ($files as $ulid => $value) {
+            $tmpIds = array_values(array_filter(
+                is_array($value) ? $value : [$value],
+                fn ($id) => is_string($id) && Str::startsWith($id, 'tmp-')
+            ));
+
+            if ($tmpIds !== []) {
+                $map[(string) $ulid] = $tmpIds;
+            }
+        }
+
+        return $map;
     }
 
     /**

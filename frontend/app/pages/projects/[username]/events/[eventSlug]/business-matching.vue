@@ -45,7 +45,7 @@
       </div>
     </div>
 
-    <CustomFieldsPanel :event="event" />
+    <CustomFieldsPanel :event="event" context="business_matching" library />
   </div>
 </template>
 

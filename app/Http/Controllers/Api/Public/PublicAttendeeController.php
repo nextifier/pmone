@@ -5,17 +5,22 @@ namespace App\Http\Controllers\Api\Public;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PublicTicket\PersonalizeAttendeeRequest;
 use App\Http\Resources\AttendeeResource;
+use App\Http\Resources\EventCustomFieldResource;
 use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Models\Attendee;
 use App\Models\MagicLink;
 use App\Models\TicketOrder;
 use App\Models\User;
 use App\Support\AttendeeQrImage;
+use App\Support\CustomFieldValidation;
+use App\Support\CustomFieldValues;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class PublicAttendeeController extends Controller
@@ -24,7 +29,7 @@ class PublicAttendeeController extends Controller
      * E-ticket for a single attendee. The opaque ulid in the URL is the access
      * key, so the page can be shared without a login (token = access).
      */
-    public function show(string $ulid): JsonResponse
+    public function show(Request $request, string $ulid): JsonResponse
     {
         $attendee = Attendee::query()
             ->where('ulid', $ulid)
@@ -33,10 +38,19 @@ class PublicAttendeeController extends Controller
                 'ticketOrderItem.ticketOrder.event',
                 'ticketOrderItem.selectedEventDay',
                 'ticketOrderItem.ticketSession',
+                'customFieldValues.customField',
             ])
             ->firstOrFail();
 
+        App::setLocale((string) $request->input('locale', config('app.locale', 'en')));
+
         $order = $attendee->ticketOrderItem?->ticketOrder;
+
+        // Registration questions the holder can (still) answer from the
+        // personalize card, with localized labels.
+        $registrationFields = $order?->event
+            ? $order->event->registrationFields()->where('is_active', true)->get()
+            : collect();
 
         return response()->json([
             'data' => $this->gateQrToken((new AttendeeResource($attendee))->resolve(), $order),
@@ -51,6 +65,7 @@ class PublicAttendeeController extends Controller
                 'timezone' => $order->event->timezone,
                 'login_button_enabled' => (bool) ($order->event->settings['tickets']['login_button_enabled'] ?? true),
             ] : null,
+            'registration_fields' => EventCustomFieldResource::collection($registrationFields),
         ]);
     }
 
@@ -188,7 +203,28 @@ class PublicAttendeeController extends Controller
 
         $attendee->save();
 
-        $fresh = $attendee->fresh(['ticket', 'ticketOrderItem.ticketOrder']);
+        // Registration answers (partial fills allowed): only the provided
+        // fields are validated, so `required` never blocks personalizing name
+        // or email alone. Values are type-checked against the field catalog.
+        $registration = (array) ($validated['registration'] ?? []);
+
+        if ($registration !== []) {
+            $event = $attendee->ticketOrderItem?->ticketOrder?->event;
+            $fields = $event
+                ? $event->registrationFields()->where('is_active', true)->get()
+                : collect();
+
+            $provided = $fields->filter(fn ($field) => array_key_exists($field->ulid, $registration));
+
+            $errors = CustomFieldValidation::errorsFor($provided, $registration, 'registration');
+            if ($errors !== []) {
+                throw ValidationException::withMessages($errors);
+            }
+
+            CustomFieldValues::store($attendee, $provided, $registration, 'ulid');
+        }
+
+        $fresh = $attendee->fresh(['ticket', 'ticketOrderItem.ticketOrder', 'customFieldValues.customField']);
 
         // When the holder adds (or changes) their email here, send their e-ticket
         // with the QR right away - closing the loop without staff resending. Only

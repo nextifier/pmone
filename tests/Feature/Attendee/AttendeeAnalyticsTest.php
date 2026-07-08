@@ -3,10 +3,10 @@
 use App\Enums\Ticketing\TicketKind;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Models\Attendee;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\EventDay;
-use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
@@ -123,7 +123,7 @@ it('returns the full detail payload with breakdowns', function () {
 it('aggregates demographics only when business matching is enabled', function () {
     $this->event->update(['business_matching_enabled' => true]);
 
-    $field = EventCustomField::create([
+    $field = CustomField::create([
         'event_id' => $this->event->id,
         'label' => 'City',
         'type' => 'select',
@@ -136,9 +136,10 @@ it('aggregates demographics only when business matching is enabled', function ()
     ]);
 
     foreach (['jakarta', 'jakarta', 'bandung'] as $city) {
-        FieldResponse::create([
-            'user_id' => User::factory()->create()->id,
-            'event_custom_field_id' => $field->id,
+        CustomFieldValue::create([
+            'subject_type' => User::class,
+            'subject_id' => User::factory()->create()->id,
+            'custom_field_id' => $field->id,
             'value' => [$city],
         ]);
     }
@@ -163,13 +164,13 @@ it('aggregates demographics only when business matching is enabled', function ()
 it('reports business matching opt-in participation', function () {
     $this->event->update(['business_matching_enabled' => true]);
 
-    $field = EventCustomField::create([
+    $field = CustomField::create([
         'event_id' => $this->event->id, 'label' => 'Company', 'type' => 'text', 'required' => false, 'is_active' => true,
     ]);
 
     $buyerA = User::factory()->create();
     makeOrder(['status' => TicketOrderStatus::Confirmed, 'user_id' => $buyerA->id, 'total' => 0], 1);
-    FieldResponse::create(['user_id' => $buyerA->id, 'event_custom_field_id' => $field->id, 'value' => ['Acme']]);
+    CustomFieldValue::create(['subject_type' => User::class, 'subject_id' => $buyerA->id, 'custom_field_id' => $field->id, 'value' => ['Acme']]);
 
     // A second confirmed buyer who did not opt in (no answers).
     $buyerB = User::factory()->create();
@@ -189,14 +190,15 @@ it('reports business matching opt-in participation', function () {
 it('aggregates numeric custom fields with an average and value-ordered breakdown', function () {
     $this->event->update(['business_matching_enabled' => true]);
 
-    $field = EventCustomField::create([
+    $field = CustomField::create([
         'event_id' => $this->event->id, 'label' => 'Satisfaction', 'type' => 'rating', 'required' => false, 'is_active' => true,
     ]);
 
     foreach ([5, 4, 5] as $score) {
-        FieldResponse::create([
-            'user_id' => User::factory()->create()->id,
-            'event_custom_field_id' => $field->id,
+        CustomFieldValue::create([
+            'subject_type' => User::class,
+            'subject_id' => User::factory()->create()->id,
+            'custom_field_id' => $field->id,
             'value' => [$score],
         ]);
     }
@@ -237,14 +239,14 @@ it('exposes ticket capacity and no-show metrics', function () {
 it('reports business-matching respondents and per-field response rate', function () {
     $this->event->update(['business_matching_enabled' => true]);
 
-    $field = EventCustomField::create([
+    $field = CustomField::create([
         'event_id' => $this->event->id, 'label' => 'Industry', 'type' => 'select',
         'options' => ['Tech', 'Finance'], 'required' => false, 'is_active' => true,
     ]);
 
     $buyer = User::factory()->create();
     makeOrder(['status' => TicketOrderStatus::Confirmed, 'user_id' => $buyer->id, 'total' => 0], 1);
-    FieldResponse::create(['user_id' => $buyer->id, 'event_custom_field_id' => $field->id, 'value' => ['Tech']]);
+    CustomFieldValue::create(['subject_type' => User::class, 'subject_id' => $buyer->id, 'custom_field_id' => $field->id, 'value' => ['Tech']]);
 
     $data = $this->actingAs($this->staff)
         ->getJson("/api/events/{$this->event->id}/attendees/analytics")
@@ -261,14 +263,15 @@ it('reports business-matching respondents and per-field response rate', function
 it('labels boolean custom fields as Yes/No', function () {
     $this->event->update(['business_matching_enabled' => true]);
 
-    $field = EventCustomField::create([
+    $field = CustomField::create([
         'event_id' => $this->event->id, 'label' => 'Subscribe', 'type' => 'checkbox', 'required' => false, 'is_active' => true,
     ]);
 
     foreach ([[true], [true], [false]] as $value) {
-        FieldResponse::create([
-            'user_id' => User::factory()->create()->id,
-            'event_custom_field_id' => $field->id,
+        CustomFieldValue::create([
+            'subject_type' => User::class,
+            'subject_id' => User::factory()->create()->id,
+            'custom_field_id' => $field->id,
             'value' => $value,
         ]);
     }

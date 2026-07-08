@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Http\Middleware\TenantCacheResponse;
 use App\Models\ContactFormSubmission;
+use App\Models\CustomField;
 use App\Models\LinkPageItem;
 use App\Models\Project;
 use App\Models\ShortLink;
@@ -12,6 +13,7 @@ use App\Observers\LinkPageItemObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\ShortLinkObserver;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -44,6 +46,16 @@ class AppServiceProvider extends ServiceProvider
         // without fallbackAny an id-only record would render empty on the
         // English-default public sites.
         Translatable::fallback(fallbackLocale: 'en', fallbackAny: true);
+
+        // Activity-log rows written before the centralized custom-fields
+        // migration still carry subject_type App\Models\ProjectCustomField;
+        // that model was replaced by CustomField, so map the retired FQCN to
+        // keep those morphs resolvable. CustomField's own FQCN is registered
+        // first so CustomField::getMorphClass() keeps returning it.
+        Relation::morphMap([
+            CustomField::class => CustomField::class,
+            'App\\Models\\ProjectCustomField' => CustomField::class,
+        ]);
 
         // Configure rate limiters
         RateLimiter::for('api', function (Request $request) {

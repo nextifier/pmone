@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\Event;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,9 +17,12 @@ return new class extends Migration
         });
 
         // Preserve existing behaviour: events that already have intake fields were
-        // effectively running Business Matching, so turn it on for them.
-        Event::query()
-            ->whereHas('eventCustomFields', fn ($q) => $q->where('is_active', true))
+        // effectively running Business Matching, so turn it on for them. Queries
+        // the legacy event_custom_fields table directly: the live Event relation
+        // now targets the centralized custom_fields table, which does not exist
+        // yet at this point in the migration order.
+        DB::table('events')
+            ->whereIn('id', DB::table('event_custom_fields')->where('is_active', true)->pluck('event_id'))
             ->update(['business_matching_enabled' => true]);
     }
 

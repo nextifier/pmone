@@ -27,6 +27,7 @@ class EventDocumentResource extends JsonResource
             'settings' => $this->settings,
             'content_version' => $this->content_version,
             'content_updated_at' => $this->content_updated_at,
+            'fields' => CustomFieldResource::collection($this->whenLoaded('fields')),
             'template_en' => $this->when(
                 $this->relationLoaded('media') || $this->hasMedia('template_en'),
                 fn () => $this->getMediaUrls('template_en')

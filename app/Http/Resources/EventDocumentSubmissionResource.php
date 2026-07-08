@@ -20,6 +20,7 @@ class EventDocumentSubmissionResource extends JsonResource
             'event_id' => $this->event_id,
             'agreed_at' => $this->agreed_at,
             'text_value' => $this->text_value,
+            'field_values' => $this->field_values,
             'document_version' => $this->document_version,
             'needs_reagreement' => $this->when(
                 $this->relationLoaded('eventDocument'),
@@ -38,6 +39,16 @@ class EventDocumentSubmissionResource extends JsonResource
             'submission_file' => $this->when(
                 $this->relationLoaded('media') || $this->hasMedia('submission_file'),
                 fn () => $this->getMediaUrls('submission_file')
+            ),
+            'files' => $this->when(
+                $this->relationLoaded('media'),
+                fn () => $this->getMedia('submission_file')->map(fn ($media) => [
+                    'id' => $media->id,
+                    'field_ulid' => $media->getCustomProperty('field_ulid'),
+                    'name' => $media->file_name,
+                    'url' => $media->getUrl(),
+                    'size' => $media->size,
+                ])->values()
             ),
             'event_document' => new EventDocumentResource($this->whenLoaded('eventDocument')),
             'created_at' => $this->created_at,

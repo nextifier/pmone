@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\BoothType;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,14 +15,14 @@ class StoreEventDocumentRequest extends FormRequest
     }
 
     /**
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'document_type' => ['required', 'string', Rule::in(['file_upload', 'checkbox_agreement', 'text_input'])],
+            'document_type' => ['sometimes', 'nullable', 'string', Rule::in(['file_upload', 'checkbox_agreement', 'text_input', 'custom'])],
             'is_required' => ['sometimes', 'boolean'],
             'blocks_next_step' => ['sometimes', 'boolean'],
             'submission_deadline' => ['nullable', 'date'],
@@ -41,8 +42,7 @@ class StoreEventDocumentRequest extends FormRequest
     {
         return [
             'title.required' => 'Document title is required.',
-            'document_type.required' => 'Document type is required.',
-            'document_type.in' => 'Invalid document type. Must be file_upload, checkbox_agreement, or text_input.',
+            'document_type.in' => 'Invalid document type. Must be file_upload, checkbox_agreement, text_input, or custom.',
             'booth_types.*.in' => 'Invalid booth type specified.',
         ];
     }

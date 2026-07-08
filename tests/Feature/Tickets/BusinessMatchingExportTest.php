@@ -4,8 +4,8 @@ use App\Exports\AttendeesExport;
 use App\Exports\ExhibitorLeadsExport;
 use App\Models\Attendee;
 use App\Models\Brand;
+use App\Models\CustomField;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\ExhibitorLead;
 use App\Models\Project;
 use App\Models\Ticket;
@@ -25,14 +25,14 @@ beforeEach(function () {
 });
 
 it('exports business-matching answers as formatted attendee columns', function () {
-    $company = EventCustomField::factory()->create([
+    $company = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'text', 'label' => ['en' => 'Company'], 'is_active' => true,
     ]);
-    $interests = EventCustomField::factory()->create([
+    $interests = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'multi_select', 'label' => ['en' => 'Interests'],
         'options' => ['Tech', 'Sales', 'Marketing'], 'is_active' => true,
     ]);
-    $subscribe = EventCustomField::factory()->create([
+    $subscribe = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'checkbox', 'label' => ['en' => 'Subscribe'], 'is_active' => true,
     ]);
 
@@ -68,10 +68,10 @@ it('exports business-matching answers as formatted attendee columns', function (
 });
 
 it('exports business-matching answers in the exhibitor leads sheet', function () {
-    $company = EventCustomField::factory()->create([
+    $company = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'text', 'label' => ['en' => 'Company'], 'is_active' => true,
     ]);
-    $interests = EventCustomField::factory()->create([
+    $interests = CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'multi_select', 'label' => ['en' => 'Interests'],
         'options' => ['Tech', 'Sales', 'Marketing'], 'is_active' => true,
     ]);
@@ -115,7 +115,7 @@ it('exports business-matching answers in the exhibitor leads sheet', function ()
 });
 
 it('shows a dash for attendees whose buyer did not answer', function () {
-    EventCustomField::factory()->create([
+    CustomField::factory()->create([
         'event_id' => $this->event->id, 'type' => 'text', 'label' => ['en' => 'Company'], 'is_active' => true,
     ]);
 

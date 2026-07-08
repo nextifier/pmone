@@ -4,6 +4,7 @@ namespace App\Http\Requests\PublicTicket;
 
 use App\Models\Event;
 use App\Support\BusinessMatchingValidation;
+use App\Support\CustomFieldValidation;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -38,11 +39,17 @@ class StorePublicTicketOrderRequest extends FormRequest
             'origin' => ['nullable', 'url', 'max:255'],
 
             // Business matching intake (buyer answers, stored on their User).
+            // Ids resolve by id or legacy_id downstream, so no exists rule here.
             'business_matching' => ['sometimes', 'array'],
             'business_matching.opt_in' => ['sometimes', 'boolean'],
             'business_matching.responses' => ['sometimes', 'array'],
-            'business_matching.responses.*.custom_field_id' => ['required_with:business_matching.responses', 'integer', 'exists:event_custom_fields,id'],
+            'business_matching.responses.*.custom_field_id' => ['required_with:business_matching.responses', 'integer'],
             'business_matching.responses.*.value' => ['nullable'],
+
+            // Registration answers (per-attendee; the buyer answers for their
+            // own ticket at checkout), keyed by field ulid.
+            'registration' => ['sometimes', 'array'],
+            'registration.responses' => ['sometimes', 'array'],
         ];
     }
 
@@ -75,6 +82,16 @@ class StorePublicTicketOrderRequest extends FormRequest
                 (bool) ($bm['opt_in'] ?? false),
                 (array) ($bm['responses'] ?? []),
             );
+
+            $registrationFields = $event->registrationFields()->where('is_active', true)->get();
+
+            if ($registrationFields->isNotEmpty()) {
+                $errors += CustomFieldValidation::errorsFor(
+                    $registrationFields,
+                    (array) $this->input('registration.responses', []),
+                    'registration.responses',
+                );
+            }
 
             foreach ($errors as $key => $message) {
                 $validator->errors()->add($key, $message);

@@ -1,7 +1,7 @@
 <?php
 
+use App\Models\CustomField;
 use App\Models\Form;
-use App\Models\FormField;
 use App\Models\FormResponse;
 use App\Models\User;
 use App\Support\FormFieldTypes;
@@ -36,7 +36,7 @@ it('seeds published example forms with fields and responses', function () {
 it('covers every field type across the example forms', function () {
     $this->seed(ExampleFormsSeeder::class);
 
-    $seededTypes = FormField::whereIn('form_id', Form::pluck('id'))
+    $seededTypes = CustomField::where('fieldable_type', Form::class)->whereIn('fieldable_id', Form::pluck('id'))
         ->pluck('type')
         ->unique()
         ->sort()
@@ -52,13 +52,13 @@ it('is idempotent across multiple runs', function () {
     $this->seed(ExampleFormsSeeder::class);
 
     $formCount = Form::count();
-    $fieldCount = FormField::count();
+    $fieldCount = CustomField::count();
     $responseCount = FormResponse::count();
 
     $this->seed(ExampleFormsSeeder::class);
 
     expect(Form::count())->toBe($formCount)
-        ->and(FormField::count())->toBe($fieldCount)
+        ->and(CustomField::count())->toBe($fieldCount)
         ->and(FormResponse::count())->toBe($responseCount);
 });
 

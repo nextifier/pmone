@@ -8,8 +8,8 @@ use App\Models\Attendee;
 use App\Models\Brand;
 use App\Models\Contact;
 use App\Models\ContactFormSubmission;
+use App\Models\CustomField;
 use App\Models\Event;
-use App\Models\EventCustomField;
 use App\Models\EventDay;
 use App\Models\EventDocument;
 use App\Models\EventProduct;
@@ -299,7 +299,7 @@ return [
         'event_custom_fields' => [
             'label' => 'Business Matching Fields',
             'description' => 'Manage per-event business-matching custom fields',
-            'model' => EventCustomField::class,
+            'model' => CustomField::class,
             'actions' => ['create', 'read', 'update', 'delete'],
         ],
         'ticket_orders' => [

@@ -223,7 +223,7 @@
         <h4 class="frame-title">Preview</h4>
       </div>
       <div class="frame-panel">
-        <PublicFieldRenderer
+        <CustomFieldRenderer
           :key="previewKey"
           :field="previewField"
           v-model="previewValue"
@@ -247,7 +247,7 @@
 
 <script setup>
 import FieldTypeSelector from "@/components/form-builder/FieldTypeSelector.vue";
-import PublicFieldRenderer from "@/components/form-builder/PublicFieldRenderer.vue";
+import { CustomFieldRenderer } from "@/components/ui/custom-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";

@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Api\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PublicTicket\StorePublicTicketOrderRequest;
+use App\Http\Resources\EventCustomFieldResource;
 use App\Http\Resources\PublicTicketOrderResource;
+use App\Models\CustomField;
 use App\Models\TicketOrder;
 use App\Services\Ticket\TicketDocumentService;
 use App\Services\Ticket\TicketPurchaseService;
+use App\Support\FormFieldTypes;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 
 class PublicTicketOrderController extends Controller
@@ -52,16 +57,35 @@ class PublicTicketOrderController extends Controller
      * Order + all attendees via the emailed magic link (Manage Attendees for the
      * buyer without a login).
      */
-    public function showByMagicLink(string $token): JsonResponse
+    public function showByMagicLink(Request $request, string $token): JsonResponse
     {
         $order = TicketOrder::resolveByMagicLink($token);
 
         abort_unless($order, 404, 'This link is invalid or has expired.');
 
-        $order->load(['items', 'attendees.ticket', 'event']);
+        $order->load(['items', 'attendees.ticket', 'attendees.customFieldValues.customField', 'event']);
+
+        App::setLocale((string) $request->input('locale', config('app.locale', 'en')));
+
+        // Registration questions + each attendee's answers so the manage page
+        // renders per-attendee fields without a second fetch. Empty when the
+        // event has none, so existing sites see no change.
+        $registrationFields = $order->event
+            ? $order->event->registrationFields()->where('is_active', true)->get()
+            : collect();
 
         return response()->json([
             'data' => new PublicTicketOrderResource($order),
+            'meta' => [
+                'registration_fields' => EventCustomFieldResource::collection($registrationFields),
+                'registration_answers' => $order->attendees->mapWithKeys(fn ($attendee) => [
+                    $attendee->ulid => $attendee->customFieldValues
+                        ->filter(fn ($value) => $value->customField?->context === CustomField::CONTEXT_TICKET_REGISTRATION)
+                        ->mapWithKeys(fn ($value) => [
+                            $value->customField->ulid => FormFieldTypes::normalizeStored($value->customField->type, $value->value),
+                        ]),
+                ]),
+            ],
         ]);
     }
 

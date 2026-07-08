@@ -74,52 +74,15 @@
           </div>
 
           <!-- Custom Fields -->
-          <template v-if="customFieldDefinitions?.length">
-            <div v-for="field in customFieldDefinitions" :key="field.id" class="space-y-2">
-              <Label :for="`cf_${field.key}`">
-                {{ field.label }}
-                <span v-if="field.is_required" class="text-destructive">*</span>
-              </Label>
-
-              <Input
-                v-if="field.type === 'text'"
-                :id="`cf_${field.key}`"
-                v-model="customFieldValues[field.key]"
-              />
-              <Input
-                v-else-if="field.type === 'number'"
-                :id="`cf_${field.key}`"
-                v-model="customFieldValues[field.key]"
-                type="number"
-              />
-              <Textarea
-                v-else-if="field.type === 'textarea'"
-                :id="`cf_${field.key}`"
-                v-model="customFieldValues[field.key]"
-                rows="3"
-              />
-              <Select v-else-if="field.type === 'select'" v-model="customFieldValues[field.key]">
-                <SelectTrigger :id="`cf_${field.key}`" class="w-full">
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="option in field.options" :key="option" :value="option">
-                    {{ option }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Select v-else-if="field.type === 'year_select'" v-model="customFieldValues[field.key]">
-                <SelectTrigger :id="`cf_${field.key}`" class="w-full">
-                  <SelectValue placeholder="Select year..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="year in yearOptions" :key="year" :value="String(year)">
-                    {{ year }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </template>
+          <CustomFieldGroup
+            v-if="customFieldDefinitions?.length"
+            :fields="customFieldDefinitions"
+            :model-value="customFieldValues"
+            :errors="customFieldErrors"
+            error-prefix="project_custom_fields."
+            value-key="key"
+            @update:model-value="onCustomFieldsUpdate"
+          />
 
           <div v-if="showStatus" class="space-y-2">
             <Label for="status">{{ $t("brandsForm.status") }}</Label>
@@ -212,6 +175,7 @@
 </template>
 
 <script setup>
+import { CustomFieldGroup } from "@/components/ui/custom-field";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { MultiSelect } from "@/components/ui/multi-select";
 import {
@@ -306,30 +270,30 @@ function handleLinkLabelChange(index, value) {
   }
 }
 
-// Custom field values (reactive object keyed by field key)
+// Custom field values (reactive object keyed by field key) + server-side
+// validation errors surfaced by the CustomFieldGroup, keyed
+// project_custom_fields.{key}.
 const customFieldValues = reactive(
   normalizeCustomFieldValues(props.customFieldInitialValues, props.customFieldDefinitions)
 );
+const customFieldErrors = ref({});
+
+function onCustomFieldsUpdate(next) {
+  Object.assign(customFieldValues, next);
+}
 
 function normalizeCustomFieldValues(values, definitions) {
   const result = { ...values };
   for (const field of definitions || []) {
-    if (field.type === "year_select" && result[field.key] != null) {
+    // Legacy 'year_select' + the migrated select+years preset both store the
+    // year as a string.
+    const isYear = field.type === "year_select" || field.settings?.options_preset === "years";
+    if (isYear && result[field.key] != null) {
       result[field.key] = String(result[field.key]);
     }
   }
   return result;
 }
-
-// Year options (current year down to 1950)
-const currentYear = new Date().getFullYear();
-const yearOptions = computed(() => {
-  const years = [];
-  for (let y = currentYear; y >= 1950; y--) {
-    years.push(y);
-  }
-  return years;
-});
 
 // Sync form when brand prop changes
 watch(
@@ -408,6 +372,7 @@ async function save() {
       body.project_custom_fields = { ...customFieldValues };
     }
 
+    customFieldErrors.value = {};
     await client(props.apiUrl, { method: "PUT", body });
     toast.success(t("brandsForm.brandUpdated"));
 
@@ -419,6 +384,8 @@ async function save() {
 
     emit("saved");
   } catch (e) {
+    // Surface per-field custom-field validation (project_custom_fields.{key}).
+    customFieldErrors.value = e?.data?.errors || {};
     toast.error(e?.data?.message || t("brandsForm.failedToUpdate"));
   } finally {
     saving.value = false;

@@ -25,6 +25,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int $event_id
  * @property Carbon|null $agreed_at
  * @property string|null $text_value
+ * @property array<array-key, mixed>|null $field_values
  * @property int $document_version
  * @property int $submitted_by
  * @property Carbon $submitted_at
@@ -74,6 +75,7 @@ class EventDocumentSubmission extends Model implements HasMedia
         'event_id',
         'agreed_at',
         'text_value',
+        'field_values',
         'document_version',
         'submitted_by',
         'submitted_at',
@@ -86,6 +88,7 @@ class EventDocumentSubmission extends Model implements HasMedia
         return [
             'agreed_at' => 'datetime',
             'submitted_at' => 'datetime',
+            'field_values' => 'array',
             'document_version' => 'integer',
         ];
     }
@@ -136,8 +139,18 @@ class EventDocumentSubmission extends Model implements HasMedia
     {
         return [
             'submission_file' => [
-                'single_file' => true,
-                'mime_types' => ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+                // Multi-field mini-forms store one file per field in this
+                // collection, addressed via custom_properties.field_ulid.
+                'single_file' => false,
+                'mime_types' => [
+                    'application/pdf',
+                    'image/jpeg',
+                    'image/png',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                ],
                 'max_size' => 51200,
             ],
         ];

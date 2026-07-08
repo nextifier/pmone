@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -270,11 +271,33 @@ class EventDocument extends Model implements HasMedia, Sortable
     }
 
     /**
-     * Check if this document is an event rule.
+     * Check if this document is an event rule: it blocks the next step and its
+     * mini-form contains an active required checkbox (the agreement). Replaces
+     * the legacy `document_type === 'checkbox_agreement'` marker; backfilled
+     * documents carry a synthesized required checkbox so semantics for the
+     * consumers (dashboard split, exports) are preserved.
      */
     public function isEventRule(): bool
     {
-        return $this->document_type === 'checkbox_agreement' && $this->blocks_next_step;
+        if (! $this->blocks_next_step) {
+            return false;
+        }
+
+        $fields = $this->relationLoaded('fields')
+            ? $this->fields
+            : $this->fields()->get();
+
+        if ($fields->isEmpty()) {
+            // Documents created through the legacy flow have no mini-form yet;
+            // keep the old document_type marker working during the grace period.
+            return $this->document_type === 'checkbox_agreement';
+        }
+
+        return $fields->contains(
+            fn (CustomField $field) => $field->type === CustomField::TYPE_CHECKBOX
+                && $field->is_active
+                && ! empty($field->validation['required'])
+        );
     }
 
     /**
@@ -294,6 +317,16 @@ class EventDocument extends Model implements HasMedia, Sortable
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /**
+     * The document's mini-form field definitions (centralized custom fields).
+     */
+    public function fields(): MorphMany
+    {
+        return $this->morphMany(CustomField::class, 'fieldable')
+            ->where('context', CustomField::CONTEXT_DOCUMENT)
+            ->ordered();
     }
 
     public function submissions(): HasMany

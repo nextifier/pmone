@@ -8,8 +8,8 @@ use App\Enums\Ticketing\TicketOrderStatus;
 use App\Jobs\Ticket\GenerateBulkAttendeesJob;
 use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
+use App\Models\Attendee;
 use App\Models\Event;
-use App\Models\FieldResponse;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
@@ -20,6 +20,7 @@ use App\Services\Payment\PaymentProviderFactory;
 use App\Services\Pricing\PricingService;
 use App\Services\Promotion\PromoCodeService;
 use App\Services\Xendit\XenditErrorMapper;
+use App\Support\CustomFieldValues;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -365,6 +366,8 @@ class TicketPurchaseService
             $attendeeNumber = 0;
             $alsoAttending = (bool) ($data['also_attending'] ?? false);
             $totalQty = array_sum(array_column($resolved, 'qty'));
+            $buyerAttendee = null;
+            $firstAttendee = null;
 
             foreach ($resolved as $row) {
                 $orderItem = $order->items()->create([
@@ -383,7 +386,7 @@ class TicketPurchaseService
 
                     // Placeholder names use the buyer's name (e.g. "Antonius #2"),
                     // not a generic "Tamu #n" - the buyer recognizes their group.
-                    $orderItem->attendees()->create([
+                    $attendee = $orderItem->attendees()->create([
                         'ticket_id' => $row['ticket']->id,
                         'name' => $this->attendeeDisplayName($data['buyer_name'] ?? null, $attendeeNumber, $totalQty),
                         'email' => $isBuyer ? ($data['buyer_email'] ?? null) : null,
@@ -391,6 +394,11 @@ class TicketPurchaseService
                         'claimed_by_user_id' => $isBuyer ? $buyerUser?->id : null,
                         'personalized_at' => $isBuyer ? now() : null,
                     ]);
+
+                    $firstAttendee ??= $attendee;
+                    if ($isBuyer) {
+                        $buyerAttendee ??= $attendee;
+                    }
                 }
 
                 $row['ticket']->increment('sold_count', $row['qty']);
@@ -398,6 +406,17 @@ class TicketPurchaseService
                 if ($row['session']) {
                     $row['session']->increment('booked_count', $row['qty']);
                 }
+            }
+
+            // Registration answers are per-attendee; at checkout the buyer
+            // answers for their own ticket (attendee #1). Other attendees fill
+            // theirs via the manage/personalize surfaces after checkout.
+            if (! empty($data['registration']['responses'])) {
+                $this->storeRegistrationResponses(
+                    $buyerAttendee ?? $firstAttendee,
+                    $event,
+                    (array) $data['registration']['responses'],
+                );
             }
 
             // Access code + promo + final total (tickets have no tax/service;
@@ -795,7 +814,7 @@ class TicketPurchaseService
 
     /**
      * Persist the buyer's business-matching opt-in + answers to their User
-     * profile (FieldResponse is per-User, shared with the dashboard profile).
+     * profile (answers are per-User, shared with the dashboard profile).
      *
      * @param  array<string, mixed>  $bm
      */
@@ -813,21 +832,37 @@ class TicketPurchaseService
             return;
         }
 
-        $fieldIds = $event->eventCustomFields()->where('is_active', true)->pluck('id');
+        $fields = $event->eventCustomFields()->where('is_active', true)->get();
 
+        // Posted ids resolve by id OR legacy_id: checkouts opened before the
+        // custom-fields migration deploy still post old event_custom_fields ids.
+        $values = [];
         foreach ((array) ($bm['responses'] ?? []) as $resp) {
             $fieldId = (int) ($resp['custom_field_id'] ?? 0);
-            if (! $fieldIds->contains($fieldId)) {
-                continue;
+            $field = $fields->first(fn ($f) => $f->id === $fieldId || $f->legacy_id === $fieldId);
+            if ($field !== null) {
+                $values[(string) $field->id] = $resp['value'] ?? null;
             }
-
-            $value = $resp['value'] ?? null;
-
-            FieldResponse::query()->updateOrCreate(
-                ['user_id' => $user->id, 'event_custom_field_id' => $fieldId],
-                ['value' => is_array($value) ? $value : [$value]],
-            );
         }
+
+        CustomFieldValues::store($user, $fields, $values, 'id');
+    }
+
+    /**
+     * Persist the buyer's registration answers onto their attendee row.
+     * Unknown ulids are dropped; scalars are array-wrapped by the store.
+     *
+     * @param  array<string, mixed>  $responses
+     */
+    protected function storeRegistrationResponses(?Attendee $attendee, Event $event, array $responses): void
+    {
+        if ($attendee === null) {
+            return;
+        }
+
+        $fields = $event->registrationFields()->where('is_active', true)->get();
+
+        CustomFieldValues::store($attendee, $fields, $responses, 'ulid');
     }
 
     protected function uniqueUsername(string $email): string

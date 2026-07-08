@@ -1,9 +1,9 @@
 <?php
 
 use App\Models\ApiConsumer;
+use App\Models\CustomField;
+use App\Models\CustomFieldValue;
 use App\Models\Event;
-use App\Models\EventCustomField;
-use App\Models\FieldResponse;
 use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketPricePhase;
@@ -30,7 +30,7 @@ function bmEvent(Project $project, bool $bmEnabled): Event
 it('hides checkout custom fields when business matching is disabled', function () {
     ApiConsumer::factory()->create(['api_key' => 'pk_bm_off']);
     $event = bmEvent($this->project, false);
-    EventCustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
+    CustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
 
     $this->withHeaders(['X-API-Key' => 'pk_bm_off'])
         ->getJson("/api/public/events/{$event->slug}/custom-fields")
@@ -41,7 +41,7 @@ it('hides checkout custom fields when business matching is disabled', function (
 it('exposes checkout custom fields when business matching is enabled', function () {
     ApiConsumer::factory()->create(['api_key' => 'pk_bm_on']);
     $event = bmEvent($this->project, true);
-    EventCustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
+    CustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
 
     $this->withHeaders(['X-API-Key' => 'pk_bm_on'])
         ->getJson("/api/public/events/{$event->slug}/custom-fields")
@@ -51,7 +51,7 @@ it('exposes checkout custom fields when business matching is enabled', function 
 
 it('ignores business matching answers when the program is disabled', function () {
     $event = bmEvent($this->project, false);
-    $field = EventCustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
+    $field = CustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
     $ticket = Ticket::factory()->create(['event_id' => $event->id]);
     TicketPricePhase::factory()->create([
         'ticket_id' => $ticket->id, 'price' => 0,
@@ -65,12 +65,12 @@ it('ignores business matching answers when the program is disabled', function ()
         'business_matching' => ['opt_in' => true, 'responses' => [['custom_field_id' => $field->id, 'value' => 'Acme']]],
     ]);
 
-    expect(FieldResponse::count())->toBe(0);
+    expect(CustomFieldValue::count())->toBe(0);
 });
 
 it('stores business matching answers when the program is enabled', function () {
     $event = bmEvent($this->project, true);
-    $field = EventCustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
+    $field = CustomField::factory()->create(['event_id' => $event->id, 'is_active' => true]);
     $ticket = Ticket::factory()->create(['event_id' => $event->id]);
     TicketPricePhase::factory()->create([
         'ticket_id' => $ticket->id, 'price' => 0,
@@ -84,7 +84,7 @@ it('stores business matching answers when the program is enabled', function () {
         'business_matching' => ['opt_in' => true, 'responses' => [['custom_field_id' => $field->id, 'value' => 'Acme']]],
     ]);
 
-    expect(FieldResponse::count())->toBe(1);
+    expect(CustomFieldValue::count())->toBe(1);
 });
 
 it('persists the business matching toggle via ticket settings', function () {
