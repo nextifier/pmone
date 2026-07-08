@@ -482,7 +482,7 @@
 
 /* dialog */
 .style-mono .cn-dialog-content {
-  @apply bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid max-h-[calc(100%-4rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border p-6 shadow-lg duration-200 sm:max-w-lg;
+  @apply bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border p-6 shadow-lg duration-200 sm:max-w-lg;
 }
 .style-mono .cn-dialog-overlay {
   @apply data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80;
@@ -921,7 +921,7 @@
 
 /* scroll-area */
 .style-mono .cn-scroll-area {
-  @apply relative overflow-hidden;
+  @apply relative;
 }
 .style-mono .cn-scroll-area-viewport {
   @apply h-full w-full rounded-[inherit] outline-hidden;

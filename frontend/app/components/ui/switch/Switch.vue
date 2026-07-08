@@ -32,7 +32,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     v-bind="forwarded"
     :class="
       cn(
-        'cn-switch peer group/switch relative inline-flex items-center transition-[color,box-shadow] outline-none after:absolute after:-inset-x-3 after:-inset-y-2 data-disabled:cursor-not-allowed data-disabled:opacity-50',
+        'cn-switch peer group/switch relative inline-flex cursor-pointer items-center transition-[color,box-shadow] outline-none after:absolute after:-inset-x-3 after:-inset-y-2 data-disabled:cursor-not-allowed data-disabled:opacity-50',
         props.class
       )
     "

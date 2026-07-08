@@ -22,7 +22,7 @@ const isIndeterminate = computed(() => props.modelValue === "indeterminate");
     v-bind="forwarded"
     :class="
       cn(
-        'cn-checkbox peer relative shrink-0 outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50',
+        'cn-checkbox peer relative shrink-0 cursor-pointer outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50',
         props.class
       )
     "

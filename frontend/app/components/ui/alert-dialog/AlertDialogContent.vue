@@ -36,7 +36,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       v-bind="forwarded"
       :class="
         cn(
-          'cn-alert-dialog-content group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 outline-none',
+          'cn-alert-dialog-content group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100%-4rem)] w-full -translate-x-1/2 -translate-y-1/2 overflow-y-auto outline-none',
           props.class,
         )
       "

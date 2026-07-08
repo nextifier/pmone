@@ -34,7 +34,7 @@ const sizeClass = computed(
     v-bind="forwardedProps"
     :class="
       cn(
-        'ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-hidden select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'ring-offset-background focus-visible:ring-ring inline-flex cursor-pointer items-center justify-center gap-1.5 font-medium whitespace-nowrap transition-colors outline-hidden select-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         sizeClass,
         variantClass,
         props.class,

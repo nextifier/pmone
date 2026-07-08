@@ -95,6 +95,12 @@ const headerProject = useState("header-project", () => null);
 const headerEvent = useState("header-event", () => null);
 const headerBrand = useState("header-brand", () => null);
 
+// Warm the shared navigation cache on header mount so both switchers
+// (HeaderProjectSwitcher/HeaderEventSwitcher) show data instantly on open
+// instead of flashing the empty state during the first deferred fetch.
+const { fetchNavigation } = useHeaderNavigation();
+onMounted(() => fetchNavigation());
+
 const backDestination = computed(() => {
   const basePath = `/projects/${route.params.username}`;
 

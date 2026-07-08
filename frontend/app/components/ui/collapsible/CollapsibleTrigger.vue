@@ -8,6 +8,7 @@ const props = defineProps<CollapsibleTriggerProps>()
 <template>
   <CollapsibleTrigger
     data-slot="collapsible-trigger"
+    class="cursor-pointer"
     v-bind="props"
   >
     <slot />

@@ -229,7 +229,7 @@
       <!-- Table -->
       <div class="frame">
         <div class="frame-panel bg-background -m-px overflow-hidden p-0!">
-          <Table class="[&_td]:scroll-fade-x table-fixed [&_td]:overflow-hidden">
+          <Table class="table-fixed [&_td]:overflow-hidden">
             <TableHeader>
               <TableRow
                 v-for="headerGroup in table.getHeaderGroups()"
@@ -297,7 +297,11 @@
                       v-for="(header, j) in table.getHeaderGroups()[0]?.headers || []"
                       :key="`skeleton-cell-${i}-${j}`"
                       :style="{ width: `${header.getSize()}px` }"
-                      :class="['py-2.5', j === 0 && header.column.id !== 'select' ? 'pl-4' : '']"
+                      :class="[
+                        'py-2.5',
+                        header.column.id !== 'select' ? 'scroll-fade-x' : '',
+                        j === 0 && header.column.id !== 'select' ? 'pl-4' : '',
+                      ]"
                     >
                       <Skeleton
                         :class="[
@@ -320,7 +324,11 @@
                       v-for="(cell, index) in row.getVisibleCells()"
                       :key="cell.id"
                       :style="{ width: `${cell.column.getSize()}px` }"
-                      :class="['py-2.5', index === 0 && cell.column.id !== 'select' ? 'pl-4' : '']"
+                      :class="[
+                        'py-2.5',
+                        cell.column.id !== 'select' ? 'scroll-fade-x' : '',
+                        index === 0 && cell.column.id !== 'select' ? 'pl-4' : '',
+                      ]"
                     >
                       <FlexRender :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                     </TableCell>

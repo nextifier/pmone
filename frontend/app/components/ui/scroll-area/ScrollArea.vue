@@ -27,7 +27,7 @@ const delegatedProps = computed(() => {
   <ScrollAreaRoot
     data-slot="scroll-area"
     v-bind="delegatedProps"
-    :class="cn('cn-scroll-area relative', props.class)"
+    :class="cn('cn-scroll-area relative overflow-hidden', props.class)"
   >
     <ScrollAreaViewport
       data-slot="scroll-area-viewport"

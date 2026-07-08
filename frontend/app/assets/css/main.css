@@ -6,8 +6,12 @@
    token utilities, so Style (component shape) composes with the appearance
    tokens (Base Color/Theme/Radius). Imported into layer(base) so per-call
    `props.class` (utilities layer) still overrides. The active style is set on
-   <html> via useStyleClass (SSR cookie); a style is ALWAYS active (default vega). */
+   <body> via useAppearance (SSR cookie); a style is ALWAYS active (default mono).
+   `_base.css` holds the `.cn-*` rules identical across ALL 8 non-mono styles,
+   scoped `:where(body:not(.style-mono))` (specificity (0,1,0); per-style .style-X
+   overrides at (0,2,0) still win). Auto-extracted by scratchpad/gen-base.js. */
 @import "./styles/style-mono.css" layer(base);
+@import "./styles/_base.css" layer(base);
 @import "./styles/style-vega.css" layer(base);
 @import "./styles/style-nova.css" layer(base);
 @import "./styles/style-maia.css" layer(base);

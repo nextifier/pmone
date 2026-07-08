@@ -54,6 +54,13 @@
           <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span class="text-sm font-medium tracking-tight">{{ field.label }}</span>
             <span
+              v-if="field.system_key"
+              v-tippy="'Library field. Use the Active toggle or the field library to disable it.'"
+              class="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs tracking-tight"
+            >
+              Predefined
+            </span>
+            <span
               v-if="field.required"
               class="bg-info/10 text-info-foreground border-info/20 rounded-md border px-1.5 py-0.5 text-xs tracking-tight"
             >
@@ -79,7 +86,7 @@
             <Icon name="hugeicons:edit-02" class="size-4" />
           </Button>
           <Button
-            v-if="canDelete"
+            v-if="canDelete && !field.system_key"
             variant="ghost"
             size="iconSm"
             class="hover:bg-destructive/10 text-destructive"
@@ -122,7 +129,7 @@
 
             <div class="space-y-2">
               <Label>Field type</Label>
-              <Select v-model="form.type">
+              <Select v-model="form.type" :disabled="isPredefinedEditing">
                 <SelectTrigger class="w-full">
                   <SelectValue placeholder="Select a field type" />
                 </SelectTrigger>
@@ -146,6 +153,12 @@
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              <p
+                v-if="isPredefinedEditing"
+                class="text-muted-foreground text-xs tracking-tight"
+              >
+                Field type is fixed for library fields.
+              </p>
               <FieldError :errors="errors.type" />
             </div>
 
@@ -157,26 +170,47 @@
                   :key="index"
                   class="flex items-center gap-x-2"
                 >
-                  <Input
-                    v-model="form.options[index]"
-                    :placeholder="`Option ${index + 1}`"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="iconSm"
-                    type="button"
-                    class="hover:bg-destructive/10 text-destructive shrink-0"
-                    v-tippy="'Remove'"
-                    @click="removeOption(index)"
+                  <div
+                    v-if="isPredefinedEditing"
+                    class="text-muted-foreground bg-muted/40 flex-1 rounded-md border px-3 py-2 text-sm tracking-tight"
                   >
-                    <Icon name="hugeicons:delete-02" class="size-4" />
-                  </Button>
+                    {{ optionText(option) }}
+                  </div>
+                  <template v-else>
+                    <Input
+                      :model-value="optionText(option)"
+                      :placeholder="`Option ${index + 1}`"
+                      @update:model-value="(v) => setOptionText(index, v)"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="iconSm"
+                      type="button"
+                      class="hover:bg-destructive/10 text-destructive shrink-0"
+                      v-tippy="'Remove'"
+                      @click="removeOption(index)"
+                    >
+                      <Icon name="hugeicons:delete-02" class="size-4" />
+                    </Button>
+                  </template>
                 </div>
               </div>
-              <Button variant="outline" size="sm" type="button" @click="addOption">
+              <Button
+                v-if="!isPredefinedEditing"
+                variant="outline"
+                size="sm"
+                type="button"
+                @click="addOption"
+              >
                 <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
                 Add option
               </Button>
+              <p
+                v-else
+                class="text-muted-foreground text-xs tracking-tight"
+              >
+                Options for library fields are managed in the field library.
+              </p>
               <FieldError :errors="errors.options" />
             </div>
 
@@ -259,6 +293,7 @@ import {
   getTypeIcon,
   getTypeLabel,
   hasOptions,
+  localizedLabel,
 } from "@/lib/formFieldTypes";
 import { computed, reactive, ref, watch } from "vue";
 import { toast } from "vue-sonner";
@@ -367,6 +402,9 @@ const form = reactive({
   label: EMPTY_TRANSLATABLE(),
   type: "text",
   options: [],
+  // Carries the field's stored settings (e.g. options_preset) so the editor can
+  // hide the manual options list for preset-backed fields. Never sent in the payload.
+  settings: {},
   required: false,
   is_active: true,
 });
@@ -382,14 +420,31 @@ const localizedLabelErrors = computed(
   () => errors.value[`label.${activeLocale.value}`] ?? errors.value.label ?? null
 );
 
-const showOptions = computed(() => hasOptions(form.type));
+// Hide the manual options editor for preset-backed fields (e.g. birth_year uses
+// settings.options_preset=years, so its options are generated, not authored).
+const showOptions = computed(() => hasOptions(form.type) && !form.settings?.options_preset);
+
+// Predefined (library) fields carry a system_key. Their type and options are
+// curated: type is locked, options are shown read-only, and they can't be deleted.
+const isPredefinedEditing = computed(() => Boolean(editing.value?.system_key));
 
 const addOption = () => {
-  form.options.push("");
+  form.options.push({ value: "", label: "" });
 };
 
 const removeOption = (index) => {
   form.options.splice(index, 1);
+};
+
+// Options are stored as { value, label } objects (label may be a {locale} map for
+// predefined fields). Resolve the display text for the active language tab.
+const optionText = (option) =>
+  localizedLabel(option.label, activeLocale.value) || String(option.value ?? "");
+
+// Custom fields use a single-language option where value == label. Predefined
+// options are read-only, so this is never called for them (label maps stay intact).
+const setOptionText = (index, text) => {
+  form.options[index] = { value: text, label: text };
 };
 
 const resetForm = () => {
@@ -397,6 +452,7 @@ const resetForm = () => {
     label: EMPTY_TRANSLATABLE(),
     type: "text",
     options: [],
+    settings: {},
     required: false,
     is_active: true,
   });
@@ -420,7 +476,14 @@ const openEditDialog = (field) => {
       ...(field.label_translations ?? (field.label ? { en: field.label } : {})),
     },
     type: field.type ?? "text",
-    options: Array.isArray(field.options) ? [...field.options] : [],
+    options: Array.isArray(field.options)
+      ? field.options.map((o) =>
+          o && typeof o === "object"
+            ? { value: o.value != null ? String(o.value) : "", label: o.label ?? "" }
+            : { value: String(o), label: String(o) }
+        )
+      : [],
+    settings: field.settings ?? {},
     required: field.required ?? false,
     is_active: field.is_active ?? true,
   });
@@ -457,8 +520,13 @@ const handleSubmit = async () => {
       is_active: form.is_active,
     };
 
-    if (showOptions.value) {
-      payload.options = form.options.map((o) => String(o).trim()).filter((o) => o.length > 0);
+    // Custom fields send their options as plain strings (the backend canonicalizes
+    // to { value, label }). Predefined fields omit options entirely so their curated
+    // multi-language labels are preserved untouched.
+    if (showOptions.value && !isPredefinedEditing.value) {
+      payload.options = form.options
+        .map((o) => String(o.value ?? "").trim())
+        .filter((v) => v.length > 0);
     }
 
     if (editing.value) {

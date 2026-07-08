@@ -1,0 +1,212 @@
+/* _base.css — shared cn-* rules that are identical across ALL 8 non-mono
+   styles (vega/nova/maia/lyra/mira/luma/sera/rhea). Auto-extracted by
+   scratchpad/gen-base.js — DO NOT hand-edit; edit the per-style files and
+   re-run the extractor. Scoped :where(body:not(.style-mono)) so specificity
+   stays (0,1,0) and per-style .style-X overrides (0,2,0) always win; mono
+   (hand-authored, flat selectors) is excluded and unchanged. */
+:where(body:not(.style-mono)) {
+  .cn-avatar {
+    @apply size-8 rounded-full after:rounded-full data-[size=lg]:size-10 data-[size=sm]:size-6;
+  }
+  .cn-avatar-fallback {
+    @apply bg-muted text-muted-foreground rounded-full;
+  }
+  .cn-avatar-image {
+    @apply rounded-full;
+  }
+  .cn-avatar-badge {
+    @apply bg-primary text-primary-foreground ring-background;
+  }
+  .cn-breadcrumb-link {
+    @apply hover:text-foreground transition-colors;
+  }
+  .cn-breadcrumb-page {
+    @apply text-foreground font-normal;
+  }
+  .cn-breadcrumb-separator {
+    @apply [&>svg]:size-3.5;
+  }
+  .cn-button-variant-ghost {
+    @apply hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 aria-expanded:bg-muted aria-expanded:text-foreground;
+  }
+  .cn-button-group-separator {
+    @apply bg-input;
+  }
+  .cn-combobox-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-combobox-item-text {
+    @apply flex flex-1 gap-2;
+  }
+  .cn-context-menu-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-drawer-footer {
+    @apply gap-2 p-4;
+  }
+  .cn-dropdown-menu-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-dropdown-menu-item-indicator {
+    @apply absolute right-2 flex items-center justify-center;
+  }
+  .cn-empty-media {
+    @apply mb-2;
+  }
+  .cn-empty-media-default {
+    @apply bg-transparent;
+  }
+  .cn-field-separator-content {
+    @apply text-muted-foreground px-2;
+  }
+  .cn-hover-card-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-input-otp {
+    @apply gap-2;
+  }
+  .cn-input-otp-caret-line {
+    @apply animate-caret-blink bg-foreground h-4 w-px duration-1000;
+  }
+  .cn-item-variant-default {
+    @apply border-transparent;
+  }
+  .cn-item-variant-outline {
+    @apply border-border;
+  }
+  .cn-item-variant-muted {
+    @apply bg-muted/50 border-transparent;
+  }
+  .cn-item-media {
+    @apply gap-2 group-has-data-[slot=item-description]/item:translate-y-0.5 group-has-data-[slot=item-description]/item:self-start;
+  }
+  .cn-item-media-variant-default {
+    @apply bg-transparent;
+  }
+  .cn-item-actions {
+    @apply gap-2;
+  }
+  .cn-item-header {
+    @apply gap-2;
+  }
+  .cn-item-footer {
+    @apply gap-2;
+  }
+  .cn-item-group {
+    @apply gap-4 has-data-[size=sm]:gap-2.5 has-data-[size=xs]:gap-2;
+  }
+  .cn-item-separator {
+    @apply my-2;
+  }
+  .cn-kbd-group {
+    @apply gap-1;
+  }
+  .cn-menubar-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-navigation-menu {
+    @apply max-w-max;
+  }
+  .cn-navigation-menu-list {
+    @apply gap-0;
+  }
+  .cn-navigation-menu-trigger-icon {
+    @apply relative top-px ml-1 size-3 transition duration-300 group-data-open/navigation-menu-trigger:rotate-180 group-data-popup-open/navigation-menu-trigger:rotate-180;
+  }
+  .cn-navigation-menu-indicator {
+    @apply data-[state=visible]:animate-in data-[state=hidden]:animate-out data-[state=hidden]:fade-out data-[state=visible]:fade-in;
+  }
+  .cn-navigation-menu-positioner {
+    @apply transition-[top,left,right,bottom] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] data-[side=bottom]:before:top-[-10px] data-[side=bottom]:before:right-0 data-[side=bottom]:before:left-0;
+  }
+  .cn-popover-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-progress-indicator {
+    @apply bg-primary;
+  }
+  .cn-scroll-area-scrollbar {
+    @apply data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent;
+  }
+  .cn-select-value {
+    @apply flex flex-1 text-left;
+  }
+  .cn-select-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-select-item-text {
+    @apply flex flex-1 gap-2;
+  }
+  .cn-separator {
+    @apply bg-border shrink-0;
+  }
+  .cn-separator-horizontal {
+    @apply h-px w-full;
+  }
+  .cn-separator-vertical {
+    @apply h-full w-px;
+  }
+  .cn-sidebar-gap {
+    @apply transition-[width] duration-200 ease-linear;
+  }
+  .cn-sidebar-rail {
+    @apply hover:after:bg-sidebar-border;
+  }
+  .cn-sidebar-footer {
+    @apply gap-2 p-2;
+  }
+  .cn-sidebar-separator {
+    @apply bg-sidebar-border mx-2;
+  }
+  .cn-sidebar-group-content {
+    @apply text-sm;
+  }
+  .cn-sidebar-menu-button-variant-default {
+    @apply hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
+  }
+  .cn-sidebar-menu-skeleton-text {
+    @apply h-4;
+  }
+  .cn-sidebar-menu-sub {
+    @apply border-sidebar-border mx-3.5 translate-x-px gap-1 border-l px-2.5 py-0.5 group-data-[collapsible=icon]:hidden;
+  }
+  .cn-slider {
+    @apply data-vertical:min-h-40;
+  }
+  .cn-slider-range {
+    @apply bg-primary;
+  }
+  .cn-table-container {
+    @apply relative w-full overflow-x-auto;
+  }
+  .cn-table {
+    @apply w-full caption-bottom text-sm;
+  }
+  .cn-table-header {
+    @apply [&_tr]:border-b;
+  }
+  .cn-table-body {
+    @apply [&_tr:last-child]:border-0;
+  }
+  .cn-table-footer {
+    @apply bg-muted/50 border-t font-medium [&>tr]:last:border-b-0;
+  }
+  .cn-table-row {
+    @apply hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors;
+  }
+  .cn-table-caption {
+    @apply text-muted-foreground mt-4 text-sm;
+  }
+  .cn-tabs {
+    @apply gap-2;
+  }
+  .cn-toggle-variant-default {
+    @apply bg-transparent;
+  }
+  .cn-tooltip-content-logical {
+    @apply data-[side=inline-start]:slide-in-from-right-2 data-[side=inline-end]:slide-in-from-left-2;
+  }
+  .cn-menu-translucent {
+    @apply animate-none! relative bg-popover/70 before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150 **:data-[slot$=-item]:focus:bg-foreground/10 **:data-[slot$=-item]:data-highlighted:bg-foreground/10 **:data-[slot$=-separator]:bg-foreground/5 **:data-[slot$=-trigger]:focus:bg-foreground/10 **:data-[slot$=-trigger]:aria-expanded:bg-foreground/10! **:data-[variant=destructive]:focus:bg-foreground/10! **:data-[variant=destructive]:text-accent-foreground! **:data-[variant=destructive]:**:text-accent-foreground!;
+  }
+}
