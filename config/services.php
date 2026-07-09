@@ -22,10 +22,27 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
+    /**
+     * The AWS_* variables are shared with the R2/S3 disks, the SQS queue, and the
+     * DynamoDB cache store. SES needs its own credentials and region, so it reads
+     * SES_* first and only falls back to AWS_* when they are absent.
+     */
     'ses' => [
-        'key' => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'key' => env('SES_KEY', env('AWS_ACCESS_KEY_ID')),
+        'secret' => env('SES_SECRET', env('AWS_SECRET_ACCESS_KEY')),
+        'region' => env('SES_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+    ],
+
+    /**
+     * Kept out of "services.ses" on purpose: MailManager passes every key of
+     * that array straight into the SesV2Client constructor.
+     *
+     * An SNS signature only proves the message came from SNS, not from our own
+     * topic, so the ARN below is the allowlist that stops anyone from pointing
+     * their own topic at our webhook.
+     */
+    'ses_sns' => [
+        'topic_arn' => env('SES_SNS_TOPIC_ARN'),
     ],
 
     'slack' => [

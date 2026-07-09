@@ -53,6 +53,18 @@ return [
             'transport' => 'ses',
         ],
 
+        /**
+         * Amazon SES v2. Credentials and region come from "services.ses".
+         * The options array is spread into the SESv2 SendEmail call, so an empty
+         * SES_CONFIGURATION_SET must be dropped rather than passed as null.
+         */
+        'ses-v2' => [
+            'transport' => 'ses-v2',
+            'options' => array_filter([
+                'ConfigurationSetName' => env('SES_CONFIGURATION_SET'),
+            ]),
+        ],
+
         'postmark' => [
             'transport' => 'postmark',
             // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),

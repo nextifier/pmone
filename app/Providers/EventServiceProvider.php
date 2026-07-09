@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Listeners\AutoVerifyPrivilegedUsers;
+use App\Listeners\BlockSuppressedRecipients;
 use App\Listeners\RecordFailedLogin;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Mail\Events\MessageSending;
 use Spatie\Permission\Events\RoleAttached;
 
 class EventServiceProvider extends ServiceProvider
@@ -21,6 +23,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         Failed::class => [
             RecordFailedLogin::class,
+        ],
+        MessageSending::class => [
+            BlockSuppressedRecipients::class,
         ],
     ];
 

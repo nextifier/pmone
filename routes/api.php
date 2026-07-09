@@ -107,6 +107,7 @@ use App\Http\Controllers\Api\UserImpersonationController;
 use App\Http\Controllers\Api\UserNoteController;
 use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
+use App\Http\Controllers\Api\Webhook\SesNotificationController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\Api\WhatsAppTestController;
 use App\Http\Controllers\MediaController;
@@ -1722,3 +1723,10 @@ Route::post('/webhooks/midtrans', [MidtransWebhookController::class, 'handle'])
 Route::post('/webhooks/midtrans/{segment}', [MidtransWebhookController::class, 'handleWithSegment'])
     ->middleware('log-payment-webhook:midtrans')
     ->name('webhooks.midtrans.segment');
+
+// Amazon SES bounce and complaint events, relayed by SNS (no auth - the SNS
+// signature and the TopicArn allowlist are both checked inside the controller).
+// SNS sends JSON with a text/plain content type, so nothing here may assume a
+// parsed request body.
+Route::post('/webhooks/ses', SesNotificationController::class)
+    ->name('webhooks.ses');
