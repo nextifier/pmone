@@ -7,6 +7,129 @@
         <Icon name="hugeicons:mail-01" class="size-5 sm:size-6" />
         <h1 class="page-title">Email Delivery</h1>
       </div>
+
+      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <DialogResponsive dialog-max-width="640px">
+          <template #trigger="{ open }">
+            <Button variant="outline" size="sm" @click="open()">
+              <Icon name="hugeicons:information-circle" class="size-4 shrink-0" />
+              <span>About suppressions</span>
+            </Button>
+          </template>
+
+          <template #default>
+            <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
+              <div class="space-y-2">
+                <h2 class="text-lg font-semibold tracking-tighter">Apa itu suppression list</h2>
+                <p class="text-muted-foreground text-sm tracking-tight">
+                  Suppression list adalah blacklist alamat email. Alamat yang ada di dalamnya tidak
+                  akan dikirimi email lagi.
+                </p>
+              </div>
+
+              <!-- Dua angka ini yang menentukan segalanya, jadi dibuat full-bleed sebagai jangkar visual. -->
+              <dl
+                class="-mx-4 grid grid-cols-1 divide-y border-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 md:-mx-6"
+              >
+                <div class="space-y-1 px-4 py-4 md:px-6">
+                  <dt class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                    Batas bounce
+                  </dt>
+                  <dd class="text-xl font-semibold tracking-tighter tabular-nums">5%</dd>
+                  <dd class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                    Email ditolak dan dipantulkan balik
+                  </dd>
+                </div>
+                <div class="space-y-1 px-4 py-4 md:px-6">
+                  <dt class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                    Batas complaint
+                  </dt>
+                  <dd class="text-xl font-semibold tracking-tighter tabular-nums">0,1%</dd>
+                  <dd class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                    Satu laporan spam dari seribu email
+                  </dd>
+                </div>
+              </dl>
+
+              <p class="text-muted-foreground -mt-3 text-sm tracking-tight">
+                Lewat salah satu angka itu, Amazon bisa membekukan akun SES.
+              </p>
+
+              <div class="divide-y text-sm">
+                <section class="space-y-2 py-5 first:pt-0 last:pb-0">
+                  <h3 class="font-medium tracking-tight">Bounce dan complaint</h3>
+                  <p class="text-muted-foreground tracking-tight">
+                    Bounce berarti email ditolak dan dipantulkan balik. Umumnya karena alamatnya
+                    sudah tidak ada, misalnya email kantor seseorang yang sudah resign. Mirip
+                    mengirim surat ke rumah yang sudah dibongkar, lalu tukang pos mengembalikannya.
+                  </p>
+                  <p class="text-muted-foreground tracking-tight">
+                    Complaint berarti emailnya sampai, tapi penerimanya menekan tombol Report spam.
+                    Gmail lalu melapor ke Amazon bahwa orang ini tidak mau menerima email itu.
+                  </p>
+                </section>
+
+                <section class="space-y-2 py-5 first:pt-0 last:pb-0">
+                  <h3 class="font-medium tracking-tight">
+                    Kenapa dua angka ini menentukan nasib seluruh akun
+                  </h3>
+                  <p class="text-muted-foreground tracking-tight">
+                    Yang berhenti bukan cuma email promosi. E-ticket, voucher hotel, konfirmasi
+                    order, dan magic link keluar lewat akun yang sama, jadi ikut mati.
+                  </p>
+                  <p class="text-muted-foreground tracking-tight">
+                    Spammer menembak ribuan alamat asal-asalan. Kalau email terus dikirim ke alamat
+                    yang jelas sudah mati, Gmail dan Amazon menganggap daftar kontaknya tidak
+                    dirawat. Reputasi turun, lalu email yang sah pun mulai mendarat di spam folder.
+                  </p>
+                </section>
+
+                <section class="space-y-2 py-5 first:pt-0 last:pb-0">
+                  <h3 class="font-medium tracking-tight">Cara suppression list melindungi akun</h3>
+                  <p class="text-muted-foreground tracking-tight">
+                    Misalnya email dikirim ke budi@contoh.com. Alamatnya mati, Amazon memantulkannya,
+                    lalu mengabarkannya lewat webhook. Alamat itu masuk suppression list. Berikutnya,
+                    saat ada yang mencoba mengirim ke sana, pengirimannya dibatalkan sebelum email
+                    itu sampai ke Amazon.
+                  </p>
+                  <p class="text-muted-foreground tracking-tight">
+                    Satu bounce cukup dicatat sekali, bukan memantul seratus kali.
+                  </p>
+                  <p class="text-muted-foreground tracking-tight">
+                    Tidak semua bounce masuk daftar. Bounce sementara seperti mailbox penuh dibiarkan
+                    lewat, karena mailbox penuh bukan berarti alamatnya mati. Hanya bounce permanen
+                    yang dicatat.
+                  </p>
+                </section>
+
+                <section class="space-y-2 py-5 first:pt-0 last:pb-0">
+                  <h3 class="font-medium tracking-tight">Kalau mau menghapus alamat dari daftar</h3>
+                  <p class="text-muted-foreground tracking-tight">
+                    Alamat yang masuk daftar karena kesalahan, misalnya mailbox-nya sempat penuh lalu
+                    sudah dibereskan, bisa dihapus lewat tombol di tab Suppressions.
+                  </p>
+                </section>
+              </div>
+
+              <!-- Strip penutup dibuat rata ke tepi dialog supaya tidak terbaca sebagai kartu bersarang. -->
+              <div
+                class="bg-muted/40 -mx-4 -mb-8 flex items-start gap-3 border-t px-4 py-5 md:-mx-6 md:-mb-4 md:px-6"
+              >
+                <Icon name="hugeicons:alert-02" class="text-warning mt-0.5 size-4 shrink-0" />
+                <div class="space-y-1 text-sm">
+                  <p class="font-medium tracking-tight">Daftarnya ada di dua tempat</p>
+                  <p class="text-muted-foreground tracking-tight">
+                    Yang terhapus cuma daftar di aplikasi ini. Amazon menyimpan daftarnya sendiri di
+                    level akun, dan halaman ini tidak menyentuhnya. Kalau setelah dihapus email ke
+                    alamat itu tetap tidak sampai, berarti alamatnya masih tertahan di sisi Amazon
+                    dan harus dibersihkan dari konsol AWS.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </template>
+        </DialogResponsive>
+      </div>
     </div>
 
     <Alert
@@ -281,6 +404,7 @@
       </TabsContent>
     </Tabs>
 
+
     <DialogResponsive v-model:open="detailOpen" dialog-max-width="640px">
       <template #default>
         <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
@@ -359,10 +483,10 @@
           <div class="space-y-1">
             <h2 class="text-lg font-semibold tracking-tighter">Remove from suppression list?</h2>
             <p class="text-muted-foreground text-sm tracking-tight">
-              PM One will start sending to
+              Sending to
               <span class="text-foreground">{{ removeTarget?.email }}</span>
-              again. This does not clear the address from Amazon's own account-level suppression
-              list.
+              will resume. This does not clear the address from Amazon's own account-level
+              suppression list.
             </p>
           </div>
 
