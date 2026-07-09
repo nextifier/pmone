@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\Email\EmailDeliveryController;
 use App\Http\Controllers\Api\EventAttendeeAnalyticsController;
 use App\Http\Controllers\Api\EventAttendeeController;
 use App\Http\Controllers\Api\EventConjunctionController;
@@ -759,6 +760,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [LogController::class, 'index'])->middleware('can:admin.logs');
         Route::get('/filter-options', [LogController::class, 'filterOptions'])->middleware('can:admin.logs');
         Route::delete('/clear', [LogController::class, 'clear'])->middleware('can:admin.logs_clear');
+    });
+
+    // Email delivery: SES quota, message history and the suppression list.
+    Route::prefix('email-delivery')->middleware('can:emails.view')->group(function () {
+        Route::get('/overview', [EmailDeliveryController::class, 'overview'])->name('email-delivery.overview');
+        Route::get('/messages', [EmailDeliveryController::class, 'messages'])->name('email-delivery.messages');
+        Route::get('/messages/{emailMessage}', [EmailDeliveryController::class, 'show'])->name('email-delivery.messages.show');
+        Route::get('/suppressions', [EmailDeliveryController::class, 'suppressions'])->name('email-delivery.suppressions');
+        Route::delete('/suppressions/{emailSuppression}', [EmailDeliveryController::class, 'destroySuppression'])
+            ->middleware('can:emails.manage_suppressions')
+            ->name('email-delivery.suppressions.destroy');
     });
 
     // Short link management endpoints

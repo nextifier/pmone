@@ -7,15 +7,20 @@
       aria-hidden="true"
     />
     <div class="relative w-full">
-      <svg :viewBox="`0 0 ${svgWidth} ${svgHeight}`" class="w-full">
+      <!--
+        The geometry bindings carry `.attr` because `viewBox`, `x1`, `y1` and the
+        rest are read-only getters on SVG elements. Without it Vue's hydration
+        pass assigns them as DOM properties and throws once per bar.
+      -->
+      <svg :viewBox.attr="`0 0 ${svgWidth} ${svgHeight}`" class="w-full">
         <line
           v-for="(bar, i) in bars"
           :key="i"
-          :x1="cx"
-          :y1="cy - innerRadius"
-          :x2="cx"
-          :y2="cy - outerRadius"
-          :transform="`rotate(${bar.angle}, ${cx}, ${cy})`"
+          :x1.attr="cx"
+          :y1.attr="cy - innerRadius"
+          :x2.attr="cx"
+          :y2.attr="cy - outerRadius"
+          :transform.attr="`rotate(${bar.angle}, ${cx}, ${cy})`"
           :stroke="bar.color"
           :stroke-width="barWidth"
           stroke-linecap="round"

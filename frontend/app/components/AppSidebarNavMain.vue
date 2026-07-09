@@ -429,6 +429,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Email Delivery - requires emails.view permission
+  if (hasPermission("emails.view")) {
+    adminItems.push({
+      label: "Email Delivery",
+      path: "/email-delivery",
+      iconName: "hugeicons:mail-01",
+    });
+  }
+
   // API Consumers - requires api_consumers.read permission
   if (hasPermission("api_consumers.read")) {
     adminItems.push({

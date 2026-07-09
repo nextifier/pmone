@@ -349,6 +349,14 @@ return [
                 'admin.maintenance' => 'Put system in maintenance mode',
             ],
         ],
+        'email_delivery' => [
+            'label' => 'Email Delivery',
+            'description' => 'Sending quota, delivery history and the suppression list',
+            'permissions' => [
+                'emails.view' => 'View sending quota, delivery statistics and message history',
+                'emails.manage_suppressions' => 'Remove an address from the suppression list',
+            ],
+        ],
         'analytics' => [
             'label' => 'Analytics',
             'description' => 'View and manage analytics data',

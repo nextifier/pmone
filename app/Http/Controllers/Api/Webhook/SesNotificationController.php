@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers\Api\Webhook;
 
-use App\Enums\EmailSuppressionReason;
 use App\Http\Controllers\Controller;
-use App\Models\EmailSuppression;
+use App\Services\Ses\SesEventRecorder;
 use Aws\Sns\Message as SnsMessage;
 use Aws\Sns\MessageValidator as SnsMessageValidator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -26,6 +24,8 @@ use Illuminate\Support\Facades\Log;
  */
 class SesNotificationController extends Controller
 {
+    public function __construct(private readonly SesEventRecorder $recorder) {}
+
     public function __invoke(Request $request, SnsMessageValidator $validator): JsonResponse
     {
         $expectedTopic = (string) config('services.ses_sns.topic_arn');
@@ -86,87 +86,11 @@ class SesNotificationController extends Controller
             return response()->json(['message' => 'Unparsable event (acknowledged)']);
         }
 
-        // Configuration-set destinations send "eventType"; the older
-        // identity-level notifications send "notificationType".
-        $type = (string) ($event['eventType'] ?? $event['notificationType'] ?? '');
+        $type = $this->recorder->record($event);
 
-        return match ($type) {
-            'Bounce' => $this->handleBounce($event),
-            'Complaint' => $this->handleComplaint($event),
-            default => response()->json(['message' => 'Ignored event type']),
-        };
-    }
-
-    /**
-     * @param  array<string, mixed>  $event
-     */
-    private function handleBounce(array $event): JsonResponse
-    {
-        $bounce = $event['bounce'] ?? [];
-        $bounceType = (string) ($bounce['bounceType'] ?? '');
-
-        // Transient bounces are full mailboxes and throttling, not dead
-        // addresses. Suppressing them would silently drop deliverable mail.
-        if ($bounceType !== 'Permanent') {
-            return response()->json(['message' => 'Non-permanent bounce (acknowledged)']);
-        }
-
-        foreach ($bounce['bouncedRecipients'] ?? [] as $recipient) {
-            $email = $recipient['emailAddress'] ?? null;
-
-            if (! is_string($email) || $email === '') {
-                continue;
-            }
-
-            EmailSuppression::suppress(
-                email: $email,
-                reason: EmailSuppressionReason::Bounce,
-                subtype: $bounce['bounceSubType'] ?? null,
-                suppressedAt: $this->timestamp($bounce['timestamp'] ?? null),
-                payload: $bounce,
-            );
-        }
-
-        return response()->json(['message' => 'Bounce recorded']);
-    }
-
-    /**
-     * @param  array<string, mixed>  $event
-     */
-    private function handleComplaint(array $event): JsonResponse
-    {
-        $complaint = $event['complaint'] ?? [];
-
-        foreach ($complaint['complainedRecipients'] ?? [] as $recipient) {
-            $email = $recipient['emailAddress'] ?? null;
-
-            if (! is_string($email) || $email === '') {
-                continue;
-            }
-
-            EmailSuppression::suppress(
-                email: $email,
-                reason: EmailSuppressionReason::Complaint,
-                subtype: $complaint['complaintFeedbackType'] ?? null,
-                suppressedAt: $this->timestamp($complaint['timestamp'] ?? null),
-                payload: $complaint,
-            );
-        }
-
-        return response()->json(['message' => 'Complaint recorded']);
-    }
-
-    private function timestamp(mixed $value): ?Carbon
-    {
-        if (! is_string($value) || $value === '') {
-            return null;
-        }
-
-        try {
-            return Carbon::parse($value);
-        } catch (\Throwable) {
-            return null;
-        }
+        return response()->json([
+            'message' => $type === null ? 'Ignored event type' : "Recorded {$type->value}",
+        ]);
     }
 
     private function isAmazonUrl(string $url): bool
