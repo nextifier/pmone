@@ -634,6 +634,30 @@ it('queues submitted and confirmation emails when an order is submitted', functi
     Mail::assertQueued(OrderConfirmationMail::class, fn ($mail) => $mail->hasTo($this->exhibitor->email));
 });
 
+it('titles the exhibitor order email as submitted, not confirmed', function () {
+    $order = Order::factory()->create([
+        'brand_event_id' => $this->brandEvent->id,
+        'order_number' => 'ORD-20260625-0005',
+        'submitted_at' => now(),
+    ]);
+
+    $order->items()->create([
+        'event_product_id' => $this->product1->id,
+        'category_id' => $this->product1->category_id,
+        'product_name' => $this->product1->name,
+        'unit_price' => 1500000,
+        'quantity' => 1,
+        'total_price' => 1500000,
+    ]);
+
+    $mail = new OrderConfirmationMail($order->load('items'), $this->event, $this->brand);
+
+    expect($mail->envelope()->subject)->toStartWith('Order Submitted #ORD-20260625-0005');
+    expect($mail->render())
+        ->toContain('Order Submitted')
+        ->not->toContain('Order Confirmation');
+});
+
 it('renders order emails with penalty surcharge and promo code, free of dropped discount columns', function () {
     $order = Order::factory()->create([
         'brand_event_id' => $this->brandEvent->id,

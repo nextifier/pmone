@@ -111,7 +111,7 @@ watch(modelValue, () => {
         <ComboboxInput
           v-model="searchTerm"
           :display-value="() => modelValue || ''"
-          :placeholder="placeholder || 'Select...'"
+          :placeholder="placeholder || 'Select'"
           class="placeholder:text-muted-foreground h-full w-full flex-1 bg-transparent px-0 py-0 text-sm outline-hidden"
         />
         <LucideChevronsUpDown class="cn-select-trigger-icon shrink-0" />

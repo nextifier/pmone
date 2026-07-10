@@ -171,7 +171,7 @@
         collection="description_images"
         :sticky="false"
         min-height="200px"
-        placeholder="Write event description..."
+        placeholder="Write event description"
       />
       <FieldError :errors="errors.description" />
     </div>

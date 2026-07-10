@@ -185,7 +185,7 @@
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
-              <TagsInputInput placeholder="pdf, docx, jpg..." />
+              <TagsInputInput placeholder="pdf, docx, jpg" />
             </TagsInput>
             <p class="text-muted-foreground text-xs">
               File extensions without the dot. Leave empty to allow any type.

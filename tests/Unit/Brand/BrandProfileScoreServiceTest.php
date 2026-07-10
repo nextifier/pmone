@@ -20,7 +20,7 @@ function emptyBrandEvent(array $brandOverrides = []): BrandEvent
         'company_name' => null,
         'company_email' => null,
         'company_phone' => null,
-        'company_address' => null,
+        'address' => null,
     ], $brandOverrides));
 
     return BrandEvent::factory()->create(['brand_id' => $brand->id]);
@@ -64,7 +64,7 @@ it('scores a fully filled brand as 100', function () {
         'company_name' => 'Acme Inc',
         'company_email' => 'hi@acme.test',
         'company_phone' => '+62 812 0000 0000',
-        'company_address' => 'Jakarta, Indonesia',
+        'address' => ['street' => 'Jl. Sudirman No. 1', 'city' => 'Jakarta', 'province' => '', 'country' => 'Indonesia'],
     ]);
     $brand = $brandEvent->brand;
     $brand->addMedia(UploadedFile::fake()->image('logo.jpg', 400, 400))->toMediaCollection('brand_logo');
@@ -82,6 +82,30 @@ it('scores a fully filled brand as 100', function () {
     expect($result['score'])->toBe(100);
     expect($result['is_complete'])->toBeTrue();
     expect(collect($result['breakdown'])->every(fn ($b) => $b['filled'] === true))->toBeTrue();
+});
+
+it('treats an address of only empty sub-fields as unfilled', function () {
+    $brandEvent = emptyBrandEvent([
+        'address' => ['street' => '', 'city' => '', 'province' => '', 'country' => ''],
+    ]);
+
+    $result = scoreFor($brandEvent);
+
+    $address = collect($result['breakdown'])->firstWhere('key', 'company_address');
+
+    expect($address['filled'])->toBeFalse();
+});
+
+it('counts an address with any filled sub-field as filled', function () {
+    $brandEvent = emptyBrandEvent([
+        'address' => ['street' => '', 'city' => '', 'province' => '', 'country' => 'Indonesia'],
+    ]);
+
+    $result = scoreFor($brandEvent);
+
+    $address = collect($result['breakdown'])->firstWhere('key', 'company_address');
+
+    expect($address['filled'])->toBeTrue();
 });
 
 it('reads promotion counts from withCount aggregates without loading the relation', function () {

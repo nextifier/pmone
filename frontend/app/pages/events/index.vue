@@ -29,7 +29,7 @@
       model="events"
       label="Event"
       search-column="title"
-      search-placeholder="Search events..."
+      search-placeholder="Search events"
       error-title="Error loading events"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

@@ -70,7 +70,7 @@ const HOLDINGS = [
               remixicon="RiSearchLine"
             />
           </InputGroupAddon>
-          <InputGroupInput placeholder="Search holdings or tickers..." />
+          <InputGroupInput placeholder="Search holdings or tickers" />
         </InputGroup>
         <ToggleGroup :default-value="['etfs']" variant="outline" :spacing="1">
           <ToggleGroupItem value="stocks">

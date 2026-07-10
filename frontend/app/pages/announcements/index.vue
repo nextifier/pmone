@@ -29,7 +29,7 @@
       model="announcements"
       label="Announcement"
       search-column="title"
-      search-placeholder="Search announcements..."
+      search-placeholder="Search announcements"
       error-title="Error loading announcements"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

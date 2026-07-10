@@ -56,7 +56,6 @@ class EventResource extends JsonResource
             'onsite_order_opens_at' => $this->onsite_order_opens_at?->toIso8601String(),
             'onsite_order_closes_at' => $this->onsite_order_closes_at?->toIso8601String(),
             'onsite_penalty_rate' => $this->onsite_penalty_rate,
-            'badge_vip_info' => $this->badge_vip_info,
             'is_active' => $this->is_active,
             'hotel_reservation_enabled' => (bool) $this->project?->hotel_reservation_enabled,
             'business_matching_enabled' => (bool) $this->business_matching_enabled,

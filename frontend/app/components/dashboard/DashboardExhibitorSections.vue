@@ -82,7 +82,7 @@
               >
                 <Icon name="lucide:check" class="size-3.5" />
               </div>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
                 {{ $t("ed.rules.agreedOn", { date: formatDate(rule.submission.agreed_at) }) }}
                 <span v-if="rule.submission.submitter_name">
                   {{ $t("ed.rules.agreedBy", { name: rule.submission.submitter_name }) }}</span
@@ -105,11 +105,11 @@
                     :for="`rule_${be.brand_event_id}_${rule.document.id}`"
                     class="text-sm leading-snug font-normal"
                   >
-                    {{ $t("ed.rules.agreeLabel", { title: rule.document.title }) }}
+                    {{ agreeLabel(rule.document) }}
                   </Label>
                   <p
                     v-if="rule.needs_reagreement"
-                    class="text-warning-foreground mt-1 text-xs tracking-tight sm:text-sm"
+                    class="text-warning-foreground mt-1 text-sm tracking-tight sm:text-sm"
                   >
                     {{ $t("ed.rules.reagreeWarning") }}
                   </p>
@@ -149,8 +149,8 @@
         <div class="flex items-center justify-between gap-3">
           <div class="flex min-w-0 items-center gap-3">
             <img
-              v-if="be.brand.brand_logo?.sm"
-              :src="be.brand.brand_logo.sm"
+              v-if="be.brand.profile_image?.sm"
+              :src="be.brand.profile_image.sm"
               :alt="be.brand.name"
               class="size-10 rounded-lg object-cover"
             />
@@ -164,7 +164,7 @@
               <p class="truncate text-sm font-medium">{{ be.brand.name }}</p>
               <p
                 v-if="!be.brand_complete"
-                class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+                class="text-muted-foreground text-sm tracking-tight sm:text-sm"
               >
                 {{ $t("ed.brand.fieldsRemaining", be.brand.missing_fields.length, { count: be.brand.missing_fields.length }) }}
               </p>
@@ -262,13 +262,13 @@
                 maxlength="24"
                 @update:model-value="(v) => setBoothField('fascia_name', v.toUpperCase())"
               />
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
                 {{ $t("ed.docs.fasciaHint") }}
               </p>
             </div>
             <div v-if="showBadge" class="space-y-2">
               <Label :for="`badge_${be.brand_event_id}`">{{ $t("ed.docs.badgeName") }}</Label>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
                 {{ $t("ed.docs.badgeDescription") }}
               </p>
               <Input
@@ -288,20 +288,6 @@
         </div>
       </DashboardExhibitorSection>
     </div>
-
-    <!-- Badge & VIP Information (read-only, shown only if content exists) -->
-    <DashboardExhibitorSection
-      v-if="be.event.badge_vip_info"
-      v-model:open="sectionStates.badge_vip"
-      :title="$t('ed.badgeVip.title')"
-      icon="hugeicons:name-tag"
-      :summary="$t('ed.badgeVip.summary')"
-      :completed="true"
-      :locked="sectionsLocked"
-      section-key="badge_vip"
-    >
-      <div class="format-html" v-html="be.event.badge_vip_info" />
-    </DashboardExhibitorSection>
 
     <!-- Section 6: Order Form -->
     <div :ref="(el) => (wrapRefs.order = el)">
@@ -428,12 +414,23 @@ const rulesNeedingAttention = computed(
   () => props.be.event_rules?.filter((r) => r.needs_reagreement || !r.agreed).length || 0
 );
 
+/**
+ * Rules built in the field builder carry their own agreement wording; the
+ * synthesized checkbox on backfilled legacy documents does not.
+ */
+function agreeLabel(doc) {
+  const field = documentAgreementField(doc);
+  if (field && field.system_key !== "agreement") return field.label;
+
+  return t("ed.rules.agreeLabel", { title: doc.title });
+}
+
 async function handleAgreeRule(rule) {
   agreeingId.value = rule.document.id;
   try {
     await client(
       `/api/exhibitor/brands/${props.be.brand.slug}/events/${props.be.brand_event_id}/documents/${rule.document.ulid}`,
-      { method: "POST", body: {} }
+      { method: "POST", body: { agreement: true } }
     );
     delete checkedRules[rule.document.id];
     toast.success(t("ed.rules.recorded"));

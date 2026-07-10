@@ -34,7 +34,7 @@ use Spatie\Tags\Tag;
  * @property string $slug
  * @property string|null $description
  * @property string|null $company_name
- * @property string|null $company_address
+ * @property array<array-key, mixed>|null $address
  * @property string|null $company_email
  * @property string|null $company_phone
  * @property array<array-key, mixed>|null $custom_fields
@@ -56,6 +56,7 @@ use Spatie\Tags\Tag;
  * @property-read Collection<int, Event> $events
  * @property-read int|null $events_count
  * @property-read array|null $brand_logo
+ * @property-read array|null $profile_image
  * @property-read array $business_categories_list
  * @property-read Collection<int, Link> $links
  * @property-read int|null $links_count
@@ -76,7 +77,7 @@ use Spatie\Tags\Tag;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand ordered(string $direction = 'asc')
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand whereCompanyAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand whereAddress($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand whereCompanyEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand whereCompanyName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Brand whereCompanyPhone($value)
@@ -124,7 +125,7 @@ class Brand extends Model implements HasMedia, Sortable
         'slug',
         'description',
         'company_name',
-        'company_address',
+        'address',
         'company_email',
         'company_phone',
         'custom_fields',
@@ -141,6 +142,7 @@ class Brand extends Model implements HasMedia, Sortable
     {
         return [
             'custom_fields' => 'array',
+            'address' => 'array',
         ];
     }
 
@@ -215,39 +217,41 @@ class Brand extends Model implements HasMedia, Sortable
 
     public function registerMediaConversions($media = null): void
     {
-        // Brand logo conversions (square)
+        // Profile image conversions (square avatar). The raw brand_logo
+        // collection intentionally has no conversions so master assets
+        // (PDF, AI, ZIP, high-res images) are stored exactly as uploaded.
         $this->addMediaConversion('lqip')
             ->width(20)
             ->height(20)
             ->quality(10)
             ->blur(10)
-            ->performOnCollections('brand_logo')
+            ->performOnCollections('profile_image')
             ->nonQueued();
 
         $this->addMediaConversion('sm')
             ->width(200)
             ->height(200)
             ->quality(85)
-            ->performOnCollections('brand_logo')
+            ->performOnCollections('profile_image')
             ->nonQueued();
 
         $this->addMediaConversion('md')
             ->width(400)
             ->height(400)
             ->quality(90)
-            ->performOnCollections('brand_logo');
+            ->performOnCollections('profile_image');
 
         $this->addMediaConversion('lg')
             ->width(800)
             ->height(800)
             ->quality(90)
-            ->performOnCollections('brand_logo');
+            ->performOnCollections('profile_image');
 
         $this->addMediaConversion('xl')
             ->width(1080)
             ->height(1080)
             ->quality(95)
-            ->performOnCollections('brand_logo');
+            ->performOnCollections('profile_image');
 
         // Description content image conversions
         $this->addMediaConversion('lqip')
@@ -283,9 +287,17 @@ class Brand extends Model implements HasMedia, Sortable
     public function getMediaCollections(): array
     {
         return [
-            'brand_logo' => [
+            'profile_image' => [
                 'single_file' => true,
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+            ],
+            'brand_logo' => [
+                'single_file' => true,
+                'mime_types' => [
+                    'image/jpeg', 'image/png', 'image/webp', 'image/svg+xml',
+                    'application/pdf', 'application/postscript', 'application/illustrator',
+                    'application/zip', 'application/x-zip-compressed', 'application/octet-stream',
+                ],
             ],
             'description_images' => [
                 'single_file' => false,
@@ -296,11 +308,20 @@ class Brand extends Model implements HasMedia, Sortable
     }
 
     /**
-     * Get brand logo URLs.
+     * Get profile image (square avatar) URLs with conversions.
+     */
+    public function getProfileImageAttribute(): ?array
+    {
+        return $this->getMediaUrls('profile_image');
+    }
+
+    /**
+     * Get the raw brand logo master file. Non-image assets (PDF, AI, ZIP)
+     * have no conversions, so this returns file metadata for download.
      */
     public function getBrandLogoAttribute(): ?array
     {
-        return $this->getMediaUrls('brand_logo');
+        return $this->getMediaFileInfo('brand_logo');
     }
 
     /**

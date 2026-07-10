@@ -40,7 +40,7 @@
       model="posts"
       label="Post"
       search-column="title"
-      search-placeholder="Search posts..."
+      search-placeholder="Search posts"
       error-title="Error loading posts"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

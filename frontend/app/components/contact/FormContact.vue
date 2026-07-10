@@ -147,41 +147,7 @@
       </TagsInput>
     </div>
 
-    <div class="space-y-2">
-      <Label>Country</Label>
-      <LocationCombobox
-        v-model="form.address.country"
-        :options="countries"
-        :pinned="['Indonesia']"
-        placeholder="Select country"
-      />
-    </div>
-
-    <div v-if="isIndonesia" class="grid grid-cols-2 gap-x-2 gap-y-4">
-      <div class="space-y-2">
-        <Label>Province</Label>
-        <LocationCombobox
-          v-model="form.address.province"
-          :options="provinceOptions"
-          :pinned="['DKI Jakarta']"
-          placeholder="Select province"
-        />
-      </div>
-      <div class="space-y-2">
-        <Label>City</Label>
-        <LocationCombobox
-          v-model="form.address.city"
-          :options="cityOptions"
-          :disabled="!form.address.province"
-          placeholder="Select city"
-        />
-      </div>
-    </div>
-
-    <div class="space-y-2">
-      <Label for="address_street">Street Address</Label>
-      <Textarea id="address_street" v-model="form.address.street" rows="2" />
-    </div>
+    <AddressFields v-model="form.address" :errors="errors" />
 
     <div class="space-y-2">
       <Label for="notes">Notes</Label>
@@ -261,7 +227,7 @@
 </template>
 
 <script setup>
-import { LocationCombobox } from "@/components/ui/location-combobox";
+import AddressFields from "@/components/AddressFields.vue";
 import { MultiSelect } from "@/components/ui/multi-select";
 import {
   Select,
@@ -277,9 +243,6 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import countries from "@/data/countries.json";
-import indonesiaCities from "@/data/indonesia-cities.json";
-import indonesiaProvinces from "@/data/indonesia-provinces.json";
 import jobTitles from "@/data/job-titles";
 import {
   AutocompleteAnchor,
@@ -396,49 +359,11 @@ const selectedProjects = computed({
   },
 });
 
-// Location: cascading dropdowns
-const isIndonesia = computed(() => form.address.country === "Indonesia");
-
-const provinceOptions = computed(() => indonesiaProvinces);
-
-const cityOptions = computed(() => {
-  const prov = indonesiaProvinces.find((p) => p.label === form.address.province);
-  if (!prov) return [];
-  return indonesiaCities.filter((c) => c.province === prov.value);
-});
-
-// Guard to prevent cascading reset during programmatic form sync (edit mode)
-let skipCascadeReset = false;
-
-// Reset cascading fields when country changes
-watch(
-  () => form.address.country,
-  (_, oldVal) => {
-    if (skipCascadeReset) return;
-    if (oldVal) {
-      form.address.province = "";
-      form.address.city = "";
-    }
-  }
-);
-
-// Reset city when province changes
-watch(
-  () => form.address.province,
-  (_, oldVal) => {
-    if (skipCascadeReset) return;
-    if (oldVal) {
-      form.address.city = "";
-    }
-  }
-);
-
 // Sync form when contact prop changes
 watch(
   () => props.contact,
   (newContact) => {
     if (newContact) {
-      skipCascadeReset = true;
       form.name = newContact.name || "";
       form.job_title = newContact.job_title || "";
       jobTitleSearch.value = newContact.job_title || "";
@@ -459,9 +384,6 @@ watch(
       form.business_categories = newContact.business_categories || [];
       form.tags = newContact.tags || [];
       form.project_ids = newContact.projects?.map((p) => p.id) || [];
-      nextTick(() => {
-        skipCascadeReset = false;
-      });
     }
   }
 );

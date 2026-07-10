@@ -253,7 +253,7 @@ defineShortcuts({
         collection="bio_images"
         :sticky="false"
         min-height="180px"
-        placeholder="Write a short bio..."
+        placeholder="Write a short bio"
       />
       <FieldError :errors="errors.bio" />
     </div>
@@ -265,7 +265,7 @@ defineShortcuts({
           <TagsInputItemText />
           <TagsInputItemDelete />
         </TagsInputItem>
-        <TagsInputInput placeholder="Add topic..." />
+        <TagsInputInput placeholder="Add topic" />
       </TagsInput>
       <FieldError :errors="errors.tags" />
     </div>

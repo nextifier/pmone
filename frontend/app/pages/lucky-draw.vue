@@ -399,7 +399,7 @@
           <p class="page-description">Pick who wins the next spin. The result still animates normally.</p>
         </div>
         <div class="mt-4 space-y-2">
-          <Input v-model="forceQuery" placeholder="Search entries..." />
+          <Input v-model="forceQuery" placeholder="Search entries" />
           <div class="max-h-64 space-y-1 overflow-y-auto">
             <button
               type="button"

@@ -10,7 +10,7 @@
           v-model="form.title"
           required
           rows="1"
-          placeholder="Enter task title..."
+          placeholder="Enter task title"
           class="min-h-0 resize-none text-base"
           :class="{ 'border-destructive': errors.title }"
         />
@@ -26,7 +26,7 @@
           collection="description_images"
           :sticky="false"
           min-height="150px"
-          placeholder="Describe the task in detail..."
+          placeholder="Describe the task in detail"
         />
         <p v-if="errors.description" class="text-destructive text-xs">
           {{ errors.description[0] }}
@@ -125,7 +125,7 @@
           v-if="eligibleUsers.length > 0"
           :users="eligibleUsers"
           v-model="selectedAssignee"
-          placeholder="Search users to assign..."
+          placeholder="Search users to assign"
           :max-selected="1"
         />
         <Input
@@ -208,7 +208,7 @@
           v-if="eligibleUsers.length > 0"
           :users="eligibleUsers"
           v-model="selectedSharedUsers"
-          placeholder="Search users to share with..."
+          placeholder="Search users to share with"
         />
         <div v-else class="border-border bg-muted rounded-lg border p-4">
           <Input

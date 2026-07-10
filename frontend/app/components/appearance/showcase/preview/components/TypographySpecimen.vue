@@ -111,7 +111,7 @@ const bodyLabel = "Default"
               </FieldLabel>
               <Textarea
                 id="feedback-message"
-                placeholder="Tell us what's on your mind..."
+                placeholder="Tell us what's on your mind"
                 class="min-h-24 resize-none"
               />
             </Field>

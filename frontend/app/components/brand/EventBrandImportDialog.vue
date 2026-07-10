@@ -45,8 +45,8 @@
                       Status can be "Active", "Draft", or "Cancelled" (defaults to "Active")
                     </li>
                     <li>
-                      Booth Type can be "Raw Space", "Standard Shell Scheme", or "Enhanced Shell
-                      Scheme"
+                      Booth Type accepts any booth type label, such as "Raw Space", "Standard Shell
+                      Scheme", or "Artist Alley"
                     </li>
                     <li>If a brand name already exists, it will be linked to the existing brand</li>
                     <li>Brands already in this event will be skipped</li>

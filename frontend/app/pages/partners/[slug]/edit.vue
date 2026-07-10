@@ -44,7 +44,7 @@
             <!-- Description -->
             <div class="space-y-2">
               <Label>Description</Label>
-              <Textarea v-model="form.description" placeholder="About this partner..." rows="3" />
+              <Textarea v-model="form.description" placeholder="About this partner" rows="3" />
             </div>
 
             <!-- Status -->

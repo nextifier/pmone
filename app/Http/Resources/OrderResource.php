@@ -29,6 +29,7 @@ class OrderResource extends JsonResource
             'payment_status_label' => $this->payment_status?->label(),
             'cancellation_reason' => $this->cancellation_reason,
             'order_period' => $this->order_period,
+            'source' => $this->source,
             'notes' => $this->notes,
             'internal_notes' => $this->when($isStaff, fn () => $this->internal_notes),
             'invoice' => $this->when($isStaff, fn () => $this->hasMedia('invoice') ? [
@@ -73,6 +74,9 @@ class OrderResource extends JsonResource
                         'name' => $this->brandEvent->brand->name,
                         'slug' => $this->brandEvent->brand->slug,
                         'company_name' => $this->brandEvent->brand->company_name,
+                        'profile_image' => $this->brandEvent->brand->relationLoaded('media')
+                            ? $this->brandEvent->brand->profile_image
+                            : null,
                         'brand_logo' => $this->brandEvent->brand->relationLoaded('media')
                             ? $this->brandEvent->brand->brand_logo
                             : null,

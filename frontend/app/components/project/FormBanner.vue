@@ -109,7 +109,7 @@
             collection="description_images"
             :sticky="false"
             min-height="160px"
-            placeholder="Supporting text…"
+            placeholder="Supporting text"
           />
           <p v-if="errors.description" class="text-destructive text-xs sm:text-sm">
             {{ errors.description[0] }}

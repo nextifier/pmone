@@ -38,7 +38,7 @@
             <Textarea
               id="description"
               v-model="formData.description"
-              placeholder="Brief description of this API consumer..."
+              placeholder="Brief description of this API consumer"
               rows="3"
             />
             <FieldError :errors="errors.description" />

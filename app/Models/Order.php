@@ -106,6 +106,7 @@ class Order extends Model implements HasMedia, Purchasable
         'payment_status',
         'cancellation_reason',
         'order_period',
+        'source',
         'notes',
         'internal_notes',
         'subtotal',

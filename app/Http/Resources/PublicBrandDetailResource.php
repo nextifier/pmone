@@ -3,21 +3,13 @@
 namespace App\Http\Resources;
 
 use App\Models\BrandEvent;
+use App\Models\CustomField;
+use App\Support\FormFieldTypes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class PublicBrandDetailResource extends PublicBrandIndexResource
 {
-    /**
-     * Brand custom_fields keys that are safe to expose publicly, in display order.
-     */
-    private const PUBLIC_CUSTOM_FIELDS = [
-        'business_concept',
-        'establishment_year',
-        'branch_total',
-        'investment_fee',
-    ];
-
     public function toArray(Request $request): array
     {
         $brand = $this->brand;
@@ -70,25 +62,46 @@ class PublicBrandDetailResource extends PublicBrandIndexResource
     }
 
     /**
-     * Only the whitelisted custom fields, in defined order, dropping empty values.
+     * All non-empty brand custom fields, in definition order, formatted per
+     * field type (option labels, multi-value joins, etc.). Returns a list of
+     * {key, label, value} so the public page can render labels and the admin
+     * live preview stays identical.
+     *
+     * @return array<int, array{key: string, label: string, value: string}>
      */
     private function getPublicCustomFields(): array
     {
-        $fields = $this->brand?->custom_fields;
+        $values = $this->brand?->custom_fields;
 
-        if (! is_array($fields)) {
+        if (! is_array($values) || $values === []) {
             return [];
         }
 
-        $result = [];
-        foreach (self::PUBLIC_CUSTOM_FIELDS as $key) {
-            $value = $fields[$key] ?? null;
-            if ($value !== null && $value !== '') {
-                $result[$key] = $value;
-            }
+        $event = $this->event;
+
+        if (! $event) {
+            return [];
         }
 
-        return $result;
+        $event->loadMissing('project');
+        $project = $event->project;
+
+        if (! $project) {
+            return [];
+        }
+
+        return $project->customFields()
+            ->get()
+            ->filter(fn (CustomField $field) => $field->type !== CustomField::TYPE_SECTION
+                && filled($values[$field->key] ?? null))
+            ->map(fn (CustomField $field) => [
+                'key' => $field->key,
+                'label' => (string) $field->label,
+                'value' => FormFieldTypes::formatValue($field, $values[$field->key] ?? null),
+            ])
+            ->reject(fn (array $field) => $field['value'] === '' || $field['value'] === '-')
+            ->values()
+            ->toArray();
     }
 
     /**

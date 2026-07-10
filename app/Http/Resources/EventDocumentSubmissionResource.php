@@ -36,13 +36,15 @@ class EventDocumentSubmissionResource extends JsonResource
                 ]
             ),
             'submitted_at' => $this->submitted_at,
+            // Exhibitors only ever see the current version; superseded files are
+            // staff-only history (see BrandEventController::documentSubmissions).
             'submission_file' => $this->when(
                 $this->relationLoaded('media') || $this->hasMedia('submission_file'),
-                fn () => $this->getMediaUrls('submission_file')
+                fn () => $this->currentSubmissionFileUrls()
             ),
             'files' => $this->when(
                 $this->relationLoaded('media'),
-                fn () => $this->getMedia('submission_file')->map(fn ($media) => [
+                fn () => $this->currentSubmissionFiles()->map(fn ($media) => [
                     'id' => $media->id,
                     'field_ulid' => $media->getCustomProperty('field_ulid'),
                     'name' => $media->file_name,

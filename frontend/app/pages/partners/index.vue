@@ -53,7 +53,7 @@
       model="partners"
       label="Partner"
       search-column="partner_name"
-      search-placeholder="Search partners..."
+      search-placeholder="Search partners"
       error-title="Error loading partners"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

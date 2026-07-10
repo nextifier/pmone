@@ -1,7 +1,7 @@
 <template>
   <NuxtLink :to="detailUrl" class="flex items-center gap-x-3">
     <Avatar
-      :model="{ name: brand.brand_name, profile_image: brand.brand_logo }"
+      :model="{ name: brand.brand_name, profile_image: brand.profile_image }"
       class="size-11"
       rounded="rounded-full"
       :colorful="false"

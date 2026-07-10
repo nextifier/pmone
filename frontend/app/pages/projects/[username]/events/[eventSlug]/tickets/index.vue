@@ -118,7 +118,7 @@
       :client-only="false"
       :show-add-button="false"
       search-column="title"
-      search-placeholder="Search ticket title..."
+      search-placeholder="Search ticket title"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"

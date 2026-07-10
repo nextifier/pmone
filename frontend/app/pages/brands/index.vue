@@ -97,6 +97,30 @@
                 :selected="selectedStatuses"
                 @change="handleFilterChange('status', $event)"
               />
+              <FilterSection
+                v-if="filterOptionsData.countries?.length > 0"
+                title="Country"
+                :options="filterOptionsData.countries"
+                :selected="selectedCountries"
+                @change="handleFilterChange('country', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="filterOptionsData.provinces?.length > 0"
+                title="Province"
+                :options="filterOptionsData.provinces"
+                :selected="selectedProvinces"
+                @change="handleFilterChange('province', $event)"
+                class="border-t pt-4"
+              />
+              <FilterSection
+                v-if="filterOptionsData.cities?.length > 0"
+                title="City"
+                :options="filterOptionsData.cities"
+                :selected="selectedCities"
+                @change="handleFilterChange('city', $event)"
+                class="border-t pt-4"
+              />
             </div>
           </PopoverContent>
         </Popover>
@@ -215,6 +239,9 @@ const buildQueryParams = () => {
   const filters = {
     brand_name: "filter_search",
     status: "filter_status",
+    country: "filter_country",
+    province: "filter_province",
+    city: "filter_city",
   };
 
   Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -283,7 +310,27 @@ const getFilterValue = (columnId) => {
 };
 
 const selectedStatuses = computed(() => getFilterValue("status"));
-const totalActiveFilters = computed(() => selectedStatuses.value.length);
+const selectedCountries = computed(() => getFilterValue("country"));
+const selectedProvinces = computed(() => getFilterValue("province"));
+const selectedCities = computed(() => getFilterValue("city"));
+
+const totalActiveFilters = computed(
+  () =>
+    selectedStatuses.value.length +
+    selectedCountries.value.length +
+    selectedProvinces.value.length +
+    selectedCities.value.length
+);
+
+const filterOptionsData = ref({ countries: [], provinces: [], cities: [] });
+
+onMounted(async () => {
+  try {
+    filterOptionsData.value = await client("/api/brands/filter-options");
+  } catch {
+    // Facets are optional; the table still works without them.
+  }
+});
 
 const handleFilterChange = (columnId, { checked, value }) => {
   const current = getFilterValue(columnId);
@@ -469,7 +516,13 @@ const handleExport = async () => {
     const params = new URLSearchParams();
 
     columnFilters.value.forEach((filter) => {
-      const filterMapping = { brand_name: "filter_search", status: "filter_status" };
+      const filterMapping = {
+        brand_name: "filter_search",
+        status: "filter_status",
+        country: "filter_country",
+        province: "filter_province",
+        city: "filter_city",
+      };
       const paramKey = filterMapping[filter.id];
       if (paramKey && filter.value) {
         const paramValue = Array.isArray(filter.value) ? filter.value.join(",") : filter.value;

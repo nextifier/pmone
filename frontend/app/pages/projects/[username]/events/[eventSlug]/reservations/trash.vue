@@ -30,7 +30,7 @@
       :client-only="false"
       :show-add-button="false"
       search-column="reservation_number"
-      search-placeholder="Number, name, email..."
+      search-placeholder="Number, name, email"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"

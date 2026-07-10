@@ -68,7 +68,7 @@ import { Textarea } from "@/components/ui/textarea"
             </FieldLabel>
             <Textarea
               id="feedback"
-              placeholder="Your feedback helps us improve..."
+              placeholder="Your feedback helps us improve"
             />
           </Field>
         </FieldGroup>

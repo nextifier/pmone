@@ -130,14 +130,7 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
         $types = [];
 
         foreach ($parts as $part) {
-            $normalized = strtolower(trim($part));
-
-            $type = match (true) {
-                str_contains($normalized, 'raw') => BoothType::RawSpace->value,
-                str_contains($normalized, 'enhanced') => BoothType::EnhancedShellScheme->value,
-                str_contains($normalized, 'standard'), str_contains($normalized, 'shell') => BoothType::StandardShellScheme->value,
-                default => null,
-            };
+            $type = BoothType::tryFromLabel($part)?->value;
 
             if ($type && ! in_array($type, $types)) {
                 $types[] = $type;

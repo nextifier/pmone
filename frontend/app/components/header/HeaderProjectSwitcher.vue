@@ -10,7 +10,7 @@
     </PopoverTrigger>
     <PopoverContent :align="isMobile ? 'end' : 'start'" :side-offset="8" class="w-60 p-0 lg:w-80">
       <Command v-model:search-term="search" :ignore-filter="false">
-        <CommandInput placeholder="Search project..." />
+        <CommandInput placeholder="Search project" />
         <CommandList>
           <CommandEmpty>No project found.</CommandEmpty>
           <CommandGroup>

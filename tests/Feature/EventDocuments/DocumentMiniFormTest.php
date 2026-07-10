@@ -317,6 +317,25 @@ it('requires the agreement checkbox to be accepted', function () {
         ->assertJsonValidationErrors(["field_values.{$agreement->ulid}"]);
 });
 
+it('accepts the dashboard agreement payload on a builder-made rule', function () {
+    $this->document->update(['blocks_next_step' => true]);
+
+    $checkbox = CustomField::factory()->document($this->document)
+        ->type(CustomField::TYPE_CHECKBOX)
+        ->required()
+        ->create();
+
+    expect($this->document->fresh()->isEventRule())->toBeTrue();
+
+    $this->actingAs($this->exhibitor)
+        ->postJson(($this->submitUrl)($this->document), ['agreement' => true])
+        ->assertSuccessful();
+
+    $submission = EventDocumentSubmission::query()->firstOrFail();
+    expect($submission->agreed_at)->not->toBeNull();
+    expect($submission->field_values[$checkbox->ulid])->toBeTrue();
+});
+
 it('supports re-agreement after a content version bump', function () {
     $document = EventDocument::factory()->create([
         'event_id' => $this->event->id,

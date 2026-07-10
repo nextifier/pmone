@@ -24,7 +24,7 @@ import {
           remixicon="RiSearchLine"
         />
       </InputGroupAddon>
-      <InputGroupInput placeholder="Search releases or catalog..." />
+      <InputGroupInput placeholder="Search releases or catalog" />
     </InputGroup>
     <Button>
       <IconPlaceholder

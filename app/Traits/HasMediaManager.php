@@ -49,6 +49,30 @@ trait HasMediaManager
     }
 
     /**
+     * Get raw file metadata for a collection that stores files as-is
+     * (no conversions), e.g. master assets like PDF, AI or ZIP.
+     *
+     * @return array{url: string, name: string, size: int, mime_type: string, extension: string, uploaded_at: ?string}|null
+     */
+    public function getMediaFileInfo(string $collection): ?array
+    {
+        $media = $this->getFirstMedia($collection);
+
+        if (! $media) {
+            return null;
+        }
+
+        return [
+            'url' => $media->getUrl(),
+            'name' => $media->file_name,
+            'size' => $media->size,
+            'mime_type' => $media->mime_type,
+            'extension' => pathinfo($media->file_name, PATHINFO_EXTENSION),
+            'uploaded_at' => $media->created_at?->toIso8601String(),
+        ];
+    }
+
+    /**
      * Get media URLs with per-conversion dimensions.
      * Each conversion returns {url, width, height}.
      */

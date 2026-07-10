@@ -27,7 +27,7 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <h3 class="text-foreground text-base font-medium tracking-tighter">{{ title }}</h3>
-              <Badge v-if="badgeText" :variant="badgeVariant" class="text-xs tracking-tight">
+              <Badge v-if="badgeText" :variant="badgeVariant" class="text-sm tracking-tight">
                 {{ badgeText }}
               </Badge>
             </div>
@@ -37,7 +37,7 @@
           <!-- Attention count -->
           <span
             v-if="attentionCount > 0 && !locked"
-            class="bg-warning/15 text-warning-foreground flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-medium tracking-tight"
+            class="bg-warning/15 text-warning-foreground flex size-5 shrink-0 items-center justify-center rounded-full text-sm font-medium tracking-tight"
           >
             {{ attentionCount }}
           </span>
@@ -46,7 +46,7 @@
           <span
             v-if="deadline && !locked"
             :class="[
-              'hidden text-xs font-medium tracking-tight sm:inline sm:text-sm',
+              'hidden text-sm font-medium tracking-tight sm:inline sm:text-sm',
               deadlineUrgent ? 'text-warning-foreground' : 'text-muted-foreground',
             ]"
           >

@@ -22,6 +22,14 @@
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export {{ totalActiveFilters > 0 ? "filtered" : "all" }}</span>
         </button>
+        <NuxtLink
+          v-if="canCreateOrder"
+          :to="createOrderLink"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-2.5 py-1 text-sm tracking-tight transition active:scale-98"
+        >
+          <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
+          <span>Create Order</span>
+        </NuxtLink>
       </div>
     </div>
 
@@ -36,7 +44,7 @@
       model="orders"
       label="Order"
       search-column="order_number"
-      search-placeholder="Search by order # or brand..."
+      search-placeholder="Search by order # or brand"
       error-title="Error loading orders"
       :show-add-button="false"
       :initial-pagination="pagination"
@@ -272,6 +280,7 @@
 import FilterSection from "@/components/inbox/FilterSection.vue";
 import OrderStatusDropdown from "@/components/order/StatusDropdown.vue";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -293,6 +302,13 @@ usePageMeta(null, {
 const { $dayjs } = useNuxtApp();
 const route = useRoute();
 const client = useSanctumClient();
+const { hasPermission, isAdminOrMaster } = usePermission();
+
+const canCreateOrder = computed(() => isAdminOrMaster.value || hasPermission("orders.create"));
+const createOrderLink = computed(
+  () =>
+    `/projects/${route.params.username}/events/${route.params.eventSlug}/operational/orders/create`
+);
 
 // Filter options
 const operationalStatusOptions = [
@@ -722,6 +738,19 @@ const columns = [
       if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
       return filterValue.includes(row.getValue(columnId));
     },
+  },
+  {
+    header: "Source",
+    accessorKey: "source",
+    cell: ({ row }) => {
+      const isStaff = row.original.source === "staff";
+      return h(
+        Badge,
+        { variant: isStaff ? "info" : "muted" },
+        () => (isStaff ? "Staff" : "Exhibitor")
+      );
+    },
+    size: 100,
   },
   {
     header: "Submitted",

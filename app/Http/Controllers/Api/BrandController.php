@@ -16,6 +16,7 @@ use App\Models\CustomField;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\CustomFieldValidation;
+use App\Support\ImageDimensions;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,10 +43,7 @@ class BrandController extends Controller
             ->with(['media', 'brandEvents.event.media', 'tags'])
             ->withCount(['brandEvents', 'users']);
 
-        // Exhibitors only see brands assigned to them
-        if (! $user->hasRole(['master', 'admin', 'staff'])) {
-            $query->whereHas('users', fn ($q) => $q->where('users.id', $user->id));
-        }
+        $this->scopeToVisibleBrands($query, $user);
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
@@ -119,12 +117,13 @@ class BrandController extends Controller
                 'slug' => $brand->slug,
                 'description' => $brand->description,
                 'company_name' => $brand->company_name,
-                'company_address' => $brand->company_address,
+                'address' => $brand->address,
                 'company_email' => $brand->company_email,
                 'company_phone' => $brand->company_phone,
                 'custom_fields' => $brand->custom_fields,
                 'status' => $brand->status,
                 'visibility' => $brand->visibility,
+                'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
                 'business_categories' => $brand->business_categories_list,
                 'links' => $brand->links->map(fn ($link) => [
@@ -172,12 +171,18 @@ class BrandController extends Controller
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:50000'],
             'company_name' => ['nullable', 'string', 'max:255'],
-            'company_address' => ['nullable', 'string', 'max:1000'],
+            'address' => ['nullable', 'array'],
+            'address.street' => ['nullable', 'string', 'max:1000'],
+            'address.city' => ['nullable', 'string', 'max:255'],
+            'address.province' => ['nullable', 'string', 'max:255'],
+            'address.country' => ['nullable', 'string', 'max:255'],
             'company_email' => ['nullable', 'email', 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'status' => ['sometimes', 'string', 'in:active,inactive'],
             'business_categories' => ['nullable', 'array'],
             'business_categories.*' => ['string', 'max:100'],
+            'tmp_profile_image' => ['nullable', 'string'],
+            'delete_profile_image' => ['nullable', 'boolean'],
             'tmp_brand_logo' => ['nullable', 'string'],
             'delete_brand_logo' => ['nullable', 'boolean'],
             'links' => ['nullable', 'array'],
@@ -202,7 +207,7 @@ class BrandController extends Controller
         $categories = $validated['business_categories'] ?? null;
         $links = $validated['links'] ?? null;
         $projectCustomFields = $validated['project_custom_fields'] ?? null;
-        unset($validated['business_categories'], $validated['tmp_brand_logo'], $validated['delete_brand_logo'], $validated['links'], $validated['project_custom_fields']);
+        unset($validated['business_categories'], $validated['tmp_profile_image'], $validated['delete_profile_image'], $validated['tmp_brand_logo'], $validated['delete_brand_logo'], $validated['links'], $validated['project_custom_fields']);
 
         $brand->update($validated);
 
@@ -210,6 +215,7 @@ class BrandController extends Controller
             $brand->syncBusinessCategories($categories);
         }
 
+        $this->handleTemporaryUpload($request, $brand, 'tmp_profile_image', 'profile_image');
         $this->handleTemporaryUpload($request, $brand, 'tmp_brand_logo', 'brand_logo');
 
         // Save project custom field values to brands.custom_fields; values are
@@ -267,6 +273,7 @@ class BrandController extends Controller
                 'id' => $brand->id,
                 'name' => $brand->name,
                 'slug' => $brand->slug,
+                'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
             ],
             'message' => 'Brand updated successfully',
@@ -461,6 +468,7 @@ class BrandController extends Controller
                 'name' => $brand->name,
                 'slug' => $brand->slug,
                 'company_name' => $brand->company_name,
+                'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
             ]);
 
@@ -475,6 +483,11 @@ class BrandController extends Controller
         }
         if ($status = $request->input('filter_status')) {
             $filters['status'] = $status;
+        }
+        foreach (['country', 'province', 'city'] as $key) {
+            if ($value = $request->input("filter_{$key}")) {
+                $filters[$key] = $value;
+            }
         }
 
         $sort = $request->input('sort', 'name');
@@ -581,6 +594,86 @@ class BrandController extends Controller
                 $query->where('status', $statuses[0]);
             }
         }
+
+        // Country filter
+        if ($country = $request->input('filter_country')) {
+            $countries = is_array($country) ? $country : explode(',', $country);
+            $countries = array_filter($countries);
+
+            if (! empty($countries)) {
+                $query->where(function ($q) use ($countries) {
+                    foreach ($countries as $c) {
+                        $q->orWhereRaw("address->>'country' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
+        }
+
+        // Province filter
+        if ($province = $request->input('filter_province')) {
+            $provinces = is_array($province) ? $province : explode(',', $province);
+            $provinces = array_filter($provinces);
+
+            if (! empty($provinces)) {
+                $query->where(function ($q) use ($provinces) {
+                    foreach ($provinces as $p) {
+                        $q->orWhereRaw("address->>'province' ilike ?", ["%{$p}%"]);
+                    }
+                });
+            }
+        }
+
+        // City filter
+        if ($city = $request->input('filter_city')) {
+            $cities = is_array($city) ? $city : explode(',', $city);
+            $cities = array_filter($cities);
+
+            if (! empty($cities)) {
+                $query->where(function ($q) use ($cities) {
+                    foreach ($cities as $c) {
+                        $q->orWhereRaw("address->>'city' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Exhibitors only ever see the brands they are assigned to.
+     */
+    private function scopeToVisibleBrands($query, ?User $user): void
+    {
+        if ($user && ! $user->hasRole(['master', 'admin', 'staff'])) {
+            $query->whereHas('users', fn ($q) => $q->where('users.id', $user->id));
+        }
+    }
+
+    /**
+     * Return distinct filter options for the brands list. The facets must respect
+     * the same visibility scope as index(), otherwise an exhibitor sees locations
+     * belonging to brands they cannot list.
+     */
+    public function filterOptions(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $distinctAddressValues = function (string $key) use ($user): array {
+            $query = Brand::query()
+                ->whereNotNull('address')
+                ->whereRaw("address->>'{$key}' IS NOT NULL AND address->>'{$key}' != ''")
+                ->selectRaw("DISTINCT address->>'{$key}' as value")
+                ->orderByRaw("address->>'{$key}'");
+
+            $this->scopeToVisibleBrands($query, $user);
+
+            return $query->pluck('value')->toArray();
+        };
+
+        return response()->json([
+            'countries' => $distinctAddressValues('country'),
+            'provinces' => $distinctAddressValues('province'),
+            'cities' => $distinctAddressValues('city'),
+        ]);
     }
 
     /**
@@ -719,6 +812,7 @@ class BrandController extends Controller
             'brand_slug' => $brand->slug,
             'company_name' => $brand->company_name,
             'status' => $brand->status,
+            'profile_image' => $brand->profile_image,
             'brand_logo' => $brand->brand_logo,
             'brand_events_count' => $brand->brand_events_count,
             'members_count' => $brand->users_count ?? 0,
@@ -785,9 +879,18 @@ class BrandController extends Controller
             return;
         }
 
+        $absolutePath = Storage::disk('local')->path($filePath);
+
+        if ($collection === 'profile_image'
+            && ! ImageDimensions::meetsMinimum($absolutePath, $metadata['mime_type'] ?? '')) {
+            throw ValidationException::withMessages([
+                'tmp_profile_image' => 'Profile image must be at least 1000x1000 pixels.',
+            ]);
+        }
+
         $brand->clearMediaCollection($collection);
 
-        $brand->addMedia(Storage::disk('local')->path($filePath))
+        $brand->addMedia($absolutePath)
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");

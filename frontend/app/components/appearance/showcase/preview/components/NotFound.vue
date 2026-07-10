@@ -30,7 +30,7 @@ import { Kbd } from "@/components/ui/kbd"
         </EmptyHeader>
         <EmptyContent>
           <InputGroup class="w-3/4">
-            <InputGroupInput placeholder="Try searching for pages..." />
+            <InputGroupInput placeholder="Try searching for pages" />
             <InputGroupAddon>
               <IconPlaceholder
                 lucide="SearchIcon"

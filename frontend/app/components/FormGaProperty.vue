@@ -60,7 +60,7 @@
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
-              <TagsInputInput placeholder="Add tags..." />
+              <TagsInputInput placeholder="Add tags" />
             </TagsInput>
             <FieldError :errors="errors.tags" />
             <p class="text-muted-foreground text-xs">Organize properties with tags</p>

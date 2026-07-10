@@ -60,7 +60,7 @@
       :client-only="false"
       :show-add-button="false"
       search-column="code"
-      search-placeholder="Search code, email, phone…"
+      search-placeholder="Search code, email, phone"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"

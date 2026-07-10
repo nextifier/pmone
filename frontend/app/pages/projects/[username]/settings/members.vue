@@ -16,7 +16,7 @@
       <input
         v-model="search"
         type="text"
-        placeholder="Search by name or email..."
+        placeholder="Search by name or email"
         class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring h-9 w-full rounded-md border pr-3 pl-9 text-sm tracking-tight outline-none focus:ring-1"
       />
     </div>

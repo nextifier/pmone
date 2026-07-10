@@ -289,7 +289,7 @@ const showTooltipIfContent = (instance) => Boolean(instance.props.content);
       <Textarea
         :model-value="notes"
         rows="2"
-        placeholder="e.g. extra bed, high floor, late check-in..."
+        placeholder="e.g. extra bed, high floor, late check-in"
         maxlength="1000"
         class="bg-background"
         @update:model-value="(v) => emit('update:notes', v ?? '')"

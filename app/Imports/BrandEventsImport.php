@@ -180,9 +180,11 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
             $this->brandCache[$brandNameLower] = $brand->id;
         }
 
-        // Import brand logo from URL if brand doesn't have one yet
-        if (! empty($row['brand_logo']) && ! $brand->hasMedia('brand_logo')) {
-            $this->importBrandLogo($brand, trim($row['brand_logo']));
+        // Import avatar from the brand_logo column (image URL) into the
+        // profile_image collection if the brand doesn't have one yet. The
+        // Excel column name stays brand_logo for backward compatibility.
+        if (! empty($row['brand_logo']) && ! $brand->hasMedia('profile_image')) {
+            $this->importProfileImage($brand, trim($row['brand_logo']));
         }
 
         // Create social links if brand doesn't have them yet
@@ -294,18 +296,7 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
 
     private function resolveBoothType(?string $value): ?BoothType
     {
-        if (empty($value)) {
-            return null;
-        }
-
-        $normalized = strtolower(trim($value));
-
-        return match (true) {
-            str_contains($normalized, 'raw') => BoothType::RawSpace,
-            str_contains($normalized, 'enhanced') => BoothType::EnhancedShellScheme,
-            str_contains($normalized, 'standard'), str_contains($normalized, 'shell') => BoothType::StandardShellScheme,
-            default => null,
-        };
+        return BoothType::tryFromLabel($value);
     }
 
     private function resolveStatus(?string $value): string
@@ -347,13 +338,13 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
         return ! empty($customFields) ? $customFields : null;
     }
 
-    private function importBrandLogo(Brand $brand, string $url): void
+    private function importProfileImage(Brand $brand, string $url): void
     {
         try {
             $brand->addMediaFromUrl($url)
-                ->toMediaCollection('brand_logo');
+                ->toMediaCollection('profile_image');
         } catch (\Exception $e) {
-            logger()->warning('Failed to import brand logo', [
+            logger()->warning('Failed to import brand profile image', [
                 'brand_id' => $brand->id,
                 'url' => $url,
                 'error' => $e->getMessage(),

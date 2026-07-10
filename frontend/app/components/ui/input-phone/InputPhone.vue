@@ -22,7 +22,7 @@
         </PopoverTrigger>
         <PopoverContent class="w-[300px] p-0" :align="align">
           <Command :ignore-filter="true">
-            <CommandInput v-model="countrySearch" placeholder="Search country..." />
+            <CommandInput v-model="countrySearch" placeholder="Search country" />
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandList>
               <ComboboxViewport class="max-h-72 p-1">

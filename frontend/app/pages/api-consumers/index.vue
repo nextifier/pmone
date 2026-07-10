@@ -159,7 +159,7 @@
       model="api-consumers"
       label="API Consumer"
       search-column="name"
-      search-placeholder="Search consumers..."
+      search-placeholder="Search consumers"
       error-title="Error loading API consumers"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

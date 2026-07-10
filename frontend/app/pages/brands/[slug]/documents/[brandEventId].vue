@@ -59,8 +59,8 @@
                   Blocks
                 </Badge>
               </div>
-              <Badge variant="muted" class="text-xs font-normal">
-                {{ documentTypeLabel(item.document.document_type) }}
+              <Badge variant="muted" class="text-xs font-normal whitespace-nowrap">
+                {{ documentKind(item.document).label }}
               </Badge>
             </div>
 
@@ -240,7 +240,7 @@
               <div class="space-y-2">
                 <Textarea
                   v-model="textInputs[item.document.id]"
-                  placeholder="Enter your response..."
+                  placeholder="Enter your response"
                   rows="3"
                 />
                 <Button
@@ -304,16 +304,6 @@ function activeFields(item) {
   return (item.document.fields || []).filter((f) => f.is_active !== false);
 }
 
-const documentTypeLabels = {
-  checkbox_agreement: "Checkbox Agreement",
-  file_upload: "File Upload",
-  text_input: "Text Input",
-};
-
-function documentTypeLabel(type) {
-  return documentTypeLabels[type] || type;
-}
-
 function formatDate(dateStr) {
   if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("id-ID", {
@@ -332,15 +322,7 @@ function getMediaUrl(media) {
 }
 
 function getStatus(item) {
-  if (!item.submission) return "pending";
-  if (item.submission.needs_reagreement) return "needs_reagreement";
-  if (item.document.document_type === "checkbox_agreement" && item.submission.agreed_at)
-    return "completed";
-  if (item.document.document_type === "file_upload" && item.submission.submission_file)
-    return "completed";
-  if (item.document.document_type === "text_input" && item.submission.text_value)
-    return "completed";
-  return "pending";
+  return documentSubmissionStatus(item.document, item.submission);
 }
 
 async function fetchDocuments() {
@@ -373,7 +355,7 @@ async function handleAgree(item) {
   try {
     const res = await client(
       `/api/exhibitor/brands/${route.params.slug}/events/${route.params.brandEventId}/documents/${item.document.ulid}`,
-      { method: "POST", body: {} }
+      { method: "POST", body: { agreement: true } }
     );
     item.submission = res.data;
     toast.success("Agreement recorded");

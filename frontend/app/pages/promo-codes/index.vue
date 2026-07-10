@@ -47,7 +47,7 @@
       model="promo-codes"
       label="Promo Code"
       search-column="code"
-      search-placeholder="Search by code or email..."
+      search-placeholder="Search by code or email"
       error-title="Error loading promo codes"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

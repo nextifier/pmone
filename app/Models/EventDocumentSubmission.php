@@ -164,6 +164,71 @@ class EventDocumentSubmission extends Model implements HasMedia
         return $this->document_version < $this->eventDocument->content_version;
     }
 
+    /**
+     * The submission files that are the current version (not superseded).
+     * Files uploaded before versioning have no superseded_at property and
+     * are treated as current.
+     *
+     * @return MediaCollection<int, Media>
+     */
+    public function currentSubmissionFiles(): MediaCollection
+    {
+        return $this->getMedia('submission_file')
+            ->filter(fn (Media $media) => $media->getCustomProperty('superseded_at') === null)
+            ->values();
+    }
+
+    /**
+     * Current-version files for a single mini-form field.
+     *
+     * @return MediaCollection<int, Media>
+     */
+    public function currentFilesForField(string $fieldUlid): MediaCollection
+    {
+        return $this->currentSubmissionFiles()
+            ->filter(fn (Media $media) => $media->getCustomProperty('field_ulid') === $fieldUlid)
+            ->values();
+    }
+
+    /**
+     * All versions for a field (current + superseded), newest version first.
+     *
+     * @return MediaCollection<int, Media>
+     */
+    public function fileHistoryForField(string $fieldUlid): MediaCollection
+    {
+        return $this->getMedia('submission_file')
+            ->filter(fn (Media $media) => ($media->getCustomProperty('field_ulid') ?? 'legacy') === $fieldUlid)
+            ->sortByDesc(fn (Media $media) => (int) $media->getCustomProperty('version', 1))
+            ->values();
+    }
+
+    /**
+     * Structured URLs for the first current submission file, mirroring the
+     * legacy getMediaUrls shape the exhibitor UI reads.
+     *
+     * @return array{url: string, original: string, file_name: string, caption: mixed, alt: mixed, size: int}|null
+     */
+    public function currentSubmissionFileUrls(): ?array
+    {
+        $media = $this->currentSubmissionFiles()->first();
+
+        if (! $media) {
+            return null;
+        }
+
+        $url = $media->getUrl();
+
+        return [
+            'url' => $url,
+            'original' => $url,
+            'file_name' => $media->file_name,
+            'caption' => $media->getCustomProperty('caption'),
+            'alt' => $media->getCustomProperty('alt') ?? $media->name,
+            'size' => $media->size,
+        ];
+    }
+
     // Relationships
 
     public function eventDocument(): BelongsTo

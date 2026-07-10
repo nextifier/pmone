@@ -90,7 +90,7 @@ function iconFor(opt) {
           <Textarea
             :model-value="notes[opt.id] ?? ''"
             rows="2"
-            placeholder="e.g. flight number, pickup time, contact name..."
+            placeholder="e.g. flight number, pickup time, contact name"
             maxlength="1000"
             @update:model-value="(v) => emit('update:notes', { id: opt.id, notes: v ?? '' })"
           />

@@ -49,7 +49,7 @@
       :error="error"
       :per-page="perPage"
       :initial-search="search"
-      search-placeholder="Search in description, user, or event..."
+      search-placeholder="Search in description, user, or event"
       @search="onSearch"
       @page="onPage"
       @per-page-change="onPerPageChange"
@@ -193,7 +193,7 @@
                   v-if="eventOptions.length > 8"
                   v-model="eventSearch"
                   type="text"
-                  placeholder="Search events..."
+                  placeholder="Search events"
                   class="h-8 rounded-lg text-sm"
                 />
                 <div class="max-h-56 space-y-2 overflow-y-auto pr-1">

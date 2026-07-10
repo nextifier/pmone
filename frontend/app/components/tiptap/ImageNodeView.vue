@@ -12,7 +12,7 @@
         ref="captionInput"
         type="text"
         :value="node.attrs['data-caption'] || ''"
-        placeholder="Add a caption..."
+        placeholder="Add a caption"
         maxlength="500"
         class="caption-input"
         @input="updateCaption"

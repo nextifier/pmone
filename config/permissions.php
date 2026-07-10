@@ -162,7 +162,7 @@ return [
             'label' => 'Orders',
             'description' => 'Manage exhibitor orders',
             'model' => Order::class,
-            'actions' => ['read', 'update'],
+            'actions' => ['create', 'read', 'update'],
         ],
         'event_product_categories' => [
             'label' => 'Event Product Categories',

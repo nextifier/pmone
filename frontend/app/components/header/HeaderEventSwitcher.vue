@@ -10,7 +10,7 @@
     </PopoverTrigger>
     <PopoverContent :align="isMobile ? 'end' : 'start'" :side-offset="8" class="w-60 p-0 lg:w-80">
       <Command v-model:search-term="search" :ignore-filter="false">
-        <CommandInput placeholder="Search event..." />
+        <CommandInput placeholder="Search event" />
         <CommandList>
           <CommandEmpty>No event found.</CommandEmpty>
           <CommandGroup>

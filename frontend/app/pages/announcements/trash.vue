@@ -29,7 +29,7 @@
       label="Announcement"
       search-column="title"
       :show-add-button="false"
-      search-placeholder="Search announcements..."
+      search-placeholder="Search announcements"
       error-title="Error loading trashed announcements"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

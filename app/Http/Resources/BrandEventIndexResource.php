@@ -28,6 +28,7 @@ class BrandEventIndexResource extends JsonResource
             'booth_type_label' => $this->booth_type?->label(),
             'status' => $this->status,
             'order_column' => $this->order_column,
+            'profile_image' => $brand?->relationLoaded('media') ? $brand->profile_image : null,
             'brand_logo' => $brand?->relationLoaded('media') ? $brand->brand_logo : null,
             'business_categories' => $brand?->relationLoaded('tags') ? $brand->business_categories_list : [],
             'promotion_posts_count' => $this->promotion_posts_count ?? 0,

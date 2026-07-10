@@ -105,7 +105,7 @@
       model="brands"
       label="Brand"
       search-column="brand_name"
-      search-placeholder="Search brands..."
+      search-placeholder="Search brands"
       error-title="Error loading brands"
       :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
       :initial-sorting="[{ id: 'created_at', desc: true }]"

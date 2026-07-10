@@ -18,7 +18,7 @@
         collection="description_images"
         :sticky="false"
         min-height="120px"
-        placeholder="Document content or instructions for exhibitors..."
+        placeholder="Document content or instructions for exhibitors"
       />
       <p v-if="errors.description" class="text-destructive mt-1 text-xs">
         {{ Array.isArray(errors.description) ? errors.description[0] : errors.description }}
@@ -57,7 +57,7 @@
       <p class="text-muted-foreground text-xs">Leave unchecked to apply to all booth types.</p>
       <div class="space-y-2">
         <div
-          v-for="option in boothTypeOptions"
+          v-for="option in BOOTH_TYPE_OPTIONS"
           :key="option.value"
           class="flex items-center gap-x-2"
         >
@@ -189,6 +189,7 @@
         v-if="isEdit && props.document?.ulid"
         :fields-base="`${props.apiBase}/${props.document.ulid}/fields`"
         :initial-fields="props.document.fields || []"
+        @changed="emit('changed')"
       />
       <p
         v-else
@@ -241,7 +242,7 @@ const props = defineProps({
   document: { type: Object, default: null },
   apiBase: { type: String, required: true },
 });
-const emit = defineEmits(["success"]);
+const emit = defineEmits(["success", "changed"]);
 
 const client = useSanctumClient();
 const submitting = ref(false);
@@ -299,13 +300,6 @@ watch(
 );
 
 const isEdit = computed(() => !!props.document);
-
-const boothTypeOptions = [
-  { value: "raw_space", label: "Raw Space" },
-  { value: "standard_shell_scheme", label: "Standard Shell Scheme" },
-  { value: "enhanced_shell_scheme", label: "Enhanced Shell Scheme" },
-  { value: "table_chair_only", label: "Table & Chair Only" },
-];
 
 function toggleBoothType(value) {
   const idx = form.booth_types.indexOf(value);

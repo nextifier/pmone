@@ -116,7 +116,7 @@
           display-only
           searchable
           search-column="propertyName"
-          search-placeholder="Search property name..."
+          search-placeholder="Search property name"
           :initial-pagination="{ pageIndex: 0, pageSize: 20 }"
           :page-sizes="[10, 20, 50]"
           :initial-sorting="[{ id: 'created_at', desc: true }]"

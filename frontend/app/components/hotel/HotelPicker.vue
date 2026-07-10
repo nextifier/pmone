@@ -15,7 +15,7 @@
           <AutocompleteRoot v-model="searchTerm" :ignore-filter="true">
             <AutocompleteAnchor as-child>
               <AutocompleteInput
-                placeholder="Type to search hotels..."
+                placeholder="Type to search hotels"
                 autocomplete="off"
                 class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
                 auto-focus

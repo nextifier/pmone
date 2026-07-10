@@ -28,7 +28,7 @@
       model="events-trash"
       search-column="title"
       :show-add-button="false"
-      search-placeholder="Search events..."
+      search-placeholder="Search events"
       error-title="Error loading trashed events"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

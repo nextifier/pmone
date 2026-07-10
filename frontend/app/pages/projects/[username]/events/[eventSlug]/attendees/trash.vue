@@ -30,7 +30,7 @@
       :client-only="false"
       :show-add-button="false"
       search-column="name"
-      search-placeholder="Search name, email, order…"
+      search-placeholder="Search name, email, order"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"

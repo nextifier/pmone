@@ -51,7 +51,7 @@
             </PopoverTrigger>
             <PopoverContent class="w-[280px] p-0">
               <Command>
-                <CommandInput placeholder="Search currency..." />
+                <CommandInput placeholder="Search currency" />
                 <CommandEmpty>No currency found.</CommandEmpty>
                 <CommandList>
                   <CommandGroup>
@@ -122,7 +122,7 @@
             </PopoverTrigger>
             <PopoverContent class="w-[280px] p-0">
               <Command>
-                <CommandInput placeholder="Search currency..." />
+                <CommandInput placeholder="Search currency" />
                 <CommandEmpty>No currency found.</CommandEmpty>
                 <CommandList>
                   <CommandGroup>
@@ -182,7 +182,7 @@
         />
         <Input
           v-model="searchQuery"
-          placeholder="Search currencies (e.g. IDR, Rupiah, USD)..."
+          placeholder="Search currencies (e.g. IDR, Rupiah, USD)"
           class="pl-10"
         />
       </div>
@@ -203,7 +203,7 @@
         </PopoverTrigger>
         <PopoverContent class="w-[280px] p-0" align="end">
           <Command>
-            <CommandInput placeholder="Search currency..." />
+            <CommandInput placeholder="Search currency" />
             <CommandEmpty>No currency found.</CommandEmpty>
             <CommandList>
               <CommandGroup>

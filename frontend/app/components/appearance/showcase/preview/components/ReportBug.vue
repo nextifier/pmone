@@ -98,7 +98,7 @@ import { Textarea } from "@/components/ui/textarea"
           </FieldLabel>
           <Textarea
             id="bug-steps"
-            placeholder="1. Go to&#10;2. Click on&#10;3. Observe..."
+            placeholder="1. Go to&#10;2. Click on&#10;3. Observe"
             class="min-h-24 resize-none"
           />
         </Field>

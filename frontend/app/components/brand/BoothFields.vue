@@ -7,11 +7,9 @@
           <SelectValue placeholder="Select type" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="raw_space">Raw Space</SelectItem>
-          <SelectItem value="standard_shell_scheme">Standard Shell Scheme</SelectItem>
-          <SelectItem value="enhanced_shell_scheme">Enhanced Shell Scheme</SelectItem>
-          <SelectItem value="table_chair_only">Table &amp; Chair Only</SelectItem>
-          <SelectItem value="alley">Alley</SelectItem>
+          <SelectItem v-for="option in BOOTH_TYPE_OPTIONS" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </SelectItem>
         </SelectContent>
       </Select>
     </div>

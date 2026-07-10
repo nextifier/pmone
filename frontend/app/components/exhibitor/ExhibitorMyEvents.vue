@@ -101,8 +101,8 @@
           >
             <!-- Brand logo -->
             <img
-              v-if="brand.brand_logo?.sm"
-              :src="brand.brand_logo.sm"
+              v-if="brand.profile_image?.sm"
+              :src="brand.profile_image.sm"
               :alt="brand.name"
               class="size-9 shrink-0 rounded-lg object-cover sm:size-10"
             />

@@ -18,7 +18,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search by reference..."
+            placeholder="Search by reference"
             class="placeholder:text-muted-foreground h-8 w-full rounded-md border bg-transparent px-9 text-sm tracking-tight focus:outline-hidden"
           />
           <button

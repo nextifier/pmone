@@ -123,7 +123,7 @@
             <TagsInputItemText />
             <TagsInputItemDelete />
           </TagsInputItem>
-          <TagsInputInput placeholder="Add tag..." />
+          <TagsInputInput placeholder="Add tag" />
         </TagsInput>
         <p class="text-muted-foreground text-xs sm:text-sm">Press Enter to add a tag</p>
       </div>

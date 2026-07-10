@@ -6,6 +6,7 @@ use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
 use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Order\StoreManualOrderRequest;
 use App\Http\Requests\Order\UpdateOrderInternalNotesRequest;
 use App\Http\Requests\Order\UploadOrderInvoiceRequest;
 use App\Http\Requests\Order\UploadOrderReceiptRequest;
@@ -14,9 +15,12 @@ use App\Http\Resources\OrderResource;
 use App\Jobs\Order\SendOrderDocumentJob;
 use App\Models\BrandEvent;
 use App\Models\Event;
+use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\Project;
 use App\Notifications\OrderStatusChangedNotification;
+use App\Notifications\OrderSubmittedNotification;
+use App\Services\Order\OrderSubmissionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -148,6 +152,139 @@ class OrderController extends Controller
                 'total' => $orders->total(),
             ],
         ]);
+    }
+
+    /**
+     * Catalog + pricing context for the manual order form. Staff pick any brand
+     * participating in the event, so BrandEvent is resolved from the event (not
+     * the acting user's own brands).
+     */
+    public function createInfo(Request $request, string $username, string $eventSlug): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $brandEvent = BrandEvent::query()
+            ->where('event_id', $event->id)
+            ->with('brand.media')
+            ->findOrFail($request->integer('brand_event_id'));
+
+        $products = EventProduct::query()
+            ->with(['media', 'productCategory.media'])
+            ->where('event_id', $event->id)
+            ->where('is_active', true)
+            ->ordered()
+            ->when($brandEvent->booth_type, function ($q) use ($brandEvent) {
+                $boothType = $brandEvent->booth_type->value;
+                $q->where(function ($sub) use ($boothType) {
+                    $sub->whereNull('booth_types')
+                        ->orWhereJsonContains('booth_types', $boothType);
+                });
+            })
+            ->get();
+
+        $productsByCategory = $products
+            ->groupBy(fn ($p) => $p->productCategory?->title ?? 'Uncategorized')
+            ->map(fn ($items, $category) => [
+                'category' => $category,
+                'products' => $items->map(fn (EventProduct $p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'description' => $p->description,
+                    'price' => $p->price,
+                    'unit' => $p->unit,
+                    'product_image' => $p->product_image,
+                ])->values(),
+            ])->values();
+
+        $settings = $event->settings ?? [];
+        $now = now();
+        $currentPeriod = 'normal_order';
+        $penaltyRate = 0;
+
+        if ($event->normal_order_opens_at && $event->normal_order_closes_at
+            && $now->between($event->normal_order_opens_at, $event->normal_order_closes_at)) {
+            $currentPeriod = 'normal_order';
+        } elseif ($event->onsite_order_opens_at && $event->onsite_order_closes_at
+            && $now->between($event->onsite_order_opens_at, $event->onsite_order_closes_at)) {
+            $currentPeriod = 'onsite_order';
+            $penaltyRate = (float) $event->onsite_penalty_rate;
+        }
+
+        return response()->json([
+            'data' => [
+                'products_by_category' => $productsByCategory,
+                'tax_rate' => $settings['tax_rate'] ?? 11,
+                'current_period' => $currentPeriod,
+                'penalty_rate' => $penaltyRate,
+                'order_form_content' => $event->order_form_content,
+                'brand_event' => [
+                    'id' => $brandEvent->id,
+                    'booth_number' => $brandEvent->booth_number,
+                    'booth_type' => $brandEvent->booth_type?->value,
+                    'booth_type_label' => $brandEvent->booth_type?->label(),
+                    'brand' => [
+                        'id' => $brandEvent->brand->id,
+                        'name' => $brandEvent->brand->name,
+                        'profile_image' => $brandEvent->brand->profile_image,
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Create an order on behalf of an exhibitor (staff manual order). Bypasses
+     * the order-form deadline; onsite penalties still apply automatically and
+     * can be voided afterwards via the adjustment tools.
+     */
+    public function store(StoreManualOrderRequest $request, string $username, string $eventSlug, OrderSubmissionService $orderSubmission): JsonResponse
+    {
+        $project = $this->resolveProject($username);
+        $event = $this->resolveEvent($project, $eventSlug);
+
+        $brandEvent = BrandEvent::query()
+            ->where('event_id', $event->id)
+            ->with(['brand', 'event.project'])
+            ->findOrFail($request->integer('brand_event_id'));
+
+        $validated = $request->validated();
+
+        try {
+            $order = $orderSubmission->create($brandEvent, $validated['items'], [
+                'notes' => $validated['notes'] ?? null,
+                'internal_notes' => $validated['internal_notes'] ?? null,
+                'promo_code' => $validated['promo_code'] ?? null,
+                'promo_email' => $brandEvent->brand->email ?? '',
+                'source' => 'staff',
+                'user' => $request->user(),
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        $order->load(['items.productCategory', 'brandEvent.brand', 'creator']);
+
+        // Confirmation to the exhibitor is opt-out (default on); the internal
+        // "order submitted" notification email is skipped because staff placed it.
+        $orderSubmission->sendEmails(
+            $order,
+            $event,
+            $brandEvent->brand,
+            $request->user(),
+            notifyInternal: false,
+            confirmationToBrand: $request->boolean('send_confirmation_email', true),
+        );
+
+        // In-app notification to project members still fires.
+        foreach ($event->project->getNotifiableUsers() as $notifiableUser) {
+            $notifiableUser->notify(new OrderSubmittedNotification($order, $brandEvent->brand->name));
+        }
+
+        return response()->json([
+            'message' => 'Order created successfully',
+            'data' => new OrderResource($order),
+        ], 201);
     }
 
     public function show(string $username, string $eventSlug, string $ulid): JsonResponse

@@ -7,9 +7,11 @@
       :accepted-file-types="effectiveAcceptedFileTypes"
       :allow-multiple="false"
       :max-files="1"
+      @addfile="handleAddFile"
+      @removefile="handleRemoveFile"
     />
 
-    <div v-else :class="containerClass">
+    <div v-else :class="containerClass" :style="containerStyle">
       <img :src="imageUrl" alt="" :class="imageClass" loading="lazy" />
 
       <button
@@ -34,6 +36,8 @@
 </template>
 
 <script setup>
+import { toast } from "vue-sonner";
+
 const config = useRuntimeConfig();
 const client = useSanctumClient();
 
@@ -56,6 +60,10 @@ const props = defineProps({
     type: String,
     default: "relative isolate",
   },
+  containerStyle: {
+    type: [Object, String],
+    default: null,
+  },
   imageClass: {
     type: String,
     default: "border-border size-full rounded-lg border object-contain",
@@ -70,6 +78,12 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  // Client-side minimum square dimension (px). SVG is exempt (vector). The
+  // server re-validates, so this is a fast-fail UX guard only.
+  minDimension: {
+    type: Number,
+    default: null,
+  },
 });
 
 const effectiveAcceptedFileTypes = computed(() =>
@@ -78,7 +92,70 @@ const effectiveAcceptedFileTypes = computed(() =>
     : props.acceptedFileTypes,
 );
 
-const emit = defineEmits(["update:modelValue", "update:deleteFlag", "delete", "undo"]);
+const emit = defineEmits([
+  "update:modelValue",
+  "update:deleteFlag",
+  "delete",
+  "undo",
+  "preview-url",
+]);
+
+// Object URL of the freshly picked file, so a parent live-preview can show the
+// image instantly (before the upload/save round-trip). Revoked on replace.
+let objectUrl = null;
+
+function setPreviewUrl(url) {
+  if (objectUrl && objectUrl !== url) {
+    URL.revokeObjectURL(objectUrl);
+  }
+  objectUrl = url;
+  emit("preview-url", url);
+}
+
+async function handleAddFile(file) {
+  const rawFile = file?.file;
+  if (!rawFile) {
+    return;
+  }
+
+  // Dimension guard (skip vector SVG which has no pixel size).
+  if (props.minDimension && rawFile.type !== "image/svg+xml") {
+    const ok = await meetsMinDimension(rawFile, props.minDimension);
+    if (!ok) {
+      getPond()?.removeFile?.(file.id);
+      toast.error(`Image must be at least ${props.minDimension}x${props.minDimension} pixels.`);
+      return;
+    }
+  }
+
+  setPreviewUrl(URL.createObjectURL(rawFile));
+}
+
+function handleRemoveFile() {
+  setPreviewUrl(null);
+}
+
+function meetsMinDimension(rawFile, min) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(rawFile);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img.naturalWidth >= min && img.naturalHeight >= min);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(true); // let the server be the authority if we can't read it
+    };
+    img.src = url;
+  });
+}
+
+onBeforeUnmount(() => {
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl);
+  }
+});
 
 // Getter to access pond from parent
 const getPond = () => inputFileRef.value?.pond;
@@ -158,12 +235,14 @@ async function handleDelete() {
     }
   }
 
+  setPreviewUrl(null);
   emit("update:deleteFlag", true);
   emit("update:modelValue", []);
   emit("delete");
 }
 
 function handleUndo() {
+  setPreviewUrl(null);
   emit("update:deleteFlag", false);
   emit("update:modelValue", []);
   emit("undo");

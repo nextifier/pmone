@@ -81,7 +81,7 @@
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
-              <TagsInputInput placeholder="Add benefit..." />
+              <TagsInputInput placeholder="Add benefit" />
             </TagsInput>
             <FieldError :errors="errors.benefits" />
           </div>

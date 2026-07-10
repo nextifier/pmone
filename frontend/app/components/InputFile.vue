@@ -62,9 +62,13 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  skipOptimize: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-const emit = defineEmits(["update:modelValue", "complete", "progress"]);
+const emit = defineEmits(["update:modelValue", "complete", "progress", "addfile", "removefile"]);
 
 const sanctumFetch = useSanctumClient();
 
@@ -85,10 +89,11 @@ const emitProgress = () => {
 };
 
 // A file was queued — report the new batch total so the parent can show X/Y.
-const handleAddFile = (error, _file) => {
+const handleAddFile = (error, file) => {
   if (isClearing.value || error) {
     return;
   }
+  emit("addfile", file);
   emitProgress();
 };
 
@@ -127,6 +132,7 @@ const handleRemoveFile = (error, file) => {
   if (isClearing.value) {
     return;
   }
+  emit("removefile", file);
   if (props.allowMultiple) {
     uploadedTempIds.value = uploadedTempIds.value.filter((id) => id !== file.serverId);
     doneCount.value = uploadedTempIds.value.length;
@@ -157,6 +163,9 @@ const server = {
   process: async (_fieldName, file, _metadata, load, error, progress, abort) => {
     const formData = new FormData();
     formData.append("file", file);
+    if (props.skipOptimize) {
+      formData.append("skip_optimize", "1");
+    }
 
     const controller = new AbortController();
 

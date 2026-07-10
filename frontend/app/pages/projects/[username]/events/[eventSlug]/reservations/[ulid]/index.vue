@@ -718,7 +718,7 @@
               <div class="grid grid-cols-2 gap-2">
                 <div class="space-y-2">
                   <Label>Payment channel (optional)</Label>
-                  <Input v-model="markPaidForm.payment_channel" placeholder="BCA, OVO, Cash..." />
+                  <Input v-model="markPaidForm.payment_channel" placeholder="BCA, OVO, Cash" />
                 </div>
                 <div class="space-y-2">
                   <Label>Destination/VA (optional)</Label>

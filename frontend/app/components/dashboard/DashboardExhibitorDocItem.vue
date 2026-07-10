@@ -7,14 +7,14 @@
         <Badge
           v-if="doc.is_required && status !== 'completed'"
           variant="outline"
-          class="text-xs font-normal tracking-tight"
+          class="text-sm font-normal tracking-tight"
         >
           {{ $t("ed.docs.required") }}
         </Badge>
         <Badge
           v-if="status === 'needs_reagreement'"
           variant="warning"
-          class="text-xs font-normal tracking-tight"
+          class="text-sm font-normal tracking-tight"
         >
           {{ $t("ed.docs.updated") }}
         </Badge>
@@ -33,7 +33,7 @@
       <!-- Description -->
       <div
         v-if="doc.description"
-        class="prose prose-sm text-muted-foreground mt-1.5 max-w-none [&_ol]:text-xs sm:[&_ol]:text-sm [&_p]:text-xs [&_p]:leading-relaxed [&_p]:tracking-tight sm:[&_p]:text-sm [&_ul]:text-xs sm:[&_ul]:text-sm"
+        class="prose prose-sm text-muted-foreground mt-1.5 max-w-none [&_ol]:text-sm sm:[&_ol]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_p]:tracking-tight sm:[&_p]:text-sm [&_ul]:text-sm sm:[&_ul]:text-sm"
         v-html="doc.description"
       />
     </div>
@@ -47,7 +47,7 @@
           :href="getMediaUrl(doc.template_en)"
           target="_blank"
           rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-xs font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
+          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
         >
           <Icon name="teenyicons:pdf-solid" class="text-destructive size-10" />
           {{ $t("ed.docs.viewDocEn") }}
@@ -58,7 +58,7 @@
           :href="getMediaUrl(doc.template_id)"
           target="_blank"
           rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-xs font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
+          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
         >
           <Icon name="teenyicons:pdf-solid" class="text-destructive size-10" />
           {{ $t("ed.docs.viewDocId") }}
@@ -73,7 +73,7 @@
           :href="getMediaUrl(doc.template_en)"
           target="_blank"
           rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
+          class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium tracking-tight transition-colors sm:text-sm"
         >
           <Icon name="hugeicons:download-01" class="text-foreground size-4.5" />
           {{ $t("ed.docs.downloadTemplateEn") }}
@@ -84,7 +84,7 @@
           :href="getMediaUrl(doc.template_id)"
           target="_blank"
           rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
+          class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium tracking-tight transition-colors sm:text-sm"
         >
           <Icon name="hugeicons:download-01" class="text-foreground size-4.5" />
           {{ $t("ed.docs.downloadTemplateId") }}
@@ -98,7 +98,7 @@
         :href="getMediaUrl(doc.example_file)"
         target="_blank"
         rel="noopener"
-        class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium tracking-tight transition-colors sm:text-sm"
+        class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium tracking-tight transition-colors sm:text-sm"
       >
         <Icon name="hugeicons:file-search" class="text-muted-foreground size-4.5" />
         {{ $t("ed.docs.viewExample") }}
@@ -147,7 +147,7 @@
             <a
               :href="getMediaUrl(currentSubmission.submission_file)"
               target="_blank"
-              class="text-primary truncate text-xs tracking-tight hover:underline sm:text-sm"
+              class="text-primary truncate text-sm tracking-tight hover:underline sm:text-sm"
             >
               {{ currentSubmission.submission_file?.alt || currentSubmission.submission_file?.file_name || 'View uploaded file' }}
             </a>
@@ -207,7 +207,7 @@
       <!-- Text Input type -->
       <template v-else-if="doc.document_type === 'text_input'">
         <div v-if="status === 'completed' && !isEditingText" class="space-y-2">
-          <p class="bg-muted rounded-lg px-3 py-2 text-xs tracking-tight sm:text-sm">
+          <p class="bg-muted rounded-lg px-3 py-2 text-sm tracking-tight sm:text-sm">
             {{ currentSubmission?.text_value }}
           </p>
           <Button v-if="!isPastDeadline" size="sm" variant="ghost" @click="isEditingText = true">

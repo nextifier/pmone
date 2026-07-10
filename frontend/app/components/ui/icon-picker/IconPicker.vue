@@ -418,7 +418,7 @@ watch(focusedIndex, (idx) => {
         <Input
           ref="searchRef"
           v-model="query"
-          placeholder="Search icons or paste prefix:name…"
+          placeholder="Search icons or paste prefix:name"
           class="h-8"
           @paste="handlePaste"
         />

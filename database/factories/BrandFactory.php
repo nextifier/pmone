@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Brand;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Brand>
+ * @extends Factory<Brand>
  */
 class BrandFactory extends Factory
 {
@@ -20,7 +21,12 @@ class BrandFactory extends Factory
             'name' => fake()->company(),
             'description' => fake()->optional(0.7)->paragraph(),
             'company_name' => fake()->optional(0.8)->company(),
-            'company_address' => fake()->optional(0.6)->address(),
+            'address' => fake()->boolean(60) ? [
+                'street' => fake()->streetAddress(),
+                'city' => fake()->city(),
+                'province' => '',
+                'country' => 'Indonesia',
+            ] : null,
             'company_email' => fake()->optional(0.7)->companyEmail(),
             'company_phone' => fake()->optional(0.5)->phoneNumber(),
             'status' => 'active',

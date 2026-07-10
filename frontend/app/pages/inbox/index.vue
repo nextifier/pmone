@@ -50,7 +50,7 @@
       model="inbox"
       label="Submission"
       search-column="subject"
-      search-placeholder="Search subject, name, email..."
+      search-placeholder="Search subject, name, email"
       error-title="Error loading submissions"
       :show-add-button="false"
       :initial-pagination="pagination"

@@ -89,7 +89,7 @@ const data = computed(() => CHART_DATA[ticker.value] ?? DEFAULT_DATA)
           >
             <ComboboxInput
               id="ticker-select"
-              placeholder="Search ticker..."
+              placeholder="Search ticker"
             />
             <ComboboxList>
               <ComboboxViewport>

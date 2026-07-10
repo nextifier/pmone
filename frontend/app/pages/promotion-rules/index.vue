@@ -47,7 +47,7 @@
       model="promotion-rules"
       label="Promotion Rule"
       search-column="name"
-      search-placeholder="Search rules..."
+      search-placeholder="Search rules"
       error-title="Error loading promotion rules"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

@@ -18,7 +18,7 @@
               id="description"
               v-model="form.description"
               rows="4"
-              placeholder="Hotel description, facilities, ambience..."
+              placeholder="Hotel description, facilities, ambience"
             />
             <FieldError :errors="errors.description" />
           </div>
@@ -54,7 +54,7 @@
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
-              <TagsInputInput placeholder="Add facility..." />
+              <TagsInputInput placeholder="Add facility" />
             </TagsInput>
             <FieldError :errors="errors.facilities" />
           </div>
@@ -68,50 +68,7 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label>Country</Label>
-            <LocationCombobox
-              v-model="form.address.country"
-              :options="countries"
-              :pinned="['Indonesia']"
-              placeholder="Select country"
-            />
-            <FieldError :errors="errors['address.country']" />
-          </div>
-
-          <div v-if="isIndonesia" class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label>Province</Label>
-              <LocationCombobox
-                v-model="form.address.province"
-                :options="provinceOptions"
-                :pinned="['DKI Jakarta']"
-                placeholder="Select province"
-              />
-              <FieldError :errors="errors['address.province']" />
-            </div>
-            <div class="space-y-2">
-              <Label>City</Label>
-              <LocationCombobox
-                v-model="form.address.city"
-                :options="cityOptions"
-                :disabled="!form.address.province"
-                placeholder="Select city"
-              />
-              <FieldError :errors="errors['address.city']" />
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <Label for="address_street">Street Address</Label>
-            <Textarea
-              id="address_street"
-              v-model="form.address.street"
-              rows="2"
-              placeholder="Street, building, area"
-            />
-            <FieldError :errors="errors['address.street']" />
-          </div>
+          <AddressFields v-model="form.address" :errors="errors" />
 
           <div class="space-y-2">
             <Label for="google_maps_link">Google Maps Link</Label>
@@ -173,7 +130,7 @@
             id="cancellation_policy"
             v-model="form.cancellation_policy"
             rows="3"
-            placeholder="Free cancellation up to 7 days before check-in..."
+            placeholder="Free cancellation up to 7 days before check-in"
           />
           <FieldError :errors="errors.cancellation_policy" />
         </div>
@@ -311,7 +268,8 @@
 </template>
 
 <script setup>
-import { computed, nextTick, reactive, ref, watch } from "vue";
+import { reactive, ref, watch } from "vue";
+import AddressFields from "@/components/AddressFields.vue";
 import InputFile from "@/components/InputFile.vue";
 import InputFileImage from "@/components/InputFileImage.vue";
 import GalleryManager from "@/components/GalleryManager.vue";
@@ -321,7 +279,6 @@ import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";
 import { InputPhone } from "@/components/ui/input-phone";
 import { Label } from "@/components/ui/label";
-import { LocationCombobox } from "@/components/ui/location-combobox";
 import {
   Select,
   SelectContent,
@@ -338,9 +295,6 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import { Textarea } from "@/components/ui/textarea";
-import countries from "@/data/countries.json";
-import indonesiaCities from "@/data/indonesia-cities.json";
-import indonesiaProvinces from "@/data/indonesia-provinces.json";
 
 const props = defineProps({
   initial: { type: Object, default: () => ({}) },
@@ -378,45 +332,10 @@ const galleryFiles = ref([]);
 const initialFeatured = ref(null);
 const existingGallery = ref([]);
 
-const isIndonesia = computed(() => form.address.country === "Indonesia");
-
-const provinceOptions = computed(() => indonesiaProvinces);
-
-const cityOptions = computed(() => {
-  const prov = indonesiaProvinces.find((p) => p.label === form.address.province);
-  if (!prov) return [];
-  return indonesiaCities.filter((c) => c.province === prov.value);
-});
-
-// Guard to prevent cascading reset during programmatic form sync (edit mode)
-let skipCascadeReset = false;
-
-watch(
-  () => form.address.country,
-  (_, oldVal) => {
-    if (skipCascadeReset) return;
-    if (oldVal) {
-      form.address.province = "";
-      form.address.city = "";
-    }
-  },
-);
-
-watch(
-  () => form.address.province,
-  (_, oldVal) => {
-    if (skipCascadeReset) return;
-    if (oldVal) {
-      form.address.city = "";
-    }
-  },
-);
-
 watch(
   () => props.initial,
   (val) => {
     if (!val) return;
-    skipCascadeReset = true;
     Object.assign(form, {
       name: val.name ?? "",
       description: val.description ?? "",
@@ -440,9 +359,6 @@ watch(
     };
     initialFeatured.value = val.featured?.original ?? val.featured?.url ?? null;
     existingGallery.value = Array.isArray(val.gallery) ? [...val.gallery] : [];
-    nextTick(() => {
-      skipCascadeReset = false;
-    });
   },
   { immediate: true, deep: true },
 );

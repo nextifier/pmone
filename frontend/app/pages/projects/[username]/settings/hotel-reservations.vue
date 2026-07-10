@@ -142,7 +142,7 @@
                 </PopoverTrigger>
                 <PopoverContent class="w-[280px] p-0">
                   <Command>
-                    <CommandInput placeholder="Search currency..." />
+                    <CommandInput placeholder="Search currency" />
                     <CommandEmpty>No currency found.</CommandEmpty>
                     <CommandList>
                       <CommandGroup>

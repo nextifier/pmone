@@ -28,7 +28,7 @@
       model="partners-trash"
       search-column="partner_name"
       :show-add-button="false"
-      search-placeholder="Search partners..."
+      search-placeholder="Search partners"
       error-title="Error loading trashed partners"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

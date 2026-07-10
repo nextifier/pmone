@@ -349,7 +349,7 @@ it('orders sheet includes Badge Name and resolves Product Category title', funct
     expect($rows[0][$badgeIndex])->toBe('My Badge');
 });
 
-it('brand-events sheet adds operational document columns but not event rules', function () {
+it('moves operational documents off the brand-events sheet into their own sheet', function () {
     config()->set('services.sheets.api_token', 'test-token');
 
     $doc = EventDocument::factory()->create([
@@ -373,20 +373,22 @@ it('brand-events sheet adds operational document columns but not event rules', f
         'booth_identifier' => $boothIdentifier,
     ]);
 
-    $response = $this->getJson('/api/sheets/brand-events?token=test-token');
-    $response->assertSuccessful();
+    // Brand-events sheet no longer carries any Doc: columns.
+    $brandEventsHeadings = $this->getJson('/api/sheets/brand-events?token=test-token')
+        ->assertSuccessful()
+        ->json('headings');
+    $docHeadings = collect($brandEventsHeadings)->filter(fn ($h) => str_starts_with($h, 'Doc: '));
+    expect($docHeadings)->toHaveCount(0);
 
-    $headings = $response->json('headings');
-    $docHeadings = collect($headings)->filter(fn ($h) => str_starts_with($h, 'Doc: '))->values();
+    // The new operational-documents sheet has a row per applicable document,
+    // including the blocking event rule.
+    $opsResponse = $this->getJson('/api/sheets/operational-documents?token=test-token')
+        ->assertSuccessful();
+    $opsHeadings = $opsResponse->json('headings');
+    $rows = collect($opsResponse->json('rows'));
 
-    // Operational doc is shown; blocking event-rule is excluded.
-    expect($docHeadings)->toHaveCount(1);
-    // Heading carries the plain doc title, without the event-name qualifier.
-    expect($docHeadings->first())->toBe('Doc: Floor Plan');
-    expect($docHeadings->first())->not->toContain($this->event->title);
-
-    // The row cell under that column reflects the submitted value.
-    $docIndex = array_search('Doc: Floor Plan', $headings, true);
-    $rows = $response->json('rows');
-    expect($rows[0][$docIndex])->toBe('Hall A - Row 3');
+    $titleCol = array_search('Document Title', $opsHeadings, true);
+    $titles = $rows->pluck($titleCol);
+    expect($titles)->toContain('Floor Plan');
+    expect($titles)->toContain('Rules Agreement');
 });

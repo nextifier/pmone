@@ -65,7 +65,6 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon|null $onsite_order_opens_at
  * @property Carbon|null $onsite_order_closes_at
  * @property numeric $onsite_penalty_rate
- * @property string|null $badge_vip_info
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -116,7 +115,6 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|Event ordered(string $direction = 'asc')
  * @method static Builder<static>|Event published()
  * @method static Builder<static>|Event query()
- * @method static Builder<static>|Event whereBadgeVipInfo($value)
  * @method static Builder<static>|Event whereCreatedAt($value)
  * @method static Builder<static>|Event whereCreatedBy($value)
  * @method static Builder<static>|Event whereCustomFields($value)
@@ -194,7 +192,6 @@ class Event extends Model implements HasMedia, Sortable
         'onsite_order_opens_at',
         'onsite_order_closes_at',
         'onsite_penalty_rate',
-        'badge_vip_info',
         'timezone',
         'allow_cross_day',
         'tickets_enabled',

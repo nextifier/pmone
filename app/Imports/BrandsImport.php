@@ -56,12 +56,28 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
 
     public function model(array $row): ?Brand
     {
+        // Build address array from individual columns
+        $address = null;
+        $country = $row['country'] ?? null;
+        $province = $row['province'] ?? null;
+        $city = $row['city'] ?? null;
+        $street = $row['street_address'] ?? null;
+
+        if ($country || $province || $city || $street) {
+            $address = [
+                'country' => $country ? trim($country) : '',
+                'province' => $province ? trim($province) : '',
+                'city' => $city ? trim($city) : '',
+                'street' => $street ? trim($street) : '',
+            ];
+        }
+
         $brand = Brand::create([
             'name' => $row['name'],
             'company_name' => $row['company_name'] ?? null,
             'company_email' => $row['company_email'] ?? null,
             'company_phone' => $row['company_phone'] ?? null,
-            'company_address' => $row['company_address'] ?? null,
+            'address' => $address,
             'status' => $row['status'] ?? 'active',
             'visibility' => $row['visibility'] ?? 'public',
         ]);
@@ -95,7 +111,10 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
             'company_name' => ['nullable', 'string', 'max:255'],
             'company_email' => ['nullable', 'email', 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
-            'company_address' => ['nullable', 'string', 'max:1000'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'province' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'street_address' => ['nullable', 'string', 'max:1000'],
             'status' => ['nullable', 'in:active,inactive'],
             'visibility' => ['nullable', 'in:public,private'],
             'business_categories' => ['nullable', 'string', 'max:1000'],

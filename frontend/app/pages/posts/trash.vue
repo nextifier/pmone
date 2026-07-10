@@ -28,7 +28,7 @@
       model="posts-trash"
       search-column="title"
       :show-add-button="false"
-      search-placeholder="Search posts..."
+      search-placeholder="Search posts"
       error-title="Error loading trashed posts"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

@@ -18,7 +18,7 @@
         collection="description_images"
         :sticky="false"
         min-height="120px"
-        placeholder="Optional description for this category..."
+        placeholder="Optional description for this category"
       />
       <p v-if="errors.description" class="text-destructive mt-1 text-xs">
         {{ Array.isArray(errors.description) ? errors.description[0] : errors.description }}

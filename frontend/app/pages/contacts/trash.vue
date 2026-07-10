@@ -36,7 +36,7 @@
       model="contacts-trash"
       search-column="name"
       :show-add-button="false"
-      search-placeholder="Search contacts..."
+      search-placeholder="Search contacts"
       error-title="Error loading trashed contacts"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

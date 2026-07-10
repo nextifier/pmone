@@ -45,7 +45,7 @@
           name="hugeicons:search-01"
           class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
         />
-        <Input v-model="searchInput" placeholder="Search guests..." class="pl-9" />
+        <Input v-model="searchInput" placeholder="Search guests" class="pl-9" />
       </div>
 
       <Select v-model="statusFilter">

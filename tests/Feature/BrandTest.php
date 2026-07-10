@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BoothType;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
@@ -91,6 +92,45 @@ test('staff can add new brand to event', function () {
         'brand_id' => $brand->id,
         'event_id' => $this->event->id,
     ]);
+});
+
+test('staff can add new brand to event with notes', function () {
+    $response = $this->postJson($this->baseUrl, [
+        'brand_name' => 'Brand With Notes',
+        'notes' => 'Paid deposit, pending contract.',
+    ]);
+
+    $response->assertStatus(201);
+
+    $brand = Brand::where('name', 'Brand With Notes')->first();
+    $this->assertDatabaseHas('brand_event', [
+        'brand_id' => $brand->id,
+        'event_id' => $this->event->id,
+        'notes' => 'Paid deposit, pending contract.',
+    ]);
+});
+
+test('staff can add brand with any booth type', function (string $boothType) {
+    $response = $this->postJson($this->baseUrl, [
+        'brand_name' => "Brand {$boothType}",
+        'booth_type' => $boothType,
+    ]);
+
+    $response->assertStatus(201);
+
+    $brand = Brand::where('name', "Brand {$boothType}")->first();
+    $this->assertDatabaseHas('brand_event', [
+        'brand_id' => $brand->id,
+        'event_id' => $this->event->id,
+        'booth_type' => $boothType,
+    ]);
+})->with(array_column(BoothType::cases(), 'value'));
+
+test('adding a brand with an unknown booth type fails validation', function () {
+    $this->postJson($this->baseUrl, [
+        'brand_name' => 'Bad Booth Brand',
+        'booth_type' => 'rooftop_garden',
+    ])->assertJsonValidationErrors(['booth_type']);
 });
 
 test('staff can add existing brand to event', function () {

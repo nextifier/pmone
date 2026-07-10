@@ -122,7 +122,7 @@
                 id="notes"
                 v-model="boothForm.notes"
                 rows="3"
-                placeholder="Internal notes..."
+                placeholder="Internal notes"
               />
             </div>
           </div>
@@ -136,14 +136,64 @@
         </div>
         <div class="frame-panel">
           <div class="grid grid-cols-1 gap-y-4">
-            <div class="space-y-2">
-              <Label>Brand Logo</Label>
-              <InputFileImage
-                v-model="logoFiles"
-                v-model:deleteFlag="deleteLogo"
-                :initial-image="brandEvent.brand?.brand_logo"
-                container-class="relative isolate size-32"
-              />
+            <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-6">
+              <!-- Profile Image (square avatar) -->
+              <div class="space-y-2">
+                <Label>Profile Image</Label>
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  Shown as the brand's avatar on the exhibitors list and brand page.
+                </p>
+                <InputFileImage
+                  v-model="profileImageFiles"
+                  v-model:deleteFlag="deleteProfileImage"
+                  :initial-image="brandEvent.brand?.profile_image"
+                  :min-dimension="1000"
+                  allow-svg
+                  container-class="relative isolate size-32 rounded-lg"
+                  image-class="border-border size-full rounded-lg border object-contain"
+                  :container-style="checkerboardStyle"
+                />
+                <ul class="text-muted-foreground space-y-1 text-xs tracking-tight sm:text-sm">
+                  <li class="flex items-center gap-1.5">
+                    <Icon name="hugeicons:aspect-ratio" class="size-3.5 shrink-0" />
+                    Square, at least 1000x1000px
+                  </li>
+                  <li class="flex items-center gap-1.5">
+                    <Icon name="hugeicons:image-01" class="size-3.5 shrink-0" />
+                    JPG, PNG, WebP, or SVG
+                  </li>
+                  <li class="flex items-start gap-1.5">
+                    <Icon name="hugeicons:alert-circle" class="mt-0.5 size-3.5 shrink-0" />
+                    <span>Use a solid background so the logo stays visible.</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Brand Logo (raw master file) -->
+              <div class="space-y-2">
+                <Label>Brand Logo</Label>
+                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                  Master file for banners, social media, and print. Stored exactly as uploaded,
+                  without compression.
+                </p>
+                <InputFileDownloadCard
+                  v-model="logoFiles"
+                  v-model:deleteFlag="deleteLogo"
+                  :initial-file="brandEvent.brand?.brand_logo"
+                  :accepted-file-types="brandLogoAcceptedTypes"
+                  skip-optimize
+                />
+                <ul class="text-muted-foreground space-y-1 text-xs tracking-tight sm:text-sm">
+                  <li class="flex items-center gap-1.5">
+                    <Icon name="hugeicons:file-01" class="size-3.5 shrink-0" />
+                    JPG, PNG, WebP, SVG, PDF, AI, or ZIP
+                  </li>
+                  <li class="flex items-center gap-1.5">
+                    <Icon name="hugeicons:view-off" class="size-3.5 shrink-0" />
+                    Not shown on the website.
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <div class="space-y-2">
@@ -156,7 +206,7 @@
               <MultiSelect
                 v-model="selectedCategoryOptions"
                 :options="availableCategoryOptions"
-                placeholder="Add category..."
+                placeholder="Add category"
                 open-on-focus
               />
             </div>
@@ -167,7 +217,7 @@
                   <TagsInputItemText />
                   <TagsInputItemDelete />
                 </TagsInputItem>
-                <TagsInputInput placeholder="Add category..." />
+                <TagsInputInput placeholder="Add category" />
               </TagsInput>
             </div>
 
@@ -176,10 +226,7 @@
               <Input id="company_name" v-model="brandForm.company_name" />
             </div>
 
-            <div class="space-y-2">
-              <Label for="company_address">Company Address</Label>
-              <Textarea id="company_address" v-model="brandForm.company_address" rows="2" />
-            </div>
+            <AddressFields v-model="brandForm.address" :errors="brandErrors" />
 
             <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
               <div class="space-y-2">
@@ -200,7 +247,7 @@
                 collection="description_images"
                 :sticky="false"
                 min-height="200px"
-                placeholder="Write brand description..."
+                placeholder="Write brand description"
               />
             </div>
 
@@ -231,7 +278,7 @@
                 />
                 <Select v-else-if="field.type === 'select'" v-model="customFields[field.key]">
                   <SelectTrigger :id="`cf_${field.key}`" class="w-full">
-                    <SelectValue placeholder="Select..." />
+                    <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="option in field.options" :key="option" :value="option">
@@ -241,7 +288,7 @@
                 </Select>
                 <Select v-else-if="field.type === 'year_select'" v-model="customFields[field.key]">
                   <SelectTrigger :id="`cf_${field.key}`" class="w-full">
-                    <SelectValue placeholder="Select year..." />
+                    <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="year in yearOptions" :key="year" :value="String(year)">
@@ -359,21 +406,33 @@
                 >
               </div>
               <div class="text-muted-foreground mt-0.5 text-xs tracking-tight sm:text-sm">
-                <template
-                  v-if="
-                    item.status === 'completed' &&
-                    item.document.document_type === 'checkbox_agreement'
-                  "
-                >
-                  Agreed by {{ item.submission?.submitter?.name || "Unknown" }}
-                </template>
-                <template
-                  v-else-if="
-                    item.status === 'completed' && item.document.document_type === 'file_upload'
-                  "
-                >
+                <template v-if="item.status === 'completed'">
+                  <template v-if="item.submission?.agreed_at">
+                    Agreed by {{ item.submission?.submitter?.name || "Unknown" }}
+                  </template>
+                  <div v-else-if="documentAnswers(item.document, item.submission).length">
+                    <div
+                      v-for="answer in documentAnswers(item.document, item.submission)"
+                      :key="answer.label"
+                    >
+                      <span class="text-foreground font-medium">{{ answer.label }}:</span>
+                      <template v-if="answer.files?.length">
+                        <a
+                          v-for="file in answer.files"
+                          :key="file.id"
+                          :href="file.url"
+                          target="_blank"
+                          class="text-primary ml-1 inline-flex items-center gap-1 hover:underline"
+                        >
+                          <Icon name="hugeicons:attachment-02" class="size-3.5 shrink-0" />
+                          {{ file.name }}
+                        </a>
+                      </template>
+                      <span v-else class="ml-1">{{ answer.value }}</span>
+                    </div>
+                  </div>
                   <a
-                    v-if="item.submission?.submission_file"
+                    v-else-if="item.submission?.submission_file"
                     :href="
                       item.submission.submission_file.url ||
                       item.submission.submission_file.original
@@ -384,19 +443,21 @@
                     <Icon name="teenyicons:pdf-solid" class="text-destructive size-8 shrink-0" />
                     {{ item.submission.submission_file.alt || "View file" }}
                   </a>
-                </template>
-                <template
-                  v-else-if="
-                    item.status === 'completed' && item.document.document_type === 'text_input'
-                  "
-                >
-                  {{ item.submission?.text_value }}
+                  <template v-else-if="item.submission?.text_value">
+                    {{ item.submission.text_value }}
+                  </template>
+                  <template v-else> Submitted </template>
                 </template>
                 <template v-else-if="item.status === 'needs_reagreement'">
                   Needs re-submission (document updated)
                 </template>
                 <template v-else> Not submitted </template>
               </div>
+
+              <BrandEventDocumentFileHistory
+                v-if="item.file_history?.length"
+                :history="item.file_history"
+              />
             </div>
             <div class="shrink-0">
               <Badge
@@ -570,6 +631,7 @@
 </template>
 
 <script setup>
+import AddressFields from "@/components/AddressFields.vue";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -602,14 +664,43 @@ const saving = ref(false);
 const { metaSymbol } = useShortcuts();
 
 // Brand form
+const profileImageFiles = ref([]);
+const deleteProfileImage = ref(false);
 const logoFiles = ref([]);
 const deleteLogo = ref(false);
+const brandErrors = ref({});
+
+// Raw master-logo collection accepts images plus print/design assets.
+const brandLogoAcceptedTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+  "application/pdf",
+  "application/postscript",
+  "application/illustrator",
+  "application/zip",
+  "application/x-zip-compressed",
+];
+
+// Checkerboard behind the avatar preview so transparent logos are obvious.
+const checkerboardStyle = {
+  backgroundImage:
+    "linear-gradient(45deg, var(--color-muted) 25%, transparent 25%), linear-gradient(-45deg, var(--color-muted) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-muted) 75%), linear-gradient(-45deg, transparent 75%, var(--color-muted) 75%)",
+  backgroundSize: "16px 16px",
+  backgroundPosition: "0 0, 0 8px, 8px -8px, -8px 0px",
+};
 const brandForm = reactive({
   name: props.brandEvent?.brand?.name || "",
   company_name: props.brandEvent?.brand?.company_name || "",
   company_email: props.brandEvent?.brand?.company_email || "",
   company_phone: props.brandEvent?.brand?.company_phone || "",
-  company_address: props.brandEvent?.brand?.company_address || "",
+  address: {
+    street: props.brandEvent?.brand?.address?.street || "",
+    city: props.brandEvent?.brand?.address?.city || "",
+    province: props.brandEvent?.brand?.address?.province || "",
+    country: props.brandEvent?.brand?.address?.country || "",
+  },
   description: props.brandEvent?.brand?.description || "",
   business_categories: props.brandEvent?.brand?.business_categories || [],
 });
@@ -709,7 +800,12 @@ watch(
       brandForm.company_name = val.brand.company_name || "";
       brandForm.company_email = val.brand.company_email || "";
       brandForm.company_phone = val.brand.company_phone || "";
-      brandForm.company_address = val.brand.company_address || "";
+      brandForm.address = {
+        street: val.brand.address?.street || "",
+        city: val.brand.address?.city || "",
+        province: val.brand.address?.province || "",
+        country: val.brand.address?.country || "",
+      };
       brandForm.description = val.brand.description || "";
       brandForm.business_categories = val.brand.business_categories || [];
     }
@@ -762,8 +858,22 @@ const boothUrl = computed(
 
 async function handleSubmit() {
   saving.value = true;
+  brandErrors.value = {};
   try {
     const brandBody = { ...brandForm };
+
+    // Clean address - send null if all empty
+    const addr = brandBody.address;
+    if (!addr.street && !addr.city && !addr.province && !addr.country) {
+      brandBody.address = null;
+    }
+
+    if (profileImageFiles.value?.[0] && typeof profileImageFiles.value[0] === "string") {
+      brandBody.tmp_profile_image = profileImageFiles.value[0];
+    }
+    if (deleteProfileImage.value) {
+      brandBody.delete_profile_image = true;
+    }
     if (logoFiles.value?.[0] && typeof logoFiles.value[0] === "string") {
       brandBody.tmp_brand_logo = logoFiles.value[0];
     }
@@ -790,12 +900,15 @@ async function handleSubmit() {
       client(boothUrl.value, { method: "PUT", body: boothBody }),
     ]);
 
+    profileImageFiles.value = [];
+    deleteProfileImage.value = false;
     logoFiles.value = [];
     deleteLogo.value = false;
 
     toast.success("Brand details saved");
     emit("refresh");
   } catch (e) {
+    brandErrors.value = e?.data?.errors || {};
     toast.error(e?.data?.message || "Failed to save");
   } finally {
     saving.value = false;

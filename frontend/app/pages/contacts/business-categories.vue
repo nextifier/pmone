@@ -48,7 +48,7 @@
         label="category"
         :searchable="true"
         search-column="name"
-        search-placeholder="Search categories..."
+        search-placeholder="Search categories"
         :column-toggle="false"
         :show-add-button="false"
         :show-refresh-button="false"

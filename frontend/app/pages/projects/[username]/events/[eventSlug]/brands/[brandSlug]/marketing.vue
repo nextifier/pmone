@@ -184,7 +184,7 @@
               <!-- Edit caption mode -->
               <template v-if="editingPostId === post.id">
                 <div class="space-y-3">
-                  <Textarea v-model="editCaption" rows="2" placeholder="Write a caption..." />
+                  <Textarea v-model="editCaption" rows="2" placeholder="Write a caption" />
                   <div class="flex gap-2">
                     <Button size="sm" :disabled="updatingPost" @click="updatePost(post.id)">
                       <Icon
@@ -386,7 +386,7 @@
                 id="new_caption"
                 v-model="newCaption"
                 rows="3"
-                placeholder="Write a caption..."
+                placeholder="Write a caption"
               />
             </div>
             <div class="flex justify-end gap-2">
@@ -479,7 +479,7 @@ const { $dayjs } = useNuxtApp();
 
 // --- Promotion display (mirrors the public brand page) ---
 const brandName = computed(() => props.brandEvent?.brand?.name ?? "Brand");
-const brandLogo = computed(() => props.brandEvent?.brand?.brand_logo ?? null);
+const brandLogo = computed(() => props.brandEvent?.brand?.profile_image ?? null);
 const brandInstagramLink = computed(() =>
   (props.brandEvent?.brand?.links ?? []).find((l) => l.label?.toLowerCase() === "instagram")
 );

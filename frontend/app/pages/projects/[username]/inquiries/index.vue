@@ -35,7 +35,7 @@
       model="inquiries"
       label="Inquiry"
       search-column="subject"
-      search-placeholder="Search subject, name, email..."
+      search-placeholder="Search subject, name, email"
       error-title="Error loading inquiries"
       :show-add-button="false"
       :initial-pagination="pagination"

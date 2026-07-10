@@ -91,7 +91,7 @@
       <p class="text-muted-foreground text-xs">Leave unchecked to make available for all booth types.</p>
       <div class="space-y-2">
         <div
-          v-for="option in boothTypeOptions"
+          v-for="option in BOOTH_TYPE_OPTIONS"
           :key="option.value"
           class="flex items-center gap-x-2"
         >
@@ -223,13 +223,6 @@ watch(
 );
 
 const isEdit = computed(() => !!props.product);
-
-const boothTypeOptions = [
-  { value: "raw_space", label: "Raw Space" },
-  { value: "standard_shell_scheme", label: "Standard Shell Scheme" },
-  { value: "enhanced_shell_scheme", label: "Enhanced Shell Scheme" },
-  { value: "table_chair_only", label: "Table & Chair Only" },
-];
 
 function toggleBoothType(value) {
   const idx = form.booth_types.indexOf(value);

@@ -66,7 +66,7 @@
             </p>
             <Textarea
               v-model="importJson"
-              placeholder="Paste exported JSON here..."
+              placeholder="Paste exported JSON here"
               class="mt-4 h-48 font-mono text-xs"
             />
             <p v-if="parseError" class="text-destructive mt-2 text-sm tracking-tight">

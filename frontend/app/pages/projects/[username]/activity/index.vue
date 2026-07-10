@@ -5,7 +5,7 @@
       :meta="meta"
       :loading="loading"
       :per-page="perPage"
-      search-placeholder="Search activity..."
+      search-placeholder="Search activity"
       @search="onSearch"
       @page="onPage"
       @per-page-change="onPerPageChange"

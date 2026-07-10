@@ -31,6 +31,7 @@ class OrderIndexResource extends JsonResource
             'promo_code_applied' => $this->promo_code_applied,
             'total' => $this->total,
             'order_period' => $this->order_period,
+            'source' => $this->source,
             'items_count' => $this->when($this->items_count !== null, $this->items_count),
             'items' => $this->whenLoaded('items', fn () => $this->items->map(fn ($item) => [
                 'id' => $item->id,

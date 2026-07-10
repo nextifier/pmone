@@ -283,9 +283,7 @@ class EventDocument extends Model implements HasMedia, Sortable
             return false;
         }
 
-        $fields = $this->relationLoaded('fields')
-            ? $this->fields
-            : $this->fields()->get();
+        $fields = $this->miniFormFields();
 
         if ($fields->isEmpty()) {
             // Documents created through the legacy flow have no mini-form yet;
@@ -298,6 +296,112 @@ class EventDocument extends Model implements HasMedia, Sortable
                 && $field->is_active
                 && ! empty($field->validation['required'])
         );
+    }
+
+    /**
+     * Whether a submission satisfies this document. Event rules need the
+     * agreement checkbox, mini-form documents need answers, and legacy
+     * documents without a mini-form fall back to the `document_type` marker.
+     */
+    public function isSubmissionComplete(?EventDocumentSubmission $submission): bool
+    {
+        if ($submission === null) {
+            return false;
+        }
+
+        if ($this->isEventRule()) {
+            return $submission->agreed_at !== null;
+        }
+
+        if ($this->miniFormFields()->isNotEmpty()) {
+            return ! empty($submission->field_values);
+        }
+
+        return match ($this->document_type) {
+            'file_upload' => $submission->currentSubmissionFiles()->isNotEmpty(),
+            'text_input' => filled($submission->text_value),
+            default => false,
+        };
+    }
+
+    /**
+     * Public accessor for a single mini-form field's formatted answer, used by
+     * the Operational Documents sheet.
+     */
+    public function submissionFieldValue(CustomField $field, EventDocumentSubmission $submission): string
+    {
+        return $this->formatFieldValue($field, $submission);
+    }
+
+    /**
+     * One-cell rendering of a submission, used by the exhibitor exports.
+     */
+    public function submissionSummary(?EventDocumentSubmission $submission): string
+    {
+        if (! $this->isSubmissionComplete($submission)) {
+            return '-';
+        }
+
+        if ($this->isEventRule()) {
+            return 'Agreed ('.$submission->submitted_at?->format('Y-m-d H:i').')';
+        }
+
+        $fields = $this->miniFormFields()->filter(fn (CustomField $field) => $field->is_active);
+
+        if ($fields->isEmpty()) {
+            return match ($this->document_type) {
+                'file_upload' => $this->cleanUrl($submission->currentSubmissionFileUrls()['url'] ?? '') ?: '-',
+                'text_input' => $submission->text_value ?: '-',
+                default => '-',
+            };
+        }
+
+        $labelled = $fields->count() > 1;
+
+        $parts = $fields
+            ->map(fn (CustomField $field) => [$field->label, $this->formatFieldValue($field, $submission)])
+            ->reject(fn (array $pair) => $pair[1] === '')
+            ->map(fn (array $pair) => $labelled ? "{$pair[0]}: {$pair[1]}" : $pair[1]);
+
+        return $parts->isEmpty() ? '-' : $parts->implode(' | ');
+    }
+
+    /**
+     * @return Collection<int, CustomField>
+     */
+    protected function miniFormFields(): Collection
+    {
+        return $this->relationLoaded('fields')
+            ? $this->fields
+            : $this->fields()->get();
+    }
+
+    protected function formatFieldValue(CustomField $field, EventDocumentSubmission $submission): string
+    {
+        if ($field->type === CustomField::TYPE_FILE) {
+            return $submission->currentSubmissionFiles()
+                ->filter(fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid
+                    || ($field->system_key === 'legacy_file' && $media->getCustomProperty('field_ulid') === null))
+                ->map(fn (Media $media) => $this->cleanUrl($media->getUrl()))
+                ->implode(', ');
+        }
+
+        $value = $submission->field_values[$field->ulid] ?? null;
+
+        if (is_bool($value)) {
+            return $value ? 'Yes' : '';
+        }
+
+        if (is_array($value)) {
+            return collect($value)->map(fn ($item) => trim((string) $item))->filter()->implode(', ');
+        }
+
+        return $value === null ? '' : trim((string) $value);
+    }
+
+    protected function cleanUrl(string $url): string
+    {
+        return $url === '' ? '' : (strtok($url, '?') ?: '');
     }
 
     /**

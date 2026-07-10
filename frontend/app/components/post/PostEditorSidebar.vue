@@ -83,7 +83,7 @@
                 <TagsInputItemText />
                 <TagsInputItemDelete />
               </TagsInputItem>
-              <TagsInputInput placeholder="Add tag..." />
+              <TagsInputInput placeholder="Add tag" />
             </TagsInput>
             <p class="text-muted-foreground text-xs">Press Enter to add a tag</p>
           </div>
@@ -98,7 +98,7 @@
             </Label>
             <Textarea
               v-model="excerptField"
-              placeholder="Brief description of the post..."
+              placeholder="Brief description of the post"
               maxlength="500"
               class="min-h-[80px] resize-none text-sm"
             />
@@ -159,7 +159,7 @@
                 >
                   <Select v-model="author.user_id" class="grow">
                     <SelectTrigger class="h-8 w-full text-xs">
-                      <SelectValue placeholder="Select author..." />
+                      <SelectValue placeholder="Select author" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem

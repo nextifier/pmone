@@ -27,7 +27,10 @@ class BrandsExport extends BaseExport
             'Company Name',
             'Company Phone',
             'Company Email',
-            'Company Address',
+            'Country',
+            'Province',
+            'City',
+            'Street Address',
             'Status',
             'Visibility',
             'Business Categories',
@@ -35,6 +38,7 @@ class BrandsExport extends BaseExport
             'Members',
             'Created At',
             'Updated At',
+            'Profile Image',
             'Brand Logo',
         ];
     }
@@ -44,6 +48,7 @@ class BrandsExport extends BaseExport
      */
     public function map($brand): array
     {
+        $profileImage = $brand->getFirstMediaUrl('profile_image', 'md') ?: '-';
         $brandLogo = $brand->getFirstMediaUrl('brand_logo', 'original') ?: '-';
 
         $categories = $brand->tags
@@ -56,6 +61,8 @@ class BrandsExport extends BaseExport
 
         $members = $brand->users->pluck('name')->join(', ') ?: '-';
 
+        $address = $brand->address ?? [];
+
         return [
             $brand->id,
             $brand->ulid,
@@ -64,7 +71,10 @@ class BrandsExport extends BaseExport
             $brand->company_name ?? '-',
             $brand->company_phone ?? '-',
             $brand->company_email ?? '-',
-            $brand->company_address ?? '-',
+            $address['country'] ?? '-',
+            $address['province'] ?? '-',
+            $address['city'] ?? '-',
+            $address['street'] ?? '-',
             $this->titleCase($brand->status),
             $this->titleCase($brand->visibility),
             $categories,
@@ -72,6 +82,7 @@ class BrandsExport extends BaseExport
             $members,
             $brand->created_at?->format('Y-m-d H:i:s'),
             $brand->updated_at?->format('Y-m-d H:i:s'),
+            $profileImage,
             $brandLogo,
         ];
     }
@@ -84,6 +95,39 @@ class BrandsExport extends BaseExport
 
         if (isset($this->filters['status'])) {
             $this->applyStatusFilter($query, $this->filters['status']);
+        }
+
+        if (isset($this->filters['country'])) {
+            $countries = array_filter(explode(',', $this->filters['country']));
+            if (! empty($countries)) {
+                $query->where(function ($q) use ($countries) {
+                    foreach ($countries as $c) {
+                        $q->orWhereRaw("address->>'country' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
+        }
+
+        if (isset($this->filters['province'])) {
+            $provinces = array_filter(explode(',', $this->filters['province']));
+            if (! empty($provinces)) {
+                $query->where(function ($q) use ($provinces) {
+                    foreach ($provinces as $p) {
+                        $q->orWhereRaw("address->>'province' ilike ?", ["%{$p}%"]);
+                    }
+                });
+            }
+        }
+
+        if (isset($this->filters['city'])) {
+            $cities = array_filter(explode(',', $this->filters['city']));
+            if (! empty($cities)) {
+                $query->where(function ($q) use ($cities) {
+                    foreach ($cities as $c) {
+                        $q->orWhereRaw("address->>'city' ilike ?", ["%{$c}%"]);
+                    }
+                });
+            }
         }
     }
 

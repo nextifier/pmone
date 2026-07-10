@@ -22,7 +22,7 @@ class BrandProfileScoreService
      * @var list<array{key: string, label: string, weight: int}>
      */
     private const RUBRIC = [
-        ['key' => 'logo', 'label' => 'Logo', 'weight' => 18],
+        ['key' => 'logo', 'label' => 'Profile Image', 'weight' => 18],
         ['key' => 'description', 'label' => 'Description', 'weight' => 14],
         ['key' => 'promotion_image', 'label' => 'Promo Image', 'weight' => 14],
         ['key' => 'links', 'label' => 'Social Links', 'weight' => 12],
@@ -53,7 +53,7 @@ class BrandProfileScoreService
             'company_name' => filled($brand?->company_name),
             'company_email' => filled($brand?->company_email),
             'company_phone' => filled($brand?->company_phone),
-            'company_address' => filled($brand?->company_address),
+            'company_address' => $this->hasAddress($brand),
         ];
 
         $score = 0;
@@ -99,16 +99,30 @@ class BrandProfileScoreService
             return false;
         }
 
+        // Transitional: accept either the new profile_image (avatar) or the
+        // legacy brand_logo until brands:copy-logo-to-profile-image has run
+        // in production. Rubric key stays 'logo' so score sorting on the
+        // event sites is unaffected.
         if ($brand->relationLoaded('media')) {
-            return $brand->getMedia('brand_logo')->isNotEmpty();
+            return $brand->getMedia('profile_image')->isNotEmpty()
+                || $brand->getMedia('brand_logo')->isNotEmpty();
         }
 
-        return $brand->hasMedia('brand_logo');
+        return $brand->hasMedia('profile_image') || $brand->hasMedia('brand_logo');
     }
 
     private function hasDescription(?Brand $brand): bool
     {
         return filled(trim(strip_tags((string) $brand?->description)));
+    }
+
+    /**
+     * The address is a JSONB object, so an array of empty strings still counts
+     * as unfilled. At least one sub-field must carry a value.
+     */
+    private function hasAddress(?Brand $brand): bool
+    {
+        return collect($brand?->address ?? [])->contains(fn ($value) => filled($value));
     }
 
     private function activeLinksCount(?Brand $brand): int

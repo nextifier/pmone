@@ -88,7 +88,7 @@
       model="contacts"
       label="contact"
       search-column="name"
-      search-placeholder="Search contacts..."
+      search-placeholder="Search contacts"
       error-title="Failed to load contacts"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
@@ -1928,7 +1928,7 @@ const FilterTextInput = defineComponent({
         h("input", {
           type: "text",
           value: props.modelValue,
-          placeholder: `Search ${props.title?.toLowerCase()}...`,
+          placeholder: `Search ${props.title?.toLowerCase()}`,
           class:
             "border-input bg-background placeholder:text-muted-foreground w-full rounded-md border px-2.5 py-1.5 text-sm tracking-tight outline-none focus:ring-1 focus:ring-ring",
           onInput: (e) => emit("update:modelValue", e.target.value),

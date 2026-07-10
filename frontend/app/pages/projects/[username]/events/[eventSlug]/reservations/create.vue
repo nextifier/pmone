@@ -161,7 +161,7 @@
                 v-model="item.notes"
                 rows="2"
                 maxlength="1000"
-                placeholder="e.g. extra bed, high floor, late check-in..."
+                placeholder="e.g. extra bed, high floor, late check-in"
               />
               <p v-if="errors[`items.${idx}.notes`]" class="text-destructive text-xs sm:text-sm">
                 {{ errors[`items.${idx}.notes`][0] }}
@@ -246,7 +246,7 @@
                 v-model="t.note"
                 rows="2"
                 maxlength="1000"
-                placeholder="e.g. flight number, pickup time, contact name..."
+                placeholder="e.g. flight number, pickup time, contact name"
               />
               <p
                 v-if="errors[`transfers.${idx}.note`]"

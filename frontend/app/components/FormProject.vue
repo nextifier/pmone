@@ -35,7 +35,7 @@
               collection="bio_images"
               :sticky="false"
               min-height="200px"
-              placeholder="Write project description..."
+              placeholder="Write project description"
             />
             <FieldError :errors="errors.bio" />
           </div>

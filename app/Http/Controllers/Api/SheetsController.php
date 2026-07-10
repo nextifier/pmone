@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
+use App\Models\CustomField;
 use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventDocumentSubmission;
 use App\Models\Order;
+use App\Models\Project;
+use App\Support\Sheets\SheetFormatting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class SheetsController extends Controller
@@ -30,18 +34,21 @@ class SheetsController extends Controller
 
         $orders = Order::query()
             ->whereIn('brand_event_id', BrandEvent::where('event_id', $eventId)->select('id'))
-            ->with(['brandEvent.brand', 'brandEvent.sales', 'items.productCategory', 'creator'])
+            ->with(['brandEvent.brand', 'brandEvent.event:id,title', 'brandEvent.sales', 'items.productCategory', 'adjustments', 'creator'])
             ->orderByDesc('submitted_at')
             ->get();
 
         $headings = [
-            'ID', 'Order Number', 'Brand Name', 'Company Name',
+            'ID', 'Order Number', 'Event ID', 'Event Title',
+            'Brand Name', 'Company Name', 'Country',
             'Booth Type', 'Booth Number', 'Booth Size (sqm)', 'Booth Price',
-            'Fascia Name', 'Badge Name', 'Sales PIC', 'Order Period',
-            'Product Name', 'Product Category', 'Qty', 'Unit Price', 'Item Total', 'Item Notes',
-            'Subtotal', 'Discount Amount', 'Penalty Amount', 'Promo Code',
+            'Fascia Name', 'Badge Name', 'Sales PIC', 'Order Period', 'Source',
+            'Product Name', 'Product Category', 'Qty', 'Unit Price', 'Item Total',
+            'Item Notes', 'Item Internal Notes',
+            'Subtotal', 'Discount Amount', 'Penalty Amount', 'Promo Code', 'Adjustment Reason',
             'Tax Rate (%)', 'Tax Amount', 'Total',
-            'Operational Status', 'Payment Status', 'Cancellation Reason', 'Order Notes',
+            'Operational Status', 'Payment Status', 'Cancellation Reason',
+            'Order Notes', 'Order Internal Notes',
             'Submitted At', 'Confirmed At', 'Created By',
         ];
 
@@ -50,13 +57,17 @@ class SheetsController extends Controller
         foreach ($orders as $order) {
             $brand = $order->brandEvent?->brand;
             $brandEvent = $order->brandEvent;
+            $event = $brandEvent?->event;
             $items = $order->items;
 
-            $orderFields = [
+            $orderIdentity = [
                 $order->id,
                 $order->order_number,
+                $event?->id ?? '-',
+                $event?->title ?? '-',
                 $brand?->name ?? '-',
                 $brand?->company_name ?? '-',
+                data_get($brand?->address, 'country') ?? '-',
                 $brandEvent?->booth_type?->label() ?? '-',
                 $brandEvent?->booth_number ?? '-',
                 $brandEvent?->booth_size,
@@ -65,6 +76,7 @@ class SheetsController extends Controller
                 $brandEvent?->badge_name ?? '-',
                 $brandEvent?->sales?->name ?? '-',
                 $order->order_period ? ucwords(str_replace('_', ' ', $order->order_period)) : '-',
+                Str::title($order->source ?? '-'),
             ];
 
             $orderSummary = [
@@ -72,6 +84,7 @@ class SheetsController extends Controller
                 $order->discount_amount,
                 $order->penalty_amount,
                 $order->promo_code_applied ?? '-',
+                $this->adjustmentReason($order),
                 $order->tax_rate,
                 $order->tax_amount,
                 $order->total,
@@ -79,17 +92,18 @@ class SheetsController extends Controller
                 $order->payment_status?->label() ?? '-',
                 $order->cancellation_reason,
                 $order->notes,
+                $order->internal_notes,
                 $order->submitted_at?->format('Y-m-d H:i:s'),
                 $order->confirmed_at?->format('Y-m-d H:i:s'),
                 $order->creator?->name ?? '-',
             ];
 
             if ($items->isEmpty()) {
-                $rows[] = array_merge($orderFields, ['-', '-', 0, 0, 0, '-'], $orderSummary);
+                $rows[] = array_merge($orderIdentity, ['-', '-', 0, 0, 0, '-', '-'], $orderSummary);
             } else {
                 foreach ($items as $item) {
                     $rows[] = array_merge(
-                        $orderFields,
+                        $orderIdentity,
                         [
                             $item->product_name,
                             $item->productCategory?->title ?? '-',
@@ -97,6 +111,7 @@ class SheetsController extends Controller
                             $item->unit_price,
                             $item->total_price,
                             $item->notes,
+                            $item->internal_notes,
                         ],
                         $orderSummary,
                     );
@@ -221,11 +236,13 @@ class SheetsController extends Controller
 
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
+        $brandFieldDefs = $this->brandCustomFieldDefinitions();
+
         $headings = [
             'ID', 'ULID', 'Name', 'Slug',
-            'Company Name', 'Company Email', 'Company Phone', 'Company Address',
+            'Company Name', 'Company Email', 'Company Phone', 'Country', 'Province', 'City', 'Street Address',
             'Description', 'Status',
-            'Logo URL',
+            'Profile Image URL', 'Logo URL',
             'Business Categories', 'Other Tags',
             'Events Count', 'Events List', 'Booth Numbers', 'Sales PICs',
             'Users List',
@@ -235,11 +252,12 @@ class SheetsController extends Controller
             'Total Visits', 'Total Link Clicks',
             'Total Promotion Posts',
             'Created By', 'Updated By', 'Created At', 'Updated At',
-            'Custom Fields',
+            ...$brandFieldDefs->map(fn (CustomField $field) => (string) $field->label)->all(),
         ];
 
-        $rows = $brands->map(function (Brand $brand) use ($linkLabels) {
-            $logoUrl = $brand->getFirstMediaUrl('brand_logo', 'md') ?: '-';
+        $rows = $brands->map(function (Brand $brand) use ($linkLabels, $brandFieldDefs) {
+            $profileImageUrl = $brand->getFirstMediaUrl('profile_image', 'md') ?: '-';
+            $logoUrl = $brand->getFirstMediaUrl('brand_logo') ?: '-';
 
             $categories = $brand->tags
                 ->filter(fn ($tag) => str_starts_with($tag->type, 'business_category'))
@@ -286,10 +304,6 @@ class SheetsController extends Controller
 
             $totalPromotionPosts = (int) $brand->brandEvents->sum('promotion_posts_count');
 
-            $customFields = $brand->custom_fields
-                ? json_encode($brand->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                : '-';
-
             return [
                 $brand->id,
                 $brand->ulid,
@@ -298,9 +312,13 @@ class SheetsController extends Controller
                 $brand->company_name ?? '-',
                 $brand->company_email ?? '-',
                 $brand->company_phone ?? '-',
-                $brand->company_address ?? '-',
+                data_get($brand->address, 'country') ?? '-',
+                data_get($brand->address, 'province') ?? '-',
+                data_get($brand->address, 'city') ?? '-',
+                data_get($brand->address, 'street') ?? '-',
                 $brand->description ?? '-',
                 Str::title(str_replace('_', ' ', $brand->status ?? '-')),
+                $profileImageUrl,
                 $logoUrl,
                 $categories,
                 $otherTags,
@@ -319,7 +337,7 @@ class SheetsController extends Controller
                 $brand->updater?->name ?? '-',
                 $brand->created_at?->format('Y-m-d H:i:s'),
                 $brand->updated_at?->format('Y-m-d H:i:s'),
-                $customFields,
+                ...SheetFormatting::customFieldColumns($brandFieldDefs, $brand->custom_fields),
             ];
         })->toArray();
 
@@ -371,29 +389,31 @@ class SheetsController extends Controller
 
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
-        // Dynamic operational-document columns (non-event-rule docs only).
-        // This sheet spans all events; each row only fills its own event's
-        // columns (submissions are keyed by event_id + booth_identifier).
-        $eventIds = $brandEvents->pluck('event_id')->filter()->unique()->values()->all();
+        // Dynamic custom-field columns, appended last. Brand fields are typed
+        // (formatted via the field catalog); BrandEvent fields have no catalog
+        // so they are rendered from their raw jsonb keys.
+        $brandFieldDefs = $this->brandCustomFieldDefinitions();
+        $brandFieldLabels = $brandFieldDefs->map(fn (CustomField $field) => (string) $field->label)->all();
 
-        $operationalDocs = EventDocument::query()
-            ->whereIn('event_id', $eventIds)
-            ->ordered()
-            ->get()
-            ->reject(fn (EventDocument $doc) => $doc->isEventRule())
-            ->values();
+        $brandEventFieldKeys = $brandEvents
+            ->flatMap(fn (BrandEvent $be) => array_keys($be->custom_fields ?? []))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
-        $documentSubmissions = EventDocumentSubmission::query()
-            ->whereIn('event_id', $eventIds)
-            ->with('media')
-            ->get()
-            ->groupBy(fn (EventDocumentSubmission $s) => $s->event_id.'|'.$s->booth_identifier);
+        // Suffix BrandEvent field headers that would collide with a brand field.
+        $brandEventFieldHeadings = array_map(function (string $key) use ($brandFieldLabels) {
+            $header = SheetFormatting::headline($key);
+
+            return in_array($header, $brandFieldLabels, true) ? "{$header} (Booth)" : $header;
+        }, $brandEventFieldKeys);
 
         $headings = [
             'ID',
             'Brand ID', 'Brand ULID', 'Brand Name', 'Brand Slug',
-            'Company Name', 'Company Email', 'Company Phone', 'Company Address',
-            'Brand Description', 'Brand Status', 'Brand Logo URL',
+            'Company Name', 'Company Email', 'Company Phone', 'Country', 'Province', 'City', 'Street Address',
+            'Brand Description', 'Brand Status', 'Profile Image URL', 'Brand Logo URL',
             'Business Categories', 'Other Tags',
             'Brand Users',
             'Event ID', 'Event Title', 'Event Slug',
@@ -407,21 +427,19 @@ class SheetsController extends Controller
             ...$linkLabels,
             ...$linkClickHeadings,
             'Brand Total Link Clicks',
-            'Brand Created By', 'Brand Updated By', 'Brand Custom Fields',
-            'BrandEvent Custom Fields',
+            'Brand Created By', 'Brand Updated By',
             'Created At', 'Updated At',
+            ...$brandFieldLabels,
+            ...$brandEventFieldHeadings,
         ];
 
-        foreach ($operationalDocs as $doc) {
-            $headings[] = 'Doc: '.$doc->title;
-        }
-
-        $rows = $brandEvents->map(function (BrandEvent $brandEvent) use ($linkLabels, $operationalDocs, $documentSubmissions) {
+        $rows = $brandEvents->map(function (BrandEvent $brandEvent) use ($linkLabels, $brandFieldDefs, $brandEventFieldKeys) {
             $brand = $brandEvent->brand;
             $event = $brandEvent->event;
             $sales = $brandEvent->sales;
 
-            $logoUrl = $brand?->getFirstMediaUrl('brand_logo', 'md') ?: '-';
+            $profileImageUrl = $brand?->getFirstMediaUrl('profile_image', 'md') ?: '-';
+            $logoUrl = $brand?->getFirstMediaUrl('brand_logo') ?: '-';
 
             $categories = $brand
                 ? ($brand->tags
@@ -460,15 +478,7 @@ class SheetsController extends Controller
 
             $totalLinkClicks = $brand ? (int) $brand->links->sum('clicks_count') : 0;
 
-            $brandCustomFields = $brand && $brand->custom_fields
-                ? json_encode($brand->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                : '-';
-
-            $brandEventCustomFields = $brandEvent->custom_fields
-                ? json_encode($brandEvent->custom_fields, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                : '-';
-
-            $row = [
+            return [
                 $brandEvent->id,
                 $brand?->id ?? '-',
                 $brand?->ulid ?? '-',
@@ -477,9 +487,13 @@ class SheetsController extends Controller
                 $brand?->company_name ?? '-',
                 $brand?->company_email ?? '-',
                 $brand?->company_phone ?? '-',
-                $brand?->company_address ?? '-',
+                data_get($brand?->address, 'country') ?? '-',
+                data_get($brand?->address, 'province') ?? '-',
+                data_get($brand?->address, 'city') ?? '-',
+                data_get($brand?->address, 'street') ?? '-',
                 $brand?->description ?? '-',
                 $brand ? Str::title(str_replace('_', ' ', $brand->status ?? '-')) : '-',
+                $profileImageUrl,
                 $logoUrl,
                 $categories,
                 $otherTags,
@@ -513,39 +527,11 @@ class SheetsController extends Controller
                 $totalLinkClicks,
                 $brand?->creator?->name ?? '-',
                 $brand?->updater?->name ?? '-',
-                $brandCustomFields,
-                $brandEventCustomFields,
                 $brandEvent->created_at?->format('Y-m-d H:i:s'),
                 $brandEvent->updated_at?->format('Y-m-d H:i:s'),
+                ...SheetFormatting::customFieldColumns($brandFieldDefs, $brand?->custom_fields),
+                ...SheetFormatting::freeJsonColumns($brandEventFieldKeys, $brandEvent->custom_fields),
             ];
-
-            // Append operational-document submission values for this brand-event.
-            $boothIdentifier = $brandEvent->booth_number ?: 'be-'.$brandEvent->id;
-            $rowSubmissions = $documentSubmissions->get($brandEvent->event_id.'|'.$boothIdentifier, collect());
-
-            foreach ($operationalDocs as $doc) {
-                if ($doc->event_id !== $brandEvent->event_id) {
-                    $row[] = '';
-
-                    continue;
-                }
-
-                $submission = $rowSubmissions->firstWhere('event_document_id', $doc->id);
-
-                if (! $submission) {
-                    $row[] = '-';
-                } elseif ($doc->document_type === 'checkbox_agreement') {
-                    $row[] = $submission->agreed_at ? 'Agreed ('.$submission->submitted_at?->format('Y-m-d H:i').')' : '-';
-                } elseif ($doc->document_type === 'file_upload') {
-                    $row[] = strtok($submission->getFirstMediaUrl('submission_file'), '?') ?: '-';
-                } elseif ($doc->document_type === 'text_input') {
-                    $row[] = $submission->text_value ?: '-';
-                } else {
-                    $row[] = '-';
-                }
-            }
-
-            return $row;
         })->toArray();
 
         return response()->json([
@@ -554,5 +540,227 @@ class SheetsController extends Controller
             'rows' => $rows,
             'updated_at' => now()->toIso8601String(),
         ]);
+    }
+
+    /**
+     * Brand-context custom-field definitions across every project, deduped by
+     * key so a shared field appears once. These drive the dynamic Brand /
+     * BrandEvent custom-field columns.
+     *
+     * @return Collection<int, CustomField>
+     */
+    private function brandCustomFieldDefinitions(): Collection
+    {
+        return CustomField::query()
+            ->context(CustomField::CONTEXT_BRAND)
+            ->where('fieldable_type', Project::class)
+            ->ordered()
+            ->get()
+            ->unique('key')
+            ->values();
+    }
+
+    /**
+     * Operational Documents sheet: one row per (brand event x applicable
+     * document), covering both event rules and operational docs. The file
+     * history column is the audit trail (from media version metadata), not the
+     * 30-day activity log.
+     */
+    public function operationalDocuments(Request $request): JsonResponse
+    {
+        if ($request->query('token') !== config('services.sheets.api_token')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $brandEvents = BrandEvent::query()
+            ->with(['brand:id,name,company_name', 'event:id,title'])
+            ->orderBy('event_id')
+            ->orderBy('created_at')
+            ->get();
+
+        $eventIds = $brandEvents->pluck('event_id')->filter()->unique()->values()->all();
+
+        $documentsByEvent = EventDocument::query()
+            ->whereIn('event_id', $eventIds)
+            ->with('fields')
+            ->ordered()
+            ->get()
+            ->groupBy('event_id');
+
+        $submissions = EventDocumentSubmission::query()
+            ->whereIn('event_id', $eventIds)
+            ->with(['media', 'submitter:id,name'])
+            ->get()
+            ->groupBy(fn (EventDocumentSubmission $s) => $s->event_id.'|'.$s->booth_identifier);
+
+        // Union of mini-form field labels across every document that appears,
+        // so answer columns are stable across the sheet.
+        $fieldLabels = $documentsByEvent
+            ->flatten(1)
+            ->flatMap(fn (EventDocument $doc) => $doc->fields->where('is_active', true))
+            ->unique('ulid')
+            ->map(fn (CustomField $field) => (string) $field->label)
+            ->unique()
+            ->values()
+            ->all();
+
+        $headings = [
+            'Brand Event ID', 'Brand ID', 'Brand Name', 'Company Name',
+            'Event ID', 'Event Title', 'Booth Number', 'Booth Type',
+            'Document ID', 'Document Title', 'Document Kind', 'Required', 'Blocks Next Step', 'Submission Deadline',
+            'Status',
+            'Agreed At', 'Agreed Version', 'Current Content Version',
+            'Submitted By', 'Submitted At', 'IP Address',
+            'Current Files', 'File Versions Count', 'Last Upload At', 'Last Upload By', 'File History',
+            ...$fieldLabels,
+        ];
+
+        $rows = [];
+
+        foreach ($brandEvents as $brandEvent) {
+            $brand = $brandEvent->brand;
+            $documents = $documentsByEvent->get($brandEvent->event_id, collect())
+                ->filter(fn (EventDocument $doc) => $doc->appliesToBoothType($brandEvent->booth_type?->value));
+
+            $boothIdentifier = $brandEvent->booth_number ?: 'be-'.$brandEvent->id;
+            $rowSubmissions = $submissions->get($brandEvent->event_id.'|'.$boothIdentifier, collect());
+
+            foreach ($documents as $doc) {
+                $submission = $rowSubmissions->firstWhere('event_document_id', $doc->id);
+
+                $status = 'Not Submitted';
+                if ($submission) {
+                    if ($submission->document_version < $doc->content_version) {
+                        $status = 'Needs Re-agreement';
+                    } elseif ($doc->isSubmissionComplete($submission)) {
+                        $status = 'Completed';
+                    }
+                }
+
+                $currentFiles = $submission
+                    ? $submission->currentSubmissionFiles()
+                        ->map(fn ($media) => strtok($media->getUrl(), '?'))
+                        ->implode(', ')
+                    : '';
+
+                $lastUpload = $submission?->getMedia('submission_file')
+                    ->sortByDesc(fn ($media) => $media->created_at)
+                    ->first();
+
+                $rows[] = [
+                    $brandEvent->id,
+                    $brand?->id ?? '-',
+                    $brand?->name ?? '-',
+                    $brand?->company_name ?? '-',
+                    $brandEvent->event_id,
+                    $brandEvent->event?->title ?? '-',
+                    $brandEvent->booth_number ?? '-',
+                    $brandEvent->booth_type?->label() ?? '-',
+                    $doc->id,
+                    $doc->title,
+                    $doc->isEventRule() ? 'Event Rule' : 'Operational',
+                    $doc->is_required ? 'Yes' : 'No',
+                    $doc->blocks_next_step ? 'Yes' : 'No',
+                    SheetFormatting::dateTime($doc->submission_deadline),
+                    $status,
+                    $submission ? SheetFormatting::dateTime($submission->agreed_at) : '-',
+                    $submission?->document_version ?? '-',
+                    $doc->content_version,
+                    $submission?->submitter?->name ?? '-',
+                    $submission ? SheetFormatting::dateTime($submission->submitted_at) : '-',
+                    $submission?->ip_address ?? '-',
+                    $currentFiles ?: '-',
+                    $submission ? $submission->getMedia('submission_file')->count() : 0,
+                    $lastUpload ? SheetFormatting::dateTime($lastUpload->created_at) : '-',
+                    $lastUpload?->getCustomProperty('uploaded_by_name') ?? '-',
+                    $submission ? $this->fileHistorySummary($submission) : '-',
+                    ...$this->documentFieldAnswers($doc, $submission, $fieldLabels),
+                ];
+            }
+        }
+
+        return response()->json([
+            'title' => 'Operational Documents',
+            'headings' => $headings,
+            'rows' => $rows,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Compact per-field file version history for a submission.
+     */
+    private function fileHistorySummary(EventDocumentSubmission $submission): string
+    {
+        $media = $submission->getMedia('submission_file');
+
+        if ($media->isEmpty()) {
+            return '-';
+        }
+
+        return $media
+            ->groupBy(fn ($m) => $m->getCustomProperty('field_ulid') ?? 'legacy')
+            ->map(function ($group) {
+                return $group
+                    ->sortByDesc(fn ($m) => (int) $m->getCustomProperty('version', 1))
+                    ->map(function ($m) {
+                        $version = (int) $m->getCustomProperty('version', 1);
+                        $by = $m->getCustomProperty('uploaded_by_name') ?? 'unknown';
+                        $at = SheetFormatting::dateTime($m->created_at);
+                        $state = $m->getCustomProperty('superseded_at') === null ? 'current' : 'superseded';
+
+                        return "v{$version} {$m->file_name} - {$by}, {$at} ({$state})";
+                    })
+                    ->implode('; ');
+            })
+            ->implode(' | ');
+    }
+
+    /**
+     * Answer cell per mini-form field label (aligned with the sheet's union of
+     * labels), formatted by the field's type.
+     *
+     * @param  array<int, string>  $fieldLabels
+     * @return array<int, string>
+     */
+    private function documentFieldAnswers(EventDocument $document, ?EventDocumentSubmission $submission, array $fieldLabels): array
+    {
+        $byLabel = $document->fields
+            ->where('is_active', true)
+            ->keyBy(fn (CustomField $field) => (string) $field->label);
+
+        return array_map(function (string $label) use ($byLabel, $document, $submission) {
+            $field = $byLabel->get($label);
+
+            if (! $field || ! $submission) {
+                return '';
+            }
+
+            return $document->submissionFieldValue($field, $submission);
+        }, $fieldLabels);
+    }
+
+    /**
+     * Human-readable adjustment reasons for an order, joined by '; '. Voided
+     * adjustments are annotated with their void reason.
+     */
+    private function adjustmentReason(Order $order): string
+    {
+        if (! $order->relationLoaded('adjustments') || $order->adjustments->isEmpty()) {
+            return '-';
+        }
+
+        return $order->adjustments
+            ->map(function ($adjustment) {
+                $reason = $adjustment->rule_snapshot['reason'] ?? $adjustment->label;
+
+                if ($adjustment->voided_at !== null) {
+                    return "{$reason} (voided: ".($adjustment->void_reason ?: 'no reason').')';
+                }
+
+                return $reason;
+            })
+            ->filter()
+            ->implode('; ') ?: '-';
     }
 }

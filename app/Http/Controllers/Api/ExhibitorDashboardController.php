@@ -9,8 +9,6 @@ use App\Http\Resources\EventDocumentSubmissionResource;
 use App\Http\Resources\OrderIndexResource;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\PromotionPostResource;
-use App\Mail\OrderConfirmationMail;
-use App\Mail\OrderSubmittedMail;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\CustomField;
@@ -19,15 +17,12 @@ use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\PromotionPost;
 use App\Notifications\OrderSubmittedNotification;
-use App\Services\Pricing\PricingService;
-use App\Services\Promotion\PenaltyService;
-use App\Services\Promotion\PromoCodeService;
+use App\Services\Order\OrderSubmissionService;
 use App\Support\CustomFieldValidation;
 use App\Support\CustomFieldValues;
+use App\Support\ImageDimensions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -70,13 +65,18 @@ class ExhibitorDashboardController extends Controller
             ->groupBy(fn ($s) => "{$s->event_id}:{$s->booth_identifier}:{$s->event_document_id}");
 
         $brandEventsData = $brands->flatMap(function (Brand $brand) use ($allSubmissions) {
+            $hasAddress = collect($brand->address ?? [])->contains(fn ($value) => filled($value));
+
             $brandMissingFields = collect([
                 'company_name' => 'Company Name',
                 'company_email' => 'Email',
                 'company_phone' => 'Phone',
-                'company_address' => 'Address',
+                'address' => 'Address',
                 'description' => 'Description',
-            ])->filter(fn ($label, $field) => empty($brand->{$field}))->values()->all();
+            ])->filter(fn ($label, $field) => $field === 'address'
+                ? ! $hasAddress
+                : empty($brand->{$field})
+            )->values()->all();
 
             return $brand->brandEvents->map(function (BrandEvent $be) use ($brand, $brandMissingFields, $allSubmissions) {
                 $event = $be->event;
@@ -123,16 +123,9 @@ class ExhibitorDashboardController extends Controller
 
                     $status = 'pending';
                     if ($submission) {
-                        $needsReagreement = $submission->document_version < $doc->content_version;
-                        if ($needsReagreement) {
+                        if ($submission->document_version < $doc->content_version) {
                             $status = 'needs_reagreement';
-                        } elseif ($doc->document_type === 'checkbox_agreement' && $submission->agreed_at) {
-                            $status = 'completed';
-                        } elseif ($doc->document_type === 'file_upload' && $submission->hasMedia('submission_file')) {
-                            $status = 'completed';
-                        } elseif ($doc->document_type === 'text_input' && $submission->text_value) {
-                            $status = 'completed';
-                        } elseif (! empty($submission->field_values)) {
+                        } elseif ($doc->isSubmissionComplete($submission)) {
                             $status = 'completed';
                         }
                     }
@@ -153,6 +146,7 @@ class ExhibitorDashboardController extends Controller
                         'id' => $brand->id,
                         'name' => $brand->name,
                         'slug' => $brand->slug,
+                        'profile_image' => $brand->profile_image,
                         'brand_logo' => $brand->brand_logo,
                         'is_complete' => empty($brandMissingFields),
                         'missing_fields' => $brandMissingFields,
@@ -164,7 +158,6 @@ class ExhibitorDashboardController extends Controller
                         'date_label' => $event->date_label,
                         'location' => $event->location,
                         'poster_image' => $event->poster_image,
-                        'badge_vip_info' => $event->badge_vip_info,
                     ],
                     'booth_number' => $be->booth_number,
                     'booth_type' => $boothTypeValue,
@@ -261,6 +254,7 @@ class ExhibitorDashboardController extends Controller
                     'id' => $brand->id,
                     'name' => $brand->name,
                     'slug' => $brand->slug,
+                    'profile_image' => $brand->profile_image,
                     'brand_logo' => $brand->brand_logo,
                     'booth_number' => $be->booth_number,
                     'booth_type' => $be->booth_type?->value,
@@ -292,6 +286,7 @@ class ExhibitorDashboardController extends Controller
                 'name' => $brand->name,
                 'slug' => $brand->slug,
                 'company_name' => $brand->company_name,
+                'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
                 'status' => $brand->status,
                 'events_count' => $brand->brandEvents->count(),
@@ -334,12 +329,13 @@ class ExhibitorDashboardController extends Controller
                 'slug' => $brand->slug,
                 'description' => $brand->description,
                 'company_name' => $brand->company_name,
-                'company_address' => $brand->company_address,
+                'address' => $brand->address,
                 'company_email' => $brand->company_email,
                 'company_phone' => $brand->company_phone,
                 'custom_fields' => $brand->custom_fields,
                 'status' => $brand->status,
                 'visibility' => $brand->visibility,
+                'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
                 'business_categories' => $brand->business_categories_list,
             ],
@@ -358,18 +354,24 @@ class ExhibitorDashboardController extends Controller
             'name' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:50000'],
             'company_name' => ['nullable', 'string', 'max:255'],
-            'company_address' => ['nullable', 'string', 'max:1000'],
+            'address' => ['nullable', 'array'],
+            'address.street' => ['nullable', 'string', 'max:1000'],
+            'address.city' => ['nullable', 'string', 'max:255'],
+            'address.province' => ['nullable', 'string', 'max:255'],
+            'address.country' => ['nullable', 'string', 'max:255'],
             'company_email' => ['nullable', 'email', 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'custom_fields' => ['nullable', 'array'],
             'business_categories' => ['nullable', 'array'],
             'business_categories.*' => ['string', 'max:100'],
+            'tmp_profile_image' => ['nullable', 'string'],
+            'delete_profile_image' => ['nullable', 'boolean'],
             'tmp_brand_logo' => ['nullable', 'string'],
             'delete_brand_logo' => ['nullable', 'boolean'],
         ]);
 
         $categories = $validated['business_categories'] ?? null;
-        unset($validated['business_categories'], $validated['tmp_brand_logo'], $validated['delete_brand_logo']);
+        unset($validated['business_categories'], $validated['tmp_profile_image'], $validated['delete_profile_image'], $validated['tmp_brand_logo'], $validated['delete_brand_logo']);
 
         $brand->update($validated);
 
@@ -377,6 +379,7 @@ class ExhibitorDashboardController extends Controller
             $brand->syncBusinessCategories($categories);
         }
 
+        $this->handleTemporaryUpload($request, $brand, 'tmp_profile_image', 'profile_image');
         $this->handleTemporaryUpload($request, $brand, 'tmp_brand_logo', 'brand_logo');
 
         $brand->load('media');
@@ -387,6 +390,7 @@ class ExhibitorDashboardController extends Controller
                 'id' => $brand->id,
                 'name' => $brand->name,
                 'slug' => $brand->slug,
+                'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
             ],
         ]);
@@ -447,6 +451,7 @@ class ExhibitorDashboardController extends Controller
                 'brand' => [
                     'id' => $brand->id,
                     'name' => $brand->name,
+                    'profile_image' => $brand->profile_image,
                     'brand_logo' => $brand->brand_logo,
                 ],
                 'event' => [
@@ -728,7 +733,7 @@ class ExhibitorDashboardController extends Controller
     /**
      * Submit an order from the exhibitor.
      */
-    public function submitOrder(SubmitOrderRequest $request, string $brandSlug, int $brandEventId): JsonResponse
+    public function submitOrder(SubmitOrderRequest $request, string $brandSlug, int $brandEventId, OrderSubmissionService $orderSubmission): JsonResponse
     {
         $brand = $request->user()->brands()->where('brands.slug', $brandSlug)->firstOrFail();
         $brandEvent = BrandEvent::query()
@@ -743,104 +748,24 @@ class ExhibitorDashboardController extends Controller
             return response()->json(['message' => 'Order form deadline has passed.'], 422);
         }
 
-        $settings = $event->settings ?? [];
-        $taxRate = (float) ($settings['tax_rate'] ?? 11);
-
         $validated = $request->validated();
 
-        // Load and validate products
-        $productIds = collect($validated['items'])->pluck('event_product_id');
-        $products = EventProduct::query()
-            ->where('event_id', $event->id)
-            ->where('is_active', true)
-            ->whereIn('id', $productIds)
-            ->get()
-            ->keyBy('id');
-
-        if ($products->count() !== $productIds->unique()->count()) {
-            return response()->json(['message' => 'Some products are no longer available.'], 422);
-        }
-
-        $products->loadMissing('media');
-
-        // Determine current order period and penalty
-        $now = now();
-        $orderPeriod = 'normal_order';
-        $penaltyRate = 0;
-
-        if ($event->normal_order_opens_at && $event->normal_order_closes_at
-            && $now->between($event->normal_order_opens_at, $event->normal_order_closes_at)) {
-            $orderPeriod = 'normal_order';
-        } elseif ($event->onsite_order_opens_at && $event->onsite_order_closes_at
-            && $now->between($event->onsite_order_opens_at, $event->onsite_order_closes_at)) {
-            $orderPeriod = 'onsite_order';
-        }
-
-        $order = DB::transaction(function () use ($validated, $brand, $brandEvent, $products, $taxRate, $orderPeriod, $request) {
-            $subtotal = 0;
-            $itemsData = [];
-
-            // Item unit_price uses BASE product price. Any onsite-period penalty is added
-            // afterwards as a separate AppliedAdjustment via PenaltyService.
-            foreach ($validated['items'] as $item) {
-                $product = $products[$item['event_product_id']];
-                $unitPrice = round((float) $product->price, 2);
-                $totalPrice = $unitPrice * $item['quantity'];
-                $subtotal += $totalPrice;
-
-                $itemsData[] = [
-                    'event_product_id' => $product->id,
-                    'category_id' => $product->category_id,
-                    'product_name' => $product->name,
-                    'product_image_url' => $product->product_image['md'] ?? $product->product_image['url'] ?? null,
-                    'unit_price' => $unitPrice,
-                    'quantity' => $item['quantity'],
-                    'total_price' => $totalPrice,
-                    'notes' => $item['notes'] ?? null,
-                ];
-            }
-
-            $order = Order::create([
-                'brand_event_id' => $brandEvent->id,
-                'operational_status' => 'submitted',
-                'order_period' => $orderPeriod,
+        try {
+            $order = $orderSubmission->create($brandEvent, $validated['items'], [
                 'notes' => $validated['notes'] ?? null,
-                'subtotal' => $subtotal,
-                'tax_rate' => $taxRate,
-                'tax_amount' => 0,
-                'total' => 0,
-                'submitted_at' => now(),
+                'promo_code' => $validated['promo_code'] ?? null,
+                'promo_email' => $brand->email ?? $request->user()->email ?? '',
+                'source' => 'exhibitor',
+                'user' => $request->user(),
             ]);
-
-            $order->items()->createMany($itemsData);
-
-            // Evaluate auto-triggered penalty rules (event_period seeded from Event.onsite_penalty_rate).
-            app(PenaltyService::class)->evaluateAndApply($order);
-
-            // Apply promo code if supplied. Throws ValidationException on invalid code, aborting the txn.
-            if (! empty($validated['promo_code'])) {
-                $email = $brand->email ?? $request->user()->email ?? '';
-                app(PromoCodeService::class)->applyByCode(
-                    (string) $validated['promo_code'],
-                    $order->fresh(['items', 'adjustments.promotionRule', 'brandEvent']),
-                    (string) $email,
-                    $request->user()?->id,
-                );
-                $order->forceFill([
-                    'promo_code_applied' => strtoupper(trim((string) $validated['promo_code'])),
-                ])->save();
-            }
-
-            // Final recalculate persists discount/penalty/tax/total based on adjustments + subtotal.
-            app(PricingService::class)->recalculateAndPersist($order->fresh(['adjustments', 'brandEvent']));
-
-            return $order->fresh(['adjustments']);
-        });
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
 
         $order->load(['items.productCategory', 'brandEvent.brand', 'creator']);
 
         // Send notification emails
-        $this->sendOrderEmails($order, $event, $brand, $request->user());
+        $orderSubmission->sendEmails($order, $event, $brand, $request->user());
 
         // Notify project members + master/admin about the new order
         $notifiableUsers = $event->project->getNotifiableUsers();
@@ -1094,9 +1019,13 @@ class ExhibitorDashboardController extends Controller
             $merged = $this->storeSubmissionFieldFiles($submission, $field, $incomingFiles[$field->ulid] ?? [], $merged);
         }
 
-        // Legacy documents without a file field keep the old single-file flow.
+        // Legacy documents without a file field keep the old single-file flow,
+        // but still version the file so re-uploads never destroy the old one.
         if ($fileFields->isEmpty() && $request->has('tmp_submission_file')) {
-            $this->handleTemporaryUpload($request, $submission, 'tmp_submission_file', 'submission_file');
+            $tmpId = $request->input('tmp_submission_file');
+            if (is_string($tmpId) && Str::startsWith($tmpId, 'tmp-')) {
+                $this->storeLegacySubmissionFileVersion($submission, $tmpId);
+            }
         }
 
         $submission->field_values = $merged;
@@ -1124,16 +1053,24 @@ class ExhibitorDashboardController extends Controller
             return true;
         }
 
-        return $submission->getMedia('submission_file')->contains(
+        return $submission->currentSubmissionFiles()->contains(
             fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid
                 || ($field->system_key === 'legacy_file' && $media->getCustomProperty('field_ulid') === null)
         );
     }
 
     /**
-     * Attach tmp uploads to the submission for one file field, replacing the
-     * field's previous file(s) unless settings.multiple is enabled, and return
-     * the field_values map with the field's media ids refreshed.
+     * Number of past versions kept per file field (1 current + 4 superseded).
+     * Prevents unbounded growth while preserving an audit trail.
+     */
+    private const FILE_VERSION_RETENTION = 5;
+
+    /**
+     * Attach tmp uploads to the submission for one file field. For single-file
+     * fields the previous file is kept as a superseded version (audit trail,
+     * retention {@see FILE_VERSION_RETENTION}) instead of being deleted; the
+     * multiple-file fields keep the accumulate-forever behaviour. Returns the
+     * field_values map with the field's CURRENT media ids.
      *
      * @param  array<int, string>  $tmpIds
      * @param  array<string, mixed>  $merged
@@ -1149,16 +1086,25 @@ class ExhibitorDashboardController extends Controller
         $keptIds = [];
 
         if ($multiple) {
-            $keptIds = $submission->getMedia('submission_file')
-                ->filter(fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid)
+            $keptIds = $submission->currentFilesForField($field->ulid)
                 ->pluck('id')
                 ->map(fn ($id) => (int) $id)
                 ->all();
         } else {
+            // Supersede (do not delete) the field's current file(s) so the old
+            // version stays in history. Also claim any legacy media that predates
+            // per-field tagging.
             $submission->getMedia('submission_file')
-                ->filter(fn (Media $media) => $media->getCustomProperty('field_ulid') === $field->ulid
-                    || ($field->system_key === 'legacy_file' && $media->getCustomProperty('field_ulid') === null))
-                ->each(fn (Media $media) => $media->delete());
+                ->filter(fn (Media $media) => $media->getCustomProperty('superseded_at') === null
+                    && ($media->getCustomProperty('field_ulid') === $field->ulid
+                        || ($field->system_key === 'legacy_file' && $media->getCustomProperty('field_ulid') === null)))
+                ->each(function (Media $media) use ($field) {
+                    if ($media->getCustomProperty('field_ulid') === null) {
+                        $media->setCustomProperty('field_ulid', $field->ulid);
+                    }
+                    $media->setCustomProperty('superseded_at', now()->toIso8601String());
+                    $media->save();
+                });
 
             $tmpIds = array_slice($tmpIds, 0, 1);
         }
@@ -1173,9 +1119,28 @@ class ExhibitorDashboardController extends Controller
             }
         }
 
+        if (! $multiple) {
+            $this->pruneFieldVersions($submission, $field->ulid);
+        }
+
         $merged[$field->ulid] = array_values(array_merge($keptIds, $newIds));
 
         return $merged;
+    }
+
+    /**
+     * Keep only the most recent {@see FILE_VERSION_RETENTION} versions of a
+     * field's file, deleting older superseded versions.
+     */
+    private function pruneFieldVersions(EventDocumentSubmission $submission, string $fieldUlid): void
+    {
+        // Reload media so the just-added version is included; Spatie memoizes the
+        // media relation, which would otherwise be stale after addMedia().
+        $submission->load('media');
+
+        $submission->fileHistoryForField($fieldUlid)
+            ->slice(self::FILE_VERSION_RETENTION)
+            ->each(fn (Media $media) => $media->delete());
     }
 
     private function addSubmissionFileFromTmp(EventDocumentSubmission $submission, CustomField $field, string $tmpId): ?Media
@@ -1193,13 +1158,63 @@ class ExhibitorDashboardController extends Controller
             return null;
         }
 
+        $nextVersion = ((int) $submission->fileHistoryForField($field->ulid)
+            ->max(fn (Media $media) => (int) $media->getCustomProperty('version', 1))) + 1;
+
         $media = $submission->addMedia(Storage::disk('local')->path($filePath))
-            ->withCustomProperties(['field_ulid' => $field->ulid])
+            ->withCustomProperties([
+                'field_ulid' => $field->ulid,
+                'version' => $nextVersion,
+                'uploaded_by' => auth()->id(),
+                'uploaded_by_name' => auth()->user()?->name,
+            ])
             ->toMediaCollection('submission_file');
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$tmpId}");
 
         return $media;
+    }
+
+    /**
+     * Version-aware single-file upload for legacy documents that have no
+     * mini-form file field. Supersedes the current file (grouped under the
+     * 'legacy' history key) instead of deleting it, then prunes old versions.
+     */
+    private function storeLegacySubmissionFileVersion(EventDocumentSubmission $submission, string $tmpId): void
+    {
+        $metadataPath = "tmp/uploads/{$tmpId}/metadata.json";
+
+        if (! Storage::disk('local')->exists($metadataPath)) {
+            return;
+        }
+
+        $metadata = json_decode(Storage::disk('local')->get($metadataPath), true);
+        $filePath = "tmp/uploads/{$tmpId}/{$metadata['original_name']}";
+
+        if (! Storage::disk('local')->exists($filePath)) {
+            return;
+        }
+
+        $submission->currentSubmissionFiles()
+            ->each(function (Media $media) {
+                $media->setCustomProperty('superseded_at', now()->toIso8601String());
+                $media->save();
+            });
+
+        $nextVersion = ((int) $submission->fileHistoryForField('legacy')
+            ->max(fn (Media $media) => (int) $media->getCustomProperty('version', 1))) + 1;
+
+        $submission->addMedia(Storage::disk('local')->path($filePath))
+            ->withCustomProperties([
+                'version' => $nextVersion,
+                'uploaded_by' => auth()->id(),
+                'uploaded_by_name' => auth()->user()?->name,
+            ])
+            ->toMediaCollection('submission_file');
+
+        Storage::disk('local')->deleteDirectory("tmp/uploads/{$tmpId}");
+
+        $this->pruneFieldVersions($submission, 'legacy');
     }
 
     /**
@@ -1313,51 +1328,17 @@ class ExhibitorDashboardController extends Controller
         ]);
     }
 
-    /**
-     * Send order notification emails.
-     */
-    private function sendOrderEmails(Order $order, $event, Brand $brand, $user): void
-    {
-        try {
-            $settings = $event->settings ?? [];
-            $notificationEmails = $settings['notification_emails'] ?? [];
-
-            // Send to operational/notification emails
-            if (! empty($notificationEmails)) {
-                foreach ($notificationEmails as $email) {
-                    Mail::to($email)->queue(new OrderSubmittedMail($order, $event, $brand));
-                }
-            }
-
-            // Send confirmation to all brand members + company email + the
-            // submitting user, de-duplicated case-insensitively.
-            $recipients = collect($brand->recipientEmails());
-            if ($user?->email) {
-                $recipients->push($user->email);
-            }
-
-            $recipients
-                ->filter(fn ($email) => is_string($email) && trim($email) !== '')
-                ->map(fn ($email) => trim($email))
-                ->unique(fn ($email) => strtolower($email))
-                ->each(fn ($email) => Mail::to($email)->queue(new OrderConfirmationMail($order, $event, $brand)));
-        } catch (\Exception $e) {
-            logger()->warning('Failed to send order emails', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
     private function handleTemporaryUpload(Request $request, $model, string $fieldName, string $collection): void
     {
+        $bustsBrandCache = in_array($collection, ['profile_image', 'brand_logo'], true);
+
         $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
         if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
             $model->clearMediaCollection($collection);
 
-            // Brand logo appears on the cached public brand payloads; MediaLibrary
-            // does not fire the Brand saved event, so bust manually.
-            if ($collection === 'brand_logo') {
+            // Profile image (avatar) appears on the cached public brand payloads;
+            // MediaLibrary does not fire the Brand saved event, so bust manually.
+            if ($bustsBrandCache) {
                 ResponseCache::clear(['brands']);
             }
 
@@ -1395,16 +1376,25 @@ class ExhibitorDashboardController extends Controller
             return;
         }
 
+        $absolutePath = Storage::disk('local')->path($filePath);
+
+        if ($collection === 'profile_image'
+            && ! ImageDimensions::meetsMinimum($absolutePath, $metadata['mime_type'] ?? '')) {
+            throw ValidationException::withMessages([
+                'tmp_profile_image' => 'Profile image must be at least 1000x1000 pixels.',
+            ]);
+        }
+
         $model->clearMediaCollection($collection);
 
-        $model->addMedia(Storage::disk('local')->path($filePath))
+        $model->addMedia($absolutePath)
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
 
-        // Logo media is committed after the brand update, so bust again here to
-        // avoid repopulating the cache with the old logo.
-        if ($collection === 'brand_logo') {
+        // Avatar/logo media is committed after the brand update, so bust again
+        // here to avoid repopulating the cache with the old media.
+        if ($bustsBrandCache) {
             ResponseCache::clear(['brands']);
         }
     }

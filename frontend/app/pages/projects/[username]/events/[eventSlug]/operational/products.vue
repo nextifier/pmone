@@ -64,7 +64,7 @@
       :show-add-button="false"
       :initial-sorting="[]"
       search-column="name"
-      search-placeholder="Search products..."
+      search-placeholder="Search products"
       @update:column-filters="onColumnFiltersChange"
     >
       <template #filters>
@@ -246,18 +246,6 @@ const meta = computed(() => ({
   per_page: categoryFilteredProducts.value.length || 10,
   total: categoryFilteredProducts.value.length,
 }));
-
-// Booth type label map
-const boothTypeLabels = {
-  raw_space: "Raw Space",
-  standard_shell_scheme: "Standard Shell Scheme",
-  enhanced_shell_scheme: "Enhanced Shell Scheme",
-  table_chair_only: "Table & Chair Only",
-};
-
-function boothTypeLabel(type) {
-  return boothTypeLabels[type] || type;
-}
 
 // Indonesian Rupiah formatter
 function formatPrice(price) {

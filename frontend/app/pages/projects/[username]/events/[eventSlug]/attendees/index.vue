@@ -70,7 +70,7 @@
       :client-only="false"
       :show-add-button="false"
       search-column="name"
-      search-placeholder="Search name, email, phone, order…"
+      search-placeholder="Search name, email, phone, order"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"

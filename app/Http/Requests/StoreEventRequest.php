@@ -43,7 +43,6 @@ class StoreEventRequest extends FormRequest
             'onsite_order_opens_at' => ['nullable', 'date'],
             'onsite_order_closes_at' => ['nullable', 'date', 'after_or_equal:onsite_order_opens_at'],
             'onsite_penalty_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'badge_vip_info' => ['nullable', 'string', 'max:50000'],
             'tmp_poster_image' => ['nullable', 'string'],
             'tmp_visitor_eguide' => ['nullable', 'string'],
             'order_form_deadline' => ['nullable', 'date'],

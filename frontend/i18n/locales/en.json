@@ -120,7 +120,6 @@
     "inactive": "Inactive",
     "companyInformation": "Company Information",
     "companyName": "Company Name",
-    "companyAddress": "Company Address",
     "companyEmail": "Company Email",
     "companyPhone": "Company Phone",
     "projectSpecificInfo": "Project-Specific Information",
@@ -376,11 +375,6 @@
       "failedToUpload": "Failed to upload file",
       "responseSubmitted": "Response submitted",
       "failedToSubmit": "Failed to submit"
-    },
-    "badgeVip": {
-      "title": "Exhibitor Badges & VIP Invitation Information",
-      "titleShort": "Badge & VIP Information",
-      "summary": "Information about exhibitor badges and VIP passes."
     },
     "order": {
       "title": "Order Form",

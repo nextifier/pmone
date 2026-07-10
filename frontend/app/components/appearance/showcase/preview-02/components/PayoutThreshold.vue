@@ -107,7 +107,7 @@ const amount = ref([2500])
           </FieldLabel>
           <Textarea
             id="payout-notes"
-            placeholder="Add any notes for this payout configuration..."
+            placeholder="Add any notes for this payout configuration"
             class="min-h-[100px]"
           />
         </Field>

@@ -248,6 +248,9 @@ const props = defineProps({
   initialFields: { type: Array, default: () => [] },
 });
 
+/** The document's type and filters are derived from its fields, so the list that owns this builder has to refetch. */
+const emit = defineEmits(["changed"]);
+
 const client = useSanctumClient();
 
 const LOCALES = [
@@ -274,6 +277,7 @@ watch(
 
 async function refresh() {
   pending.value = true;
+  emit("changed");
   try {
     const res = await client(props.fieldsBase);
     fields.value = res?.data ?? [];

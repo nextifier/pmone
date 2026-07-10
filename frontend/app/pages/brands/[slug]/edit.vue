@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-2xl space-y-6 py-6">
+  <div class="mx-auto max-w-2xl space-y-6 py-6 lg:max-w-6xl">
     <div class="flex items-center gap-x-3">
       <ButtonBack destination="/brands" :show-label="true" force-destination />
     </div>
@@ -9,19 +9,29 @@
       <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
     </div>
 
-    <template v-else-if="brand">
-      <BrandFormBrandProfile
-        :brand="brand"
-        :api-url="`/api/brands/${slug}`"
-        :show-logo="true"
-        :show-status="true"
-        :show-categories="true"
-        :show-links="true"
-        :business-category-options="businessCategoryOptions"
-        :custom-field-definitions="customFieldDefinitions"
-        :custom-field-initial-values="customFieldValues"
-        @saved="fetchBrand"
-      />
+    <TabsRoot v-else-if="brand" v-model="activeTab" class="relative contents">
+      <div class="grid gap-6 lg:grid-cols-5">
+        <!-- Edit column -->
+        <TabsContent
+          value="edit"
+          force-mount
+          class="space-y-6 outline-none max-lg:data-[state=inactive]:hidden lg:col-span-3"
+        >
+          <BrandFormBrandProfile
+            :brand="brand"
+            :api-url="`/api/brands/${slug}`"
+            :show-logo="true"
+            :show-status="true"
+            :show-categories="true"
+            :show-links="true"
+            :business-category-options="businessCategoryOptions"
+            :custom-field-definitions="customFieldDefinitions"
+            :custom-field-initial-values="customFieldValues"
+            :live-preview="true"
+            :preview-booth-number="previewBoothNumber"
+            @update:preview-data="previewData = $event"
+            @saved="fetchBrand"
+          />
 
       <!-- Members (PIC) -->
       <div class="frame">
@@ -142,7 +152,26 @@
           </div>
         </div>
       </div>
-    </template>
+        </TabsContent>
+
+        <!-- Preview column -->
+        <TabsContent
+          value="preview"
+          force-mount
+          class="outline-none max-lg:data-[state=inactive]:hidden lg:col-span-2"
+        >
+          <BrandLivePreview
+            :preview="previewData"
+            class="lg:sticky lg:top-[var(--navbar-height-desktop)]"
+          />
+        </TabsContent>
+      </div>
+
+      <!-- Mobile pill trigger -->
+      <div class="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 lg:hidden">
+        <BrandPreviewTabsTrigger />
+      </div>
+    </TabsRoot>
 
     <!-- Not Found -->
     <div v-else class="flex flex-col items-center justify-center gap-3 py-20">
@@ -158,14 +187,20 @@
 </template>
 
 <script setup>
+import BrandLivePreview from "@/components/brand/preview/BrandLivePreview.vue";
+import BrandPreviewTabsTrigger from "@/components/brand/preview/BrandPreviewTabsTrigger.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TabsContent, TabsRoot } from "reka-ui";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
 const { $dayjs } = useNuxtApp();
+
+const activeTab = ref("edit");
+const previewData = ref({});
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
@@ -187,6 +222,10 @@ const businessCategoryOptions = ref([]);
 const customFieldDefinitions = ref([]);
 const customFieldValues = ref({});
 const members = ref([]);
+
+// The brand payload isn't scoped to a single event, so booth number is not
+// known here; the preview shows a placeholder.
+const previewBoothNumber = computed(() => null);
 
 const fetchBrand = async () => {
   try {

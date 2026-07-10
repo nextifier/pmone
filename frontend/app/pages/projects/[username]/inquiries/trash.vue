@@ -25,7 +25,7 @@
       model="inquiries-trash"
       :show-add-button="false"
       search-column="subject"
-      search-placeholder="Search subject, name, email..."
+      search-placeholder="Search subject, name, email"
       error-title="Error loading trashed inquiries"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

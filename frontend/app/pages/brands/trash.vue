@@ -28,7 +28,7 @@
       model="brands-trash"
       search-column="brand_name"
       :show-add-button="false"
-      search-placeholder="Search brands..."
+      search-placeholder="Search brands"
       error-title="Error loading trashed brands"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
@@ -298,7 +298,7 @@ const columns = [
       const brand = row.original;
       return h("div", { class: "flex items-center gap-x-2" }, [
         h(resolveComponent("Avatar"), {
-          model: { name: brand.brand_name, profile_image: brand.brand_logo },
+          model: { name: brand.brand_name, profile_image: brand.profile_image },
           class: "size-10",
           rounded: "rounded-lg",
         }),

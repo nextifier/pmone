@@ -5,7 +5,7 @@
       <span class="text-foreground truncate text-sm font-medium tracking-tight">
         {{ currentStep.label }}
       </span>
-      <span class="text-muted-foreground shrink-0 text-xs tracking-tight">
+      <span class="text-muted-foreground shrink-0 text-sm tracking-tight">
         {{ completedCount }}/{{ steps.length }}
       </span>
     </div>
@@ -30,7 +30,7 @@
         >
           <div
             :class="[
-              'flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium tracking-tight transition-colors sm:text-sm',
+              'flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-medium tracking-tight transition-colors sm:text-sm',
               step.locked
                 ? 'bg-muted text-foreground'
                 : step.completed

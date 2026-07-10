@@ -44,7 +44,6 @@ class UpdateEventRequest extends FormRequest
             'onsite_order_closes_at' => ['nullable', 'date', 'after_or_equal:onsite_order_opens_at'],
             'onsite_penalty_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'order_form_content' => ['nullable', 'string', 'max:50000'],
-            'badge_vip_info' => ['nullable', 'string', 'max:50000'],
             'tmp_poster_image' => ['nullable', 'string'],
             'delete_poster_image' => ['nullable', 'boolean'],
             'tmp_visitor_eguide' => ['nullable', 'string'],

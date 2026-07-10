@@ -19,7 +19,7 @@
             collection="description_images"
             :sticky="false"
             min-height="150px"
-            placeholder="Write terms & conditions or important information for exhibitors..."
+            placeholder="Write terms & conditions or important information for exhibitors"
           />
         </div>
 
@@ -194,29 +194,6 @@
         </div>
       </div>
 
-      <!-- Badge & VIP Info -->
-      <div class="space-y-4">
-        <div class="space-y-1">
-          <Label class="text-base font-semibold tracking-tight">Badge & VIP Information</Label>
-          <p class="text-muted-foreground text-xs tracking-tight">
-            Information about exhibitor badges, VIP passes, and related policies.
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <Label for="badge_vip_info">Badge & VIP Info Content</Label>
-          <TipTapEditor
-            v-model="form.badge_vip_info"
-            model-type="App\Models\Event"
-            collection="description_images"
-            :sticky="false"
-            min-height="150px"
-            placeholder="Write badge and VIP information for exhibitors..."
-          />
-          <FieldError :errors="errors.badge_vip_info" />
-        </div>
-      </div>
-
       <div class="flex justify-end">
         <Button type="submit" :disabled="saving">
           <Spinner v-if="saving" />
@@ -257,7 +234,7 @@
             name="hugeicons:search-01"
             class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2"
           />
-          <Input v-model="docSearch" placeholder="Search documents..." class="pl-9" />
+          <Input v-model="docSearch" placeholder="Search documents" class="pl-9" />
         </div>
 
         <Select v-model="selectedDocType">
@@ -266,9 +243,9 @@
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All types</SelectItem>
-            <SelectItem value="checkbox_agreement">Checkbox Agreement</SelectItem>
-            <SelectItem value="file_upload">File Upload</SelectItem>
-            <SelectItem value="text_input">Text Input</SelectItem>
+            <SelectItem v-for="kind in documentKindOptions" :key="kind.key" :value="kind.key">
+              {{ kind.label }}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -373,8 +350,8 @@
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <Badge variant="muted" class="font-normal">
-                    {{ documentTypeLabel(doc.document_type) }}
+                  <Badge variant="muted" class="font-normal whitespace-nowrap">
+                    {{ documentKind(doc).label }}
                   </Badge>
                 </td>
                 <td class="text-muted-foreground px-4 py-3 tracking-tight">
@@ -449,6 +426,7 @@
             :document="editingDocument"
             :api-base="docApiBase"
             @success="onDocFormSuccess"
+            @changed="fetchDocuments"
           />
         </div>
       </template>
@@ -527,7 +505,6 @@ const form = reactive({
   onsite_order_opens_at: null,
   onsite_order_closes_at: null,
   onsite_penalty_rate: 50,
-  badge_vip_info: "",
   settings: {},
 });
 
@@ -552,7 +529,6 @@ function populateForm(data) {
     : null;
   form.onsite_penalty_rate =
     data.onsite_penalty_rate != null ? Math.round(data.onsite_penalty_rate) : 50;
-  form.badge_vip_info = data.badge_vip_info || "";
   form.settings = data.settings || {};
   const emails = data.settings?.notification_emails || [];
   notificationEmails.value = emails.length > 0 ? emails : [""];
@@ -590,7 +566,6 @@ async function handleSubmit() {
         onsite_order_opens_at: formatDateTimeForBackend(form.onsite_order_opens_at),
         onsite_order_closes_at: formatDateTimeForBackend(form.onsite_order_closes_at),
         onsite_penalty_rate: form.onsite_penalty_rate ?? 50,
-        badge_vip_info: form.badge_vip_info || null,
         settings: {
           ...form.settings,
           notification_emails: notificationEmails.value.filter((e) => e.trim()),
@@ -673,32 +648,22 @@ const filteredDocuments = computed(() => {
   }
 
   if (selectedDocType.value && selectedDocType.value !== "all") {
-    result = result.filter((d) => d.document_type === selectedDocType.value);
+    result = result.filter((d) => documentKind(d).key === selectedDocType.value);
   }
 
   return result;
 });
 
-const documentTypeLabels = {
-  checkbox_agreement: "Checkbox",
-  file_upload: "File Upload",
-  text_input: "Text Input",
-};
-
-function documentTypeLabel(type) {
-  return documentTypeLabels[type] || type;
-}
-
-const boothTypeLabels = {
-  raw_space: "Raw Space",
-  standard_shell_scheme: "Standard Shell",
-  enhanced_shell_scheme: "Enhanced Shell",
-  table_chair_only: "Table & Chair",
-};
-
-function boothTypeLabel(type) {
-  return boothTypeLabels[type] || type;
-}
+const documentKindOptions = computed(() => {
+  const seen = new Map();
+  for (const doc of documents.value) {
+    const kind = documentKind(doc);
+    if (!seen.has(kind.key)) seen.set(kind.key, kind.filterLabel);
+  }
+  return [...seen.entries()]
+    .map(([key, label]) => ({ key, label }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+});
 
 function formatDate(dateStr) {
   if (!dateStr) return "";

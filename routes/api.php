@@ -476,6 +476,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Order management endpoints (nested under events)
     Route::prefix('projects/{username}/events/{eventSlug}/orders')->group(function () {
         Route::get('/export', [OrderController::class, 'export'])->name('orders.export');
+        Route::get('/create-info', [OrderController::class, 'createInfo'])->name('orders.create-info');
+        Route::post('/', [OrderController::class, 'store'])->name('orders.store');
         Route::get('/', [OrderController::class, 'index'])->name('orders.index');
         Route::get('/{ulid}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('/{ulid}/operational-status', [OrderController::class, 'updateOperationalStatus'])->name('orders.update-operational-status');
@@ -563,6 +565,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/brands/import/template', [BrandController::class, 'downloadTemplate'])->middleware('can:brands.create')->name('brands.import.template');
     Route::post('/brands/import', [BrandController::class, 'import'])->middleware('can:brands.create')->name('brands.import');
     Route::get('/brands/search', [BrandController::class, 'search'])->name('brands.search');
+    Route::get('/brands/filter-options', [BrandController::class, 'filterOptions'])->middleware('can:brands.read')->name('brands.filter-options');
     Route::get('/brands/{brand}', [BrandController::class, 'show'])->middleware('can:brands.read')->name('brands.show');
     Route::put('/brands/{brand}', [BrandController::class, 'update'])->middleware('can:brands.update')->name('brands.update');
     Route::delete('/brands/bulk', [BrandController::class, 'bulkDestroy'])->middleware('can:brands.delete')->name('brands.bulk-destroy');
@@ -914,6 +917,9 @@ Route::get('/sheets/brands', [SheetsController::class, 'brands'])
 Route::get('/sheets/brand-events', [SheetsController::class, 'brandEvents'])
     ->middleware('throttle:60,1')
     ->name('sheets.brand-events');
+Route::get('/sheets/operational-documents', [SheetsController::class, 'operationalDocuments'])
+    ->middleware('throttle:60,1')
+    ->name('sheets.operational-documents');
 
 // Contact form submission (per-IP throttle first to reject floods cheaply, then API key for CORS)
 Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])

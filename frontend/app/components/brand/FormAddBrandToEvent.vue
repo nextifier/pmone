@@ -12,7 +12,7 @@
           <AutocompleteRoot v-model="searchTerm" :ignore-filter="true">
             <AutocompleteAnchor as-child>
               <AutocompleteInput
-                placeholder="Type to search brands..."
+                placeholder="Type to search brands"
                 autocomplete="off"
                 class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
                 auto-focus
@@ -34,8 +34,8 @@
                     @select="selectedBrand = brand"
                   >
                     <img
-                      v-if="brand.brand_logo?.thumbnail || brand.brand_logo?.sm"
-                      :src="brand.brand_logo.thumbnail || brand.brand_logo.sm"
+                      v-if="brand.profile_image?.sm"
+                      :src="brand.profile_image.sm"
                       class="size-6 rounded object-cover"
                       alt=""
                     />
@@ -132,6 +132,16 @@
         </div>
 
         <div class="space-y-2">
+          <Label for="brand_notes">Notes</Label>
+          <Textarea
+            id="brand_notes"
+            v-model="form.notes"
+            rows="3"
+            placeholder="Internal notes"
+          />
+        </div>
+
+        <div class="space-y-2">
           <Label>PIC Email(s)</Label>
           <div class="space-y-2">
             <div v-for="(email, i) in form.emails" :key="i" class="flex gap-2">
@@ -211,6 +221,7 @@ const form = reactive({
   booth_type: "",
   company_name: "",
   sales_id: null,
+  notes: "",
   emails: [""],
   send_login_email: false,
 });
@@ -281,6 +292,7 @@ watch(isOpen, (val) => {
     form.company_name = "";
     form.sales_id = null;
     salesSearch.value = "";
+    form.notes = "";
     form.emails = [""];
     form.send_login_email = false;
     errors.value = {};
@@ -310,6 +322,7 @@ async function submit() {
         booth_type: form.booth_type || null,
         company_name: form.company_name || null,
         sales_id: form.sales_id || null,
+        notes: form.notes?.trim() || null,
         emails,
         send_login_email: form.send_login_email,
       },

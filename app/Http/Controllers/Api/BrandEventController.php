@@ -28,6 +28,7 @@ use App\Models\User;
 use App\Notifications\BrandInvitedToEventNotification;
 use App\Notifications\PromotionPostUploadedNotification;
 use App\Support\CustomFieldValidation;
+use App\Support\ImageDimensions;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -190,6 +191,7 @@ class BrandEventController extends Controller
             'badge_name' => ['nullable', 'string', 'max:255'],
             'fascia_name' => ['nullable', 'string', 'max:24'],
             'sales_id' => ['nullable', 'integer', 'exists:users,id'],
+            'notes' => ['nullable', 'string'],
             'emails' => ['nullable', 'array'],
             'emails.*' => ['email'],
             'send_login_email' => ['nullable', 'boolean'],
@@ -241,6 +243,7 @@ class BrandEventController extends Controller
             'badge_name' => $validated['badge_name'] ?? null,
             'fascia_name' => $validated['fascia_name'] ?? null,
             'sales_id' => $validated['sales_id'] ?? null,
+            'notes' => $validated['notes'] ?? null,
         ]);
 
         // Process emails - find or create users and attach to brand
@@ -328,7 +331,7 @@ class BrandEventController extends Controller
         $boothIdentifier = $brandEvent->booth_number ?: "be-{$brandEvent->id}";
 
         $documents = $event->eventDocuments()
-            ->with('media')
+            ->with(['media', 'fields'])
             ->ordered()
             ->get()
             ->filter(fn ($doc) => $doc->appliesToBoothType($brandEvent->booth_type?->value));
@@ -345,14 +348,9 @@ class BrandEventController extends Controller
 
             $status = 'pending';
             if ($submission) {
-                $needsReagreement = $submission->document_version < $doc->content_version;
-                if ($needsReagreement) {
+                if ($submission->document_version < $doc->content_version) {
                     $status = 'needs_reagreement';
-                } elseif ($doc->document_type === 'checkbox_agreement' && $submission->agreed_at) {
-                    $status = 'completed';
-                } elseif ($doc->document_type === 'file_upload' && $submission->hasMedia('submission_file')) {
-                    $status = 'completed';
-                } elseif ($doc->document_type === 'text_input' && $submission->text_value) {
+                } elseif ($doc->isSubmissionComplete($submission)) {
                     $status = 'completed';
                 }
             }
@@ -361,10 +359,44 @@ class BrandEventController extends Controller
                 'document' => new EventDocumentResource($doc),
                 'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
                 'status' => $status,
+                // Staff-only upload history, grouped by field, newest version
+                // first. This is the audit trail for file re-uploads.
+                'file_history' => $submission ? $this->buildFileHistory($submission) : [],
             ];
         })->values();
 
         return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Build the per-field version history of submission files for staff review.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildFileHistory(EventDocumentSubmission $submission): array
+    {
+        return $submission->getMedia('submission_file')
+            ->groupBy(fn ($media) => $media->getCustomProperty('field_ulid') ?? 'legacy')
+            ->map(fn ($group, $fieldUlid) => [
+                'field_ulid' => $fieldUlid,
+                'versions' => $group
+                    ->sortByDesc(fn ($media) => (int) $media->getCustomProperty('version', 1))
+                    ->values()
+                    ->map(fn ($media) => [
+                        'id' => $media->id,
+                        'name' => $media->file_name,
+                        'url' => $media->getUrl(),
+                        'size' => $media->size,
+                        'mime_type' => $media->mime_type,
+                        'version' => (int) $media->getCustomProperty('version', 1),
+                        'is_current' => $media->getCustomProperty('superseded_at') === null,
+                        'uploaded_at' => $media->created_at?->toIso8601String(),
+                        'uploaded_by_name' => $media->getCustomProperty('uploaded_by_name'),
+                        'superseded_at' => $media->getCustomProperty('superseded_at'),
+                    ]),
+            ])
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -420,10 +452,16 @@ class BrandEventController extends Controller
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'company_name' => ['nullable', 'string', 'max:255'],
-            'company_address' => ['nullable', 'string'],
+            'address' => ['nullable', 'array'],
+            'address.street' => ['nullable', 'string', 'max:1000'],
+            'address.city' => ['nullable', 'string', 'max:255'],
+            'address.province' => ['nullable', 'string', 'max:255'],
+            'address.country' => ['nullable', 'string', 'max:255'],
             'company_email' => ['nullable', 'email', 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'custom_fields' => ['nullable', 'array'],
+            'tmp_profile_image' => ['nullable', 'string'],
+            'delete_profile_image' => ['nullable', 'boolean'],
             'tmp_brand_logo' => ['nullable', 'string'],
             'delete_brand_logo' => ['nullable', 'boolean'],
             'business_categories' => ['nullable', 'array'],
@@ -449,15 +487,21 @@ class BrandEventController extends Controller
 
         // Update brand fields
         $brandFields = collect($validated)->only([
-            'name', 'description', 'company_name', 'company_address',
+            'name', 'description', 'company_name', 'address',
             'company_email', 'company_phone', 'custom_fields',
         ])->filter(fn ($value) => $value !== null)->toArray();
+
+        // A null address means "clear it", which the filter above would drop.
+        if ($request->has('address')) {
+            $brandFields['address'] = $validated['address'] ?? null;
+        }
 
         if (! empty($brandFields)) {
             $brand->update($brandFields);
         }
 
-        // Handle brand logo upload
+        // Handle avatar + raw master logo uploads
+        $this->handleTemporaryUpload($request, $brand, 'tmp_profile_image', 'profile_image');
         $this->handleTemporaryUpload($request, $brand, 'tmp_brand_logo', 'brand_logo');
 
         // Process content images in description
@@ -1134,15 +1178,24 @@ class BrandEventController extends Controller
             return;
         }
 
+        $absolutePath = Storage::disk('local')->path($filePath);
+
+        if ($collection === 'profile_image'
+            && ! ImageDimensions::meetsMinimum($absolutePath, $metadata['mime_type'] ?? '')) {
+            throw ValidationException::withMessages([
+                'tmp_profile_image' => 'Profile image must be at least 1000x1000 pixels.',
+            ]);
+        }
+
         $model->clearMediaCollection($collection);
 
-        $model->addMedia(Storage::disk('local')->path($filePath))
+        $model->addMedia($absolutePath)
             ->toMediaCollection($collection);
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
 
-        // Logo media is committed after the caller's $brand->update(), so bust
-        // again here to avoid repopulating the cache with the old logo.
+        // Avatar/logo media is committed after the caller's $brand->update(),
+        // so bust again here to avoid repopulating the cache with old media.
         ResponseCache::clear(['brands']);
     }
 

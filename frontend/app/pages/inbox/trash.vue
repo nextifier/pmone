@@ -28,7 +28,7 @@
       model="inbox-trash"
       search-column="subject"
       :show-add-button="false"
-      search-placeholder="Search subject, name, email..."
+      search-placeholder="Search subject, name, email"
       error-title="Error loading trashed submissions"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

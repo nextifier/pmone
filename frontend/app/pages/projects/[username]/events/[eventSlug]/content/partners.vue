@@ -335,7 +335,7 @@
                 <ComboboxAnchor class="w-full">
                   <ComboboxInput
                     v-model="partnerSearchTerm"
-                    placeholder="Search partners..."
+                    placeholder="Search partners"
                     autocomplete="off"
                     auto-focus
                     class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"

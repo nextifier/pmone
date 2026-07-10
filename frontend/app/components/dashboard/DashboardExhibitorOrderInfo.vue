@@ -19,7 +19,7 @@
               - {{ formatDateTime(be.normal_order_closes_at) }}
             </template>
           </p>
-          <p v-if="normalStatus.label" :class="['text-xs sm:text-sm', normalStatus.color]">
+          <p v-if="normalStatus.label" :class="['text-sm', normalStatus.color]">
             {{ normalStatus.label }}
           </p>
         </div>
@@ -42,10 +42,10 @@
               - {{ formatDateTime(be.onsite_order_closes_at) }}
             </template>
           </p>
-          <p class="text-muted-foreground text-xs sm:text-sm">
+          <p class="text-muted-foreground text-sm">
             {{ $t("ed.order.surcharge", { rate: be.onsite_penalty_rate }) }}
           </p>
-          <p v-if="onsiteStatus.label" :class="['text-xs sm:text-sm', onsiteStatus.color]">
+          <p v-if="onsiteStatus.label" :class="['text-sm', onsiteStatus.color]">
             {{ onsiteStatus.label }}
           </p>
         </div>

@@ -298,7 +298,7 @@
 
             <div class="space-y-2">
               <Label>Cancellation Policy</Label>
-              <Textarea v-model="form.cancellation_policy" rows="2" placeholder="Free cancellation up to X days..." />
+              <Textarea v-model="form.cancellation_policy" rows="2" placeholder="Free cancellation up to X days" />
             </div>
 
             <div class="space-y-2">
@@ -311,7 +311,7 @@
                   <TagsInputItemText />
                   <TagsInputItemDelete />
                 </TagsInputItem>
-                <TagsInputInput placeholder="Add facility..." />
+                <TagsInputInput placeholder="Add facility" />
               </TagsInput>
             </div>
 

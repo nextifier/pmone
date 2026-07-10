@@ -81,7 +81,7 @@
           <Avatar
             :model="{
               name: order.brand_event.brand.name,
-              profile_image: order.brand_event.brand.brand_logo,
+              profile_image: order.brand_event.brand.profile_image,
             }"
             class="size-9"
             rounded="rounded-md"

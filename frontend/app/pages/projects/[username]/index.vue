@@ -26,7 +26,7 @@
         <input
           v-model="search"
           type="text"
-          placeholder="Search events..."
+          placeholder="Search events"
           class="border-border bg-background placeholder:text-muted-foreground h-9 w-full rounded-lg border py-1 pr-3 pl-9 text-sm tracking-tight focus:outline-none"
         />
       </div>

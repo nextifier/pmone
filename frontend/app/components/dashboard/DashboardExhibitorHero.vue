@@ -26,7 +26,7 @@
           </p>
           <div
             v-if="currentAction.deadline"
-            class="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs tracking-tight sm:text-sm"
+            class="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-sm tracking-tight sm:text-sm"
           >
             <Icon name="hugeicons:clock-01" class="size-3.5" />
             <span>{{ currentAction.deadline }}</span>

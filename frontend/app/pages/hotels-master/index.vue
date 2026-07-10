@@ -36,7 +36,7 @@
       :client-only="false"
       :show-add-button="false"
       search-column="name"
-      search-placeholder="Search hotel name or city..."
+      search-placeholder="Search hotel name or city"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
       :initial-column-filters="columnFilters"

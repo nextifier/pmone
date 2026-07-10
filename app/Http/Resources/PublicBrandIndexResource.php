@@ -14,13 +14,24 @@ class PublicBrandIndexResource extends JsonResource
 
         $profile = app(BrandProfileScoreService::class)->score($this->resource);
 
+        // Avatar shown on the public exhibitors list. During the migration
+        // window (before brands:copy-logo-to-profile-image runs), fall back to
+        // the legacy brand_logo media so sites keep an avatar. `brand_logo` is
+        // kept as a DEPRECATED alias so the 11 event sites (deployed
+        // non-atomically) don't break; remove it once all sites read
+        // profile_image.
+        $profileImage = $brand?->relationLoaded('media')
+            ? ($brand->profile_image ?? $brand->getMediaUrls('brand_logo'))
+            : null;
+
         return [
             'id' => $brand?->id,
             'brand_event_id' => $this->id,
             'slug' => $brand?->slug,
             'brand_name' => $brand?->name,
             'company_name' => $brand?->company_name,
-            'brand_logo' => $brand?->relationLoaded('media') ? $brand->brand_logo : null,
+            'profile_image' => $profileImage,
+            'brand_logo' => $profileImage,
             'business_categories' => $brand?->relationLoaded('tags')
                 ? $brand->business_categories_list
                 : [],

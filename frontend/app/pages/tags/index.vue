@@ -18,7 +18,7 @@
       model="tags"
       label="Tag"
       search-column="name"
-      search-placeholder="Search tags..."
+      search-placeholder="Search tags"
       error-title="Error loading tags"
       :initial-pagination="pagination"
       :initial-sorting="sorting"

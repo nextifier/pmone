@@ -14,7 +14,7 @@
 
     <!-- Command dialog -->
     <CommandDialog v-model:open="open">
-      <CommandInput placeholder="Search documentation..." />
+      <CommandInput placeholder="Search documentation" />
       <CommandList class="h-[50vh]! max-h-[50vh]">
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup v-for="group in groupedDocs" :key="group.label" :heading="group.label">

@@ -145,7 +145,7 @@
                   </p>
                   <Textarea
                     v-model="draftCaptions[item[idKey]]"
-                    placeholder="Describe this photo…"
+                    placeholder="Describe this photo"
                     rows="3"
                     class="resize-none"
                   />

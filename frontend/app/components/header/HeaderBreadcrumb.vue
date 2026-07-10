@@ -68,10 +68,10 @@
               class="flex items-center gap-x-1.5"
             >
               <Avatar
-                v-if="headerBrand.brand?.brand_logo"
+                v-if="headerBrand.brand?.profile_image"
                 :model="{
                   name: headerBrand.brand.name,
-                  profile_image: headerBrand.brand.brand_logo,
+                  profile_image: headerBrand.brand.profile_image,
                 }"
                 class="size-7"
                 rounded="rounded-sm"

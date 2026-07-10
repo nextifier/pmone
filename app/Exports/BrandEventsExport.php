@@ -22,12 +22,14 @@ class BrandEventsExport extends BaseExport
         protected ?string $sort = null
     ) {
         $this->eventDocuments = EventDocument::where('event_id', $this->eventId)
+            ->with('fields')
             ->ordered()
             ->get()
             ->reject(fn (EventDocument $doc) => $doc->isEventRule())
             ->values();
 
         $this->documentSubmissions = EventDocumentSubmission::where('event_id', $this->eventId)
+            ->with('media')
             ->get()
             ->groupBy('booth_identifier');
     }
@@ -42,7 +44,7 @@ class BrandEventsExport extends BaseExport
 
     protected function phoneColumns(): array
     {
-        return ['F'];
+        return ['I'];
     }
 
     public function headings(): array
@@ -52,9 +54,13 @@ class BrandEventsExport extends BaseExport
             'Brand Name',
             'Company Name',
             'Company Email',
-            'Company Address',
+            'Country',
+            'Province',
+            'City',
+            'Street Address',
             'Company Phone',
             'Status',
+            'Profile Image URL',
             'Logo URL',
             'Booth Number',
             'Booth Size (sqm)',
@@ -87,7 +93,8 @@ class BrandEventsExport extends BaseExport
     {
         $brand = $brandEvent->brand;
 
-        // Get brand logo original URL (strip version query string)
+        // Profile image (avatar) md conversion + raw brand logo original URL
+        $profileImageUrl = $this->cleanMediaUrl($brand->getFirstMediaUrl('profile_image', 'md'));
         $logoUrl = $this->cleanMediaUrl($brand->getFirstMediaUrl('brand_logo'));
 
         // Get PIC members (emails only)
@@ -109,9 +116,13 @@ class BrandEventsExport extends BaseExport
             $brand->name ?? '-',
             $brand->company_name ?? '-',
             $brand->company_email ?? '-',
-            $brand->company_address ?? '-',
+            data_get($brand->address, 'country') ?? '-',
+            data_get($brand->address, 'province') ?? '-',
+            data_get($brand->address, 'city') ?? '-',
+            data_get($brand->address, 'street') ?? '-',
             $brand->company_phone ?? '-',
             $this->titleCase($brandEvent->status),
+            $profileImageUrl,
             $logoUrl,
             $brandEvent->booth_number ?? '-',
             $brandEvent->booth_size ?? '-',
@@ -133,17 +144,7 @@ class BrandEventsExport extends BaseExport
         foreach ($this->eventDocuments as $doc) {
             $submission = $submissions->firstWhere('event_document_id', $doc->id);
 
-            if (! $submission) {
-                $row[] = '-';
-            } elseif ($doc->document_type === 'checkbox_agreement') {
-                $row[] = $submission->agreed_at ? 'Agreed ('.$submission->submitted_at?->format('Y-m-d H:i').')' : '-';
-            } elseif ($doc->document_type === 'file_upload') {
-                $row[] = $this->cleanMediaUrl($submission->getFirstMediaUrl('submission_file'));
-            } elseif ($doc->document_type === 'text_input') {
-                $row[] = $submission->text_value ?: '-';
-            } else {
-                $row[] = '-';
-            }
+            $row[] = $doc->submissionSummary($submission);
         }
 
         return $row;

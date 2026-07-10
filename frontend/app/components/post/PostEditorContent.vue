@@ -26,7 +26,7 @@
             v-model="titleField"
             required
             rows="1"
-            placeholder="Post title..."
+            placeholder="Post title"
             class="placeholder:text-muted-foreground/50 leading-tighter w-full resize-none border-0 bg-transparent px-0 text-3xl leading-tight! font-semibold tracking-tighter shadow-none outline-none focus-visible:ring-0 lg:text-4xl"
           />
           <FieldError :errors="localizedErrors('title')" />
@@ -62,7 +62,7 @@
               v-model="editor.form.featured_image_caption"
               type="text"
               maxlength="500"
-              placeholder="Add a caption..."
+              placeholder="Add a caption"
               class="text-muted-foreground w-full border-none bg-transparent text-center text-sm outline-none placeholder:text-muted-foreground/50 focus:text-foreground"
             />
             <FieldError :errors="editor.errors.value.featured_image_caption" />
@@ -75,7 +75,7 @@
           <TipTapEditor
             v-model="contentField"
             :post-id="editor.postId.value"
-            placeholder="Start writing your post content..."
+            placeholder="Start writing your post content"
           />
           <FieldError :errors="localizedErrors('content')" />
         </div>

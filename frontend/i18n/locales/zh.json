@@ -120,7 +120,6 @@
     "inactive": "停用",
     "companyInformation": "公司信息",
     "companyName": "公司名称",
-    "companyAddress": "公司地址",
     "companyEmail": "公司邮箱",
     "companyPhone": "公司电话",
     "projectSpecificInfo": "项目专属信息",
@@ -364,11 +363,6 @@
       "failedToUpload": "上传失败，请重试",
       "responseSubmitted": "已提交",
       "failedToSubmit": "提交失败"
-    },
-    "badgeVip": {
-      "title": "参展商胸牌及 VIP 邀请函",
-      "titleShort": "胸牌 / VIP 信息",
-      "summary": "胸牌和 VIP 通行证的相关说明"
     },
     "order": {
       "title": "订购表",

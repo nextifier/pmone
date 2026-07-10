@@ -80,7 +80,7 @@
       <div class="border-border rounded-xl border p-5">
         <div class="flex items-start gap-x-4">
           <Avatar
-            :model="{ name: brand.name, profile_image: brand.brand_logo }"
+            :model="{ name: brand.name, profile_image: brand.profile_image }"
             class="size-14 shrink-0"
             rounded="rounded-xl"
           />

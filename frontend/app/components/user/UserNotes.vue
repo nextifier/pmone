@@ -13,7 +13,7 @@
         <Textarea
           v-model="draft"
           :rows="2"
-          placeholder="Add a private note about this user..."
+          placeholder="Add a private note about this user"
           class="resize-y"
         />
         <div class="flex justify-end">

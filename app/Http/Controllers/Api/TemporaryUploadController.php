@@ -17,6 +17,7 @@ class TemporaryUploadController extends Controller
     {
         $request->validate([
             'file' => ['required', 'file', 'max:20480'], // 20MB max
+            'skip_optimize' => ['sometimes', 'boolean'],
         ]);
 
         $file = $request->file('file');
@@ -32,9 +33,12 @@ class TemporaryUploadController extends Controller
 
         // Downscale + compress the original before it ever reaches a media
         // collection, so huge uploads don't waste disk. No-op for non-images
-        // and already-small files.
+        // and already-small files. Master assets (raw brand logo) opt out via
+        // skip_optimize so they are stored at full resolution.
         $absolutePath = Storage::disk('local')->path($path);
-        ImageOptimizer::compressInPlace($absolutePath);
+        if (! $request->boolean('skip_optimize')) {
+            ImageOptimizer::compressInPlace($absolutePath);
+        }
 
         // Store metadata
         Storage::disk('local')->put(

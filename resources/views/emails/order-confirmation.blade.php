@@ -1,5 +1,5 @@
 @component('mail::message')
-# Order Confirmation
+# Order Submitted
 
 Thank you for your order for **{{ $event->title }}**.
 
