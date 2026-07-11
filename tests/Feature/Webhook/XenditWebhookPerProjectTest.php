@@ -103,8 +103,12 @@ it('refund.succeeded event syncs refunded_at on matching reservation', function 
         'webhook_token' => 'good-token',
     ]);
 
+    $event = Event::factory()->withoutPaymentGateway()->create([
+        'project_id' => $this->project->id,
+    ]);
     $hotel = Hotel::factory()->create();
     $reservation = Reservation::factory()->create([
+        'event_id' => $event->id,
         'hotel_id' => $hotel->id,
         'status' => ReservationStatus::Paid,
         'paid_at' => now()->subDays(2),
@@ -168,8 +172,12 @@ it('refund.failed event logs and acknowledges without state change', function ()
         'webhook_token' => 'good-token',
     ]);
 
+    $event = Event::factory()->withoutPaymentGateway()->create([
+        'project_id' => $this->project->id,
+    ]);
     $hotel = Hotel::factory()->create();
     $reservation = Reservation::factory()->create([
+        'event_id' => $event->id,
         'hotel_id' => $hotel->id,
         'status' => ReservationStatus::Paid,
         'xendit_invoice_id' => 'inv_failed_refund',
@@ -195,8 +203,12 @@ it('PAID webhook fired twice dispatches SendBookingReceivedJob exactly once (T3)
         'webhook_token' => 'good-token',
     ]);
 
+    $event = Event::factory()->withoutPaymentGateway()->create([
+        'project_id' => $this->project->id,
+    ]);
     $hotel = Hotel::factory()->create();
     $reservation = Reservation::factory()->create([
+        'event_id' => $event->id,
         'hotel_id' => $hotel->id,
         'status' => ReservationStatus::PendingPayment,
         'reservation_number' => 'HTL-T3-DUP-001',
@@ -232,8 +244,12 @@ it('refund.succeeded webhook fired twice keeps xendit_refund_id stable (T2)', fu
         'webhook_token' => 'good-token',
     ]);
 
+    $event = Event::factory()->withoutPaymentGateway()->create([
+        'project_id' => $this->project->id,
+    ]);
     $hotel = Hotel::factory()->create();
     $reservation = Reservation::factory()->create([
+        'event_id' => $event->id,
         'hotel_id' => $hotel->id,
         'status' => ReservationStatus::Paid,
         'paid_at' => now()->subDays(2),

@@ -177,6 +177,54 @@ class MidtransWebhookController extends Controller
     }
 
     /**
+     * Guard a ticket paid confirmation against an underpaid notification. A
+     * gateway or misconfiguration may report a `gross_amount` smaller than the
+     * order total; confirming on such a payload would issue tickets without
+     * full payment.
+     *
+     * Only enforced when a positive amount is present — a missing/zero amount
+     * is treated as "no amount to compare" and passes. A shortfall beyond a
+     * 1 IDR epsilon is refused (caller must NOT confirm). Overpayment is
+     * allowed but logged for reconciliation.
+     *
+     * @param  mixed  $rawAmount  The notification-reported gross amount.
+     */
+    private function ticketPaymentAmountSufficient(mixed $rawAmount, TicketOrder $order): bool
+    {
+        if ($rawAmount === null || $rawAmount === '') {
+            return true;
+        }
+
+        $paid = (float) $rawAmount;
+        if ($paid <= 0.0) {
+            return true;
+        }
+
+        $total = (float) $order->total;
+        $epsilon = 1.0;
+
+        if ($paid + $epsilon < $total) {
+            Log::warning('Midtrans webhook: payment_amount_mismatch (ticket order underpaid), confirmation skipped', [
+                'ticket_order_id' => $order->id,
+                'order_total' => $total,
+                'paid_amount' => $paid,
+            ]);
+
+            return false;
+        }
+
+        if ($paid > $total + $epsilon) {
+            Log::warning('Midtrans webhook: ticket order overpaid, confirming anyway', [
+                'ticket_order_id' => $order->id,
+                'order_total' => $total,
+                'paid_amount' => $paid,
+            ]);
+        }
+
+        return true;
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      */
     private function processTicket(array $payload, TicketOrder $order, MidtransService $service): JsonResponse
@@ -218,6 +266,10 @@ class MidtransWebhookController extends Controller
                         'payment_channel' => $service->resolveChannel($payload),
                         'amount' => $payload['gross_amount'] ?? null,
                     ]);
+                }
+
+                if (! $this->ticketPaymentAmountSufficient($payload['gross_amount'] ?? null, $locked)) {
+                    return response()->json(['message' => 'Payment amount mismatch (no action)']);
                 }
 
                 // markAsConfirmed flips PendingPayment -> Confirmed atomically and
