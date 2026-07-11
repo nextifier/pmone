@@ -388,6 +388,15 @@ class XenditWebhookController extends Controller
                 return response()->json(['message' => 'Order already confirmed']);
             }
 
+            // Trigger A: a genuine paid event landed after the order already
+            // expired (slow bank transfer / retail settling after the 15-min
+            // hard-expiry job released the seat). Do not hard-reject with 409 —
+            // re-check live availability and either honor the payment or record
+            // it for reconciliation (no oversell).
+            if ($order->status === TicketOrderStatus::Expired) {
+                return $this->settleTicketPaidAfterExpiry($order, $payload);
+            }
+
             if ($order->status->isFinal()) {
                 return response()->json(['message' => 'Order already in final state'], 409);
             }
@@ -419,6 +428,39 @@ class XenditWebhookController extends Controller
         }
 
         return response()->json(['message' => 'Webhook received but no action taken']);
+    }
+
+    /**
+     * Trigger A: settle a paid event for a ticket order that already expired.
+     * Delegates the no-oversell re-check + resurrect/record decision to
+     * TicketPurchaseService::reconfirmAfterExpiry and logs accordingly.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function settleTicketPaidAfterExpiry(TicketOrder $order, array $payload): JsonResponse
+    {
+        $outcome = $this->tickets->reconfirmAfterExpiry($order, $payload);
+
+        if ($outcome === 'reconfirmed') {
+            activity()
+                ->performedOn($order)
+                ->event('payment_paid_after_expiry')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'amount' => $payload['amount'] ?? null,
+                    'invoice_id' => $payload['id'] ?? null,
+                ])
+                ->log('Ticket payment received after expiry - stock still available, order re-confirmed');
+
+            return response()->json(['message' => 'Ticket order re-confirmed after expiry']);
+        }
+
+        if ($outcome === 'needs_reconciliation') {
+            return response()->json(['message' => 'Payment received after expiry but stock is no longer available; recorded for manual reconciliation']);
+        }
+
+        return response()->json(['message' => 'Order already in final state'], 409);
     }
 
     /**
@@ -455,6 +497,17 @@ class XenditWebhookController extends Controller
                 ->first();
 
             if (! $reservation) {
+                // Ticketing reuses the same per-project gateway + webhook URL —
+                // try a ticket order before giving up.
+                $order = TicketOrder::query()
+                    ->where('xendit_invoice_id', $invoiceId)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($order) {
+                    return $this->handleTicketRefundEvent($order, $event, $payloadRefundId, $refundAmount, $failureReason);
+                }
+
                 Log::warning('Xendit refund webhook: reservation not found', ['xendit_invoice_id' => $invoiceId]);
 
                 return response()->json(['message' => 'Reservation not found (acknowledged)']);
@@ -518,6 +571,63 @@ class XenditWebhookController extends Controller
 
             return response()->json(['message' => 'Refund finalized synced']);
         });
+    }
+
+    /**
+     * Ticket-order counterpart of the reservation refund branch above. Only a
+     * still-Confirmed order is settled to Refunded (voiding every attendee via
+     * TicketPurchaseService::refundOrder); a redelivered event for an order
+     * already Refunded is a no-op acknowledgement.
+     */
+    private function handleTicketRefundEvent(TicketOrder $order, string $event, ?string $payloadRefundId, mixed $refundAmount, ?string $failureReason): JsonResponse
+    {
+        if ($event === 'refund.failed') {
+            Log::error('Xendit refund failed (webhook, ticket order)', [
+                'ticket_order_id' => $order->id,
+                'reason' => $failureReason,
+            ]);
+
+            activity()
+                ->performedOn($order)
+                ->event('refund_failed')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'failure_reason' => $failureReason,
+                    'refund_id' => $payloadRefundId,
+                ])
+                ->log('Xendit refund failed');
+
+            return response()->json(['message' => 'Refund failure logged']);
+        }
+
+        if ($order->status === TicketOrderStatus::Refunded) {
+            return response()->json(['message' => 'Refund already synced']);
+        }
+
+        if ($order->status !== TicketOrderStatus::Confirmed) {
+            Log::warning('Xendit refund webhook: ticket order not eligible for refund sync', [
+                'ticket_order_id' => $order->id,
+                'status' => $order->status->value,
+            ]);
+
+            return response()->json(['message' => 'Order not eligible for refund sync']);
+        }
+
+        $this->tickets->refundOrder($order, 'Refunded via Xendit webhook');
+
+        activity()
+            ->performedOn($order)
+            ->event('refund_settled')
+            ->withProperties([
+                'project_id' => $order->event?->project_id,
+                'ticket_order_id' => $order->id,
+                'refund_amount' => $refundAmount,
+                'xendit_refund_id' => $payloadRefundId,
+            ])
+            ->log('Xendit refund settled');
+
+        return response()->json(['message' => 'Refund finalized synced']);
     }
 
     /**

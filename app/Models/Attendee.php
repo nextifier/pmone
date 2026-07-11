@@ -31,6 +31,9 @@ use Illuminate\Support\Str;
  * @property int|null $checked_in_by
  * @property int|null $checkin_event_id
  * @property int $reprint_count
+ * @property Carbon|null $cancelled_at
+ * @property string|null $cancelled_reason
+ * @property int|null $cancelled_by
  * @property-read TicketOrderItem|null $ticketOrderItem
  * @property-read Ticket|null $ticket
  *
@@ -54,6 +57,9 @@ class Attendee extends Model
         'checked_in_by',
         'checkin_event_id',
         'reprint_count',
+        'cancelled_at',
+        'cancelled_reason',
+        'cancelled_by',
     ];
 
     protected function casts(): array
@@ -62,6 +68,7 @@ class Attendee extends Model
             'personalized_at' => 'datetime',
             'checked_in_at' => 'datetime',
             'reprint_count' => 'integer',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -105,6 +112,20 @@ class Attendee extends Model
     public function isPersonalized(): bool
     {
         return $this->personalized_at !== null;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->cancelled_at !== null;
+    }
+
+    /**
+     * Attendees that have not been refunded/voided - the default working set
+     * for check-in, manifest, and search.
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNull('cancelled_at');
     }
 
     /**
@@ -172,6 +193,11 @@ class Attendee extends Model
     public function checkedInBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'checked_in_by');
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     public function checkinEvent(): BelongsTo

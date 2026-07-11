@@ -41,6 +41,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $payment_gateway_id
  * @property Carbon|null $payment_expires_at
  * @property Carbon|null $paid_at
+ * @property Carbon|null $paid_after_expiry_at
  * @property string|null $magic_link_token
  * @property Carbon|null $magic_link_expires_at
  * @property string $source
@@ -82,6 +83,7 @@ class TicketOrder extends Model implements CheckoutPayable, Purchasable
         'payment_channel',
         'payment_expires_at',
         'paid_at',
+        'paid_after_expiry_at',
         'marked_paid_manually_at',
         'marked_paid_by',
         'magic_link_token',
@@ -104,6 +106,7 @@ class TicketOrder extends Model implements CheckoutPayable, Purchasable
             'total' => 'decimal:2',
             'payment_expires_at' => 'datetime',
             'paid_at' => 'datetime',
+            'paid_after_expiry_at' => 'datetime',
             'marked_paid_manually_at' => 'datetime',
             'magic_link_expires_at' => 'datetime',
         ];
@@ -198,6 +201,11 @@ class TicketOrder extends Model implements CheckoutPayable, Purchasable
     public function isConfirmed(): bool
     {
         return $this->status === TicketOrderStatus::Confirmed;
+    }
+
+    public function isRefunded(): bool
+    {
+        return $this->status === TicketOrderStatus::Refunded;
     }
 
     // ─── Purchasable contract (promo/adjustment engine) ──────────────────

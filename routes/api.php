@@ -1402,6 +1402,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}/attendee
     Route::delete('/trash/{id}', [EventAttendeeController::class, 'forceDestroy'])->middleware('can:attendees.delete')->name('events.attendees.force-destroy');
     Route::post('/{attendee}/resend-eticket', [EventAttendeeController::class, 'resendETicket'])->middleware('can:attendees.update')->name('events.attendees.resend-eticket');
     Route::get('/{attendee}/preview-eticket', [EventAttendeeController::class, 'previewAttendeeEmail'])->middleware('can:attendees.view_documents')->name('events.attendees.preview-eticket');
+    Route::post('/{attendee}/refund', [EventAttendeeController::class, 'refund'])->middleware('can:attendees.refund')->name('events.attendees.refund');
     Route::patch('/{attendee}', [EventAttendeeController::class, 'update'])->middleware('can:attendees.update')->name('events.attendees.update');
     Route::delete('/{attendee}', [EventAttendeeController::class, 'destroy'])->middleware('can:attendees.delete')->name('events.attendees.destroy');
 });

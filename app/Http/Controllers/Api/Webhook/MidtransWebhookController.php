@@ -196,11 +196,28 @@ class MidtransWebhookController extends Controller
 
             $isPaid = $status === 'settlement'
                 || ($status === 'capture' && $fraud === 'accept');
-            $isExpiry = in_array($status, ['expire', 'cancel', 'deny', 'failure'], true);
+            // Only a genuine `expire` releases stock. `cancel`/`deny`/`failure`
+            // are non-terminal from Midtrans's perspective (a declined first
+            // card attempt, an abandoned VA) — the order stays payable and the
+            // buyer can retry the same checkout, so flipping to Expired here
+            // would prematurely release the seat and dead-end a later retry.
+            $isExpiry = in_array($status, ['expire'], true);
 
             if ($isPaid) {
                 if ($locked->status === TicketOrderStatus::Confirmed) {
                     return response()->json(['message' => 'Order already confirmed']);
+                }
+
+                // Trigger A: a genuine paid event landed after the order already
+                // expired (slow VA / retail settling after the 15-min hard-expiry
+                // job released the seat). Re-check live availability and either
+                // honor the payment or record it for reconciliation (no oversell).
+                if ($locked->status === TicketOrderStatus::Expired) {
+                    return $this->settleTicketPaidAfterExpiry($locked, [
+                        'id' => $payload['transaction_id'] ?? $locked->xendit_invoice_id,
+                        'payment_channel' => $service->resolveChannel($payload),
+                        'amount' => $payload['gross_amount'] ?? null,
+                    ]);
                 }
 
                 // markAsConfirmed flips PendingPayment -> Confirmed atomically and
@@ -231,6 +248,10 @@ class MidtransWebhookController extends Controller
                 return response()->json(['message' => 'Payment under review (no action)']);
             }
 
+            if (in_array($status, ['refund', 'partial_refund'], true)) {
+                return $this->handleTicketRefund($payload, $locked, $status);
+            }
+
             if ($isExpiry) {
                 if ($locked->status !== TicketOrderStatus::PendingPayment) {
                     return response()->json(['message' => 'Order not eligible for expiry']);
@@ -255,6 +276,94 @@ class MidtransWebhookController extends Controller
             // pending / authorize / unknown — acknowledge without action.
             return response()->json(['message' => 'Webhook received but no action taken']);
         });
+    }
+
+    /**
+     * Minimal ticket-order refund sync. A `refund` (full) settles Confirmed ->
+     * Refunded and voids every attendee via TicketPurchaseService::refundOrder,
+     * exactly like the Xendit refund branch. A `partial_refund` cannot be
+     * mapped to specific attendees from this payload (no line-item detail), so
+     * it is only logged + flagged for manual review — never auto-voids anyone.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function handleTicketRefund(array $payload, TicketOrder $order, string $status): JsonResponse
+    {
+        if ($status === 'partial_refund') {
+            Log::warning('Midtrans partial refund for ticket order — needs manual attendee selection', [
+                'ticket_order_id' => $order->id,
+                'transaction_id' => $payload['transaction_id'] ?? null,
+            ]);
+
+            activity()
+                ->performedOn($order)
+                ->event('refund_needs_review')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'transaction_id' => $payload['transaction_id'] ?? null,
+                    'transaction_status' => $status,
+                ])
+                ->log('Midtrans partial refund received - cannot auto-map to attendees, needs manual review');
+
+            return response()->json(['message' => 'Partial refund received; flagged for manual review']);
+        }
+
+        if ($order->status === TicketOrderStatus::Refunded) {
+            return response()->json(['message' => 'Refund already synced']);
+        }
+
+        if ($order->status !== TicketOrderStatus::Confirmed) {
+            return response()->json(['message' => 'Order not eligible for refund sync']);
+        }
+
+        $this->tickets->refundOrder($order, 'Refunded via Midtrans webhook');
+
+        activity()
+            ->performedOn($order)
+            ->event('refund_settled')
+            ->withProperties([
+                'project_id' => $order->event?->project_id,
+                'ticket_order_id' => $order->id,
+                'transaction_id' => $payload['transaction_id'] ?? null,
+                'transaction_status' => $status,
+            ])
+            ->log('Midtrans refund settled');
+
+        return response()->json(['message' => 'Refund finalized synced']);
+    }
+
+    /**
+     * Trigger A: settle a paid event for a ticket order that already expired.
+     * Delegates the no-oversell re-check + resurrect/record decision to
+     * TicketPurchaseService::reconfirmAfterExpiry and logs accordingly.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function settleTicketPaidAfterExpiry(TicketOrder $order, array $payload): JsonResponse
+    {
+        $outcome = $this->tickets->reconfirmAfterExpiry($order, $payload);
+
+        if ($outcome === 'reconfirmed') {
+            activity()
+                ->performedOn($order)
+                ->event('payment_paid_after_expiry')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'amount' => $payload['amount'] ?? null,
+                    'transaction_id' => $payload['id'] ?? null,
+                ])
+                ->log('Ticket payment received after expiry via Midtrans - stock still available, order re-confirmed');
+
+            return response()->json(['message' => 'Ticket order re-confirmed after expiry']);
+        }
+
+        if ($outcome === 'needs_reconciliation') {
+            return response()->json(['message' => 'Payment received after expiry but stock is no longer available; recorded for manual reconciliation']);
+        }
+
+        return response()->json(['message' => 'Order already in final state'], 409);
     }
 
     /**

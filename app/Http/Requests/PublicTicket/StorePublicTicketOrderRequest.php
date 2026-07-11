@@ -22,7 +22,7 @@ class StorePublicTicketOrderRequest extends FormRequest
     {
         return [
             'event_id' => ['required', 'integer', 'exists:events,id'],
-            'items' => ['required', 'array', 'min:1'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.ticket_id' => ['required', 'integer', 'exists:tickets,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
             'items.*.ticket_session_id' => ['nullable', 'integer', 'exists:ticket_sessions,id'],
@@ -37,6 +37,11 @@ class StorePublicTicketOrderRequest extends FormRequest
             'access_code' => ['nullable', 'string', 'max:60'],
             'accept_terms' => ['accepted'],
             'origin' => ['nullable', 'url', 'max:255'],
+
+            // Client-generated key (e.g. a UUID per checkout attempt) so a
+            // double-click or network retry resolves to the same order
+            // instead of holding inventory twice.
+            'idempotency_key' => ['nullable', 'string', 'max:64'],
 
             // Business matching intake (buyer answers, stored on their User).
             // Ids resolve by id or legacy_id downstream, so no exists rule here.
@@ -70,6 +75,13 @@ class StorePublicTicketOrderRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            $totalQuantity = collect((array) $this->input('items', []))
+                ->sum(fn ($item) => (int) ($item['quantity'] ?? 0));
+
+            if ($totalQuantity > 200) {
+                $validator->errors()->add('items', 'The total ticket quantity across all items may not exceed 200.');
+            }
+
             $event = Event::find($this->input('event_id'));
             if (! $event) {
                 return;

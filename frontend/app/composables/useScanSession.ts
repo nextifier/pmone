@@ -118,6 +118,10 @@ export function useScanSession(eventId: string) {
   /* ------------------------------- Outbox --------------------------------- */
   const outbox = ref<any[]>([]);
   const syncing = ref(false);
+  // Mirrors the server's `logs => max:200` sync validation (ScanController::sync)
+  // - the outbox is posted in slices this size so a large offline batch syncs
+  // across several requests instead of 422ing as one oversized call.
+  const SYNC_CHUNK = 200;
 
   /* ------------------------------- Printer -------------------------------- */
   const {
@@ -319,6 +323,7 @@ export function useScanSession(eventId: string) {
     ticket_not_found: "This QR code is not a valid ticket for any attendee.",
     order_not_confirmed: "The order for this ticket is not confirmed yet.",
     wrong_event: "This ticket belongs to a different event and cross-scan is not allowed.",
+    ticket_cancelled: "This ticket was cancelled or refunded.",
   };
 
   const WARNING_TEXT: Record<string, string> = {
@@ -408,32 +413,105 @@ export function useScanSession(eventId: string) {
   };
 
   /* ------------------------------ Check-in -------------------------------- */
-  const persistOutbox = (): void => {
-    idbSet(outboxKey.value, [...outbox.value]);
+  // Merge instead of overwrite: two scanner tabs against the same event share
+  // one IndexedDB key, so a naive last-writer-wins idbSet from tab A would
+  // erase scans tab B queued in between (Trigger F). Reads whatever is
+  // currently stored right before writing and unions it with this tab's
+  // in-memory outbox by idempotency_key, so a key only the other tab knows
+  // about survives.
+  //
+  // A plain union can only grow, though - the stored snapshot doesn't yet
+  // know about keys THIS tab just removed because they synced, so without
+  // `removedKeys` a synced item would be resurrected from the stale stored
+  // copy on every call, and the outbox would never shrink. Callers that just
+  // synced (flushOutbox) pass the keys they applied so this merge drops them
+  // regardless of what the stored snapshot still says.
+  //
+  // Residual race (accepted, not fully solved - there's no cross-tab lock
+  // here): if tab B enqueues a scan in the gap between tab A's stored-read
+  // and stored-write, tab A's write can still clobber it, and conversely a
+  // key tab A just removed can resurface if tab B's stored copy hasn't
+  // caught up. Both are narrower than the original bug (any two writes ever
+  // interleaving lost data) and the server's firstOrCreate(idempotency_key)
+  // is the backstop for the resurrection case - idempotency_key is generated
+  // once per scan and never regenerated, so a resurrected resync just
+  // collapses to the same row instead of double-applying.
+  const persistOutbox = async (removedKeys: Set<string> = new Set()): Promise<void> => {
+    const stored = await idbGet(outboxKey.value);
+    const storedList: any[] = Array.isArray(stored) ? stored : [];
+    const merged = new Map<string, any>();
+    for (const entry of storedList) {
+      if (entry?.idempotency_key && !removedKeys.has(entry.idempotency_key)) {
+        merged.set(entry.idempotency_key, entry);
+      }
+    }
+    for (const entry of outbox.value) {
+      if (entry?.idempotency_key && !removedKeys.has(entry.idempotency_key)) {
+        merged.set(entry.idempotency_key, entry);
+      }
+    }
+    const mergedList = [...merged.values()];
+    outbox.value = mergedList;
+    await idbSet(outboxKey.value, mergedList);
   };
 
-  const enqueueOffline = (qrToken: string, idempotencyKey: string): void => {
-    outbox.value.push({ qr_token: qrToken, idempotency_key: idempotencyKey, action: "check_in" });
+  const enqueueOffline = (qrToken: string, idempotencyKey: string, action: string = "check_in"): void => {
+    // Stamp the client's own clock at scan time - without this the server
+    // would stamp scanned_at/checked_in_at at sync time instead, corrupting
+    // attendance timing (and day-validity reports) for a batch that syncs
+    // hours after the actual scans (Trigger E). The server bounds/clamps
+    // this to +/-24h of its own clock before trusting it.
+    outbox.value.push({
+      qr_token: qrToken,
+      idempotency_key: idempotencyKey,
+      action,
+      scanned_at: new Date().toISOString(),
+    });
     persistOutbox();
   };
 
-  const offlineResult = (qrToken: string, idempotencyKey: string): any => {
+  const offlineResult = (qrToken: string, idempotencyKey: string, action: string = "check_in"): any => {
     const att = manifestByToken.value.get(qrToken);
     if (!att) {
       return { result: "invalid", reason: "ticket_not_found" };
     }
-    enqueueOffline(qrToken, idempotencyKey);
-    return {
-      result: "queued",
-      attendee: {
-        name: att.name,
-        email: att.email,
-        title: att.tier || att.kind,
-        tier: att.tier,
-        qr_token: att.qr_token,
-        checked_in_at: att.checked_in_at,
-      },
+
+    const presented = {
+      name: att.name,
+      email: att.email,
+      title: att.tier || att.kind,
+      tier: att.tier,
+      qr_token: att.qr_token,
+      checked_in_at: att.checked_in_at,
     };
+
+    // Reprint/reissue never collide with check-in state - always queue them
+    // with their real action so the server applies the right thing on sync,
+    // instead of every offline scan being coerced into a plain check_in
+    // (Trigger D).
+    if (action !== "check_in") {
+      enqueueOffline(qrToken, idempotencyKey, action);
+      return { result: "queued", attendee: presented };
+    }
+
+    // Consult the cached manifest state instead of blindly queuing a fresh
+    // check-in: a ticket already checked in (by this device before the last
+    // manifest refresh, or by another gate before this device went offline)
+    // surfaces as a repeat instead of silently double-queuing (Trigger B).
+    //
+    // No wrong-event check here: the manifest endpoint already filters to
+    // only the tokens scannable at this gate (own event + allow_cross_scan
+    // partners - see ScanService::manifest/scannableEventIds) and doesn't
+    // expose which partner event each cross-scan token belongs to, so an
+    // attendee found in the manifest with a different event_id is a
+    // legitimate cross-scan partner, not a wrong-event ticket - rejecting on
+    // that mismatch would incorrectly turn away allowed attendees.
+    if (att.checked_in_at) {
+      return { result: "already_checked_in", attendee: presented };
+    }
+
+    enqueueOffline(qrToken, idempotencyKey, action);
+    return { result: "queued", attendee: presented };
   };
 
   /* ------------------------------- Printer -------------------------------- */
@@ -582,7 +660,7 @@ export function useScanSession(eventId: string) {
     const idempotencyKey = crypto.randomUUID();
 
     if (!isOnline.value) {
-      applyResult(offlineResult(qrToken, idempotencyKey));
+      applyResult(offlineResult(qrToken, idempotencyKey, action));
       return;
     }
 
@@ -595,7 +673,7 @@ export function useScanSession(eventId: string) {
     } catch (err: any) {
       if (!navigator.onLine || err?.statusCode === 0 || !err?.statusCode) {
         isOnline.value = navigator.onLine;
-        applyResult(offlineResult(qrToken, idempotencyKey));
+        applyResult(offlineResult(qrToken, idempotencyKey, action));
       } else {
         toast.error("Check-in failed", {
           description: err?.data?.message || err?.message || "Please try again.",
@@ -685,20 +763,78 @@ export function useScanSession(eventId: string) {
   const flushOutbox = async (): Promise<void> => {
     if (!outbox.value.length || syncing.value || !isOnline.value) return;
     syncing.value = true;
-    const batch = outbox.value.slice();
+    let syncedCount = 0;
+    let rejectedCount = 0;
+    let errorMessage: string | null = null;
+
     try {
-      const res = await client(`${scanBase.value}/sync`, {
-        method: "POST",
-        body: { logs: batch },
-      });
-      const applied = new Set((res.applied || []).map((a: any) => a.idempotency_key));
-      outbox.value = outbox.value.filter((o) => !applied.has(o.idempotency_key));
-      persistOutbox();
-      const n = applied.size;
-      if (n) toast.success(`Synced ${n} scan${n === 1 ? "" : "s"}`);
-      await loadManifest();
-    } catch (err: any) {
-      toast.error("Sync failed", { description: err?.data?.message || err?.message });
+      // Post the outbox in <=SYNC_CHUNK slices instead of one request - a
+      // large offline-outage batch (>200 scans) would otherwise 422 the whole
+      // sync against the server's matching cap and retry the same oversized
+      // payload forever (Trigger A).
+      while (outbox.value.length && isOnline.value) {
+        const chunk = outbox.value.slice(0, SYNC_CHUNK);
+        let res: any;
+        try {
+          res = await client(`${scanBase.value}/sync`, {
+            method: "POST",
+            body: { logs: chunk },
+          });
+        } catch (err: any) {
+          errorMessage = err?.data?.message || err?.message || "Please try again.";
+          break;
+        }
+
+        const applied: any[] = res.applied || [];
+        const appliedKeys = new Set<string>(applied.map((a) => a.idempotency_key));
+        outbox.value = outbox.value.filter((o) => !appliedKeys.has(o.idempotency_key));
+        // Awaited (unlike the fire-and-forget call in enqueueOffline): each
+        // chunk's removal must be durable before the next chunk's merge reads
+        // storage, otherwise a fast multi-chunk flush could race its own writes.
+        // appliedKeys is passed so the merge drops these even if a stale
+        // stored snapshot (from another tab) still has them.
+        await persistOutbox(appliedKeys);
+        syncedCount += applied.length;
+
+        // Per-log sync results were previously discarded - surface anything
+        // that isn't a plain check-in (already checked in, invalid, a future
+        // result the server may add) into the recent feed instead of only
+        // toasting a raw count (Trigger B). Unknown result strings pass
+        // through unchanged so a later server addition (e.g. Plan 001's
+        // `ticket_cancelled`) works here without a client change.
+        for (const a of applied) {
+          if (a.result && a.result !== "checked_in") {
+            rejectedCount++;
+            pushRecent({ result: a.result, attendee: null });
+          }
+        }
+
+        // A chunk that applied nothing (e.g. every entry was already synced by
+        // another tab/device) would otherwise spin forever - bail instead.
+        if (!applied.length) break;
+      }
+
+      const remaining = outbox.value.length;
+      if (syncedCount) {
+        toast.success(
+          `Synced ${syncedCount} scan${syncedCount === 1 ? "" : "s"}` +
+            (remaining ? ` · ${remaining} remaining` : ""),
+        );
+      }
+      if (rejectedCount) {
+        toast.warning(`${rejectedCount} scan${rejectedCount === 1 ? "" : "s"} rejected on sync`, {
+          description: "Check the recent scans list for details.",
+        });
+      }
+      if (errorMessage) {
+        toast.error("Sync failed", {
+          description: remaining
+            ? `${errorMessage} ${remaining} scan${remaining === 1 ? "" : "s"} still queued.`
+            : errorMessage,
+        });
+      }
+
+      if (syncedCount) await loadManifest();
     } finally {
       syncing.value = false;
     }
@@ -749,6 +885,27 @@ export function useScanSession(eventId: string) {
     }
   };
 
+  // Ask the browser not to silently evict this origin's IndexedDB/localStorage
+  // under storage pressure (Trigger G): idbSet/idbGet are already best-effort
+  // with no persistence guarantee otherwise. Only warns when it matters - a
+  // denial with an empty outbox has nothing to lose yet. Guarded for SSR /
+  // older browsers that lack the Storage API.
+  const requestPersistentStorage = (): void => {
+    if (typeof navigator === "undefined" || !navigator.storage?.persist) return;
+    navigator.storage
+      .persist()
+      .then((granted: boolean) => {
+        if (!granted && outbox.value.length) {
+          toast.warning("Storage may be cleared by the browser", {
+            description: "Free up device storage or sync soon - queued offline scans could otherwise be lost.",
+          });
+        }
+      })
+      .catch(() => {
+        // best-effort - persistence isn't guaranteed on every browser
+      });
+  };
+
   /* ------------------------------ Lifecycle ------------------------------- */
   const handleOnline = (): void => {
     isOnline.value = true;
@@ -764,7 +921,10 @@ export function useScanSession(eventId: string) {
     cameraSupported.value =
       typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
 
-    restoreFromStorage().then(loadManifest);
+    restoreFromStorage().then(() => {
+      requestPersistentStorage();
+      loadManifest();
+    });
     loadScanSounds();
     loadContext();
     if (printerSupported.value) {

@@ -2,12 +2,14 @@
 
 namespace App\Services\Ticket;
 
+use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\TicketSession;
 use App\Support\CustomFieldValidation;
 use App\Support\CustomFieldValues;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -30,8 +32,36 @@ class AttendeeService
         return DB::transaction(function () use ($attendee, $data, $event, $staffId) {
             $contact = array_intersect_key($data, array_flip(['name', 'email', 'phone']));
             if ($contact !== []) {
+                $emailBefore = $attendee->email;
+                $nameBefore = $attendee->name;
+
                 $contact['personalized_at'] = $attendee->personalized_at ?? now();
                 $attendee->update($contact);
+
+                $identityChanged = (array_key_exists('email', $contact) && $contact['email'] !== $emailBefore)
+                    || (array_key_exists('name', $contact) && $contact['name'] !== $nameBefore);
+
+                // A transfer (new holder's name/email) rotates the qr_token so
+                // the previous holder's already-issued QR stops working. Only
+                // while unredeemed - once checked in the badge has already
+                // done its job, so there is nothing left to invalidate.
+                if ($identityChanged && $attendee->checked_in_at === null) {
+                    $attendee->forceFill(['qr_token' => (string) Str::ulid()])->save();
+
+                    activity()
+                        ->performedOn($attendee)
+                        ->event('ticket_transferred')
+                        ->withProperties([
+                            'attendee_id' => $attendee->id,
+                            'old_email' => $emailBefore,
+                            'new_email' => $attendee->email,
+                        ])
+                        ->log('Ticket transferred to a new holder');
+
+                    if ($attendee->ticketOrderItem?->ticketOrder?->isConfirmed()) {
+                        SendAttendeeETicketJob::dispatch($attendee->id);
+                    }
+                }
             }
 
             if (array_key_exists('selected_event_day_id', $data) || array_key_exists('ticket_session_id', $data)) {

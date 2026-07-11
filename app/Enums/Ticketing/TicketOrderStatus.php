@@ -13,6 +13,7 @@ enum TicketOrderStatus: string
     case Confirmed = 'confirmed';
     case Cancelled = 'cancelled';
     case Expired = 'expired';
+    case Refunded = 'refunded';
 
     public function label(): string
     {
@@ -21,6 +22,7 @@ enum TicketOrderStatus: string
             self::Confirmed => 'Confirmed',
             self::Cancelled => 'Cancelled',
             self::Expired => 'Expired',
+            self::Refunded => 'Refunded',
         };
     }
 
@@ -31,6 +33,7 @@ enum TicketOrderStatus: string
             self::Confirmed => 'success',
             self::Cancelled => 'destructive',
             self::Expired => 'muted',
+            self::Refunded => 'muted',
         };
     }
 
@@ -47,7 +50,7 @@ enum TicketOrderStatus: string
      */
     public function isFinal(): bool
     {
-        return in_array($this, [self::Confirmed, self::Cancelled, self::Expired], true);
+        return in_array($this, [self::Confirmed, self::Cancelled, self::Expired, self::Refunded], true);
     }
 
     /**

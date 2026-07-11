@@ -58,6 +58,25 @@ class TicketPurchaseService
     }
 
     /**
+     * The price phase to charge for a purchase of $qty: walks active phases
+     * whose window contains "now" IN PHASE ORDER and returns the first with
+     * quota capacity for $qty. A time-active phase that is sold out (or that
+     * cannot fit the full requested quantity) is skipped in favor of the next
+     * active phase that also covers "now"; null when none has capacity, so the
+     * line is rejected as not currently on sale rather than oversold at a
+     * stale price.
+     */
+    public function resolveActivePhaseForPurchase(Ticket $ticket, int $qty, ?Carbon $now = null): ?TicketPricePhase
+    {
+        $now ??= now();
+
+        return $ticket->pricePhases
+            ->where('is_active', true)
+            ->filter(fn (TicketPricePhase $phase) => $phase->isActiveAt($now))
+            ->first(fn (TicketPricePhase $phase) => $phase->hasCapacityFor($qty));
+    }
+
+    /**
      * Quantity still sellable for a ticket: stock minus committed (confirmed or
      * still-held pending) order items. Null stock = unlimited.
      */
@@ -87,15 +106,24 @@ class TicketPurchaseService
         return (int) DB::table('ticket_order_items as toi')
             ->join('ticket_orders as o', 'toi.ticket_order_id', '=', 'o.id')
             ->where("toi.{$column}", $id)
+            // Admin comp batches (bulkGenerate) are documented as OUTSIDE sale
+            // stock; `source` is a non-nullable string so this excludes them
+            // cleanly with no NULL edge case.
+            ->where('o.source', '!=', 'admin')
             ->whereNull('toi.deleted_at')
             ->whereNull('o.deleted_at')
-            ->where(function ($q) {
-                $q->where('o.status', TicketOrderStatus::Confirmed->value)
-                    ->orWhere(function ($pending) {
-                        $pending->where('o.status', TicketOrderStatus::PendingPayment->value)
-                            ->where('o.payment_expires_at', '>', now());
-                    });
-            })
+            ->whereIn('o.status', [
+                TicketOrderStatus::Confirmed->value,
+                // Any still-pending order holds its seat until its status
+                // actually flips (webhook confirms it OR the expiry job/webhook
+                // expires it). The old `payment_expires_at > now()` narrowing
+                // created a soft-expiry gap: the moment the clock lapsed the
+                // seat was released for resale even though the order was still
+                // PendingPayment (the hard-expiry job runs every 15 min), so a
+                // genuine late payment on the first order could land on a seat
+                // already sold to someone else.
+                TicketOrderStatus::PendingPayment->value,
+            ])
             ->sum('toi.quantity');
     }
 
@@ -114,13 +142,42 @@ class TicketPurchaseService
         $subtotal = 0.0;
         $onSale = true;
 
+        // Resolve the access code's basic eligibility (revoked/expired/bind
+        // checks only, no per-ticket gating) up front so gated ticket lines
+        // below can check unlocksTicket() while the cart is being built.
+        // Unlike createOrder, an ineligible or absent code must NOT abort the
+        // whole preview - it should just leave gated tickets unpriced.
+        $accessCodeModel = null;
+        if (! empty($accessCode)) {
+            $eligibility = $this->accessCodes->validate(
+                (string) $accessCode,
+                $event,
+                $email,
+                $phone,
+                cartItems: [],
+                hasPromo: ! empty($promoCode),
+            );
+
+            if ($eligibility->valid) {
+                $accessCodeModel = $eligibility->code;
+            }
+        }
+
         foreach ($items as $item) {
             $ticket = $event->tickets()
                 ->with('pricePhases')
                 ->where('id', $item['ticket_id'])
                 ->first();
 
-            if (! $ticket || $ticket->purchase_type !== PurchaseType::FirstParty) {
+            if (! $ticket || ! $ticket->is_active || $ticket->purchase_type !== PurchaseType::FirstParty) {
+                continue;
+            }
+
+            // Hidden/code_required tickets never price without a valid access
+            // code that unlocks them - mirrors createOrder's gating so a
+            // crafted preview request cannot leak a hidden ticket's
+            // title/phase/price.
+            if ($ticket->isGated() && (! $accessCodeModel || ! $accessCodeModel->unlocksTicket($ticket->id))) {
                 continue;
             }
 
@@ -251,7 +308,23 @@ class TicketPurchaseService
         $items = $data['items'] ?? [];
         abort_if(empty($items), 422, 'At least one ticket is required.');
 
-        $order = DB::transaction(function () use ($data, $event, $items) {
+        $idempotencyKey = $this->normalizeIdempotencyKey($data['idempotency_key'] ?? null);
+
+        $result = DB::transaction(function () use ($data, $event, $items, $idempotencyKey) {
+            // A client retrying a submission (double-click, network timeout)
+            // sends the same key: hand back the order already created for it
+            // instead of holding inventory a second time.
+            if ($idempotencyKey !== null) {
+                $existing = TicketOrder::query()
+                    ->where('event_id', $event->id)
+                    ->where('idempotency_key', $idempotencyKey)
+                    ->first();
+
+                if ($existing) {
+                    return ['order' => $existing->fresh(['items.attendees', 'event']), 'duplicate' => true];
+                }
+            }
+
             $buyerUser = $this->resolveBuyerUser($data);
 
             if ($buyerUser && ! empty($data['business_matching'])) {
@@ -284,6 +357,27 @@ class TicketPurchaseService
             $resolved = [];
             $subtotal = 0.0;
 
+            // Availability is a PER-TICKET (and per-session) quantity, not a
+            // per-line one. Aggregate every line's quantity by ticket/session id
+            // BEFORE validating so a payload with two lines for the same ticket
+            // cannot each pass an independent "available >= qty" check and
+            // jointly oversell.
+            $requestedByTicket = [];
+            $requestedBySession = [];
+            foreach ($items as $item) {
+                $ticketId = (int) ($item['ticket_id'] ?? 0);
+                $qty = max(1, (int) ($item['quantity'] ?? 1));
+                $requestedByTicket[$ticketId] = ($requestedByTicket[$ticketId] ?? 0) + $qty;
+
+                if (! empty($item['ticket_session_id'])) {
+                    $sessionId = (int) $item['ticket_session_id'];
+                    $requestedBySession[$sessionId] = ($requestedBySession[$sessionId] ?? 0) + $qty;
+                }
+            }
+
+            $stockChecked = [];
+            $sessionCapacityChecked = [];
+
             foreach ($items as $idx => $item) {
                 $ticket = Ticket::query()
                     ->where('id', $item['ticket_id'])
@@ -308,25 +402,35 @@ class TicketPurchaseService
 
                 $qty = max(1, (int) ($item['quantity'] ?? 1));
                 abort_if($ticket->min_quantity && $qty < $ticket->min_quantity, 422, "Minimum quantity for {$ticket->slug} is {$ticket->min_quantity}.");
-                abort_if($ticket->max_quantity && $qty > $ticket->max_quantity, 422, "Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
+                abort_if($ticket->max_quantity && $requestedByTicket[$ticket->id] > $ticket->max_quantity, 422, "Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
 
-                $phase = $this->resolveActivePhase($ticket);
+                $phase = $this->resolveActivePhaseForPurchase($ticket, $requestedByTicket[$ticket->id]);
                 abort_if(! $phase, 422, "Ticket {$ticket->slug} is not currently on sale.");
 
-                $available = $this->availableStock($ticket);
-                abort_if($available !== null && $available < $qty, 422, "Only {$available} left for {$ticket->slug}.");
+                // Checked once per ticket id (not per line) - the aggregated
+                // requested quantity is the same on every line for this ticket,
+                // so re-checking would just repeat the same comparison.
+                if (! isset($stockChecked[$ticket->id])) {
+                    $available = $this->availableStock($ticket);
+                    abort_if($available !== null && $available < $requestedByTicket[$ticket->id], 422, "Only {$available} left for {$ticket->slug}.");
+                    $stockChecked[$ticket->id] = true;
+                }
 
                 $session = null;
                 if (! empty($item['ticket_session_id'])) {
                     $session = TicketSession::query()
                         ->where('id', $item['ticket_session_id'])
                         ->where('ticket_id', $ticket->id)
+                        ->where('is_active', true)
                         ->lockForUpdate()
                         ->first();
                     abort_if(! $session, 422, 'Selected session is invalid for this ticket.');
 
-                    $sessionLeft = $this->availableSessionCapacity($session);
-                    abort_if($sessionLeft !== null && $sessionLeft < $qty, 422, "Only {$sessionLeft} seats left for the selected session.");
+                    if (! isset($sessionCapacityChecked[$session->id])) {
+                        $sessionLeft = $this->availableSessionCapacity($session);
+                        abort_if($sessionLeft !== null && $sessionLeft < $requestedBySession[$session->id], 422, "Only {$sessionLeft} seats left for the selected session.");
+                        $sessionCapacityChecked[$session->id] = true;
+                    }
                 } elseif ($ticket->isAddOn() && $ticket->sessions->where('is_active', true)->count() > 1) {
                     abort(422, "Please choose a session for {$ticket->slug}.");
                 }
@@ -363,6 +467,10 @@ class TicketPurchaseService
                 'user_agent' => $data['user_agent'] ?? null,
             ]);
 
+            if ($idempotencyKey !== null) {
+                $order->forceFill(['idempotency_key' => $idempotencyKey])->save();
+            }
+
             $attendeeNumber = 0;
             $alsoAttending = (bool) ($data['also_attending'] ?? false);
             $totalQty = array_sum(array_column($resolved, 'qty'));
@@ -377,6 +485,7 @@ class TicketPurchaseService
                     'quantity' => $row['qty'],
                     'unit_price' => $row['unit'],
                     'phase_label' => $row['phase']->label,
+                    'ticket_price_phase_id' => $row['phase']->id,
                     'subtotal' => $row['unit'] * $row['qty'],
                 ]);
 
@@ -447,10 +556,28 @@ class TicketPurchaseService
                 $this->pricing->recalculateAndPersist($order->fresh(['items', 'adjustments']));
             });
 
-            return $order->fresh(['items.attendees', 'event']);
+            return ['order' => $order->fresh(['items.attendees', 'event']), 'duplicate' => false];
         });
 
-        return $this->resolvePayment($order, $data, $checkoutClient);
+        // A duplicate submission returns the order exactly as first resolved -
+        // running it through resolvePayment again would re-send confirmation
+        // emails or open a second payment-gateway checkout for the same order.
+        if ($result['duplicate']) {
+            return $result['order'];
+        }
+
+        return $this->resolvePayment($result['order'], $data, $checkoutClient);
+    }
+
+    /**
+     * Trim an optional client-supplied idempotency key down to null when
+     * blank, so blank strings behave the same as an absent key.
+     */
+    protected function normalizeIdempotencyKey(?string $key): ?string
+    {
+        $key = trim((string) $key);
+
+        return $key === '' ? null : $key;
     }
 
     /**
@@ -511,12 +638,14 @@ class TicketPurchaseService
 
     /**
      * Mark a pending order confirmed (paid). Idempotent — only the first
-     * concurrent webhook flips the status.
+     * concurrent webhook flips the status. Returns whether THIS call actually
+     * performed the flip, so callers (e.g. a manual mark-paid) can tell a real
+     * confirmation apart from a race already won by a webhook.
      */
-    public function markAsConfirmed(TicketOrder $order, array $payload = []): void
+    public function markAsConfirmed(TicketOrder $order, array $payload = []): bool
     {
         if ($order->status === TicketOrderStatus::Confirmed) {
-            return;
+            return false;
         }
 
         $update = [
@@ -540,6 +669,8 @@ class TicketPurchaseService
             $this->accessCodes->consume($order);
             $this->dispatchConfirmationEmails($order);
         }
+
+        return $confirmed > 0;
     }
 
     /**
@@ -611,10 +742,256 @@ class TicketPurchaseService
                 if ($item->ticket_session_id) {
                     TicketSession::whereKey($item->ticket_session_id)->where('booked_count', '>=', $item->quantity)->decrement('booked_count', $item->quantity);
                 }
+                // The attendee-refund path (refundAttendee()) releases the
+                // phase sold_count for a single voided seat; this covers the
+                // whole-order expiry path.
+                if ($item->ticket_price_phase_id) {
+                    TicketPricePhase::whereKey($item->ticket_price_phase_id)
+                        ->where('sold_count', '>=', $item->quantity)
+                        ->decrement('sold_count', $item->quantity);
+                }
             }
 
             $order->setAttribute('status', TicketOrderStatus::Expired);
         });
+    }
+
+    /**
+     * Void a single attendee's seat: cancel it, rotate its `qr_token` (killing
+     * the old QR so a transferred/refunded badge stops scanning), release its
+     * seat (order-item quantity + ticket/session/phase `sold_count`), and
+     * recompute the order total. Idempotent - a no-op when the attendee is
+     * already cancelled. Never touches the order's own status: the order
+     * stays Confirmed with its remaining attendees still valid. Called
+     * per-attendee by refundOrder() for a whole-order refund too.
+     */
+    public function refundAttendee(Attendee $attendee, ?string $reason = null, ?int $staffId = null): void
+    {
+        DB::transaction(function () use ($attendee, $reason, $staffId) {
+            $locked = Attendee::query()->whereKey($attendee->id)->lockForUpdate()->first();
+
+            if (! $locked || $locked->cancelled_at !== null) {
+                return;
+            }
+
+            $locked->forceFill([
+                'cancelled_at' => now(),
+                'cancelled_reason' => $reason,
+                'cancelled_by' => $staffId,
+                'qr_token' => (string) Str::ulid(),
+            ])->save();
+
+            $item = TicketOrderItem::query()->whereKey($locked->ticket_order_item_id)->lockForUpdate()->first();
+
+            if (! $item) {
+                return;
+            }
+
+            $newQuantity = max(0, $item->quantity - 1);
+            $item->update([
+                'quantity' => $newQuantity,
+                'subtotal' => (float) $item->unit_price * $newQuantity,
+            ]);
+
+            Ticket::whereKey($item->ticket_id)->where('sold_count', '>=', 1)->decrement('sold_count');
+
+            if ($item->ticket_session_id) {
+                TicketSession::whereKey($item->ticket_session_id)->where('booked_count', '>=', 1)->decrement('booked_count');
+            }
+
+            if ($item->ticket_price_phase_id) {
+                TicketPricePhase::whereKey($item->ticket_price_phase_id)->where('sold_count', '>=', 1)->decrement('sold_count');
+            }
+
+            $order = TicketOrder::query()->whereKey($item->ticket_order_id)->lockForUpdate()->first();
+
+            if (! $order) {
+                return;
+            }
+
+            // The order's `subtotal` is the sum of every item's own subtotal
+            // (never recomputed from live items elsewhere - see createOrder),
+            // so shaving off exactly the released seat's unit price keeps that
+            // invariant intact before the pricing engine re-derives the
+            // discount + total against the smaller base.
+            $order->forceFill([
+                'subtotal' => max(0.0, (float) $order->subtotal - (float) $item->unit_price),
+            ])->save();
+
+            $this->pricing->recalculateAndPersist($order->fresh(['items', 'adjustments']));
+        });
+    }
+
+    /**
+     * Refund an entire ticket order: flip Confirmed -> Refunded and void every
+     * still-active attendee via refundAttendee() (rotates each qr_token,
+     * releases every ticket/session/phase counter, recomputes the total down
+     * to what remains). Idempotent - the atomic conditional flip means a
+     * redelivered refund webhook that finds the order already Refunded is a
+     * no-op.
+     */
+    public function refundOrder(TicketOrder $order, ?string $reason = null, ?int $staffId = null): void
+    {
+        DB::transaction(function () use ($order, $reason, $staffId) {
+            $flipped = TicketOrder::query()
+                ->whereKey($order->id)
+                ->where('status', TicketOrderStatus::Confirmed->value)
+                ->update(['status' => TicketOrderStatus::Refunded->value]);
+
+            if ($flipped === 0) {
+                return;
+            }
+
+            $attendees = Attendee::query()
+                ->whereHas('ticketOrderItem', fn ($q) => $q->where('ticket_order_id', $order->id))
+                ->whereNull('cancelled_at')
+                ->get();
+
+            foreach ($attendees as $attendee) {
+                $this->refundAttendee($attendee, $reason, $staffId);
+            }
+
+            $order->setAttribute('status', TicketOrderStatus::Refunded);
+        });
+    }
+
+    /**
+     * Honor a genuine paid event that lands AFTER the order was already flipped
+     * to Expired (Trigger A: a slow bank transfer / retail channel settles
+     * minutes after the 15-min hard-expiry job released the seat). Re-checks
+     * LIVE availability for every line before resurrecting the order — the
+     * conservative, no-oversell mitigation:
+     *   - Every line still fits -> atomically flip Expired -> Confirmed, restore
+     *     the sold_count/booked_count counters this order released on expiry,
+     *     consume the access-code hold, and dispatch the normal confirmation
+     *     emails. Returns 'reconfirmed'.
+     *   - Any line has since been resold to someone else -> do NOT oversell.
+     *     Record the paid event (`paid_after_expiry_at` + a
+     *     `payment_needs_reconciliation` activity log) so staff can resolve it
+     *     by hand; the order stays Expired. Returns 'needs_reconciliation'.
+     * Idempotent: the atomic conditional update()'s affected-row count gates
+     * the counter re-increment, so a redelivered webhook cannot double-count.
+     * Callers should only invoke this for an order that is not already
+     * Confirmed (they check that first so a duplicate paid event short-circuits
+     * before reaching here).
+     *
+     * @param  array<string, mixed>  $payload
+     * @return 'reconfirmed'|'needs_reconciliation'|'not_expired'|'already_final'
+     */
+    public function reconfirmAfterExpiry(TicketOrder $order, array $payload = []): string
+    {
+        if ($order->status !== TicketOrderStatus::Expired) {
+            return 'not_expired';
+        }
+
+        $order->loadMissing('items.ticket', 'items.ticketSession');
+
+        $requestedByTicket = [];
+        $requestedBySession = [];
+        foreach ($order->items as $item) {
+            $requestedByTicket[$item->ticket_id] = ($requestedByTicket[$item->ticket_id] ?? 0) + $item->quantity;
+            if ($item->ticket_session_id) {
+                $requestedBySession[$item->ticket_session_id] = ($requestedBySession[$item->ticket_session_id] ?? 0) + $item->quantity;
+            }
+        }
+
+        foreach ($order->items as $item) {
+            $ticket = $item->ticket;
+            $ticketId = $item->ticket_id;
+
+            if (! $ticket) {
+                $this->recordNeedsReconciliation($order, $payload);
+
+                return 'needs_reconciliation';
+            }
+
+            $available = $this->availableStock($ticket);
+            if ($available !== null && $available < $requestedByTicket[$ticketId]) {
+                $this->recordNeedsReconciliation($order, $payload);
+
+                return 'needs_reconciliation';
+            }
+
+            if ($item->ticket_session_id) {
+                $session = $item->ticketSession;
+                if (! $session) {
+                    $this->recordNeedsReconciliation($order, $payload);
+
+                    return 'needs_reconciliation';
+                }
+
+                $left = $this->availableSessionCapacity($session);
+                if ($left !== null && $left < $requestedBySession[$item->ticket_session_id]) {
+                    $this->recordNeedsReconciliation($order, $payload);
+
+                    return 'needs_reconciliation';
+                }
+            }
+        }
+
+        $update = [
+            'status' => TicketOrderStatus::Confirmed,
+            'paid_at' => now(),
+            'xendit_invoice_id' => $payload['id'] ?? $order->xendit_invoice_id,
+        ];
+
+        if (! empty($payload['payment_channel'])) {
+            $update['payment_channel'] = $payload['payment_channel'];
+        }
+
+        $flipped = TicketOrder::query()
+            ->whereKey($order->id)
+            ->where('status', TicketOrderStatus::Expired->value)
+            ->update($update);
+
+        if ($flipped === 0) {
+            // Another concurrent delivery of the same event already resolved
+            // this order (reconfirmed or recorded) between our read above and
+            // this write.
+            return 'already_final';
+        }
+
+        foreach ($order->items as $item) {
+            $item->ticket?->increment('sold_count', $item->quantity);
+            $item->ticketSession?->increment('booked_count', $item->quantity);
+            // Symmetric with the phase release in expireOrder() - a resurrected
+            // order must restore the exact phase's sold_count it gave back.
+            if ($item->ticket_price_phase_id) {
+                TicketPricePhase::whereKey($item->ticket_price_phase_id)->increment('sold_count', $item->quantity);
+            }
+        }
+
+        $this->accessCodes->consume($order);
+        $this->dispatchConfirmationEmails($order);
+
+        return 'reconfirmed';
+    }
+
+    /**
+     * Record a paid-after-expiry event that could not be safely resurrected
+     * (stock/session capacity no longer available). Idempotent — only the
+     * first call stamps the timestamp, so a redelivered webhook does not
+     * overwrite it.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    protected function recordNeedsReconciliation(TicketOrder $order, array $payload): void
+    {
+        TicketOrder::query()
+            ->whereKey($order->id)
+            ->whereNull('paid_after_expiry_at')
+            ->update(['paid_after_expiry_at' => now()]);
+
+        activity()
+            ->performedOn($order)
+            ->event('payment_needs_reconciliation')
+            ->withProperties([
+                'project_id' => $order->event?->project_id,
+                'ticket_order_id' => $order->id,
+                'invoice_id' => $payload['id'] ?? null,
+                'amount' => $payload['amount'] ?? null,
+            ])
+            ->log('Ticket payment received after expiry, but stock is no longer available - needs manual reconciliation');
     }
 
     /**

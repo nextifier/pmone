@@ -123,4 +123,21 @@ class TicketPricePhase extends Model implements Sortable
     {
         return $this->belongsTo(Ticket::class);
     }
+
+    /**
+     * Whether this phase still has room to sell $qty more at its price.
+     * A null quota means uncapped.
+     */
+    public function hasCapacityFor(int $qty): bool
+    {
+        return $this->quota === null || ($this->quota - $this->sold_count) >= $qty;
+    }
+
+    /**
+     * Whether this phase has reached its quota (always false when uncapped).
+     */
+    public function isSoldOut(): bool
+    {
+        return $this->quota !== null && $this->sold_count >= $this->quota;
+    }
 }
