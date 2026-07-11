@@ -412,8 +412,46 @@ export function useScanSession(eventId: string) {
   };
 
   /* ------------------------------ Check-in -------------------------------- */
-  const persistOutbox = (): void => {
-    idbSet(outboxKey.value, [...outbox.value]);
+  // Merge instead of overwrite: two scanner tabs against the same event share
+  // one IndexedDB key, so a naive last-writer-wins idbSet from tab A would
+  // erase scans tab B queued in between (Trigger F). Reads whatever is
+  // currently stored right before writing and unions it with this tab's
+  // in-memory outbox by idempotency_key, so a key only the other tab knows
+  // about survives.
+  //
+  // A plain union can only grow, though - the stored snapshot doesn't yet
+  // know about keys THIS tab just removed because they synced, so without
+  // `removedKeys` a synced item would be resurrected from the stale stored
+  // copy on every call, and the outbox would never shrink. Callers that just
+  // synced (flushOutbox) pass the keys they applied so this merge drops them
+  // regardless of what the stored snapshot still says.
+  //
+  // Residual race (accepted, not fully solved - there's no cross-tab lock
+  // here): if tab B enqueues a scan in the gap between tab A's stored-read
+  // and stored-write, tab A's write can still clobber it, and conversely a
+  // key tab A just removed can resurface if tab B's stored copy hasn't
+  // caught up. Both are narrower than the original bug (any two writes ever
+  // interleaving lost data) and the server's firstOrCreate(idempotency_key)
+  // is the backstop for the resurrection case - idempotency_key is generated
+  // once per scan and never regenerated, so a resurrected resync just
+  // collapses to the same row instead of double-applying.
+  const persistOutbox = async (removedKeys: Set<string> = new Set()): Promise<void> => {
+    const stored = await idbGet(outboxKey.value);
+    const storedList: any[] = Array.isArray(stored) ? stored : [];
+    const merged = new Map<string, any>();
+    for (const entry of storedList) {
+      if (entry?.idempotency_key && !removedKeys.has(entry.idempotency_key)) {
+        merged.set(entry.idempotency_key, entry);
+      }
+    }
+    for (const entry of outbox.value) {
+      if (entry?.idempotency_key && !removedKeys.has(entry.idempotency_key)) {
+        merged.set(entry.idempotency_key, entry);
+      }
+    }
+    const mergedList = [...merged.values()];
+    outbox.value = mergedList;
+    await idbSet(outboxKey.value, mergedList);
   };
 
   const enqueueOffline = (qrToken: string, idempotencyKey: string, action: string = "check_in"): void => {
@@ -747,9 +785,14 @@ export function useScanSession(eventId: string) {
         }
 
         const applied: any[] = res.applied || [];
-        const appliedKeys = new Set(applied.map((a) => a.idempotency_key));
+        const appliedKeys = new Set<string>(applied.map((a) => a.idempotency_key));
         outbox.value = outbox.value.filter((o) => !appliedKeys.has(o.idempotency_key));
-        persistOutbox();
+        // Awaited (unlike the fire-and-forget call in enqueueOffline): each
+        // chunk's removal must be durable before the next chunk's merge reads
+        // storage, otherwise a fast multi-chunk flush could race its own writes.
+        // appliedKeys is passed so the merge drops these even if a stale
+        // stored snapshot (from another tab) still has them.
+        await persistOutbox(appliedKeys);
         syncedCount += applied.length;
 
         // Per-log sync results were previously discarded - surface anything
