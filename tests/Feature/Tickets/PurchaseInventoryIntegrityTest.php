@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ApiConsumer;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\Project;
@@ -14,6 +15,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_tickets']);
+    $this->headers = ['X-API-Key' => 'pk_test_tickets'];
+
     $this->project = Project::factory()->create();
     $this->event = Event::factory()->create(['project_id' => $this->project->id, 'tickets_enabled' => true]);
     $this->service = app(TicketPurchaseService::class);
@@ -153,4 +157,62 @@ it('rejects ordering a session that an admin has deactivated', function () {
 
     expect(TicketOrder::count())->toBe(0)
         ->and($session->fresh()->booked_count)->toBe(0);
+});
+
+// Trigger D: bound the cart against an unbounded items[] payload.
+
+it('rejects an over-long items array on the public order endpoint', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 1000);
+
+    $items = array_fill(0, 51, ['ticket_id' => $ticket->id, 'quantity' => 1]);
+
+    $this->withHeaders($this->headers)
+        ->postJson('/api/public/ticket-orders', [
+            'event_id' => $this->event->id,
+            'buyer_name' => 'Budi',
+            'buyer_email' => 'budi@example.com',
+            'buyer_phone' => '08123',
+            'accept_terms' => true,
+            'items' => $items,
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('items');
+
+    expect(TicketOrder::count())->toBe(0);
+});
+
+it('rejects an over-large total quantity on the public order endpoint', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 1000);
+
+    // 5 lines * 50 (the per-line max) = 250, over the 200 total cap, while
+    // staying under the 50-line cap.
+    $items = array_fill(0, 5, ['ticket_id' => $ticket->id, 'quantity' => 50]);
+
+    $this->withHeaders($this->headers)
+        ->postJson('/api/public/ticket-orders', [
+            'event_id' => $this->event->id,
+            'buyer_name' => 'Budi',
+            'buyer_email' => 'budi@example.com',
+            'buyer_phone' => '08123',
+            'accept_terms' => true,
+            'items' => $items,
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('items');
+
+    expect(TicketOrder::count())->toBe(0);
+});
+
+it('rejects an over-large total quantity on the cart preview endpoint', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 1000);
+
+    $items = array_fill(0, 5, ['ticket_id' => $ticket->id, 'quantity' => 50]);
+
+    $this->withHeaders($this->headers)
+        ->postJson('/api/public/tickets/preview', [
+            'event_id' => $this->event->id,
+            'items' => $items,
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('items');
 });
