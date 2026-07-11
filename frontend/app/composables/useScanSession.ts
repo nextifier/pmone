@@ -417,7 +417,17 @@ export function useScanSession(eventId: string) {
   };
 
   const enqueueOffline = (qrToken: string, idempotencyKey: string, action: string = "check_in"): void => {
-    outbox.value.push({ qr_token: qrToken, idempotency_key: idempotencyKey, action });
+    // Stamp the client's own clock at scan time - without this the server
+    // would stamp scanned_at/checked_in_at at sync time instead, corrupting
+    // attendance timing (and day-validity reports) for a batch that syncs
+    // hours after the actual scans (Trigger E). The server bounds/clamps
+    // this to +/-24h of its own clock before trusting it.
+    outbox.value.push({
+      qr_token: qrToken,
+      idempotency_key: idempotencyKey,
+      action,
+      scanned_at: new Date().toISOString(),
+    });
     persistOutbox();
   };
 
