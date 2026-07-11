@@ -87,6 +87,10 @@ class TicketPurchaseService
         return (int) DB::table('ticket_order_items as toi')
             ->join('ticket_orders as o', 'toi.ticket_order_id', '=', 'o.id')
             ->where("toi.{$column}", $id)
+            // Admin comp batches (bulkGenerate) are documented as OUTSIDE sale
+            // stock; `source` is a non-nullable string so this excludes them
+            // cleanly with no NULL edge case.
+            ->where('o.source', '!=', 'admin')
             ->whereNull('toi.deleted_at')
             ->whereNull('o.deleted_at')
             ->where(function ($q) {

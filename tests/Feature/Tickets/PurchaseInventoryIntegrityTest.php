@@ -103,3 +103,28 @@ it('rejects the same mixed cart when one of the two tickets lacks aggregated sto
 
     expect(TicketOrder::count())->toBe(0);
 });
+
+// Trigger B: comp batches must not eat public stock.
+
+it('does not let a comp batch reduce public availableStock', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 5);
+
+    $this->service->bulkGenerate([
+        'event_id' => $this->event->id,
+        'ticket_id' => $ticket->id,
+        'mode' => 'anonymous',
+        'quantity' => 5,
+    ]);
+
+    expect($this->service->availableStock($ticket->fresh()))->toBe(5);
+
+    // The public can still buy the full stock even though a comp batch of
+    // the same size was just confirmed against this ticket.
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 5]],
+    ]);
+
+    expect($order->attendees()->count())->toBe(5);
+});
