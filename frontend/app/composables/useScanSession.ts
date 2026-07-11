@@ -426,18 +426,34 @@ export function useScanSession(eventId: string) {
     if (!att) {
       return { result: "invalid", reason: "ticket_not_found" };
     }
-    enqueueOffline(qrToken, idempotencyKey);
-    return {
-      result: "queued",
-      attendee: {
-        name: att.name,
-        email: att.email,
-        title: att.tier || att.kind,
-        tier: att.tier,
-        qr_token: att.qr_token,
-        checked_in_at: att.checked_in_at,
-      },
+
+    const presented = {
+      name: att.name,
+      email: att.email,
+      title: att.tier || att.kind,
+      tier: att.tier,
+      qr_token: att.qr_token,
+      checked_in_at: att.checked_in_at,
     };
+
+    // Consult the cached manifest state instead of blindly queuing a fresh
+    // check-in: a ticket already checked in (by this device before the last
+    // manifest refresh, or by another gate before this device went offline)
+    // surfaces as a repeat instead of silently double-queuing (Trigger B).
+    //
+    // No wrong-event check here: the manifest endpoint already filters to
+    // only the tokens scannable at this gate (own event + allow_cross_scan
+    // partners - see ScanService::manifest/scannableEventIds) and doesn't
+    // expose which partner event each cross-scan token belongs to, so an
+    // attendee found in the manifest with a different event_id is a
+    // legitimate cross-scan partner, not a wrong-event ticket - rejecting on
+    // that mismatch would incorrectly turn away allowed attendees.
+    if (att.checked_in_at) {
+      return { result: "already_checked_in", attendee: presented };
+    }
+
+    enqueueOffline(qrToken, idempotencyKey);
+    return { result: "queued", attendee: presented };
   };
 
   /* ------------------------------- Printer -------------------------------- */
@@ -690,6 +706,7 @@ export function useScanSession(eventId: string) {
     if (!outbox.value.length || syncing.value || !isOnline.value) return;
     syncing.value = true;
     let syncedCount = 0;
+    let rejectedCount = 0;
     let errorMessage: string | null = null;
 
     try {
@@ -716,6 +733,19 @@ export function useScanSession(eventId: string) {
         persistOutbox();
         syncedCount += applied.length;
 
+        // Per-log sync results were previously discarded - surface anything
+        // that isn't a plain check-in (already checked in, invalid, a future
+        // result the server may add) into the recent feed instead of only
+        // toasting a raw count (Trigger B). Unknown result strings pass
+        // through unchanged so a later server addition (e.g. Plan 001's
+        // `ticket_cancelled`) works here without a client change.
+        for (const a of applied) {
+          if (a.result && a.result !== "checked_in") {
+            rejectedCount++;
+            pushRecent({ result: a.result, attendee: null });
+          }
+        }
+
         // A chunk that applied nothing (e.g. every entry was already synced by
         // another tab/device) would otherwise spin forever - bail instead.
         if (!applied.length) break;
@@ -727,6 +757,11 @@ export function useScanSession(eventId: string) {
           `Synced ${syncedCount} scan${syncedCount === 1 ? "" : "s"}` +
             (remaining ? ` · ${remaining} remaining` : ""),
         );
+      }
+      if (rejectedCount) {
+        toast.warning(`${rejectedCount} scan${rejectedCount === 1 ? "" : "s"} rejected on sync`, {
+          description: "Check the recent scans list for details.",
+        });
       }
       if (errorMessage) {
         toast.error("Sync failed", {
