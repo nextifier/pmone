@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Models\TicketPricePhase;
 use App\Services\Ticket\TicketPurchaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 uses(RefreshDatabase::class);
@@ -236,4 +237,47 @@ it('preview does not price an inactive ticket', function () {
 
     expect($preview['lines'])->toBeEmpty()
         ->and($preview['subtotal'])->toBe(0.0);
+});
+
+// ─── Trigger D: phase windows vs purchase-time "now" agree on one timezone ──
+
+it('evaluates phase windows in the same timezone the admin phase form submits, so no UTC/local mismatch exists', function () {
+    // Investigation (see plan 004 report): the admin phase form
+    // (frontend/app/components/ticket/PricePhasesPanel.vue) reads a plain
+    // browser-local Date object and serializes it via toLocalDateTimeString()
+    // into a NAIVE "YYYY-MM-DDTHH:mm" string with no offset - typing "09:00"
+    // always produces "...T09:00" regardless of the visitor's or the event's
+    // timezone. Laravel parses that naive string using the app's default
+    // timezone (config('app.timezone'), asserted below), and
+    // resolveActivePhaseForPurchase()/isActiveAt() compare it against now(),
+    // which resolves through that SAME default timezone. Both the write path
+    // (form -> Eloquent cast) and the read path (purchase-time now()) agree on
+    // one timezone, so a "09:00-10:00" phase window means the same wall-clock
+    // hour on both ends - there is no stored-as-UTC-but-compared-as-local (or
+    // vice versa) bug to fix here.
+    expect(config('app.timezone'))->toBe('Asia/Jakarta')
+        ->and(date_default_timezone_get())->toBe('Asia/Jakarta');
+
+    Carbon::setTestNow(Carbon::parse('2026-07-15 09:30:00', 'Asia/Jakarta'));
+
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => null]);
+
+    // A naive string exactly as the admin form would submit it for a phase
+    // meant to be active right now.
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 10000,
+        'starts_at' => '2026-07-15 09:00:00',
+        'ends_at' => '2026-07-15 10:00:00',
+    ]);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ]);
+
+    expect((float) $order->items()->first()->unit_price)->toBe(10000.0);
+
+    Carbon::setTestNow();
 });
