@@ -118,6 +118,10 @@ export function useScanSession(eventId: string) {
   /* ------------------------------- Outbox --------------------------------- */
   const outbox = ref<any[]>([]);
   const syncing = ref(false);
+  // Mirrors the server's `logs => max:200` sync validation (ScanController::sync)
+  // - the outbox is posted in slices this size so a large offline batch syncs
+  // across several requests instead of 422ing as one oversized call.
+  const SYNC_CHUNK = 200;
 
   /* ------------------------------- Printer -------------------------------- */
   const {
@@ -685,20 +689,54 @@ export function useScanSession(eventId: string) {
   const flushOutbox = async (): Promise<void> => {
     if (!outbox.value.length || syncing.value || !isOnline.value) return;
     syncing.value = true;
-    const batch = outbox.value.slice();
+    let syncedCount = 0;
+    let errorMessage: string | null = null;
+
     try {
-      const res = await client(`${scanBase.value}/sync`, {
-        method: "POST",
-        body: { logs: batch },
-      });
-      const applied = new Set((res.applied || []).map((a: any) => a.idempotency_key));
-      outbox.value = outbox.value.filter((o) => !applied.has(o.idempotency_key));
-      persistOutbox();
-      const n = applied.size;
-      if (n) toast.success(`Synced ${n} scan${n === 1 ? "" : "s"}`);
-      await loadManifest();
-    } catch (err: any) {
-      toast.error("Sync failed", { description: err?.data?.message || err?.message });
+      // Post the outbox in <=SYNC_CHUNK slices instead of one request - a
+      // large offline-outage batch (>200 scans) would otherwise 422 the whole
+      // sync against the server's matching cap and retry the same oversized
+      // payload forever (Trigger A).
+      while (outbox.value.length && isOnline.value) {
+        const chunk = outbox.value.slice(0, SYNC_CHUNK);
+        let res: any;
+        try {
+          res = await client(`${scanBase.value}/sync`, {
+            method: "POST",
+            body: { logs: chunk },
+          });
+        } catch (err: any) {
+          errorMessage = err?.data?.message || err?.message || "Please try again.";
+          break;
+        }
+
+        const applied: any[] = res.applied || [];
+        const appliedKeys = new Set(applied.map((a) => a.idempotency_key));
+        outbox.value = outbox.value.filter((o) => !appliedKeys.has(o.idempotency_key));
+        persistOutbox();
+        syncedCount += applied.length;
+
+        // A chunk that applied nothing (e.g. every entry was already synced by
+        // another tab/device) would otherwise spin forever - bail instead.
+        if (!applied.length) break;
+      }
+
+      const remaining = outbox.value.length;
+      if (syncedCount) {
+        toast.success(
+          `Synced ${syncedCount} scan${syncedCount === 1 ? "" : "s"}` +
+            (remaining ? ` · ${remaining} remaining` : ""),
+        );
+      }
+      if (errorMessage) {
+        toast.error("Sync failed", {
+          description: remaining
+            ? `${errorMessage} ${remaining} scan${remaining === 1 ? "" : "s"} still queued.`
+            : errorMessage,
+        });
+      }
+
+      if (syncedCount) await loadManifest();
     } finally {
       syncing.value = false;
     }
