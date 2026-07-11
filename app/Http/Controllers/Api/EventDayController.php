@@ -12,6 +12,7 @@ use App\Services\Ticket\EventDayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class EventDayController extends Controller
 {
@@ -77,6 +78,9 @@ class EventDayController extends Controller
             }
         });
 
+        // Bulk query-builder updates skip model events, so bust the cache manually.
+        ResponseCache::clear(['tickets']);
+
         return response()->json(['message' => 'Event day order updated successfully']);
     }
 
@@ -88,6 +92,10 @@ class EventDayController extends Controller
     public function sync(Event $event, EventDayService $service): JsonResponse
     {
         $days = $service->syncFromEventDates($event);
+
+        // syncFromEventDates deactivates out-of-range days via a bulk
+        // query-builder update, which skips model events, so bust manually.
+        ResponseCache::clear(['tickets']);
 
         return response()->json([
             'message' => 'Event days synced from the event date range.',
@@ -108,6 +116,10 @@ class EventDayController extends Controller
         ]);
 
         $days = $service->setActiveDays($event, $validated['active_ids']);
+
+        // setActiveDays is entirely bulk query-builder updates, which skip
+        // model events, so bust manually.
+        ResponseCache::clear(['tickets']);
 
         return response()->json([
             'message' => 'Event days updated.',

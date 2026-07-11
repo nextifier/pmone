@@ -12,6 +12,7 @@ use App\Models\TicketSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class TicketSessionController extends Controller
 {
@@ -76,6 +77,9 @@ class TicketSessionController extends Controller
                 $ticket->sessions()->where('id', $order['id'])->update(['order_column' => $order['order']]);
             }
         });
+
+        // Bulk query-builder updates skip model events, so bust the cache manually.
+        ResponseCache::clear(['tickets']);
 
         return response()->json(['message' => 'Session order updated successfully']);
     }
