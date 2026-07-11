@@ -388,6 +388,15 @@ class XenditWebhookController extends Controller
                 return response()->json(['message' => 'Order already confirmed']);
             }
 
+            // Trigger A: a genuine paid event landed after the order already
+            // expired (slow bank transfer / retail settling after the 15-min
+            // hard-expiry job released the seat). Do not hard-reject with 409 —
+            // re-check live availability and either honor the payment or record
+            // it for reconciliation (no oversell).
+            if ($order->status === TicketOrderStatus::Expired) {
+                return $this->settleTicketPaidAfterExpiry($order, $payload);
+            }
+
             if ($order->status->isFinal()) {
                 return response()->json(['message' => 'Order already in final state'], 409);
             }
@@ -419,6 +428,39 @@ class XenditWebhookController extends Controller
         }
 
         return response()->json(['message' => 'Webhook received but no action taken']);
+    }
+
+    /**
+     * Trigger A: settle a paid event for a ticket order that already expired.
+     * Delegates the no-oversell re-check + resurrect/record decision to
+     * TicketPurchaseService::reconfirmAfterExpiry and logs accordingly.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function settleTicketPaidAfterExpiry(TicketOrder $order, array $payload): JsonResponse
+    {
+        $outcome = $this->tickets->reconfirmAfterExpiry($order, $payload);
+
+        if ($outcome === 'reconfirmed') {
+            activity()
+                ->performedOn($order)
+                ->event('payment_paid_after_expiry')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'amount' => $payload['amount'] ?? null,
+                    'invoice_id' => $payload['id'] ?? null,
+                ])
+                ->log('Ticket payment received after expiry - stock still available, order re-confirmed');
+
+            return response()->json(['message' => 'Ticket order re-confirmed after expiry']);
+        }
+
+        if ($outcome === 'needs_reconciliation') {
+            return response()->json(['message' => 'Payment received after expiry but stock is no longer available; recorded for manual reconciliation']);
+        }
+
+        return response()->json(['message' => 'Order already in final state'], 409);
     }
 
     /**

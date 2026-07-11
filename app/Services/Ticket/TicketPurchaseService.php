@@ -700,6 +700,140 @@ class TicketPurchaseService
     }
 
     /**
+     * Honor a genuine paid event that lands AFTER the order was already flipped
+     * to Expired (Trigger A: a slow bank transfer / retail channel settles
+     * minutes after the 15-min hard-expiry job released the seat). Re-checks
+     * LIVE availability for every line before resurrecting the order — the
+     * conservative, no-oversell mitigation:
+     *   - Every line still fits -> atomically flip Expired -> Confirmed, restore
+     *     the sold_count/booked_count counters this order released on expiry,
+     *     consume the access-code hold, and dispatch the normal confirmation
+     *     emails. Returns 'reconfirmed'.
+     *   - Any line has since been resold to someone else -> do NOT oversell.
+     *     Record the paid event (`paid_after_expiry_at` + a
+     *     `payment_needs_reconciliation` activity log) so staff can resolve it
+     *     by hand; the order stays Expired. Returns 'needs_reconciliation'.
+     * Idempotent: the atomic conditional update()'s affected-row count gates
+     * the counter re-increment, so a redelivered webhook cannot double-count.
+     * Callers should only invoke this for an order that is not already
+     * Confirmed (they check that first so a duplicate paid event short-circuits
+     * before reaching here).
+     *
+     * @param  array<string, mixed>  $payload
+     * @return 'reconfirmed'|'needs_reconciliation'|'not_expired'|'already_final'
+     */
+    public function reconfirmAfterExpiry(TicketOrder $order, array $payload = []): string
+    {
+        if ($order->status !== TicketOrderStatus::Expired) {
+            return 'not_expired';
+        }
+
+        $order->loadMissing('items.ticket', 'items.ticketSession');
+
+        $requestedByTicket = [];
+        $requestedBySession = [];
+        foreach ($order->items as $item) {
+            $requestedByTicket[$item->ticket_id] = ($requestedByTicket[$item->ticket_id] ?? 0) + $item->quantity;
+            if ($item->ticket_session_id) {
+                $requestedBySession[$item->ticket_session_id] = ($requestedBySession[$item->ticket_session_id] ?? 0) + $item->quantity;
+            }
+        }
+
+        foreach ($order->items as $item) {
+            $ticket = $item->ticket;
+            $ticketId = $item->ticket_id;
+
+            if (! $ticket) {
+                $this->recordNeedsReconciliation($order, $payload);
+
+                return 'needs_reconciliation';
+            }
+
+            $available = $this->availableStock($ticket);
+            if ($available !== null && $available < $requestedByTicket[$ticketId]) {
+                $this->recordNeedsReconciliation($order, $payload);
+
+                return 'needs_reconciliation';
+            }
+
+            if ($item->ticket_session_id) {
+                $session = $item->ticketSession;
+                if (! $session) {
+                    $this->recordNeedsReconciliation($order, $payload);
+
+                    return 'needs_reconciliation';
+                }
+
+                $left = $this->availableSessionCapacity($session);
+                if ($left !== null && $left < $requestedBySession[$item->ticket_session_id]) {
+                    $this->recordNeedsReconciliation($order, $payload);
+
+                    return 'needs_reconciliation';
+                }
+            }
+        }
+
+        $update = [
+            'status' => TicketOrderStatus::Confirmed,
+            'paid_at' => now(),
+            'xendit_invoice_id' => $payload['id'] ?? $order->xendit_invoice_id,
+        ];
+
+        if (! empty($payload['payment_channel'])) {
+            $update['payment_channel'] = $payload['payment_channel'];
+        }
+
+        $flipped = TicketOrder::query()
+            ->whereKey($order->id)
+            ->where('status', TicketOrderStatus::Expired->value)
+            ->update($update);
+
+        if ($flipped === 0) {
+            // Another concurrent delivery of the same event already resolved
+            // this order (reconfirmed or recorded) between our read above and
+            // this write.
+            return 'already_final';
+        }
+
+        foreach ($order->items as $item) {
+            $item->ticket?->increment('sold_count', $item->quantity);
+            $item->ticketSession?->increment('booked_count', $item->quantity);
+        }
+
+        $this->accessCodes->consume($order);
+        $this->dispatchConfirmationEmails($order);
+
+        return 'reconfirmed';
+    }
+
+    /**
+     * Record a paid-after-expiry event that could not be safely resurrected
+     * (stock/session capacity no longer available). Idempotent — only the
+     * first call stamps the timestamp, so a redelivered webhook does not
+     * overwrite it.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    protected function recordNeedsReconciliation(TicketOrder $order, array $payload): void
+    {
+        TicketOrder::query()
+            ->whereKey($order->id)
+            ->whereNull('paid_after_expiry_at')
+            ->update(['paid_after_expiry_at' => now()]);
+
+        activity()
+            ->performedOn($order)
+            ->event('payment_needs_reconciliation')
+            ->withProperties([
+                'project_id' => $order->event?->project_id,
+                'ticket_order_id' => $order->id,
+                'invoice_id' => $payload['id'] ?? null,
+                'amount' => $payload['amount'] ?? null,
+            ])
+            ->log('Ticket payment received after expiry, but stock is no longer available - needs manual reconciliation');
+    }
+
+    /**
      * Admin "Bulk Generate": create a complimentary batch order (free, confirmed,
      * source=admin, OUTSIDE sale stock) and hand attendee issuance off to a queued
      * job so big batches can stream in with progress. Returns the order immediately.
