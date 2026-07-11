@@ -199,6 +199,14 @@ class PublicAttendeeController extends Controller
                 && ! User::withTrashed()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->exists()) {
                 $attendee->claimed_by_user_id = $this->resolveHolderUser($validated)->id;
             }
+
+            // A changed email hands the ticket to a new holder - rotate the
+            // qr_token so the previous holder's already-issued QR stops
+            // working. Personalize is only reachable before check-in (guarded
+            // above), so this never invalidates an already-redeemed badge.
+            if (strtolower(trim($validated['email'])) !== $emailBefore) {
+                $attendee->qr_token = (string) Str::ulid();
+            }
         }
 
         $attendee->save();

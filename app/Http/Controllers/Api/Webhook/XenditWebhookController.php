@@ -497,6 +497,17 @@ class XenditWebhookController extends Controller
                 ->first();
 
             if (! $reservation) {
+                // Ticketing reuses the same per-project gateway + webhook URL —
+                // try a ticket order before giving up.
+                $order = TicketOrder::query()
+                    ->where('xendit_invoice_id', $invoiceId)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($order) {
+                    return $this->handleTicketRefundEvent($order, $event, $payloadRefundId, $refundAmount, $failureReason);
+                }
+
                 Log::warning('Xendit refund webhook: reservation not found', ['xendit_invoice_id' => $invoiceId]);
 
                 return response()->json(['message' => 'Reservation not found (acknowledged)']);
@@ -560,6 +571,63 @@ class XenditWebhookController extends Controller
 
             return response()->json(['message' => 'Refund finalized synced']);
         });
+    }
+
+    /**
+     * Ticket-order counterpart of the reservation refund branch above. Only a
+     * still-Confirmed order is settled to Refunded (voiding every attendee via
+     * TicketPurchaseService::refundOrder); a redelivered event for an order
+     * already Refunded is a no-op acknowledgement.
+     */
+    private function handleTicketRefundEvent(TicketOrder $order, string $event, ?string $payloadRefundId, mixed $refundAmount, ?string $failureReason): JsonResponse
+    {
+        if ($event === 'refund.failed') {
+            Log::error('Xendit refund failed (webhook, ticket order)', [
+                'ticket_order_id' => $order->id,
+                'reason' => $failureReason,
+            ]);
+
+            activity()
+                ->performedOn($order)
+                ->event('refund_failed')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'failure_reason' => $failureReason,
+                    'refund_id' => $payloadRefundId,
+                ])
+                ->log('Xendit refund failed');
+
+            return response()->json(['message' => 'Refund failure logged']);
+        }
+
+        if ($order->status === TicketOrderStatus::Refunded) {
+            return response()->json(['message' => 'Refund already synced']);
+        }
+
+        if ($order->status !== TicketOrderStatus::Confirmed) {
+            Log::warning('Xendit refund webhook: ticket order not eligible for refund sync', [
+                'ticket_order_id' => $order->id,
+                'status' => $order->status->value,
+            ]);
+
+            return response()->json(['message' => 'Order not eligible for refund sync']);
+        }
+
+        $this->tickets->refundOrder($order, 'Refunded via Xendit webhook');
+
+        activity()
+            ->performedOn($order)
+            ->event('refund_settled')
+            ->withProperties([
+                'project_id' => $order->event?->project_id,
+                'ticket_order_id' => $order->id,
+                'refund_amount' => $refundAmount,
+                'xendit_refund_id' => $payloadRefundId,
+            ])
+            ->log('Xendit refund settled');
+
+        return response()->json(['message' => 'Refund finalized synced']);
     }
 
     /**

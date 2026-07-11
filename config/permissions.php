@@ -424,6 +424,7 @@ return [
                 'tickets.export' => 'Export ticket sales to Excel',
                 'tickets.bulk_generate' => 'Bulk-generate complimentary tickets',
                 'tickets.mark_paid' => 'Manually mark a ticket order as paid',
+                'attendees.refund' => 'Refund/cancel a single attendee ticket',
                 'access_codes.generate' => 'Generate access code batches',
                 'access_codes.revoke' => 'Revoke an access code',
                 'access_codes.import' => 'Import invitation recipients',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Exports\AttendeesExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Attendee\RefundAttendeeRequest;
 use App\Http\Requests\Attendee\UpdateEventAttendeeRequest;
 use App\Http\Requests\Ticket\MarkTicketOrderPaidRequest;
 use App\Http\Resources\AttendeeIndexResource;
@@ -69,6 +70,38 @@ class EventAttendeeController extends Controller
         return response()->json([
             'message' => 'Attendee updated.',
             'data' => new AttendeeResource($updated->load(self::WITH)),
+        ]);
+    }
+
+    /**
+     * Void a single attendee's seat (Option A of Plan 001): rotates the
+     * qr_token, releases its ticket/session/phase counters + order-item
+     * quantity, and recomputes the order total. The order itself stays
+     * Confirmed - only this attendee's seat is refunded/cancelled.
+     */
+    public function refund(RefundAttendeeRequest $request, Event $event, Attendee $attendee, TicketPurchaseService $purchases): JsonResponse
+    {
+        $this->ensureAttendeeBelongsToEvent($event, $attendee);
+
+        $data = $request->validated();
+
+        $purchases->refundAttendee($attendee, $data['reason'] ?? null, (int) $request->user()->id);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($attendee->fresh())
+            ->event('attendee_refunded')
+            ->withProperties([
+                'project_id' => $event->project_id,
+                'event_id' => $event->id,
+                'attendee_id' => $attendee->id,
+                'reason' => $data['reason'] ?? null,
+            ])
+            ->log('Attendee ticket refunded/cancelled by staff');
+
+        return response()->json([
+            'message' => 'Attendee ticket refunded.',
+            'data' => new AttendeeResource($attendee->fresh(self::WITH)),
         ]);
     }
 

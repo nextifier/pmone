@@ -323,6 +323,7 @@ export function useScanSession(eventId: string) {
     ticket_not_found: "This QR code is not a valid ticket for any attendee.",
     order_not_confirmed: "The order for this ticket is not confirmed yet.",
     wrong_event: "This ticket belongs to a different event and cross-scan is not allowed.",
+    ticket_cancelled: "This ticket was cancelled or refunded.",
   };
 
   const WARNING_TEXT: Record<string, string> = {

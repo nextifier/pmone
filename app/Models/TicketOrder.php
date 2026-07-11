@@ -203,6 +203,11 @@ class TicketOrder extends Model implements CheckoutPayable, Purchasable
         return $this->status === TicketOrderStatus::Confirmed;
     }
 
+    public function isRefunded(): bool
+    {
+        return $this->status === TicketOrderStatus::Refunded;
+    }
+
     // ─── Purchasable contract (promo/adjustment engine) ──────────────────
     // Tickets carry no tax or service charge, so total = subtotal - discount.
 

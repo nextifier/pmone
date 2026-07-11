@@ -248,6 +248,10 @@ class MidtransWebhookController extends Controller
                 return response()->json(['message' => 'Payment under review (no action)']);
             }
 
+            if (in_array($status, ['refund', 'partial_refund'], true)) {
+                return $this->handleTicketRefund($payload, $locked, $status);
+            }
+
             if ($isExpiry) {
                 if ($locked->status !== TicketOrderStatus::PendingPayment) {
                     return response()->json(['message' => 'Order not eligible for expiry']);
@@ -272,6 +276,61 @@ class MidtransWebhookController extends Controller
             // pending / authorize / unknown — acknowledge without action.
             return response()->json(['message' => 'Webhook received but no action taken']);
         });
+    }
+
+    /**
+     * Minimal ticket-order refund sync. A `refund` (full) settles Confirmed ->
+     * Refunded and voids every attendee via TicketPurchaseService::refundOrder,
+     * exactly like the Xendit refund branch. A `partial_refund` cannot be
+     * mapped to specific attendees from this payload (no line-item detail), so
+     * it is only logged + flagged for manual review — never auto-voids anyone.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private function handleTicketRefund(array $payload, TicketOrder $order, string $status): JsonResponse
+    {
+        if ($status === 'partial_refund') {
+            Log::warning('Midtrans partial refund for ticket order — needs manual attendee selection', [
+                'ticket_order_id' => $order->id,
+                'transaction_id' => $payload['transaction_id'] ?? null,
+            ]);
+
+            activity()
+                ->performedOn($order)
+                ->event('refund_needs_review')
+                ->withProperties([
+                    'project_id' => $order->event?->project_id,
+                    'ticket_order_id' => $order->id,
+                    'transaction_id' => $payload['transaction_id'] ?? null,
+                    'transaction_status' => $status,
+                ])
+                ->log('Midtrans partial refund received - cannot auto-map to attendees, needs manual review');
+
+            return response()->json(['message' => 'Partial refund received; flagged for manual review']);
+        }
+
+        if ($order->status === TicketOrderStatus::Refunded) {
+            return response()->json(['message' => 'Refund already synced']);
+        }
+
+        if ($order->status !== TicketOrderStatus::Confirmed) {
+            return response()->json(['message' => 'Order not eligible for refund sync']);
+        }
+
+        $this->tickets->refundOrder($order, 'Refunded via Midtrans webhook');
+
+        activity()
+            ->performedOn($order)
+            ->event('refund_settled')
+            ->withProperties([
+                'project_id' => $order->event?->project_id,
+                'ticket_order_id' => $order->id,
+                'transaction_id' => $payload['transaction_id'] ?? null,
+                'transaction_status' => $status,
+            ])
+            ->log('Midtrans refund settled');
+
+        return response()->json(['message' => 'Refund finalized synced']);
     }
 
     /**

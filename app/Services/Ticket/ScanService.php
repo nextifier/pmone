@@ -29,6 +29,10 @@ class ScanService
             return ['result' => 'invalid', 'reason' => 'ticket_not_found'];
         }
 
+        if ($attendee->cancelled_at !== null) {
+            return ['result' => 'invalid', 'reason' => 'ticket_cancelled', 'attendee' => $this->present($attendee)];
+        }
+
         $order = $attendee->ticketOrderItem?->ticketOrder;
 
         if (! $order || ! $order->isConfirmed()) {
@@ -107,6 +111,7 @@ class ScanService
         return Attendee::query()
             ->whereHas('ticket', fn ($q) => $q->whereIn('event_id', $eventIds))
             ->whereHas('ticketOrderItem.ticketOrder', fn ($q) => $q->where('status', 'confirmed'))
+            ->whereNull('cancelled_at')
             ->where(function ($q) use ($like, $query) {
                 $q->where('name', $like, "%{$query}%")
                     ->orWhere('email', $like, "%{$query}%")
@@ -133,6 +138,7 @@ class ScanService
         return Attendee::query()
             ->whereHas('ticket', fn ($q) => $q->whereIn('event_id', $eventIds))
             ->whereHas('ticketOrderItem.ticketOrder', fn ($q) => $q->where('status', 'confirmed'))
+            ->whereNull('cancelled_at')
             ->with(['ticket.validDays', 'ticketOrderItem:id,selected_event_day_id'])
             // Stream in chunks (eager-loaded per chunk) instead of hydrating every
             // confirmed attendee at once - keeps peak memory bounded on large

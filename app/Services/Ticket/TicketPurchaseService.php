@@ -742,8 +742,9 @@ class TicketPurchaseService
                 if ($item->ticket_session_id) {
                     TicketSession::whereKey($item->ticket_session_id)->where('booked_count', '>=', $item->quantity)->decrement('booked_count', $item->quantity);
                 }
-                // TODO(plan-001): release phase sold_count on attendee refund too
-                // (this only covers the order-expiry path).
+                // The attendee-refund path (refundAttendee()) releases the
+                // phase sold_count for a single voided seat; this covers the
+                // whole-order expiry path.
                 if ($item->ticket_price_phase_id) {
                     TicketPricePhase::whereKey($item->ticket_price_phase_id)
                         ->where('sold_count', '>=', $item->quantity)
@@ -752,6 +753,105 @@ class TicketPurchaseService
             }
 
             $order->setAttribute('status', TicketOrderStatus::Expired);
+        });
+    }
+
+    /**
+     * Void a single attendee's seat: cancel it, rotate its `qr_token` (killing
+     * the old QR so a transferred/refunded badge stops scanning), release its
+     * seat (order-item quantity + ticket/session/phase `sold_count`), and
+     * recompute the order total. Idempotent - a no-op when the attendee is
+     * already cancelled. Never touches the order's own status: the order
+     * stays Confirmed with its remaining attendees still valid. Called
+     * per-attendee by refundOrder() for a whole-order refund too.
+     */
+    public function refundAttendee(Attendee $attendee, ?string $reason = null, ?int $staffId = null): void
+    {
+        DB::transaction(function () use ($attendee, $reason, $staffId) {
+            $locked = Attendee::query()->whereKey($attendee->id)->lockForUpdate()->first();
+
+            if (! $locked || $locked->cancelled_at !== null) {
+                return;
+            }
+
+            $locked->forceFill([
+                'cancelled_at' => now(),
+                'cancelled_reason' => $reason,
+                'cancelled_by' => $staffId,
+                'qr_token' => (string) Str::ulid(),
+            ])->save();
+
+            $item = TicketOrderItem::query()->whereKey($locked->ticket_order_item_id)->lockForUpdate()->first();
+
+            if (! $item) {
+                return;
+            }
+
+            $newQuantity = max(0, $item->quantity - 1);
+            $item->update([
+                'quantity' => $newQuantity,
+                'subtotal' => (float) $item->unit_price * $newQuantity,
+            ]);
+
+            Ticket::whereKey($item->ticket_id)->where('sold_count', '>=', 1)->decrement('sold_count');
+
+            if ($item->ticket_session_id) {
+                TicketSession::whereKey($item->ticket_session_id)->where('booked_count', '>=', 1)->decrement('booked_count');
+            }
+
+            if ($item->ticket_price_phase_id) {
+                TicketPricePhase::whereKey($item->ticket_price_phase_id)->where('sold_count', '>=', 1)->decrement('sold_count');
+            }
+
+            $order = TicketOrder::query()->whereKey($item->ticket_order_id)->lockForUpdate()->first();
+
+            if (! $order) {
+                return;
+            }
+
+            // The order's `subtotal` is the sum of every item's own subtotal
+            // (never recomputed from live items elsewhere - see createOrder),
+            // so shaving off exactly the released seat's unit price keeps that
+            // invariant intact before the pricing engine re-derives the
+            // discount + total against the smaller base.
+            $order->forceFill([
+                'subtotal' => max(0.0, (float) $order->subtotal - (float) $item->unit_price),
+            ])->save();
+
+            $this->pricing->recalculateAndPersist($order->fresh(['items', 'adjustments']));
+        });
+    }
+
+    /**
+     * Refund an entire ticket order: flip Confirmed -> Refunded and void every
+     * still-active attendee via refundAttendee() (rotates each qr_token,
+     * releases every ticket/session/phase counter, recomputes the total down
+     * to what remains). Idempotent - the atomic conditional flip means a
+     * redelivered refund webhook that finds the order already Refunded is a
+     * no-op.
+     */
+    public function refundOrder(TicketOrder $order, ?string $reason = null, ?int $staffId = null): void
+    {
+        DB::transaction(function () use ($order, $reason, $staffId) {
+            $flipped = TicketOrder::query()
+                ->whereKey($order->id)
+                ->where('status', TicketOrderStatus::Confirmed->value)
+                ->update(['status' => TicketOrderStatus::Refunded->value]);
+
+            if ($flipped === 0) {
+                return;
+            }
+
+            $attendees = Attendee::query()
+                ->whereHas('ticketOrderItem', fn ($q) => $q->where('ticket_order_id', $order->id))
+                ->whereNull('cancelled_at')
+                ->get();
+
+            foreach ($attendees as $attendee) {
+                $this->refundAttendee($attendee, $reason, $staffId);
+            }
+
+            $order->setAttribute('status', TicketOrderStatus::Refunded);
         });
     }
 
