@@ -416,12 +416,12 @@ export function useScanSession(eventId: string) {
     idbSet(outboxKey.value, [...outbox.value]);
   };
 
-  const enqueueOffline = (qrToken: string, idempotencyKey: string): void => {
-    outbox.value.push({ qr_token: qrToken, idempotency_key: idempotencyKey, action: "check_in" });
+  const enqueueOffline = (qrToken: string, idempotencyKey: string, action: string = "check_in"): void => {
+    outbox.value.push({ qr_token: qrToken, idempotency_key: idempotencyKey, action });
     persistOutbox();
   };
 
-  const offlineResult = (qrToken: string, idempotencyKey: string): any => {
+  const offlineResult = (qrToken: string, idempotencyKey: string, action: string = "check_in"): any => {
     const att = manifestByToken.value.get(qrToken);
     if (!att) {
       return { result: "invalid", reason: "ticket_not_found" };
@@ -435,6 +435,15 @@ export function useScanSession(eventId: string) {
       qr_token: att.qr_token,
       checked_in_at: att.checked_in_at,
     };
+
+    // Reprint/reissue never collide with check-in state - always queue them
+    // with their real action so the server applies the right thing on sync,
+    // instead of every offline scan being coerced into a plain check_in
+    // (Trigger D).
+    if (action !== "check_in") {
+      enqueueOffline(qrToken, idempotencyKey, action);
+      return { result: "queued", attendee: presented };
+    }
 
     // Consult the cached manifest state instead of blindly queuing a fresh
     // check-in: a ticket already checked in (by this device before the last
@@ -452,7 +461,7 @@ export function useScanSession(eventId: string) {
       return { result: "already_checked_in", attendee: presented };
     }
 
-    enqueueOffline(qrToken, idempotencyKey);
+    enqueueOffline(qrToken, idempotencyKey, action);
     return { result: "queued", attendee: presented };
   };
 
@@ -602,7 +611,7 @@ export function useScanSession(eventId: string) {
     const idempotencyKey = crypto.randomUUID();
 
     if (!isOnline.value) {
-      applyResult(offlineResult(qrToken, idempotencyKey));
+      applyResult(offlineResult(qrToken, idempotencyKey, action));
       return;
     }
 
@@ -615,7 +624,7 @@ export function useScanSession(eventId: string) {
     } catch (err: any) {
       if (!navigator.onLine || err?.statusCode === 0 || !err?.statusCode) {
         isOnline.value = navigator.onLine;
-        applyResult(offlineResult(qrToken, idempotencyKey));
+        applyResult(offlineResult(qrToken, idempotencyKey, action));
       } else {
         toast.error("Check-in failed", {
           description: err?.data?.message || err?.message || "Please try again.",
