@@ -196,7 +196,12 @@ class MidtransWebhookController extends Controller
 
             $isPaid = $status === 'settlement'
                 || ($status === 'capture' && $fraud === 'accept');
-            $isExpiry = in_array($status, ['expire', 'cancel', 'deny', 'failure'], true);
+            // Only a genuine `expire` releases stock. `cancel`/`deny`/`failure`
+            // are non-terminal from Midtrans's perspective (a declined first
+            // card attempt, an abandoned VA) — the order stays payable and the
+            // buyer can retry the same checkout, so flipping to Expired here
+            // would prematurely release the seat and dead-end a later retry.
+            $isExpiry = in_array($status, ['expire'], true);
 
             if ($isPaid) {
                 if ($locked->status === TicketOrderStatus::Confirmed) {
