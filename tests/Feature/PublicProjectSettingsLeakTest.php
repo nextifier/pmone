@@ -54,6 +54,13 @@ function getPublicActiveEvent(string $username): TestResponse
         ->getJson("/api/public/projects/{$username}/events/active");
 }
 
+// The project-profile endpoint is fully unauthenticated (no X-API-Key,
+// only throttled), so deliberately send NO api-key header here.
+function getProjectProfile(string $username): TestResponse
+{
+    return test()->getJson("/api/projects/{$username}");
+}
+
 test('public project show excludes the raw settings blob entirely', function () {
     $project = Project::factory()->create(['settings' => withInternalSettings()]);
 
@@ -142,4 +149,34 @@ test('public active event still exposes display fields consumed by event website
         ->assertJsonPath('data.teaser_video_id', 'abc123')
         ->assertJsonPath('data.hall', 'Hall 1')
         ->assertJsonPath('data.website_url', 'https://example.test');
+});
+
+test('unauthenticated project-profile endpoint excludes the raw settings blob entirely', function () {
+    $project = Project::factory()->create(['settings' => withInternalSettings()]);
+
+    $response = getProjectProfile($project->username)->assertOk();
+
+    expect($response->json('data'))->not->toHaveKey('settings');
+    expect($response->getContent())
+        ->not->toContain('staff-internal@panorama.test')
+        ->not->toContain('ops-internal@panorama.test')
+        ->not->toContain('hotel-ops-internal@panorama.test')
+        ->not->toContain('email_config')
+        ->not->toContain('notification_email')
+        ->not->toContain('email_subjects')
+        ->not->toContain('Internal confirmation subject template');
+});
+
+test('unauthenticated project-profile endpoint still exposes non-sensitive public fields', function () {
+    $project = Project::factory()->create([
+        'name' => 'Public Expo',
+        'settings' => withInternalSettings(),
+    ]);
+    $project->links()->create(['label' => 'Website', 'url' => 'https://example.test']);
+
+    getProjectProfile($project->username)
+        ->assertOk()
+        ->assertJsonPath('data.name', 'Public Expo')
+        ->assertJsonPath('data.username', $project->username)
+        ->assertJsonPath('data.links.0.url', 'https://example.test');
 });
