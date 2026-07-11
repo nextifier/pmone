@@ -38,6 +38,11 @@ class StorePublicTicketOrderRequest extends FormRequest
             'accept_terms' => ['accepted'],
             'origin' => ['nullable', 'url', 'max:255'],
 
+            // Client-generated key (e.g. a UUID per checkout attempt) so a
+            // double-click or network retry resolves to the same order
+            // instead of holding inventory twice.
+            'idempotency_key' => ['nullable', 'string', 'max:64'],
+
             // Business matching intake (buyer answers, stored on their User).
             // Ids resolve by id or legacy_id downstream, so no exists rule here.
             'business_matching' => ['sometimes', 'array'],

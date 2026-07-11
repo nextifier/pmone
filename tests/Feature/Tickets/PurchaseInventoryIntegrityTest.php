@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
 use App\Models\ApiConsumer;
 use App\Models\Attendee;
 use App\Models\Event;
@@ -10,6 +11,7 @@ use App\Models\TicketPricePhase;
 use App\Models\TicketSession;
 use App\Services\Ticket\TicketPurchaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Bus;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 uses(RefreshDatabase::class);
@@ -215,4 +217,77 @@ it('rejects an over-large total quantity on the cart preview endpoint', function
         ])
         ->assertStatus(422)
         ->assertJsonValidationErrors('items');
+});
+
+// Trigger E: duplicate submit should be idempotent.
+
+it('submitting twice with the same idempotency_key yields one order', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 5);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+        'idempotency_key' => 'retry-key-123',
+    ];
+
+    $first = $this->service->createOrder($payload);
+    $second = $this->service->createOrder($payload);
+
+    expect($second->id)->toBe($first->id)
+        ->and(TicketOrder::count())->toBe(1)
+        ->and($ticket->fresh()->sold_count)->toBe(2);
+});
+
+it('does not double-dispatch confirmation emails on a duplicate submission', function () {
+    Bus::fake();
+    $ticket = priceableTicket($this->event, 0, stock: 5);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+        'idempotency_key' => 'retry-key-456',
+    ];
+
+    $this->service->createOrder($payload);
+    $this->service->createOrder($payload);
+
+    Bus::assertDispatchedTimes(SendTicketOrderConfirmationJob::class, 1);
+});
+
+it('yields a single order when the public order endpoint is called twice with the same idempotency_key', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 5);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Budi',
+        'buyer_email' => 'budi@example.com',
+        'buyer_phone' => '08123',
+        'accept_terms' => true,
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+        'idempotency_key' => 'http-retry-1',
+    ];
+
+    $first = $this->withHeaders($this->headers)->postJson('/api/public/ticket-orders', $payload)->assertCreated();
+    $second = $this->withHeaders($this->headers)->postJson('/api/public/ticket-orders', $payload)->assertCreated();
+
+    expect($first->json('data.ulid'))->toBe($second->json('data.ulid'))
+        ->and(TicketOrder::count())->toBe(1);
+});
+
+it('creates two independent orders when no idempotency_key is given', function () {
+    $ticket = priceableTicket($this->event, 0, stock: 5);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ];
+
+    $first = $this->service->createOrder($payload);
+    $second = $this->service->createOrder($payload);
+
+    expect($second->id)->not->toBe($first->id)
+        ->and(TicketOrder::count())->toBe(2);
 });

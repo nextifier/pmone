@@ -255,7 +255,23 @@ class TicketPurchaseService
         $items = $data['items'] ?? [];
         abort_if(empty($items), 422, 'At least one ticket is required.');
 
-        $order = DB::transaction(function () use ($data, $event, $items) {
+        $idempotencyKey = $this->normalizeIdempotencyKey($data['idempotency_key'] ?? null);
+
+        $result = DB::transaction(function () use ($data, $event, $items, $idempotencyKey) {
+            // A client retrying a submission (double-click, network timeout)
+            // sends the same key: hand back the order already created for it
+            // instead of holding inventory a second time.
+            if ($idempotencyKey !== null) {
+                $existing = TicketOrder::query()
+                    ->where('event_id', $event->id)
+                    ->where('idempotency_key', $idempotencyKey)
+                    ->first();
+
+                if ($existing) {
+                    return ['order' => $existing->fresh(['items.attendees', 'event']), 'duplicate' => true];
+                }
+            }
+
             $buyerUser = $this->resolveBuyerUser($data);
 
             if ($buyerUser && ! empty($data['business_matching'])) {
@@ -398,6 +414,10 @@ class TicketPurchaseService
                 'user_agent' => $data['user_agent'] ?? null,
             ]);
 
+            if ($idempotencyKey !== null) {
+                $order->forceFill(['idempotency_key' => $idempotencyKey])->save();
+            }
+
             $attendeeNumber = 0;
             $alsoAttending = (bool) ($data['also_attending'] ?? false);
             $totalQty = array_sum(array_column($resolved, 'qty'));
@@ -482,10 +502,28 @@ class TicketPurchaseService
                 $this->pricing->recalculateAndPersist($order->fresh(['items', 'adjustments']));
             });
 
-            return $order->fresh(['items.attendees', 'event']);
+            return ['order' => $order->fresh(['items.attendees', 'event']), 'duplicate' => false];
         });
 
-        return $this->resolvePayment($order, $data, $checkoutClient);
+        // A duplicate submission returns the order exactly as first resolved -
+        // running it through resolvePayment again would re-send confirmation
+        // emails or open a second payment-gateway checkout for the same order.
+        if ($result['duplicate']) {
+            return $result['order'];
+        }
+
+        return $this->resolvePayment($result['order'], $data, $checkoutClient);
+    }
+
+    /**
+     * Trim an optional client-supplied idempotency key down to null when
+     * blank, so blank strings behave the same as an absent key.
+     */
+    protected function normalizeIdempotencyKey(?string $key): ?string
+    {
+        $key = trim((string) $key);
+
+        return $key === '' ? null : $key;
     }
 
     /**
