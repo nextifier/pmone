@@ -310,6 +310,55 @@ class XenditWebhookController extends Controller
         return false;
     }
 
+    /**
+     * Guard a ticket paid confirmation against an underpaid webhook. A gateway
+     * or misconfiguration may report an `amount` smaller than the order total;
+     * confirming on such a payload would issue tickets without full payment.
+     *
+     * Only enforced when a positive amount is present — some events omit it
+     * (or send 0), and rejecting those would break legitimate confirmations.
+     * A shortfall beyond a 1 IDR epsilon is refused (caller must NOT confirm).
+     * Overpayment is allowed but logged for reconciliation.
+     *
+     * @param  mixed  $rawAmount  The webhook-reported paid amount (any scalar).
+     */
+    private function ticketPaymentAmountSufficient(mixed $rawAmount, TicketOrder $order, string $context): bool
+    {
+        if ($rawAmount === null || $rawAmount === '') {
+            return true;
+        }
+
+        $paid = (float) $rawAmount;
+        if ($paid <= 0.0) {
+            return true;
+        }
+
+        $total = (float) $order->total;
+        $epsilon = 1.0;
+
+        if ($paid + $epsilon < $total) {
+            Log::warning('Xendit webhook: payment_amount_mismatch (ticket order underpaid), confirmation skipped', [
+                'context' => $context,
+                'ticket_order_id' => $order->id,
+                'order_total' => $total,
+                'paid_amount' => $paid,
+            ]);
+
+            return false;
+        }
+
+        if ($paid > $total + $epsilon) {
+            Log::warning('Xendit webhook: ticket order overpaid, confirming anyway', [
+                'context' => $context,
+                'ticket_order_id' => $order->id,
+                'order_total' => $total,
+                'paid_amount' => $paid,
+            ]);
+        }
+
+        return true;
+    }
+
     private function handleInvoiceEvent(array $payload, string $status, ?Project $project): JsonResponse
     {
         $externalId = $payload['external_id'] ?? null;
@@ -438,6 +487,10 @@ class XenditWebhookController extends Controller
 
             if ($order->status->isFinal()) {
                 return response()->json(['message' => 'Order already in final state'], 409);
+            }
+
+            if (! $this->ticketPaymentAmountSufficient($payload['amount'] ?? null, $order, 'invoice.ticket_order')) {
+                return response()->json(['message' => 'Payment amount mismatch (no action)']);
             }
 
             $this->tickets->markAsConfirmed($order, $payload);
@@ -892,6 +945,10 @@ class XenditWebhookController extends Controller
 
             if ($order->status->isFinal()) {
                 return response()->json(['message' => 'Order already in final state'], 409);
+            }
+
+            if (! $this->ticketPaymentAmountSufficient($data['amount'] ?? null, $order, 'session.ticket_order')) {
+                return response()->json(['message' => 'Payment amount mismatch (no action)']);
             }
 
             $channel = $this->resolveSessionChannel($data, $order->paymentGateway);
