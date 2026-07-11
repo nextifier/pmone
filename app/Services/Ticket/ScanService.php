@@ -21,7 +21,7 @@ class ScanService
     /**
      * @return array<string, mixed>
      */
-    public function checkIn(string $qrToken, Event $scanEvent, int $staffId, string $idempotencyKey, ScanAction $action = ScanAction::CheckIn): array
+    public function checkIn(string $qrToken, Event $scanEvent, int $staffId, string $idempotencyKey, ScanAction $action = ScanAction::CheckIn, ?string $clientScannedAt = null): array
     {
         $attendee = $this->resolveAttendee($qrToken);
 
@@ -43,6 +43,7 @@ class ScanService
         }
 
         $timing = $this->validateTiming($attendee, $scanEvent);
+        $scannedAt = $this->resolveScannedAt($clientScannedAt);
 
         // Idempotent ledger entry — repeated offline pushes of the same client
         // UUID collapse to one row.
@@ -53,7 +54,7 @@ class ScanService
                 'action' => $action,
                 'event_id' => $scanEvent->id,
                 'staff_id' => $staffId,
-                'scanned_at' => now(),
+                'scanned_at' => $scannedAt,
                 'meta' => ['warning' => $timing['warning'] ?? null],
             ],
         );
@@ -79,7 +80,7 @@ class ScanService
                 ->whereKey($attendee->id)
                 ->whereNull('checked_in_at')
                 ->update([
-                    'checked_in_at' => now(),
+                    'checked_in_at' => $scannedAt,
                     'checked_in_by' => $staffId,
                     'checkin_event_id' => $scanEvent->id,
                 ]);
@@ -175,6 +176,29 @@ class ScanService
                 'idempotency_key' => $log->idempotency_key,
             ])
             ->all();
+    }
+
+    /**
+     * Bound an offline-synced scan's client-reported timestamp to +/-24h of
+     * the server clock, so a wildly wrong device time can't corrupt
+     * attendance timing or day-validity reports. Falls back to server time
+     * when the client didn't send one, sent something unparsable, or sent a
+     * time outside the bound. Online single check-ins never pass a client
+     * time, so they always get exact server time.
+     */
+    protected function resolveScannedAt(?string $clientScannedAt): Carbon
+    {
+        if (! $clientScannedAt) {
+            return now();
+        }
+
+        try {
+            $parsed = Carbon::parse($clientScannedAt);
+        } catch (\Throwable) {
+            return now();
+        }
+
+        return $parsed->diffInHours(now(), true) > 24 ? now() : $parsed;
     }
 
     protected function resolveAttendee(string $qrToken): ?Attendee

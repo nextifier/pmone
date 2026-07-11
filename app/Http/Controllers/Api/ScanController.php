@@ -104,10 +104,14 @@ class ScanController extends Controller
     public function sync(Request $request, Event $event): JsonResponse
     {
         $validated = $request->validate([
-            'logs' => ['sometimes', 'array', 'max:500'],
+            // The client chunks its outbox into <=200-entry slices before
+            // posting (frontend `SYNC_CHUNK`), so a large offline batch syncs
+            // across several requests instead of 422ing as one oversized call.
+            'logs' => ['sometimes', 'array', 'max:200'],
             'logs.*.qr_token' => ['required_with:logs', 'string'],
             'logs.*.idempotency_key' => ['required_with:logs', 'string', 'max:64'],
             'logs.*.action' => ['sometimes', 'string'],
+            'logs.*.scanned_at' => ['sometimes', 'nullable', 'date'],
             'cursor' => ['nullable', 'date'],
         ]);
 
@@ -116,7 +120,14 @@ class ScanController extends Controller
             $action = ScanAction::tryFrom($log['action'] ?? 'check_in') ?? ScanAction::CheckIn;
             $applied[] = [
                 'idempotency_key' => $log['idempotency_key'],
-                'result' => $this->scans->checkIn($log['qr_token'], $event, $request->user()->id, $log['idempotency_key'], $action)['result'],
+                'result' => $this->scans->checkIn(
+                    $log['qr_token'],
+                    $event,
+                    $request->user()->id,
+                    $log['idempotency_key'],
+                    $action,
+                    $log['scanned_at'] ?? null,
+                )['result'],
             ];
         }
 
