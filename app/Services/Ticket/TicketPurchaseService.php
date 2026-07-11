@@ -352,6 +352,7 @@ class TicketPurchaseService
                     $session = TicketSession::query()
                         ->where('id', $item['ticket_session_id'])
                         ->where('ticket_id', $ticket->id)
+                        ->where('is_active', true)
                         ->lockForUpdate()
                         ->first();
                     abort_if(! $session, 422, 'Selected session is invalid for this ticket.');

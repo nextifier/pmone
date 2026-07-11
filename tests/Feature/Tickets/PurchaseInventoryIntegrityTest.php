@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Ticket;
 use App\Models\TicketOrder;
 use App\Models\TicketPricePhase;
+use App\Models\TicketSession;
 use App\Services\Ticket\TicketPurchaseService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -23,7 +24,10 @@ beforeEach(function () {
  */
 function priceableTicket(Event $event, float $price, ?int $stock = null, array $overrides = []): Ticket
 {
-    $ticket = Ticket::factory()->create(array_merge(['event_id' => $event->id, 'stock' => $stock], $overrides));
+    // max_quantity defaults to null (uncapped) so multi-line aggregate
+    // quantities in these tests aren't flaky against the factory's random
+    // optional() cap; tests that care about max_quantity override it.
+    $ticket = Ticket::factory()->create(array_merge(['event_id' => $event->id, 'stock' => $stock, 'max_quantity' => null], $overrides));
     TicketPricePhase::factory()->create([
         'ticket_id' => $ticket->id,
         'price' => $price,
@@ -127,4 +131,26 @@ it('does not let a comp batch reduce public availableStock', function () {
     ]);
 
     expect($order->attendees()->count())->toBe(5);
+});
+
+// Trigger C: a deactivated session must not be bookable.
+
+it('rejects ordering a session that an admin has deactivated', function () {
+    $addOn = Ticket::factory()->addOn()->create(['event_id' => $this->event->id]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $addOn->id,
+        'price' => 0,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+    $session = TicketSession::factory()->create(['ticket_id' => $addOn->id, 'capacity' => 10, 'is_active' => false]);
+
+    expect(fn () => $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $addOn->id, 'quantity' => 1, 'ticket_session_id' => $session->id]],
+    ]))->toThrow(HttpException::class);
+
+    expect(TicketOrder::count())->toBe(0)
+        ->and($session->fresh()->booked_count)->toBe(0);
 });
