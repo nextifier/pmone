@@ -226,14 +226,14 @@ class XenditWebhookController extends Controller
 
         // Refund events
         if (str_starts_with($event, 'refund.')) {
-            return $this->handleRefundEvent($payload, $event);
+            return $this->handleRefundEvent($payload, $event, $project);
         }
 
         // QR Code events. QRIS payments made through a Xendit invoice still
         // produce a QR payment object; refunding one emits `qr.refund` to the
         // "QR code paid & refunded" webhook URL.
         if ($event === 'qr.refund') {
-            return $this->handleQrRefundEvent($payload);
+            return $this->handleQrRefundEvent($payload, $project);
         }
 
         // The matching invoice.paid event already settles the reservation, so
@@ -258,13 +258,13 @@ class XenditWebhookController extends Controller
         // keys off a root-level `status`, which session payloads never carry
         // (their status lives under `data`), so the two never collide.
         if (str_starts_with($event, 'payment_session.')) {
-            return $this->handleSessionEvent($payload, $event);
+            return $this->handleSessionEvent($payload, $event, $project);
         }
 
         // Invoice events - identified by `status` field
         $status = strtolower((string) ($payload['status'] ?? ''));
         if (in_array($status, ['paid', 'settled', 'expired'], true)) {
-            return $this->handleInvoiceEvent($payload, $status);
+            return $this->handleInvoiceEvent($payload, $status, $project);
         }
 
         Log::info('Xendit webhook with unrecognized payload shape', [
@@ -276,7 +276,41 @@ class XenditWebhookController extends Controller
         return response()->json(['message' => 'Webhook received but no action taken']);
     }
 
-    private function handleInvoiceEvent(array $payload, string $status): JsonResponse
+    /**
+     * Verify a resolved reservation/ticket order actually belongs to the
+     * project whose webhook token authenticated this request. Every branch
+     * that resolves an entity by a globally-unique external id (order
+     * number, invoice id, session id, refund id) MUST call this before
+     * mutating state — otherwise a project's valid callback token could
+     * settle another project's order.
+     *
+     * `$project` is null only when ownership cannot be established at all
+     * (defensive — both callers of dispatch() always pass a resolved
+     * project), in which case the check is skipped rather than blocking
+     * legitimate traffic on an unrelated gap.
+     *
+     * @param  array<string, mixed>  $logContext
+     */
+    private function assertProjectOwnership(?Project $project, ?int $resolvedProjectId, string $context, array $logContext = []): bool
+    {
+        if ($project === null || $resolvedProjectId === null) {
+            return true;
+        }
+
+        if ($resolvedProjectId === $project->id) {
+            return true;
+        }
+
+        Log::warning('Xendit webhook: external id belongs to a different project', array_merge([
+            'context' => $context,
+            'authenticated_project_id' => $project->id,
+            'resolved_project_id' => $resolvedProjectId,
+        ], $logContext));
+
+        return false;
+    }
+
+    private function handleInvoiceEvent(array $payload, string $status, ?Project $project): JsonResponse
     {
         $externalId = $payload['external_id'] ?? null;
 
@@ -284,7 +318,7 @@ class XenditWebhookController extends Controller
             return response()->json(['message' => 'Missing external_id'], 422);
         }
 
-        return DB::transaction(function () use ($payload, $externalId, $status) {
+        return DB::transaction(function () use ($payload, $externalId, $status, $project) {
             $reservation = Reservation::query()
                 ->where('reservation_number', $externalId)
                 ->lockForUpdate()
@@ -292,7 +326,7 @@ class XenditWebhookController extends Controller
 
             if (! $reservation) {
                 // Not a reservation — try a ticket order (shared gateway + webhook).
-                if ($ticketResponse = $this->handleTicketInvoiceEvent($externalId, $status, $payload)) {
+                if ($ticketResponse = $this->handleTicketInvoiceEvent($externalId, $status, $payload, $project)) {
                     return $ticketResponse;
                 }
 
@@ -305,6 +339,13 @@ class XenditWebhookController extends Controller
                 // retry storm which buys us nothing — we log + move on.
                 Log::warning('Xendit webhook: reservation not found', ['external_id' => $externalId]);
 
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
+            }
+
+            if (! $this->assertProjectOwnership($project, $reservation->event?->project_id, 'invoice.reservation', [
+                'reservation_id' => $reservation->id,
+                'external_id' => $externalId,
+            ])) {
                 return response()->json(['message' => 'Reservation not found (acknowledged)']);
             }
 
@@ -372,7 +413,7 @@ class XenditWebhookController extends Controller
      *
      * @param  array<string, mixed>  $payload
      */
-    private function handleTicketInvoiceEvent(string $externalId, string $status, array $payload): ?JsonResponse
+    private function handleTicketInvoiceEvent(string $externalId, string $status, array $payload, ?Project $project): ?JsonResponse
     {
         $order = TicketOrder::query()
             ->where('order_number', $externalId)
@@ -381,6 +422,13 @@ class XenditWebhookController extends Controller
 
         if (! $order) {
             return null;
+        }
+
+        if (! $this->assertProjectOwnership($project, $order->event?->project_id, 'invoice.ticket_order', [
+            'ticket_order_id' => $order->id,
+            'external_id' => $externalId,
+        ])) {
+            return response()->json(['message' => 'Reservation not found (acknowledged)']);
         }
 
         if ($status === 'paid' || $status === 'settled') {
@@ -433,7 +481,7 @@ class XenditWebhookController extends Controller
      * payload shapes had them top-level — read `data` first, fall back to
      * the root so both are handled.
      */
-    private function handleRefundEvent(array $payload, string $event): JsonResponse
+    private function handleRefundEvent(array $payload, string $event, ?Project $project): JsonResponse
     {
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
 
@@ -448,7 +496,7 @@ class XenditWebhookController extends Controller
             return response()->json(['message' => 'Missing invoice_id (no action)']);
         }
 
-        return DB::transaction(function () use ($event, $invoiceId, $payloadRefundId, $refundAmount, $failureReason) {
+        return DB::transaction(function () use ($event, $invoiceId, $payloadRefundId, $refundAmount, $failureReason, $project) {
             $reservation = Reservation::query()
                 ->where('xendit_invoice_id', $invoiceId)
                 ->lockForUpdate()
@@ -457,6 +505,13 @@ class XenditWebhookController extends Controller
             if (! $reservation) {
                 Log::warning('Xendit refund webhook: reservation not found', ['xendit_invoice_id' => $invoiceId]);
 
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
+            }
+
+            if (! $this->assertProjectOwnership($project, $reservation->event?->project_id, 'refund.reservation', [
+                'reservation_id' => $reservation->id,
+                'xendit_invoice_id' => $invoiceId,
+            ])) {
                 return response()->json(['message' => 'Reservation not found (acknowledged)']);
             }
 
@@ -535,7 +590,7 @@ class XenditWebhookController extends Controller
      *
      * @param  array<string, mixed>  $payload
      */
-    private function handleQrRefundEvent(array $payload): JsonResponse
+    private function handleQrRefundEvent(array $payload, ?Project $project): JsonResponse
     {
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
 
@@ -549,7 +604,7 @@ class XenditWebhookController extends Controller
             return response()->json(['message' => 'Missing QR refund identifiers (no action)']);
         }
 
-        return DB::transaction(function () use ($refundId, $qrPaymentId, $status) {
+        return DB::transaction(function () use ($refundId, $qrPaymentId, $status, $project) {
             $reservation = Reservation::query()
                 ->where(function ($query) use ($refundId, $qrPaymentId) {
                     if ($refundId) {
@@ -568,6 +623,14 @@ class XenditWebhookController extends Controller
                     'xendit_payment_id' => $qrPaymentId,
                 ]);
 
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
+            }
+
+            if (! $this->assertProjectOwnership($project, $reservation->event?->project_id, 'qr_refund.reservation', [
+                'reservation_id' => $reservation->id,
+                'xendit_refund_id' => $refundId,
+                'xendit_payment_id' => $qrPaymentId,
+            ])) {
                 return response()->json(['message' => 'Reservation not found (acknowledged)']);
             }
 
@@ -638,7 +701,7 @@ class XenditWebhookController extends Controller
      *
      * @param  array<string, mixed>  $payload
      */
-    private function handleSessionEvent(array $payload, string $event): JsonResponse
+    private function handleSessionEvent(array $payload, string $event, ?Project $project): JsonResponse
     {
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : $payload;
 
@@ -652,7 +715,7 @@ class XenditWebhookController extends Controller
             return response()->json(['message' => 'Missing session identifiers (no action)']);
         }
 
-        return DB::transaction(function () use ($data, $event, $referenceId, $sessionId, $status) {
+        return DB::transaction(function () use ($data, $event, $referenceId, $sessionId, $status, $project) {
             $reservation = Reservation::query()
                 ->when(
                     $referenceId,
@@ -675,7 +738,7 @@ class XenditWebhookController extends Controller
                         ->first();
 
                     if ($order) {
-                        return $this->settleTicketSession($order, $data, $sessionId, $event, $status);
+                        return $this->settleTicketSession($order, $data, $sessionId, $event, $status, $project);
                     }
                 }
 
@@ -687,6 +750,14 @@ class XenditWebhookController extends Controller
                     'session_id' => $sessionId,
                 ]);
 
+                return response()->json(['message' => 'Reservation not found (acknowledged)']);
+            }
+
+            if (! $this->assertProjectOwnership($project, $reservation->event?->project_id, 'session.reservation', [
+                'reservation_id' => $reservation->id,
+                'reference_id' => $referenceId,
+                'session_id' => $sessionId,
+            ])) {
                 return response()->json(['message' => 'Reservation not found (acknowledged)']);
             }
 
@@ -802,7 +873,15 @@ class XenditWebhookController extends Controller
         ?string $sessionId,
         string $event,
         string $status,
+        ?Project $project,
     ): JsonResponse {
+        if (! $this->assertProjectOwnership($project, $order->event?->project_id, 'session.ticket_order', [
+            'ticket_order_id' => $order->id,
+            'session_id' => $sessionId,
+        ])) {
+            return response()->json(['message' => 'Reservation not found (acknowledged)']);
+        }
+
         $isCompleted = $event === 'payment_session.completed' || $status === 'COMPLETED';
         $isExpired = $event === 'payment_session.expired' || $status === 'EXPIRED';
 
