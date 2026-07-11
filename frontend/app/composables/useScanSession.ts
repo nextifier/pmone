@@ -884,6 +884,27 @@ export function useScanSession(eventId: string) {
     }
   };
 
+  // Ask the browser not to silently evict this origin's IndexedDB/localStorage
+  // under storage pressure (Trigger G): idbSet/idbGet are already best-effort
+  // with no persistence guarantee otherwise. Only warns when it matters - a
+  // denial with an empty outbox has nothing to lose yet. Guarded for SSR /
+  // older browsers that lack the Storage API.
+  const requestPersistentStorage = (): void => {
+    if (typeof navigator === "undefined" || !navigator.storage?.persist) return;
+    navigator.storage
+      .persist()
+      .then((granted: boolean) => {
+        if (!granted && outbox.value.length) {
+          toast.warning("Storage may be cleared by the browser", {
+            description: "Free up device storage or sync soon - queued offline scans could otherwise be lost.",
+          });
+        }
+      })
+      .catch(() => {
+        // best-effort - persistence isn't guaranteed on every browser
+      });
+  };
+
   /* ------------------------------ Lifecycle ------------------------------- */
   const handleOnline = (): void => {
     isOnline.value = true;
@@ -899,7 +920,10 @@ export function useScanSession(eventId: string) {
     cameraSupported.value =
       typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
 
-    restoreFromStorage().then(loadManifest);
+    restoreFromStorage().then(() => {
+      requestPersistentStorage();
+      loadManifest();
+    });
     loadScanSounds();
     loadContext();
     if (printerSupported.value) {
