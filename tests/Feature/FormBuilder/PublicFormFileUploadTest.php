@@ -126,6 +126,58 @@ it('reverts an uploaded file', function () {
     Storage::disk('local')->assertMissing("tmp/uploads/{$folder}/cv.pdf");
 });
 
+function fb_revert(object $test, Form $form, string $body): TestResponse
+{
+    return $test->call(
+        'DELETE',
+        "/api/public/forms/{$form->slug}/upload",
+        [],
+        [],
+        [],
+        ['CONTENT_TYPE' => 'text/plain'],
+        $body
+    );
+}
+
+it('rejects a revert body containing a path traversal segment', function () {
+    // A sibling directory under storage/app/private that must survive the
+    // traversal attempt untouched.
+    Storage::disk('local')->put('tmp/secret/keep.txt', 'do-not-delete');
+
+    fb_revert($this, $this->form, 'form-xxxx/../secret')
+        ->assertStatus(400)
+        ->assertJson(['error' => 'Invalid folder']);
+
+    Storage::disk('local')->assertExists('tmp/secret/keep.txt');
+});
+
+it('rejects a revert body containing a forward slash', function () {
+    Storage::disk('local')->put('tmp/uploads/other-folder/keep.txt', 'do-not-delete');
+
+    fb_revert($this, $this->form, 'form-xxxx/other-folder')
+        ->assertStatus(400);
+
+    Storage::disk('local')->assertExists('tmp/uploads/other-folder/keep.txt');
+});
+
+it('rejects a revert body containing a backslash', function () {
+    fb_revert($this, $this->form, 'form-xxxx\\..\\secret')
+        ->assertStatus(400);
+});
+
+it('rejects a revert body that does not start with the form- prefix', function () {
+    fb_revert($this, $this->form, '../../etc/passwd')
+        ->assertStatus(400);
+});
+
+it('still accepts a clean form- folder body on revert', function () {
+    $folder = fb_upload($this, $this->form, UploadedFile::fake()->create('cv.pdf', 100))->json('folder');
+
+    fb_revert($this, $this->form, $folder)->assertSuccessful();
+
+    Storage::disk('local')->assertMissing("tmp/uploads/{$folder}");
+});
+
 it('rejects uploads for a non-file field ulid', function () {
     $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 
