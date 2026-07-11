@@ -6,16 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
 use App\Http\Resources\EventIndexResource;
-use App\Http\Resources\EventResource;
 use App\Http\Resources\FaqPublicResource;
 use App\Http\Resources\GalleryPublicResource;
 use App\Http\Resources\GuestPublicResource;
 use App\Http\Resources\MediaCoveragePublicResource;
 use App\Http\Resources\ProgramPublicResource;
-use App\Http\Resources\ProjectResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Http\Resources\PublicBrandDetailResource;
 use App\Http\Resources\PublicBrandIndexResource;
+use App\Http\Resources\PublicEventResource;
+use App\Http\Resources\PublicProjectResource;
 use App\Http\Resources\RundownItemPublicResource;
 use App\Models\BrandEvent;
 use App\Models\Event;
@@ -35,13 +35,13 @@ class PublicProjectController extends Controller
     public function show(string $username): JsonResponse
     {
         $project = Project::query()
-            ->with(['media', 'links', 'members.media'])
+            ->with(['media', 'links'])
             ->where('username', $username)
             ->active()
             ->firstOrFail();
 
         return response()->json([
-            'data' => new ProjectResource($project),
+            'data' => new PublicProjectResource($project),
         ]);
     }
 
@@ -88,7 +88,7 @@ class PublicProjectController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'data' => new EventResource($event),
+            'data' => new PublicEventResource($event),
         ]);
     }
 
@@ -1030,7 +1030,7 @@ class PublicProjectController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'data' => new EventResource($event),
+            'data' => new PublicEventResource($event),
         ]);
     }
 
