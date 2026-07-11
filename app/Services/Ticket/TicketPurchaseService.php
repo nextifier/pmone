@@ -93,13 +93,18 @@ class TicketPurchaseService
             ->where('o.source', '!=', 'admin')
             ->whereNull('toi.deleted_at')
             ->whereNull('o.deleted_at')
-            ->where(function ($q) {
-                $q->where('o.status', TicketOrderStatus::Confirmed->value)
-                    ->orWhere(function ($pending) {
-                        $pending->where('o.status', TicketOrderStatus::PendingPayment->value)
-                            ->where('o.payment_expires_at', '>', now());
-                    });
-            })
+            ->whereIn('o.status', [
+                TicketOrderStatus::Confirmed->value,
+                // Any still-pending order holds its seat until its status
+                // actually flips (webhook confirms it OR the expiry job/webhook
+                // expires it). The old `payment_expires_at > now()` narrowing
+                // created a soft-expiry gap: the moment the clock lapsed the
+                // seat was released for resale even though the order was still
+                // PendingPayment (the hard-expiry job runs every 15 min), so a
+                // genuine late payment on the first order could land on a seat
+                // already sold to someone else.
+                TicketOrderStatus::PendingPayment->value,
+            ])
             ->sum('toi.quantity');
     }
 
