@@ -284,6 +284,27 @@ class TicketPurchaseService
             $resolved = [];
             $subtotal = 0.0;
 
+            // Availability is a PER-TICKET (and per-session) quantity, not a
+            // per-line one. Aggregate every line's quantity by ticket/session id
+            // BEFORE validating so a payload with two lines for the same ticket
+            // cannot each pass an independent "available >= qty" check and
+            // jointly oversell.
+            $requestedByTicket = [];
+            $requestedBySession = [];
+            foreach ($items as $item) {
+                $ticketId = (int) ($item['ticket_id'] ?? 0);
+                $qty = max(1, (int) ($item['quantity'] ?? 1));
+                $requestedByTicket[$ticketId] = ($requestedByTicket[$ticketId] ?? 0) + $qty;
+
+                if (! empty($item['ticket_session_id'])) {
+                    $sessionId = (int) $item['ticket_session_id'];
+                    $requestedBySession[$sessionId] = ($requestedBySession[$sessionId] ?? 0) + $qty;
+                }
+            }
+
+            $stockChecked = [];
+            $sessionCapacityChecked = [];
+
             foreach ($items as $idx => $item) {
                 $ticket = Ticket::query()
                     ->where('id', $item['ticket_id'])
@@ -308,13 +329,19 @@ class TicketPurchaseService
 
                 $qty = max(1, (int) ($item['quantity'] ?? 1));
                 abort_if($ticket->min_quantity && $qty < $ticket->min_quantity, 422, "Minimum quantity for {$ticket->slug} is {$ticket->min_quantity}.");
-                abort_if($ticket->max_quantity && $qty > $ticket->max_quantity, 422, "Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
+                abort_if($ticket->max_quantity && $requestedByTicket[$ticket->id] > $ticket->max_quantity, 422, "Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
 
                 $phase = $this->resolveActivePhase($ticket);
                 abort_if(! $phase, 422, "Ticket {$ticket->slug} is not currently on sale.");
 
-                $available = $this->availableStock($ticket);
-                abort_if($available !== null && $available < $qty, 422, "Only {$available} left for {$ticket->slug}.");
+                // Checked once per ticket id (not per line) - the aggregated
+                // requested quantity is the same on every line for this ticket,
+                // so re-checking would just repeat the same comparison.
+                if (! isset($stockChecked[$ticket->id])) {
+                    $available = $this->availableStock($ticket);
+                    abort_if($available !== null && $available < $requestedByTicket[$ticket->id], 422, "Only {$available} left for {$ticket->slug}.");
+                    $stockChecked[$ticket->id] = true;
+                }
 
                 $session = null;
                 if (! empty($item['ticket_session_id'])) {
@@ -325,8 +352,11 @@ class TicketPurchaseService
                         ->first();
                     abort_if(! $session, 422, 'Selected session is invalid for this ticket.');
 
-                    $sessionLeft = $this->availableSessionCapacity($session);
-                    abort_if($sessionLeft !== null && $sessionLeft < $qty, 422, "Only {$sessionLeft} seats left for the selected session.");
+                    if (! isset($sessionCapacityChecked[$session->id])) {
+                        $sessionLeft = $this->availableSessionCapacity($session);
+                        abort_if($sessionLeft !== null && $sessionLeft < $requestedBySession[$session->id], 422, "Only {$sessionLeft} seats left for the selected session.");
+                        $sessionCapacityChecked[$session->id] = true;
+                    }
                 } elseif ($ticket->isAddOn() && $ticket->sessions->where('is_active', true)->count() > 1) {
                     abort(422, "Please choose a session for {$ticket->slug}.");
                 }
