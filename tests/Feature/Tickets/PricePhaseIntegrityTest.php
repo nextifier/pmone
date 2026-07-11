@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Ticketing\TicketOrderStatus;
+use App\Models\AccessCode;
 use App\Models\Event;
 use App\Models\Project;
 use App\Models\Ticket;
@@ -161,4 +162,78 @@ it('reconfirmAfterExpiry re-increments the phase sold_count it previously releas
 
     expect($outcome)->toBe('reconfirmed')
         ->and($phase->fresh()->sold_count)->toBe(2);
+});
+
+// ─── Trigger C: preview must not price hidden/inactive tickets ──────────────
+
+it('preview does not price a hidden ticket without a valid access code', function () {
+    $ticket = Ticket::factory()->create([
+        'event_id' => $this->event->id,
+        'visibility' => 'hidden',
+    ]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 50000,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+
+    $preview = $this->service->previewCart(
+        $this->event,
+        [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    );
+
+    expect($preview['lines'])->toBeEmpty()
+        ->and($preview['subtotal'])->toBe(0.0);
+});
+
+it('preview prices a hidden ticket when a valid access code unlocks it', function () {
+    $ticket = Ticket::factory()->create([
+        'event_id' => $this->event->id,
+        'visibility' => 'hidden',
+    ]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 50000,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+
+    $code = AccessCode::factory()->create([
+        'event_id' => $this->event->id,
+        'code' => 'UNLOCKME',
+    ]);
+    $code->unlocks()->attach($ticket->id);
+
+    $preview = $this->service->previewCart(
+        $this->event,
+        [['ticket_id' => $ticket->id, 'quantity' => 1]],
+        null,
+        null,
+        'UNLOCKME',
+    );
+
+    expect($preview['lines'])->toHaveCount(1)
+        ->and($preview['subtotal'])->toBe(50000.0);
+});
+
+it('preview does not price an inactive ticket', function () {
+    $ticket = Ticket::factory()->create([
+        'event_id' => $this->event->id,
+        'is_active' => false,
+    ]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 50000,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+
+    $preview = $this->service->previewCart(
+        $this->event,
+        [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    );
+
+    expect($preview['lines'])->toBeEmpty()
+        ->and($preview['subtotal'])->toBe(0.0);
 });

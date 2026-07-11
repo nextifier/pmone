@@ -142,13 +142,42 @@ class TicketPurchaseService
         $subtotal = 0.0;
         $onSale = true;
 
+        // Resolve the access code's basic eligibility (revoked/expired/bind
+        // checks only, no per-ticket gating) up front so gated ticket lines
+        // below can check unlocksTicket() while the cart is being built.
+        // Unlike createOrder, an ineligible or absent code must NOT abort the
+        // whole preview - it should just leave gated tickets unpriced.
+        $accessCodeModel = null;
+        if (! empty($accessCode)) {
+            $eligibility = $this->accessCodes->validate(
+                (string) $accessCode,
+                $event,
+                $email,
+                $phone,
+                cartItems: [],
+                hasPromo: ! empty($promoCode),
+            );
+
+            if ($eligibility->valid) {
+                $accessCodeModel = $eligibility->code;
+            }
+        }
+
         foreach ($items as $item) {
             $ticket = $event->tickets()
                 ->with('pricePhases')
                 ->where('id', $item['ticket_id'])
                 ->first();
 
-            if (! $ticket || $ticket->purchase_type !== PurchaseType::FirstParty) {
+            if (! $ticket || ! $ticket->is_active || $ticket->purchase_type !== PurchaseType::FirstParty) {
+                continue;
+            }
+
+            // Hidden/code_required tickets never price without a valid access
+            // code that unlocks them - mirrors createOrder's gating so a
+            // crafted preview request cannot leak a hidden ticket's
+            // title/phase/price.
+            if ($ticket->isGated() && (! $accessCodeModel || ! $accessCodeModel->unlocksTicket($ticket->id))) {
                 continue;
             }
 
