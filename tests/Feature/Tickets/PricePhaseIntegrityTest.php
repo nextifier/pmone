@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Ticketing\TicketOrderStatus;
 use App\Models\Event;
 use App\Models\Project;
 use App\Models\Ticket;
@@ -110,4 +111,54 @@ it('allows a purchase exactly at the remaining phase quota', function () {
 
     expect((float) $order->items()->first()->unit_price)->toBe(10000.0)
         ->and($phase->fresh()->sold_count)->toBe(5);
+});
+
+// ─── Trigger B: phase sold_count symmetry on expire / reconfirm ─────────────
+
+it('expiring an order releases the phase sold_count', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => null]);
+    $phase = TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 10000,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+    ]);
+
+    expect($phase->fresh()->sold_count)->toBe(2)
+        ->and($order->items()->first()->ticket_price_phase_id)->toBe($phase->id);
+
+    $this->service->expireOrder($order);
+
+    expect($phase->fresh()->sold_count)->toBe(0)
+        ->and($order->fresh()->status)->toBe(TicketOrderStatus::Expired);
+});
+
+it('reconfirmAfterExpiry re-increments the phase sold_count it previously released', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => null]);
+    $phase = TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 10000,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+
+    $order = $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'A', 'buyer_email' => 'a@example.com', 'buyer_phone' => '08',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 2]],
+    ]);
+
+    $this->service->expireOrder($order);
+    expect($phase->fresh()->sold_count)->toBe(0);
+
+    $outcome = $this->service->reconfirmAfterExpiry($order->fresh(), ['id' => 'inv_late']);
+
+    expect($outcome)->toBe('reconfirmed')
+        ->and($phase->fresh()->sold_count)->toBe(2);
 });

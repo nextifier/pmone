@@ -456,6 +456,7 @@ class TicketPurchaseService
                     'quantity' => $row['qty'],
                     'unit_price' => $row['unit'],
                     'phase_label' => $row['phase']->label,
+                    'ticket_price_phase_id' => $row['phase']->id,
                     'subtotal' => $row['unit'] * $row['qty'],
                 ]);
 
@@ -712,6 +713,13 @@ class TicketPurchaseService
                 if ($item->ticket_session_id) {
                     TicketSession::whereKey($item->ticket_session_id)->where('booked_count', '>=', $item->quantity)->decrement('booked_count', $item->quantity);
                 }
+                // TODO(plan-001): release phase sold_count on attendee refund too
+                // (this only covers the order-expiry path).
+                if ($item->ticket_price_phase_id) {
+                    TicketPricePhase::whereKey($item->ticket_price_phase_id)
+                        ->where('sold_count', '>=', $item->quantity)
+                        ->decrement('sold_count', $item->quantity);
+                }
             }
 
             $order->setAttribute('status', TicketOrderStatus::Expired);
@@ -817,6 +825,11 @@ class TicketPurchaseService
         foreach ($order->items as $item) {
             $item->ticket?->increment('sold_count', $item->quantity);
             $item->ticketSession?->increment('booked_count', $item->quantity);
+            // Symmetric with the phase release in expireOrder() - a resurrected
+            // order must restore the exact phase's sold_count it gave back.
+            if ($item->ticket_price_phase_id) {
+                TicketPricePhase::whereKey($item->ticket_price_phase_id)->increment('sold_count', $item->quantity);
+            }
         }
 
         $this->accessCodes->consume($order);

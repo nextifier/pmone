@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $quantity
  * @property string $unit_price
  * @property string|null $phase_label
+ * @property int|null $ticket_price_phase_id
  * @property string $subtotal
  * @property-read TicketOrder|null $ticketOrder
  * @property-read Ticket|null $ticket
@@ -40,6 +41,7 @@ class TicketOrderItem extends Model
         'quantity',
         'unit_price',
         'phase_label',
+        'ticket_price_phase_id',
         'subtotal',
     ];
 
