@@ -433,7 +433,22 @@ class EventAttendeeController extends Controller
 
         $data = $request->validated();
 
-        $purchases->markAsConfirmed($order, ['payment_channel' => $data['payment_channel']]);
+        $flipped = $purchases->markAsConfirmed($order, ['payment_channel' => $data['payment_channel']]);
+
+        // A webhook can win the race between the abort_if check above (stale
+        // read) and this call — markAsConfirmed is then a no-op. Don't stamp
+        // the audit trail as a manual confirmation when nothing here actually
+        // flipped the order; the webhook already logged its own payment_paid
+        // event for it.
+        if (! $flipped) {
+            return response()->json([
+                'message' => 'Ticket order was already confirmed by a payment webhook; no manual action taken.',
+                'order' => [
+                    'ulid' => $order->ulid,
+                    'status' => $order->fresh()->status->value,
+                ],
+            ]);
+        }
 
         // Audit marker kept separate from payment_channel: the channel drives the
         // logo column, this flags that staff confirmed it by hand.

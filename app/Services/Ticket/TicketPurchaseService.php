@@ -589,12 +589,14 @@ class TicketPurchaseService
 
     /**
      * Mark a pending order confirmed (paid). Idempotent — only the first
-     * concurrent webhook flips the status.
+     * concurrent webhook flips the status. Returns whether THIS call actually
+     * performed the flip, so callers (e.g. a manual mark-paid) can tell a real
+     * confirmation apart from a race already won by a webhook.
      */
-    public function markAsConfirmed(TicketOrder $order, array $payload = []): void
+    public function markAsConfirmed(TicketOrder $order, array $payload = []): bool
     {
         if ($order->status === TicketOrderStatus::Confirmed) {
-            return;
+            return false;
         }
 
         $update = [
@@ -618,6 +620,8 @@ class TicketPurchaseService
             $this->accessCodes->consume($order);
             $this->dispatchConfirmationEmails($order);
         }
+
+        return $confirmed > 0;
     }
 
     /**
