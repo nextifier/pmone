@@ -58,6 +58,25 @@ class TicketPurchaseService
     }
 
     /**
+     * The price phase to charge for a purchase of $qty: walks active phases
+     * whose window contains "now" IN PHASE ORDER and returns the first with
+     * quota capacity for $qty. A time-active phase that is sold out (or that
+     * cannot fit the full requested quantity) is skipped in favor of the next
+     * active phase that also covers "now"; null when none has capacity, so the
+     * line is rejected as not currently on sale rather than oversold at a
+     * stale price.
+     */
+    public function resolveActivePhaseForPurchase(Ticket $ticket, int $qty, ?Carbon $now = null): ?TicketPricePhase
+    {
+        $now ??= now();
+
+        return $ticket->pricePhases
+            ->where('is_active', true)
+            ->filter(fn (TicketPricePhase $phase) => $phase->isActiveAt($now))
+            ->first(fn (TicketPricePhase $phase) => $phase->hasCapacityFor($qty));
+    }
+
+    /**
      * Quantity still sellable for a ticket: stock minus committed (confirmed or
      * still-held pending) order items. Null stock = unlimited.
      */
@@ -356,7 +375,7 @@ class TicketPurchaseService
                 abort_if($ticket->min_quantity && $qty < $ticket->min_quantity, 422, "Minimum quantity for {$ticket->slug} is {$ticket->min_quantity}.");
                 abort_if($ticket->max_quantity && $requestedByTicket[$ticket->id] > $ticket->max_quantity, 422, "Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
 
-                $phase = $this->resolveActivePhase($ticket);
+                $phase = $this->resolveActivePhaseForPurchase($ticket, $requestedByTicket[$ticket->id]);
                 abort_if(! $phase, 422, "Ticket {$ticket->slug} is not currently on sale.");
 
                 // Checked once per ticket id (not per line) - the aggregated
