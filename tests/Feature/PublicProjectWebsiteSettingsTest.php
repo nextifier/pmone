@@ -2,7 +2,10 @@
 
 use App\Models\ApiConsumer;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
 uses(RefreshDatabase::class);
@@ -18,6 +21,15 @@ beforeEach(function () {
     ]);
 
     $this->endpoint = '/api/public/projects/acme/website-settings';
+    $this->writeEndpoint = '/api/projects/acme/website-settings';
+
+    // Admin auth for the write endpoint (plan 008 nav save tests). Mirrors
+    // ProjectWebsiteSettingsTest.php's beforeEach.
+    $masterRole = Role::firstOrCreate(['name' => 'master', 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => 'projects.update', 'guard_name' => 'web']);
+    $masterRole->syncPermissions(Permission::all());
+    $this->admin = User::factory()->create(['email_verified_at' => now()]);
+    $this->admin->assignRole('master');
 });
 
 test('site_config is a fail-open empty container for an unconfigured project', function () {
@@ -72,4 +84,109 @@ test('existing website-settings payload keys are unchanged by the site_config ad
         'ticket_tabs', 'book_space_form', 'terms', 'data_fallback', 'og_pages',
         'site_config',
     ]);
+});
+
+// --- Plan 008: nav save / wholesale-replace / fail-open ------------------
+
+test('saving site_config.nav returns it verbatim in the public payload', function () {
+    $nav = [
+        'header' => [
+            ['label' => 'Home', 'path' => '/'],
+            ['label' => 'Tickets', 'path' => '/tickets'],
+            [
+                'label' => 'About',
+                'links' => [
+                    ['label' => 'Programs', 'path' => '/programs'],
+                    ['label' => 'Guests', 'path' => '/guests'],
+                ],
+            ],
+        ],
+        'dialog' => [
+            ['label' => 'Home', 'path' => '/'],
+        ],
+        'footer' => [
+            ['label' => 'Contact', 'path' => '#contact'],
+            ['label' => 'Register', 'path' => 'https://register.example.com'],
+        ],
+    ];
+
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, ['site_config' => ['nav' => $nav]])
+        ->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.nav.header.0.label', 'Home')
+        ->assertJsonPath('data.settings.site_config.nav.header.1.path', '/tickets')
+        ->assertJsonPath('data.settings.site_config.nav.header.2.links.0.label', 'Programs')
+        ->assertJsonPath('data.settings.site_config.nav.dialog.0.label', 'Home')
+        ->assertJsonPath('data.settings.site_config.nav.footer.0.path', '#contact')
+        ->assertJsonPath('data.settings.site_config.nav.footer.1.path', 'https://register.example.com');
+});
+
+test('saving a shorter nav.header array wholesale-replaces instead of resurrecting trailing items', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'nav' => [
+                'header' => [
+                    ['label' => 'Home', 'path' => '/'],
+                    ['label' => 'Tickets', 'path' => '/tickets'],
+                    ['label' => 'Contact', 'path' => '/contact'],
+                ],
+                'dialog' => [],
+                'footer' => [],
+            ],
+        ],
+    ])->assertSuccessful();
+
+    // Save again with only 2 items - the 3rd ("Contact") must not survive via
+    // array_replace_recursive's index-based list merge.
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'nav' => [
+                'header' => [
+                    ['label' => 'Home', 'path' => '/'],
+                    ['label' => 'Tickets', 'path' => '/tickets'],
+                ],
+                'dialog' => [],
+                'footer' => [],
+            ],
+        ],
+    ])->assertSuccessful();
+
+    $this->project->refresh();
+    $header = data_get($this->project->settings, 'website_settings.site_config.nav.header');
+
+    expect($header)->toHaveCount(2);
+    expect(collect($header)->pluck('label')->all())->toBe(['Home', 'Tickets']);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonCount(2, 'data.settings.site_config.nav.header');
+});
+
+test('site_config.nav stays fail-open null when a write touches other website settings but not nav', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'rundown' => ['show_search_bar' => false],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.rundown.show_search_bar', false)
+        ->assertJsonPath('data.settings.site_config.nav', null);
+});
+
+test('rejects a nav item with neither a valid path nor a links group', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'nav' => [
+                'header' => [
+                    ['label' => 'Broken', 'path' => 'not-a-valid-path'],
+                ],
+            ],
+        ],
+    ])->assertUnprocessable();
 });

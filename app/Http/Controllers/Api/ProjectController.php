@@ -429,6 +429,14 @@ class ProjectController extends Controller
             // that introduces that key (008-012).
             'site_config' => ['sometimes', 'array'],
             'site_config.version' => ['sometimes', 'integer'],
+            // Navigation (header / mobile dialog / footer link groups) sourced by
+            // the event website instead of its baked app.config.ts routes. Each
+            // entry is either a leaf `{label, path}` or a group `{label, links}`
+            // of leaves; validated recursively since the shape is polymorphic.
+            'site_config.nav' => ['sometimes', 'array'],
+            'site_config.nav.header' => ['sometimes', 'array', $this->navItemsRule()],
+            'site_config.nav.dialog' => ['sometimes', 'array', $this->navItemsRule()],
+            'site_config.nav.footer' => ['sometimes', 'array', $this->navItemsRule()],
         ]);
 
         $settings = $project->settings ?? [];
@@ -440,6 +448,13 @@ class ProjectController extends Controller
         // notification email block wholesale whenever it is part of the payload.
         if (array_key_exists('notification_email', $validated['hotels'] ?? [])) {
             data_set($merged, 'hotels.notification_email', $validated['hotels']['notification_email']);
+        }
+
+        // Same trap for the dashboard-managed nav: replace the whole nav block
+        // wholesale so removing a trailing header/dialog/footer item does not
+        // resurrect a stale entry left over from a longer previous save.
+        if (array_key_exists('nav', $validated['site_config'] ?? [])) {
+            data_set($merged, 'site_config.nav', $validated['site_config']['nav']);
         }
 
         data_set($settings, 'website_settings', $merged);
@@ -460,6 +475,69 @@ class ProjectController extends Controller
                 'website_settings' => data_get($project->settings, 'website_settings', []),
             ],
         ]);
+    }
+
+    /**
+     * Recursive validation closure for a `site_config.nav.{header,dialog,footer}`
+     * list. Each entry is either a leaf `{label, path}` or a group
+     * `{label, links: [{label, path}, ...]}` - a shape too polymorphic for plain
+     * dot-notation array rules, so it is validated by hand. `path` must start
+     * with `/` (internal route), `#` (anchor, e.g. the iicc registration
+     * section), or `http(s)://` (external URL).
+     */
+    private function navItemsRule(): \Closure
+    {
+        return function (string $attribute, mixed $value, callable $fail): void {
+            if (! is_array($value)) {
+                $fail("The {$attribute} must be an array.");
+
+                return;
+            }
+
+            foreach ($value as $index => $item) {
+                if (! is_array($item) || ! $this->isValidNavLabel($item['label'] ?? null)) {
+                    $fail("{$attribute}.{$index} must have a non-empty string label.");
+
+                    return;
+                }
+
+                if (array_key_exists('links', $item)) {
+                    if (! is_array($item['links']) || empty($item['links'])) {
+                        $fail("{$attribute}.{$index}.links must be a non-empty array.");
+
+                        return;
+                    }
+
+                    foreach ($item['links'] as $linkIndex => $link) {
+                        if (! is_array($link)
+                            || ! $this->isValidNavLabel($link['label'] ?? null)
+                            || ! $this->isValidNavPath($link['path'] ?? null)) {
+                            $fail("{$attribute}.{$index}.links.{$linkIndex} must have a label and a valid path.");
+
+                            return;
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (! $this->isValidNavPath($item['path'] ?? null)) {
+                    $fail("{$attribute}.{$index} must have a valid path, or a links group.");
+
+                    return;
+                }
+            }
+        };
+    }
+
+    private function isValidNavLabel(mixed $label): bool
+    {
+        return is_string($label) && trim($label) !== '';
+    }
+
+    private function isValidNavPath(mixed $path): bool
+    {
+        return is_string($path) && preg_match('/^(\/|#|https?:\/\/)/', $path) === 1;
     }
 
     public function toggleHotelReservation(Request $request, string $username): JsonResponse
