@@ -384,10 +384,25 @@ class TicketPurchaseService
                 abort(422, $message);
             };
 
-            // Reserve the event-level total-headcount cap FIRST, before any
+            $buyerCapChecked = [];
+            $normalizedBuyerEmail = $this->normalizeBuyerEmail($data['buyer_email'] ?? null);
+
+            // Anti-scalper event-wide cap (plan 019): read-only, checked once
+            // against the FULL requested quantity before any stock or headcount
+            // is reserved, so a capped buyer is rejected without mutating a
+            // counter. Per-ticket caps are checked inside the loop below.
+            if ($event->max_tickets_per_buyer !== null) {
+                $heldForEvent = $this->buyerHeldQuantity($event, $normalizedBuyerEmail, $buyerUser);
+                if ($heldForEvent + array_sum($requestedByTicket) > $event->max_tickets_per_buyer) {
+                    $fail("This purchase would exceed the maximum of {$event->max_tickets_per_buyer} tickets per buyer for this event.");
+                }
+            }
+
+            // Reserve the event-level total-headcount cap (plan 021) before any
             // per-ticket/phase/session reserve, so a capacity-full event is
             // rejected without ever touching another counter. Null capacity
-            // (the default) is uncapped and always succeeds.
+            // (the default) is uncapped and always succeeds. $fail() releases
+            // this hold on any later abort-before-commit.
             if (! $event->reserveHeadcount($totalRequestedQty)) {
                 $fail('Event is at capacity.');
             }
@@ -422,6 +437,18 @@ class TicketPurchaseService
                 }
                 if ($ticket->max_quantity && $requestedByTicket[$ticket->id] > $ticket->max_quantity) {
                     $fail("Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
+                }
+
+                // Anti-scalper per-ticket cap: checked once per unique ticket
+                // id (like the stock/phase reservations below) since the
+                // aggregated requested quantity is identical on every line
+                // for this ticket.
+                if ($ticket->max_per_buyer !== null && ! isset($buyerCapChecked[$ticket->id])) {
+                    $buyerCapChecked[$ticket->id] = true;
+                    $heldForTicket = $this->buyerHeldQuantity($event, $normalizedBuyerEmail, $buyerUser, $ticket->id);
+                    if ($heldForTicket + $requestedByTicket[$ticket->id] > $ticket->max_per_buyer) {
+                        $fail("This purchase would exceed the maximum of {$ticket->max_per_buyer} of {$ticket->slug} per buyer.");
+                    }
                 }
 
                 $phase = $this->resolveActivePhaseForPurchase($ticket, $requestedByTicket[$ticket->id]);
@@ -630,6 +657,70 @@ class TicketPurchaseService
         $key = trim((string) $key);
 
         return $key === '' ? null : $key;
+    }
+
+    /**
+     * Normalize a buyer email for case/whitespace-insensitive matching - the
+     * anti-scalper per-buyer cap's identity key for guest checkout, which has
+     * no other durable identifier.
+     */
+    protected function normalizeBuyerEmail(?string $email): ?string
+    {
+        $email = mb_strtolower(trim((string) $email));
+
+        return $email === '' ? null : $email;
+    }
+
+    /**
+     * Total ticket quantity this buyer already holds for $event - CONFIRMED
+     * orders plus still-PENDING ones whose payment window has not lapsed yet
+     * (a pending order past its `payment_expires_at` is about to release its
+     * hold, so it is excluded, mirroring ReservationService's committed-
+     * inventory check). Matched by normalized buyer email OR the buyer's
+     * resolved user id, so a returning account is recognized even if an
+     * older order snapshotted a different email casing/value. Optionally
+     * scoped to a single $ticketId; omit it for the event-wide total.
+     *
+     * This is a count-then-check, not an atomic counter: two parallel
+     * requests from the SAME buyer can both read a held quantity under the
+     * cap and both pass, jointly exceeding it by one request's worth (the
+     * ticket/phase `reserve()` calls elsewhere in createOrder() remain
+     * atomic, so this race can only let one buyer slightly over-claim their
+     * OWN cap - it cannot oversell shared inventory). Acceptable per the
+     * anti-scalper plan; closing it fully would need a dedicated per-buyer
+     * counter row with the same atomic-UPDATE pattern as `sold_count`.
+     */
+    protected function buyerHeldQuantity(Event $event, ?string $normalizedEmail, ?User $buyerUser, ?int $ticketId = null): int
+    {
+        if ($normalizedEmail === null && $buyerUser === null) {
+            return 0;
+        }
+
+        $query = TicketOrderItem::query()
+            ->whereHas('ticketOrder', function ($order) use ($event, $normalizedEmail, $buyerUser) {
+                $order->where('event_id', $event->id)
+                    ->where(function ($status) {
+                        $status->where('status', TicketOrderStatus::Confirmed->value)
+                            ->orWhere(function ($pending) {
+                                $pending->where('status', TicketOrderStatus::PendingPayment->value)
+                                    ->where('payment_expires_at', '>', now());
+                            });
+                    })
+                    ->where(function ($buyer) use ($normalizedEmail, $buyerUser) {
+                        if ($normalizedEmail !== null) {
+                            $buyer->orWhereRaw('LOWER(TRIM(buyer_email)) = ?', [$normalizedEmail]);
+                        }
+                        if ($buyerUser !== null) {
+                            $buyer->orWhere('user_id', $buyerUser->id);
+                        }
+                    });
+            });
+
+        if ($ticketId !== null) {
+            $query->where('ticket_id', $ticketId);
+        }
+
+        return (int) $query->sum('quantity');
     }
 
     /**

@@ -68,6 +68,8 @@ use Spatie\Translatable\HasTranslations;
  * @property numeric $onsite_penalty_rate
  * @property int|null $capacity
  * @property int $reserved_count
+ * @property int|null $max_tickets_per_buyer
+ * @property bool $bot_protection_enabled
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -202,6 +204,8 @@ class Event extends Model implements HasMedia, Sortable
         'tickets_enabled',
         'business_matching_enabled',
         'capacity',
+        'max_tickets_per_buyer',
+        'bot_protection_enabled',
     ];
 
     public array $translatable = [
@@ -242,6 +246,8 @@ class Event extends Model implements HasMedia, Sortable
             'business_matching_enabled' => 'boolean',
             'capacity' => 'integer',
             'reserved_count' => 'integer',
+            'max_tickets_per_buyer' => 'integer',
+            'bot_protection_enabled' => 'boolean',
         ];
     }
 

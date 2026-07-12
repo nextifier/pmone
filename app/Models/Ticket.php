@@ -48,6 +48,7 @@ use Spatie\Translatable\HasTranslations;
  * @property int $sold_count
  * @property int $min_quantity
  * @property int|null $max_quantity
+ * @property int|null $max_per_buyer
  * @property array<array-key, mixed>|null $settings
  * @property bool $is_active
  * @property TicketVisibility $visibility
@@ -85,6 +86,7 @@ class Ticket extends Model implements HasMedia, Sortable
         'stock',
         'min_quantity',
         'max_quantity',
+        'max_per_buyer',
         'settings',
         'is_active',
         'visibility',
@@ -115,6 +117,7 @@ class Ticket extends Model implements HasMedia, Sortable
             'sold_count' => 'integer',
             'min_quantity' => 'integer',
             'max_quantity' => 'integer',
+            'max_per_buyer' => 'integer',
         ];
     }
 

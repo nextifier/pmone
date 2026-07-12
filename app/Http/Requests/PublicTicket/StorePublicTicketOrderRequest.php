@@ -5,6 +5,7 @@ namespace App\Http\Requests\PublicTicket;
 use App\Models\Event;
 use App\Support\BusinessMatchingValidation;
 use App\Support\CustomFieldValidation;
+use App\Support\Turnstile;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -42,6 +43,11 @@ class StorePublicTicketOrderRequest extends FormRequest
             // double-click or network retry resolves to the same order
             // instead of holding inventory twice.
             'idempotency_key' => ['nullable', 'string', 'max:64'],
+
+            // Cloudflare Turnstile widget response, required + verified only
+            // when the resolved event has bot protection on (see
+            // validateBotProtection() below).
+            'turnstile_token' => ['nullable', 'string', 'max:2048'],
 
             // Business matching intake (buyer answers, stored on their User).
             // Ids resolve by id or legacy_id downstream, so no exists rule here.
@@ -108,6 +114,45 @@ class StorePublicTicketOrderRequest extends FormRequest
             foreach ($errors as $key => $message) {
                 $validator->errors()->add($key, $message);
             }
+
+            $this->validateBotProtection($validator, $event);
         });
+    }
+
+    /**
+     * Require + verify a Cloudflare Turnstile token, but only when BOTH of the
+     * following hold - otherwise fail OPEN (no token required, nothing
+     * verified):
+     *  - the resolved event has `bot_protection_enabled`;
+     *  - a Turnstile secret is actually configured (local/dev and any expo
+     *    project that never set one up must never be blocked by it).
+     *
+     * There is deliberately NO client-supplied bypass (e.g. a `source=admin`
+     * body field): the public proxy forwards the browser's body verbatim, so
+     * any such field would be attacker-controllable and defeat the check. A
+     * future trusted server-to-server bypass must key off the authenticated
+     * API consumer, never the request body.
+     */
+    protected function validateBotProtection(Validator $validator, Event $event): void
+    {
+        if (! $event->bot_protection_enabled) {
+            return;
+        }
+
+        if (empty(config('turnstile.secret'))) {
+            return;
+        }
+
+        $token = $this->input('turnstile_token');
+
+        if (empty($token)) {
+            $validator->errors()->add('turnstile_token', 'Bot verification is required.');
+
+            return;
+        }
+
+        if (! Turnstile::verify($token, $this->ip())) {
+            $validator->errors()->add('turnstile_token', 'Bot verification failed. Please try again.');
+        }
     }
 }
