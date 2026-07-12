@@ -1,0 +1,1081 @@
+{
+  "megabuild": {
+    "_source_apps": ["megabuild"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Partners", "path": "/partners" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Partners", "path": "/partners" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Partners", "path": "/partners" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-2PJCW7S32V", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Panorama Media",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "keramika": {
+    "_source_apps": ["keramika"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Partners", "path": "/partners" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Partners", "path": "/partners" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Partners", "path": "/partners" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-1V56RJ2Q78", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Panorama Media",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "renex": {
+    "_source_apps": ["renex"],
+    "_notes": "GA4 id intentionally matches megabuild's (renex.megabuild.co.id is a Megabuild sub-brand, not an independent GA4 property; see apps/renex/nuxt.config.ts comment).",
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Partners", "path": "/partners" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-2PJCW7S32V", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Pameran Masa Kini",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "flei": {
+    "_source_apps": ["flei"],
+    "_notes": "nuxt.config.ts also defines an AW-16673311348 Google Ads conversion tag alongside the GA4 tag; only the GA4 measurement id is seeded (site_config.analytics.ga4 requires the G- format).",
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Partners", "path": "/partners" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-VQ61WCGV98", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Pameran Peluang Bisnis",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "cbe": {
+    "_source_apps": ["cafeexpo", "icf", "cokelatexpo"],
+    "_notes": "cafeexpo, icf and cokelatexpo all share this PM One project as their data source (dataSourceUsername=cbe for icf/cokelatexpo). Their nav/identity are byte-identical, so only analytics.ga4 differs between them; per task instructions the LAST app processed wins, so cokelatexpo's own GA4 id (G-9KLJTWG6QF) is seeded here, discarding cafeexpo's G-896FDXSRSL and icf's G-YFZVWEFRHF. Correct in the dashboard if a different site's GA4 should represent this shared project.",
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Partners", "path": "/partners" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-9KLJTWG6QF", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Panorama Media",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "morefood": {
+    "_source_apps": ["morefood"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Partners", "path": "/partners" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-4STNHTGXQQ", "tiktok_pixel": "D729G23C77U67GBCUPK0" },
+    "identity": {
+      "company_name": "PT Panorama Media",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "ioe": {
+    "_source_apps": ["outingexpo"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Partners", "path": "/partners" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-RMZ65GCEJV", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Panorama Media",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "icc": {
+    "_source_apps": ["icc"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Guests", "path": "/guests" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Event Guidelines", "path": "/event-guidelines" },
+            { "label": "Safety and Weapon Policy", "path": "/safety-and-weapon-policy" },
+            { "label": "Anti-Harassment Policy", "path": "/anti-harassment-policy" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Guests", "path": "/guests" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Tenant Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Event Guidelines", "path": "/event-guidelines" },
+            { "label": "Safety and Weapon Policy", "path": "/safety-and-weapon-policy" },
+            { "label": "Anti-Harassment Policy", "path": "/anti-harassment-policy" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Tenant Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-JCGZGZQZ56", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Ekspresi Generasi Kreatif",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "inacon": {
+    "_source_apps": ["inacon"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "ICGP", "path": "/icgp" },
+        { "label": "Guests", "path": "/guests" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Event Guidelines", "path": "/event-guidelines" },
+            { "label": "Safety and Weapon Policy", "path": "/safety-and-weapon-policy" },
+            { "label": "Anti-Harassment Policy", "path": "/anti-harassment-policy" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "ICGP", "path": "/icgp" },
+            { "label": "Guests", "path": "/guests" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Tenant Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Event Guidelines", "path": "/event-guidelines" },
+            { "label": "Safety and Weapon Policy", "path": "/safety-and-weapon-policy" },
+            { "label": "Anti-Harassment Policy", "path": "/anti-harassment-policy" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Tenant Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-QH16B87QEK", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Ekspresi Generasi Kreatif",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "campx": {
+    "_source_apps": ["campx"],
+    "_notes": "campx's routes.header/dialog/footer are all commented out in app.config.ts (genuinely empty baked nav). No 'nav' key is seeded here so the dashboard nav editor is left unconfigured, which fails open to the same empty baked default - functionally identical either way.",
+    "analytics": { "ga4": "G-QH1BX5M3WH", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "CampX",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "askindo": {
+    "_source_apps": ["iicc"],
+    "_notes": "app.config.ts company block also has nameId/shortName/shortNameId/established fields that don't fit the {company_name, company_address} shape - dropped. No footer nav array is baked for this app (routes object has no footer key), so nav.footer is omitted here (wholesale-replace leaves it absent, matching baked reality). Anchor paths (#about, #rundown, ...) are valid per the nav path validator.",
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "About", "path": "/#about" },
+        { "label": "Topics", "path": "/#topics" },
+        { "label": "Agenda", "path": "/#rundown" },
+        { "label": "Visit Yogyakarta", "path": "/#why-yogyakarta" },
+        { "label": "FAQs", "path": "/#faq" },
+        { "label": "Contact", "path": "/contact" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "About", "path": "/#about" },
+            { "label": "Topics", "path": "/#topics" },
+            { "label": "Agenda", "path": "/#rundown" },
+            { "label": "Visit Yogyakarta", "path": "/#why-yogyakarta" },
+            { "label": "Tickets", "path": "/#tickets" },
+            { "label": "FAQs", "path": "/#faq" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-Y96T5YPS3H", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "Indonesian Cocoa Association",
+      "company_address": "Thamrin City Cosmo Mansion 11-CC, Kebon Kacang Raya, Jakarta, 10340, Indonesia"
+    }
+  },
+  "pe": {
+    "_source_apps": ["panorama-events"],
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "About", "path": "/about" },
+        { "label": "Services", "path": "/services" },
+        { "label": "Events", "path": "/events" },
+        { "label": "FAQ", "path": "/faq" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "About", "path": "/about" },
+            { "label": "Services", "path": "/services" },
+            { "label": "Events", "path": "/events" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Company",
+          "links": [
+            { "label": "About", "path": "/about" },
+            { "label": "Services", "path": "/services" },
+            { "label": "Events", "path": "/events" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "News", "path": "/news" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": "G-343DPRDD5M", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Panorama Evenindo",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "pm": {
+    "_source_apps": ["panorama-media"],
+    "_notes": "routes.news.rightClickLink (a frontend-only debug affordance pointing at /posts) is dropped - not part of the {label, path} nav item shape.",
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "About", "path": "/about" },
+        { "label": "Our Brands", "path": "/brands" },
+        { "label": "Events", "path": "/events" },
+        { "label": "FAQ", "path": "/faq" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "About", "path": "/about" },
+            { "label": "Our Brands", "path": "/brands" },
+            { "label": "Events", "path": "/events" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" }
+          ]
+        }
+      ],
+      "footer": []
+    },
+    "analytics": { "ga4": "G-4ZNWF3G5DM", "tiktok_pixel": null },
+    "identity": {
+      "company_name": "PT Panorama Media",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  },
+  "globalaiexpo": {
+    "_source_apps": ["global-ai-expo"],
+    "_notes": "nuxt.config.ts has no live GA4 id yet (tags block is commented out with a TODO), so analytics.ga4 is seeded as null - reflects reality (no analytics currently).",
+    "nav": {
+      "header": [
+        { "label": "Home", "path": "/" },
+        { "label": "Speakers", "path": "/speakers" },
+        { "label": "Brands", "path": "/brands" },
+        { "label": "Rundown", "path": "/rundown" },
+        { "label": "Programs", "path": "/programs" },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        },
+        { "label": "Partners", "path": "/partners" },
+        { "label": "Contact", "path": "/contact" },
+        { "label": "News", "path": "/news" }
+      ],
+      "dialog": [
+        {
+          "label": "Menu",
+          "links": [
+            { "label": "Home", "path": "/" },
+            { "label": "Speakers", "path": "/speakers" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Contact", "path": "/contact" },
+            { "label": "News", "path": "/news" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" }
+          ]
+        }
+      ],
+      "footer": [
+        {
+          "label": "Discover",
+          "links": [
+            { "label": "Speakers", "path": "/speakers" },
+            { "label": "Brands", "path": "/brands" },
+            { "label": "Rundown", "path": "/rundown" },
+            { "label": "Programs", "path": "/programs" },
+            { "label": "Ticket", "path": "/tickets" },
+            { "label": "Partners", "path": "/partners" }
+          ]
+        },
+        {
+          "label": "For Businesses",
+          "links": [
+            { "label": "Exhibitor Registration", "path": "/book-space" },
+            { "label": "Sponsorship Registration", "path": "/sponsorship-registration" },
+            { "label": "Media Partner Registration", "path": "/media-partner-registration" },
+            { "label": "Contact", "path": "/contact" }
+          ]
+        },
+        {
+          "label": "Resources",
+          "links": [
+            { "label": "Gallery", "path": "/gallery" },
+            { "label": "FAQ", "path": "/faq" },
+            { "label": "Links", "path": "/links" },
+            { "label": "News", "path": "/news" }
+          ]
+        },
+        {
+          "label": "Terms and policies",
+          "links": [
+            { "label": "Ticket Terms and Conditions", "path": "/ticket-terms-and-conditions" },
+            { "label": "Ticket Refund and Return Policy", "path": "/ticket-refund-and-return-policy" },
+            { "label": "Event Policy", "path": "/event-policy" },
+            { "label": "Terms of Service", "path": "/terms" },
+            { "label": "Privacy Policy", "path": "/privacy" },
+            { "label": "Help Center", "path": "/help-center" }
+          ]
+        }
+      ]
+    },
+    "analytics": { "ga4": null, "tiktok_pixel": null },
+    "identity": {
+      "company_name": "Global AI Expo",
+      "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
+    }
+  }
+}
