@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,6 +31,7 @@ use Spatie\Translatable\HasTranslations;
  */
 class EventDay extends Model implements Sortable
 {
+    use ClearsResponseCache;
     use HasFactory;
     use HasTranslations;
     use SoftDeletes;
@@ -59,6 +61,15 @@ class EventDay extends Model implements Sortable
             'day_number' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * The public tickets listing eager-loads validDays (PublicTicketController),
+     * so day writes must bust the 'tickets'-tagged cache.
+     */
+    protected static function responseCacheTags(): array
+    {
+        return ['tickets'];
     }
 
     protected static function boot(): void

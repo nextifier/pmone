@@ -51,8 +51,21 @@ class ProjectPaymentGatewayObserver
         // The public project payload exposes has_active_payment_gateway /
         // has_xendit_gateway, derived from these rows. Gateway writes do not
         // touch the Project model, so bust the 'projects'-tagged cache here.
-        // Deferred to afterCommit so a concurrent request cannot re-cache the
-        // pre-commit payload (observer events fire inside the transaction).
-        DB::afterCommit(fn () => ResponseCache::clear(['projects']));
+        // The public /public/hotels listing also filters on
+        // project.paymentGateways.is_active, and EventResource derives
+        // hotel_reservation_enabled from the project, so a gateway
+        // deactivation must also bust 'hotels' and the tenant-scoped
+        // events/website-settings tags (mirrors
+        // ProjectController::toggleHotelReservation). Deferred to afterCommit
+        // so a concurrent request cannot re-cache the pre-commit payload
+        // (observer events fire inside the transaction).
+        $project = $gateway->project;
+
+        DB::afterCommit(fn () => ResponseCache::clear(array_filter([
+            'projects',
+            'hotels',
+            $project ? "events:{$project->username}" : null,
+            $project ? "website-settings:{$project->username}" : null,
+        ])));
     }
 }

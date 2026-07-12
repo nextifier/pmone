@@ -8,6 +8,7 @@ use App\Http\Resources\PostResource;
 use App\Http\Resources\UserMinimalResource;
 use App\Models\Post;
 use App\Models\User;
+use App\Support\PaginationClamp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -62,7 +63,11 @@ class PublicBlogController extends Controller
         $this->applyPostFilters($query, $request);
         $this->applyPostSorting($query, $request);
 
-        $posts = $query->paginate($request->input('per_page', 15));
+        // Higher ceiling than the other post listings: pmone-events' sitemap
+        // generator fetches this endpoint with per_page=1000 to enumerate
+        // every published post for /news/[slug] URLs, so a lower cap would
+        // silently drop posts from the sitemap.
+        $posts = $query->paginate(PaginationClamp::perPage($request, 15, 1000));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -123,7 +128,7 @@ class PublicBlogController extends Controller
 
         $this->applyPostSorting($query, $request);
 
-        $posts = $query->paginate($request->input('per_page', 15));
+        $posts = $query->paginate(PaginationClamp::perPage($request, 15));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -155,7 +160,7 @@ class PublicBlogController extends Controller
 
         $this->applyPostSorting($query, $request);
 
-        $posts = $query->paginate($request->input('per_page', 15));
+        $posts = $query->paginate(PaginationClamp::perPage($request, 15));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -186,7 +191,7 @@ class PublicBlogController extends Controller
 
         $this->applyPostSorting($query, $request);
 
-        $posts = $query->paginate($request->input('per_page', 15));
+        $posts = $query->paginate(PaginationClamp::perPage($request, 15));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -215,7 +220,7 @@ class PublicBlogController extends Controller
 
         $this->applyPostSorting($query, $request);
 
-        $posts = $query->paginate($request->input('per_page', 10));
+        $posts = $query->paginate(PaginationClamp::perPage($request, 10));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -252,7 +257,7 @@ class PublicBlogController extends Controller
 
         $this->applyPostSorting($query, $request);
 
-        $posts = $query->paginate($request->input('per_page', 15));
+        $posts = $query->paginate(PaginationClamp::perPage($request, 15));
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),

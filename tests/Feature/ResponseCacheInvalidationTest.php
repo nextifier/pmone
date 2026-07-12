@@ -6,6 +6,8 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\Event;
+use App\Models\EventDay;
+use App\Models\Faq;
 use App\Models\Hotel;
 use App\Models\HotelEvent;
 use App\Models\Partner;
@@ -14,7 +16,11 @@ use App\Models\Project;
 use App\Models\ProjectPaymentGateway;
 use App\Models\PromotionPost;
 use App\Models\RoomType;
+use App\Models\RundownItem;
 use App\Models\ShortLink;
+use App\Models\Ticket;
+use App\Models\TicketPricePhase;
+use App\Models\TicketSession;
 use App\Models\User;
 use App\Services\OpenGraph\OpenGraphExtractor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -227,12 +233,35 @@ test('toggling a project member busts the projects cache', function () {
     $spy->shouldHaveReceived('clear')->with(['projects']);
 });
 
-test('creating a project payment gateway busts the projects cache', function () {
+test('creating a project payment gateway busts the projects, hotels, events and website-settings caches', function () {
     $spy = ResponseCache::spy();
 
     ProjectPaymentGateway::factory()->create(['project_id' => $this->project->id]);
 
-    $spy->shouldHaveReceived('clear')->with(['projects']);
+    $spy->shouldHaveReceived('clear')->with([
+        'projects',
+        'hotels',
+        "events:{$this->project->username}",
+        "website-settings:{$this->project->username}",
+    ]);
+});
+
+test('deactivating a project payment gateway busts the projects, hotels, events and website-settings caches', function () {
+    $gateway = ProjectPaymentGateway::factory()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+    ]);
+
+    $spy = ResponseCache::spy();
+
+    $gateway->update(['is_active' => false]);
+
+    $spy->shouldHaveReceived('clear')->with([
+        'projects',
+        'hotels',
+        "events:{$this->project->username}",
+        "website-settings:{$this->project->username}",
+    ]);
 });
 
 // ---------------------------------------------------------------------------
@@ -444,12 +473,12 @@ test('uploading media via the generic endpoint busts the owner cache tags', func
 // ---------------------------------------------------------------------------
 // User public profile (/resolve/{slug}, tag short-links)
 // ---------------------------------------------------------------------------
-test('saving a link owned by a project busts the projects and events caches', function () {
+test('saving a link owned by a project busts the projects, events and faqs caches', function () {
     $spy = ResponseCache::spy();
 
     $this->project->links()->create(['label' => 'Website', 'url' => 'https://example.com']);
 
-    $spy->shouldHaveReceived('clear')->with(['projects', 'events']);
+    $spy->shouldHaveReceived('clear')->with(['projects', 'events', 'faqs']);
 });
 
 test('changing a user public profile field via the model busts short-links, projects and blog-posts', function () {
@@ -592,4 +621,239 @@ test('OG metadata job busts the short-links cache after updateQuietly', function
     (new ExtractOpenGraphMetadata($shortLink->id))->handle($extractor);
 
     $spy->shouldHaveReceived('clear')->with(['short-links']);
+});
+
+// ---------------------------------------------------------------------------
+// Gap A (plan 013) — editing a project link (whatsapp_link/instagram tokens)
+// must refresh the cached public FAQ payload end-to-end, not just via spy.
+// ---------------------------------------------------------------------------
+test('editing a project whatsapp link refreshes the cached public faq answer', function () {
+    ResponseCache::clear();
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_faq_link', 'is_active' => true]);
+
+    $link = $this->project->links()->create([
+        'label' => 'WhatsApp',
+        'url' => 'https://wa.me/OLDNUMBER',
+    ]);
+
+    Faq::factory()->create([
+        'event_id' => $this->event->id,
+        'question' => ['en' => 'Contact us?', 'id' => 'x'],
+        'answer' => ['en' => '<a href="{{whatsapp_link}}">chat</a>', 'id' => 'x'],
+        'order_column' => 1,
+    ]);
+
+    $fetch = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_faq_link'])
+        ->getJson("/api/public/projects/{$this->project->username}/events/{$this->event->slug}/faqs?locale=en");
+
+    expect($fetch()->assertOk()->json('data.0.a'))->toContain('OLDNUMBER');
+
+    $link->update(['url' => 'https://wa.me/NEWNUMBER']);
+
+    expect($fetch()->assertOk()->json('data.0.a'))
+        ->toContain('NEWNUMBER')
+        ->not->toContain('OLDNUMBER');
+});
+
+// ---------------------------------------------------------------------------
+// Gap B (plan 013) — Ticket / session / price-phase reorder controllers use
+// query-builder update() (no model events), so the clear must be manual.
+// ---------------------------------------------------------------------------
+test('reordering tickets refreshes the cached public tickets listing order end-to-end', function () {
+    ResponseCache::clear();
+    $this->event->update(['tickets_enabled' => true]);
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_ticket_reorder', 'is_active' => true]);
+
+    $first = Ticket::factory()->create(['event_id' => $this->event->id, 'title' => ['en' => 'First', 'id' => 'First']]);
+    $second = Ticket::factory()->create(['event_id' => $this->event->id, 'title' => ['en' => 'Second', 'id' => 'Second']]);
+
+    $fetch = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_ticket_reorder'])
+        ->getJson("/api/public/events/{$this->event->slug}/tickets");
+
+    expect($fetch()->assertOk()->json('data.0.id'))->toBe($first->id);
+
+    $this->postJson("/api/events/{$this->event->id}/tickets/reorder", [
+        'orders' => [
+            ['id' => $first->id, 'order' => 2],
+            ['id' => $second->id, 'order' => 1],
+        ],
+    ])->assertOk();
+
+    expect($fetch()->assertOk()->json('data.0.id'))->toBe($second->id);
+});
+
+test('reordering ticket sessions busts the tickets cache', function () {
+    $this->event->update(['tickets_enabled' => true]);
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
+    $sessionA = TicketSession::factory()->create(['ticket_id' => $ticket->id]);
+    $sessionB = TicketSession::factory()->create(['ticket_id' => $ticket->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$this->event->id}/tickets/{$ticket->slug}/sessions/reorder", [
+        'orders' => [
+            ['id' => $sessionA->id, 'order' => 2],
+            ['id' => $sessionB->id, 'order' => 1],
+        ],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['tickets']);
+});
+
+test('reordering ticket price phases busts the tickets cache', function () {
+    $this->event->update(['tickets_enabled' => true]);
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
+    $phaseA = TicketPricePhase::factory()->create(['ticket_id' => $ticket->id]);
+    $phaseB = TicketPricePhase::factory()->create(['ticket_id' => $ticket->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$this->event->id}/tickets/{$ticket->slug}/price-phases/reorder", [
+        'orders' => [
+            ['id' => $phaseA->id, 'order' => 2],
+            ['id' => $phaseB->id, 'order' => 1],
+        ],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['tickets']);
+});
+
+// ---------------------------------------------------------------------------
+// Gap C (plan 013) — EventDay write paths (model saves covered by the trait;
+// reorder/sync/set-active are query-builder-only and need a manual clear).
+// ---------------------------------------------------------------------------
+// EventObserver auto-derives event days from start_date/end_date whenever
+// tickets_enabled is toggled on for an event that already has a date range
+// (DAY_SYNC_COLUMNS), so these tests use a dedicated event created WITHOUT a
+// date range (or with the range set at creation, not via update) to keep
+// day_number assignment deterministic and independent of that side effect.
+test('creating an event day busts the tickets cache', function () {
+    $event = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'tickets_enabled' => true,
+        'start_date' => null,
+        'end_date' => null,
+    ]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$event->id}/event-days", [
+        'day_number' => 1,
+        'date' => now()->addDay()->format('Y-m-d'),
+    ])->assertCreated();
+
+    $spy->shouldHaveReceived('clear')->with(['tickets']);
+});
+
+test('reordering event days busts the tickets cache', function () {
+    $event = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'tickets_enabled' => true,
+        'start_date' => null,
+        'end_date' => null,
+    ]);
+    $dayA = EventDay::factory()->create(['event_id' => $event->id, 'day_number' => 1, 'date' => now()->addDay()]);
+    $dayB = EventDay::factory()->create(['event_id' => $event->id, 'day_number' => 2, 'date' => now()->addDays(2)]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$event->id}/event-days/reorder", [
+        'orders' => [
+            ['id' => $dayA->id, 'order' => 2],
+            ['id' => $dayB->id, 'order' => 1],
+        ],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['tickets']);
+});
+
+test('syncing event days from the event date range busts the tickets cache', function () {
+    $event = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'tickets_enabled' => true,
+        'start_date' => now()->addDay(),
+        'end_date' => now()->addDays(2),
+    ]);
+    // Out-of-range day: sync deactivates it via a bulk query-builder update.
+    EventDay::factory()->create(['event_id' => $event->id, 'date' => now()->subMonth(), 'day_number' => 1]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$event->id}/event-days/sync")->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['tickets']);
+});
+
+test('setting active event days busts the tickets cache', function () {
+    $event = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'tickets_enabled' => true,
+        'start_date' => null,
+        'end_date' => null,
+    ]);
+    $dayA = EventDay::factory()->create(['event_id' => $event->id, 'day_number' => 1, 'date' => now()->addDay(), 'is_active' => true]);
+    $dayB = EventDay::factory()->create(['event_id' => $event->id, 'day_number' => 2, 'date' => now()->addDays(2), 'is_active' => true]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/events/{$event->id}/event-days/active", [
+        'active_ids' => [$dayA->id],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['tickets']);
+
+    expect($dayB->fresh()->is_active)->toBeFalse();
+});
+
+// ---------------------------------------------------------------------------
+// Gap E (plan 013) — generic media delete on a Project owner (e.g. an OG
+// image) bypasses the Project model events; the tag map must clear
+// 'website-settings' too (og_pages payload embeds Project OG media).
+// ---------------------------------------------------------------------------
+test('deleting project media via the generic media endpoint busts the website-settings cache', function () {
+    Storage::fake('public');
+
+    $media = $this->project->addMedia(UploadedFile::fake()->image('og.png', 10, 10))
+        ->withCustomProperties(['uploaded_by' => $this->user->id])
+        ->toMediaCollection('gallery');
+
+    $spy = ResponseCache::spy();
+
+    $this->deleteJson("/api/media/{$media->id}")->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['projects', 'events', 'website-settings']);
+});
+
+// ---------------------------------------------------------------------------
+// Gap F (plan 013) — the trait clear fires on create/update BEFORE the
+// rundown poster is attached; a second clear after handleTemporaryUpload
+// closes the re-cache race (mirrors PartnerController::store).
+// ---------------------------------------------------------------------------
+test('creating a rundown item busts the rundown cache twice (trait clear + post-upload clear)', function () {
+    $spy = ResponseCache::spy();
+
+    $this->postJson(route('rundown-items.store', [
+        'username' => $this->project->username,
+        'eventSlug' => $this->event->slug,
+    ]), [
+        'title' => ['en' => 'Opening', 'id' => 'Opening'],
+    ])->assertCreated();
+
+    $spy->shouldHaveReceived('clear')->with(['rundown'])->twice();
+});
+
+test('updating a rundown item busts the rundown cache twice (trait clear + post-upload clear)', function () {
+    $item = RundownItem::factory()->create(['event_id' => $this->event->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson(route('rundown-items.update', [
+        'username' => $this->project->username,
+        'eventSlug' => $this->event->slug,
+        'id' => $item->id,
+    ]), [
+        'title' => ['en' => 'Updated title', 'id' => 'Updated title'],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['rundown'])->twice();
 });

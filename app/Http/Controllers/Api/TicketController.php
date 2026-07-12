@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class TicketController extends Controller
@@ -146,6 +147,9 @@ class TicketController extends Controller
                 $event->tickets()->where('id', $order['id'])->update(['order_column' => $order['order']]);
             }
         });
+
+        // Bulk query-builder updates skip model events, so bust the cache manually.
+        ResponseCache::clear(['tickets']);
 
         return response()->json(['message' => 'Ticket order updated successfully']);
     }

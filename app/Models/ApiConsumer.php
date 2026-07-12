@@ -2,13 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
@@ -16,26 +20,30 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $ulid
  * @property string $name
  * @property string $website_url
- * @property string $api_key
+ * @property string|null $api_key legacy plaintext, kept only as a migration safety net; never read for auth, never returned by any resource
+ * @property string $api_key_hash sha256 hash of the raw key; the only value used for authentication lookups
  * @property array<array-key, mixed>|null $allowed_origins
  * @property int $rate_limit
  * @property array<array-key, mixed>|null $filters
  * @property bool $is_active
- * @property \Illuminate\Support\Carbon|null $last_used_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property Carbon|null $last_used_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
  * @property string|null $description
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
+ * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ApiConsumerRequest> $requests
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Collection<int, Project> $projects
+ * @property-read int|null $projects_count
+ * @property-read Collection<int, ApiConsumerRequest> $requests
  * @property-read int|null $requests_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer active()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer byApiKey(string $apiKey)
  * @method static \Database\Factories\ApiConsumerFactory factory($count = null, $state = [])
@@ -62,6 +70,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereWebsiteUrl($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class ApiConsumer extends Model
@@ -80,6 +89,15 @@ class ApiConsumer extends Model
         'filters',
         'is_active',
         'last_used_at',
+    ];
+
+    /**
+     * Never serialize the raw key or its hash, even if a resource forgets to
+     * exclude them explicitly.
+     */
+    protected $hidden = [
+        'api_key',
+        'api_key_hash',
     ];
 
     protected function casts(): array
@@ -107,6 +125,12 @@ class ApiConsumer extends Model
                 $model->api_key = self::generateApiKey();
             }
 
+            // Always keep the hash in sync with whatever raw key ends up set
+            // above (auto-generated, or explicitly provided by a caller).
+            if (empty($model->api_key_hash)) {
+                $model->api_key_hash = self::hashApiKey($model->api_key);
+            }
+
             if (auth()->check()) {
                 $model->created_by = auth()->id();
             }
@@ -127,7 +151,9 @@ class ApiConsumer extends Model
     }
 
     /**
-     * Generate a secure API key
+     * Generate a secure, random raw API key. The caller is responsible for
+     * showing it to the user exactly once; it is never read back from
+     * storage afterwards.
      */
     public static function generateApiKey(): string
     {
@@ -135,14 +161,26 @@ class ApiConsumer extends Model
     }
 
     /**
-     * Regenerate API key for this consumer
+     * Hash a raw API key the same way for both storage and lookup.
+     */
+    public static function hashApiKey(string $apiKey): string
+    {
+        return hash('sha256', $apiKey);
+    }
+
+    /**
+     * Regenerate the API key for this consumer. Stores only the hash going
+     * forward and returns the raw value once so the caller can display it.
      */
     public function regenerateApiKey(): string
     {
-        $this->api_key = self::generateApiKey();
+        $raw = self::generateApiKey();
+
+        $this->api_key = $raw;
+        $this->api_key_hash = self::hashApiKey($raw);
         $this->save();
 
-        return $this->api_key;
+        return $raw;
     }
 
     /**
@@ -216,10 +254,47 @@ class ApiConsumer extends Model
     }
 
     /**
-     * Scope: Find by API key
+     * Scope: Find by API key (compares the hash, never the plaintext)
      */
     public function scopeByApiKey($query, string $apiKey)
     {
-        return $query->where('api_key', $apiKey);
+        return $query->where('api_key_hash', self::hashApiKey($apiKey));
+    }
+
+    /**
+     * Opt-in per-project scope. Zero related projects (the default) means
+     * unscoped: the consumer may read any project, preserving current
+     * behavior for the 16 live sites. One or more related projects
+     * restricts the consumer to only those.
+     */
+    public function projects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'api_consumer_project')
+            ->withTimestamps();
+    }
+
+    /**
+     * Whether this consumer has been restricted to specific projects.
+     */
+    public function hasProjectScope(): bool
+    {
+        if (! $this->relationLoaded('projects')) {
+            $this->load('projects');
+        }
+
+        return $this->projects->isNotEmpty();
+    }
+
+    /**
+     * Whether the consumer is allowed to access the given project username.
+     * Unscoped consumers (no related projects) are always allowed.
+     */
+    public function isProjectAllowed(string $username): bool
+    {
+        if (! $this->hasProjectScope()) {
+            return true;
+        }
+
+        return $this->projects->contains('username', $username);
     }
 }

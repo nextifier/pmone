@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -98,6 +99,11 @@ class RundownItemController extends Controller
         }
 
         $this->handleTemporaryUpload($tmpPoster, $posterDelete, $item, 'poster');
+
+        // The trait clear fired on create, BEFORE the poster was attached; clear
+        // again so no request re-caches the poster-less payload.
+        ResponseCache::clear(['rundown']);
+
         $item->load(['media', 'tags']);
 
         return response()->json([
@@ -141,6 +147,11 @@ class RundownItemController extends Controller
         }
 
         $this->handleTemporaryUpload($tmpPoster, $posterDelete, $item, 'poster');
+
+        // The trait clear fired on update, BEFORE the poster was attached; clear
+        // again so no request re-caches the poster-less payload.
+        ResponseCache::clear(['rundown']);
+
         $item->load(['media', 'tags']);
 
         return response()->json([

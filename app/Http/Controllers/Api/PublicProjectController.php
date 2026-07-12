@@ -6,23 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BrandEventIndexResource;
 use App\Http\Resources\BrandEventResource;
 use App\Http\Resources\EventIndexResource;
-use App\Http\Resources\EventResource;
 use App\Http\Resources\FaqPublicResource;
 use App\Http\Resources\GalleryPublicResource;
 use App\Http\Resources\GuestPublicResource;
 use App\Http\Resources\MediaCoveragePublicResource;
 use App\Http\Resources\ProgramPublicResource;
-use App\Http\Resources\ProjectResource;
 use App\Http\Resources\PromotionPostResource;
 use App\Http\Resources\PublicBrandDetailResource;
 use App\Http\Resources\PublicBrandIndexResource;
+use App\Http\Resources\PublicEventResource;
+use App\Http\Resources\PublicProjectResource;
 use App\Http\Resources\RundownItemPublicResource;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
+use App\Models\WebsitePage;
 use App\Services\Rundown\RundownGrouper;
 use App\Support\HomeSectionCatalog;
 use App\Support\OgPages;
+use App\Support\PaginationClamp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -35,13 +37,13 @@ class PublicProjectController extends Controller
     public function show(string $username): JsonResponse
     {
         $project = Project::query()
-            ->with(['media', 'links', 'members.media'])
+            ->with(['media', 'links'])
             ->where('username', $username)
             ->active()
             ->firstOrFail();
 
         return response()->json([
-            'data' => new ProjectResource($project),
+            'data' => new PublicProjectResource($project),
         ]);
     }
 
@@ -60,7 +62,7 @@ class PublicProjectController extends Controller
         $this->applyEventFilters($query, $request);
         $this->applyEventSorting($query, $request);
 
-        $events = $query->paginate($request->input('per_page', 15));
+        $events = $query->paginate(PaginationClamp::perPage($request, 15));
 
         return response()->json([
             'data' => EventIndexResource::collection($events->items()),
@@ -88,7 +90,7 @@ class PublicProjectController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'data' => new EventResource($event),
+            'data' => new PublicEventResource($event),
         ]);
     }
 
@@ -118,7 +120,7 @@ class PublicProjectController extends Controller
             });
         }
 
-        $brandEvents = $query->paginate($request->input('per_page', 30));
+        $brandEvents = $query->paginate(PaginationClamp::perPage($request, 30));
 
         return response()->json([
             'data' => BrandEventIndexResource::collection($brandEvents->items()),
@@ -165,7 +167,7 @@ class PublicProjectController extends Controller
 
         $posts = $brandEvent->promotionPosts()
             ->with(['media'])
-            ->paginate($request->input('per_page', 30));
+            ->paginate(PaginationClamp::perPage($request, 30));
 
         return response()->json([
             'data' => PromotionPostResource::collection($posts->items()),
@@ -223,7 +225,11 @@ class PublicProjectController extends Controller
             });
         }
 
-        $brandEvents = $query->paginate($request->input('per_page', 200));
+        // Higher ceiling than the other listings: pmone-events' sitemap
+        // generator fetches this endpoint with per_page=1000 to enumerate
+        // every brand for /brands/[slug] URLs, so a lower cap would silently
+        // drop brands from the sitemap.
+        $brandEvents = $query->paginate(PaginationClamp::perPage($request, 200, 1000));
 
         return response()->json([
             'data' => PublicBrandIndexResource::collection($brandEvents->items()),
@@ -394,7 +400,10 @@ class PublicProjectController extends Controller
             });
         }
 
-        $brandEvents = $query->paginate($request->input('per_page', 200));
+        // Same brand-listing family as activeBrands() above - kept at the same
+        // higher ceiling for consistency (per-edition exhibitor listings are
+        // rendered unpaginated by pmone-events).
+        $brandEvents = $query->paginate(PaginationClamp::perPage($request, 200, 1000));
 
         return response()->json([
             'data' => PublicBrandIndexResource::collection($brandEvents->items()),
@@ -675,6 +684,7 @@ class PublicProjectController extends Controller
         $terms = data_get($settings, 'terms', []);
         $dataFallback = data_get($settings, 'data_fallback', []);
         $ogPages = $this->ogPagesPayload($project);
+        $siteConfig = data_get($settings, 'site_config', []);
 
         // Generic home-page section visibility map. The four legacy nested keys
         // below are derived from this so already-deployed event sites (which read
@@ -736,9 +746,58 @@ class PublicProjectController extends Controller
                         'media_coverages' => (bool) ($dataFallback['media_coverages'] ?? true),
                     ],
                     'og_pages' => $ogPages,
+                    // Dashboard-managed site config. Empty by default: every event site keeps
+                    // its baked app.config values via the frontend fail-open getters until a
+                    // project opts in per key. Sub-keys (nav, analytics, appearance, identity,
+                    // copy) are populated by plans 008-012.
+                    'site_config' => [
+                        'version' => 1,
+                        'nav' => data_get($siteConfig, 'nav'),               // null until plan 008
+                        'analytics' => data_get($siteConfig, 'analytics'),   // null until plan 009
+                        'appearance' => data_get($siteConfig, 'appearance'), // null until plan 010
+                        'identity' => data_get($siteConfig, 'identity'),     // null until plan 011
+                    ],
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Serve dashboard-managed legal/policy page body overrides for the
+     * requested locale, keyed by page key. Kept out of the small
+     * `website-settings` payload (per the site-config contract's
+     * zero-round-trip note) since bodies are potentially large and only the
+     * six legal pages need them - see plan 011.
+     *
+     * Fail-open: a project with no row for a key, or a row with no saved
+     * translation for the requested locale, returns `body: null` so the
+     * event website falls back to its baked `<p>` copy - never an empty
+     * legal page.
+     *
+     * Response shape: `{ data: { [key]: { body: string|null } } }`.
+     */
+    public function websitePages(Request $request, string $username): JsonResponse
+    {
+        $project = Project::where('username', $username)->firstOrFail();
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+
+        $pages = WebsitePage::query()
+            ->where('project_id', $project->id)
+            ->get()
+            ->keyBy('key');
+
+        $payload = [];
+        foreach (WebsitePage::KEYS as $key) {
+            $page = $pages->get($key);
+            $body = $page?->getTranslation('body', $locale, false);
+
+            $payload[$key] = [
+                'body' => filled($body) ? $body : null,
+            ];
+        }
+
+        return response()->json(['data' => $payload]);
     }
 
     /**
@@ -1030,7 +1089,7 @@ class PublicProjectController extends Controller
             ->firstOrFail();
 
         return response()->json([
-            'data' => new EventResource($event),
+            'data' => new PublicEventResource($event),
         ]);
     }
 

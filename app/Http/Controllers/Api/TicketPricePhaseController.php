@@ -12,6 +12,7 @@ use App\Models\TicketPricePhase;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class TicketPricePhaseController extends Controller
 {
@@ -76,6 +77,9 @@ class TicketPricePhaseController extends Controller
                 $ticket->pricePhases()->where('id', $order['id'])->update(['order_column' => $order['order']]);
             }
         });
+
+        // Bulk query-builder updates skip model events, so bust the cache manually.
+        ResponseCache::clear(['tickets']);
 
         return response()->json(['message' => 'Price phase order updated successfully']);
     }

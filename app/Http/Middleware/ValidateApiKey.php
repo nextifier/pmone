@@ -4,8 +4,10 @@ namespace App\Http\Middleware;
 
 use App\Models\ApiConsumer;
 use App\Models\ApiConsumerRequest;
+use App\Models\Event;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -14,17 +16,21 @@ class ValidateApiKey
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Get API key from header or query parameter
-        $apiKey = $request->header('X-API-Key') ?? $request->query('api_key');
+        // Get API key from header only. The query-string fallback was
+        // removed: keys in the query string land in access logs, browser
+        // history, and Referer headers, and fragment the response cache.
+        // Every known consumer (the 11 event websites) already sends the
+        // key via this header.
+        $apiKey = $request->header('X-API-Key');
 
         if (! $apiKey) {
             return response()->json([
                 'message' => 'API key is required',
-                'error' => 'Missing API key in X-API-Key header or api_key query parameter',
+                'error' => 'Missing API key in X-API-Key header',
             ], 401);
         }
 
@@ -45,6 +51,22 @@ class ValidateApiKey
                 'message' => 'Origin not allowed',
                 'error' => 'Your domain is not authorized to use this API key',
             ], 403);
+        }
+
+        // Opt-in per-project scope. Unscoped consumers (the default, and
+        // every consumer today) are never blocked here. Only a consumer
+        // that has been explicitly restricted to specific projects gets
+        // checked, and only when the target project is resolvable from the
+        // route.
+        if ($consumer->hasProjectScope()) {
+            $targetUsername = $this->resolveProjectUsername($request);
+
+            if ($targetUsername !== null && ! $consumer->isProjectAllowed($targetUsername)) {
+                return response()->json([
+                    'message' => 'Project not allowed',
+                    'error' => 'This API key is not scoped to access this project',
+                ], 403);
+            }
         }
 
         // Apply rate limiting per consumer (skip if rate_limit is 0 = unlimited)
@@ -104,5 +126,42 @@ class ValidateApiKey
         });
 
         return $response;
+    }
+
+    /**
+     * Resolve the project username the current request targets, so scoped
+     * consumers can be checked against it. Returns null when it cannot be
+     * determined from the route (e.g. the request isn't project-specific),
+     * in which case scoping is simply not enforced for that request.
+     */
+    private function resolveProjectUsername(Request $request): ?string
+    {
+        $route = $request->route();
+
+        if (! $route instanceof Route) {
+            return null;
+        }
+
+        // Routes keyed directly by a project's username in the path
+        // (`public/projects/{username}/...`). The `{username}` param means
+        // something different on other prefixes (e.g. blog author), so this
+        // is only trusted under the project-scoped route group.
+        if ($route->hasParameter('username') && str_starts_with($route->uri(), 'api/public/projects/')) {
+            $username = $route->parameter('username');
+
+            return is_string($username) ? $username : null;
+        }
+
+        // Routes keyed by an event slug (hotels, tickets, reservations):
+        // resolve the event's owning project.
+        if ($route->hasParameter('eventSlug')) {
+            $event = Event::where('slug', $route->parameter('eventSlug'))
+                ->with('project:id,username')
+                ->first();
+
+            return $event?->project?->username;
+        }
+
+        return null;
     }
 }
