@@ -424,6 +424,11 @@ class ProjectController extends Controller
                 },
             ],
             'home_sections.*' => ['sometimes', 'boolean'],
+            // Dashboard-managed site config container (nav/analytics/appearance/
+            // identity). Empty scaffold only; per-key rules are added by the plan
+            // that introduces that key (008-012).
+            'site_config' => ['sometimes', 'array'],
+            'site_config.version' => ['sometimes', 'integer'],
         ]);
 
         $settings = $project->settings ?? [];

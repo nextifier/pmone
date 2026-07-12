@@ -675,6 +675,7 @@ class PublicProjectController extends Controller
         $terms = data_get($settings, 'terms', []);
         $dataFallback = data_get($settings, 'data_fallback', []);
         $ogPages = $this->ogPagesPayload($project);
+        $siteConfig = data_get($settings, 'site_config', []);
 
         // Generic home-page section visibility map. The four legacy nested keys
         // below are derived from this so already-deployed event sites (which read
@@ -736,6 +737,17 @@ class PublicProjectController extends Controller
                         'media_coverages' => (bool) ($dataFallback['media_coverages'] ?? true),
                     ],
                     'og_pages' => $ogPages,
+                    // Dashboard-managed site config. Empty by default: every event site keeps
+                    // its baked app.config values via the frontend fail-open getters until a
+                    // project opts in per key. Sub-keys (nav, analytics, appearance, identity,
+                    // copy) are populated by plans 008-012.
+                    'site_config' => [
+                        'version' => 1,
+                        'nav' => data_get($siteConfig, 'nav'),               // null until plan 008
+                        'analytics' => data_get($siteConfig, 'analytics'),   // null until plan 009
+                        'appearance' => data_get($siteConfig, 'appearance'), // null until plan 010
+                        'identity' => data_get($siteConfig, 'identity'),     // null until plan 011
+                    ],
                 ],
             ],
         ]);
