@@ -3,8 +3,10 @@
 use App\Models\ApiConsumer;
 use App\Models\Event;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
@@ -179,4 +181,73 @@ test('unauthenticated project-profile endpoint still exposes non-sensitive publi
         ->assertJsonPath('data.name', 'Public Expo')
         ->assertJsonPath('data.username', $project->username)
         ->assertJsonPath('data.links.0.url', 'https://example.test');
+});
+
+// Regression coverage for the shared-route hotfix: `GET /api/projects/{username}`
+// is the ONLY GET handler for that URI (Laravel keeps just the last-registered
+// route for a given method+URI, so ProjectController::show is unreachable and
+// this same ProfileController::getProjectProfile action also serves the
+// authenticated admin app, e.g. the Website Settings page). Authenticated,
+// authorized callers must get the full settings blob back; anonymous callers
+// must never see it, regardless of the project's visibility.
+test('authenticated authorized admin gets the full settings blob from the project-profile endpoint', function () {
+    Role::firstOrCreate(['name' => 'master', 'guard_name' => 'web']);
+
+    $admin = User::factory()->create(['email_verified_at' => now()]);
+    $admin->assignRole('master');
+
+    $project = Project::factory()->create([
+        'name' => 'Public Expo',
+        'settings' => withInternalSettings(),
+    ]);
+    $project->links()->create(['label' => 'Website', 'url' => 'https://example.test']);
+
+    $response = test()->actingAs($admin)
+        ->getJson("/api/projects/{$project->username}")
+        ->assertOk();
+
+    expect($response->json('data'))->toHaveKey('settings');
+    $response
+        ->assertJsonPath('data.settings.website_settings.hotels.notification_email', 'hotel-ops-internal@panorama.test')
+        ->assertJsonPath('data.settings.contact_form.email_config.to.0', 'staff-internal@panorama.test');
+});
+
+test('authenticated authorized admin still gets the fields the admin app relies on', function () {
+    Role::firstOrCreate(['name' => 'master', 'guard_name' => 'web']);
+
+    $admin = User::factory()->create(['email_verified_at' => now()]);
+    $admin->assignRole('master');
+
+    $project = Project::factory()->create([
+        'name' => 'Public Expo',
+        'settings' => withInternalSettings(),
+    ]);
+    $project->links()->create(['label' => 'Website', 'url' => 'https://example.test']);
+
+    test()->actingAs($admin)
+        ->getJson("/api/projects/{$project->username}")
+        ->assertOk()
+        ->assertJsonPath('data.name', 'Public Expo')
+        ->assertJsonPath('data.username', $project->username)
+        ->assertJsonPath('data.links.0.url', 'https://example.test')
+        ->assertJsonStructure([
+            'data' => ['home_sections', 'home_sections_catalog'],
+        ]);
+});
+
+test('authenticated but unauthorized caller does not get the settings blob from the project-profile endpoint', function () {
+    $user = User::factory()->create(['email_verified_at' => now()]);
+
+    // Private project the user has no membership on: ProjectPolicy::view
+    // denies non-members, so this exercises the 403 path and confirms it
+    // never leaks settings on the way there.
+    $project = Project::factory()->create([
+        'visibility' => 'private',
+        'settings' => withInternalSettings(),
+    ]);
+
+    $response = test()->actingAs($user)->getJson("/api/projects/{$project->username}");
+
+    $response->assertForbidden();
+    expect($response->getContent())->not->toContain('staff-internal@panorama.test');
 });
