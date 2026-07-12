@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\SesNotificationController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
+use App\Http\Controllers\Api\WebsitePageController;
 use App\Http\Controllers\Api\WhatsAppTestController;
 use App\Http\Controllers\MediaController;
 use App\Http\Middleware\TenantCacheResponse;
@@ -265,6 +266,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/{username}', [ProjectController::class, 'show'])->name('projects.show');
         Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
         Route::patch('/{username}/website-settings', [ProjectController::class, 'updateWebsiteSettings'])->name('projects.website-settings');
+        Route::get('/{username}/website-pages', [WebsitePageController::class, 'index'])->name('projects.website-pages.index');
+        Route::put('/{username}/website-pages/{key}', [WebsitePageController::class, 'update'])->name('projects.website-pages.update');
         Route::patch('/{username}/hotel-reservation-toggle', [ProjectController::class, 'toggleHotelReservation'])->name('projects.hotel-reservation-toggle');
         Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     });
@@ -1586,6 +1589,8 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(TenantCacheResponse::for(86400, 'gallery'));
     Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
         ->middleware(TenantCacheResponse::for(86400, 'website-settings'));
+    Route::get('/{username}/website-pages', [PublicProjectController::class, 'websitePages'])
+        ->middleware(TenantCacheResponse::for(86400, 'website-pages'));
     Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])
         ->middleware(TenantCacheResponse::for(86400, 'guests'));
     Route::get('/{username}/events/{eventSlug}/guests/{slug}', [PublicProjectController::class, 'guest'])

@@ -262,13 +262,205 @@
           </div>
         </div>
       </div>
+
+      <!-- Navigation -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:menu-square" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Navigation</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Manage the header, mobile menu, and footer links on the public website. Changes apply
+              without a site rebuild. Leave a list empty to keep the site's built-in navigation.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-6 !px-4 !py-5 lg:!px-6">
+          <NavigationListEditor
+            v-model="form.site_config.nav.header"
+            title="Header"
+            description="Links shown in the main site header."
+          />
+          <div class="border-t pt-6">
+            <NavigationListEditor
+              v-model="form.site_config.nav.dialog"
+              title="Mobile menu"
+              description="Links shown in the mobile navigation dialog."
+            />
+          </div>
+          <div class="border-t pt-6">
+            <NavigationListEditor
+              v-model="form.site_config.nav.footer"
+              title="Footer"
+              description="Link groups shown in the site footer."
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:analytics-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Analytics</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Set the tracking ids used on the public website. Changes apply without a site
+              rebuild. Leave a field blank to keep the site's built-in id.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4 !px-4 !py-5 lg:!px-6">
+          <div class="space-y-2">
+            <Label for="analytics-ga4" class="text-sm font-medium tracking-tight">
+              GA4 Measurement ID
+            </Label>
+            <Input
+              id="analytics-ga4"
+              v-model="form.site_config.analytics.ga4"
+              placeholder="G-XXXXXXXXXX"
+            />
+            <FieldError :errors="errors['site_config.analytics.ga4']" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="analytics-tiktok-pixel" class="text-sm font-medium tracking-tight">
+              TikTok Pixel ID
+            </Label>
+            <Input
+              id="analytics-tiktok-pixel"
+              v-model="form.site_config.analytics.tiktok_pixel"
+              placeholder="CXXXXXXXXXXXXXXXXXXX"
+            />
+            <FieldError :errors="errors['site_config.analytics.tiktok_pixel']" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:paint-brush-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Appearance</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Retheme the public website with a curated color palette. Changes apply without a
+              site rebuild. Leave this off to keep the site's built-in palette.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4 !px-4 !py-5 lg:!px-6">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-1">
+              <Label
+                for="appearance-enabled"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
+                Enable dashboard palette
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                Overrides the site's baked-in palette with the colors below.
+              </p>
+            </div>
+            <Switch id="appearance-enabled" v-model="form.site_config.appearance.enabled" />
+          </div>
+
+          <div
+            v-if="form.site_config.appearance.enabled"
+            class="grid grid-cols-1 gap-3 border-t pt-4 sm:grid-cols-2"
+          >
+            <AppearancePicker
+              label="Base Color"
+              variant="swatch"
+              fluid
+              :model-value="form.site_config.appearance.baseColor"
+              :options="BASE_COLOR_OPTIONS"
+              @update:model-value="(v) => (form.site_config.appearance.baseColor = v)"
+            />
+            <AppearancePicker
+              label="Theme"
+              variant="swatch"
+              fluid
+              :model-value="form.site_config.appearance.theme"
+              :options="THEME_OPTIONS"
+              @update:model-value="(v) => (form.site_config.appearance.theme = v)"
+            />
+            <AppearancePicker
+              label="Chart Color"
+              variant="swatch"
+              fluid
+              :model-value="form.site_config.appearance.chartColor"
+              :options="CHART_COLOR_OPTIONS"
+              @update:model-value="(v) => (form.site_config.appearance.chartColor = v)"
+            />
+            <AppearancePicker
+              label="Radius"
+              variant="radius"
+              fluid
+              :model-value="form.site_config.appearance.radius"
+              :options="radiusOptions"
+              @update:model-value="(v) => (form.site_config.appearance.radius = v)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Company Identity -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:building-06" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Company Identity</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              The company name and address shown in the public website footer and legal pages.
+              Leave a field blank to keep the site's built-in value.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4 !px-4 !py-5 lg:!px-6">
+          <div class="space-y-2">
+            <Label for="identity-company-name" class="text-sm font-medium tracking-tight">
+              Company Name
+            </Label>
+            <Input
+              id="identity-company-name"
+              v-model="form.site_config.identity.company_name"
+              placeholder="e.g. PT Panorama Media"
+            />
+            <FieldError :errors="errors['site_config.identity.company_name']" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="identity-company-address" class="text-sm font-medium tracking-tight">
+              Company Address
+            </Label>
+            <Textarea
+              id="identity-company-address"
+              v-model="form.site_config.identity.company_address"
+              placeholder="Street, city, postal code"
+              class="min-h-20"
+            />
+            <FieldError :errors="errors['site_config.identity.company_address']" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import AppearancePicker from "@/components/appearance/AppearancePicker.vue";
+import NavigationListEditor from "@/components/project/NavigationListEditor.vue";
+import { FieldError } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { BASE_COLOR_OPTIONS, CHART_COLOR_OPTIONS, RADII, THEME_OPTIONS } from "@/lib/appearance";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -302,6 +494,10 @@ const bookSpaceFields = [
   { key: "show_brand_name", label: "Brand name field" },
   { key: "show_products", label: "Products field" },
 ];
+
+// Curated shadcn radii, mapped to the AppearancePicker option shape (mirrors
+// AppearanceCustomizer.vue's radiusOptions).
+const radiusOptions = RADII.map((r) => ({ value: r.name, label: r.title }));
 
 const dataFallbackFields = [
   {
@@ -366,6 +562,21 @@ const dataFallbackDefaults = () => ({
   media_coverages: true,
 });
 
+const navDefaults = () => ({ header: [], dialog: [], footer: [] });
+const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null });
+const identityDefaults = () => ({ company_name: null, company_address: null });
+// Sane starting selections for the pickers when a project has never saved a
+// palette (mirrors DEFAULT_APPEARANCE's baseColor/theme/chartColor/radius —
+// `style`/`font`/`fontHeading` are the separate `useAppearance` concern, out
+// of scope for this dashboard-managed block).
+const appearanceDefaults = () => ({
+  enabled: false,
+  baseColor: "neutral",
+  theme: "neutral",
+  chartColor: "neutral",
+  radius: "default",
+});
+
 const form = ref({
   show_search_bar: true,
   show_location_filter: true,
@@ -376,7 +587,50 @@ const form = ref({
   book_space_form: bookSpaceDefaults(),
   terms_last_update: null,
   data_fallback: dataFallbackDefaults(),
+  site_config: {
+    nav: navDefaults(),
+    analytics: analyticsDefaults(),
+    appearance: appearanceDefaults(),
+    identity: identityDefaults(),
+  },
 });
+
+// Field-level validation errors from the last failed save, keyed by the
+// backend's dot-notation field name (e.g. "site_config.analytics.ga4").
+const errors = ref({});
+
+let navKeySeed = 0;
+const withNavKey = (item) => ({ ...item, _key: `nav-${Date.now()}-${navKeySeed++}` });
+
+// NavigationListEditor needs a stable client-only `_key` per item to track
+// drag reorder / edit / delete. Strip it back out before saving so the stored
+// JSON matches the backend's { label, path } / { label, links } shape exactly.
+function stripNavKeys(items) {
+  return (items ?? []).map(({ _key, links, ...rest }) => ({
+    ...rest,
+    ...(Array.isArray(links) ? { links: links.map(({ _key: lk, ...link }) => link) } : {}),
+  }));
+}
+
+function hydrateNav(nav) {
+  const source = nav && typeof nav === "object" ? nav : {};
+  const toList = (list) =>
+    Array.isArray(list)
+      ? list.map((item) =>
+          withNavKey(
+            Array.isArray(item.links)
+              ? { label: item.label, links: item.links.map((l) => withNavKey(l)) }
+              : { label: item.label, path: item.path }
+          )
+        )
+      : [];
+
+  return {
+    header: toList(source.header),
+    dialog: toList(source.dialog),
+    footer: toList(source.footer),
+  };
+}
 
 // Format a Date to a plain "YYYY-MM-DD" using local parts (no TZ shift).
 function toIsoDate(date) {
@@ -385,6 +639,14 @@ function toIsoDate(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+// An emptied text input becomes "" via v-model, but the backend's
+// nullable|regex rules only accept null or a matching string - never send an
+// empty string through.
+function blankToNull(value) {
+  const trimmed = (value ?? "").trim();
+  return trimmed === "" ? null : trimmed;
 }
 
 // Snapshot of the last persisted payload. Auto-save no-ops when nothing
@@ -406,6 +668,24 @@ function buildPayload() {
     book_space_form: { ...form.value.book_space_form },
     terms: { last_update: toIsoDate(form.value.terms_last_update) },
     data_fallback: { ...form.value.data_fallback },
+    // Wholesale-replace on the backend (ProjectController::updateWebsiteSettings)
+    // - always send all three lists together so an untouched list is not lost.
+    site_config: {
+      nav: {
+        header: stripNavKeys(form.value.site_config.nav.header),
+        dialog: stripNavKeys(form.value.site_config.nav.dialog),
+        footer: stripNavKeys(form.value.site_config.nav.footer),
+      },
+      analytics: {
+        ga4: blankToNull(form.value.site_config.analytics.ga4),
+        tiktok_pixel: blankToNull(form.value.site_config.analytics.tiktok_pixel),
+      },
+      appearance: { ...form.value.site_config.appearance },
+      identity: {
+        company_name: blankToNull(form.value.site_config.identity.company_name),
+        company_address: blankToNull(form.value.site_config.identity.company_address),
+      },
+    },
   };
 }
 
@@ -444,6 +724,12 @@ async function load() {
       book_space_form: { ...bookSpaceDefaults(), ...bookSpaceForm },
       terms_last_update: terms.last_update ? new Date(terms.last_update) : null,
       data_fallback: { ...dataFallbackDefaults(), ...dataFallback },
+      site_config: {
+        nav: hydrateNav(ws.site_config?.nav),
+        analytics: { ...analyticsDefaults(), ...ws.site_config?.analytics },
+        appearance: { ...appearanceDefaults(), ...ws.site_config?.appearance },
+        identity: { ...identityDefaults(), ...ws.site_config?.identity },
+      },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
   } catch (err) {
@@ -475,8 +761,10 @@ async function save() {
       body: payload,
     });
     lastSavedSnapshot = snapshot;
+    errors.value = {};
     toast.success("Website settings updated");
   } catch (err) {
+    errors.value = err?.data?.errors ?? {};
     toast.error("Failed to save", {
       description: err?.data?.message || err?.message,
     });
