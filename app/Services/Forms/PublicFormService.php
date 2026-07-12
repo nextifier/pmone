@@ -172,7 +172,7 @@ class PublicFormService
     {
         $folder = $request->getContent();
 
-        if (! $folder || ! Str::startsWith($folder, 'form-')) {
+        if (! $folder || ! Str::startsWith($folder, 'form-') || Str::contains($folder, ['/', '\\', '..'])) {
             return response()->json(['error' => 'Invalid folder'], 400);
         }
 

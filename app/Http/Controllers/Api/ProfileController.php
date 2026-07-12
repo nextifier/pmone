@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\LinkPageResource;
-use App\Http\Resources\ProjectResource;
+use App\Http\Resources\PublicProjectResource;
 use App\Http\Resources\UserResource;
 use App\Models\LinkPage;
 use App\Models\Project;
@@ -42,18 +42,12 @@ class ProfileController extends Controller
      */
     public function getProjectProfile(Request $request, string $username): JsonResponse
     {
-        $membersEagerLoad = auth()->check()
-            ? ['members.media']
-            : ['members' => function ($query) {
-                $query->select('users.id', 'users.name', 'users.username');
-            }];
-
         $project = Project::where('username', $username)
-            ->with(array_merge([
+            ->with([
                 'links' => function ($query) {
                     $query->active()->orderBy('order');
                 },
-            ], $membersEagerLoad))
+            ])
             ->first();
 
         if (! $project) {
@@ -78,7 +72,7 @@ class ProfileController extends Controller
         // to prevent double tracking and allow better control over tracking behavior
 
         return response()->json([
-            'data' => new ProjectResource($project),
+            'data' => new PublicProjectResource($project),
         ]);
     }
 
