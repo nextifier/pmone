@@ -35,9 +35,14 @@ function capTicket(Event $event, float $price = 0, ?int $stock = null, array $ov
         'max_per_buyer' => null,
     ], $overrides));
 
+    // quota pinned to null (unlimited): the factory default is
+    // fake()->optional()->numberBetween(10, 200), which the multi-order tests
+    // here would intermittently exceed - a latent flake this helper never
+    // guarded (mirrors EventCapacityTest/PurchaseInventoryIntegrityTest).
     TicketPricePhase::factory()->create([
         'ticket_id' => $ticket->id,
         'price' => $price,
+        'quota' => null,
         'starts_at' => now()->subDay(),
         'ends_at' => now()->addDay(),
     ]);
