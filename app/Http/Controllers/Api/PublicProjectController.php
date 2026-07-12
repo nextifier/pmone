@@ -20,6 +20,7 @@ use App\Http\Resources\RundownItemPublicResource;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
+use App\Models\WebsiteCopy;
 use App\Models\WebsitePage;
 use App\Services\Rundown\RundownGrouper;
 use App\Support\HomeSectionCatalog;
@@ -663,10 +664,17 @@ class PublicProjectController extends Controller
      * Return the project's public website settings (visibility toggles for
      * sections rendered on the public event website). Project-level, so no
      * event slug is required.
+     *
+     * `?locale=` resolves the dashboard-managed `site_config.copy` SEO meta
+     * (plan 012) for the requested language, mirroring `websitePages()`.
+     * Every other sub-key here is locale-agnostic, so this param only affects
+     * `copy` - see `websiteCopyPayload()`.
      */
-    public function websiteSettings(string $username): JsonResponse
+    public function websiteSettings(Request $request, string $username): JsonResponse
     {
         $project = Project::where('username', $username)->firstOrFail();
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
 
         $settings = data_get($project->settings, 'website_settings', []);
         $rundown = data_get($settings, 'rundown', []);
@@ -748,6 +756,7 @@ class PublicProjectController extends Controller
                         'analytics' => data_get($siteConfig, 'analytics'),   // null until plan 009
                         'appearance' => data_get($siteConfig, 'appearance'), // null until plan 010
                         'identity' => data_get($siteConfig, 'identity'),     // null until plan 011
+                        'copy' => $this->websiteCopyPayload($project, $locale), // spike: home+brands meta only (plan 012)
                     ],
                 ],
             ],
@@ -790,6 +799,42 @@ class PublicProjectController extends Controller
         }
 
         return response()->json(['data' => $payload]);
+    }
+
+    /**
+     * Dashboard-managed SEO meta (`<title>`/description) for the spike's two
+     * pages (`home`, `brands`) - see App\Models\WebsiteCopy and plan 012.
+     * Rides the already-awaited `website-settings` payload instead of a
+     * separate endpoint (unlike `websitePages()`'s bodies) because this data
+     * is tiny and must be present in the server-rendered `<head>` on first
+     * paint - see docs/site-config-contract.md rule 1 (zero-round-trip) in
+     * pmone-events.
+     *
+     * Fail-open per field: a project with no row for a key, or a row with no
+     * saved translation for the requested locale, returns `null` so
+     * `usePageMeta` falls back to the baked `content.js` value - never an
+     * empty `<title>`.
+     *
+     * @return array<string, array{title: ?string, description: ?string}>
+     */
+    protected function websiteCopyPayload(Project $project, string $locale): array
+    {
+        $rows = WebsiteCopy::query()
+            ->where('project_id', $project->id)
+            ->get()
+            ->keyBy('key');
+
+        $payload = [];
+        foreach (WebsiteCopy::PAGE_KEYS as $page) {
+            foreach (WebsiteCopy::FIELDS as $field) {
+                $row = $rows->get(WebsiteCopy::keyFor($page, $field));
+                $value = $row?->getTranslation('value', $locale, false);
+
+                $payload[$page][$field] = filled($value) ? $value : null;
+            }
+        }
+
+        return ['pages' => $payload];
     }
 
     /**

@@ -3,6 +3,7 @@
 use App\Models\ApiConsumer;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\WebsiteCopy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -40,7 +41,15 @@ test('site_config is a fail-open empty container for an unconfigured project', f
         ->assertJsonPath('data.settings.site_config.nav', null)
         ->assertJsonPath('data.settings.site_config.analytics', null)
         ->assertJsonPath('data.settings.site_config.appearance', null)
-        ->assertJsonPath('data.settings.site_config.identity', null);
+        ->assertJsonPath('data.settings.site_config.identity', null)
+        // Unlike its siblings, `copy` is never fully null - it is a fixed
+        // page x field skeleton (plan 012 spike scope: home + brands) with
+        // each leaf failing open to null individually, mirroring
+        // websitePages()'s always-present-keys shape.
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', null)
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.description', null)
+        ->assertJsonPath('data.settings.site_config.copy.pages.brands.title', null)
+        ->assertJsonPath('data.settings.site_config.copy.pages.brands.description', null);
 });
 
 test('a saved site_config.nav value is returned verbatim', function () {
@@ -411,4 +420,101 @@ test('site_config.identity stays fail-open null when a write touches other websi
         ->assertSuccessful()
         ->assertJsonPath('data.settings.rundown.show_search_bar', false)
         ->assertJsonPath('data.settings.site_config.identity', null);
+});
+
+// --- Plan 012 (spike): copy save / locale resolution / fail-open ---------
+
+test('a saved home title is returned for the requested locale', function () {
+    WebsiteCopy::factory()->create([
+        'project_id' => $this->project->id,
+        'key' => WebsiteCopy::keyFor('home', 'title'),
+        'value' => ['en' => 'English home title', 'id' => 'Judul beranda Indonesia'],
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=id')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', 'Judul beranda Indonesia');
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=en')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', 'English home title');
+});
+
+test('a locale with no saved translation fails open to null (not another locale)', function () {
+    WebsiteCopy::factory()->create([
+        'project_id' => $this->project->id,
+        'key' => WebsiteCopy::keyFor('home', 'title'),
+        'value' => ['en' => 'English only'],
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=ja')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', null);
+});
+
+test('omitting the locale query param falls back to the app default locale', function () {
+    WebsiteCopy::factory()->create([
+        'project_id' => $this->project->id,
+        'key' => WebsiteCopy::keyFor('brands', 'description'),
+        'value' => ['en' => 'Default locale description'],
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.brands.description', 'Default locale description');
+});
+
+test('sibling copy keys stay null when only one is configured', function () {
+    WebsiteCopy::factory()->create([
+        'project_id' => $this->project->id,
+        'key' => WebsiteCopy::keyFor('home', 'title'),
+        'value' => ['en' => 'Home title'],
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=en')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', 'Home title')
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.description', null)
+        ->assertJsonPath('data.settings.site_config.copy.pages.brands.title', null)
+        ->assertJsonPath('data.settings.site_config.copy.pages.brands.description', null);
+});
+
+test('copy belonging to another project is never leaked', function () {
+    $otherProject = Project::factory()->create(['username' => 'other']);
+    WebsiteCopy::factory()->create([
+        'project_id' => $otherProject->id,
+        'key' => WebsiteCopy::keyFor('home', 'title'),
+        'value' => ['en' => 'Other project title'],
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=en')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', null);
+});
+
+test('saving copy via the admin endpoint invalidates the cached public website-settings response', function () {
+    // Prime the response cache with the fail-open null value.
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=en')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', null);
+
+    $this->actingAs($this->admin)
+        ->putJson("/api/projects/{$this->project->username}/website-copy/home/title", [
+            'value' => ['en' => 'Freshly saved title'],
+        ])
+        ->assertSuccessful();
+
+    // Without correct cache invalidation this would still return the primed
+    // null from before the save (stale for up to the endpoint's 24h TTL).
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint.'?locale=en')
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.copy.pages.home.title', 'Freshly saved title');
 });
