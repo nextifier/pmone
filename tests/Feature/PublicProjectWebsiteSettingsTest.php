@@ -190,3 +190,72 @@ test('rejects a nav item with neither a valid path nor a links group', function 
         ],
     ])->assertUnprocessable();
 });
+
+// --- Plan 009: analytics ids save / validate / fail-open -----------------
+
+test('saving site_config.analytics returns it verbatim in the public payload', function () {
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, [
+            'site_config' => [
+                'analytics' => [
+                    'ga4' => 'G-ABC1234567',
+                    'tiktok_pixel' => 'CQWERTY1234567890',
+                ],
+            ],
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.website_settings.site_config.analytics.ga4', 'G-ABC1234567')
+        ->assertJsonPath('data.website_settings.site_config.analytics.tiktok_pixel', 'CQWERTY1234567890');
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.analytics.ga4', 'G-ABC1234567')
+        ->assertJsonPath('data.settings.site_config.analytics.tiktok_pixel', 'CQWERTY1234567890');
+});
+
+test('rejects a malformed GA4 measurement id', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => [
+                'ga4' => 'not-a-valid-ga4-id',
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('accepts a null analytics id to clear it', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => [
+                'ga4' => 'G-ABC1234567',
+                'tiktok_pixel' => 'CQWERTY1234567890',
+            ],
+        ],
+    ])->assertSuccessful();
+
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => [
+                'ga4' => null,
+                'tiktok_pixel' => null,
+            ],
+        ],
+    ])->assertSuccessful();
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.site_config.analytics.ga4'))->toBeNull();
+    expect(data_get($this->project->settings, 'website_settings.site_config.analytics.tiktok_pixel'))->toBeNull();
+});
+
+test('site_config.analytics stays fail-open null when a write touches other website settings but not analytics', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'rundown' => ['show_search_bar' => false],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.rundown.show_search_bar', false)
+        ->assertJsonPath('data.settings.site_config.analytics', null);
+});

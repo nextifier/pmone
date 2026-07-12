@@ -437,6 +437,13 @@ class ProjectController extends Controller
             'site_config.nav.header' => ['sometimes', 'array', $this->navItemsRule()],
             'site_config.nav.dialog' => ['sometimes', 'array', $this->navItemsRule()],
             'site_config.nav.footer' => ['sometimes', 'array', $this->navItemsRule()],
+            // Analytics ids (GA4 measurement id + TikTok pixel id) sourced by the
+            // event website instead of its baked nuxt.config.ts / app.config.ts
+            // values. Both scalars, so array_replace_recursive merges them
+            // correctly without a wholesale-replace special-case.
+            'site_config.analytics' => ['sometimes', 'array'],
+            'site_config.analytics.ga4' => ['sometimes', 'nullable', 'string', 'regex:/^G-[A-Z0-9]+$/'],
+            'site_config.analytics.tiktok_pixel' => ['sometimes', 'nullable', 'string', 'max:64'],
         ]);
 
         $settings = $project->settings ?? [];
