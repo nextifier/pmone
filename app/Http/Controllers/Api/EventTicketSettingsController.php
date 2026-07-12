@@ -22,7 +22,7 @@ class EventTicketSettingsController extends Controller
         $validated = $request->validated();
 
         $columnUpdates = array_intersect_key($validated, array_flip([
-            'tickets_enabled', 'business_matching_enabled', 'allow_cross_day', 'timezone',
+            'tickets_enabled', 'business_matching_enabled', 'allow_cross_day', 'timezone', 'waitlist_mode',
         ]));
 
         if (! empty($columnUpdates)) {
@@ -63,6 +63,7 @@ class EventTicketSettingsController extends Controller
             'business_matching_enabled' => (bool) $event->business_matching_enabled,
             'allow_cross_day' => (bool) $event->allow_cross_day,
             'timezone' => $event->timezone,
+            'waitlist_mode' => $event->waitlist_mode?->value,
             'default_min_quantity' => $ticketDefaults['default_min_quantity'] ?? null,
             'default_max_quantity' => $ticketDefaults['default_max_quantity'] ?? null,
             'default_stock' => $ticketDefaults['default_stock'] ?? null,
