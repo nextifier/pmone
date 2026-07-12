@@ -10,6 +10,10 @@ class ApiConsumerResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * Never includes `api_key`/`api_key_hash` — the raw key is surfaced
+     * exactly once, directly by the controller, on create/regenerate only
+     * (see ApiConsumerController), never through this resource.
+     *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -19,10 +23,6 @@ class ApiConsumerResource extends JsonResource
             'name' => $this->name,
             'website_url' => $this->website_url,
             'description' => $this->description ?? null,
-            'api_key' => $this->when(
-                $this->shouldShowApiKey($request),
-                $this->api_key
-            ),
             'allowed_origins' => $this->allowed_origins,
             'rate_limit' => $this->rate_limit,
             'is_active' => $this->is_active,
@@ -32,17 +32,12 @@ class ApiConsumerResource extends JsonResource
             'creator' => $this->whenLoaded('creator', function () {
                 return new UserMinimalResource($this->creator);
             }),
+            'projects' => $this->whenLoaded('projects', fn () => $this->projects->map(fn ($project) => [
+                'id' => $project->id,
+                'name' => $project->name,
+                'username' => $project->username,
+                'profile_image' => $project->hasMedia('profile_image') ? $project->getMediaUrls('profile_image') : null,
+            ])),
         ];
-    }
-
-    /**
-     * Determine if API key should be shown in response
-     */
-    private function shouldShowApiKey(Request $request): bool
-    {
-        // Show API key on create, show, or regenerate actions
-        return $request->routeIs('api-consumers.store')
-            || $request->routeIs('api-consumers.show')
-            || $request->routeIs('api-consumers.regenerate-key');
     }
 }

@@ -70,9 +70,19 @@ class ApiConsumerController extends Controller
             'created_by' => auth()->id(),
         ]);
 
+        if ($request->has('project_ids')) {
+            $consumer->projects()->sync($request->input('project_ids', []));
+        }
+
+        $consumer->load('creator', 'projects');
+
         return response()->json([
             'message' => 'API Consumer created successfully',
             'data' => new ApiConsumerResource($consumer),
+            // Raw key shown exactly once, right here, right after
+            // generation. No other endpoint (show, index, ...) ever returns
+            // it, and ApiConsumerResource never includes it.
+            'key' => $consumer->api_key,
         ], 201);
     }
 
@@ -83,7 +93,7 @@ class ApiConsumerController extends Controller
     {
         $this->authorize('view', $apiConsumer);
 
-        $apiConsumer->load('creator');
+        $apiConsumer->load('creator', 'projects');
 
         return response()->json([
             'data' => new ApiConsumerResource($apiConsumer),
@@ -107,9 +117,13 @@ class ApiConsumerController extends Controller
             'updated_by' => auth()->id(),
         ]);
 
+        if ($request->has('project_ids')) {
+            $apiConsumer->projects()->sync($request->input('project_ids', []));
+        }
+
         return response()->json([
             'message' => 'API Consumer updated successfully',
-            'data' => new ApiConsumerResource($apiConsumer->fresh()),
+            'data' => new ApiConsumerResource($apiConsumer->fresh(['creator', 'projects'])),
         ]);
     }
 
@@ -135,11 +149,8 @@ class ApiConsumerController extends Controller
     {
         $this->authorize('update', $apiConsumer);
 
-        $newApiKey = ApiConsumer::generateApiKey();
-        $apiConsumer->update([
-            'api_key' => $newApiKey,
-            'updated_by' => auth()->id(),
-        ]);
+        $apiConsumer->updated_by = auth()->id();
+        $newApiKey = $apiConsumer->regenerateApiKey();
 
         activity()
             ->causedBy(auth()->user())
@@ -150,9 +161,8 @@ class ApiConsumerController extends Controller
 
         return response()->json([
             'message' => 'API key regenerated successfully',
-            'data' => [
-                'api_key' => $newApiKey,
-            ],
+            // Raw key shown exactly once, right here. Never returned again.
+            'key' => $newApiKey,
         ]);
     }
 
