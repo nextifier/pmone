@@ -372,7 +372,7 @@
   },
   "cbe": {
     "_source_apps": ["cafeexpo", "icf", "cokelatexpo"],
-    "_notes": "cafeexpo, icf and cokelatexpo all share this PM One project as their data source (dataSourceUsername=cbe for icf/cokelatexpo). Their nav/identity are byte-identical, so only analytics.ga4 differs between them; per task instructions the LAST app processed wins, so cokelatexpo's own GA4 id (G-9KLJTWG6QF) is seeded here, discarding cafeexpo's G-896FDXSRSL and icf's G-YFZVWEFRHF. Correct in the dashboard if a different site's GA4 should represent this shared project.",
+    "_notes": "cafeexpo, icf and cokelatexpo all share this PM One project as their data source (dataSourceUsername=cbe for icf/cokelatexpo). Their nav/identity are byte-identical, so those are safe to seed here. Their GA4 ids, however, DIFFER (cafeexpo G-896FDXSRSL, cokelatexpo G-9KLJTWG6QF, icf G-YFZVWEFRHF): a single project-level site_config cannot represent three distinct measurement ids, so analytics.ga4 is left null here. Each app's analytics.client.ts then falls back to its OWN baked nuxt.config gtag id (fail-open), preserving per-site tracking with zero regression. Only set a value here if one shared GA4 should intentionally override all three sites.",
     "nav": {
       "header": [
         { "label": "Home", "path": "/" },
@@ -457,7 +457,7 @@
         }
       ]
     },
-    "analytics": { "ga4": "G-9KLJTWG6QF", "tiktok_pixel": null },
+    "analytics": { "ga4": null, "tiktok_pixel": null },
     "identity": {
       "company_name": "PT Panorama Media",
       "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
