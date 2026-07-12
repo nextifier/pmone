@@ -76,8 +76,10 @@ class Link extends Model
                 Guest::class => ['guests'],
                 // The project's "Website" link is embedded as website_url in
                 // every cached public event payload (EventResource), including
-                // conjunction projects.
-                Project::class => ['projects', 'events'],
+                // conjunction projects. FAQ answers also embed
+                // {{whatsapp_link}}/{{instagram}} tokens resolved from these
+                // links (FaqTemplate), so the cached 'faqs' payload must clear too.
+                Project::class => ['projects', 'events', 'faqs'],
                 User::class => ['short-links'],
                 default => [],
             };

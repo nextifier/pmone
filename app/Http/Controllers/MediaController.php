@@ -626,8 +626,10 @@ class MediaController extends Controller
             // visitor_eguide embedded in cached event payloads.
             Event::class => ['gallery', 'events'],
             // Project profile_image is embedded in every cached event payload
-            // (EventResource) besides the project profile itself.
-            Project::class => ['projects', 'events'],
+            // (EventResource) besides the project profile itself. OG media is
+            // embedded in the cached website-settings og_pages payload
+            // (PublicProjectController::ogPagesPayload).
+            Project::class => ['projects', 'events', 'website-settings'],
             Post::class => ['blog-posts'],
             default => [],
         };
