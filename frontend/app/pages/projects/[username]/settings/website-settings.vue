@@ -262,11 +262,48 @@
           </div>
         </div>
       </div>
+
+      <!-- Navigation -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:menu-square" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Navigation</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Manage the header, mobile menu, and footer links on the public website. Changes apply
+              without a site rebuild. Leave a list empty to keep the site's built-in navigation.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-6 !px-4 !py-5 lg:!px-6">
+          <NavigationListEditor
+            v-model="form.site_config.nav.header"
+            title="Header"
+            description="Links shown in the main site header."
+          />
+          <div class="border-t pt-6">
+            <NavigationListEditor
+              v-model="form.site_config.nav.dialog"
+              title="Mobile menu"
+              description="Links shown in the mobile navigation dialog."
+            />
+          </div>
+          <div class="border-t pt-6">
+            <NavigationListEditor
+              v-model="form.site_config.nav.footer"
+              title="Footer"
+              description="Link groups shown in the site footer."
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import NavigationListEditor from "@/components/project/NavigationListEditor.vue";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
@@ -366,6 +403,8 @@ const dataFallbackDefaults = () => ({
   media_coverages: true,
 });
 
+const navDefaults = () => ({ header: [], dialog: [], footer: [] });
+
 const form = ref({
   show_search_bar: true,
   show_location_filter: true,
@@ -376,7 +415,41 @@ const form = ref({
   book_space_form: bookSpaceDefaults(),
   terms_last_update: null,
   data_fallback: dataFallbackDefaults(),
+  site_config: { nav: navDefaults() },
 });
+
+let navKeySeed = 0;
+const withNavKey = (item) => ({ ...item, _key: `nav-${Date.now()}-${navKeySeed++}` });
+
+// NavigationListEditor needs a stable client-only `_key` per item to track
+// drag reorder / edit / delete. Strip it back out before saving so the stored
+// JSON matches the backend's { label, path } / { label, links } shape exactly.
+function stripNavKeys(items) {
+  return (items ?? []).map(({ _key, links, ...rest }) => ({
+    ...rest,
+    ...(Array.isArray(links) ? { links: links.map(({ _key: lk, ...link }) => link) } : {}),
+  }));
+}
+
+function hydrateNav(nav) {
+  const source = nav && typeof nav === "object" ? nav : {};
+  const toList = (list) =>
+    Array.isArray(list)
+      ? list.map((item) =>
+          withNavKey(
+            Array.isArray(item.links)
+              ? { label: item.label, links: item.links.map((l) => withNavKey(l)) }
+              : { label: item.label, path: item.path }
+          )
+        )
+      : [];
+
+  return {
+    header: toList(source.header),
+    dialog: toList(source.dialog),
+    footer: toList(source.footer),
+  };
+}
 
 // Format a Date to a plain "YYYY-MM-DD" using local parts (no TZ shift).
 function toIsoDate(date) {
@@ -406,6 +479,15 @@ function buildPayload() {
     book_space_form: { ...form.value.book_space_form },
     terms: { last_update: toIsoDate(form.value.terms_last_update) },
     data_fallback: { ...form.value.data_fallback },
+    // Wholesale-replace on the backend (ProjectController::updateWebsiteSettings)
+    // - always send all three lists together so an untouched list is not lost.
+    site_config: {
+      nav: {
+        header: stripNavKeys(form.value.site_config.nav.header),
+        dialog: stripNavKeys(form.value.site_config.nav.dialog),
+        footer: stripNavKeys(form.value.site_config.nav.footer),
+      },
+    },
   };
 }
 
@@ -444,6 +526,7 @@ async function load() {
       book_space_form: { ...bookSpaceDefaults(), ...bookSpaceForm },
       terms_last_update: terms.last_update ? new Date(terms.last_update) : null,
       data_fallback: { ...dataFallbackDefaults(), ...dataFallback },
+      site_config: { nav: hydrateNav(ws.site_config?.nav) },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
   } catch (err) {
