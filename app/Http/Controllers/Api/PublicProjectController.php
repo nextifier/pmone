@@ -23,6 +23,7 @@ use App\Models\Project;
 use App\Services\Rundown\RundownGrouper;
 use App\Support\HomeSectionCatalog;
 use App\Support\OgPages;
+use App\Support\PaginationClamp;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -60,7 +61,7 @@ class PublicProjectController extends Controller
         $this->applyEventFilters($query, $request);
         $this->applyEventSorting($query, $request);
 
-        $events = $query->paginate($request->input('per_page', 15));
+        $events = $query->paginate(PaginationClamp::perPage($request, 15));
 
         return response()->json([
             'data' => EventIndexResource::collection($events->items()),
@@ -118,7 +119,7 @@ class PublicProjectController extends Controller
             });
         }
 
-        $brandEvents = $query->paginate($request->input('per_page', 30));
+        $brandEvents = $query->paginate(PaginationClamp::perPage($request, 30));
 
         return response()->json([
             'data' => BrandEventIndexResource::collection($brandEvents->items()),
@@ -165,7 +166,7 @@ class PublicProjectController extends Controller
 
         $posts = $brandEvent->promotionPosts()
             ->with(['media'])
-            ->paginate($request->input('per_page', 30));
+            ->paginate(PaginationClamp::perPage($request, 30));
 
         return response()->json([
             'data' => PromotionPostResource::collection($posts->items()),
@@ -223,7 +224,11 @@ class PublicProjectController extends Controller
             });
         }
 
-        $brandEvents = $query->paginate($request->input('per_page', 200));
+        // Higher ceiling than the other listings: pmone-events' sitemap
+        // generator fetches this endpoint with per_page=1000 to enumerate
+        // every brand for /brands/[slug] URLs, so a lower cap would silently
+        // drop brands from the sitemap.
+        $brandEvents = $query->paginate(PaginationClamp::perPage($request, 200, 1000));
 
         return response()->json([
             'data' => PublicBrandIndexResource::collection($brandEvents->items()),
@@ -394,7 +399,10 @@ class PublicProjectController extends Controller
             });
         }
 
-        $brandEvents = $query->paginate($request->input('per_page', 200));
+        // Same brand-listing family as activeBrands() above - kept at the same
+        // higher ceiling for consistency (per-edition exhibitor listings are
+        // rendered unpaginated by pmone-events).
+        $brandEvents = $query->paginate(PaginationClamp::perPage($request, 200, 1000));
 
         return response()->json([
             'data' => PublicBrandIndexResource::collection($brandEvents->items()),
