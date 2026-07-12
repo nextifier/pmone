@@ -149,3 +149,15 @@ it('logs a warning and does not throw when a seed username has no matching proje
 
     expect(Project::query()->count())->toBe(0);
 });
+
+it('is wired into the run_website_config_seed migration so it executes on deploy via `migrate`', function () {
+    $project = Project::factory()->create(['username' => 'megabuild']);
+
+    $migration = require base_path('database/migrations/2026_07_12_180942_run_website_config_seed.php');
+    $migration->up();
+
+    $siteConfig = data_get($project->refresh()->settings, 'website_settings.site_config');
+
+    expect($siteConfig['analytics']['ga4'])->toBe('G-2PJCW7S32V');
+    expect($siteConfig['nav']['header'])->toBeArray()->not->toBeEmpty();
+});
