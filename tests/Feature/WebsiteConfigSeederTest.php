@@ -29,17 +29,25 @@ it('seeds nav, analytics and identity into site_config from the baked seed data'
     expect($siteConfig['nav']['footer'])->toBeArray()->not->toBeEmpty();
 });
 
-it('resolves the shared cbe project from cafeexpo/icf/cokelatexpo with the last app winning analytics', function () {
+it('leaves ga4 null for the shared cbe project so each app keeps its own baked GA4', function () {
     $project = Project::factory()->create(['username' => 'cbe']);
 
     $this->seed(WebsiteConfigSeeder::class);
 
     $siteConfig = data_get($project->refresh()->settings, 'website_settings.site_config');
 
-    // cokelatexpo is the last of the three apps sharing this project, so its
-    // GA4 id wins over cafeexpo's and icf's per the seed data's documented
-    // collision resolution.
-    expect($siteConfig['analytics']['ga4'])->toBe('G-9KLJTWG6QF');
+    // cafeexpo/icf/cokelatexpo share this one project but each has a distinct
+    // baked GA4 id. A single project-level ga4 would force all three sites onto
+    // one measurement id (regression), so it is intentionally null here - each
+    // app's analytics.client.ts then falls back to its own nuxt.config gtag id.
+    expect($siteConfig['analytics'])->toBe([
+        'ga4' => null,
+        'tiktok_pixel' => null,
+    ]);
+
+    // nav/identity ARE byte-identical across the three apps, so those still seed.
+    expect($siteConfig['identity']['company_name'])->toBe('PT Panorama Media');
+    expect($siteConfig['nav']['header'])->toBeArray()->not->toBeEmpty();
 });
 
 it('records the intentional renex/megabuild GA4 collision as-is', function () {
@@ -160,4 +168,41 @@ it('is wired into the run_website_config_seed migration so it executes on deploy
 
     expect($siteConfig['analytics']['ga4'])->toBe('G-2PJCW7S32V');
     expect($siteConfig['nav']['header'])->toBeArray()->not->toBeEmpty();
+});
+
+it('nulls a previously mis-seeded shared cbe GA4 via the corrective migration', function () {
+    $project = Project::factory()->create([
+        'username' => 'cbe',
+        'settings' => [
+            'website_settings' => [
+                'site_config' => [
+                    'analytics' => ['ga4' => 'G-9KLJTWG6QF', 'tiktok_pixel' => null],
+                ],
+            ],
+        ],
+    ]);
+
+    $migration = require base_path('database/migrations/2026_07_12_194909_fix_shared_cbe_project_ga4.php');
+    $migration->up();
+
+    expect(data_get($project->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBeNull();
+});
+
+it('leaves a deliberately-edited shared cbe GA4 untouched by the corrective migration', function () {
+    $project = Project::factory()->create([
+        'username' => 'cbe',
+        'settings' => [
+            'website_settings' => [
+                'site_config' => [
+                    'analytics' => ['ga4' => 'G-DELIBERATE1', 'tiktok_pixel' => null],
+                ],
+            ],
+        ],
+    ]);
+
+    $migration = require base_path('database/migrations/2026_07_12_194909_fix_shared_cbe_project_ga4.php');
+    $migration->up();
+
+    // Only the exact mis-seeded id is reverted; an operator's later choice stays.
+    expect(data_get($project->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-DELIBERATE1');
 });
