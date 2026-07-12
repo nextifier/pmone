@@ -44,6 +44,11 @@ const settingsTabs = computed(() => {
       to: `${settingsBase.value}/website-settings`,
     },
     {
+      label: "Legal Pages",
+      icon: "hugeicons:legal-document-01",
+      to: `${settingsBase.value}/legal-pages`,
+    },
+    {
       label: "OG Images",
       icon: "hugeicons:image-02",
       to: `${settingsBase.value}/og-images`,

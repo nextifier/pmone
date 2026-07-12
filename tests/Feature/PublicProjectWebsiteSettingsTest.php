@@ -333,3 +333,82 @@ test('site_config.appearance stays fail-open null when a write touches other web
         ->assertJsonPath('data.settings.rundown.show_search_bar', false)
         ->assertJsonPath('data.settings.site_config.appearance', null);
 });
+
+// --- Plan 011: identity save / validate / fail-open ----------------------
+
+test('saving site_config.identity returns it verbatim in the public payload', function () {
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, [
+            'site_config' => [
+                'identity' => [
+                    'company_name' => 'PT Example Indonesia',
+                    'company_address' => 'Jl. Sudirman No. 1, Jakarta',
+                ],
+            ],
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.website_settings.site_config.identity.company_name', 'PT Example Indonesia')
+        ->assertJsonPath('data.website_settings.site_config.identity.company_address', 'Jl. Sudirman No. 1, Jakarta');
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.identity.company_name', 'PT Example Indonesia')
+        ->assertJsonPath('data.settings.site_config.identity.company_address', 'Jl. Sudirman No. 1, Jakarta');
+});
+
+test('rejects a company_name over the 255-char limit', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'identity' => [
+                'company_name' => str_repeat('a', 256),
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('rejects a company_address over the 1000-char limit', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'identity' => [
+                'company_address' => str_repeat('a', 1001),
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('accepts null identity values to clear them', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'identity' => [
+                'company_name' => 'PT Example Indonesia',
+                'company_address' => 'Jl. Sudirman No. 1, Jakarta',
+            ],
+        ],
+    ])->assertSuccessful();
+
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'identity' => [
+                'company_name' => null,
+                'company_address' => null,
+            ],
+        ],
+    ])->assertSuccessful();
+
+    $this->project->refresh();
+    expect(data_get($this->project->settings, 'website_settings.site_config.identity.company_name'))->toBeNull();
+    expect(data_get($this->project->settings, 'website_settings.site_config.identity.company_address'))->toBeNull();
+});
+
+test('site_config.identity stays fail-open null when a write touches other website settings but not identity', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'rundown' => ['show_search_bar' => false],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.rundown.show_search_bar', false)
+        ->assertJsonPath('data.settings.site_config.identity', null);
+});

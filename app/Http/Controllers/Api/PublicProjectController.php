@@ -20,6 +20,7 @@ use App\Http\Resources\RundownItemPublicResource;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
+use App\Models\WebsitePage;
 use App\Services\Rundown\RundownGrouper;
 use App\Support\HomeSectionCatalog;
 use App\Support\OgPages;
@@ -751,6 +752,44 @@ class PublicProjectController extends Controller
                 ],
             ],
         ]);
+    }
+
+    /**
+     * Serve dashboard-managed legal/policy page body overrides for the
+     * requested locale, keyed by page key. Kept out of the small
+     * `website-settings` payload (per the site-config contract's
+     * zero-round-trip note) since bodies are potentially large and only the
+     * six legal pages need them - see plan 011.
+     *
+     * Fail-open: a project with no row for a key, or a row with no saved
+     * translation for the requested locale, returns `body: null` so the
+     * event website falls back to its baked `<p>` copy - never an empty
+     * legal page.
+     *
+     * Response shape: `{ data: { [key]: { body: string|null } } }`.
+     */
+    public function websitePages(Request $request, string $username): JsonResponse
+    {
+        $project = Project::where('username', $username)->firstOrFail();
+
+        $locale = $request->input('locale', config('app.locale', 'en'));
+
+        $pages = WebsitePage::query()
+            ->where('project_id', $project->id)
+            ->get()
+            ->keyBy('key');
+
+        $payload = [];
+        foreach (WebsitePage::KEYS as $key) {
+            $page = $pages->get($key);
+            $body = $page?->getTranslation('body', $locale, false);
+
+            $payload[$key] = [
+                'body' => filled($body) ? $body : null,
+            ];
+        }
+
+        return response()->json(['data' => $payload]);
     }
 
     /**

@@ -456,6 +456,13 @@ class ProjectController extends Controller
             'site_config.appearance.theme' => ['sometimes', Rule::in($this->appearanceThemeColors())],
             'site_config.appearance.chartColor' => ['sometimes', Rule::in($this->appearanceThemeColors())],
             'site_config.appearance.radius' => ['sometimes', Rule::in(['default', 'none', 'small', 'medium', 'large'])],
+            // Company identity sourced by the event website's footer + legal
+            // pages instead of its baked app.config.ts `company` block. Both
+            // scalars, so array_replace_recursive merges them correctly
+            // without a wholesale-replace special-case.
+            'site_config.identity' => ['sometimes', 'array'],
+            'site_config.identity.company_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'site_config.identity.company_address' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
         $settings = $project->settings ?? [];

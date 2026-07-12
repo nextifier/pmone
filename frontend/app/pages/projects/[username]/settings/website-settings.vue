@@ -407,6 +407,47 @@
           </div>
         </div>
       </div>
+
+      <!-- Company Identity -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:building-06" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Company Identity</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              The company name and address shown in the public website footer and legal pages.
+              Leave a field blank to keep the site's built-in value.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4 !px-4 !py-5 lg:!px-6">
+          <div class="space-y-2">
+            <Label for="identity-company-name" class="text-sm font-medium tracking-tight">
+              Company Name
+            </Label>
+            <Input
+              id="identity-company-name"
+              v-model="form.site_config.identity.company_name"
+              placeholder="e.g. PT Panorama Media"
+            />
+            <FieldError :errors="errors['site_config.identity.company_name']" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="identity-company-address" class="text-sm font-medium tracking-tight">
+              Company Address
+            </Label>
+            <Textarea
+              id="identity-company-address"
+              v-model="form.site_config.identity.company_address"
+              placeholder="Street, city, postal code"
+              class="min-h-20"
+            />
+            <FieldError :errors="errors['site_config.identity.company_address']" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -418,6 +459,7 @@ import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { BASE_COLOR_OPTIONS, CHART_COLOR_OPTIONS, RADII, THEME_OPTIONS } from "@/lib/appearance";
 import { toast } from "vue-sonner";
 
@@ -522,6 +564,7 @@ const dataFallbackDefaults = () => ({
 
 const navDefaults = () => ({ header: [], dialog: [], footer: [] });
 const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null });
+const identityDefaults = () => ({ company_name: null, company_address: null });
 // Sane starting selections for the pickers when a project has never saved a
 // palette (mirrors DEFAULT_APPEARANCE's baseColor/theme/chartColor/radius —
 // `style`/`font`/`fontHeading` are the separate `useAppearance` concern, out
@@ -544,7 +587,12 @@ const form = ref({
   book_space_form: bookSpaceDefaults(),
   terms_last_update: null,
   data_fallback: dataFallbackDefaults(),
-  site_config: { nav: navDefaults(), analytics: analyticsDefaults(), appearance: appearanceDefaults() },
+  site_config: {
+    nav: navDefaults(),
+    analytics: analyticsDefaults(),
+    appearance: appearanceDefaults(),
+    identity: identityDefaults(),
+  },
 });
 
 // Field-level validation errors from the last failed save, keyed by the
@@ -633,6 +681,10 @@ function buildPayload() {
         tiktok_pixel: blankToNull(form.value.site_config.analytics.tiktok_pixel),
       },
       appearance: { ...form.value.site_config.appearance },
+      identity: {
+        company_name: blankToNull(form.value.site_config.identity.company_name),
+        company_address: blankToNull(form.value.site_config.identity.company_address),
+      },
     },
   };
 }
@@ -676,6 +728,7 @@ async function load() {
         nav: hydrateNav(ws.site_config?.nav),
         analytics: { ...analyticsDefaults(), ...ws.site_config?.analytics },
         appearance: { ...appearanceDefaults(), ...ws.site_config?.appearance },
+        identity: { ...identityDefaults(), ...ws.site_config?.identity },
       },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
