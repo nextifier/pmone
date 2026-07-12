@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Ticketing\WaitlistMode;
 use App\Observers\EventObserver;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
@@ -206,6 +207,7 @@ class Event extends Model implements HasMedia, Sortable
         'capacity',
         'max_tickets_per_buyer',
         'bot_protection_enabled',
+        'waitlist_mode',
     ];
 
     public array $translatable = [
@@ -248,6 +250,7 @@ class Event extends Model implements HasMedia, Sortable
             'reserved_count' => 'integer',
             'max_tickets_per_buyer' => 'integer',
             'bot_protection_enabled' => 'boolean',
+            'waitlist_mode' => WaitlistMode::class,
         ];
     }
 
@@ -719,6 +722,11 @@ class Event extends Model implements HasMedia, Sortable
     public function ticketOrders(): HasMany
     {
         return $this->hasMany(TicketOrder::class);
+    }
+
+    public function waitlistEntries(): HasMany
+    {
+        return $this->hasMany(TicketWaitlistEntry::class);
     }
 
     // Scopes

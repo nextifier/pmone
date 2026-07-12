@@ -82,6 +82,7 @@ use App\Http\Controllers\Api\Public\PublicPromoCodeController;
 use App\Http\Controllers\Api\Public\PublicReservationController;
 use App\Http\Controllers\Api\Public\PublicTicketController;
 use App\Http\Controllers\Api\Public\PublicTicketOrderController;
+use App\Http\Controllers\Api\Public\PublicTicketWaitlistController;
 use App\Http\Controllers\Api\PublicBlogController;
 use App\Http\Controllers\Api\PublicFormController;
 use App\Http\Controllers\Api\PublicProjectController;
@@ -1672,6 +1673,18 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
     Route::get('/ticket-orders/magic/{token}/receipt.pdf', [PublicTicketOrderController::class, 'receiptPdfByMagicLink'])
         ->middleware('throttle:30,1')
         ->name('public.ticket-orders.receipt-pdf');
+
+    // Waitlist (Plan 020): join a sold-out ticket's queue, then claim a
+    // held offer via its emailed token. The claim routes are token-scoped
+    // (like the ticket-order magic-link routes above), not event/tickets-
+    // enabled gated - a historical claim link must keep resolving even if
+    // the event later disables ticketing.
+    Route::post('/tickets/waitlist', [PublicTicketWaitlistController::class, 'join'])
+        ->middleware(['throttle:10,1', 'tickets-enabled']);
+    Route::get('/tickets/waitlist/claim/{token}', [PublicTicketWaitlistController::class, 'showClaim'])
+        ->middleware('throttle:30,1');
+    Route::post('/tickets/waitlist/claim/{token}', [PublicTicketWaitlistController::class, 'claim'])
+        ->middleware('throttle:10,1');
 
     // E-ticket per attendee (shareable; ulid is the access key).
     Route::get('/attendees/{ulid}', [PublicAttendeeController::class, 'show'])

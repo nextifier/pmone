@@ -7,6 +7,7 @@ use App\Enums\Ticketing\PurchaseType;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Jobs\Ticket\CreateTicketCheckoutJob;
 use App\Jobs\Ticket\GenerateBulkAttendeesJob;
+use App\Jobs\Ticket\OfferWaitlistSeatsJob;
 use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
 use App\Models\Attendee;
@@ -16,6 +17,7 @@ use App\Models\TicketOrder;
 use App\Models\TicketOrderItem;
 use App\Models\TicketPricePhase;
 use App\Models\TicketSession;
+use App\Models\TicketWaitlistEntry;
 use App\Models\User;
 use App\Services\Payment\PaymentProviderFactory;
 use App\Services\Pricing\PricingService;
@@ -649,6 +651,93 @@ class TicketPurchaseService
     }
 
     /**
+     * Build the order for a claimed waitlist offer (Plan 020). The ticket's
+     * `sold_count` was already atomically reserved when the offer was made
+     * (WaitlistService::offerReleasedSeats(), Plan 016's Ticket::reserve()),
+     * so this deliberately does NOT reserve the ticket again - doing so would
+     * double-count the same seat and desync the counter from the real hold.
+     * Only the active price phase (never touched at offer time - the offer
+     * only covers the ticket-level counter) is reserved here.
+     *
+     * This is a separate, self-contained order-construction path - mirroring
+     * bulkGenerate() above - rather than a flag threaded through
+     * createOrder(): createOrder() is large and actively edited by another
+     * in-flight branch, so keeping this out of it avoids the two changes
+     * colliding. Scope is whole-ticket quantity only (Plan 020); sessions,
+     * day-selection, access codes and promo codes are out of scope for a
+     * waitlist claim and abort with a 422 instead.
+     */
+    public function createOrderFromWaitlistClaim(TicketWaitlistEntry $entry, ?CreatesCheckout $checkoutClient = null): TicketOrder
+    {
+        $order = DB::transaction(function () use ($entry) {
+            $ticket = Ticket::query()
+                ->where('id', $entry->ticket_id)
+                ->where('is_active', true)
+                ->where('purchase_type', PurchaseType::FirstParty->value)
+                ->with('pricePhases')
+                ->first();
+
+            abort_if(! $ticket, 422, 'This ticket is no longer available.');
+            abort_if($ticket->offersDaySelection(), 422, 'This ticket requires day selection and cannot be claimed automatically.');
+            abort_if($ticket->isAddOn() && $ticket->sessions()->where('is_active', true)->count() > 1, 422, 'This ticket requires session selection and cannot be claimed automatically.');
+
+            $phase = $this->resolveActivePhaseForPurchase($ticket, $entry->quantity);
+            abort_if(! $phase, 422, 'This ticket is no longer on sale.');
+            abort_unless($phase->reserve($entry->quantity), 422, 'This ticket is no longer on sale.');
+
+            $buyerUser = $this->resolveBuyerUser([
+                'buyer_email' => $entry->email,
+                'buyer_name' => $entry->name,
+                'buyer_phone' => $entry->phone,
+            ]);
+
+            $unit = (float) $phase->price;
+            $subtotal = $unit * $entry->quantity;
+
+            $order = TicketOrder::create([
+                'event_id' => $ticket->event_id,
+                'user_id' => $buyerUser?->id,
+                'status' => TicketOrderStatus::PendingPayment,
+                'buyer_name' => $entry->name,
+                'buyer_email' => $entry->email,
+                'buyer_phone' => $entry->phone,
+                'subtotal' => $subtotal,
+                'discount_amount' => 0,
+                'total' => $subtotal,
+                'payment_expires_at' => now()->addSeconds((int) config('xendit.invoice_duration', 86400)),
+                'magic_link_expires_at' => now()->addYears(2),
+                'source' => 'waitlist',
+            ]);
+
+            $orderItem = $order->items()->create([
+                'ticket_id' => $ticket->id,
+                'quantity' => $entry->quantity,
+                'unit_price' => $unit,
+                'phase_label' => $phase->label,
+                'ticket_price_phase_id' => $phase->id,
+                'subtotal' => $subtotal,
+            ]);
+
+            for ($i = 1; $i <= $entry->quantity; $i++) {
+                $isBuyer = $i === 1;
+
+                $orderItem->attendees()->create([
+                    'ticket_id' => $ticket->id,
+                    'name' => $this->attendeeDisplayName($entry->name, $i, $entry->quantity),
+                    'email' => $isBuyer ? $entry->email : null,
+                    'phone' => $isBuyer ? $entry->phone : null,
+                    'claimed_by_user_id' => $isBuyer ? $buyerUser?->id : null,
+                    'personalized_at' => $isBuyer ? now() : null,
+                ]);
+            }
+
+            return $order->fresh(['items.attendees', 'event']);
+        });
+
+        return $this->resolvePayment($order, [], $checkoutClient);
+    }
+
+    /**
      * Trim an optional client-supplied idempotency key down to null when
      * blank, so blank strings behave the same as an absent key.
      */
@@ -944,6 +1033,10 @@ class TicketPurchaseService
                         ->where('sold_count', '>=', $item->quantity)
                         ->decrement('sold_count', $item->quantity);
                 }
+
+                // Plan 020: a released seat may have someone waiting for it -
+                // offer it to the ticket's waitlist once this release is durable.
+                OfferWaitlistSeatsJob::dispatch($item->ticket_id, $item->quantity)->afterCommit();
             }
 
             // Release the event-level total-headcount hold this order made at
@@ -1006,6 +1099,10 @@ class TicketPurchaseService
             if ($item->ticket_price_phase_id) {
                 TicketPricePhase::whereKey($item->ticket_price_phase_id)->where('sold_count', '>=', 1)->decrement('sold_count');
             }
+
+            // Plan 020: the refunded seat may have someone waiting for it -
+            // offer it to the ticket's waitlist once this release is durable.
+            OfferWaitlistSeatsJob::dispatch($item->ticket_id, 1)->afterCommit();
 
             $order = TicketOrder::query()->whereKey($item->ticket_order_id)->lockForUpdate()->first();
 

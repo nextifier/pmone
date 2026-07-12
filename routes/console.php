@@ -2,6 +2,7 @@
 
 use App\Jobs\Hotel\ReleaseExpiredAllotmentsJob;
 use App\Jobs\Reservation\ExpireUnpaidReservationsJob;
+use App\Jobs\Ticket\ExpireStaleWaitlistOffersJob;
 use App\Jobs\Ticket\ExpireUnpaidTicketOrdersJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -49,3 +50,4 @@ Schedule::job(new ReleaseExpiredAllotmentsJob)->dailyAt('00:30');
 
 // Ticketing scheduled jobs
 Schedule::job(new ExpireUnpaidTicketOrdersJob)->everyFifteenMinutes();
+Schedule::job(new ExpireStaleWaitlistOffersJob)->everyFifteenMinutes();

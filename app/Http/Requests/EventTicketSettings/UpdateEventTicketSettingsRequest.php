@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\EventTicketSettings;
 
+use App\Enums\Ticketing\WaitlistMode;
 use App\Rules\KnownPaymentChannel;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventTicketSettingsRequest extends FormRequest
 {
@@ -38,6 +40,10 @@ class UpdateEventTicketSettingsRequest extends FormRequest
             'business_matching_enabled' => ['sometimes', 'boolean'],
             'allow_cross_day' => ['sometimes', 'boolean'],
             'timezone' => ['sometimes', 'string', 'timezone'],
+
+            // Plan 020: whether a released seat auto-holds a claim for the next
+            // waitlist entry, or just notifies (first to buy wins).
+            'waitlist_mode' => ['sometimes', Rule::in(WaitlistMode::values())],
 
             // Per-event ticket defaults persisted into events.settings['tickets'].
             'default_min_quantity' => ['sometimes', 'nullable', 'integer', 'min:1'],

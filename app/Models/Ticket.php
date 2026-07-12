@@ -354,6 +354,11 @@ class Ticket extends Model implements HasMedia, Sortable
         return $this->hasMany(TicketOrderItem::class);
     }
 
+    public function waitlistEntries(): HasMany
+    {
+        return $this->hasMany(TicketWaitlistEntry::class);
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
