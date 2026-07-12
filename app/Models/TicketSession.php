@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
@@ -112,5 +113,30 @@ class TicketSession extends Model implements Sortable
     public function ticketOrderItems(): HasMany
     {
         return $this->hasMany(TicketOrderItem::class);
+    }
+
+    /**
+     * Atomically reserve $qty seats of this session's capacity with a single
+     * conditional UPDATE, mirroring Ticket::reserve(). Null capacity is
+     * unlimited (always succeeds). Returns whether the reservation was
+     * granted.
+     */
+    public function reserve(int $qty): bool
+    {
+        return static::query()
+            ->whereKey($this->id)
+            // Parenthesized - see Ticket::reserve() for why: without the
+            // parens, SQL's AND-before-OR precedence would let this clause
+            // leak past the whereKey() and match every other roomy session.
+            ->whereRaw('(capacity IS NULL OR booked_count + ? <= capacity)', [$qty])
+            ->update(['booked_count' => DB::raw('booked_count + '.(int) $qty)]) > 0;
+    }
+
+    /**
+     * Guarded release of a previously reserved $qty - see Ticket::release().
+     */
+    public function release(int $qty): void
+    {
+        static::query()->whereKey($this->id)->where('booked_count', '>=', $qty)->decrement('booked_count', $qty);
     }
 }

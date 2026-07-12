@@ -21,7 +21,10 @@ class SendTicketOrderConfirmationJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public int $ticketOrderId) {}
+    public function __construct(public int $ticketOrderId)
+    {
+        $this->onQueue('tickets');
+    }
 
     /**
      * @return array<int, int>

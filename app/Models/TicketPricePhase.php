@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
@@ -139,5 +140,30 @@ class TicketPricePhase extends Model implements Sortable
     public function isSoldOut(): bool
     {
         return $this->quota !== null && $this->sold_count >= $this->quota;
+    }
+
+    /**
+     * Atomically reserve $qty units of this phase's quota with a single
+     * conditional UPDATE, mirroring Ticket::reserve(). Null quota is
+     * unlimited (always succeeds). Returns whether the reservation was
+     * granted.
+     */
+    public function reserve(int $qty): bool
+    {
+        return static::query()
+            ->whereKey($this->id)
+            // Parenthesized - see Ticket::reserve() for why: without the
+            // parens, SQL's AND-before-OR precedence would let this clause
+            // leak past the whereKey() and match every other roomy phase.
+            ->whereRaw('(quota IS NULL OR sold_count + ? <= quota)', [$qty])
+            ->update(['sold_count' => DB::raw('sold_count + '.(int) $qty)]) > 0;
+    }
+
+    /**
+     * Guarded release of a previously reserved $qty - see Ticket::release().
+     */
+    public function release(int $qty): void
+    {
+        static::query()->whereKey($this->id)->where('sold_count', '>=', $qty)->decrement('sold_count', $qty);
     }
 }
