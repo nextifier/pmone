@@ -195,8 +195,20 @@ class PublicAttendeeController extends Controller
             // link - the real owner must sign in to link it. This prevents anyone
             // with the e-ticket URL from claiming someone else's (or a staff)
             // account by typing their email.
+            //
+            // New-account creation is additionally capped per IP per day. The
+            // link has no login, so without this an attacker could enumerate
+            // attendee ulids and mint an unbounded number of visitor accounts
+            // (DB pollution). We keep creation (rather than deferring it to
+            // first sign-in) because resolveLoginableUser()/the e-ticket
+            // email's "Go to dashboard" button both key off a User row
+            // existing for the attendee's email - deferring it would silently
+            // disable the documented one-click sign-in for first-time emails.
+            // The cap is generous enough for a staff check-in kiosk
+            // personalizing many tickets from one IP.
             if (! $attendee->claimed_by_user_id
-                && ! User::withTrashed()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->exists()) {
+                && ! User::withTrashed()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->exists()
+                && ! $this->newAccountCreationCapExceeded($request)) {
                 $attendee->claimed_by_user_id = $this->resolveHolderUser($validated)->id;
             }
 
@@ -236,10 +248,16 @@ class PublicAttendeeController extends Controller
 
         // When the holder adds (or changes) their email here, send their e-ticket
         // with the QR right away - closing the loop without staff resending. Only
-        // for a confirmed order (an unpaid ticket has no usable QR yet).
+        // for a confirmed order (an unpaid ticket has no usable QR yet). Capped
+        // per attendee and per destination email per day so the shareable link
+        // cannot be used as an email-bombing/send-relay primitive (looping one
+        // attendee through many addresses, or pointing many attendees at one
+        // inbox). The cap is skipped silently - the endpoint still returns 200
+        // with the personalized data either way.
         $emailAfter = strtolower(trim((string) $fresh->email));
         if ($emailAfter !== '' && $emailAfter !== $emailBefore
-            && $fresh->ticketOrderItem?->ticketOrder?->isConfirmed()) {
+            && $fresh->ticketOrderItem?->ticketOrder?->isConfirmed()
+            && ! $this->eticketSendCapExceeded($fresh, $emailAfter)) {
             SendAttendeeETicketJob::dispatch($fresh->id);
         }
 
@@ -266,6 +284,50 @@ class PublicAttendeeController extends Controller
         }
 
         return $payload;
+    }
+
+    /**
+     * Daily cap (per attendee AND per destination email) on e-ticket
+     * re-sends, checked before each `SendAttendeeETicketJob` dispatch. Two
+     * independent keys close both abuse angles: looping one attendee ulid
+     * through many addresses, and pointing many attendees at one inbox.
+     */
+    protected function eticketSendCapExceeded(Attendee $attendee, string $email): bool
+    {
+        $maxPerDay = 3;
+        $attendeeKey = 'eticket-send:attendee:'.$attendee->id;
+        $emailKey = 'eticket-send:email:'.strtolower(trim($email));
+
+        if (RateLimiter::tooManyAttempts($attendeeKey, $maxPerDay)
+            || RateLimiter::tooManyAttempts($emailKey, $maxPerDay)) {
+            return true;
+        }
+
+        RateLimiter::hit($attendeeKey, 86400); // 24h decay
+        RateLimiter::hit($emailKey, 86400);
+
+        return false;
+    }
+
+    /**
+     * Daily cap (per IP) on lazy `User` creation from `personalize`. The
+     * shareable link has no login, so without this an attacker could
+     * enumerate attendee ulids and mint an unbounded number of visitor
+     * accounts. Generous enough for a staff check-in kiosk personalizing many
+     * tickets from one IP.
+     */
+    protected function newAccountCreationCapExceeded(Request $request): bool
+    {
+        $maxPerDay = 20;
+        $key = 'eticket-new-account:'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, $maxPerDay)) {
+            return true;
+        }
+
+        RateLimiter::hit($key, 86400); // 24h decay
+
+        return false;
     }
 
     /**
