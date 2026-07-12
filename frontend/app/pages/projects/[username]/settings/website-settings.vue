@@ -307,7 +307,8 @@
             <h3 class="text-base font-semibold tracking-tight">Analytics</h3>
             <p class="text-muted-foreground text-sm tracking-tight">
               Set the tracking ids used on the public website. Changes apply without a site
-              rebuild. Leave a field blank to keep the site's built-in id.
+              rebuild. Leave a field blank to keep the site's built-in id, or add more than
+              one id to send events to several properties at once.
             </p>
           </div>
         </div>
@@ -317,48 +318,52 @@
             <Label for="analytics-ga4" class="text-sm font-medium tracking-tight">
               GA4 Measurement ID
             </Label>
-            <Input
-              id="analytics-ga4"
+            <AnalyticsIdListInput
+              input-id="analytics-ga4"
               v-model="form.site_config.analytics.ga4"
               placeholder="G-XXXXXXXXXX"
+              add-label="Add another GA4 ID"
             />
-            <FieldError :errors="errors['site_config.analytics.ga4']" />
+            <FieldError :errors="analyticsErrors('ga4')" />
           </div>
 
           <div class="space-y-2">
             <Label for="analytics-tiktok-pixel" class="text-sm font-medium tracking-tight">
               TikTok Pixel ID
             </Label>
-            <Input
-              id="analytics-tiktok-pixel"
+            <AnalyticsIdListInput
+              input-id="analytics-tiktok-pixel"
               v-model="form.site_config.analytics.tiktok_pixel"
               placeholder="CXXXXXXXXXXXXXXXXXXX"
+              add-label="Add another TikTok pixel"
             />
-            <FieldError :errors="errors['site_config.analytics.tiktok_pixel']" />
+            <FieldError :errors="analyticsErrors('tiktok_pixel')" />
           </div>
 
           <div class="space-y-2">
             <Label for="analytics-meta-pixel" class="text-sm font-medium tracking-tight">
               Meta Pixel ID
             </Label>
-            <Input
-              id="analytics-meta-pixel"
+            <AnalyticsIdListInput
+              input-id="analytics-meta-pixel"
               v-model="form.site_config.analytics.meta_pixel"
               placeholder="000000000000000"
+              add-label="Add another Meta pixel"
             />
-            <FieldError :errors="errors['site_config.analytics.meta_pixel']" />
+            <FieldError :errors="analyticsErrors('meta_pixel')" />
           </div>
 
           <div class="space-y-2">
             <Label for="analytics-gtm" class="text-sm font-medium tracking-tight">
               GTM Container ID
             </Label>
-            <Input
-              id="analytics-gtm"
+            <AnalyticsIdListInput
+              input-id="analytics-gtm"
               v-model="form.site_config.analytics.gtm"
               placeholder="GTM-XXXXXXX"
+              add-label="Add another GTM container"
             />
-            <FieldError :errors="errors['site_config.analytics.gtm']" />
+            <FieldError :errors="analyticsErrors('gtm')" />
           </div>
         </div>
       </div>
@@ -587,8 +592,35 @@ const dataFallbackDefaults = () => ({
 });
 
 const navDefaults = () => ({ header: [], dialog: [], footer: [] });
-const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null, meta_pixel: null, gtm: null });
+const analyticsDefaults = () => ({ ga4: [], tiktok_pixel: [], meta_pixel: [], gtm: [] });
 const identityDefaults = () => ({ company_name: null, company_address: null });
+
+// Each analytics field is stored as null | string | string[] (a single id
+// stays a plain string for legacy rows); the editor always works in the array
+// form. Normalize both directions.
+function toIdArray(value) {
+  if (Array.isArray(value)) return value.filter((v) => typeof v === "string");
+  return value ? [value] : [];
+}
+
+function normalizeAnalytics(analytics) {
+  const src = analytics && typeof analytics === "object" ? analytics : {};
+  return {
+    ga4: toIdArray(src.ga4),
+    tiktok_pixel: toIdArray(src.tiktok_pixel),
+    meta_pixel: toIdArray(src.meta_pixel),
+    gtm: toIdArray(src.gtm),
+  };
+}
+
+// Trim rows, drop blanks, dedupe (preserving order); an empty list persists as
+// null so the backend's nullable rules accept it and the site falls back to
+// its baked id.
+function cleanIds(rows) {
+  const cleaned = (rows ?? []).map((v) => (v ?? "").trim()).filter(Boolean);
+  const unique = [...new Set(cleaned)];
+  return unique.length ? unique : null;
+}
 // Sane starting selections for the pickers when a project has never saved a
 // palette (mirrors DEFAULT_APPEARANCE's baseColor/theme/chartColor/radius —
 // `style`/`font`/`fontHeading` are the separate `useAppearance` concern, out
@@ -622,6 +654,16 @@ const form = ref({
 // Field-level validation errors from the last failed save, keyed by the
 // backend's dot-notation field name (e.g. "site_config.analytics.ga4").
 const errors = ref({});
+
+// Analytics ids validate per-element, so a bad entry comes back keyed as
+// "site_config.analytics.ga4.2". Collect the field-level and every element
+// message under one field so <FieldError> can surface them together.
+function analyticsErrors(field) {
+  const prefix = `site_config.analytics.${field}`;
+  return Object.entries(errors.value)
+    .filter(([key]) => key === prefix || key.startsWith(`${prefix}.`))
+    .flatMap(([, messages]) => messages);
+}
 
 let navKeySeed = 0;
 const withNavKey = (item) => ({ ...item, _key: `nav-${Date.now()}-${navKeySeed++}` });
@@ -701,10 +743,10 @@ function buildPayload() {
         footer: stripNavKeys(form.value.site_config.nav.footer),
       },
       analytics: {
-        ga4: blankToNull(form.value.site_config.analytics.ga4),
-        tiktok_pixel: blankToNull(form.value.site_config.analytics.tiktok_pixel),
-        meta_pixel: blankToNull(form.value.site_config.analytics.meta_pixel),
-        gtm: blankToNull(form.value.site_config.analytics.gtm),
+        ga4: cleanIds(form.value.site_config.analytics.ga4),
+        tiktok_pixel: cleanIds(form.value.site_config.analytics.tiktok_pixel),
+        meta_pixel: cleanIds(form.value.site_config.analytics.meta_pixel),
+        gtm: cleanIds(form.value.site_config.analytics.gtm),
       },
       appearance: { ...form.value.site_config.appearance },
       identity: {
@@ -752,7 +794,7 @@ async function load() {
       data_fallback: { ...dataFallbackDefaults(), ...dataFallback },
       site_config: {
         nav: hydrateNav(ws.site_config?.nav),
-        analytics: { ...analyticsDefaults(), ...ws.site_config?.analytics },
+        analytics: normalizeAnalytics(ws.site_config?.analytics),
         appearance: { ...appearanceDefaults(), ...ws.site_config?.appearance },
         identity: { ...identityDefaults(), ...ws.site_config?.identity },
       },

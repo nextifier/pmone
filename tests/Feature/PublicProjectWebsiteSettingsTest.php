@@ -256,6 +256,68 @@ test('rejects a malformed GTM container id', function () {
     ])->assertUnprocessable();
 });
 
+test('accepts an array of ids for every analytics field (multi-property/pixel)', function () {
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, [
+            'site_config' => [
+                'analytics' => [
+                    'ga4' => ['G-ABC1234567', 'G-XYZ7654321'],
+                    'tiktok_pixel' => ['CQWERTY1234567890', 'CASDFGH0987654321'],
+                    'meta_pixel' => ['1234567890123456', '6543210987654321'],
+                    'gtm' => ['GTM-ABCD123', 'GTM-WXYZ789'],
+                ],
+            ],
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.website_settings.site_config.analytics.ga4', ['G-ABC1234567', 'G-XYZ7654321'])
+        ->assertJsonPath('data.website_settings.site_config.analytics.meta_pixel', ['1234567890123456', '6543210987654321'])
+        ->assertJsonPath('data.website_settings.site_config.analytics.gtm', ['GTM-ABCD123', 'GTM-WXYZ789']);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.analytics.tiktok_pixel', ['CQWERTY1234567890', 'CASDFGH0987654321']);
+});
+
+test('rejects an array whose element is a malformed id', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => [
+                'ga4' => ['G-ABC1234567', 'not-a-valid-ga4-id'],
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('rejects an analytics id list longer than 10 entries', function () {
+    $ids = array_map(fn (int $n): string => 'GTM-CONTAINER'.$n, range(1, 11));
+
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => ['gtm' => $ids],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('wholesale-replaces an analytics id array instead of index-merging a removed id', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => ['ga4' => ['G-ABC1234567', 'G-XYZ7654321']],
+        ],
+    ])->assertSuccessful();
+
+    // Re-save with a single, different id: the trailing 'G-XYZ7654321' must not
+    // survive an array_replace_recursive index merge.
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, [
+            'site_config' => [
+                'analytics' => ['ga4' => ['G-NEW9999999']],
+            ],
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.website_settings.site_config.analytics.ga4', ['G-NEW9999999']);
+});
+
 test('accepts a null analytics id to clear it', function () {
     $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
         'site_config' => [

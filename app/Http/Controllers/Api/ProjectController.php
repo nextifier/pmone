@@ -437,15 +437,18 @@ class ProjectController extends Controller
             'site_config.nav.header' => ['sometimes', 'array', $this->navItemsRule()],
             'site_config.nav.dialog' => ['sometimes', 'array', $this->navItemsRule()],
             'site_config.nav.footer' => ['sometimes', 'array', $this->navItemsRule()],
-            // Analytics ids (GA4 measurement id + TikTok pixel id) sourced by the
-            // event website instead of its baked nuxt.config.ts / app.config.ts
-            // values. Both scalars, so array_replace_recursive merges them
-            // correctly without a wholesale-replace special-case.
+            // Analytics ids (GA4 measurement id, TikTok pixel id, Meta pixel id,
+            // GTM container id) sourced by the event website instead of its baked
+            // nuxt.config.ts / app.config.ts values. Each field accepts EITHER a
+            // single id string or an array of id strings (multi-property GA4,
+            // multi-pixel Meta/TikTok, multi-container GTM); the array form is
+            // replaced wholesale below so a removed id never resurrects via
+            // array_replace_recursive's index merge.
             'site_config.analytics' => ['sometimes', 'array'],
-            'site_config.analytics.ga4' => ['sometimes', 'nullable', 'string', 'regex:/^G-[A-Z0-9]+$/'],
-            'site_config.analytics.tiktok_pixel' => ['sometimes', 'nullable', 'string', 'max:64'],
-            'site_config.analytics.meta_pixel' => ['sometimes', 'nullable', 'string', 'regex:/^[0-9]+$/', 'max:32'],
-            'site_config.analytics.gtm' => ['sometimes', 'nullable', 'string', 'regex:/^GTM-[A-Z0-9]+$/'],
+            'site_config.analytics.ga4' => ['sometimes', 'nullable', $this->analyticsIdListRule('/^G-[A-Z0-9]+$/', 32)],
+            'site_config.analytics.tiktok_pixel' => ['sometimes', 'nullable', $this->analyticsIdListRule(null, 64)],
+            'site_config.analytics.meta_pixel' => ['sometimes', 'nullable', $this->analyticsIdListRule('/^[0-9]+$/', 32)],
+            'site_config.analytics.gtm' => ['sometimes', 'nullable', $this->analyticsIdListRule('/^GTM-[A-Z0-9]+$/', 32)],
             // Curated shadcn design tokens sourced by the event website's
             // appearance engine (layers/base/app/lib/appearance) instead of its
             // baked app.config.ts `appearance` block. All scalars, so
@@ -485,6 +488,14 @@ class ProjectController extends Controller
             data_set($merged, 'site_config.nav', $validated['site_config']['nav']);
         }
 
+        // Analytics ids can now be arrays (multi-property GA4, multi-pixel
+        // Meta/TikTok, multi-container GTM). array_replace_recursive would merge
+        // those lists by index and resurrect an id the user just removed, so
+        // replace the whole analytics block wholesale whenever it is present.
+        if (array_key_exists('analytics', $validated['site_config'] ?? [])) {
+            data_set($merged, 'site_config.analytics', $validated['site_config']['analytics']);
+        }
+
         data_set($settings, 'website_settings', $merged);
 
         $project->settings = $settings;
@@ -503,6 +514,45 @@ class ProjectController extends Controller
                 'website_settings' => data_get($project->settings, 'website_settings', []),
             ],
         ]);
+    }
+
+    /**
+     * Validation closure for a dashboard-managed analytics id field that accepts
+     * EITHER a single id string or an array of id strings (multi-property GA4 /
+     * multi-pixel Meta/TikTok / multi-container GTM setups). Every element must
+     * be a non-empty string within $maxLength and, when $pattern is given, match
+     * it. The list is capped at 10 ids to bound abuse. `null` elements are
+     * ignored so a nullable field with no value stays valid.
+     */
+    private function analyticsIdListRule(?string $pattern, int $maxLength): \Closure
+    {
+        return function (string $attribute, mixed $value, callable $fail) use ($pattern, $maxLength): void {
+            $ids = is_array($value) ? $value : [$value];
+
+            if (count($ids) > 10) {
+                $fail("The {$attribute} may not contain more than 10 ids.");
+
+                return;
+            }
+
+            foreach ($ids as $id) {
+                if ($id === null) {
+                    continue;
+                }
+
+                if (! is_string($id) || $id === '' || mb_strlen($id) > $maxLength) {
+                    $fail("The {$attribute} contains an invalid id.");
+
+                    return;
+                }
+
+                if ($pattern !== null && ! preg_match($pattern, $id)) {
+                    $fail("The {$attribute} contains an invalid id.");
+
+                    return;
+                }
+            }
+        };
     }
 
     /**
