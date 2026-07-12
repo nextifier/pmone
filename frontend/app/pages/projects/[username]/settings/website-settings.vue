@@ -336,6 +336,30 @@
             />
             <FieldError :errors="errors['site_config.analytics.tiktok_pixel']" />
           </div>
+
+          <div class="space-y-2">
+            <Label for="analytics-meta-pixel" class="text-sm font-medium tracking-tight">
+              Meta Pixel ID
+            </Label>
+            <Input
+              id="analytics-meta-pixel"
+              v-model="form.site_config.analytics.meta_pixel"
+              placeholder="000000000000000"
+            />
+            <FieldError :errors="errors['site_config.analytics.meta_pixel']" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="analytics-gtm" class="text-sm font-medium tracking-tight">
+              GTM Container ID
+            </Label>
+            <Input
+              id="analytics-gtm"
+              v-model="form.site_config.analytics.gtm"
+              placeholder="GTM-XXXXXXX"
+            />
+            <FieldError :errors="errors['site_config.analytics.gtm']" />
+          </div>
         </div>
       </div>
 
@@ -563,7 +587,7 @@ const dataFallbackDefaults = () => ({
 });
 
 const navDefaults = () => ({ header: [], dialog: [], footer: [] });
-const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null });
+const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null, meta_pixel: null, gtm: null });
 const identityDefaults = () => ({ company_name: null, company_address: null });
 // Sane starting selections for the pickers when a project has never saved a
 // palette (mirrors DEFAULT_APPEARANCE's baseColor/theme/chartColor/radius —
@@ -679,6 +703,8 @@ function buildPayload() {
       analytics: {
         ga4: blankToNull(form.value.site_config.analytics.ga4),
         tiktok_pixel: blankToNull(form.value.site_config.analytics.tiktok_pixel),
+        meta_pixel: blankToNull(form.value.site_config.analytics.meta_pixel),
+        gtm: blankToNull(form.value.site_config.analytics.gtm),
       },
       appearance: { ...form.value.site_config.appearance },
       identity: {

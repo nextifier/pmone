@@ -206,18 +206,24 @@ test('saving site_config.analytics returns it verbatim in the public payload', f
                 'analytics' => [
                     'ga4' => 'G-ABC1234567',
                     'tiktok_pixel' => 'CQWERTY1234567890',
+                    'meta_pixel' => '1234567890123456',
+                    'gtm' => 'GTM-ABCD123',
                 ],
             ],
         ])
         ->assertSuccessful()
         ->assertJsonPath('data.website_settings.site_config.analytics.ga4', 'G-ABC1234567')
-        ->assertJsonPath('data.website_settings.site_config.analytics.tiktok_pixel', 'CQWERTY1234567890');
+        ->assertJsonPath('data.website_settings.site_config.analytics.tiktok_pixel', 'CQWERTY1234567890')
+        ->assertJsonPath('data.website_settings.site_config.analytics.meta_pixel', '1234567890123456')
+        ->assertJsonPath('data.website_settings.site_config.analytics.gtm', 'GTM-ABCD123');
 
     $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
         ->getJson($this->endpoint)
         ->assertSuccessful()
         ->assertJsonPath('data.settings.site_config.analytics.ga4', 'G-ABC1234567')
-        ->assertJsonPath('data.settings.site_config.analytics.tiktok_pixel', 'CQWERTY1234567890');
+        ->assertJsonPath('data.settings.site_config.analytics.tiktok_pixel', 'CQWERTY1234567890')
+        ->assertJsonPath('data.settings.site_config.analytics.meta_pixel', '1234567890123456')
+        ->assertJsonPath('data.settings.site_config.analytics.gtm', 'GTM-ABCD123');
 });
 
 test('rejects a malformed GA4 measurement id', function () {
@@ -230,12 +236,34 @@ test('rejects a malformed GA4 measurement id', function () {
     ])->assertUnprocessable();
 });
 
+test('rejects a non-numeric meta_pixel id', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => [
+                'meta_pixel' => 'not-a-valid-pixel-id',
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('rejects a malformed GTM container id', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'analytics' => [
+                'gtm' => 'not-a-valid-gtm-id',
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
 test('accepts a null analytics id to clear it', function () {
     $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
         'site_config' => [
             'analytics' => [
                 'ga4' => 'G-ABC1234567',
                 'tiktok_pixel' => 'CQWERTY1234567890',
+                'meta_pixel' => '1234567890123456',
+                'gtm' => 'GTM-ABCD123',
             ],
         ],
     ])->assertSuccessful();
@@ -245,6 +273,8 @@ test('accepts a null analytics id to clear it', function () {
             'analytics' => [
                 'ga4' => null,
                 'tiktok_pixel' => null,
+                'meta_pixel' => null,
+                'gtm' => null,
             ],
         ],
     ])->assertSuccessful();
@@ -252,6 +282,8 @@ test('accepts a null analytics id to clear it', function () {
     $this->project->refresh();
     expect(data_get($this->project->settings, 'website_settings.site_config.analytics.ga4'))->toBeNull();
     expect(data_get($this->project->settings, 'website_settings.site_config.analytics.tiktok_pixel'))->toBeNull();
+    expect(data_get($this->project->settings, 'website_settings.site_config.analytics.meta_pixel'))->toBeNull();
+    expect(data_get($this->project->settings, 'website_settings.site_config.analytics.gtm'))->toBeNull();
 });
 
 test('site_config.analytics stays fail-open null when a write touches other website settings but not analytics', function () {
