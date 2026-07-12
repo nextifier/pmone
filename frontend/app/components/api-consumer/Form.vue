@@ -99,6 +99,31 @@
       </div>
     </div>
 
+    <!-- Access Scope -->
+    <div class="frame">
+      <div class="frame-header">
+        <div class="frame-title">Access Scope</div>
+      </div>
+      <div class="frame-panel">
+        <div class="space-y-2">
+          <Label>Scoped Projects</Label>
+          <ProjectMultiSelect
+            v-if="projects.length"
+            v-model="selectedProjects"
+            :projects="projects"
+            placeholder="Select projects"
+            open-on-focus
+          />
+          <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
+          <FieldError :errors="errors.project_ids" />
+          <p class="text-muted-foreground text-xs">
+            <strong>Leave empty to allow this key to read every project</strong> (current behavior).
+            Select one or more projects to restrict this key to only those.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- API Key Display (Edit/View Mode) -->
     <div v-if="mode === 'edit' && apiConsumer" class="frame">
       <div class="frame-header">
@@ -108,7 +133,7 @@
         <div class="space-y-4">
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-4">
-              <Label>Current API Key</Label>
+              <Label>{{ revealedKey ? "New API Key" : "API Key" }}</Label>
               <DialogResponsive v-model:open="regenerateDialogOpen">
                 <template #trigger="{ open }">
                   <button
@@ -154,15 +179,26 @@
                 </template>
               </DialogResponsive>
             </div>
-            <div class="bg-muted flex items-center gap-2 rounded-md p-3">
-              <code class="text-foreground/80 grow font-mono text-sm">
-                {{ maskedApiKey }}
-              </code>
-              <ButtonCopy :text="currentApiKey" @click.prevent />
-            </div>
-            <p class="text-warning-foreground text-xs font-medium">
-              Keep this key secure! Regenerating will invalidate the old key.
-            </p>
+            <template v-if="revealedKey">
+              <div class="bg-muted flex items-center gap-2 rounded-md p-3">
+                <code class="text-foreground/80 grow font-mono text-sm break-all">
+                  {{ revealedKey }}
+                </code>
+                <ButtonCopy :text="revealedKey" @click.prevent />
+              </div>
+              <p class="text-warning-foreground text-xs font-medium">
+                Copy this now. For security, it will not be shown again after you leave this page.
+              </p>
+            </template>
+            <template v-else>
+              <div class="bg-muted flex items-center gap-2 rounded-md p-3">
+                <code class="text-foreground/80 grow font-mono text-sm">pk_••••••••••••••••••••••••••••••••</code>
+              </div>
+              <p class="text-muted-foreground text-xs">
+                For security, the full key is only shown once, right when it is created or regenerated.
+                Regenerate to issue a new one.
+              </p>
+            </template>
           </div>
         </div>
       </div>
@@ -220,6 +256,7 @@
 </template>
 
 <script setup>
+import ProjectMultiSelect from "@/components/project/MultiSelect.vue";
 import { Switch } from "@/components/ui/switch";
 import {
   TagsInput,
@@ -241,6 +278,10 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  projects: {
+    type: Array,
+    default: () => [],
+  },
   loading: {
     type: Boolean,
     default: false,
@@ -261,12 +302,15 @@ const formData = ref({
   rate_limit: 60,
   allowed_origins: [],
   is_active: true,
+  project_ids: [],
 });
 
 const errors = ref({});
 const regenerating = ref(false);
 const regenerateDialogOpen = ref(false);
-const currentApiKey = ref(props.apiConsumer?.api_key || "");
+// The raw key is only ever known transiently, right after create/regenerate.
+// It is never fetched from the server afterwards (see ApiConsumerResource).
+const revealedKey = ref("");
 
 // Initialize form data in edit mode
 if (props.mode === "edit" && props.apiConsumer) {
@@ -277,8 +321,8 @@ if (props.mode === "edit" && props.apiConsumer) {
     rate_limit: props.apiConsumer.rate_limit !== null && props.apiConsumer.rate_limit !== undefined ? props.apiConsumer.rate_limit : 60,
     allowed_origins: props.apiConsumer.allowed_origins || [],
     is_active: props.apiConsumer.is_active ?? true,
+    project_ids: (props.apiConsumer.projects || []).map((p) => p.id),
   };
-  currentApiKey.value = props.apiConsumer.api_key || "";
 }
 
 // Computed properties
@@ -287,10 +331,17 @@ const submitText = computed(() =>
 );
 const loadingText = computed(() => (props.mode === "create" ? "Creating..." : "Updating..."));
 
-const maskedApiKey = computed(() => {
-  if (!currentApiKey.value) return "";
-  const key = currentApiKey.value;
-  return key.substring(0, 10) + "•••••••••••••••••••" + key.substring(key.length - 5);
+// ProjectMultiSelect: selected projects (empty selection = unscoped = all projects)
+const selectedProjects = computed({
+  get() {
+    return (formData.value.project_ids || []).map((id) => {
+      const project = props.projects.find((p) => p.id === id);
+      return project || { id, name: `Project #${id}` };
+    });
+  },
+  set(projects) {
+    formData.value.project_ids = projects.map((p) => p.id);
+  },
 });
 
 // Form submission
@@ -317,6 +368,9 @@ const handleSubmit = async () => {
       allowed_origins:
         formData.value.allowed_origins.length > 0 ? formData.value.allowed_origins : null,
       is_active: formData.value.is_active,
+      // Empty array = unscoped = this key can read every project (default,
+      // unchanged behavior). One or more IDs restricts it to those.
+      project_ids: formData.value.project_ids,
     };
 
     let response;
@@ -337,10 +391,12 @@ const handleSubmit = async () => {
         `API Consumer ${props.mode === "create" ? "created" : "updated"} successfully`
     );
 
-    if (props.mode === "create" && response.data?.api_key) {
-      // Show API key to user (only shown once on creation)
+    if (props.mode === "create" && response.key) {
+      // Show the raw key to the user. This is the only time it is ever
+      // available — the server never returns it again after this response.
+      revealedKey.value = response.key;
       toast.success("Save your API key!", {
-        description: `API Key: ${response.data.api_key}`,
+        description: `API Key: ${response.key}`,
         duration: 10000,
       });
     }
@@ -371,18 +427,16 @@ const handleRegenerateKey = async () => {
       }
     );
 
-    if (response.data?.api_key) {
-      // Update the reactive API key
-      currentApiKey.value = response.data.api_key;
-
-      // Also update the prop for consistency
-      props.apiConsumer.api_key = response.data.api_key;
+    if (response.key) {
+      // Reveal the new raw key once. The server never returns it again
+      // after this response — not even on the next page load.
+      revealedKey.value = response.key;
 
       // Close the dialog
       regenerateDialogOpen.value = false;
 
       toast.success("API key regenerated successfully!", {
-        description: `New API Key: ${response.data.api_key}`,
+        description: `New API Key: ${response.key}`,
         duration: 10000,
       });
     }

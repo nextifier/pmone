@@ -13,6 +13,7 @@
 
     <ApiConsumerForm
       mode="create"
+      :projects="projects"
       :loading="loading"
       @update:loading="loading = $event"
       @submit="handleSuccess"
@@ -34,6 +35,13 @@ usePageMeta(null, {
 });
 
 const loading = ref(false);
+
+// Fetch projects for the Access Scope selector (empty selection = unscoped)
+const { data: projectsResponse } = await useLazySanctumFetch("/api/projects?client_only=true", {
+  key: "api-consumer-create-projects",
+});
+
+const projects = computed(() => projectsResponse.value?.data || []);
 
 const { signalRefresh } = useDataRefresh();
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreApiConsumerRequest extends FormRequest
@@ -17,7 +18,7 @@ class StoreApiConsumerRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -29,6 +30,8 @@ class StoreApiConsumerRequest extends FormRequest
             'allowed_origins.*' => ['url'],
             'rate_limit' => ['sometimes', 'integer', 'min:0', 'max:10000'],
             'is_active' => ['sometimes', 'boolean'],
+            'project_ids' => ['nullable', 'array'],
+            'project_ids.*' => ['integer', 'exists:projects,id'],
         ];
     }
 
@@ -52,6 +55,8 @@ class StoreApiConsumerRequest extends FormRequest
             'rate_limit.min' => 'Rate limit must be 0 (unlimited) or at least 10 requests per minute.',
             'rate_limit.max' => 'Rate limit must not exceed 10000 requests per minute.',
             'is_active.boolean' => 'Active status must be true or false.',
+            'project_ids.array' => 'Project scope must be a list of project IDs.',
+            'project_ids.*.exists' => 'One or more selected projects do not exist.',
         ];
     }
 }

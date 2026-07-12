@@ -22,6 +22,7 @@
       <ApiConsumerForm
         mode="edit"
         :api-consumer="apiConsumer"
+        :projects="projects"
         :loading="loading"
         @update:loading="loading = $event"
         @submit="handleSuccess"
@@ -57,6 +58,13 @@ const {
 });
 
 const apiConsumer = computed(() => apiConsumerResponse.value?.data || null);
+
+// Fetch projects for the Access Scope selector (empty selection = unscoped)
+const { data: projectsResponse } = await useLazySanctumFetch("/api/projects?client_only=true", {
+  key: "api-consumer-edit-projects",
+});
+
+const projects = computed(() => projectsResponse.value?.data || []);
 
 const error = computed(() => {
   if (!fetchError.value) return null;
