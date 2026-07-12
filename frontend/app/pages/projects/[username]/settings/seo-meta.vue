@@ -3,12 +3,8 @@
     <div class="space-y-1">
       <h2 class="page-title">SEO Meta</h2>
       <p class="page-description">
-        Override the &lt;title&gt; and meta description for select pages on the public website.
-        Changes apply without a site rebuild. Leave a field blank to keep the site's built-in
-        copy.
-      </p>
-      <p class="text-muted-foreground text-xs tracking-tight">
-        Spike preview (plan 012): Home and Brands only. A full page/section editor is a follow-up.
+        Override the &lt;title&gt; and meta description for pages on the public website. Changes
+        apply without a site rebuild. Leave a field blank to keep the site's built-in copy.
       </p>
     </div>
 
@@ -106,7 +102,8 @@ const LOCALES = [
   { value: "zh", label: "中文" },
 ];
 
-// The spike's two page keys. Must match App\Models\WebsiteCopy::PAGE_KEYS.
+// Must match App\Models\WebsiteCopy::PAGE_KEYS (mirrors the page keys defined
+// in pmone-events' layers/base/app/composables/content.js `pages.*`).
 const PAGES = [
   {
     key: "home",
@@ -117,8 +114,98 @@ const PAGES = [
   {
     key: "brands",
     label: "Brands",
-    icon: "hugeicons:store-01",
+    icon: "hugeicons:store-02",
     description: "The public website's brands/exhibitors listing page.",
+  },
+  {
+    key: "rundown",
+    label: "Rundown",
+    icon: "hugeicons:time-schedule",
+    description: "The event schedule/rundown page.",
+  },
+  {
+    key: "programs",
+    label: "Programs",
+    icon: "hugeicons:presentation-bar-chart-01",
+    description: "The main programs page.",
+  },
+  {
+    key: "contact",
+    label: "Contact",
+    icon: "hugeicons:mail-02",
+    description: "The contact us page.",
+  },
+  {
+    key: "bookSpace",
+    label: "Book Space",
+    icon: "hugeicons:shopping-bag-02",
+    description: "The exhibitor space booking page.",
+  },
+  {
+    key: "ticket",
+    label: "Ticket",
+    icon: "hugeicons:ticket-01",
+    description: "The ticket purchase page.",
+  },
+  {
+    key: "gallery",
+    label: "Gallery",
+    icon: "hugeicons:image-02",
+    description: "The event photo gallery page.",
+  },
+  {
+    key: "faq",
+    label: "FAQ",
+    icon: "hugeicons:help-circle",
+    description: "The frequently asked questions page.",
+  },
+  {
+    key: "links",
+    label: "Links",
+    icon: "hugeicons:link-01",
+    description: "The links page.",
+  },
+  {
+    key: "news",
+    label: "News",
+    icon: "hugeicons:news",
+    description: "The news/blog listing page.",
+  },
+  {
+    key: "ticketPolicy",
+    label: "Ticket Policy",
+    icon: "hugeicons:refund",
+    description: "The ticket policy page.",
+  },
+  {
+    key: "eventPolicy",
+    label: "Event Policy",
+    icon: "hugeicons:calendar-03",
+    description: "The event policy page.",
+  },
+  {
+    key: "partners",
+    label: "Partners",
+    icon: "hugeicons:dim-sum-02",
+    description: "The partners/sponsors page.",
+  },
+  {
+    key: "terms",
+    label: "Terms of Service",
+    icon: "hugeicons:legal-document-01",
+    description: "The Terms of Service page.",
+  },
+  {
+    key: "privacy",
+    label: "Privacy Policy",
+    icon: "hugeicons:shield-01",
+    description: "The Privacy Policy page.",
+  },
+  {
+    key: "winner",
+    label: "Random Winner Generator",
+    icon: "hugeicons:dice",
+    description: "The Random Winner Generator page.",
   },
 ];
 

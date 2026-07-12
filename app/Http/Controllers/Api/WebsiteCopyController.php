@@ -10,19 +10,18 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Admin CRUD for the spike's minimal SEO-meta copy editor (see
- * App\Models\WebsiteCopy). Covers only `pages.home`/`pages.brands` x
- * title/description - plan 012's prototype surface. Gated by the same
- * `projects.update` authorization as WebsitePageController, since this is
- * project-scoped settings-like content rather than an independent trashable
- * resource.
+ * Admin CRUD for the SEO-meta copy editor (see App\Models\WebsiteCopy).
+ * Covers every `WebsiteCopy::PAGE_KEYS` page x `FIELDS` (title/description) -
+ * plan 012. Gated by the same `projects.update` authorization as
+ * WebsitePageController, since this is project-scoped settings-like content
+ * rather than an independent trashable resource.
  */
 class WebsiteCopyController extends Controller
 {
     use AuthorizesRequests;
 
     /**
-     * List the spike's page x field grid, each with its saved translations
+     * List the full page x field grid, each with its saved translations
      * (empty per-locale strings when never configured), so the admin editor
      * always renders a full grid.
      */

@@ -26,13 +26,18 @@ beforeEach(function () {
 });
 
 test('index lists the full page x field grid even when none are configured', function () {
-    $this->actingAs($this->admin)
+    $response = $this->actingAs($this->admin)
         ->getJson($this->indexEndpoint)
         ->assertSuccessful()
         ->assertJsonPath('data.home.title', [])
         ->assertJsonPath('data.home.description', [])
         ->assertJsonPath('data.brands.title', [])
         ->assertJsonPath('data.brands.description', []);
+
+    // The widened whitelist (plan 012 generalization): every base content.js
+    // page key is present in the grid, not just home/brands.
+    expect($response->json('data'))->toHaveKeys(WebsiteCopy::PAGE_KEYS);
+    expect($response->json('data.winner.title'))->toBe([]);
 });
 
 test('index returns saved translations for a configured key', function () {
@@ -80,6 +85,18 @@ test('update upserts an existing row preserving the unique (project_id, key) row
 
     expect(WebsiteCopy::query()->where('project_id', $this->project->id)->where('key', 'pages.brands.description')->count())->toBe(1);
     expect($row->fresh()->getTranslation('value', 'en'))->toBe('New');
+});
+
+test('update saves a page key beyond the original home/brands spike scope', function () {
+    $this->actingAs($this->admin)
+        ->putJson("{$this->indexEndpoint}/winner/title", [
+            'value' => ['en' => 'Random Winner Generator'],
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.key', 'pages.winner.title')
+        ->assertJsonPath('data.value.en', 'Random Winner Generator');
+
+    expect(WebsiteCopy::query()->where('project_id', $this->project->id)->where('key', 'pages.winner.title')->exists())->toBeTrue();
 });
 
 test('update rejects an unknown page key', function () {

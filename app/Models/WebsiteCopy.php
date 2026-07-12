@@ -17,11 +17,12 @@ use Spatie\Translatable\HasTranslations;
  * pmone-events' `content.js` shape, e.g. `pages.home.title`. The baked
  * `content.js`/i18n value in pmone-events remains the fail-open fallback
  * whenever a project has no row for a key, or the row has no translation for
- * the requested locale - mirrors App\Models\WebsitePage (plan 011).
+ * a given locale - mirrors App\Models\WebsitePage (plan 011).
  *
- * The spike (plan 012) only writes/reads PAGE_KEYS x FIELDS below (Megabuild
- * `pages.home` + `pages.brands` meta). A rollout plan widens the whitelist;
- * this model and its storage shape do not need to change.
+ * PAGE_KEYS x FIELDS below covers every SEO-meta key any project's public
+ * website may want dashboard-managed. Body/section copy remains future
+ * rollout scope; this model and its storage shape do not need to change for
+ * that either (see docs/copy-migration-design.md in pmone-events).
  *
  * @property int $id
  * @property int $project_id
@@ -44,17 +45,23 @@ class WebsiteCopy extends Model
     use HasTranslations;
 
     /**
-     * The page keys the spike's minimal admin editor may override. A
+     * Every `pages.*` key the base pmone-events content store
+     * (`layers/base/app/composables/content.js`) defines meta for. A
      * whitelist here (not a DB enum) keeps validation app-level, mirroring
-     * WebsitePage::KEYS.
+     * WebsitePage::KEYS. Any project may save copy for any of these keys;
+     * unconfigured keys simply fail open to the baked `content.js` value.
      *
      * @var array<int, string>
      */
-    public const PAGE_KEYS = ['home', 'brands'];
+    public const PAGE_KEYS = [
+        'home', 'brands', 'rundown', 'programs', 'contact', 'bookSpace',
+        'ticket', 'gallery', 'faq', 'links', 'news', 'ticketPolicy',
+        'eventPolicy', 'partners', 'terms', 'privacy', 'winner',
+    ];
 
     /**
-     * The SEO meta fields the spike covers per page. Body/section copy is out
-     * of scope for the spike (plan 012 deliverable 3).
+     * The SEO meta fields covered. Body/section copy is future rollout scope
+     * (plan 012 deliverable 3 - see docs/copy-migration-design.md).
      *
      * @var array<int, string>
      */

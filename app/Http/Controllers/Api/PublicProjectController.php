@@ -665,16 +665,19 @@ class PublicProjectController extends Controller
      * sections rendered on the public event website). Project-level, so no
      * event slug is required.
      *
-     * `?locale=` resolves the dashboard-managed `site_config.copy` SEO meta
-     * (plan 012) for the requested language, mirroring `websitePages()`.
-     * Every other sub-key here is locale-agnostic, so this param only affects
-     * `copy` - see `websiteCopyPayload()`.
+     * Deliberately NOT locale-parameterized (unlike `websitePages()`): this
+     * payload is fetched once inside pmone-events' `projectSettings` Nuxt
+     * plugin, whose `setup()` runs before any page's own `setup()` - a
+     * locale-aware fetch there would require calling `useI18n()` from a
+     * plugin, which throws ("Must be called at the top of a setup function").
+     * `site_config.copy` (plan 012), the one locale-dependent sub-key, is
+     * instead served for EVERY saved locale in one response - see
+     * `websiteCopyPayload()`. The frontend picks its own locale from that map
+     * inside `usePageMeta`'s own setup(), where `useI18n()` is valid.
      */
-    public function websiteSettings(Request $request, string $username): JsonResponse
+    public function websiteSettings(string $username): JsonResponse
     {
         $project = Project::where('username', $username)->firstOrFail();
-
-        $locale = $request->input('locale', config('app.locale', 'en'));
 
         $settings = data_get($project->settings, 'website_settings', []);
         $rundown = data_get($settings, 'rundown', []);
@@ -756,7 +759,7 @@ class PublicProjectController extends Controller
                         'analytics' => data_get($siteConfig, 'analytics'),   // null until plan 009
                         'appearance' => data_get($siteConfig, 'appearance'), // null until plan 010
                         'identity' => data_get($siteConfig, 'identity'),     // null until plan 011
-                        'copy' => $this->websiteCopyPayload($project, $locale), // spike: home+brands meta only (plan 012)
+                        'copy' => $this->websiteCopyPayload($project), // plan 012: SEO meta, all page keys, all locales in one response
                     ],
                 ],
             ],
@@ -802,22 +805,25 @@ class PublicProjectController extends Controller
     }
 
     /**
-     * Dashboard-managed SEO meta (`<title>`/description) for the spike's two
-     * pages (`home`, `brands`) - see App\Models\WebsiteCopy and plan 012.
-     * Rides the already-awaited `website-settings` payload instead of a
+     * Dashboard-managed SEO meta (`<title>`/description) for every page key
+     * the base content store defines - see App\Models\WebsiteCopy and plan
+     * 012. Rides the already-awaited `website-settings` payload instead of a
      * separate endpoint (unlike `websitePages()`'s bodies) because this data
      * is tiny and must be present in the server-rendered `<head>` on first
      * paint - see docs/site-config-contract.md rule 1 (zero-round-trip) in
      * pmone-events.
      *
-     * Fail-open per field: a project with no row for a key, or a row with no
-     * saved translation for the requested locale, returns `null` so
-     * `usePageMeta` falls back to the baked `content.js` value - never an
-     * empty `<title>`.
+     * Shape: `{ pages: { [pageKey]: { [locale]: { title?, description? } } } }`.
+     * Every saved locale is included (see `websiteSettings()`'s docblock for
+     * why this cannot be request-locale-scoped); a page key, locale, or field
+     * with no saved value is simply absent - never an empty string. The
+     * frontend's `dashboardCopy?.title` optional-chain falls through the
+     * absence to the baked `content.js` value exactly as if nothing were
+     * configured. Never an empty `<title>`.
      *
-     * @return array<string, array{title: ?string, description: ?string}>
+     * @return array{pages: array<string, array<string, array{title?: string, description?: string}>>}
      */
-    protected function websiteCopyPayload(Project $project, string $locale): array
+    protected function websiteCopyPayload(Project $project): array
     {
         $rows = WebsiteCopy::query()
             ->where('project_id', $project->id)
@@ -828,9 +834,18 @@ class PublicProjectController extends Controller
         foreach (WebsiteCopy::PAGE_KEYS as $page) {
             foreach (WebsiteCopy::FIELDS as $field) {
                 $row = $rows->get(WebsiteCopy::keyFor($page, $field));
-                $value = $row?->getTranslation('value', $locale, false);
 
-                $payload[$page][$field] = filled($value) ? $value : null;
+                if (! $row) {
+                    continue;
+                }
+
+                foreach ($row->getTranslations('value') as $locale => $value) {
+                    if (! filled($value)) {
+                        continue;
+                    }
+
+                    $payload[$page][$locale][$field] = $value;
+                }
             }
         }
 
