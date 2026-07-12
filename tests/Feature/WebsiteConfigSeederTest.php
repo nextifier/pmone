@@ -29,25 +29,42 @@ it('seeds nav, analytics and identity into site_config from the baked seed data'
     expect($siteConfig['nav']['footer'])->toBeArray()->not->toBeEmpty();
 });
 
-it('leaves ga4 null for the shared cbe project so each app keeps its own baked GA4', function () {
+it('seeds cbe (cafeexpo) with its own GA4; nav/identity shared with cei/icf', function () {
     $project = Project::factory()->create(['username' => 'cbe']);
 
     $this->seed(WebsiteConfigSeeder::class);
 
     $siteConfig = data_get($project->refresh()->settings, 'website_settings.site_config');
 
-    // cafeexpo/icf/cokelatexpo share this one project but each has a distinct
-    // baked GA4 id. A single project-level ga4 would force all three sites onto
-    // one measurement id (regression), so it is intentionally null here - each
-    // app's analytics.client.ts then falls back to its own nuxt.config gtag id.
+    // cbe = Cafe & Brasserie Expo (cafeexpo). Its analytics belongs to cafeexpo
+    // only; cokelatexpo/icf resolve their analytics from their OWN projects at
+    // runtime, so cbe holds cafeexpo's own baked GA4.
     expect($siteConfig['analytics'])->toBe([
-        'ga4' => null,
+        'ga4' => 'G-896FDXSRSL',
         'tiktok_pixel' => null,
     ]);
 
     // nav/identity ARE byte-identical across the three apps, so those still seed.
     expect($siteConfig['identity']['company_name'])->toBe('PT Panorama Media');
     expect($siteConfig['nav']['header'])->toBeArray()->not->toBeEmpty();
+});
+
+it('seeds cei (cokelatexpo) and icf with their own GA4 and no shared nav', function () {
+    $cei = Project::factory()->create(['username' => 'cei']);
+    $icf = Project::factory()->create(['username' => 'icf']);
+
+    $this->seed(WebsiteConfigSeeder::class);
+
+    $ceiConfig = data_get($cei->refresh()->settings, 'website_settings.site_config');
+    $icfConfig = data_get($icf->refresh()->settings, 'website_settings.site_config');
+
+    expect($ceiConfig['analytics']['ga4'])->toBe('G-9KLJTWG6QF');
+    expect($icfConfig['analytics']['ga4'])->toBe('G-YFZVWEFRHF');
+
+    // Only analytics is seeded for these two - their nav/identity are inherited
+    // from cbe at runtime, so nothing else is stored here.
+    expect($ceiConfig)->not->toHaveKey('nav');
+    expect($ceiConfig)->not->toHaveKey('identity');
 });
 
 it('records the intentional renex/megabuild GA4 collision as-is', function () {
@@ -205,4 +222,38 @@ it('leaves a deliberately-edited shared cbe GA4 untouched by the corrective migr
 
     // Only the exact mis-seeded id is reverted; an operator's later choice stays.
     expect(data_get($project->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-DELIBERATE1');
+});
+
+it('backfills per-site GA4 for the cbe/cei/icf family via the per-site migration', function () {
+    $cbe = Project::factory()->create(['username' => 'cbe']); // no analytics yet
+    $cei = Project::factory()->create(['username' => 'cei']);
+    $icf = Project::factory()->create(['username' => 'icf']);
+
+    $migration = require base_path('database/migrations/2026_07_12_204308_set_per_site_analytics_for_cbe_family.php');
+    $migration->up();
+
+    expect(data_get($cbe->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-896FDXSRSL');
+    expect(data_get($cei->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-9KLJTWG6QF');
+    expect(data_get($icf->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-YFZVWEFRHF');
+    // The tiktok_pixel key is filled in as null to match the seed shape.
+    expect(data_get($cei->refresh()->settings, 'website_settings.site_config.analytics'))
+        ->toHaveKey('tiktok_pixel');
+});
+
+it('does not clobber a deliberately-set GA4 in the per-site migration', function () {
+    $cbe = Project::factory()->create([
+        'username' => 'cbe',
+        'settings' => [
+            'website_settings' => [
+                'site_config' => [
+                    'analytics' => ['ga4' => 'G-OPERATORSET', 'tiktok_pixel' => null],
+                ],
+            ],
+        ],
+    ]);
+
+    $migration = require base_path('database/migrations/2026_07_12_204308_set_per_site_analytics_for_cbe_family.php');
+    $migration->up();
+
+    expect(data_get($cbe->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-OPERATORSET');
 });
