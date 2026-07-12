@@ -298,12 +298,54 @@
           </div>
         </div>
       </div>
+
+      <!-- Analytics -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:analytics-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Analytics</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Set the tracking ids used on the public website. Changes apply without a site
+              rebuild. Leave a field blank to keep the site's built-in id.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4 !px-4 !py-5 lg:!px-6">
+          <div class="space-y-2">
+            <Label for="analytics-ga4" class="text-sm font-medium tracking-tight">
+              GA4 Measurement ID
+            </Label>
+            <Input
+              id="analytics-ga4"
+              v-model="form.site_config.analytics.ga4"
+              placeholder="G-XXXXXXXXXX"
+            />
+            <FieldError :errors="errors['site_config.analytics.ga4']" />
+          </div>
+
+          <div class="space-y-2">
+            <Label for="analytics-tiktok-pixel" class="text-sm font-medium tracking-tight">
+              TikTok Pixel ID
+            </Label>
+            <Input
+              id="analytics-tiktok-pixel"
+              v-model="form.site_config.analytics.tiktok_pixel"
+              placeholder="CXXXXXXXXXXXXXXXXXXX"
+            />
+            <FieldError :errors="errors['site_config.analytics.tiktok_pixel']" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import NavigationListEditor from "@/components/project/NavigationListEditor.vue";
+import { FieldError } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
@@ -404,6 +446,7 @@ const dataFallbackDefaults = () => ({
 });
 
 const navDefaults = () => ({ header: [], dialog: [], footer: [] });
+const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null });
 
 const form = ref({
   show_search_bar: true,
@@ -415,8 +458,12 @@ const form = ref({
   book_space_form: bookSpaceDefaults(),
   terms_last_update: null,
   data_fallback: dataFallbackDefaults(),
-  site_config: { nav: navDefaults() },
+  site_config: { nav: navDefaults(), analytics: analyticsDefaults() },
 });
+
+// Field-level validation errors from the last failed save, keyed by the
+// backend's dot-notation field name (e.g. "site_config.analytics.ga4").
+const errors = ref({});
 
 let navKeySeed = 0;
 const withNavKey = (item) => ({ ...item, _key: `nav-${Date.now()}-${navKeySeed++}` });
@@ -460,6 +507,14 @@ function toIsoDate(date) {
   return `${year}-${month}-${day}`;
 }
 
+// An emptied text input becomes "" via v-model, but the backend's
+// nullable|regex rules only accept null or a matching string - never send an
+// empty string through.
+function blankToNull(value) {
+  const trimmed = (value ?? "").trim();
+  return trimmed === "" ? null : trimmed;
+}
+
 // Snapshot of the last persisted payload. Auto-save no-ops when nothing
 // changed — e.g. focusing then blurring a field without editing it.
 let lastSavedSnapshot = null;
@@ -486,6 +541,10 @@ function buildPayload() {
         header: stripNavKeys(form.value.site_config.nav.header),
         dialog: stripNavKeys(form.value.site_config.nav.dialog),
         footer: stripNavKeys(form.value.site_config.nav.footer),
+      },
+      analytics: {
+        ga4: blankToNull(form.value.site_config.analytics.ga4),
+        tiktok_pixel: blankToNull(form.value.site_config.analytics.tiktok_pixel),
       },
     },
   };
@@ -526,7 +585,10 @@ async function load() {
       book_space_form: { ...bookSpaceDefaults(), ...bookSpaceForm },
       terms_last_update: terms.last_update ? new Date(terms.last_update) : null,
       data_fallback: { ...dataFallbackDefaults(), ...dataFallback },
-      site_config: { nav: hydrateNav(ws.site_config?.nav) },
+      site_config: {
+        nav: hydrateNav(ws.site_config?.nav),
+        analytics: { ...analyticsDefaults(), ...ws.site_config?.analytics },
+      },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
   } catch (err) {
@@ -558,8 +620,10 @@ async function save() {
       body: payload,
     });
     lastSavedSnapshot = snapshot;
+    errors.value = {};
     toast.success("Website settings updated");
   } catch (err) {
+    errors.value = err?.data?.errors ?? {};
     toast.error("Failed to save", {
       description: err?.data?.message || err?.message,
     });
