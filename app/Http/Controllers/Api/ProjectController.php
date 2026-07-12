@@ -444,6 +444,8 @@ class ProjectController extends Controller
             'site_config.analytics' => ['sometimes', 'array'],
             'site_config.analytics.ga4' => ['sometimes', 'nullable', 'string', 'regex:/^G-[A-Z0-9]+$/'],
             'site_config.analytics.tiktok_pixel' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'site_config.analytics.meta_pixel' => ['sometimes', 'nullable', 'string', 'regex:/^[0-9]+$/', 'max:32'],
+            'site_config.analytics.gtm' => ['sometimes', 'nullable', 'string', 'regex:/^GTM-[A-Z0-9]+$/'],
             // Curated shadcn design tokens sourced by the event website's
             // appearance engine (layers/base/app/lib/appearance) instead of its
             // baked app.config.ts `appearance` block. All scalars, so
