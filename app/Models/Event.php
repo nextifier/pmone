@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -65,6 +66,8 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon|null $onsite_order_opens_at
  * @property Carbon|null $onsite_order_closes_at
  * @property numeric $onsite_penalty_rate
+ * @property int|null $capacity
+ * @property int $reserved_count
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -115,6 +118,7 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|Event ordered(string $direction = 'asc')
  * @method static Builder<static>|Event published()
  * @method static Builder<static>|Event query()
+ * @method static Builder<static>|Event whereCapacity($value)
  * @method static Builder<static>|Event whereCreatedAt($value)
  * @method static Builder<static>|Event whereCreatedBy($value)
  * @method static Builder<static>|Event whereCustomFields($value)
@@ -138,6 +142,7 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|Event whereOrderFormDeadline($value)
  * @method static Builder<static>|Event whereProjectId($value)
  * @method static Builder<static>|Event wherePromotionPostDeadline($value)
+ * @method static Builder<static>|Event whereReservedCount($value)
  * @method static Builder<static>|Event whereSaleableArea($value)
  * @method static Builder<static>|Event whereSettings($value)
  * @method static Builder<static>|Event whereSlug($value)
@@ -196,6 +201,7 @@ class Event extends Model implements HasMedia, Sortable
         'allow_cross_day',
         'tickets_enabled',
         'business_matching_enabled',
+        'capacity',
     ];
 
     public array $translatable = [
@@ -234,6 +240,8 @@ class Event extends Model implements HasMedia, Sortable
             'allow_cross_day' => 'boolean',
             'tickets_enabled' => 'boolean',
             'business_matching_enabled' => 'boolean',
+            'capacity' => 'integer',
+            'reserved_count' => 'integer',
         ];
     }
 
@@ -504,6 +512,31 @@ class Event extends Model implements HasMedia, Sortable
     public function getPosterImageAttribute(): ?array
     {
         return $this->getMediaUrls('poster_image');
+    }
+
+    /**
+     * Atomically reserve $qty units of this event's total-headcount capacity
+     * (across ALL ticket types) with a single conditional UPDATE, mirroring
+     * Ticket::reserve(). Null capacity is unlimited (always succeeds).
+     * Returns whether the reservation was granted.
+     */
+    public function reserveHeadcount(int $qty): bool
+    {
+        return static::query()
+            ->whereKey($this->id)
+            // Parenthesized - see Ticket::reserve() for why: without the
+            // parens, SQL's AND-before-OR precedence would let this clause
+            // leak past the whereKey() and match every other roomy event.
+            ->whereRaw('(capacity IS NULL OR reserved_count + ? <= capacity)', [$qty])
+            ->update(['reserved_count' => DB::raw('reserved_count + '.(int) $qty)]) > 0;
+    }
+
+    /**
+     * Guarded release of a previously reserved $qty - see Ticket::release().
+     */
+    public function releaseHeadcount(int $qty): void
+    {
+        static::query()->whereKey($this->id)->where('reserved_count', '>=', $qty)->decrement('reserved_count', $qty);
     }
 
     // Relationships

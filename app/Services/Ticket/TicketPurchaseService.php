@@ -355,9 +355,16 @@ class TicketPurchaseService
                 }
             }
 
+            // Total attendee headcount requested across every line, regardless
+            // of ticket type - the event-level cap (fire-code / venue limit) is
+            // independent of ticket mix, so it is checked against this single
+            // aggregate rather than per-ticket.
+            $totalRequestedQty = array_sum($requestedByTicket);
+
             $stockReserved = [];
             $phaseReserved = [];
             $sessionReserved = [];
+            $eventHeadcountReserved = false;
 
             // Every reservation made for an earlier line/ticket in this loop
             // is tracked here so a later line's rejection can release them
@@ -369,10 +376,22 @@ class TicketPurchaseService
             // reserve UPDATEs too, so manual release is only needed on this
             // abort-before-commit path.
             $reservations = [];
-            $fail = function (string $message) use (&$reservations): void {
+            $fail = function (string $message) use (&$reservations, &$eventHeadcountReserved, $event, $totalRequestedQty): void {
                 $this->releaseReservations($reservations);
+                if ($eventHeadcountReserved) {
+                    $event->releaseHeadcount($totalRequestedQty);
+                }
                 abort(422, $message);
             };
+
+            // Reserve the event-level total-headcount cap FIRST, before any
+            // per-ticket/phase/session reserve, so a capacity-full event is
+            // rejected without ever touching another counter. Null capacity
+            // (the default) is uncapped and always succeeds.
+            if (! $event->reserveHeadcount($totalRequestedQty)) {
+                $fail('Event is at capacity.');
+            }
+            $eventHeadcountReserved = true;
 
             foreach ($items as $idx => $item) {
                 // No lockForUpdate(): the atomic conditional UPDATEs in
@@ -836,6 +855,15 @@ class TicketPurchaseService
                 }
             }
 
+            // Release the event-level total-headcount hold this order made at
+            // createOrder() time, mirroring the per-ticket releases above.
+            $totalQty = $order->items->sum('quantity');
+            if ($totalQty > 0) {
+                Event::whereKey($order->event_id)
+                    ->where('reserved_count', '>=', $totalQty)
+                    ->decrement('reserved_count', $totalQty);
+            }
+
             $order->setAttribute('status', TicketOrderStatus::Expired);
         });
     }
@@ -843,11 +871,12 @@ class TicketPurchaseService
     /**
      * Void a single attendee's seat: cancel it, rotate its `qr_token` (killing
      * the old QR so a transferred/refunded badge stops scanning), release its
-     * seat (order-item quantity + ticket/session/phase `sold_count`), and
-     * recompute the order total. Idempotent - a no-op when the attendee is
-     * already cancelled. Never touches the order's own status: the order
-     * stays Confirmed with its remaining attendees still valid. Called
-     * per-attendee by refundOrder() for a whole-order refund too.
+     * seat (order-item quantity + ticket/session/phase `sold_count` + the
+     * event's total-headcount `reserved_count`), and recompute the order
+     * total. Idempotent - a no-op when the attendee is already cancelled.
+     * Never touches the order's own status: the order stays Confirmed with
+     * its remaining attendees still valid. Called per-attendee by
+     * refundOrder() for a whole-order refund too.
      */
     public function refundAttendee(Attendee $attendee, ?string $reason = null, ?int $staffId = null): void
     {
@@ -892,6 +921,11 @@ class TicketPurchaseService
             if (! $order) {
                 return;
             }
+
+            // One seat's worth of the event-level total-headcount hold this
+            // order made at createOrder() time - mirrors the ticket/session/
+            // phase releases above.
+            Event::whereKey($order->event_id)->where('reserved_count', '>=', 1)->decrement('reserved_count');
 
             // The order's `subtotal` is the sum of every item's own subtotal
             // (never recomputed from live items elsewhere - see createOrder),
@@ -959,6 +993,14 @@ class TicketPurchaseService
      * Confirmed (they check that first so a duplicate paid event short-circuits
      * before reaching here).
      *
+     * Event capacity (plan 021): the pre-flip availability check also verifies
+     * the event's total-headcount still fits - expireOrder() released this
+     * order's `reserved_count`, and the freed slots may have been taken while
+     * it sat expired, so insufficient headroom routes to needs_reconciliation
+     * exactly like per-ticket stock does. On a successful resurrection the
+     * `reserved_count` is restored, symmetric with the ticket/session/phase
+     * restores below.
+     *
      * @param  array<string, mixed>  $payload
      * @return 'reconfirmed'|'needs_reconciliation'|'not_expired'|'already_final'
      */
@@ -1013,6 +1055,20 @@ class TicketPurchaseService
             }
         }
 
+        // Event-level headcount must also still fit: expireOrder() released
+        // this order's reserved_count, and the freed slots may have been taken
+        // while it sat expired. Mirror the per-ticket stock check above.
+        $totalQty = $order->items->sum('quantity');
+        if ($totalQty > 0) {
+            $event = Event::find($order->event_id);
+            if ($event && $event->capacity !== null
+                && ($event->capacity - $event->reserved_count) < $totalQty) {
+                $this->recordNeedsReconciliation($order, $payload);
+
+                return 'needs_reconciliation';
+            }
+        }
+
         $update = [
             'status' => TicketOrderStatus::Confirmed,
             'paid_at' => now(),
@@ -1043,6 +1099,12 @@ class TicketPurchaseService
             if ($item->ticket_price_phase_id) {
                 TicketPricePhase::whereKey($item->ticket_price_phase_id)->increment('sold_count', $item->quantity);
             }
+        }
+
+        // Symmetric with the event-headcount release in expireOrder(): a
+        // resurrected order restores the reserved_count it gave back.
+        if ($totalQty > 0) {
+            Event::whereKey($order->event_id)->increment('reserved_count', $totalQty);
         }
 
         $this->accessCodes->consume($order);
@@ -1082,6 +1144,15 @@ class TicketPurchaseService
      * Admin "Bulk Generate": create a complimentary batch order (free, confirmed,
      * source=admin, OUTSIDE sale stock) and hand attendee issuance off to a queued
      * job so big batches can stream in with progress. Returns the order immediately.
+     *
+     * STOP CONDITION (plan 021, event capacity): intentionally does NOT
+     * reserve against the event's total-headcount `capacity`/`reserved_count`
+     * - comps stay outside sale stock exactly like they stay outside
+     * per-ticket stock (see availableStock()'s docblock). Whether a comp
+     * attendee should still count toward the fire-code/venue headcount (they
+     * DO physically occupy the room even though they bypass sale stock) is a
+     * semantics decision left for the reviewer; wiring it here would need the
+     * same atomic reserve + release-on-failure handling as createOrder().
      *
      * @param  array<string, mixed>  $data
      */
