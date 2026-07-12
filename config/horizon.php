@@ -237,6 +237,19 @@ return [
             'timeout' => 120,
             'nice' => 10,
         ],
+        'supervisor-tickets' => [
+            'connection' => 'redis',
+            'queue' => ['tickets'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 3,
+            'timeout' => 120,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -256,6 +269,11 @@ return [
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
+            'supervisor-tickets' => [
+                'maxProcesses' => 10,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
         ],
 
         'local' => [
@@ -267,6 +285,9 @@ return [
             ],
             'supervisor-pdf' => [
                 'maxProcesses' => 1,
+            ],
+            'supervisor-tickets' => [
+                'maxProcesses' => 3,
             ],
         ],
     ],

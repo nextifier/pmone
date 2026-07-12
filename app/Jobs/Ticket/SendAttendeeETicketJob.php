@@ -26,7 +26,10 @@ class SendAttendeeETicketJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public int $attendeeId, public bool $consolidated = false) {}
+    public function __construct(public int $attendeeId, public bool $consolidated = false)
+    {
+        $this->onQueue('tickets');
+    }
 
     /**
      * @return array<int, int>
