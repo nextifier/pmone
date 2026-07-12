@@ -444,6 +444,18 @@ class ProjectController extends Controller
             'site_config.analytics' => ['sometimes', 'array'],
             'site_config.analytics.ga4' => ['sometimes', 'nullable', 'string', 'regex:/^G-[A-Z0-9]+$/'],
             'site_config.analytics.tiktok_pixel' => ['sometimes', 'nullable', 'string', 'max:64'],
+            // Curated shadcn design tokens sourced by the event website's
+            // appearance engine (layers/base/app/lib/appearance) instead of its
+            // baked app.config.ts `appearance` block. All scalars, so
+            // array_replace_recursive merges them correctly without a
+            // wholesale-replace special-case. Value sets mirror
+            // BASE_COLOR_NAMES / THEME_NAMES / RADII in that engine.
+            'site_config.appearance' => ['sometimes', 'array'],
+            'site_config.appearance.enabled' => ['sometimes', 'boolean'],
+            'site_config.appearance.baseColor' => ['sometimes', Rule::in($this->appearanceBaseColors())],
+            'site_config.appearance.theme' => ['sometimes', Rule::in($this->appearanceThemeColors())],
+            'site_config.appearance.chartColor' => ['sometimes', Rule::in($this->appearanceThemeColors())],
+            'site_config.appearance.radius' => ['sometimes', Rule::in(['default', 'none', 'small', 'medium', 'large'])],
         ]);
 
         $settings = $project->settings ?? [];
@@ -545,6 +557,31 @@ class ProjectController extends Controller
     private function isValidNavPath(mixed $path): bool
     {
         return is_string($path) && preg_match('/^(\/|#|https?:\/\/)/', $path) === 1;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function appearanceBaseColors(): array
+    {
+        return ['neutral', 'stone', 'zinc', 'mauve', 'olive', 'mist', 'taupe'];
+    }
+
+    /**
+     * `theme`/`chartColor` accept any of the 24 curated shadcn themes: the 7
+     * base colors above plus 17 accent colors (mirrors THEME_NAMES in
+     * `layers/base/app/lib/appearance/themes.ts`).
+     *
+     * @return array<int, string>
+     */
+    private function appearanceThemeColors(): array
+    {
+        return [
+            ...$this->appearanceBaseColors(),
+            'amber', 'blue', 'cyan', 'emerald', 'fuchsia', 'green', 'indigo',
+            'lime', 'orange', 'pink', 'purple', 'red', 'rose', 'sky', 'teal',
+            'violet', 'yellow',
+        ];
     }
 
     public function toggleHotelReservation(Request $request, string $username): JsonResponse

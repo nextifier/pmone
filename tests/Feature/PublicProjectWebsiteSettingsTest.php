@@ -259,3 +259,77 @@ test('site_config.analytics stays fail-open null when a write touches other webs
         ->assertJsonPath('data.settings.rundown.show_search_bar', false)
         ->assertJsonPath('data.settings.site_config.analytics', null);
 });
+
+// --- Plan 010: appearance tokens save / validate / fail-open -------------
+
+test('saving site_config.appearance returns it verbatim in the public payload', function () {
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, [
+            'site_config' => [
+                'appearance' => [
+                    'enabled' => true,
+                    'baseColor' => 'zinc',
+                    'theme' => 'blue',
+                    'chartColor' => 'blue',
+                    'radius' => 'small',
+                ],
+            ],
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.website_settings.site_config.appearance.enabled', true)
+        ->assertJsonPath('data.website_settings.site_config.appearance.baseColor', 'zinc')
+        ->assertJsonPath('data.website_settings.site_config.appearance.theme', 'blue')
+        ->assertJsonPath('data.website_settings.site_config.appearance.chartColor', 'blue')
+        ->assertJsonPath('data.website_settings.site_config.appearance.radius', 'small');
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.appearance.enabled', true)
+        ->assertJsonPath('data.settings.site_config.appearance.baseColor', 'zinc')
+        ->assertJsonPath('data.settings.site_config.appearance.theme', 'blue')
+        ->assertJsonPath('data.settings.site_config.appearance.chartColor', 'blue')
+        ->assertJsonPath('data.settings.site_config.appearance.radius', 'small');
+});
+
+test('rejects a baseColor outside the curated appearance palette', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'appearance' => [
+                'baseColor' => 'crimson',
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('rejects a theme outside the curated appearance palette', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'appearance' => [
+                'theme' => 'not-a-real-theme',
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('rejects a radius outside the allowed set', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'site_config' => [
+            'appearance' => [
+                'radius' => 'huge',
+            ],
+        ],
+    ])->assertUnprocessable();
+});
+
+test('site_config.appearance stays fail-open null when a write touches other website settings but not appearance', function () {
+    $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
+        'rundown' => ['show_search_bar' => false],
+    ])->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.rundown.show_search_bar', false)
+        ->assertJsonPath('data.settings.site_config.appearance', null);
+});

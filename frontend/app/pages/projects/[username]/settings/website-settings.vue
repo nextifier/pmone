@@ -338,16 +338,87 @@
           </div>
         </div>
       </div>
+
+      <!-- Appearance -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:paint-brush-01" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-base font-semibold tracking-tight">Appearance</h3>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Retheme the public website with a curated color palette. Changes apply without a
+              site rebuild. Leave this off to keep the site's built-in palette.
+            </p>
+          </div>
+        </div>
+
+        <div class="frame-panel space-y-4 !px-4 !py-5 lg:!px-6">
+          <div class="flex items-start justify-between gap-4">
+            <div class="space-y-1">
+              <Label
+                for="appearance-enabled"
+                class="cursor-pointer text-sm font-medium tracking-tight"
+              >
+                Enable dashboard palette
+              </Label>
+              <p class="text-muted-foreground text-sm tracking-tight">
+                Overrides the site's baked-in palette with the colors below.
+              </p>
+            </div>
+            <Switch id="appearance-enabled" v-model="form.site_config.appearance.enabled" />
+          </div>
+
+          <div
+            v-if="form.site_config.appearance.enabled"
+            class="grid grid-cols-1 gap-3 border-t pt-4 sm:grid-cols-2"
+          >
+            <AppearancePicker
+              label="Base Color"
+              variant="swatch"
+              fluid
+              :model-value="form.site_config.appearance.baseColor"
+              :options="BASE_COLOR_OPTIONS"
+              @update:model-value="(v) => (form.site_config.appearance.baseColor = v)"
+            />
+            <AppearancePicker
+              label="Theme"
+              variant="swatch"
+              fluid
+              :model-value="form.site_config.appearance.theme"
+              :options="THEME_OPTIONS"
+              @update:model-value="(v) => (form.site_config.appearance.theme = v)"
+            />
+            <AppearancePicker
+              label="Chart Color"
+              variant="swatch"
+              fluid
+              :model-value="form.site_config.appearance.chartColor"
+              :options="CHART_COLOR_OPTIONS"
+              @update:model-value="(v) => (form.site_config.appearance.chartColor = v)"
+            />
+            <AppearancePicker
+              label="Radius"
+              variant="radius"
+              fluid
+              :model-value="form.site_config.appearance.radius"
+              :options="radiusOptions"
+              @update:model-value="(v) => (form.site_config.appearance.radius = v)"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import AppearancePicker from "@/components/appearance/AppearancePicker.vue";
 import NavigationListEditor from "@/components/project/NavigationListEditor.vue";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { BASE_COLOR_OPTIONS, CHART_COLOR_OPTIONS, RADII, THEME_OPTIONS } from "@/lib/appearance";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -381,6 +452,10 @@ const bookSpaceFields = [
   { key: "show_brand_name", label: "Brand name field" },
   { key: "show_products", label: "Products field" },
 ];
+
+// Curated shadcn radii, mapped to the AppearancePicker option shape (mirrors
+// AppearanceCustomizer.vue's radiusOptions).
+const radiusOptions = RADII.map((r) => ({ value: r.name, label: r.title }));
 
 const dataFallbackFields = [
   {
@@ -447,6 +522,17 @@ const dataFallbackDefaults = () => ({
 
 const navDefaults = () => ({ header: [], dialog: [], footer: [] });
 const analyticsDefaults = () => ({ ga4: null, tiktok_pixel: null });
+// Sane starting selections for the pickers when a project has never saved a
+// palette (mirrors DEFAULT_APPEARANCE's baseColor/theme/chartColor/radius —
+// `style`/`font`/`fontHeading` are the separate `useAppearance` concern, out
+// of scope for this dashboard-managed block).
+const appearanceDefaults = () => ({
+  enabled: false,
+  baseColor: "neutral",
+  theme: "neutral",
+  chartColor: "neutral",
+  radius: "default",
+});
 
 const form = ref({
   show_search_bar: true,
@@ -458,7 +544,7 @@ const form = ref({
   book_space_form: bookSpaceDefaults(),
   terms_last_update: null,
   data_fallback: dataFallbackDefaults(),
-  site_config: { nav: navDefaults(), analytics: analyticsDefaults() },
+  site_config: { nav: navDefaults(), analytics: analyticsDefaults(), appearance: appearanceDefaults() },
 });
 
 // Field-level validation errors from the last failed save, keyed by the
@@ -546,6 +632,7 @@ function buildPayload() {
         ga4: blankToNull(form.value.site_config.analytics.ga4),
         tiktok_pixel: blankToNull(form.value.site_config.analytics.tiktok_pixel),
       },
+      appearance: { ...form.value.site_config.appearance },
     },
   };
 }
@@ -588,6 +675,7 @@ async function load() {
       site_config: {
         nav: hydrateNav(ws.site_config?.nav),
         analytics: { ...analyticsDefaults(), ...ws.site_config?.analytics },
+        appearance: { ...appearanceDefaults(), ...ws.site_config?.appearance },
       },
     };
     lastSavedSnapshot = JSON.stringify(buildPayload());
