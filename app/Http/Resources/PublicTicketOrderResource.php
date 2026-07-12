@@ -23,6 +23,11 @@ class PublicTicketOrderResource extends JsonResource
             'ulid' => $this->ulid,
             'order_number' => $this->order_number,
             'status' => $this->status?->value,
+            // Coarser than `status`, purpose-built for the result page's poll:
+            // 'preparing' while CreateTicketCheckoutJob (Plan 017) hasn't yet
+            // populated payment_url, 'ready' once it has, 'confirmed' once paid,
+            // 'failed' for any terminal non-paid state (expired/cancelled/refunded).
+            'payment_status' => $this->paymentStatus(),
             'is_free' => $this->isFree(),
             'buyer_name' => $this->buyer_name,
             'buyer_email' => $this->buyer_email,
@@ -58,5 +63,21 @@ class PublicTicketOrderResource extends JsonResource
             })),
             'created_at' => $this->created_at,
         ];
+    }
+
+    /**
+     * @return 'preparing'|'ready'|'confirmed'|'failed'
+     */
+    protected function paymentStatus(): string
+    {
+        if ($this->status === TicketOrderStatus::Confirmed) {
+            return 'confirmed';
+        }
+
+        if ($this->status === TicketOrderStatus::PendingPayment) {
+            return $this->payment_url !== null ? 'ready' : 'preparing';
+        }
+
+        return 'failed';
     }
 }

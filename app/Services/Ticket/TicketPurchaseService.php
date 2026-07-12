@@ -5,6 +5,7 @@ namespace App\Services\Ticket;
 use App\Contracts\Payment\CreatesCheckout;
 use App\Enums\Ticketing\PurchaseType;
 use App\Enums\Ticketing\TicketOrderStatus;
+use App\Jobs\Ticket\CreateTicketCheckoutJob;
 use App\Jobs\Ticket\GenerateBulkAttendeesJob;
 use App\Jobs\Ticket\SendAttendeeETicketJob;
 use App\Jobs\Ticket\SendTicketOrderConfirmationJob;
@@ -614,6 +615,12 @@ class TicketPurchaseService
 
     /**
      * Free orders confirm immediately; paid orders open a gateway checkout.
+     * The real gateway HTTP round-trip (~300-800ms) is deferred to
+     * CreateTicketCheckoutJob so the buyer's request - and the PHP-FPM
+     * worker handling it - is never held on it (Plan 017). A test-injected
+     * $checkoutClient keeps the previous synchronous contract instead, so
+     * existing coverage can assert on the resulting order without touching
+     * the queue.
      *
      * @param  array<string, mixed>  $data
      */
@@ -635,37 +642,82 @@ class TicketPurchaseService
             return $order->fresh(['items.attendees', 'event']);
         }
 
-        try {
-            // Provider-agnostic: use whichever gateway the project has active
-            // (Xendit OR Midtrans), exactly like hotel reservations. The
-            // per-event channel allowlist + checkout-method dispatch live inside
-            // the payable / provider, so this path stays provider-neutral. The
-            // reference is stored in `xendit_invoice_id` (a generic column); the
-            // webhook matches the order by `order_number`, not this id.
-            $gateway = $order->event?->project?->activePaymentGateway();
-            abort_unless($gateway, 422, 'No active payment gateway configured for this project.');
+        if ($checkoutClient !== null) {
+            $this->attemptTicketCheckout($order, $checkoutClient);
 
-            $client = $checkoutClient ?? app(PaymentProviderFactory::class)->make($gateway);
-            [$successUrl, $failureUrl] = $this->paymentRedirectUrls($order);
-
-            $checkout = $client->createCheckout($order, $successUrl, $failureUrl);
-
-            $order->update([
-                'xendit_invoice_id' => $checkout['reference'],
-                'payment_url' => $checkout['payment_url'],
-                'payment_gateway_id' => $client->gateway()?->id ?? $gateway->id,
-            ]);
-        } catch (\Throwable $e) {
-            $mapped = XenditErrorMapper::map($e);
-            Log::log($mapped['log_level'], 'Ticket payment link creation failed - order kept for retry', [
-                'ticket_order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'error_code' => $mapped['error_code'],
-                'raw_error' => $e->getMessage(),
-            ]);
+            return $order->fresh(['items.attendees', 'event']);
         }
 
+        CreateTicketCheckoutJob::dispatch($order->id)->afterCommit();
+
         return $order->fresh(['items.attendees', 'event']);
+    }
+
+    /**
+     * Open a payment-gateway checkout for a pending paid order and persist
+     * the resulting payment_url/reference. Idempotent - a no-op once the
+     * order is no longer PendingPayment or already carries a payment_url,
+     * so a retried job (or a webhook landing first) never clobbers it or
+     * opens a duplicate checkout. Throws on gateway failure so a queued
+     * caller can decide whether to retry; attemptTicketCheckout() below
+     * is the "never blow up the caller" wrapper used for the synchronous
+     * (test-injected client) contract.
+     */
+    public function openTicketCheckout(TicketOrder $order, ?CreatesCheckout $checkoutClient = null): void
+    {
+        if ($order->status !== TicketOrderStatus::PendingPayment || $order->payment_url !== null) {
+            return;
+        }
+
+        // Provider-agnostic: use whichever gateway the project has active
+        // (Xendit OR Midtrans), exactly like hotel reservations. The
+        // per-event channel allowlist + checkout-method dispatch live inside
+        // the payable / provider, so this path stays provider-neutral. The
+        // reference is stored in `xendit_invoice_id` (a generic column); the
+        // webhook matches the order by `order_number`, not this id.
+        $gateway = $order->event?->project?->activePaymentGateway();
+        abort_unless($gateway, 422, 'No active payment gateway configured for this project.');
+
+        $client = $checkoutClient ?? app(PaymentProviderFactory::class)->make($gateway);
+        [$successUrl, $failureUrl] = $this->paymentRedirectUrls($order);
+
+        $checkout = $client->createCheckout($order, $successUrl, $failureUrl);
+
+        $order->update([
+            'xendit_invoice_id' => $checkout['reference'],
+            'payment_url' => $checkout['payment_url'],
+            'payment_gateway_id' => $client->gateway()?->id ?? $gateway->id,
+        ]);
+    }
+
+    /**
+     * Synchronous wrapper around openTicketCheckout() that swallows a
+     * gateway failure (logs it via XenditErrorMapper) instead of throwing,
+     * preserving the original resolvePayment() contract: the order stays
+     * PendingPayment with no payment_url, ready for a later retry.
+     */
+    protected function attemptTicketCheckout(TicketOrder $order, ?CreatesCheckout $checkoutClient = null): void
+    {
+        try {
+            $this->openTicketCheckout($order, $checkoutClient);
+        } catch (\Throwable $e) {
+            $this->logCheckoutFailure($order, $e);
+        }
+    }
+
+    /**
+     * Log a gateway checkout failure via XenditErrorMapper. Shared by the
+     * synchronous contract (attemptTicketCheckout) and CreateTicketCheckoutJob.
+     */
+    public function logCheckoutFailure(TicketOrder $order, \Throwable $e): void
+    {
+        $mapped = XenditErrorMapper::map($e);
+        Log::log($mapped['log_level'], 'Ticket payment link creation failed - order kept for retry', [
+            'ticket_order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'error_code' => $mapped['error_code'],
+            'raw_error' => $e->getMessage(),
+        ]);
     }
 
     /**
