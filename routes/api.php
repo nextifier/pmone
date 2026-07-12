@@ -110,6 +110,7 @@ use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\SesNotificationController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
+use App\Http\Controllers\Api\WebsiteCopyController;
 use App\Http\Controllers\Api\WebsitePageController;
 use App\Http\Controllers\Api\WhatsAppTestController;
 use App\Http\Controllers\MediaController;
@@ -268,6 +269,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::patch('/{username}/website-settings', [ProjectController::class, 'updateWebsiteSettings'])->name('projects.website-settings');
         Route::get('/{username}/website-pages', [WebsitePageController::class, 'index'])->name('projects.website-pages.index');
         Route::put('/{username}/website-pages/{key}', [WebsitePageController::class, 'update'])->name('projects.website-pages.update');
+        Route::get('/{username}/website-copy', [WebsiteCopyController::class, 'index'])->name('projects.website-copy.index');
+        Route::put('/{username}/website-copy/{page}/{field}', [WebsiteCopyController::class, 'update'])->name('projects.website-copy.update');
         Route::patch('/{username}/hotel-reservation-toggle', [ProjectController::class, 'toggleHotelReservation'])->name('projects.hotel-reservation-toggle');
         Route::delete('/{username}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     });

@@ -49,6 +49,11 @@ const settingsTabs = computed(() => {
       to: `${settingsBase.value}/legal-pages`,
     },
     {
+      label: "SEO Meta",
+      icon: "hugeicons:seo",
+      to: `${settingsBase.value}/seo-meta`,
+    },
+    {
       label: "OG Images",
       icon: "hugeicons:image-02",
       to: `${settingsBase.value}/og-images`,
