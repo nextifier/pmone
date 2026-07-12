@@ -372,7 +372,7 @@
   },
   "cbe": {
     "_source_apps": ["cafeexpo", "icf", "cokelatexpo"],
-    "_notes": "cafeexpo, icf and cokelatexpo all share this PM One project as their data source (dataSourceUsername=cbe for icf/cokelatexpo). Their nav/identity are byte-identical, so those are safe to seed here. Their GA4 ids, however, DIFFER (cafeexpo G-896FDXSRSL, cokelatexpo G-9KLJTWG6QF, icf G-YFZVWEFRHF): a single project-level site_config cannot represent three distinct measurement ids, so analytics.ga4 is left null here. Each app's analytics.client.ts then falls back to its OWN baked nuxt.config gtag id (fail-open), preserving per-site tracking with zero regression. Only set a value here if one shared GA4 should intentionally override all three sites.",
+    "_notes": "cbe = Cafe & Brasserie Expo (the cafeexpo app). cokelatexpo (project cei) and icf draw their CONTENT + nav/identity from this project via dataSourceUsername=cbe, but their ANALYTICS is resolved from their OWN project (server route website-settings.get.ts overrides site_config.analytics with the projectUsername payload). So this analytics block belongs to cafeexpo only - its own baked GA4 G-896FDXSRSL; cokelatexpo's G-9KLJTWG6QF lives under the cei entry and icf's G-YFZVWEFRHF under the icf entry.",
     "nav": {
       "header": [
         { "label": "Home", "path": "/" },
@@ -457,11 +457,21 @@
         }
       ]
     },
-    "analytics": { "ga4": null, "tiktok_pixel": null },
+    "analytics": { "ga4": "G-896FDXSRSL", "tiktok_pixel": null },
     "identity": {
       "company_name": "PT Panorama Media",
       "company_address": "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150"
     }
+  },
+  "cei": {
+    "_source_apps": ["cokelatexpo"],
+    "_notes": "Cokelat Expo Indonesia (the cokelatexpo app). It draws content/nav/identity from cbe (dataSourceUsername=cbe) but its analytics is resolved from THIS project. Only analytics is seeded here; nav/identity are inherited from cbe at runtime. GA4 is cokelatexpo's own baked nuxt.config id.",
+    "analytics": { "ga4": "G-9KLJTWG6QF", "tiktok_pixel": null }
+  },
+  "icf": {
+    "_source_apps": ["icf"],
+    "_notes": "Indonesia Coffee Festival (the icf app). It draws content/nav/identity from cbe (dataSourceUsername=cbe) but its analytics is resolved from THIS project. Only analytics is seeded here; nav/identity are inherited from cbe at runtime. GA4 is icf's own baked nuxt.config id.",
+    "analytics": { "ga4": "G-YFZVWEFRHF", "tiktok_pixel": null }
   },
   "morefood": {
     "_source_apps": ["morefood"],
