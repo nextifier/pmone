@@ -77,8 +77,12 @@ class TicketPurchaseService
     }
 
     /**
-     * Quantity still sellable for a ticket: stock minus committed (confirmed or
-     * still-held pending) order items. Null stock = unlimited.
+     * Quantity still sellable for a ticket: stock minus `sold_count`, which
+     * is the AUTHORITATIVE running counter maintained by the atomic
+     * reserve()/release() calls in createOrder()/expireOrder()/
+     * refundAttendee()/reconfirmAfterExpiry() - not a live SUM over order
+     * rows. Null stock = unlimited. Admin comp batches (bulkGenerate) never
+     * touch `sold_count`, so they stay outside sale stock exactly as before.
      */
     public function availableStock(Ticket $ticket): ?int
     {
@@ -86,11 +90,12 @@ class TicketPurchaseService
             return null;
         }
 
-        return max(0, $ticket->stock - $this->committedQuantity('ticket_id', $ticket->id));
+        return max(0, $ticket->stock - $ticket->sold_count);
     }
 
     /**
-     * Remaining capacity of an add-on session, or null when uncapped.
+     * Remaining capacity of an add-on session, or null when uncapped. Reads
+     * the authoritative `booked_count` counter - see availableStock().
      */
     public function availableSessionCapacity(TicketSession $session): ?int
     {
@@ -98,33 +103,7 @@ class TicketPurchaseService
             return null;
         }
 
-        return max(0, $session->capacity - $this->committedQuantity('ticket_session_id', $session->id));
-    }
-
-    protected function committedQuantity(string $column, int $id): int
-    {
-        return (int) DB::table('ticket_order_items as toi')
-            ->join('ticket_orders as o', 'toi.ticket_order_id', '=', 'o.id')
-            ->where("toi.{$column}", $id)
-            // Admin comp batches (bulkGenerate) are documented as OUTSIDE sale
-            // stock; `source` is a non-nullable string so this excludes them
-            // cleanly with no NULL edge case.
-            ->where('o.source', '!=', 'admin')
-            ->whereNull('toi.deleted_at')
-            ->whereNull('o.deleted_at')
-            ->whereIn('o.status', [
-                TicketOrderStatus::Confirmed->value,
-                // Any still-pending order holds its seat until its status
-                // actually flips (webhook confirms it OR the expiry job/webhook
-                // expires it). The old `payment_expires_at > now()` narrowing
-                // created a soft-expiry gap: the moment the clock lapsed the
-                // seat was released for resale even though the order was still
-                // PendingPayment (the hard-expiry job runs every 15 min), so a
-                // genuine late payment on the first order could land on a seat
-                // already sold to someone else.
-                TicketOrderStatus::PendingPayment->value,
-            ])
-            ->sum('toi.quantity');
+        return max(0, $session->capacity - $session->booked_count);
     }
 
     /**
@@ -375,45 +354,78 @@ class TicketPurchaseService
                 }
             }
 
-            $stockChecked = [];
-            $sessionCapacityChecked = [];
+            $stockReserved = [];
+            $phaseReserved = [];
+            $sessionReserved = [];
+
+            // Every reservation made for an earlier line/ticket in this loop
+            // is tracked here so a later line's rejection can release them
+            // before aborting - otherwise a request that partially succeeds
+            // and then hits a validation failure on a later line would leave
+            // the earlier lines' stock/phase/session counters permanently
+            // held. A genuine insert failure AFTER this loop does not need
+            // this: the surrounding DB::transaction rollback reverts the
+            // reserve UPDATEs too, so manual release is only needed on this
+            // abort-before-commit path.
+            $reservations = [];
+            $fail = function (string $message) use (&$reservations): void {
+                $this->releaseReservations($reservations);
+                abort(422, $message);
+            };
 
             foreach ($items as $idx => $item) {
+                // No lockForUpdate(): the atomic conditional UPDATEs in
+                // reserve() below (not a row lock) are the serialization
+                // point for concurrent buyers of the same ticket, so this
+                // read can run unlocked and in parallel with other buyers.
                 $ticket = Ticket::query()
                     ->where('id', $item['ticket_id'])
                     ->where('event_id', $event->id)
                     ->where('is_active', true)
                     ->where('purchase_type', PurchaseType::FirstParty->value)
                     ->with(['pricePhases', 'validDays'])
-                    ->lockForUpdate()
                     ->first();
 
-                abort_if(! $ticket, 422, "Ticket #{$idx} is invalid or not on sale.");
+                if (! $ticket) {
+                    $fail("Ticket #{$idx} is invalid or not on sale.");
+                }
 
                 // Gated tickets (hidden/code_required) require a valid access code
                 // that unlocks them. Public tickets are unrestricted.
-                if ($ticket->isGated()) {
-                    abort_if(
-                        ! $accessCodeModel || ! $accessCodeModel->unlocksTicket($ticket->id),
-                        422,
-                        "Ticket {$ticket->slug} requires a valid access code.",
-                    );
+                if ($ticket->isGated() && (! $accessCodeModel || ! $accessCodeModel->unlocksTicket($ticket->id))) {
+                    $fail("Ticket {$ticket->slug} requires a valid access code.");
                 }
 
                 $qty = max(1, (int) ($item['quantity'] ?? 1));
-                abort_if($ticket->min_quantity && $qty < $ticket->min_quantity, 422, "Minimum quantity for {$ticket->slug} is {$ticket->min_quantity}.");
-                abort_if($ticket->max_quantity && $requestedByTicket[$ticket->id] > $ticket->max_quantity, 422, "Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
+                if ($ticket->min_quantity && $qty < $ticket->min_quantity) {
+                    $fail("Minimum quantity for {$ticket->slug} is {$ticket->min_quantity}.");
+                }
+                if ($ticket->max_quantity && $requestedByTicket[$ticket->id] > $ticket->max_quantity) {
+                    $fail("Maximum quantity for {$ticket->slug} is {$ticket->max_quantity}.");
+                }
 
                 $phase = $this->resolveActivePhaseForPurchase($ticket, $requestedByTicket[$ticket->id]);
-                abort_if(! $phase, 422, "Ticket {$ticket->slug} is not currently on sale.");
+                if (! $phase) {
+                    $fail("Ticket {$ticket->slug} is not currently on sale.");
+                }
 
-                // Checked once per ticket id (not per line) - the aggregated
-                // requested quantity is the same on every line for this ticket,
-                // so re-checking would just repeat the same comparison.
-                if (! isset($stockChecked[$ticket->id])) {
-                    $available = $this->availableStock($ticket);
-                    abort_if($available !== null && $available < $requestedByTicket[$ticket->id], 422, "Only {$available} left for {$ticket->slug}.");
-                    $stockChecked[$ticket->id] = true;
+                // Reserved once per ticket/phase id (not per line) - the
+                // aggregated requested quantity is the same on every line for
+                // this ticket, so reserving per line would double-count it.
+                if (! isset($stockReserved[$ticket->id])) {
+                    if (! $ticket->reserve($requestedByTicket[$ticket->id])) {
+                        $fail("Only {$this->availableStock($ticket->fresh())} left for {$ticket->slug}.");
+                    }
+                    $stockReserved[$ticket->id] = true;
+                    $reservations[] = ['model' => $ticket, 'qty' => $requestedByTicket[$ticket->id]];
+                }
+
+                if (! isset($phaseReserved[$phase->id])) {
+                    if (! $phase->reserve($requestedByTicket[$ticket->id])) {
+                        $fail("Ticket {$ticket->slug} is not currently on sale.");
+                    }
+                    $phaseReserved[$phase->id] = true;
+                    $reservations[] = ['model' => $phase, 'qty' => $requestedByTicket[$ticket->id]];
                 }
 
                 $session = null;
@@ -422,25 +434,32 @@ class TicketPurchaseService
                         ->where('id', $item['ticket_session_id'])
                         ->where('ticket_id', $ticket->id)
                         ->where('is_active', true)
-                        ->lockForUpdate()
                         ->first();
-                    abort_if(! $session, 422, 'Selected session is invalid for this ticket.');
+                    if (! $session) {
+                        $fail('Selected session is invalid for this ticket.');
+                    }
 
-                    if (! isset($sessionCapacityChecked[$session->id])) {
-                        $sessionLeft = $this->availableSessionCapacity($session);
-                        abort_if($sessionLeft !== null && $sessionLeft < $requestedBySession[$session->id], 422, "Only {$sessionLeft} seats left for the selected session.");
-                        $sessionCapacityChecked[$session->id] = true;
+                    if (! isset($sessionReserved[$session->id])) {
+                        if (! $session->reserve($requestedBySession[$session->id])) {
+                            $fail("Only {$this->availableSessionCapacity($session->fresh())} seats left for the selected session.");
+                        }
+                        $sessionReserved[$session->id] = true;
+                        $reservations[] = ['model' => $session, 'qty' => $requestedBySession[$session->id]];
                     }
                 } elseif ($ticket->isAddOn() && $ticket->sessions->where('is_active', true)->count() > 1) {
-                    abort(422, "Please choose a session for {$ticket->slug}.");
+                    $fail("Please choose a session for {$ticket->slug}.");
                 }
 
                 $selectedDay = null;
                 if ($ticket->offersDaySelection()) {
                     $chosen = $item['selected_event_day_id'] ?? null;
-                    abort_if(! $chosen, 422, "Please choose a day for {$ticket->slug}.");
+                    if (! $chosen) {
+                        $fail("Please choose a day for {$ticket->slug}.");
+                    }
                     $selectedDay = $ticket->validDays->firstWhere('id', (int) $chosen);
-                    abort_if(! $selectedDay, 422, 'Selected day is invalid for this ticket.');
+                    if (! $selectedDay) {
+                        $fail('Selected day is invalid for this ticket.');
+                    }
                 }
 
                 $unit = (float) $phase->price;
@@ -510,11 +529,10 @@ class TicketPurchaseService
                     }
                 }
 
-                $row['ticket']->increment('sold_count', $row['qty']);
-                $row['phase']->increment('sold_count', $row['qty']);
-                if ($row['session']) {
-                    $row['session']->increment('booked_count', $row['qty']);
-                }
+                // sold_count/booked_count are already incremented by the
+                // atomic reserve() calls in the validation loop above (once
+                // per unique ticket/phase/session id, for the full aggregated
+                // quantity) - no further increment needed here.
             }
 
             // Registration answers are per-attendee; at checkout the buyer
@@ -567,6 +585,20 @@ class TicketPurchaseService
         }
 
         return $this->resolvePayment($result['order'], $data, $checkoutClient);
+    }
+
+    /**
+     * Release every reservation recorded by createOrder()'s validation loop,
+     * in insertion order, when a later line fails after earlier lines already
+     * reserved their stock/phase/session counters.
+     *
+     * @param  array<int, array{model: Ticket|TicketPricePhase|TicketSession, qty: int}>  $reservations
+     */
+    protected function releaseReservations(array $reservations): void
+    {
+        foreach ($reservations as $reservation) {
+            $reservation['model']->release($reservation['qty']);
+        }
     }
 
     /**

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -286,6 +287,38 @@ class Ticket extends Model implements HasMedia, Sortable
             ->where('is_active', true)
             ->filter(fn (TicketPricePhase $phase) => $phase->isActiveAt($now))
             ->min('price');
+    }
+
+    /**
+     * Atomically reserve $qty units of stock with a single conditional
+     * UPDATE (no SELECT ... FOR UPDATE): it only succeeds when the current
+     * stock still has room for $qty more, so concurrent buyers of the same
+     * hot ticket serialize on this row-level UPDATE instead of an
+     * application-side lock-then-check. Null stock is unlimited (always
+     * succeeds). Returns whether the reservation was granted.
+     */
+    public function reserve(int $qty): bool
+    {
+        return static::query()
+            ->whereKey($this->id)
+            // Parenthesized: SQL's AND binds tighter than OR, so an
+            // unparenthesized "stock IS NULL OR sold_count + ? <= stock"
+            // combined with the whereKey() above via AND would parse as
+            // "(id = ? AND stock IS NULL) OR (sold_count + ? <= stock)" -
+            // matching (and reserving stock on) every OTHER unlimited-or-
+            // roomy ticket in the table, not just this one.
+            ->whereRaw('(stock IS NULL OR sold_count + ? <= stock)', [$qty])
+            ->update(['sold_count' => DB::raw('sold_count + '.(int) $qty)]) > 0;
+    }
+
+    /**
+     * Guarded release of a previously reserved $qty: the `sold_count >= $qty`
+     * condition means a redundant or out-of-order release call is a no-op
+     * rather than driving the counter negative.
+     */
+    public function release(int $qty): void
+    {
+        static::query()->whereKey($this->id)->where('sold_count', '>=', $qty)->decrement('sold_count', $qty);
     }
 
     public function event(): BelongsTo

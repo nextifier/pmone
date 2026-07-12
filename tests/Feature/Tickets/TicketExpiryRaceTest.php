@@ -30,6 +30,12 @@ beforeEach(function () {
 });
 
 // ─── Hazard B (Step 1): unify the availability clock ─────────────────────
+//
+// Plan 016 made `sold_count` the AUTHORITATIVE counter for availableStock()
+// (an atomic reserve()/release() pair, not a live SUM over order rows), so
+// these two cases now set `sold_count` explicitly to the reservation a real
+// createOrder() call would have made for this order, rather than relying on
+// a SUM query to infer it from the order row alone.
 
 it('still counts a time-expired but not-yet-flipped pending order as holding its seat (no oversell)', function () {
     $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => 1]);
@@ -42,7 +48,12 @@ it('still counts a time-expired but not-yet-flipped pending order as holding its
         'payment_expires_at' => now()->subMinute(),
     ]);
     $order->items()->create(['ticket_id' => $ticket->id, 'quantity' => 1, 'unit_price' => 0, 'subtotal' => 0]);
+    $ticket->increment('sold_count', 1);
 
+    // The counter has no notion of the order's clock at all - it only
+    // changes on an explicit reserve/release call - so a still-PendingPayment
+    // order holds its seat regardless of how stale `payment_expires_at` is,
+    // exactly as it did under the old soft-clock-immune SUM read.
     expect($this->service->availableStock($ticket->fresh()))->toBe(0);
 });
 
@@ -55,6 +66,7 @@ it('still frees the seat once the order actually flips to Expired', function () 
         'payment_expires_at' => now()->subMinute(),
     ]);
     $order->items()->create(['ticket_id' => $ticket->id, 'quantity' => 1, 'unit_price' => 0, 'subtotal' => 0]);
+    $ticket->increment('sold_count', 1);
 
     $this->service->expireOrder($order);
 
