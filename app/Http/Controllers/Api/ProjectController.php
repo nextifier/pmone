@@ -579,6 +579,12 @@ class ProjectController extends Controller
                     return;
                 }
 
+                if (array_key_exists('hidden', $item) && ! is_bool($item['hidden'])) {
+                    $fail("{$attribute}.{$index}.hidden must be a boolean.");
+
+                    return;
+                }
+
                 if (array_key_exists('links', $item)) {
                     if (! is_array($item['links']) || empty($item['links'])) {
                         $fail("{$attribute}.{$index}.links must be a non-empty array.");
@@ -591,6 +597,12 @@ class ProjectController extends Controller
                             || ! $this->isValidNavLabel($link['label'] ?? null)
                             || ! $this->isValidNavPath($link['path'] ?? null)) {
                             $fail("{$attribute}.{$index}.links.{$linkIndex} must have a label and a valid path.");
+
+                            return;
+                        }
+
+                        if (array_key_exists('hidden', $link) && ! is_bool($link['hidden'])) {
+                            $fail("{$attribute}.{$index}.links.{$linkIndex}.hidden must be a boolean.");
 
                             return;
                         }

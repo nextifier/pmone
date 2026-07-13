@@ -32,13 +32,22 @@
         />
 
         <div
-          class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg"
+          class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg transition-opacity"
+          :class="{ 'opacity-40': item.hidden }"
         >
           <Icon :name="isGroup(item) ? 'hugeicons:folder-01' : 'hugeicons:link-01'" class="size-4" />
         </div>
 
-        <div class="min-w-0 flex-1">
-          <span class="truncate text-sm font-medium tracking-tight">{{ item.label || "Untitled" }}</span>
+        <div class="min-w-0 flex-1 transition-opacity" :class="{ 'opacity-40': item.hidden }">
+          <div class="flex items-center gap-2">
+            <span class="truncate text-sm font-medium tracking-tight">{{ item.label || "Untitled" }}</span>
+            <span
+              v-if="item.hidden"
+              class="bg-muted text-muted-foreground shrink-0 rounded-full px-2 py-0.5 text-xs font-medium tracking-tight"
+            >
+              Hidden
+            </span>
+          </div>
           <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
             {{
               isGroup(item)
@@ -49,6 +58,15 @@
         </div>
 
         <div class="flex shrink-0 items-center gap-1">
+          <Button
+            variant="ghost"
+            size="iconSm"
+            type="button"
+            v-tippy="item.hidden ? 'Show' : 'Hide'"
+            @click="toggleHidden(item)"
+          >
+            <Icon :name="item.hidden ? 'lucide:eye-off' : 'lucide:eye'" class="size-4" />
+          </Button>
           <Button
             variant="ghost"
             size="iconSm"
@@ -119,10 +137,23 @@
                   :key="link._key"
                   class="flex items-start gap-x-2"
                 >
-                  <div class="grid flex-1 grid-cols-1 gap-x-2 gap-y-2 sm:grid-cols-2">
+                  <div
+                    class="grid flex-1 grid-cols-1 gap-x-2 gap-y-2 transition-opacity sm:grid-cols-2"
+                    :class="{ 'opacity-40': link.hidden }"
+                  >
                     <Input v-model="link.label" placeholder="Label" />
                     <Input v-model="link.path" placeholder="/path, #anchor, or https://..." />
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="iconSm"
+                    type="button"
+                    class="shrink-0"
+                    v-tippy="link.hidden ? 'Show' : 'Hide'"
+                    @click="link.hidden = !link.hidden"
+                  >
+                    <Icon :name="link.hidden ? 'lucide:eye-off' : 'lucide:eye'" class="size-4" />
+                  </Button>
                   <Button
                     variant="ghost"
                     size="iconSm"
@@ -253,7 +284,12 @@ const openEditDialog = (item) => {
       type: "group",
       label: item.label,
       path: "",
-      links: item.links.map((l) => ({ _key: l._key || nextKey(), label: l.label, path: l.path })),
+      links: item.links.map((l) => ({
+        _key: l._key || nextKey(),
+        label: l.label,
+        path: l.path,
+        hidden: l.hidden ?? false,
+      })),
     });
   } else {
     Object.assign(form, {
@@ -277,9 +313,18 @@ const handleSubmit = () => {
     return;
   }
 
+  // Preserve the item's visibility flag across edits so hiding then editing an
+  // item does not silently re-show it.
+  const hiddenFlag = editing.value?.hidden ? { hidden: true } : {};
+
   if (form.type === "group") {
     const cleanLinks = form.links
-      .map((l) => ({ _key: l._key, label: String(l.label ?? "").trim(), path: String(l.path ?? "").trim() }))
+      .map((l) => ({
+        _key: l._key,
+        label: String(l.label ?? "").trim(),
+        path: String(l.path ?? "").trim(),
+        ...(l.hidden ? { hidden: true } : {}),
+      }))
       .filter((l) => l.label || l.path);
 
     if (!cleanLinks.length) {
@@ -293,7 +338,7 @@ const handleSubmit = () => {
       return;
     }
 
-    saveItem({ _key: editing.value?._key || nextKey(), label, links: cleanLinks });
+    saveItem({ _key: editing.value?._key || nextKey(), label, links: cleanLinks, ...hiddenFlag });
   } else {
     const path = String(form.path ?? "").trim();
     if (!NAV_PATH_PATTERN.test(path)) {
@@ -301,7 +346,7 @@ const handleSubmit = () => {
       return;
     }
 
-    saveItem({ _key: editing.value?._key || nextKey(), label, path });
+    saveItem({ _key: editing.value?._key || nextKey(), label, path, ...hiddenFlag });
   }
 };
 
@@ -332,6 +377,19 @@ const handleDelete = () => {
   commit();
   deleteDialogOpen.value = false;
   toast.success("Item removed");
+};
+
+// Temporarily hide an item from the public site without deleting it. The
+// `hidden` flag rides along on the stored nav entry (the event website filters
+// it out in useDynamicHeaderRoutes); absence means visible.
+const toggleHidden = (item) => {
+  const index = localItems.value.findIndex((i) => i._key === item._key);
+  if (index === -1) return;
+  const target = localItems.value[index];
+  const nextHidden = !target.hidden;
+  localItems.value.splice(index, 1, { ...target, hidden: nextHidden });
+  commit();
+  toast.success(nextHidden ? "Item hidden" : "Item shown");
 };
 
 // --- Drag reorder (client-side only; the parent form auto-saves the whole

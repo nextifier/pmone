@@ -131,6 +131,48 @@ test('saving site_config.nav returns it verbatim in the public payload', functio
         ->assertJsonPath('data.settings.site_config.nav.footer.1.path', 'https://register.example.com');
 });
 
+test('saving nav items with hidden flags persists and returns them verbatim', function () {
+    $nav = [
+        'header' => [
+            ['label' => 'Home', 'path' => '/'],
+            ['label' => 'Tickets', 'path' => '/tickets', 'hidden' => true],
+            [
+                'label' => 'About',
+                'links' => [
+                    ['label' => 'Programs', 'path' => '/programs'],
+                    ['label' => 'Guests', 'path' => '/guests', 'hidden' => true],
+                ],
+            ],
+        ],
+        'dialog' => [],
+        'footer' => [],
+    ];
+
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, ['site_config' => ['nav' => $nav]])
+        ->assertSuccessful();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_site_config'])
+        ->getJson($this->endpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.site_config.nav.header.1.hidden', true)
+        ->assertJsonPath('data.settings.site_config.nav.header.2.links.1.hidden', true);
+});
+
+test('rejects a non-boolean nav hidden flag', function () {
+    $this->actingAs($this->admin)
+        ->patchJson($this->writeEndpoint, [
+            'site_config' => [
+                'nav' => [
+                    'header' => [
+                        ['label' => 'Home', 'path' => '/', 'hidden' => 'yes'],
+                    ],
+                ],
+            ],
+        ])
+        ->assertStatus(422);
+});
+
 test('saving a shorter nav.header array wholesale-replaces instead of resurrecting trailing items', function () {
     $this->actingAs($this->admin)->patchJson($this->writeEndpoint, [
         'site_config' => [
