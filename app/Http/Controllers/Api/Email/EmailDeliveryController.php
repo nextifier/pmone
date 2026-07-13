@@ -6,21 +6,22 @@ use App\Enums\EmailEventType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Email\EmailMessageResource;
 use App\Http\Resources\Email\EmailSuppressionResource;
+use App\Models\EmailEvent;
 use App\Models\EmailMessage;
 use App\Models\EmailSuppression;
-use App\Services\Ses\SesAccountService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Carbon;
 
 class EmailDeliveryController extends Controller
 {
-    public function __construct(private readonly SesAccountService $ses) {}
-
     /**
-     * Quota comes from AWS; everything else is counted from our own tables,
-     * which stay accurate even when the SES API is unreachable.
+     * Every figure is counted from our own tables, so the dashboard never
+     * depends on a provider API being reachable. Delivery outcomes come from the
+     * message status; opens and clicks come from the event log, because a
+     * delivered-then-opened message keeps its higher-ranked "delivery" status.
      */
     public function overview(): JsonResponse
     {
@@ -33,26 +34,94 @@ class EmailDeliveryController extends Controller
             ->pluck('total', 'status');
 
         $sent = (int) $counts->sum();
+        $delivered = (int) $counts->get(EmailEventType::Delivery->value, 0);
         $bounced = (int) $counts->get(EmailEventType::Bounce->value, 0);
         $complained = (int) $counts->get(EmailEventType::Complaint->value, 0);
 
+        $engagement = EmailEvent::query()
+            ->where('occurred_at', '>=', $since)
+            ->whereIn('type', [EmailEventType::Open, EmailEventType::Click])
+            ->selectRaw('type, count(distinct message_id) as total')
+            ->groupBy('type')
+            ->pluck('total', 'type');
+
+        $opened = (int) $engagement->get(EmailEventType::Open->value, 0);
+        $clicked = (int) $engagement->get(EmailEventType::Click->value, 0);
+
         return response()->json([
             'data' => [
-                'quota' => $this->ses->quota(),
-                'daily_statistics' => $this->ses->dailyStatistics(),
                 'last_30_days' => [
                     'sent' => $sent,
-                    'delivered' => (int) $counts->get(EmailEventType::Delivery->value, 0),
+                    'delivered' => $delivered,
                     'bounced' => $bounced,
                     'complained' => $complained,
-                    // AWS suspends accounts above 5% bounces or 0.1% complaints,
-                    // so these two ratios are the numbers that actually matter.
-                    'bounce_rate' => $sent > 0 ? round($bounced / $sent * 100, 2) : 0.0,
-                    'complaint_rate' => $sent > 0 ? round($complained / $sent * 100, 2) : 0.0,
+                    'opened' => $opened,
+                    'clicked' => $clicked,
+                    'delivery_rate' => $this->rate($delivered, $sent),
+                    // Deliverability is judged against everything sent; engagement
+                    // against what actually reached a mailbox.
+                    'bounce_rate' => $this->rate($bounced, $sent),
+                    'complaint_rate' => $this->rate($complained, $sent),
+                    'open_rate' => $this->rate($opened, $delivered),
+                    'click_rate' => $this->rate($clicked, $delivered),
                 ],
+                'daily' => $this->dailyTrend($since),
                 'suppressed_total' => EmailSuppression::query()->count(),
             ],
         ]);
+    }
+
+    private function rate(int $part, int $whole): float
+    {
+        return $whole > 0 ? round($part / $whole * 100, 2) : 0.0;
+    }
+
+    /**
+     * A continuous 30-day series for the trend chart: sends keyed by the day the
+     * message left, deliveries and opens keyed by the day the event landed. Days
+     * with no activity are filled with zeros so the x-axis never has gaps.
+     *
+     * @return list<array{date: string, sent: int, delivered: int, opened: int}>
+     */
+    private function dailyTrend(Carbon $since): array
+    {
+        $sentByDay = EmailMessage::query()
+            ->where('sent_at', '>=', $since)
+            ->selectRaw('date(sent_at) as day, count(*) as total')
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        $delivered = [];
+        $opened = [];
+
+        EmailEvent::query()
+            ->where('occurred_at', '>=', $since)
+            ->whereIn('type', [EmailEventType::Delivery, EmailEventType::Open])
+            ->selectRaw('date(occurred_at) as day, type, count(distinct message_id) as total')
+            ->groupBy('day', 'type')
+            ->get()
+            ->each(function ($row) use (&$delivered, &$opened) {
+                if ($row->type === EmailEventType::Delivery) {
+                    $delivered[$row->day] = (int) $row->total;
+                } elseif ($row->type === EmailEventType::Open) {
+                    $opened[$row->day] = (int) $row->total;
+                }
+            });
+
+        $series = [];
+
+        for ($daysAgo = 29; $daysAgo >= 0; $daysAgo--) {
+            $day = now()->subDays($daysAgo)->toDateString();
+
+            $series[] = [
+                'date' => $day,
+                'sent' => (int) ($sentByDay[$day] ?? 0),
+                'delivered' => $delivered[$day] ?? 0,
+                'opened' => $opened[$day] ?? 0,
+            ];
+        }
+
+        return $series;
     }
 
     public function messages(Request $request): AnonymousResourceCollection

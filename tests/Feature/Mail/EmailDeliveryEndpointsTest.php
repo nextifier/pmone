@@ -5,7 +5,6 @@ use App\Models\EmailEvent;
 use App\Models\EmailMessage;
 use App\Models\EmailSuppression;
 use App\Models\User;
-use App\Services\Ses\SesAccountService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 
@@ -21,21 +20,6 @@ beforeEach(function () {
 
     $this->manager = User::factory()->create(['email_verified_at' => now()]);
     $this->manager->givePermissionTo(['emails.view', 'emails.manage_suppressions']);
-
-    // The AWS calls are the service's business, not this endpoint's.
-    $this->mock(SesAccountService::class, function ($mock) {
-        $mock->shouldReceive('quota')->andReturn([
-            'max_24_hour_send' => 200.0,
-            'sent_last_24_hours' => 12.0,
-            'max_send_rate' => 1.0,
-            'production_access' => false,
-            'enforcement_status' => 'HEALTHY',
-            'available' => true,
-        ]);
-        $mock->shouldReceive('dailyStatistics')->andReturn([
-            ['date' => '2026-07-08', 'sends' => 10, 'bounces' => 1, 'complaints' => 0, 'rejects' => 0],
-        ]);
-    });
 });
 
 it('refuses an unauthenticated request', function () {
@@ -48,22 +32,35 @@ it('refuses a user without the emails.view permission', function () {
     $this->actingAs($stranger)->getJson('/api/email-delivery/overview')->assertForbidden();
 });
 
-it('reports quota alongside counters drawn from our own tables', function () {
-    EmailMessage::factory()->count(3)->create();
+it('reports delivery counters and rates drawn from our own tables', function () {
+    EmailMessage::factory()->count(2)->create();
+    $delivered = EmailMessage::factory()->delivered()->create();
     EmailMessage::factory()->bounced()->create();
     EmailSuppression::factory()->create();
+
+    // A delivered message that was also opened keeps its "delivery" status, so
+    // the open can only be counted from the event log.
+    EmailEvent::factory()->create([
+        'message_id' => $delivered->message_id,
+        'type' => EmailEventType::Open,
+        'occurred_at' => now(),
+    ]);
 
     $response = $this->actingAs($this->viewer)->getJson('/api/email-delivery/overview')->assertOk();
 
     $data = $response->json('data');
 
-    expect($data['quota']['max_24_hour_send'])->toBe(200)
-        ->and($data['quota']['production_access'])->toBeFalse()
-        ->and($data['last_30_days']['sent'])->toBe(4)
+    expect($data['last_30_days']['sent'])->toBe(4)
+        ->and($data['last_30_days']['delivered'])->toBe(1)
         ->and($data['last_30_days']['bounced'])->toBe(1)
+        ->and($data['last_30_days']['opened'])->toBe(1)
         // JSON has no float/int distinction, so 25.0 arrives as 25.
         ->and($data['last_30_days']['bounce_rate'])->toEqual(25.0)
-        ->and($data['suppressed_total'])->toBe(1);
+        // Opens are rated against what was delivered, not everything sent.
+        ->and($data['last_30_days']['open_rate'])->toEqual(100.0)
+        ->and($data['suppressed_total'])->toBe(1)
+        ->and($data['daily'])->toHaveCount(30)
+        ->and($data)->not->toHaveKey('quota');
 });
 
 it('lists messages newest first', function () {

@@ -12,7 +12,7 @@ const brand = brands[brandId as keyof typeof brands];
 
 if (!brand) {
   throw new Error(
-    `Unknown BRAND "${brandId}". Registered brands: ${Object.keys(brands).join(", ")}`,
+    `Unknown BRAND "${brandId}". Registered brands: ${Object.keys(brands).join(", ")}`
   );
 }
 
@@ -88,8 +88,11 @@ export default defineNuxtConfig({
 
     // Public keys that are exposed to the client
     public: {
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || (isProduction ? brand.siteUrl : "http://localhost:3000"),
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || (isProduction ? brand.apiUrl : "http://localhost:8000"),
+      siteUrl:
+        process.env.NUXT_PUBLIC_SITE_URL ||
+        (isProduction ? brand.siteUrl : "http://localhost:3000"),
+      apiUrl:
+        process.env.NUXT_PUBLIC_API_URL || (isProduction ? brand.apiUrl : "http://localhost:8000"),
       blogUsernames: "", // Empty string means show all posts (no author filter)
     },
   },
@@ -328,8 +331,18 @@ export default defineNuxtConfig({
       { name: "Space Grotesk", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
       { name: "Outfit", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
       { name: "Geist Mono", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
-      { name: "JetBrains Mono", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
-      { name: "Playfair Display", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
+      {
+        name: "JetBrains Mono",
+        provider: "google",
+        weights: [400, 500, 600, 700],
+        display: "swap",
+      },
+      {
+        name: "Playfair Display",
+        provider: "google",
+        weights: [400, 500, 600, 700],
+        display: "swap",
+      },
       { name: "Lora", provider: "google", weights: [400, 500, 600, 700], display: "swap" },
     ],
   },
@@ -342,7 +355,10 @@ export default defineNuxtConfig({
     // "svg" + installed @iconify-json collections, icons are resolved
     // server-side (inlined into SSR HTML) and fetched from the bundled icon API
     // on client navigation, so they keep rendering with no scan/bundle cost.
-    clientBundle: false,
+    // clientBundle: false,
+    clientBundle: {
+      scan: true,
+    },
   },
 
   shadcn: {
@@ -379,7 +395,8 @@ export default defineNuxtConfig({
 
   site: {
     name: brand.name,
-    url: process.env.NUXT_PUBLIC_SITE_URL || (isProduction ? brand.siteUrl : "http://localhost:3000"),
+    url:
+      process.env.NUXT_PUBLIC_SITE_URL || (isProduction ? brand.siteUrl : "http://localhost:3000"),
   },
 
   ogImage: {

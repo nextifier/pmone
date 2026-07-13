@@ -34,6 +34,26 @@ enum EmailEventType: string
         };
     }
 
+    /**
+     * Maps a Resend webhook "type" (e.g. "email.bounced") onto our own event
+     * vocabulary. Resend types this application does not track (scheduled,
+     * received, suppressed, and the domain/contact events) return null.
+     */
+    public static function fromResend(string $type): ?self
+    {
+        return match ($type) {
+            'email.sent' => self::Send,
+            'email.delivered' => self::Delivery,
+            'email.delivery_delayed' => self::DeliveryDelay,
+            'email.bounced' => self::Bounce,
+            'email.complained' => self::Complaint,
+            'email.opened' => self::Open,
+            'email.clicked' => self::Click,
+            'email.failed' => self::Reject,
+            default => null,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {

@@ -40,6 +40,23 @@ function dispatchSentMessage(?string $sesMessageId, string $to = 'visitor@exampl
     event(new MessageSent(sentMessageFor($email, $to)));
 }
 
+/**
+ * The Resend transport writes the Resend email id into this header after the API
+ * accepts the message, mirroring what SesV2Transport does for SES.
+ */
+function dispatchResendMessage(string $resendId, string $to = 'visitor@example.com'): void
+{
+    $email = (new Email)
+        ->from('noreply@pmone.id')
+        ->to($to)
+        ->subject('Your e-ticket')
+        ->text('Attached.');
+
+    $email->getHeaders()->addTextHeader('X-Resend-Email-ID', $resendId);
+
+    event(new MessageSent(sentMessageFor($email, $to)));
+}
+
 it('records a message that SES accepted', function () {
     dispatchSentMessage('ses-message-id-1');
 
@@ -52,7 +69,18 @@ it('records a message that SES accepted', function () {
         ->and($message->status)->toBe(EmailEventType::Send);
 });
 
-it('records nothing when the mailer is not SES', function () {
+it('records a message that Resend accepted, untagged by any SES config set', function () {
+    dispatchResendMessage('re_listener_test');
+
+    $message = EmailMessage::query()->sole();
+
+    expect($message->message_id)->toBe('re_listener_test')
+        ->and($message->recipients)->toBe(['visitor@example.com'])
+        ->and($message->status)->toBe(EmailEventType::Send)
+        ->and($message->configuration_set)->toBeNull();
+});
+
+it('records nothing when the mailer sets no tracking header', function () {
     dispatchSentMessage(null);
 
     expect(EmailMessage::count())->toBe(0);

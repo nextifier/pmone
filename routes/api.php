@@ -109,6 +109,7 @@ use App\Http\Controllers\Api\UserImpersonationController;
 use App\Http\Controllers\Api\UserNoteController;
 use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
+use App\Http\Controllers\Api\Webhook\ResendWebhookController;
 use App\Http\Controllers\Api\Webhook\SesNotificationController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\Api\WebsiteCopyController;
@@ -1770,3 +1771,8 @@ Route::post('/webhooks/midtrans/{segment}', [MidtransWebhookController::class, '
 // parsed request body.
 Route::post('/webhooks/ses', SesNotificationController::class)
     ->name('webhooks.ses');
+
+// Resend delivery events (no auth - the Svix signature is verified inside the
+// controller against RESEND_WEBHOOK_SECRET).
+Route::post('/webhooks/resend', ResendWebhookController::class)
+    ->name('webhooks.resend');

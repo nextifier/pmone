@@ -52,7 +52,7 @@
               </dl>
 
               <p class="text-muted-foreground -mt-3 text-sm tracking-tight">
-                Lewat salah satu angka itu, Amazon bisa membekukan akun SES.
+                Lewat salah satu angka itu, Resend bisa membekukan akun pengiriman.
               </p>
 
               <div class="divide-y text-sm">
@@ -65,7 +65,7 @@
                   </p>
                   <p class="text-muted-foreground tracking-tight">
                     Complaint berarti emailnya sampai, tapi penerimanya menekan tombol Report spam.
-                    Gmail lalu melapor ke Amazon bahwa orang ini tidak mau menerima email itu.
+                    Gmail lalu melapor ke Resend bahwa orang ini tidak mau menerima email itu.
                   </p>
                 </section>
 
@@ -79,7 +79,7 @@
                   </p>
                   <p class="text-muted-foreground tracking-tight">
                     Spammer menembak ribuan alamat asal-asalan. Kalau email terus dikirim ke alamat
-                    yang jelas sudah mati, Gmail dan Amazon menganggap daftar kontaknya tidak
+                    yang jelas sudah mati, Gmail dan Resend menganggap daftar kontaknya tidak
                     dirawat. Reputasi turun, lalu email yang sah pun mulai mendarat di spam folder.
                   </p>
                 </section>
@@ -87,26 +87,26 @@
                 <section class="space-y-2 py-5 first:pt-0 last:pb-0">
                   <h3 class="font-medium tracking-tight">Cara suppression list melindungi akun</h3>
                   <p class="text-muted-foreground tracking-tight">
-                    Misalnya email dikirim ke budi@contoh.com. Alamatnya mati, Amazon memantulkannya,
-                    lalu mengabarkannya lewat webhook. Alamat itu masuk suppression list. Berikutnya,
-                    saat ada yang mencoba mengirim ke sana, pengirimannya dibatalkan sebelum email
-                    itu sampai ke Amazon.
+                    Misalnya email dikirim ke budi@contoh.com. Alamatnya mati, penyedia email
+                    memantulkannya, lalu Resend mengabarkannya lewat webhook. Alamat itu masuk
+                    suppression list. Berikutnya, saat ada yang mencoba mengirim ke sana,
+                    pengirimannya dibatalkan sebelum email itu sampai ke Resend.
                   </p>
                   <p class="text-muted-foreground tracking-tight">
                     Satu bounce cukup dicatat sekali, bukan memantul seratus kali.
                   </p>
                   <p class="text-muted-foreground tracking-tight">
-                    Tidak semua bounce masuk daftar. Bounce sementara seperti mailbox penuh dibiarkan
-                    lewat, karena mailbox penuh bukan berarti alamatnya mati. Hanya bounce permanen
-                    yang dicatat.
+                    Tidak semua bounce masuk daftar. Bounce sementara seperti mailbox penuh
+                    dibiarkan lewat, karena mailbox penuh bukan berarti alamatnya mati. Hanya bounce
+                    permanen yang dicatat.
                   </p>
                 </section>
 
                 <section class="space-y-2 py-5 first:pt-0 last:pb-0">
                   <h3 class="font-medium tracking-tight">Kalau mau menghapus alamat dari daftar</h3>
                   <p class="text-muted-foreground tracking-tight">
-                    Alamat yang masuk daftar karena kesalahan, misalnya mailbox-nya sempat penuh lalu
-                    sudah dibereskan, bisa dihapus lewat tombol di tab Suppressions.
+                    Alamat yang masuk daftar karena kesalahan, misalnya mailbox-nya sempat penuh
+                    lalu sudah dibereskan, bisa dihapus lewat tombol di tab Suppressions.
                   </p>
                 </section>
               </div>
@@ -119,10 +119,10 @@
                 <div class="space-y-1 text-sm">
                   <p class="font-medium tracking-tight">Daftarnya ada di dua tempat</p>
                   <p class="text-muted-foreground tracking-tight">
-                    Yang terhapus cuma daftar di aplikasi ini. Amazon menyimpan daftarnya sendiri di
+                    Yang terhapus cuma daftar di aplikasi ini. Resend menyimpan daftarnya sendiri di
                     level akun, dan halaman ini tidak menyentuhnya. Kalau setelah dihapus email ke
-                    alamat itu tetap tidak sampai, berarti alamatnya masih tertahan di sisi Amazon
-                    dan harus dibersihkan dari konsol AWS.
+                    alamat itu tetap tidak sampai, berarti alamatnya masih tertahan di sisi Resend
+                    dan harus dibersihkan dari dashboard Resend.
                   </p>
                 </div>
               </div>
@@ -132,27 +132,6 @@
       </div>
     </div>
 
-    <Alert
-      v-if="quota && !quota.production_access"
-      class="bg-warning/10 border-warning/20 text-warning-foreground"
-    >
-      <Icon name="hugeicons:alert-02" />
-      <AlertTitle class="tracking-tight">Your SES account is still in the sandbox</AlertTitle>
-      <AlertDescription class="text-warning-foreground/90 tracking-tight">
-        Only verified addresses can receive mail, and the daily quota stays at
-        {{ formatNumber(quota.max_24_hour_send) }}. Production access is pending review by AWS.
-      </AlertDescription>
-    </Alert>
-
-    <Alert v-if="quota && !quota.available" class="bg-info/10 border-info/20 text-info-foreground">
-      <Icon name="hugeicons:information-circle" />
-      <AlertTitle class="tracking-tight">Sending quota is unavailable</AlertTitle>
-      <AlertDescription class="text-info-foreground/90 tracking-tight">
-        The SES API could not be reached. The counts below are drawn from this application's own
-        records and remain accurate.
-      </AlertDescription>
-    </Alert>
-
     <section
       class="t-panel-slide space-y-3"
       :data-open="revealed"
@@ -161,16 +140,14 @@
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-x-2">
           <Icon name="hugeicons:chart-line-data-02" class="text-muted-foreground size-4 shrink-0" />
-          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Overview</h2>
+          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Last 30 days</h2>
         </div>
-        <Badge v-if="quota?.enforcement_status" :variant="enforcementVariant" plain>
-          {{ quota.enforcement_status }}
-        </Badge>
+        <Badge v-if="last30" :variant="health.variant" plain>{{ health.label }}</Badge>
       </div>
 
-      <GridFill :count="5" min-col-width="210px" rounded="xl">
+      <GridFill :count="6" min-col-width="180px" rounded="xl">
         <template v-if="overviewPending">
-          <div v-for="i in 5" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
+          <div v-for="i in 6" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
             <Skeleton class="size-5 rounded" />
             <div class="space-y-1.5">
               <Skeleton class="h-3.5 w-20" />
@@ -181,69 +158,55 @@
         </template>
 
         <template v-else>
-          <div class="flex flex-col items-center justify-center gap-y-1 p-4">
-            <ChartSemiCircle
-              :value="quota?.sent_last_24_hours ?? 0"
-              :max="Math.max(quota?.max_24_hour_send ?? 0, 1)"
-              :center-label="`${quotaPercent}% of daily quota`"
-              show-max
-              :animate-value="true"
-              class="w-full max-w-47.5"
-            />
-          </div>
-
-          <div class="flex flex-col items-start gap-y-2 p-4 sm:p-5">
-            <Icon name="hugeicons:mail-01" class="size-5 text-violet-500" />
+          <div
+            v-for="stat in stats"
+            :key="stat.key"
+            class="flex flex-col items-start gap-y-2 p-4 sm:p-5"
+          >
+            <Icon :name="stat.icon" class="size-5" :class="stat.color" />
             <div class="min-w-0">
-              <span class="text-foreground text-sm font-medium tracking-tight">Sent</span>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Last 30 days</p>
-            </div>
-            <NumberFlow :class="statValueClass" :value="last30?.sent ?? 0" locales="en-US" />
-          </div>
-
-          <div class="flex flex-col items-start gap-y-2 p-4 sm:p-5">
-            <Icon name="hugeicons:checkmark-circle-02" class="size-5 text-emerald-500" />
-            <div class="min-w-0">
-              <span class="text-foreground text-sm font-medium tracking-tight">Delivered</span>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                Accepted by the mailbox
+              <span class="text-foreground text-sm font-medium tracking-tight">{{
+                stat.label
+              }}</span>
+              <p class="text-xs tracking-tight sm:text-sm" :class="stat.captionClass">
+                {{ stat.caption }}
               </p>
             </div>
-            <NumberFlow :class="statValueClass" :value="last30?.delivered ?? 0" locales="en-US" />
-          </div>
-
-          <div class="flex flex-col items-start gap-y-2 p-4 sm:p-5">
-            <Icon name="hugeicons:cancel-circle" class="size-5 text-rose-500" />
-            <div class="min-w-0">
-              <span class="text-foreground text-sm font-medium tracking-tight">Bounced</span>
-              <p
-                class="text-xs tracking-tight sm:text-sm"
-                :class="bounceVariant === 'success' ? 'text-muted-foreground' : 'text-destructive'"
-              >
-                {{ formatRate(last30?.bounce_rate) }} of sent, limit 5%
-              </p>
-            </div>
-            <NumberFlow :class="statValueClass" :value="last30?.bounced ?? 0" locales="en-US" />
-          </div>
-
-          <div class="flex flex-col items-start gap-y-2 p-4 sm:p-5">
-            <Icon name="hugeicons:alert-02" class="size-5 text-amber-500" />
-            <div class="min-w-0">
-              <span class="text-foreground text-sm font-medium tracking-tight">Complaints</span>
-              <p
-                class="text-xs tracking-tight sm:text-sm"
-                :class="
-                  complaintVariant === 'success' ? 'text-muted-foreground' : 'text-destructive'
-                "
-              >
-                {{ formatRate(last30?.complaint_rate) }} of sent, limit 0.1%
-              </p>
-            </div>
-            <NumberFlow :class="statValueClass" :value="last30?.complained ?? 0" locales="en-US" />
+            <NumberFlow :class="statValueClass" :value="stat.value" locales="en-US" />
           </div>
         </template>
       </GridFill>
     </section>
+
+    <!-- Client-only: the chart pulls a Vue useId, and the lazy overview fetch
+         resolves into the client payload but not the server render, so letting it
+         render during hydration shifts every id after it (the Tabs mismatch). -->
+    <ClientOnly>
+      <section
+        v-if="hasTrend"
+        class="t-panel-slide space-y-3"
+        :data-open="revealed"
+        :style="{ '--panel-translate-y': '16px' }"
+      >
+        <div class="flex items-center gap-x-2">
+          <Icon name="hugeicons:analytics-up" class="text-muted-foreground size-4 shrink-0" />
+          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Activity</h2>
+        </div>
+
+        <div class="rounded-xl border p-4 sm:p-5">
+          <ChartArea
+            :data="trendData"
+            :config="trendConfig"
+            :data-keys="trendKeys"
+            x-key="date"
+            :x-tick-formatter="formatTrendDate"
+            legend
+            grid
+            class="h-64! w-full"
+          />
+        </div>
+      </section>
+    </ClientOnly>
 
     <Tabs v-model="activeTab" variant="segmented" class="flex flex-col gap-4">
       <TabsList>
@@ -404,7 +367,6 @@
       </TabsContent>
     </Tabs>
 
-
     <DialogResponsive v-model:open="detailOpen" dialog-max-width="640px">
       <template #default>
         <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
@@ -443,7 +405,7 @@
                   </EmptyMedia>
                   <EmptyTitle>No events yet</EmptyTitle>
                   <EmptyDescription>
-                    SES has not reported anything for this message beyond acceptance.
+                    Nothing has been reported for this message beyond acceptance.
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -485,7 +447,7 @@
             <p class="text-muted-foreground text-sm tracking-tight">
               Sending to
               <span class="text-foreground">{{ removeTarget?.email }}</span>
-              will resume. This does not clear the address from Amazon's own account-level
+              will resume. This does not clear the address from Resend's own account-level
               suppression list.
             </p>
           </div>
@@ -507,7 +469,6 @@
 
 <script setup>
 import SuppressionRowActions from "@/components/email/SuppressionRowActions.vue";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -593,21 +554,12 @@ const {
   key: "email-delivery-overview",
 });
 
-const quota = computed(() => overviewResponse.value?.data?.quota ?? null);
 const last30 = computed(() => overviewResponse.value?.data?.last_30_days ?? null);
 const suppressedTotal = computed(() => overviewResponse.value?.data?.suppressed_total ?? 0);
+const daily = computed(() => overviewResponse.value?.data?.daily ?? []);
 
-const enforcementVariant = computed(() =>
-  quota.value?.enforcement_status === "HEALTHY" ? "success" : "destructive",
-);
-
-const quotaPercent = computed(() => {
-  const max = quota.value?.max_24_hour_send ?? 0;
-  if (max <= 0) return 0;
-  return Math.round(((quota.value?.sent_last_24_hours ?? 0) / max) * 100);
-});
-
-// AWS suspends an account above 5% bounces, and warns well before that.
+// Bounce and complaint rates are the two numbers a provider suspends an account
+// over, so both the badge and the two red captions read straight off them.
 const bounceVariant = computed(() => {
   const rate = last30.value?.bounce_rate ?? 0;
   if (rate >= 5) return "destructive";
@@ -622,8 +574,100 @@ const complaintVariant = computed(() => {
   return "success";
 });
 
+const health = computed(() => {
+  const bounce = last30.value?.bounce_rate ?? 0;
+  const complaint = last30.value?.complaint_rate ?? 0;
+  if (bounce >= 5 || complaint >= 0.1) return { label: "At risk", variant: "destructive" };
+  if (bounce >= 2 || complaint >= 0.05) return { label: "Watch", variant: "warning" };
+  return { label: "Healthy", variant: "success" };
+});
+
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(Math.round(value ?? 0));
 const formatRate = (value) => `${(value ?? 0).toFixed(2)}%`;
+
+const stats = computed(() => {
+  const s = last30.value ?? {};
+  const neutral = "text-muted-foreground";
+
+  return [
+    {
+      key: "sent",
+      label: "Sent",
+      icon: "hugeicons:mail-01",
+      color: "text-violet-500",
+      value: s.sent ?? 0,
+      caption: "Total sent",
+      captionClass: neutral,
+    },
+    {
+      key: "delivered",
+      label: "Delivered",
+      icon: "hugeicons:checkmark-circle-02",
+      color: "text-emerald-500",
+      value: s.delivered ?? 0,
+      caption: `${formatRate(s.delivery_rate)} of sent`,
+      captionClass: neutral,
+    },
+    {
+      key: "opened",
+      label: "Opened",
+      icon: "hugeicons:mail-open-01",
+      color: "text-sky-500",
+      value: s.opened ?? 0,
+      caption: `${formatRate(s.open_rate)} of delivered`,
+      captionClass: neutral,
+    },
+    {
+      key: "clicked",
+      label: "Clicked",
+      icon: "hugeicons:cursor-01",
+      color: "text-indigo-500",
+      value: s.clicked ?? 0,
+      caption: `${formatRate(s.click_rate)} of delivered`,
+      captionClass: neutral,
+    },
+    {
+      key: "bounced",
+      label: "Bounced",
+      icon: "hugeicons:cancel-circle",
+      color: "text-rose-500",
+      value: s.bounced ?? 0,
+      caption: `${formatRate(s.bounce_rate)} of sent, limit 5%`,
+      captionClass: bounceVariant.value === "success" ? neutral : "text-destructive",
+    },
+    {
+      key: "complained",
+      label: "Complaints",
+      icon: "hugeicons:alert-02",
+      color: "text-amber-500",
+      value: s.complained ?? 0,
+      caption: `${formatRate(s.complaint_rate)} of sent, limit 0.1%`,
+      captionClass: complaintVariant.value === "success" ? neutral : "text-destructive",
+    },
+  ];
+});
+
+// Trend chart: sent, delivered, opened per day over the window. `date` stays a
+// plain "YYYY-MM-DD" string, which ChartArea treats as an evenly-spaced category
+// and formats through xTickFormatter.
+const trendKeys = ["sent", "delivered", "opened"];
+const trendConfig = {
+  sent: { label: "Sent", color: "var(--chart-1)" },
+  delivered: { label: "Delivered", color: "var(--chart-2)" },
+  opened: { label: "Opened", color: "var(--chart-3)" },
+};
+const trendData = computed(() =>
+  daily.value.map((d) => ({
+    date: d.date,
+    sent: d.sent,
+    delivered: d.delivered,
+    opened: d.opened,
+  })),
+);
+const hasTrend = computed(() =>
+  daily.value.some((d) => d.sent > 0 || d.delivered > 0 || d.opened > 0),
+);
+const formatTrendDate = (value) => $dayjs(value).format("D MMM");
 
 const statusVariant = (status) =>
   ({
