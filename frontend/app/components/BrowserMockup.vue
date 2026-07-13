@@ -4,10 +4,15 @@ interface Props {
   size?: "lg" | "md";
 }
 
-withDefaults(defineProps<Props>(), {
-  title: "pmone.id",
+const props = withDefaults(defineProps<Props>(), {
+  title: "",
   size: "md",
 });
+
+const config = useRuntimeConfig();
+const displayTitle = computed(
+  () => props.title || new URL(config.public.siteUrl).host,
+);
 </script>
 
 <template>
@@ -23,7 +28,7 @@ withDefaults(defineProps<Props>(), {
         <div class="size-2.5 rounded-full bg-green-500" />
       </div>
       <div class="bg-muted flex-1 rounded-md px-3 py-1">
-        <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ title }}</span>
+        <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ displayTitle }}</span>
       </div>
     </div>
 

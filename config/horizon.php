@@ -255,22 +255,22 @@ return [
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'maxProcesses' => 10,
+                'maxProcesses' => (int) env('HORIZON_DEFAULT_MAX_PROCESSES', 10),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-analytics' => [
-                'maxProcesses' => 3,
+                'maxProcesses' => (int) env('HORIZON_ANALYTICS_MAX_PROCESSES', 3),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-pdf' => [
-                'maxProcesses' => 2,
+                'maxProcesses' => (int) env('HORIZON_PDF_MAX_PROCESSES', 2),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-tickets' => [
-                'maxProcesses' => 10,
+                'maxProcesses' => (int) env('HORIZON_TICKETS_MAX_PROCESSES', 10),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],

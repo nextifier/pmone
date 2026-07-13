@@ -71,7 +71,7 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
           class="outline-inside flex size-20 items-center justify-center overflow-hidden rounded-2xl"
         >
           <img
-            src="/icons/icon-192x192.png"
+            :src="`/brands/${useAppConfig().app.brandId}/icons/icon-192x192.png`"
             class="size-20 object-contain"
             alt=""
             width="80"

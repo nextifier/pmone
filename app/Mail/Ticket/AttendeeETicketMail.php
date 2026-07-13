@@ -67,7 +67,7 @@ class AttendeeETicketMail extends Mailable
 
         return new Envelope(
             // Keep the DKIM-aligned from address; only the display name + reply-to
-            // carry the organizer's identity so replies reach them, not PM One.
+            // carry the organizer's identity so replies reach them, not the platform.
             from: new Address(config('mail.from.address'), $project?->name ?: config('mail.from.name')),
             replyTo: $project?->email ? [new Address($project->email, (string) ($project->name ?? ''))] : [],
             subject: trim("Your ticket for {$eventTitle}".($suffix !== '' ? " - {$suffix}" : '')),

@@ -105,6 +105,7 @@ usePageMeta(null, { title: "WhatsApp Tester" });
 
 const client = useSanctumClient();
 
+const siteUrl = useRuntimeConfig().public.siteUrl;
 const templates = {
   hello_world: { lang: "en_US", params: [] },
   ticket_confirmation: {
@@ -113,7 +114,7 @@ const templates = {
       { token: "{{1}}", label: "Guest name", placeholder: "Budi Santoso" },
       { token: "{{2}}", label: "Event", placeholder: "Megabuild Indonesia" },
       { token: "{{3}}", label: "Reservation number", placeholder: "HTL-20260609-ABCD" },
-      { token: "{{4}}", label: "Reservation link", placeholder: "https://pmone.id/hotels/reservation/..." },
+      { token: "{{4}}", label: "Reservation link", placeholder: `${siteUrl}/hotels/reservation/...` },
     ],
   },
 };

@@ -24,7 +24,7 @@ class EventIcs
         }
 
         return self::build(
-            uid: 'event-'.$event->id.'@pmone.id',
+            uid: 'event-'.$event->id.'@'.config('brand.ics_domain'),
             title: (string) $event->title,
             start: $event->start_date,
             end: $event->end_date ?? $event->start_date,
@@ -51,7 +51,7 @@ class EventIcs
 
         if ($day?->date) {
             return self::build(
-                uid: 'attendee-'.$attendee->ulid.'@pmone.id',
+                uid: 'attendee-'.$attendee->ulid.'@'.config('brand.ics_domain'),
                 title: (string) $event->title,
                 start: $day->date,
                 end: $day->date,
@@ -64,7 +64,7 @@ class EventIcs
         }
 
         return self::build(
-            uid: 'attendee-'.$attendee->ulid.'@pmone.id',
+            uid: 'attendee-'.$attendee->ulid.'@'.config('brand.ics_domain'),
             title: (string) $event->title,
             start: $event->start_date,
             end: $event->end_date ?? $event->start_date,
@@ -127,7 +127,7 @@ class EventIcs
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//PM One//Tickets//EN',
+            'PRODID:-//'.config('app.name').'//Tickets//EN',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
             'BEGIN:VEVENT',

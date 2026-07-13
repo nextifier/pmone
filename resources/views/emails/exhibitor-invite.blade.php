@@ -3,7 +3,7 @@
 
 Hi {{ $userName }},
 
-You've been invited to manage **{{ $brandName }}** at **{{ $eventTitle }}** on PM One.
+You've been invited to manage **{{ $brandName }}** at **{{ $eventTitle }}** on {{ config('app.name') }}.
 
 @component('mail::button', ['url' => $magicLinkUrl])
 Login with Magic Link

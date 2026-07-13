@@ -458,7 +458,7 @@
             <Input
               id="identity-company-name"
               v-model="form.site_config.identity.company_name"
-              placeholder="e.g. PT Panorama Media"
+              placeholder="e.g. Your Company Ltd"
             />
             <FieldError :errors="errors['site_config.identity.company_name']" />
           </div>

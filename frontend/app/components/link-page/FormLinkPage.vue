@@ -73,19 +73,19 @@
               <p>Contoh:</p>
               <ul class="list-disc pl-4">
                 <li>
-                  ❌ pmone.id/<span class="text-foreground">BookSpace</span> - Jangan pakai huruf
+                  ❌ {{ appDomain }}/<span class="text-foreground">BookSpace</span> - Jangan pakai huruf
                   besar.
                 </li>
                 <li>
-                  ❌ pmone.id/<span class="text-foreground">bookspace</span> - Susah dibaca tanpa
+                  ❌ {{ appDomain }}/<span class="text-foreground">bookspace</span> - Susah dibaca tanpa
                   pemisah.
                 </li>
                 <li>
-                  ⚠️ pmone.id/<span class="text-foreground">book-space</span> - Sudah oke, tapi bisa
+                  ⚠️ {{ appDomain }}/<span class="text-foreground">book-space</span> - Sudah oke, tapi bisa
                   bentrok sama event lain.
                 </li>
                 <li>
-                  ✅ pmone.id/<span class="text-foreground">flei-book-space</span> - Perfect,
+                  ✅ {{ appDomain }}/<span class="text-foreground">flei-book-space</span> - Perfect,
                   spesifik per event.
                 </li>
               </ul>

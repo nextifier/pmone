@@ -8,8 +8,8 @@
         Panduan Sistem Promosi
       </h1>
       <p class="mt-3 max-w-2xl text-base leading-relaxed tracking-tight text-pretty">
-        Panduan singkat soal Promotion Rule dan Promo Code di PM One: jenis potongan dan biaya
-        tambahan, kapan promo aktif, sampai contoh settingan buat reservasi hotel dan order.
+        Panduan singkat soal Promotion Rule dan Promo Code di {{ appName }}: jenis potongan dan
+        biaya tambahan, kapan promo aktif, sampai contoh settingan buat reservasi hotel dan order.
       </p>
     </header>
 
@@ -389,6 +389,8 @@ definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
 });
+
+const appName = useAppConfig().app.name;
 
 usePageMeta(null, { title: "Panduan Sistem Promosi" });
 

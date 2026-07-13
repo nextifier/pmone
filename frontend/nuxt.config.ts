@@ -1,7 +1,77 @@
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
+import { brands } from "./brands";
 
 const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
+
+// Brand selection is BUILD-time: each brand's admin is its own deployment
+// (Cloudflare Pages project) building this repo with a different BRAND env.
+// See brands/index.ts for the brand-layer rule and how to add a brand.
+const brandId = process.env.BRAND || "pmone";
+const brand = brands[brandId as keyof typeof brands];
+
+if (!brand) {
+  throw new Error(
+    `Unknown BRAND "${brandId}". Registered brands: ${Object.keys(brands).join(", ")}`,
+  );
+}
+
+const isProduction = process.env.NODE_ENV === "production";
+
+// While a brand has no real assets yet (assetsReady=false), every icon /
+// screenshot reference is omitted so the build never points at missing files.
+const brandIcons = brand.assetsReady
+  ? {
+      screenshots: [
+        {
+          src: `brands/${brand.id}/screenshots/desktop-1.png`,
+          sizes: "1280x833",
+          type: "image/png",
+          form_factor: "wide" as const,
+          label: `Desktop view of ${brand.name}`,
+        },
+        {
+          src: `brands/${brand.id}/screenshots/mobile-1.png`,
+          sizes: "400x842",
+          type: "image/png",
+          form_factor: "narrow" as const,
+          label: `Mobile view of ${brand.name}`,
+        },
+      ],
+      icons: [
+        {
+          src: `brands/${brand.id}/icons/icon-192x192.png`,
+          sizes: "192x192",
+          type: "image/png",
+        },
+        {
+          src: `brands/${brand.id}/icons/icon-512x512.png`,
+          sizes: "512x512",
+          type: "image/png",
+        },
+        {
+          src: `brands/${brand.id}/icons/icon-512x512.png`,
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "any" as const,
+        },
+      ],
+    }
+  : {};
+
+const brandHeadLinks = brand.assetsReady
+  ? [
+      {
+        rel: "icon",
+        href: `/brands/${brand.id}/favicon.ico`,
+      },
+      {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: `/brands/${brand.id}/icons/apple-touch-icon.png`,
+      },
+    ]
+  : [];
 
 export default defineNuxtConfig({
   devtools: {
@@ -12,16 +82,20 @@ export default defineNuxtConfig({
   ignore: ["**/.DS_Store", "**/.DS_Store/**"],
 
   runtimeConfig: {
-    // Private keys that are only available server-side
-    pmOneApiKey: process.env.NUXT_PM_ONE_API_KEY || "pk_apm8WoYS1OuWX2MBzz982DreFm47X05VyZuUc05k",
+    // Private keys that are only available server-side.
+    // Dev value comes from frontend/.env; per-brand deployments set their own.
+    pmOneApiKey: process.env.NUXT_PM_ONE_API_KEY || "",
 
     // Public keys that are exposed to the client
     public: {
-      siteUrl: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
-      apiUrl:
-        process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || (isProduction ? brand.siteUrl : "http://localhost:3000"),
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || (isProduction ? brand.apiUrl : "http://localhost:8000"),
       blogUsernames: "", // Empty string means show all posts (no author filter)
     },
+  },
+
+  alias: {
+    "#brand": fileURLToPath(new URL(`./brands/${brandId}`, import.meta.url)),
   },
 
   routeRules: {
@@ -50,7 +124,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: "PM One",
+      title: brand.name,
       meta: [
         {
           name: "viewport",
@@ -60,13 +134,7 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: "en",
       },
-      link: [
-        {
-          rel: "apple-touch-icon",
-          sizes: "180x180",
-          href: "/icons/apple-touch-icon.png",
-        },
-      ],
+      link: brandHeadLinks,
       script: [],
     },
   },
@@ -187,7 +255,7 @@ export default defineNuxtConfig({
 
   sanctum: {
     baseUrl:
-      process.env.NODE_ENV === "production" ? "https://api.pmone.id" : "http://localhost:8000",
+      process.env.NUXT_SANCTUM_BASE_URL || (isProduction ? brand.apiUrl : "http://localhost:8000"),
     mode: "cookie",
     userStateKey: "sanctum.user.identity",
     redirectIfAuthenticated: true,
@@ -310,8 +378,8 @@ export default defineNuxtConfig({
   },
 
   site: {
-    name: "PM One",
-    url: process.env.NODE_ENV === "production" ? "https://pmone.id" : "http://localhost:3000",
+    name: brand.name,
+    url: process.env.NUXT_PUBLIC_SITE_URL || (isProduction ? brand.siteUrl : "http://localhost:3000"),
   },
 
   ogImage: {
@@ -337,48 +405,14 @@ export default defineNuxtConfig({
     registerType: "autoUpdate",
     registerWebManifestInRouteRules: true,
     manifest: {
-      name: "PM One",
-      short_name: "PM One",
+      name: brand.name,
+      short_name: brand.shortName,
       start_url: "/",
       display: "standalone",
       theme_color: "#ffffff",
       background_color: "#ffffff",
-      description:
-        "Streamline your project management with PM One - a powerful, intuitive dashboard that helps you organize tasks, track progress, and collaborate seamlessly. Access your projects anywhere, anytime with our fast and reliable PWA experience.",
-      screenshots: [
-        {
-          src: "screenshots/desktop-1.png",
-          sizes: "1280x833",
-          type: "image/png",
-          form_factor: "wide",
-          label: "Desktop view of PM One",
-        },
-        {
-          src: "screenshots/mobile-1.png",
-          sizes: "400x842",
-          type: "image/png",
-          form_factor: "narrow",
-          label: "Mobile view of PM One",
-        },
-      ],
-      icons: [
-        {
-          src: "icons/icon-192x192.png",
-          sizes: "192x192",
-          type: "image/png",
-        },
-        {
-          src: "icons/icon-512x512.png",
-          sizes: "512x512",
-          type: "image/png",
-        },
-        {
-          src: "icons/icon-512x512.png",
-          sizes: "512x512",
-          type: "image/png",
-          purpose: "any",
-        },
-      ],
+      description: brand.manifestDescription,
+      ...brandIcons,
     },
     workbox: {
       cleanupOutdatedCaches: true,

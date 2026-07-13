@@ -33,7 +33,7 @@
         </div>
         <div class="flex flex-col gap-2">
           <Label for="qr-data" class="text-sm font-medium">QR Code Data</Label>
-          <Input id="qr-data" v-model="qrData" placeholder="https://pmone.id/v/abc123" />
+          <Input id="qr-data" v-model="qrData" :placeholder="`${siteUrl}/v/abc123`" />
         </div>
       </div>
 
@@ -287,8 +287,9 @@ usePageMeta(null, {
 
 type PrintMode = "tspl-native" | "tspl-bitmap" | "escpos-native" | "escpos-bitmap";
 
+const siteUrl = useRuntimeConfig().public.siteUrl;
 const visitorName = ref("Budi Santoso");
-const qrData = ref("https://pmone.id/v/test-001");
+const qrData = ref(`${siteUrl}/v/test-001`);
 const previewCanvas = ref<HTMLCanvasElement | null>(null);
 const logPanel = ref<HTMLDivElement | null>(null);
 const printing = ref(false);

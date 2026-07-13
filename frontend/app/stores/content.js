@@ -1,11 +1,6 @@
 export const useContentStore = defineStore("content", {
   state: () => ({
     pages: {
-      home: {
-        title: `PM One`,
-        description: ``,
-        withoutTitleTemplate: true,
-      },
       terms: {
         title: `Terms of Service`,
         description: ``,

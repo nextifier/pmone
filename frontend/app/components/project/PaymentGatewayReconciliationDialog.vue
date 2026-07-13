@@ -5,7 +5,7 @@
         <h3 class="page-title">Reconciliation</h3>
         <p class="page-description">
           Match successful <span class="capitalize">{{ gateway?.provider }}</span> payments
-          against PM One reservations to surface missed webhooks and amount gaps.
+          against {{ appConfig.app.name }} reservations to surface missed webhooks and amount gaps.
         </p>
       </div>
 
@@ -142,6 +142,8 @@
 </template>
 
 <script setup>
+const appConfig = useAppConfig();
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";

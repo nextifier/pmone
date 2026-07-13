@@ -1,7 +1,7 @@
 @php
     $project = $reservation->event?->project;
-    $signature = $project?->name ?? 'PM One Team';
-    $supportEmail = $reservation->hotel?->contact_email ?? $project?->email ?? 'support@pmone.id';
+    $signature = $project?->name ?? config('app.name').' Team';
+    $supportEmail = $reservation->hotel?->contact_email ?? $project?->email ?? config('brand.support_email');
 
     $methodLabel = $reservation->payment_method?->label();
     $paymentDisplay = $reservation->payment_channel ?: $methodLabel;

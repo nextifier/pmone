@@ -20,7 +20,7 @@
         <div class="space-y-4">
           <div class="space-y-2">
             <Label>Company Name</Label>
-            <Input v-model="form.company_name" placeholder="PT PM One" required />
+            <Input v-model="form.company_name" placeholder="Your Company Ltd" required />
           </div>
           <div class="space-y-2">
             <Label>Tax ID (NPWP)</Label>
@@ -45,7 +45,7 @@
         </div>
         <div class="space-y-2">
           <Label>Email</Label>
-          <Input v-model="form.email" type="email" placeholder="info@pmone.id" />
+          <Input v-model="form.email" type="email" placeholder="billing@yourcompany.com" />
         </div>
         <div class="space-y-2">
           <Label>Website</Label>

@@ -129,7 +129,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Add CORS headers to API exception responses
         $exceptions->respond(function ($response, $exception, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                $allowedOrigins = explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://pmone.test'));
+                $allowedOrigins = config('cors.allowed_origins', []);
                 $origin = $request->header('Origin');
 
                 if ($origin && in_array($origin, $allowedOrigins)) {

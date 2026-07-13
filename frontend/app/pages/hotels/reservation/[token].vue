@@ -226,14 +226,14 @@
           <div class="frame-title">Need Help?</div>
         </div>
         <div class="frame-panel space-y-2">
-          <p class="text-sm tracking-tight">Contact PM One support:</p>
+          <p class="text-sm tracking-tight">Contact {{ appConfig.app.name }} support:</p>
           <p class="text-sm tracking-tight">
             <span class="text-muted-foreground">Email:</span>
             <a
-              :href="`mailto:${reservation.hotel?.contact_email || 'support@pmone.id'}`"
+              :href="`mailto:${reservation.hotel?.contact_email || appConfig.contact.email}`"
               class="text-primary ml-1 underline"
             >
-              {{ reservation.hotel?.contact_email || "support@pmone.id" }}
+              {{ reservation.hotel?.contact_email || appConfig.contact.email }}
             </a>
           </p>
           <p v-if="reservation.hotel?.contact_phone" class="text-sm tracking-tight">
@@ -247,6 +247,8 @@
 </template>
 
 <script setup>
+const appConfig = useAppConfig();
+
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Skeleton } from "../../../components/ui/skeleton";
