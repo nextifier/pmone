@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\MagicLink;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -20,13 +21,13 @@ class MagicLinkMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your PM One Login Link',
-            from: new \Illuminate\Mail\Mailables\Address(
+            subject: 'Your '.config('app.name').' Login Link',
+            from: new Address(
                 config('mail.from.address'),
                 config('mail.from.name')
             ),
             replyTo: [
-                new \Illuminate\Mail\Mailables\Address(config('mail.from.address')),
+                new Address(config('mail.from.address')),
             ],
         );
     }

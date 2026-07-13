@@ -47,7 +47,7 @@ const { shuffle, copyPreset, copyLabel, openReset, openPreset } = useAppearanceA
 const styleOptions = STYLES.map(s => ({ value: s.name, label: s.title, description: s.description }));
 const radiusOptions = RADII.map(r => ({ value: r.name, label: r.title }));
 const fontOptions = [
-  { value: "default", label: "Default (MinusOne)", family: "" },
+  { value: "default", label: "Default", family: "" },
   ...FONTS.map(f => ({ value: f.value, label: f.name, family: f.fontFamily })),
 ];
 const headingOptions = FONT_HEADING_OPTIONS.map(f => ({

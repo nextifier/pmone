@@ -6,6 +6,7 @@ use DOMDocument;
 use DOMXPath;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 class OpenGraphExtractor
@@ -13,8 +14,7 @@ class OpenGraphExtractor
     public function __construct(
         private int $timeout = 10,
         private int $maxRedirects = 3,
-    ) {
-    }
+    ) {}
 
     /**
      * Extract OpenGraph metadata from a URL.
@@ -49,7 +49,7 @@ class OpenGraphExtractor
                     'verify' => false, // Allow self-signed certificates for development
                 ])
                 ->withHeaders([
-                    'User-Agent' => 'Mozilla/5.0 (compatible; PMOne/1.0; +https://pmone.id)',
+                    'User-Agent' => 'Mozilla/5.0 (compatible; '.Str::slug(config('app.name'), '').'/1.0; +'.config('app.frontend_url').')',
                 ])
                 ->get($url);
 

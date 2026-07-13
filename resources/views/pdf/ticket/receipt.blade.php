@@ -16,7 +16,7 @@
                  logo. --}}
             <img style="height: 48px; width: auto; display: block;" src="{{ $branding['logo_url'] }}" alt="">
         @else
-            <div class="text-[20px] font-semibold tracking-tighter text-black">{{ $branding['company_name'] ?? 'PM One' }}</div>
+            <div class="text-[20px] font-semibold tracking-tighter text-black">{{ $branding['company_name'] ?? config('app.name') }}</div>
         @endif
         @if (! empty($branding['address']))
             <div class="text-[11px] text-gray-600 leading-snug mt-1 max-w-[280px]">{{ $branding['address'] }}</div>

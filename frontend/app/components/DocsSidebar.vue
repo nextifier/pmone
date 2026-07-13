@@ -13,7 +13,7 @@
         </div>
 
         <div class="flex flex-col">
-          <span class="line-clamp-1 text-base tracking-tight">PM One</span>
+          <span class="line-clamp-1 text-base tracking-tight">{{ appConfig.app.shortName }}</span>
           <span class="line-clamp-1 text-xs tracking-tight">Documentation</span>
         </div>
       </NuxtLink>
@@ -59,6 +59,8 @@
 </template>
 
 <script setup>
+const appConfig = useAppConfig();
+
 import { useSidebar } from "@/components/ui/sidebar/utils";
 
 const { setOpenMobile } = useSidebar();

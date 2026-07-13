@@ -35,8 +35,10 @@ class ChatAgent implements Agent, Conversational, HasTools
      */
     public function instructions(): string
     {
-        $base = <<<'PROMPT'
-        You are a helpful AI assistant for PM One, a project management and event management platform.
+        $appName = config('app.name');
+
+        $base = <<<PROMPT
+        You are a helpful AI assistant for {$appName}, a project management and event management platform.
 
         Guidelines:
         - Respond in the same language the user uses

@@ -10,7 +10,7 @@ export interface StyleMeta {
 }
 
 export const STYLES: StyleMeta[] = [
-  { name: "mono", title: "Mono", description: "PM One's original look. Clean and neutral." },
+  { name: "mono", title: "Mono", description: "The original look. Clean and neutral." },
   { name: "vega", title: "Vega", description: "The classic shadcn/ui look. Clean, neutral, and familiar." },
   { name: "nova", title: "Nova", description: "Reduced padding and margins for compact layouts." },
   { name: "maia", title: "Maia", description: "Soft and rounded, with generous spacing." },

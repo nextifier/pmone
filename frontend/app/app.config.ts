@@ -1,14 +1,13 @@
+import brand from "#brand/meta";
+
 const isProduction = process.env.NODE_ENV === "production";
 
 const app = {
-  name: "PM One",
-  shortName: "PM One",
-  url: isProduction ? "https://pmone.id" : "http://localhost:3000",
-  company: {
-    name: "PT Panorama Media",
-    address:
-      "Panorama Media Building, Jl. Tanjung Selor No.17A, RT.11/RW.6, Cideng, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150",
-  },
+  brandId: brand.id,
+  name: brand.name,
+  shortName: brand.shortName,
+  url: isProduction ? brand.siteUrl : "http://localhost:3000",
+  company: brand.company,
 };
 
 const settings = {
@@ -24,10 +23,7 @@ const settings = {
   },
 };
 
-const contact = {
-  email: "hello@panoramamedia.co.id",
-  whatsapp: "6281110529527",
-};
+const contact = brand.contact;
 
 const routes = {
   docs: {
@@ -40,24 +36,10 @@ export default defineAppConfig({
   app: app,
   settings: settings,
   contact: contact,
+  organizationOptions: brand.organizationOptions,
   buildDate: new Date().toISOString(),
 
   routes: {
     header: [routes.docs],
-
-    // dialog: [
-    //   {
-    //     label: "Menu",
-    //     links: [routes.docs],
-    //   },
-    //   {
-    //     label: "Get in touch",
-    //     links: Object.values(contactLinks),
-    //   },
-    //   {
-    //     label: "Social",
-    //     links: Object.values(socialLinks),
-    //   },
-    // ],
   },
 });

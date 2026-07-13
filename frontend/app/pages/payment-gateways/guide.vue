@@ -8,7 +8,7 @@
         Panduan Setup Payment Gateway
       </h1>
       <p class="mt-3 max-w-2xl text-base leading-relaxed tracking-tight text-pretty">
-        Cara nyambungin Midtrans sama Xendit ke PM One, dari ambil API key sampai isi Webhook dan
+        Cara nyambungin Midtrans sama Xendit ke {{ appName }}, dari ambil API key sampai isi Webhook dan
         Redirect URL di dashboard provider. Di bawah juga ada error yang paling sering muncul
         beserta cara benerinnya.
       </p>
@@ -25,7 +25,7 @@
           </h2>
           <p class="mt-2 max-w-2xl text-sm leading-relaxed tracking-tight sm:text-base">
             Kamu butuh akun Midtrans atau Xendit yang udah aktif, plus akses ke menu Payment Gateways
-            di project PM One. Tiga alamat di bawah ini yang nanti kamu tempel di dashboard provider.
+            di project {{ appName }}. Tiga alamat di bawah ini yang nanti kamu tempel di dashboard provider.
             Salin dari sini, atau ambil langsung dari kartu gateway setelah dibuat.
           </p>
 
@@ -59,11 +59,11 @@
                 Webhook URL beda sama Redirect URL
               </p>
               <p class="text-sm leading-relaxed tracking-tight sm:text-base">
-                Webhook URL yang ngabarin PM One kalau pembayaran berhasil, jadi status reservasi
-                berubah otomatis. Redirect URL yang mulangin pembeli ke website setelah selesai
-                bayar. Dua-duanya alamat berbeda dan diisi di tempat berbeda. Kalau salah satu kosong
-                atau salah, alurnya pincang: paling sering pembayaran masuk tapi status di PM One gak
-                ikut berubah.
+                Webhook URL yang ngabarin {{ appName }} kalau pembayaran berhasil, jadi status
+                reservasi berubah otomatis. Redirect URL yang mulangin pembeli ke website setelah
+                selesai bayar. Dua-duanya alamat berbeda dan diisi di tempat berbeda. Kalau salah
+                satu kosong atau salah, alurnya pincang: paling sering pembayaran masuk tapi status
+                di {{ appName }} gak ikut berubah.
               </p>
             </div>
           </div>
@@ -160,8 +160,9 @@
                 Redirect Xendit gak perlu diisi manual
               </p>
               <p class="text-sm leading-relaxed tracking-tight sm:text-base">
-                PM One nentuin halaman tujuan sukses dan gagal di tiap invoice, jadi pembeli otomatis
-                balik ke website event yang bener. Kamu cukup ngurus Webhook URL sama IP allowlist.
+                {{ appName }} nentuin halaman tujuan sukses dan gagal di tiap invoice, jadi pembeli
+                otomatis balik ke website event yang bener. Kamu cukup ngurus Webhook URL sama IP
+                allowlist.
               </p>
             </div>
           </div>
@@ -230,21 +231,24 @@ definePageMeta({
 
 usePageMeta(null, { title: "Panduan Setup Payment Gateway" });
 
+const appName = useAppConfig().app.name;
+const apiUrl = useRuntimeConfig().public.apiUrl;
+
 const importantValues = [
   {
     label: "Webhook URL",
     provider: "Midtrans",
-    value: "https://api.pmone.id/api/webhooks/midtrans",
+    value: `${apiUrl}/api/webhooks/midtrans`,
   },
   {
     label: "Webhook URL",
     provider: "Xendit",
-    value: "https://api.pmone.id/api/webhooks/xendit",
+    value: `${apiUrl}/api/webhooks/xendit`,
   },
   {
     label: "Redirect URL",
     provider: "Midtrans",
-    value: "https://api.pmone.id/payment/redirect",
+    value: `${apiUrl}/payment/redirect`,
   },
 ];
 
@@ -255,14 +259,12 @@ const midtransSteps = [
       "Di dashboard Midtrans, buka Settings → Access Keys. Pilih environment-nya dulu: Sandbox buat test, Production buat live. Salin Client Key sama Server Key dari halaman itu.",
   },
   {
-    title: "Tambah gateway di PM One",
-    description:
-      "Balik ke PM One, buka Payment Gateways, klik Add Gateway. Pilih provider Midtrans, atur Mode biar cocok sama environment tadi, terus isi Server Key dan Client Key-nya. Klik Test Connection buat mastiin key-nya kebaca, baru Save.",
+    title: `Tambah gateway di ${appName}`,
+    description: `Balik ke ${appName}, buka Payment Gateways, klik Add Gateway. Pilih provider Midtrans, atur Mode biar cocok sama environment tadi, terus isi Server Key dan Client Key-nya. Klik Test Connection buat mastiin key-nya kebaca, baru Save.`,
   },
   {
     title: "Pasang Webhook dan Redirect URL di Midtrans",
-    description:
-      "Masih di dashboard Midtrans, buka Settings → Configuration. Isi Payment Notification URL pakai Webhook URL Midtrans di atas. Isi juga Finish, Unfinish, dan Error Redirect URL pakai Redirect URL Midtrans. Tanpa langkah ini, pembayaran yang berhasil gak akan ngubah status di PM One.",
+    description: `Masih di dashboard Midtrans, buka Settings → Configuration. Isi Payment Notification URL pakai Webhook URL Midtrans di atas. Isi juga Finish, Unfinish, dan Error Redirect URL pakai Redirect URL Midtrans. Tanpa langkah ini, pembayaran yang berhasil gak akan ngubah status di ${appName}.`,
   },
   {
     title: "Aktifkan dan tes",
@@ -279,32 +281,28 @@ const xenditSteps = [
   },
   {
     title: "Set Webhook URL dan salin token",
-    description:
-      "Buka Settings → Webhooks. Isi Webhook URL pakai Webhook URL Xendit di atas, terus salin Verification Token-nya buat ditempel di PM One nanti.",
+    description: `Buka Settings → Webhooks. Isi Webhook URL pakai Webhook URL Xendit di atas, terus salin Verification Token-nya buat ditempel di ${appName} nanti.`,
   },
   {
     title: "Daftarin IP ke allowlist",
-    description:
-      "Buka Settings → Developers → IP Allowlist. Tambahin IP server, atau IP komputer kamu kalau lagi jalan di local. Tanpa ini, PM One gak bisa manggil API Xendit dan requestnya bakal kena blokir.",
+    description: `Buka Settings → Developers → IP Allowlist. Tambahin IP server, atau IP komputer kamu kalau lagi jalan di local. Tanpa ini, ${appName} gak bisa manggil API Xendit dan requestnya bakal kena blokir.`,
   },
   {
-    title: "Tambah gateway di PM One",
+    title: `Tambah gateway di ${appName}`,
     description:
       "Buka Payment Gateways, klik Add Gateway, pilih provider Xendit. Atur Mode, isi Secret API Key sama Verification Token, pilih Checkout Method-nya. Test Connection, baru Save.",
   },
   {
     title: "Aktifkan dan tes",
-    description:
-      "Nyalain Active, terus coba satu transaksi sampai statusnya berubah. Redirect sukses dan gagal udah diatur otomatis sama PM One, gak perlu kamu isi di dashboard Xendit.",
+    description: `Nyalain Active, terus coba satu transaksi sampai statusnya berubah. Redirect sukses dan gagal udah diatur otomatis sama ${appName}, gak perlu kamu isi di dashboard Xendit.`,
   },
 ];
 
 const commonErrors = [
   {
     provider: "Midtrans",
-    symptom: "Pembayaran berhasil, tapi status di PM One masih belum Paid",
-    solution:
-      "Webhook-nya belum nyampe ke PM One. Buka Settings → Configuration di dashboard Midtrans, pastiin Payment Notification URL-nya diisi Webhook URL Midtrans yang bener. Inget setelan Sandbox dan Production terpisah, jadi cek di environment yang lagi kamu pakai.",
+    symptom: `Pembayaran berhasil, tapi status di ${appName} masih belum Paid`,
+    solution: `Webhook-nya belum nyampe ke ${appName}. Buka Settings → Configuration di dashboard Midtrans, pastiin Payment Notification URL-nya diisi Webhook URL Midtrans yang bener. Inget setelan Sandbox dan Production terpisah, jadi cek di environment yang lagi kamu pakai.`,
     link: "https://dashboard.midtrans.com/settings/vtweb_configuration",
     linkLabel: "Buka Configuration Midtrans",
   },
@@ -319,8 +317,7 @@ const commonErrors = [
   {
     provider: "Midtrans & Xendit",
     symptom: "Test Connection gagal padahal key-nya udah dicopy",
-    solution:
-      "Biasanya key-nya ketuker sama Mode-nya. Key Sandbox gak jalan di Mode Live, begitu juga sebaliknya. Pastiin key dan Mode di PM One satu environment yang sama, lalu ulangi Test Connection.",
+    solution: `Biasanya key-nya ketuker sama Mode-nya. Key Sandbox gak jalan di Mode Live, begitu juga sebaliknya. Pastiin key dan Mode di ${appName} satu environment yang sama, lalu ulangi Test Connection.`,
   },
 ];
 </script>

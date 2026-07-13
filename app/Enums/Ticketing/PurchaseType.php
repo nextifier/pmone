@@ -4,7 +4,7 @@ namespace App\Enums\Ticketing;
 
 /**
  * How a ticket is purchased: through an external platform (redirect) or
- * first-party via PM One's own cart + payment gateway.
+ * first-party via the platform's own cart + payment gateway.
  */
 enum PurchaseType: string
 {
@@ -15,7 +15,7 @@ enum PurchaseType: string
     {
         return match ($this) {
             self::External => 'External platform',
-            self::FirstParty => 'First-party (PM One)',
+            self::FirstParty => 'First-party ('.config('app.name').')',
         };
     }
 

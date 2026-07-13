@@ -1,7 +1,7 @@
 @php
     $isComplimentary = $reservation->payment_method?->value === 'complimentary';
     $project = $reservation->event?->project;
-    $signature = $project?->name ?? 'PM One Team';
+    $signature = $project?->name ?? config('app.name').' Team';
 
     // For gateway payments (Xendit/Midtrans), the gateway itself isn't a
     // guest-facing label — the channel (BCA, QRIS, …) is what they recognize.
@@ -93,7 +93,7 @@ Our team will coordinate with the partner hotel. Your check-in voucher will be e
 @endif
 
 For any questions, please contact:
-- Email: {{ $reservation->hotel?->contact_email ?? 'support@pmone.id' }}
+- Email: {{ $reservation->hotel?->contact_email ?? config('brand.support_email') }}
 - Phone: {{ $reservation->hotel?->contact_phone ?? '-' }}
 
 Best regards,

@@ -36,7 +36,9 @@
           <LogoMark class="size-4" />
         </div>
 
-        <span class="text-foreground text-base font-semibold tracking-tighter sm:text-lg">PM One</span>
+        <span class="text-foreground text-base font-semibold tracking-tighter sm:text-lg">{{
+          appConfig.app.shortName
+        }}</span>
       </nuxt-link>
 
       <div class="ml-auto flex h-full items-center gap-x-6">
@@ -125,6 +127,8 @@
 </template>
 
 <script setup>
+const appConfig = useAppConfig();
+
 import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 const route = useRoute();
 const router = useRouter();

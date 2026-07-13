@@ -483,7 +483,7 @@ const PREDEFINED_LABELS = [
   "YouTube",
 ];
 const PREDEFINED_PHONE_LABELS = ["WhatsApp Sales", "WhatsApp Marketing"];
-const ORGANIZATION_OPTIONS = ["Panorama Media", "CampX", "ASKINDO", "Global AI Expo"];
+const ORGANIZATION_OPTIONS = useAppConfig().organizationOptions;
 const FILE_STATUS = {
   PROCESSING: 3,
 };
