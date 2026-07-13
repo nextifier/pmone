@@ -151,7 +151,7 @@ class EventDocumentSubmission extends Model implements HasMedia
                     'application/vnd.ms-excel',
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 ],
-                'max_size' => 51200,
+                'max_size' => 20480,
             ],
         ];
     }

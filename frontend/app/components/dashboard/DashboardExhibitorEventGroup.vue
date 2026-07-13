@@ -8,23 +8,27 @@
         :alt="event.title"
         :width="event.poster_image?.width || undefined"
         :height="event.poster_image?.height || undefined"
-        class="border-border w-full max-w-xs rounded-xl border object-contain sm:w-56"
+        class="border-border w-full rounded-xl border object-contain sm:max-w-xs"
       />
       <div
         v-else
-        class="bg-muted text-muted-foreground flex aspect-video w-full max-w-xs items-center justify-center rounded-xl sm:w-56"
+        class="bg-muted text-muted-foreground flex aspect-video w-full items-center justify-center rounded-xl sm:max-w-xs"
       >
         <Icon name="hugeicons:calendar-03" class="size-8" />
       </div>
 
       <div class="min-w-0 flex-1 space-y-2">
         <h2 class="text-xl font-semibold tracking-tighter sm:text-2xl">{{ event.title }}</h2>
-        <div class="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-sm tracking-tight">
+        <div class="text-muted-foreground flex flex-col gap-1 text-sm tracking-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-1">
           <span v-if="event.date_label" class="flex items-center gap-1.5">
             <Icon name="hugeicons:calendar-03" class="size-4 shrink-0" />
             {{ event.date_label }}
           </span>
-          <span v-if="event.date_label && event.location" class="text-muted-foreground/40">·</span>
+          <span
+            v-if="event.date_label && event.location"
+            class="text-muted-foreground/40 hidden sm:inline"
+            >·</span
+          >
           <span v-if="event.location" class="flex items-center gap-1.5">
             <Icon name="hugeicons:location-01" class="size-4 shrink-0" />
             {{ event.location }}
@@ -32,7 +36,7 @@
         </div>
 
         <!-- Event-level deadlines -->
-        <div v-if="deadlines.length" class="flex flex-wrap gap-x-4 gap-y-1.5 pt-1">
+        <div v-if="deadlines.length" class="flex flex-col gap-1.5 pt-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
           <div
             v-for="dl in deadlines"
             :key="dl.label"

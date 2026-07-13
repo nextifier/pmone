@@ -70,7 +70,7 @@
             <!-- Rich text -->
             <div
               v-if="field.type === 'rich_text' && valueOf(field)"
-              class="prose prose-sm max-w-none text-sm tracking-tight"
+              class="prose prose-sm dark:prose-invert max-w-none text-sm tracking-tight"
               v-html="sanitizeHtml(valueOf(field))"
             />
 

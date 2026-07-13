@@ -4,15 +4,18 @@ import type { AttachmentVariants } from ".";
 import { cn } from "@/lib/utils";
 import { attachmentVariants } from ".";
 
-const props = withDefaults(
-  defineProps<{
-    class?: HTMLAttributes["class"];
-    size?: AttachmentVariants["size"];
-    orientation?: AttachmentVariants["orientation"];
-    state?: "idle" | "uploading" | "processing" | "error" | "done";
-  }>(),
-  { size: "default", orientation: "horizontal", state: "done" }
-);
+interface Props {
+  size?: AttachmentVariants["size"];
+  orientation?: AttachmentVariants["orientation"];
+  state?: "idle" | "uploading" | "processing" | "error" | "done";
+  class?: HTMLAttributes["class"];
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  state: "done",
+  size: "default",
+  orientation: "horizontal",
+});
 </script>
 
 <template>

@@ -286,7 +286,7 @@ class CustomFieldMigrator
                 'label' => json_encode(['en' => 'Upload file']),
                 'validation' => json_encode([
                     'required' => $required,
-                    'max_file_size' => 51200,
+                    'max_file_size' => 20480,
                     'allowed_file_types' => ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'],
                 ]),
                 'settings' => json_encode(['legacy' => true, 'multiple' => false]),

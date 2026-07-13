@@ -40,15 +40,19 @@
     </component>
 
     <!-- Body -->
-    <div v-if="!collapsible || open" class="border-border space-y-6 border-t px-4 py-5 sm:px-5">
-      <DashboardExhibitorStepper :steps="steps" @jump="handleJump" />
-      <DashboardExhibitorSections
-        ref="sectionsRef"
-        :be="be"
-        :dashboard="dashboard"
-        :default-profile-open="defaultOpen"
-        @refresh="$emit('refresh')"
-      />
+    <div v-if="!collapsible || open" class="border-border border-t">
+      <div class="px-4 py-5 sm:px-5">
+        <DashboardExhibitorStepper :steps="steps" @jump="handleJump" />
+      </div>
+      <div class="border-border border-t">
+        <DashboardExhibitorSections
+          ref="sectionsRef"
+          :be="be"
+          :dashboard="dashboard"
+          :default-profile-open="defaultOpen"
+          @refresh="$emit('refresh')"
+        />
+      </div>
     </div>
   </div>
 </template>

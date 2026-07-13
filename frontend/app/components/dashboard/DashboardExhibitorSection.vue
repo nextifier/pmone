@@ -1,6 +1,6 @@
 <template>
   <Collapsible v-model:open="isOpen" :disabled="locked">
-    <div :class="['border-border overflow-hidden rounded-xl border', locked ? 'opacity-60' : '']">
+    <div :class="locked ? 'opacity-60' : ''">
       <CollapsibleTrigger as-child>
         <button
           class="flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5 sm:py-4"

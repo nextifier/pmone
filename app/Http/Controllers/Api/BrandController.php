@@ -468,6 +468,7 @@ class BrandController extends Controller
                 'name' => $brand->name,
                 'slug' => $brand->slug,
                 'company_name' => $brand->company_name,
+                'country' => $brand->address['country'] ?? null,
                 'profile_image' => $brand->profile_image,
                 'brand_logo' => $brand->brand_logo,
             ]);

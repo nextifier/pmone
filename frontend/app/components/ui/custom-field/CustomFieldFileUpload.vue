@@ -8,7 +8,70 @@
       :multiple="isMultipleFile"
       @change="handleFileSelect"
     />
+
+    <!-- File cards: already-submitted + newly staged + in-progress upload -->
+    <div v-if="hasVisibleFiles" class="space-y-2">
+      <!-- Already-submitted files (populated on load from existingFiles) -->
+      <Attachment v-for="file in visibleExistingFiles" :key="`existing-${file.id}`" state="done">
+        <AttachmentMedia :variant="isImage(file) ? 'image' : 'icon'">
+          <img v-if="isImage(file)" :src="file.url" :alt="file.name" />
+          <Icon v-else :name="fileIcon(file.name)" class="size-5" />
+        </AttachmentMedia>
+        <AttachmentContent>
+          <AttachmentTitle>{{ file.name }}</AttachmentTitle>
+          <AttachmentDescription>{{ describeFile(file) }}</AttachmentDescription>
+        </AttachmentContent>
+        <AttachmentActions>
+          <AttachmentAction
+            v-if="canUpload && !isMultipleFile"
+            type="button"
+            aria-label="Replace file"
+            @click="startReplace"
+          >
+            <Icon name="lucide:refresh-cw" class="size-4" />
+          </AttachmentAction>
+        </AttachmentActions>
+        <AttachmentTrigger
+          v-if="file.url"
+          as="a"
+          :href="file.url"
+          target="_blank"
+          rel="noopener"
+          :aria-label="`Open ${file.name}`"
+        />
+      </Attachment>
+
+      <!-- Newly staged (not-yet-submitted) uploads -->
+      <Attachment v-for="file in uploadedFiles" :key="`tmp-${file.folder}`" state="done">
+        <AttachmentMedia>
+          <Icon :name="fileIcon(file.name)" class="size-5" />
+        </AttachmentMedia>
+        <AttachmentContent>
+          <AttachmentTitle>{{ file.name }}</AttachmentTitle>
+          <AttachmentDescription>{{ describeFile(file) }}</AttachmentDescription>
+        </AttachmentContent>
+        <AttachmentActions>
+          <AttachmentAction type="button" aria-label="Remove file" @click="removeFile(file)">
+            <Icon name="lucide:x" class="size-4" />
+          </AttachmentAction>
+        </AttachmentActions>
+      </Attachment>
+
+      <!-- In-progress upload -->
+      <Attachment v-if="uploadingFile" state="uploading">
+        <AttachmentMedia>
+          <Spinner class="size-5" />
+        </AttachmentMedia>
+        <AttachmentContent>
+          <AttachmentTitle>{{ uploadingName }}</AttachmentTitle>
+          <AttachmentDescription>Uploading... {{ uploadProgress }}%</AttachmentDescription>
+        </AttachmentContent>
+      </Attachment>
+    </div>
+
+    <!-- Upload area (empty, adding, or replacing) -->
     <div
+      v-if="showDropArea"
       class="rounded-md border border-dashed p-4 transition-colors"
       :class="isDragging ? 'border-primary bg-primary/5' : 'border-border'"
       @dragover.prevent="canUpload && (isDragging = true)"
@@ -23,45 +86,23 @@
           :disabled="!canUpload || uploadingFile || maxFilesReached"
           @click="fileInputRef?.click()"
         >
-          <Spinner v-if="uploadingFile" class="size-4" />
-          <Icon v-else name="lucide:paperclip" class="size-4" />
-          <span>{{ uploadingFile ? "Uploading..." : isMultipleFile ? "Add file" : "Choose file" }}</span>
+          <Icon name="lucide:paperclip" class="size-4" />
+          <span>{{ addLabel }}</span>
         </Button>
         <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">or drag and drop here</p>
       </div>
-      <div v-if="uploadingFile" class="mt-3 space-y-1">
-        <div class="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-          <div
-            class="bg-primary h-full rounded-full transition-[width] duration-150"
-            :style="{ width: `${uploadProgress}%` }"
-          />
-        </div>
-        <p class="text-muted-foreground truncate text-xs tracking-tight tabular-nums">
-          {{ uploadingName }} - {{ uploadProgress }}%
-        </p>
-      </div>
     </div>
-    <ul v-if="uploadedFiles.length" class="space-y-1.5">
-      <li
-        v-for="file in uploadedFiles"
-        :key="file.folder"
-        class="bg-muted/50 border-border flex items-center gap-x-2 rounded-md border px-3 py-2"
-      >
-        <Icon name="lucide:file" class="text-muted-foreground size-4 shrink-0" />
-        <span class="min-w-0 flex-1 truncate text-sm tracking-tight">{{ file.name }}</span>
-        <span class="text-muted-foreground shrink-0 text-xs tabular-nums">
-          {{ formatFileSize(file.size) }}
-        </span>
-        <button
-          type="button"
-          aria-label="Remove file"
-          class="text-muted-foreground hover:text-destructive shrink-0 rounded p-0.5 transition-colors"
-          @click="removeFile(file)"
-        >
-          <Icon name="lucide:x" class="size-4" />
-        </button>
-      </li>
-    </ul>
+
+    <!-- Cancel a single-file replace -->
+    <button
+      v-if="isReplacing && !isMultipleFile && !uploadedFiles.length && !uploadingFile"
+      type="button"
+      class="text-muted-foreground hover:text-foreground text-xs tracking-tight sm:text-sm"
+      @click="cancelReplace"
+    >
+      Cancel
+    </button>
+
     <p v-if="fileConstraintText" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
       {{ fileConstraintText }}
     </p>
@@ -70,14 +111,27 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentMedia,
+  AttachmentTitle,
+  AttachmentTrigger,
+} from "../attachment";
 import { Button } from "../button";
 import { FieldError } from "../field";
+import { MAX_UPLOAD_SIZE_KB } from "./core";
 
 const props = defineProps({
   field: { type: Object, required: true },
   modelValue: { default: null },
   disabled: { type: Boolean, default: false },
+  // Already-submitted files for this field: [{ id, name, url, size }].
+  existingFiles: { type: Array, default: () => [] },
   // async (file, onProgress) => { folder, name?, size? }
   uploadHandler: { type: Function, default: null },
   // async (folder) => void
@@ -90,15 +144,48 @@ const fileInputRef = ref(null);
 const uploadingFile = ref(false);
 const fileError = ref(null);
 const uploadedFiles = ref([]);
+const isReplacing = ref(false);
 
 // No handler (preview / render mode) disables the whole control.
 const canUpload = computed(() => !props.disabled && typeof props.uploadHandler === "function");
 
 const isMultipleFile = computed(() => !!props.field.settings?.multiple);
 const maxFiles = computed(() => Number(props.field.validation?.max_files) || 5);
-const maxFilesReached = computed(
-  () => isMultipleFile.value && uploadedFiles.value.length >= maxFiles.value
+
+const existingFiles = computed(() => props.existingFiles || []);
+
+// Single-file replace hides the current file until the new one is confirmed.
+const visibleExistingFiles = computed(() => {
+  if (isMultipleFile.value) {
+    return existingFiles.value;
+  }
+  if (isReplacing.value || uploadedFiles.value.length || uploadingFile.value) {
+    return [];
+  }
+  return existingFiles.value;
+});
+
+const hasVisibleFiles = computed(
+  () => visibleExistingFiles.value.length > 0 || uploadedFiles.value.length > 0 || uploadingFile.value
 );
+
+const totalFileCount = computed(() => existingFiles.value.length + uploadedFiles.value.length);
+const maxFilesReached = computed(
+  () => isMultipleFile.value && totalFileCount.value >= maxFiles.value
+);
+
+const showDropArea = computed(() => {
+  if (!canUpload.value || uploadingFile.value) {
+    return false;
+  }
+  if (isMultipleFile.value) {
+    return !maxFilesReached.value;
+  }
+  // Single: only when there is nothing to show, or the user chose to replace.
+  return uploadedFiles.value.length === 0 && (existingFiles.value.length === 0 || isReplacing.value);
+});
+
+const addLabel = computed(() => (isMultipleFile.value ? "Add file" : "Choose file"));
 
 const allowedExtensions = computed(() =>
   (props.field.validation?.allowed_file_types || []).map((ext) =>
@@ -110,7 +197,11 @@ const acceptAttribute = computed(() =>
   allowedExtensions.value.length ? allowedExtensions.value.map((e) => `.${e}`).join(",") : undefined
 );
 
-const maxFileSizeKb = computed(() => Number(props.field.validation?.max_file_size) || 20480);
+// Clamp to the real server ceiling so the UI never promises more than the
+// backend can accept (mirrors PublicFormService's `min(..., 20480)` clamp).
+const maxFileSizeKb = computed(() =>
+  Math.min(Number(props.field.validation?.max_file_size) || MAX_UPLOAD_SIZE_KB, MAX_UPLOAD_SIZE_KB)
+);
 
 const fileConstraintText = computed(() => {
   const parts = [];
@@ -123,7 +214,26 @@ const fileConstraintText = computed(() => {
 const formatFileSize = (bytes) => {
   if (!bytes) return "";
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace(/\.0$/, "")} MB`;
+};
+
+const extensionOf = (name) => String(name || "").split(".").pop()?.toLowerCase() || "";
+
+const isImage = (file) =>
+  ["png", "jpg", "jpeg", "webp", "gif", "svg"].includes(extensionOf(file.name)) && !!file.url;
+
+const fileIcon = (name) => {
+  const ext = extensionOf(name);
+  if (["pdf"].includes(ext)) return "lucide:file-text";
+  if (["doc", "docx"].includes(ext)) return "lucide:file-text";
+  if (["xls", "xlsx", "csv"].includes(ext)) return "lucide:sheet";
+  if (["png", "jpg", "jpeg", "webp", "gif", "svg"].includes(ext)) return "lucide:image";
+  return "lucide:file";
+};
+
+const describeFile = (file) => {
+  const ext = extensionOf(file.name).toUpperCase();
+  return [ext, formatFileSize(file.size)].filter(Boolean).join(" · ");
 };
 
 const syncFileModel = () => {
@@ -134,6 +244,24 @@ const syncFileModel = () => {
 const isDragging = ref(false);
 const uploadProgress = ref(0);
 const uploadingName = ref(null);
+
+const startReplace = () => {
+  isReplacing.value = true;
+};
+
+const cancelReplace = () => {
+  isReplacing.value = false;
+};
+
+// When the persisted files change (i.e. a submit landed), drop any staged
+// upload + exit replace mode so the freshly-saved file reads back cleanly.
+watch(
+  () => existingFiles.value.map((f) => f.id).join(","),
+  () => {
+    uploadedFiles.value = [];
+    isReplacing.value = false;
+  }
+);
 
 const handleDrop = (event) => {
   isDragging.value = false;
@@ -153,7 +281,7 @@ const processFiles = async (files) => {
   fileError.value = null;
 
   for (const file of files) {
-    if (isMultipleFile.value && uploadedFiles.value.length >= maxFiles.value) {
+    if (maxFilesReached.value) {
       fileError.value = `You can upload up to ${maxFiles.value} files.`;
       break;
     }

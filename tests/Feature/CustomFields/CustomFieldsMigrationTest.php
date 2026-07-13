@@ -202,6 +202,25 @@ it('synthesizes document mini-form fields and backfills submission values', func
     expect($values)->toBe([$field->ulid => true]);
 });
 
+it('synthesizes a legacy file field clamped to the 20MB server ceiling', function () {
+    $document = EventDocument::factory()->create([
+        'document_type' => 'file_upload',
+        'is_required' => true,
+    ]);
+
+    app(CustomFieldMigrator::class)->run();
+
+    $field = CustomField::query()
+        ->where('context', CustomField::CONTEXT_DOCUMENT)
+        ->where('legacy_id', $document->id)
+        ->first();
+
+    expect($field)->not->toBeNull()
+        ->and($field->type)->toBe(CustomField::TYPE_FILE)
+        ->and($field->system_key)->toBe('legacy_file')
+        ->and($field->validation['max_file_size'])->toBe(20480);
+});
+
 it('is idempotent across re-runs', function () {
     $form = Form::factory()->create();
     $event = Event::factory()->create();

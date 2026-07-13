@@ -1,5 +1,5 @@
 <template>
-  <div :ref="(el) => (wrapRefs.profile = el)" class="space-y-2.5">
+  <div :ref="(el) => (wrapRefs.profile = el)" class="divide-border divide-y">
     <!-- Section 1: Profile (only if incomplete) -->
     <DashboardExhibitorSection
       v-if="!dashboard.profile_complete"
@@ -51,9 +51,8 @@
     </DashboardExhibitorSection>
 
     <!-- Section 2: Event Rules -->
-    <div :ref="(el) => (wrapRefs.rules = el)">
+    <div v-if="be.event_rules?.length" :ref="(el) => (wrapRefs.rules = el)">
       <DashboardExhibitorSection
-        v-if="be.event_rules?.length"
         v-model:open="sectionStates.rules"
         :title="$t('ed.rules.title')"
         icon="hugeicons:file-validation"
@@ -146,7 +145,7 @@
         :locked="sectionsLocked"
         section-key="brand"
       >
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex min-w-0 items-center gap-3">
             <img
               v-if="be.brand.profile_image?.sm"
@@ -170,7 +169,12 @@
               </p>
             </div>
           </div>
-          <Button :to="`/brands/${be.brand.slug}/edit`" size="sm" variant="outline" class="shrink-0">
+          <Button
+            :to="`/brands/${be.brand.slug}/edit`"
+            size="sm"
+            variant="outline"
+            class="w-full shrink-0 sm:w-auto"
+          >
             <Icon
               :name="be.brand_complete ? 'hugeicons:view' : 'hugeicons:edit-02'"
               class="mr-1.5 size-4"
@@ -194,7 +198,7 @@
         :deadline-urgent="isDeadlineUrgent(be.promotion_post_deadline)"
         section-key="promo"
       >
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p class="text-muted-foreground text-sm tracking-tight">
             {{
               be.promotion_posts_count > 0
@@ -206,7 +210,7 @@
             :to="`/brands/${be.brand.slug}/promotion-posts/${be.brand_event_id}`"
             size="sm"
             variant="outline"
-            class="shrink-0"
+            class="w-full shrink-0 sm:w-auto"
           >
             <Icon
               :name="be.promotion_posts_count > 0 ? 'hugeicons:view' : 'hugeicons:upload-04'"
@@ -219,9 +223,8 @@
     </div>
 
     <!-- Section 5: Operational Documents -->
-    <div :ref="(el) => (wrapRefs.docs = el)">
+    <div v-if="be.documents?.length || showFascia || showBadge" :ref="(el) => (wrapRefs.docs = el)">
       <DashboardExhibitorSection
-        v-if="be.documents?.length || showFascia || showBadge"
         v-model:open="sectionStates.docs"
         :title="$t('ed.docs.title')"
         icon="hugeicons:file-01"

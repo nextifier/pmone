@@ -2,7 +2,9 @@
 import type { HTMLAttributes } from "vue";
 import { cn } from "@/lib/utils";
 
-const props = defineProps<{ class?: HTMLAttributes["class"] }>();
+const props = defineProps<{
+  class?: HTMLAttributes["class"];
+}>();
 </script>
 
 <template>
@@ -10,7 +12,7 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
     data-slot="attachment-title"
     :class="
       cn(
-        'block max-w-full min-w-0 truncate text-sm font-medium tracking-tight group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer',
+        'font-medium block max-w-full min-w-0 truncate group-data-[state=processing]/attachment:shimmer group-data-[state=uploading]/attachment:shimmer',
         props.class
       )
     "

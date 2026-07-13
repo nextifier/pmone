@@ -826,6 +826,25 @@ html.appearance-switching *::after {
   }
 }
 
+/* Rich text rendered from the editor must never carry baked-in colours (e.g.
+   pasted from Word / Google Docs) that break theming. Any rendered node with an
+   inline colour / background — or the legacy color/bgcolor attributes — is forced
+   back to the theme colour so it always follows light/dark mode. The live editor
+   (.ProseMirror) and code / syntax blocks keep their own colours. Pastes are also
+   stripped at source in TipTapEditor; this is the safety net for existing content. */
+@layer utilities {
+  :is(.prose, .format-html):not(.ProseMirror)
+    :is([style*="color" i], [style*="background" i], font[color], [bgcolor]):not(
+      pre,
+      pre *,
+      code,
+      code *
+    ) {
+    color: inherit !important;
+    background-color: transparent !important;
+  }
+}
+
 @property --left-fade {
   syntax: "<length>";
   inherits: false;

@@ -8,7 +8,7 @@
 
       <form @submit.prevent="submit" class="mt-4 space-y-4">
         <div class="space-y-2">
-          <Label>Brand Name</Label>
+          <Label>Brand Name <span class="text-destructive">*</span></Label>
           <AutocompleteRoot v-model="searchTerm" :ignore-filter="true">
             <AutocompleteAnchor as-child>
               <AutocompleteInput
@@ -70,9 +70,22 @@
           <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
         </div>
 
-        <div class="space-y-2">
-          <Label>Company Name</Label>
-          <Input v-model="form.company_name" placeholder="Company / organization name" />
+        <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
+          <div class="space-y-2">
+            <Label>Company Name</Label>
+            <Input v-model="form.company_name" placeholder="Company / organization name" />
+          </div>
+
+          <div class="space-y-2">
+            <Label>Country <span class="text-destructive">*</span></Label>
+            <LocationCombobox
+              v-model="form.country"
+              :options="countries"
+              :pinned="['Indonesia']"
+              placeholder="Select country"
+            />
+            <p v-if="errors.country" class="text-destructive text-xs">{{ errors.country }}</p>
+          </div>
         </div>
 
         <BrandBoothFields
@@ -201,6 +214,8 @@ import {
   ComboboxInput as ComboboxInputPrimitive,
 } from "reka-ui";
 import { toast } from "vue-sonner";
+import { LocationCombobox } from "@/components/ui/location-combobox";
+import countries from "@/data/countries.json";
 
 const props = defineProps({
   username: { type: String, required: true },
@@ -220,6 +235,7 @@ const form = reactive({
   booth_price: null,
   booth_type: "",
   company_name: "",
+  country: "",
   sales_id: null,
   notes: "",
   emails: [""],
@@ -279,6 +295,9 @@ watch(selectedBrand, (brand) => {
   if (brand?.company_name) {
     form.company_name = brand.company_name;
   }
+  if (brand?.country) {
+    form.country = brand.country;
+  }
 });
 
 watch(isOpen, (val) => {
@@ -290,6 +309,7 @@ watch(isOpen, (val) => {
     form.booth_price = null;
     form.booth_type = "";
     form.company_name = "";
+    form.country = "";
     form.sales_id = null;
     salesSearch.value = "";
     form.notes = "";
@@ -303,8 +323,15 @@ watch(isOpen, (val) => {
 
 async function submit() {
   const brandName = selectedBrand.value?.name || searchTerm.value.trim();
+  const validationErrors = {};
   if (!brandName) {
-    errors.value = { brand_name: "Brand name is required" };
+    validationErrors.brand_name = "Brand name is required";
+  }
+  if (!form.country) {
+    validationErrors.country = "Country is required";
+  }
+  if (Object.keys(validationErrors).length) {
+    errors.value = validationErrors;
     return;
   }
 
@@ -321,6 +348,7 @@ async function submit() {
         booth_price: form.booth_price || null,
         booth_type: form.booth_type || null,
         company_name: form.company_name || null,
+        country: form.country || null,
         sales_id: form.sales_id || null,
         notes: form.notes?.trim() || null,
         emails,

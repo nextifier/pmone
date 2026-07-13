@@ -8,6 +8,15 @@
 // Labels/options may arrive already-localized (string) or as a {locale: string}
 // translation map (predefined-library fields); normalizeField resolves them.
 
+/**
+ * Hard ceiling for any custom-field file upload, in KB (20 MB). Mirrors the
+ * real server limits (PHP post_max_size, TemporaryUploadController `max:20480`,
+ * config/media-library) and the backend clamp in PublicFormService. A field's
+ * configured max_file_size is clamped to this so the UI never promises more
+ * than the server can actually accept.
+ */
+export const MAX_UPLOAD_SIZE_KB = 20480;
+
 export type FieldLabel = string | Record<string, string> | null | undefined;
 
 export interface FieldOption {

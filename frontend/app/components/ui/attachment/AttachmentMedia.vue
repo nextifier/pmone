@@ -4,13 +4,10 @@ import type { AttachmentMediaVariants } from ".";
 import { cn } from "@/lib/utils";
 import { attachmentMediaVariants } from ".";
 
-const props = withDefaults(
-  defineProps<{
-    class?: HTMLAttributes["class"];
-    variant?: AttachmentMediaVariants["variant"];
-  }>(),
-  { variant: "icon" }
-);
+const props = defineProps<{
+  class?: HTMLAttributes["class"];
+  variant?: AttachmentMediaVariants["variant"];
+}>();
 </script>
 
 <template>

@@ -2,7 +2,7 @@
   <div>
     <!-- Header: title + status -->
     <div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <h4 class="text-base font-medium tracking-tight">{{ doc.title }}</h4>
         <Badge
           v-if="doc.is_required && status !== 'completed'"
@@ -33,7 +33,7 @@
       <!-- Description -->
       <div
         v-if="doc.description"
-        class="prose prose-sm text-muted-foreground mt-1.5 max-w-none [&_ol]:text-sm sm:[&_ol]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_p]:tracking-tight sm:[&_p]:text-sm [&_ul]:text-sm sm:[&_ul]:text-sm"
+        class="prose prose-sm dark:prose-invert text-muted-foreground mt-1.5 max-w-none [&_ol]:text-sm sm:[&_ol]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_p]:tracking-tight sm:[&_p]:text-sm [&_ul]:text-sm sm:[&_ul]:text-sm"
         v-html="doc.description"
       />
     </div>
@@ -47,9 +47,9 @@
           :href="getMediaUrl(doc.template_en)"
           target="_blank"
           rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
+          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-lg border p-3 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
         >
-          <Icon name="teenyicons:pdf-solid" class="text-destructive size-10" />
+          <Icon name="teenyicons:pdf-solid" class="text-destructive size-9" />
           {{ $t("ed.docs.viewDocEn") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
@@ -58,9 +58,9 @@
           :href="getMediaUrl(doc.template_id)"
           target="_blank"
           rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-xl border p-4 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
+          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-lg border p-3 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
         >
-          <Icon name="teenyicons:pdf-solid" class="text-destructive size-10" />
+          <Icon name="teenyicons:pdf-solid" class="text-destructive size-9" />
           {{ $t("ed.docs.viewDocId") }}
           <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
         </a>
@@ -126,6 +126,7 @@
             :locale="locale"
             :errors="customErrors"
             error-prefix="field_values."
+            :existing-files="existingFilesByUlid"
             :upload-handler="uploadHandlers.uploadHandler"
             :revert-handler="uploadHandlers.revertHandler"
             @update:model-value="(v) => (customValues = v)"
@@ -302,6 +303,23 @@ const uploadHandlers = createTmpUploadHandlers(client);
 const activeFields = computed(() => (props.doc.fields || []).filter((f) => f.is_active !== false));
 const customValues = ref({ ...(props.submission?.field_values || {}) });
 const customErrors = ref({});
+
+// Already-submitted files, grouped by field ulid, so file fields repopulate on
+// load/refresh (data comes from EventDocumentSubmissionResource `files`).
+// Untagged legacy media (field_ulid === null) belongs to the synthesized
+// `legacy_file` field — mirrors the backend's submissionHasFileForField rule.
+const existingFilesByUlid = computed(() => {
+  const map = {};
+  const legacyFileUlid = activeFields.value.find(
+    (f) => f.type === "file" && f.system_key === "legacy_file"
+  )?.ulid;
+  for (const file of currentSubmission.value?.files || []) {
+    const ulid = file.field_ulid || legacyFileUlid;
+    if (!ulid) continue;
+    (map[ulid] ||= []).push(file);
+  }
+  return map;
+});
 
 watch(
   () => props.submission,

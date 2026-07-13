@@ -13,6 +13,7 @@
         :locale="locale"
         :disabled="disabled"
         :preview="preview"
+        :existing-files="existingFiles[fieldKey(field)] || []"
         :upload-handler="uploadHandler"
         :revert-handler="revertHandler"
         @update:model-value="update(field, $event)"
@@ -38,6 +39,9 @@ const props = defineProps({
   preview: { type: Boolean, default: false },
   uploadHandler: { type: Function, default: null },
   revertHandler: { type: Function, default: null },
+  // Already-submitted files, keyed by the same value-map key as modelValue:
+  // { [fieldKey]: [{ id, name, url, size }] }.
+  existingFiles: { type: Object, default: () => ({}) },
   // The value-map key: "ulid" (default) or "key" (brand profile).
   valueKey: { type: String, default: "ulid" },
 });

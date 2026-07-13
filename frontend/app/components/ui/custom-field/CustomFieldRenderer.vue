@@ -8,7 +8,7 @@
     <h2 class="text-lg font-semibold tracking-tighter">{{ normalized.label }}</h2>
     <div
       v-if="normalized.settings?.description"
-      class="prose prose-sm text-muted-foreground mt-1.5 max-w-none text-sm tracking-tight"
+      class="prose prose-sm dark:prose-invert text-muted-foreground mt-1.5 max-w-none text-sm tracking-tight"
       v-html="normalized.settings.description"
     />
   </div>
@@ -275,6 +275,7 @@
         :field="normalized"
         :model-value="modelValue"
         :disabled="disabled || preview"
+        :existing-files="existingFiles"
         :upload-handler="uploadHandler"
         :revert-handler="revertHandler"
         @update:model-value="$emit('update:modelValue', $event)"
@@ -409,6 +410,8 @@ const props = defineProps({
   pinnedCountries: { type: Array, default: () => ["Indonesia"] },
   uploadHandler: { type: Function, default: null },
   revertHandler: { type: Function, default: null },
+  // Already-submitted files for a file-type field: [{ id, name, url, size }].
+  existingFiles: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(["update:modelValue", "uploading"]);

@@ -241,17 +241,17 @@ class EventDocument extends Model implements HasMedia, Sortable
             'template_en' => [
                 'single_file' => true,
                 'mime_types' => ['application/pdf'],
-                'max_size' => 51200,
+                'max_size' => 20480,
             ],
             'template_id' => [
                 'single_file' => true,
                 'mime_types' => ['application/pdf'],
-                'max_size' => 51200,
+                'max_size' => 20480,
             ],
             'example_file' => [
                 'single_file' => true,
                 'mime_types' => ['application/pdf'],
-                'max_size' => 51200,
+                'max_size' => 20480,
             ],
             'description_images' => [
                 'single_file' => false,

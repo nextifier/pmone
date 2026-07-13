@@ -183,7 +183,7 @@ class EventProductCategory extends Model implements HasMedia, Sortable
             'catalog_files' => [
                 'single_file' => false,
                 'mime_types' => ['application/pdf'],
-                'max_size' => 51200,
+                'max_size' => 20480,
             ],
             'description_images' => [
                 'single_file' => false,

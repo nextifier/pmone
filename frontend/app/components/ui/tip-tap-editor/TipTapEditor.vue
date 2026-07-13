@@ -392,6 +392,44 @@ const CustomImage = Image.extend({
   },
 });
 
+/**
+ * Strip every colour-related declaration (text colour, background, border/outline
+ * colour, -webkit-text-fill-color, Word's mso-* colours, …) and the legacy
+ * color/bgcolor attributes from pasted HTML. Keeps content theme-driven so pastes
+ * from Word / Google Docs never bake in colours that break dark mode.
+ */
+function stripPastedColors(html) {
+  if (typeof window === "undefined" || !html) {
+    return html;
+  }
+
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  doc.querySelectorAll("[style]").forEach((el) => {
+    const cleaned = (el.getAttribute("style") || "")
+      .split(";")
+      .filter((declaration) => {
+        const property = declaration.split(":")[0]?.trim().toLowerCase();
+        return property && !property.includes("color") && property !== "background";
+      })
+      .join(";")
+      .trim();
+
+    if (cleaned) {
+      el.setAttribute("style", cleaned);
+    } else {
+      el.removeAttribute("style");
+    }
+  });
+
+  doc.querySelectorAll("[color], [bgcolor]").forEach((el) => {
+    el.removeAttribute("color");
+    el.removeAttribute("bgcolor");
+  });
+
+  return doc.body.innerHTML;
+}
+
 const editor = useEditor({
   content: props.modelValue,
   extensions: [
@@ -422,6 +460,7 @@ const editor = useEditor({
     attributes: {
       class: "prose prose-base focus:outline-none",
     },
+    transformPastedHTML: (html) => stripPastedColors(html),
     handlePaste: (view, event) => {
       const items = event.clipboardData?.items;
       if (!items) return false;

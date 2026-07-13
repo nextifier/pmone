@@ -63,7 +63,7 @@
               </h1>
               <div
                 v-if="form.description"
-                class="prose prose-sm text-muted-foreground max-w-none text-sm tracking-tight sm:text-base"
+                class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none text-sm tracking-tight sm:text-base"
                 v-html="form.description"
               />
             </div>

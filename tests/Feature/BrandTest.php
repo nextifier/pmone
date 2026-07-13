@@ -94,6 +94,35 @@ test('staff can add new brand to event', function () {
     ]);
 });
 
+test('staff can add new brand to event with country', function () {
+    $response = $this->postJson($this->baseUrl, [
+        'brand_name' => 'Brand With Country',
+        'country' => 'Indonesia',
+    ]);
+
+    $response->assertStatus(201);
+
+    $brand = Brand::where('name', 'Brand With Country')->first();
+    expect($brand->address['country'] ?? null)->toBe('Indonesia');
+});
+
+test('attaching an existing brand fills country when the brand has none', function () {
+    $brand = Brand::factory()->create(['name' => 'Countryless Brand', 'address' => null]);
+
+    $secondEvent = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'slug' => 'country-event',
+    ]);
+    $secondUrl = "/api/projects/{$this->project->username}/events/{$secondEvent->slug}/brands";
+
+    $this->postJson($secondUrl, [
+        'brand_name' => 'Countryless Brand',
+        'country' => 'Singapore',
+    ])->assertStatus(201);
+
+    expect($brand->fresh()->address['country'] ?? null)->toBe('Singapore');
+});
+
 test('staff can add new brand to event with notes', function () {
     $response = $this->postJson($this->baseUrl, [
         'brand_name' => 'Brand With Notes',

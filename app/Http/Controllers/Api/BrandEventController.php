@@ -184,6 +184,7 @@ class BrandEventController extends Controller
         $validated = $request->validate([
             'brand_name' => ['required', 'string', 'max:255'],
             'company_name' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
             'booth_type' => ['nullable', 'string', Rule::in(array_column(BoothType::cases(), 'value'))],
             'booth_number' => ['nullable', 'string', 'max:255'],
             'booth_size' => ['nullable', 'numeric', 'min:0'],
@@ -204,6 +205,7 @@ class BrandEventController extends Controller
 
         $brandName = trim($validated['brand_name']);
         $companyName = trim($validated['company_name'] ?? '');
+        $country = trim($validated['country'] ?? '');
 
         // Find existing brand by name (case-insensitive)
         $brand = Brand::whereRaw('LOWER(TRIM(name)) = ?', [strtolower($brandName)])->first();
@@ -212,6 +214,12 @@ class BrandEventController extends Controller
             // Update company_name if provided and brand doesn't have one
             if ($companyName && ! $brand->company_name) {
                 $brand->update(['company_name' => $companyName]);
+            }
+            // Fill country into the brand address if provided and brand doesn't have one
+            if ($country && empty($brand->address['country'] ?? null)) {
+                $address = $brand->address ?? [];
+                $address['country'] = $country;
+                $brand->update(['address' => $address]);
             }
             // Check if already in this event
             $existingBrandEvent = BrandEvent::where('brand_id', $brand->id)
@@ -229,6 +237,7 @@ class BrandEventController extends Controller
             $brand = Brand::create([
                 'name' => $brandName,
                 'company_name' => $companyName ?: null,
+                'address' => $country ? ['country' => $country] : null,
             ]);
         }
 

@@ -4,18 +4,19 @@ import type { HTMLAttributes } from "vue";
 import { Primitive } from "reka-ui";
 import { cn } from "@/lib/utils";
 
-const props = withDefaults(
-  defineProps<PrimitiveProps & { class?: HTMLAttributes["class"] }>(),
-  { as: "button" }
-);
+interface Props extends PrimitiveProps {
+  class?: HTMLAttributes["class"];
+}
+const props = withDefaults(defineProps<Props>(), {
+  as: "button",
+});
 </script>
 
 <template>
   <Primitive
+    data-slot="attachment-trigger"
     :as="as"
     :as-child="asChild"
-    :type="asChild ? undefined : 'button'"
-    data-slot="attachment-trigger"
     :class="cn('absolute inset-0 z-10 outline-none', props.class)"
   >
     <slot />
