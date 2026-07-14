@@ -1,8 +1,9 @@
 # Plan 033: Reserved / assigned seating — build plan (follow-up to spike 024)
 
-> Follow-up implementation plan produced by **spike 024**. Reserved seating is
+> Follow-up implementation plan produced by **spike 024** (spike file removed; its
+> outcome is in the README "spikes 023/024/025" execution log). Reserved seating is
 > the hardest concurrency problem in ticketing; this plan slices it into landable
-> pieces on top of 016's proven atomic primitive. **Read spike 024 first.**
+> pieces on top of 016's proven atomic primitive. This plan is self-contained.
 
 ## Status
 

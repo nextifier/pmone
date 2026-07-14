@@ -1,11 +1,12 @@
 # Plan 032: Virtual waiting room — platform-first build (follow-up to spike 023)
 
-> Follow-up implementation plan produced by **spike 023**, **revised 2026-07-14 to
-> platform-first**. PM One is a product sold to many event organizers for events of
-> every type and scale, so a big-event capability must be **built into the platform
+> Follow-up implementation plan produced by **spike 023** (spike file removed; its
+> outcome is in the README "spikes 023/024/025" execution log), **revised 2026-07-14
+> to platform-first**. PM One is a product sold to many event organizers for events
+> of every type and scale, so a big-event capability must be **built into the platform
 > and ready before any big on-sale** — not assembled reactively when a concert
 > client shows up. This plan builds the waiting room as a **standing, tenant-wide
-> platform feature**. **Read spike 023 first.**
+> platform feature**. This plan is self-contained.
 
 ## Status
 

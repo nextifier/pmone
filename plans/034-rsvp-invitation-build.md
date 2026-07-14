@@ -1,8 +1,9 @@
 # Plan 034: RSVP / invitation flow — build plan (follow-up to spike 025)
 
-> Follow-up implementation plan produced by **spike 025**. Reuses as much of the
+> Follow-up implementation plan produced by **spike 025** (spike file removed; its
+> outcome is in the README "spikes 023/024/025" execution log). Reuses as much of the
 > existing free-order + attendee + custom-field machinery as possible; adds only
-> the response/invitation layer that's genuinely missing. **Read spike 025 first.**
+> the response/invitation layer that's genuinely missing. This plan is self-contained.
 
 ## Status
 
