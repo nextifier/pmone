@@ -31,79 +31,22 @@ when done.
 > it. Also: event core data (dates/status/poster/edition) is **already 100%
 > runtime** — the yearly rollover already needs no rebuild.
 
-## Multi-brand wave (plan 031) — 2026-07-13
+## Multi-brand wave (plan 031) — DONE / merged / deployed
 
-The owner is launching a second brand, **Monara (monara.id)**, from this same
-codebase, plus future whitelabel client brands. Locked architecture decision:
-NO multitenancy package; one repo deployed as one Forge site per brand on the
-same VPS (own Postgres DB, own Horizon, identical workflows) + one Cloudflare
-Pages project per brand for `frontend/`. Plan 031 makes the shared source
-brand-agnostic (brand registry `frontend/brands/<id>/` selected via `BRAND`
-build env, backend `config/brand.php` + literal sweep) and hardens deployment
-(live CORS-on-exception `env()` bug fix, Horizon sizing via env, `env:audit`
-deploy gate). Owner ops runbook for provisioning Monara is Appendix A of the
-plan. Known follow-ups (separate future plans): pmone-events base-layer brand
-audit; `frontend/content/docs/**` de-branding.
+Second brand **Monara (monara.id)** from this same codebase + future whitelabel
+brands. Architecture: NO multitenancy; one Forge site per brand + one CF Pages
+project per brand (`frontend/`). Shared source made brand-agnostic (registry
+`frontend/brands/<id>/` via `BRAND` build env, backend `config/brand.php` +
+literal sweep) + deploy hardening (`env:audit` gate, Horizon env sizing, CORS
+env-cache fix). **Merged to main + deployed** (merge `64c1415d`); plan file
+removed.
 
-| Plan | Title | Priority | Effort | Depends on | Status |
-|------|-------|----------|--------|------------|--------|
-| 031 | Multi-brand brand layer (PM One + Monara + whitelabel) | P1 | L | - | DONE-code / BROWSER-VERIFIED / UNCOMMITTED (executed 2026-07-13 directly on branch `advisor/031-multibrand-brand-layer`; operator handles git) |
-
-### Execution log — 2026-07-13 (plan 031)
-
-Executed in-session (not handed off). All steps A1-A5 + B1-B7 complete:
-
-- **Backend**: CORS-on-exception now reads `config('cors.allowed_origins')`
-  (env-cache-safe; only remaining runtime `env()` outside config/ eliminated);
-  `.env.example` completed as the deployment manifest + new `env:audit` command
-  (deploy gate); Horizon production `maxProcesses` env-tunable
-  (`HORIZON_{DEFAULT,ANALYTICS,PDF,TICKETS}_MAX_PROCESSES`, defaults unchanged);
-  `config/brand.php` (`support_email`, `ics_domain`) + full literal sweep
-  (MagicLink mail, exhibitor invite, 3 reservation blades, 4 PDF blades,
-  EventIcs UIDs/PRODID, ChatAgent persona, PurchaseType label, OpenGraph UA).
-  15 new Pest tests in `tests/Feature/Brand/` (Cors 2, EnvAudit 6, Config 2,
-  Rendering 4, LiteralGuard 1) - all green; guard test caught + fixed one
-  literal the plan inventory missed (`AttendeeETicketMail` comment).
-- **Frontend**: `frontend/brands/{index.ts,types.ts,pmone/*,monara/*}` registry,
-  `#brand` alias selected via `BRAND` build env (default pmone, throws on
-  unknown); `Logo`/`LogoMark` wrappers (call sites untouched); landing moved
-  verbatim to `brands/pmone/Home.vue`, `pages/index.vue` is a brand shell;
-  Monara placeholder Home/Logo/meta (`assetsReady: false` gates all icon and
-  manifest asset references); app.config sourced from `#brand/meta` (+
-  `app.brandId`, `organizationOptions`); nuxt.config head/site/PWA/sanctum/
-  runtime URLs brand-driven with `NUXT_PUBLIC_SITE_URL`/`NUXT_PUBLIC_API_URL`/
-  `NUXT_SANCTUM_BASE_URL` overrides; committed API-key fallback literal removed;
-  ~18 shared-UI files swept (header/sidebars wordmark, both guides, form
-  placeholders, `{{ appDomain }}` examples, BrowserMockup + reconciliation
-  dialog - the latter was misclassified as a comment in the plan inventory,
-  actually UI text, fixed); assets moved to `public/brands/pmone/`.
-- **Browser-verified** on the dev server: default build = PM One byte-identical
-  (dashboard chrome, /privacy, payment guide with runtime webhook URLs, zero
-  console errors); `BRAND=monara pnpm dev` = "Dashboard · Monara" title, Monara
-  wordmark + "M" placeholder mark, no icon links, zero console errors; both
-  brands' Home components compile (vite @fs probe; note `/` redirects to
-  /dashboard by design via `root-redirect.global.ts`, so brand Home pages are
-  dormant until a marketing landing is re-enabled).
-- **Test tally**: Tickets 416/0, Reservation+Hotel+Mail+Auth+Brand 383/0 (1
-  pre-existing skip), remaining dirs 875/2, root files 1156/1 (8 skips). The 3
-  failures are all pre-existing: 2 QaMatrix stale-date fixtures (documented
-  above, reproduced on baseline) + `EventDocumentTest` booth-type filter which
-  passes in isolation (cross-test pollution, same class as the documented
-  TicketPurchaseTest flake). `vendor/bin/pint --dirty` clean.
-- **Machine note**: the single-process full suite cannot finish on the
-  operator's laptop - `DocumentService`/`TicketDocumentService` call
-  `set_time_limit(120)` in their constructors, so any full run whose remaining
-  wall time exceeds 120s dies with `FatalException: Maximum execution time of
-  120 seconds exceeded`. Ran in 4 chunks instead. Worth a tiny follow-up
-  (only bump the limit when not running in console/testing).
-- **Owner follow-ups**: add the 7 new mandatory keys to local + both prod
-  `.env`s when wiring `env:audit` into deploy scripts
-  (`PAYMENT_TRUSTED_REDIRECT_HOSTS`, `BRAND_SUPPORT_EMAIL`, `BRAND_ICS_DOMAIN`,
-  `HORIZON_*_MAX_PROCESSES` x4 - the command lists them); supply Monara assets
-  + real company/contact values in `brands/monara/meta.ts`, then flip
-  `assetsReady`; provisioning runbook = plan Appendix A. Out-of-scope
-  follow-ups unchanged: pmone-events base-layer audit, docs content
-  de-branding.
+**Owner follow-ups still open**: add the 7 mandatory env keys to local + both
+prod `.env`s when wiring `env:audit` into deploy (`PAYMENT_TRUSTED_REDIRECT_HOSTS`,
+`BRAND_SUPPORT_EMAIL`, `BRAND_ICS_DOMAIN`, `HORIZON_*_MAX_PROCESSES` ×4 — the
+command lists them); supply Monara assets + real company/contact values in
+`brands/monara/meta.ts`, then flip `assetsReady`. Out of scope: pmone-events
+base-layer brand audit, `frontend/content/docs/**` de-branding.
 
 ## Wave 2 — execution order & status
 
