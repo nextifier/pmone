@@ -519,7 +519,7 @@ const {
 } = useOrderCart(route.params.brandEventId);
 
 const currency = computed(() => info.value?.currency || "IDR");
-const taxRate = computed(() => info.value?.tax_rate || 11);
+const taxRate = computed(() => info.value?.tax_rate ?? 11);
 const penaltyRate = computed(() => info.value?.penalty_rate || 0);
 const isOnsite = computed(() => penaltyRate.value > 0);
 
