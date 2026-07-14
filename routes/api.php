@@ -270,6 +270,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/{username}', [ProjectController::class, 'update'])->name('projects.update');
         Route::patch('/{username}/website-settings', [ProjectController::class, 'updateWebsiteSettings'])->name('projects.website-settings');
         Route::get('/{username}/website-pages', [WebsitePageController::class, 'index'])->name('projects.website-pages.index');
+        Route::get('/{username}/website-pages/{key}/template', [WebsitePageController::class, 'template'])->name('projects.website-pages.template');
         Route::put('/{username}/website-pages/{key}', [WebsitePageController::class, 'update'])->name('projects.website-pages.update');
         Route::get('/{username}/website-copy', [WebsiteCopyController::class, 'index'])->name('projects.website-copy.index');
         Route::put('/{username}/website-copy/{page}/{field}', [WebsiteCopyController::class, 'update'])->name('projects.website-copy.update');

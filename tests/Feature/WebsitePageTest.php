@@ -140,3 +140,116 @@ test('WebsitePage tags itself for the website-pages response cache, mirroring Fa
 
     expect($method->invoke(null))->toBe(['website-pages']);
 });
+
+test('index exposes each page last_updated_at and the project website url', function () {
+    $this->project->links()->create(['label' => 'Website', 'url' => 'https://acme.example']);
+    WebsitePage::factory()->create([
+        'project_id' => $this->project->id,
+        'key' => 'terms',
+        'body' => ['en' => '<p>Terms</p>'],
+        'last_updated_at' => '2026-01-15',
+    ]);
+
+    $this->actingAs($this->admin)
+        ->getJson($this->indexEndpoint)
+        ->assertSuccessful()
+        ->assertJsonPath('website_url', 'https://acme.example')
+        ->assertJsonPath('data.terms.last_updated_at', '2026-01-15')
+        ->assertJsonPath('data.privacy.last_updated_at', null);
+});
+
+test('update saves last_updated_at without disturbing the body translations', function () {
+    WebsitePage::factory()->create([
+        'project_id' => $this->project->id,
+        'key' => 'terms',
+        'body' => ['en' => '<p>English</p>', 'id' => '<p>Indonesian</p>'],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->putJson("{$this->indexEndpoint}/terms", [
+            'body' => ['en' => '<p>English</p>', 'id' => '<p>Indonesian</p>'],
+            'last_updated_at' => '2026-03-01',
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.last_updated_at', '2026-03-01')
+        ->assertJsonPath('data.body.en', '<p>English</p>')
+        ->assertJsonPath('data.body.id', '<p>Indonesian</p>');
+
+    $page = WebsitePage::query()->where('project_id', $this->project->id)->where('key', 'terms')->first();
+    expect($page->last_updated_at->toDateString())->toBe('2026-03-01');
+    expect($page->getTranslation('body', 'id'))->toBe('<p>Indonesian</p>');
+});
+
+test('update accepts a date with a blank body (date-only save stays fail-open)', function () {
+    $this->actingAs($this->admin)
+        ->putJson("{$this->indexEndpoint}/privacy", [
+            'body' => ['en' => null, 'id' => null, 'ja' => null, 'ko' => null, 'zh' => null],
+            'last_updated_at' => '2026-04-10',
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.last_updated_at', '2026-04-10');
+
+    $page = WebsitePage::query()->where('project_id', $this->project->id)->where('key', 'privacy')->first();
+    expect($page)->not->toBeNull();
+    expect($page->getTranslation('body', 'en', false))->toBeEmpty();
+});
+
+test('update rejects an invalid last_updated_at', function () {
+    $this->actingAs($this->admin)
+        ->putJson("{$this->indexEndpoint}/terms", [
+            'body' => ['en' => '<p>x</p>'],
+            'last_updated_at' => 'not-a-date',
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['last_updated_at']);
+});
+
+test('template returns the built-in copy with project identity interpolated', function () {
+    $this->project->update(['settings' => [
+        'website_settings' => [
+            'site_config' => ['identity' => [
+                'company_name' => 'Acme Events Ltd',
+                'company_address' => 'Jakarta, Indonesia',
+            ]],
+        ],
+    ]]);
+
+    $body = $this->actingAs($this->admin)
+        ->getJson("{$this->indexEndpoint}/terms/template")
+        ->assertSuccessful()
+        ->json('data.body');
+
+    expect($body)
+        ->toContain('Acme Events Ltd')
+        ->toContain('Jakarta, Indonesia')
+        ->not->toContain('{company_name}')
+        ->not->toContain('{company_address}');
+});
+
+test('template blanks unset placeholders instead of leaking raw tokens', function () {
+    $body = $this->actingAs($this->admin)
+        ->getJson("{$this->indexEndpoint}/terms/template")
+        ->assertSuccessful()
+        ->json('data.body');
+
+    expect($body)
+        ->not->toContain('{company_name}')
+        ->not->toContain('{company_address}')
+        ->not->toContain('{website_name}')
+        ->not->toContain('{contact_email}');
+});
+
+test('template rejects an unknown page key', function () {
+    $this->actingAs($this->admin)
+        ->getJson("{$this->indexEndpoint}/not-a-real-page/template")
+        ->assertNotFound();
+});
+
+test('template requires authentication and projects.update', function () {
+    $this->getJson("{$this->indexEndpoint}/terms/template")->assertUnauthorized();
+
+    $user = User::factory()->create(['email_verified_at' => now()]);
+    $this->actingAs($user)
+        ->getJson("{$this->indexEndpoint}/terms/template")
+        ->assertForbidden();
+});

@@ -16,7 +16,9 @@ class UpdateWebsitePageRequest extends FormRequest
      * No locale is required: unlike Faq (which needs at least an English
      * answer to be useful), a legal page override is optional per-locale by
      * design - an admin may clear a locale back to blank to fall back to the
-     * site's baked copy for that language (fail-open).
+     * site's baked copy for that language (fail-open). Likewise
+     * `last_updated_at` is optional: an unset date falls back to the legacy
+     * project-level terms date on the public site.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -29,6 +31,7 @@ class UpdateWebsitePageRequest extends FormRequest
             'body.ja' => ['nullable', 'string', 'max:50000'],
             'body.ko' => ['nullable', 'string', 'max:50000'],
             'body.zh' => ['nullable', 'string', 'max:50000'],
+            'last_updated_at' => ['nullable', 'date'],
         ];
     }
 }

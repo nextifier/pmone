@@ -23,6 +23,7 @@ use Spatie\Translatable\HasTranslations;
  * @property int $project_id
  * @property string $key
  * @property array<array-key, mixed>|null $body
+ * @property Carbon|null $last_updated_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Project|null $project
@@ -59,9 +60,20 @@ class WebsitePage extends Model
         'project_id',
         'key',
         'body',
+        'last_updated_at',
     ];
 
     public array $translatable = ['body'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'last_updated_at' => 'date',
+        ];
+    }
 
     protected static function responseCacheTags(): array
     {

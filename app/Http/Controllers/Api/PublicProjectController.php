@@ -786,13 +786,22 @@ class PublicProjectController extends Controller
      * event website falls back to its baked `<p>` copy - never an empty
      * legal page.
      *
-     * Response shape: `{ data: { [key]: { body: string|null } } }`.
+     * Each key also carries `last_update` (raw `YYYY-MM-DD`): the page's own
+     * date when set, otherwise the legacy project-level
+     * `website_settings.terms.last_update` value, otherwise null. This lets the
+     * event site show a per-page "Last updated" line without a coordinated
+     * deploy or backfill - already-deployed sites that ignore the field keep
+     * working, and unset pages inherit the old global date.
+     *
+     * Response shape: `{ data: { [key]: { body: string|null, last_update: string|null } } }`.
      */
     public function websitePages(Request $request, string $username): JsonResponse
     {
         $project = Project::where('username', $username)->firstOrFail();
 
         $locale = $request->input('locale', config('app.locale', 'en'));
+
+        $legacyLastUpdate = data_get($project->settings, 'website_settings.terms.last_update');
 
         $pages = WebsitePage::query()
             ->where('project_id', $project->id)
@@ -803,13 +812,34 @@ class PublicProjectController extends Controller
         foreach (WebsitePage::KEYS as $key) {
             $page = $pages->get($key);
             $body = $page?->getTranslation('body', $locale, false);
+            $lastUpdate = $page?->last_updated_at?->toDateString() ?: $legacyLastUpdate;
 
             $payload[$key] = [
-                'body' => filled($body) ? $body : null,
+                // Fail-open on visually-empty HTML too (e.g. an "<p></p>" the
+                // editor saved): return null so the site renders its baked copy
+                // instead of an empty override - the legal-page-never-empty rule.
+                'body' => $this->hasVisibleText($body) ? $body : null,
+                'last_update' => filled($lastUpdate) ? $lastUpdate : null,
             ];
         }
 
         return response()->json(['data' => $payload]);
+    }
+
+    /**
+     * Whether an HTML body has any visible text once tags and whitespace-only
+     * entities are stripped. Mirrors the admin editor's blank check so an
+     * "empty" rich-text value (e.g. "<p></p>", "<p>&nbsp;</p>") fails open.
+     */
+    private function hasVisibleText(?string $html): bool
+    {
+        if (! filled($html)) {
+            return false;
+        }
+
+        $plain = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5);
+
+        return preg_replace('/[\s\x{00A0}]+/u', '', $plain) !== '';
     }
 
     /**
