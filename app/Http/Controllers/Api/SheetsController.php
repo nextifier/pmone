@@ -20,11 +20,13 @@ use Illuminate\Support\Str;
 
 class SheetsController extends Controller
 {
-    public function orders(Request $request, int $eventId): JsonResponse
+    public function orders(Request $request, string $eventId): JsonResponse
     {
         if ($request->query('token') !== config('services.sheets.api_token')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
+        $eventId = (int) $eventId;
 
         $event = Event::find($eventId);
 

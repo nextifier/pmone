@@ -949,11 +949,30 @@ class TicketPurchaseService
             ->update($update);
 
         if ($confirmed > 0) {
+            $this->touchOrderAttendees($order);
             $this->accessCodes->consume($order);
             $this->dispatchConfirmationEmails($order);
         }
 
         return $confirmed > 0;
+    }
+
+    /**
+     * Bump every attendee of an order to now(). The scan manifest's delta sync
+     * (plan 022) surfaces attendees whose `updated_at` moved past the device's
+     * cursor. A paid order's attendees are created while it is still pending -
+     * so their `updated_at` predates any manifest snapshot - and the confirm
+     * flip is a query-builder update() on `ticket_orders` that never touches
+     * the attendee rows. Without this bump a scanner syncing deltas would never
+     * learn a now-confirmed badge is admissible. Cancel/reissue/transfer already
+     * bump `updated_at` through Eloquent save()/update(), so only the
+     * status-flip confirm paths need this.
+     */
+    protected function touchOrderAttendees(TicketOrder $order): void
+    {
+        Attendee::query()
+            ->whereHas('ticketOrderItem', fn ($q) => $q->where('ticket_order_id', $order->id))
+            ->update(['updated_at' => now()]);
     }
 
     /**
@@ -1295,6 +1314,10 @@ class TicketPurchaseService
             Event::whereKey($order->event_id)->increment('reserved_count', $totalQty);
         }
 
+        // Same manifest-delta bump as markAsConfirmed(): a resurrected order's
+        // attendees rejoin the scan manifest, but this Expired -> Confirmed flip
+        // is a query-builder update() that leaves their `updated_at` untouched.
+        $this->touchOrderAttendees($order);
         $this->accessCodes->consume($order);
         $this->dispatchConfirmationEmails($order);
 

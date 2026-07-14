@@ -7,6 +7,7 @@ use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\ScanLog;
 use App\Support\QrToken;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -127,11 +128,102 @@ class ScanService
 
     /**
      * Offline manifest: every confirmed-order attendee scannable at this event
-     * (own + cross-scan partners), trimmed to what the scanner needs.
+     * (own + cross-scan partners), trimmed to what the scanner needs. Full
+     * (unpaginated) response - kept for small events and backward compatibility.
+     * Large events should page via manifestPage() + manifestChangesSince().
      *
      * @return array<int, array<string, mixed>>
      */
     public function manifest(Event $scanEvent): array
+    {
+        return $this->manifestBaseQuery($scanEvent)
+            // Stream in chunks (eager-loaded per chunk) instead of hydrating every
+            // confirmed attendee at once - keeps peak memory bounded on large
+            // events. The full mapped manifest is still returned (the offline
+            // scanner needs every token to validate without a network).
+            ->lazy()
+            ->map(fn (Attendee $a) => $this->manifestRow($a))
+            ->all();
+    }
+
+    /**
+     * One page of the manifest, keyset-paginated by attendee id so a very large
+     * event streams to each scanner device incrementally instead of a single
+     * tens-of-MB payload (plan 022). Returns the page plus the `next_cursor`
+     * (the last id when the page is full, else null = end). The device pages
+     * once on first load, then pulls only deltas via manifestChangesSince().
+     *
+     * @return array{data: array<int, array<string, mixed>>, next_cursor: int|null}
+     */
+    public function manifestPage(Event $scanEvent, ?int $cursor, int $limit): array
+    {
+        $rows = $this->manifestBaseQuery($scanEvent)
+            ->when($cursor, fn ($q) => $q->where('id', '>', $cursor))
+            ->orderBy('id')
+            ->limit($limit)
+            ->get();
+
+        return [
+            'data' => $rows->map(fn (Attendee $a) => $this->manifestRow($a))->all(),
+            'next_cursor' => $rows->count() === $limit ? $rows->last()?->id : null,
+        ];
+    }
+
+    /**
+     * Manifest deltas since a timestamp cursor: attendees whose row changed
+     * after `$since` (plan 022). Each is tagged so the device mutates its
+     * cached manifest in place instead of re-pulling everything:
+     *  - `upsert` - a now-admissible attendee (newly confirmed, reissued, or
+     *    transferred: the row carries the current qr_token, keyed by the stable
+     *    `ulid`).
+     *  - `remove` - an attendee that left the manifest (cancelled/refunded, or
+     *    its order no longer confirmed). The rotated qr_token is never emitted;
+     *    the device drops the entry by `ulid`.
+     *
+     * Correctness hinges on `updated_at` being bumped on every relevant
+     * mutation - cancel/reissue/transfer bump it through Eloquent, and the
+     * status-flip confirm paths are bumped explicitly in TicketPurchaseService
+     * (see touchOrderAttendees()).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function manifestChangesSince(Event $scanEvent, string $since, int $limit = 5000): array
+    {
+        $eventIds = $this->scannableEventIds($scanEvent);
+        $sinceTime = Carbon::parse($since);
+
+        return Attendee::query()
+            ->whereHas('ticket', fn ($q) => $q->whereIn('event_id', $eventIds))
+            ->where('updated_at', '>', $sinceTime)
+            ->with([
+                'ticket.validDays',
+                // ticket_order_id must be selected here or the nested
+                // ticketOrder eager-load has no foreign key to match on.
+                'ticketOrderItem:id,ticket_order_id,selected_event_day_id',
+                'ticketOrderItem.ticketOrder:id,status',
+            ])
+            ->orderBy('updated_at')
+            ->orderBy('id')
+            ->limit($limit)
+            ->get()
+            ->map(function (Attendee $a): array {
+                $admissible = $a->cancelled_at === null
+                    && ($a->ticketOrderItem?->ticketOrder?->isConfirmed() ?? false);
+
+                if (! $admissible) {
+                    return ['action' => 'remove', 'ulid' => $a->ulid];
+                }
+
+                return array_merge(['action' => 'upsert'], $this->manifestRow($a));
+            })
+            ->all();
+    }
+
+    /**
+     * Shared query for the admissible-attendee manifest (own event + cross-scan
+     * partners, confirmed order, not individually cancelled).
+     */
+    protected function manifestBaseQuery(Event $scanEvent): Builder
     {
         $eventIds = $this->scannableEventIds($scanEvent);
 
@@ -139,24 +231,30 @@ class ScanService
             ->whereHas('ticket', fn ($q) => $q->whereIn('event_id', $eventIds))
             ->whereHas('ticketOrderItem.ticketOrder', fn ($q) => $q->where('status', 'confirmed'))
             ->whereNull('cancelled_at')
-            ->with(['ticket.validDays', 'ticketOrderItem:id,selected_event_day_id'])
-            // Stream in chunks (eager-loaded per chunk) instead of hydrating every
-            // confirmed attendee at once - keeps peak memory bounded on large
-            // events. The full mapped manifest is still returned (the offline
-            // scanner needs every token to validate without a network).
-            ->lazy()
-            ->map(fn (Attendee $a) => [
-                'qr_token' => $a->qr_token,
-                'name' => $a->name,
-                'kind' => $a->ticket?->kind?->value,
-                'tier' => $a->ticket?->tier,
-                'valid_day_ids' => $a->ticketOrderItem?->selected_event_day_id
-                    ? [$a->ticketOrderItem->selected_event_day_id]
-                    : ($a->ticket?->validDays->pluck('id')->all() ?? []),
-                'event_id' => $a->ticket?->event_id,
-                'checked_in_at' => $a->checked_in_at?->toIso8601String(),
-            ])
-            ->all();
+            ->with(['ticket.validDays', 'ticketOrderItem:id,selected_event_day_id']);
+    }
+
+    /**
+     * One manifest entry. `ulid` is the stable client-side key (survives a
+     * qr_token rotation on reissue/transfer); `qr_token` is the current
+     * scannable value.
+     *
+     * @return array<string, mixed>
+     */
+    protected function manifestRow(Attendee $a): array
+    {
+        return [
+            'ulid' => $a->ulid,
+            'qr_token' => $a->qr_token,
+            'name' => $a->name,
+            'kind' => $a->ticket?->kind?->value,
+            'tier' => $a->ticket?->tier,
+            'valid_day_ids' => $a->ticketOrderItem?->selected_event_day_id
+                ? [$a->ticketOrderItem->selected_event_day_id]
+                : ($a->ticket?->validDays->pluck('id')->all() ?? []),
+            'event_id' => $a->ticket?->event_id,
+            'checked_in_at' => $a->checked_in_at?->toIso8601String(),
+        ];
     }
 
     /**

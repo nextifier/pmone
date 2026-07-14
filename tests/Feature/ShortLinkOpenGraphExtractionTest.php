@@ -65,6 +65,41 @@ test('extracts og metadata when job is executed', function () {
     expect($shortLink->og_type)->toBe('article');
 });
 
+test('persists a long generated og image url without truncation', function () {
+    $longImage = 'https://indonesiacomiccon.com/_og/d/'.str_repeat('c_Page,headline_Indonesia+Comic+Con+(ICC),pageTitle_Tiket+Indonesia+Comic+Con,', 6).'s_7geFIaiQFoRdK3dH.png';
+
+    expect(strlen($longImage))->toBeGreaterThan(255);
+
+    $html = <<<HTML
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta property="og:title" content="Tiket Indonesia Comic Con (ICC)" />
+        <meta property="og:image" content="{$longImage}" />
+    </head>
+    </html>
+    HTML;
+
+    Http::fake([
+        'example.com/*' => Http::response($html, 200, ['Content-Type' => 'text/html']),
+    ]);
+
+    $user = User::factory()->create();
+
+    $shortLink = ShortLink::create([
+        'user_id' => $user->id,
+        'slug' => 'long-og-image',
+        'destination_url' => 'https://example.com/comic-con',
+        'is_active' => true,
+    ]);
+
+    ExtractOpenGraphMetadata::dispatch($shortLink->id);
+
+    $shortLink->refresh();
+
+    expect($shortLink->og_image)->toBe($longImage);
+});
+
 test('dispatches job to re-extract og metadata when destination url is updated', function () {
     Queue::fake();
 

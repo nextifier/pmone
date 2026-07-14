@@ -388,10 +388,86 @@ and deployed — so 016–025 branch off `main`, not the old `advisor/*` stack.
 | 021 | Event-level total-capacity cap | 2 | P2 | build | DONE-code / REVIEWED / UNCOMMITTED (executed+reviewed 2026-07-12, worktree branch `worktree-agent-abe3f6c3bf1d7b3a5` off `main`; `events.capacity`+`reserved_count`, atomic `Event::reserveHeadcount` w/ correct parenthesization + regression guard, wired createOrder/expire/refund. Reviewer-directed extension: closed the `reconfirmAfterExpiry` under-count gap the executor flagged (pre-check event capacity → needs_reconciliation + restore reserved_count) + 2 tests. `bulkGenerate` comps intentionally NOT counted (documented decision). EventCapacity 14/14, full Tickets+Webhook **429 passed / 0 failed**, pint clean. NOT committed/merged — main advanced past the worktree base, rebase before merge.) |
 | 019 | Anti-scalper: per-buyer cap + Turnstile | 2 | P2 | build | DONE-code / REVIEWED / UNCOMMITTED (executed+reviewed 2026-07-12, worktree branch `worktree-agent-a964744a0602f6d31` off `main`; per-buyer cap `tickets.max_per_buyer`+`events.max_tickets_per_buyer` in createOrder w/ held-qty query (Confirmed+non-expired-pending, email+user_id match, `(event_id,buyer_email)` index), server-side Turnstile (`config/turnstile.php`, `Turnstile::verify` fail-closed, `events.bot_protection_enabled`, fail-open no-secret/expo). **Reviewer SECURITY fix**: removed the client-spoofable `source=admin` Turnstile bypass — proxy forwards the browser body verbatim, so a `source=admin` field was attacker-controllable; controller uses `validated()` so dropping the rule also stops `source`-column spoofing. Test rewritten as a security guard. AntiScalper 12/12, Tickets **393 passed / 0 failed**, pint clean. **FE follow-up**: `checkout.vue` Turnstile widget needs `bot_protection_enabled` exposed on the public Event resource first (not done). Overlaps 021 in `createOrder` (both uncommitted) — reconcile at merge. NOT committed/merged; rebase (main advanced). |
 | 020 | Waitlist / notify-when-available | 2 | P2 | build | DONE-code / REVIEWED / UNCOMMITTED (executed+reviewed 2026-07-12, worktree branch `worktree-agent-aee07a1010fb67d10` off `main`; `TicketWaitlistEntry` model + `WaitlistService` (join/offer/claim/sweep) + `OfferWaitlistSeatsJob` + 3 mail jobs + scheduled `ExpireStaleWaitlistOffersJob`. Oversell-safe: reserve-on-offer via 016 `Ticket::reserve()`, release-on-expiry, claim consumes the held seat WITHOUT re-reserving (nested-tx rollback returns a failed claim to Offered, no leaked hold); claim↔sweep race mutually-exclusive via `lockForUpdate`. **`createOrder` untouched (0 lines)** — claim uses a sibling `createOrderFromWaitlistClaim()`; expire/refund hooks are 1 line each (isolated from 021). Public routes throttled + validated. Waitlist 9/9, Tickets **390 passed / 0 failed**, pint clean. Reviewer verified oversell math + race + throttle; no fixes needed. **Follow-ups**: session/phase-level waitlist, event-capacity(021)↔waitlist wiring, notify_only re-notify de-dup, FE (`TicketList.vue` sold-out affordance + claim page), admin waitlist UI. NOT committed/merged; rebase (main advanced). |
-| 022 | Scalable check-in manifest | 3 (parallel) | P3 | build | TODO |
-| 023 | Virtual waiting room | 3 | P2 | **SPIKE** | TODO |
-| 024 | Reserved / assigned seating | 3 | P2 | **SPIKE** | TODO |
-| 025 | RSVP / invitation flow | 3 | P2 | **SPIKE** | TODO |
+| 022 | Scalable check-in manifest | 3 (parallel) | P3 | build | DONE-code / BROWSER-UNVERIFIED / UNCOMMITTED (executed 2026-07-14, branch `advisor/022-manifest-scale`; keyset `manifestPage` + tagged-delta `manifestChangesSince` + `attendees.updated_at` index; **STOP-condition fix**: `markAsConfirmed`+`reconfirmAfterExpiry` now `touchOrderAttendees()` so a status-flip confirm bumps `updated_at` and the delta sees it — verified by a test that fails without it. Manifest rows now carry the stable `ulid` key so a qr_token rotation surfaces as an `upsert` not a lost entry. Full manifest kept intact (opt-in paging via `cursor`/`limit`/`paged`). ManifestScale 5/5, full scan suite 23/0, purchase+webhook+refund+pricephase+accesscode all green (1 pre-existing Mockery `createCheckout` refund flake, reproduced on baseline, non-deterministic). pint clean. **Frontend static-review-only (NOT changed)** — see execution log below for the `useScanSession.ts` paging+delta-merge steps; needs browser + large-dataset verification before a big event.) |
+| 023 | Virtual waiting room | 3 | P2 | **SPIKE** | SPIKE DONE 2026-07-14 → follow-up **[032](032-waiting-room-build.md)**. Recommendation: **BUY CF Waiting Room** (each event = its own CF zone; scheduled Waiting Room Events arm per-event; Turnstile/Cache-Rules precedent). Admission contract + fail-open `waiting-room` middleware defined; Option B (Redis queue) kept as fallback. **STOP for ops**: confirm CF plan tier includes Waiting Room per target zone before build. |
+| 024 | Reserved / assigned seating | 3 | P2 | **SPIKE** | SPIKE DONE 2026-07-14 → follow-up **[033](033-reserved-seating-build.md)**. Full assigned-seating design (operator wants it for future concerts/conferences). Data model (venues→seat_maps→sections→rows→seats + per-event `event_seats`) + concurrency = 016's atomic conditional-UPDATE at seat granularity. **Prototype run green then deleted** (SQLite in-memory, 2/2: first-wins race + expired-hold reclaim + holder-only convert). 5 landable slices; GA path never touched. **STOP**: load-test slice 3 before any seated on-sale. |
+| 025 | RSVP / invitation flow | 3 | P2 | **SPIKE** | SPIKE DONE 2026-07-14 → follow-up **[034](034-rsvp-invitation-build.md)**. Full RSVP (operator-confirmed). Recommendation: **new `event_invitations` model + reuse the free-order/attendee/custom-field machinery** for "accept" (access codes are the wrong home — they model purchase unlocks, not responses). State machine (invited→attending/declined/maybe/waitlisted) + guests→attendees + capacity(021)/waitlist(020) hooks; 3 slices. |
+
+### Execution log — 2026-07-14 (plan 022)
+
+Executed in-session on branch `advisor/022-manifest-scale` (off current `main`;
+016-021 already merged/deployed). **Nothing committed/pushed.**
+
+- **Backend (done + tested):**
+  - Migration `2026_07_14_180012_index_updated_at_on_attendees_table` — index
+    `attendees.updated_at` (`migrate --pretend` confirms `create index
+    attendees_updated_at_index`).
+  - `ScanService`: extracted `manifestRow()` (now includes the stable `ulid`
+    key + `qr_token`); `manifest()` unchanged in output shape apart from the
+    added `ulid`; new `manifestPage(event, cursor, limit)` (keyset by `id`,
+    returns `data` + `next_cursor`) and `manifestChangesSince(event, since,
+    limit=5000)` (returns each changed attendee tagged `upsert` — admissible:
+    not cancelled + order confirmed — or `remove` — keyed by `ulid`, rotated
+    token never emitted).
+  - `ScanController::manifest` gained a `Request`; full manifest by default,
+    opt-in paged mode via `cursor`/`limit`/`paged` (returns `next_cursor` +
+    `version`). New `manifestChanges` (`GET …/scan/manifest/changes?since=`).
+    Route added.
+  - **STOP-condition fix (the delta's correctness hinge):** `updated_at` is bumped
+    on every relevant mutation — cancel/reissue/transfer/day-change already go
+    through Eloquent `save()`/`update()`, but the two status-flip confirm paths
+    (`markAsConfirmed`, `reconfirmAfterExpiry`) are query-builder `update()`s on
+    `ticket_orders` that leave the attendee rows untouched. Added
+    `TicketPurchaseService::touchOrderAttendees()` called on both. A test asserts
+    a newly-confirmed attendee appears in the delta — it fails without the bump.
+    `refundOrder` is covered transitively (it calls `refundAttendee()` per seat,
+    which `save()`s). `expireOrder` needs no bump (a pending order's attendees are
+    never in the manifest).
+  - Delta eager-load bug caught in test: `ticketOrderItem:id,ticket_order_id,
+    selected_event_day_id` — the FK column is required or the nested `ticketOrder`
+    load is null and every row misclassifies as `remove`.
+- **Frontend (`useScanSession.ts`) — STATIC-REVIEW-ONLY, deliberately NOT changed.**
+  The existing scanner pulls the full `/manifest` and caches `{data, generated_at}`
+  in IndexedDB, keyed for lookup by `qr_token` (`manifestByToken`). Backward
+  compatible: unchanged, it keeps working. To adopt paging+delta for 20k+ events:
+  1. First load: loop `GET /manifest?cursor=&limit=1000`, concat `data` until
+     `next_cursor` is null; persist the manifest + the **first page's** `version`
+     as the delta floor.
+  2. Refresh (`loadManifest`): `GET /manifest/changes?since=<stored version>`;
+     for each change `upsert` → replace/insert **by `ulid`** (updates a rotated
+     `qr_token`), `remove` → delete by `ulid`; then store the new `version`.
+  3. Re-key the cache/lookup by `ulid` (stable) with a `qr_token`→entry index for
+     scan matching, so a rotation updates in place instead of orphaning the old
+     token.
+  **Requires browser + large-dataset verification before a big event** (gate-
+  scanner critical path). Also note for ops: real device/network load testing is
+  out of scope (per plan).
+
+### Execution log — 2026-07-14 (spikes 023 / 024 / 025)
+
+All three spikes executed to their done criteria (decision + design + throwaway
+prototype where applicable + a follow-up implementation plan file). **Nothing
+merged; prototypes deleted.** Follow-up plan numbers use **032–034** (the spike
+files suggested 026–028, which Wave 2 already owns).
+
+- **023 → [032](032-waiting-room-build.md)** — build-vs-buy resolved to **BUY (CF
+  Waiting Room)**, grounded in the verified deploy topology (each event site is its
+  own CF zone; CF Turnstile/Cache-Rules already in use; Waiting Room supports
+  scheduled per-event events). Defined the cross-origin integration (same-zone API
+  routing + optional WR-JWT origin guard), the fail-open `waiting-room` middleware
+  contract + `config/waiting_room.php`, and kept a Redis-queue Option B as the
+  fallback. **STOP gate for ops**: confirm the CF plan tier per target zone.
+- **024 → [033](033-reserved-seating-build.md)** — full assigned-seating design
+  (venues/seat_maps/sections/rows/seats + per-event `event_seats`), concurrency =
+  016's atomic conditional-UPDATE at seat granularity with in-statement expired-hold
+  reclaim. **Prototype proven then discarded**: a self-contained Pest test on a
+  scratch table (SQLite in-memory) ran green (2/2, 8 assertions) — first-wins under a
+  2-buyer race, expired-hold reclaim, holder-only hold→sold convert — then deleted
+  (touched no production schema). Sliced into 5 landable pieces; GA path untouched.
+- **025 → [034](034-rsvp-invitation-build.md)** — full RSVP: **new `event_invitations`
+  model + reuse the free-order/attendee/custom-field pipeline** for acceptance
+  (access codes model purchase-unlocks, not responses). Response state machine +
+  guests→attendees mapping + 021 capacity / 020 waitlist hooks; 3 slices.
 
 ## Wave 1 — Tickets / Check-in / Business Matching / Payment Gateway (DONE, awaiting merge)
 

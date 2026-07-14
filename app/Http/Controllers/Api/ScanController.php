@@ -89,11 +89,65 @@ class ScanController extends Controller
         return response()->json(['data' => $result]);
     }
 
-    public function manifest(Event $event): JsonResponse
+    /**
+     * Offline manifest of admissible attendees. Two modes on the same route:
+     *  - Default (no cursor/limit/paged param): the full manifest - unchanged
+     *    for existing small-event scanners.
+     *  - Paged (opt-in via cursor/limit/paged): one keyset page + `next_cursor`
+     *    + a `version` timestamp. A very large event pages once, then pulls only
+     *    deltas from manifest/changes?since=version (plan 022). The device keeps
+     *    the FIRST page's `version` as its delta floor.
+     */
+    public function manifest(Request $request, Event $event): JsonResponse
     {
+        if (! $request->has('cursor') && ! $request->has('limit') && ! $request->boolean('paged')) {
+            return response()->json([
+                'data' => $this->scans->manifest($event),
+                'generated_at' => now()->toIso8601String(),
+            ]);
+        }
+
+        $validated = $request->validate([
+            'cursor' => ['nullable', 'integer', 'min:0'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:5000'],
+        ]);
+
+        // Captured before the query so the delta floor never sits after a row
+        // this page might not have seen; a small overlap only re-pulls (the
+        // client merge is idempotent), a gap would drop a change.
+        $version = now()->toIso8601String();
+
+        $page = $this->scans->manifestPage(
+            $event,
+            $validated['cursor'] ?? null,
+            $validated['limit'] ?? 1000,
+        );
+
         return response()->json([
-            'data' => $this->scans->manifest($event),
-            'generated_at' => now()->toIso8601String(),
+            'data' => $page['data'],
+            'next_cursor' => $page['next_cursor'],
+            'version' => $version,
+            'generated_at' => $version,
+        ]);
+    }
+
+    /**
+     * Manifest deltas since a timestamp cursor (plan 022): attendees added,
+     * removed, or qr-rotated since `since`, each tagged upsert/remove so the
+     * device patches its cached manifest instead of re-pulling everything.
+     */
+    public function manifestChanges(Request $request, Event $event): JsonResponse
+    {
+        $validated = $request->validate([
+            'since' => ['required', 'date'],
+        ]);
+
+        $version = now()->toIso8601String();
+
+        return response()->json([
+            'data' => $this->scans->manifestChangesSince($event, $validated['since']),
+            'version' => $version,
+            'generated_at' => $version,
         ]);
     }
 

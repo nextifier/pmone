@@ -914,6 +914,7 @@ Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
 
 // Google Sheets integration (token-based auth)
 Route::get('/sheets/orders/{eventId}', [SheetsController::class, 'orders'])
+    ->whereNumber('eventId')
     ->middleware('throttle:60,1')
     ->name('sheets.orders');
 Route::get('/sheets/contacts', [SheetsController::class, 'contacts'])
@@ -1376,6 +1377,7 @@ Route::middleware(['auth:sanctum', 'verified', 'tickets-enabled', 'can:scan.chec
         Route::get('/search', [ScanController::class, 'search'])->name('events.scan.search');
         Route::post('/manual-check-in', [ScanController::class, 'manualCheckIn'])->name('events.scan.manual-check-in');
         Route::get('/manifest', [ScanController::class, 'manifest'])->name('events.scan.manifest');
+        Route::get('/manifest/changes', [ScanController::class, 'manifestChanges'])->name('events.scan.manifest.changes');
         Route::post('/sync', [ScanController::class, 'sync'])->name('events.scan.sync');
     });
 
