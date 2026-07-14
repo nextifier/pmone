@@ -141,23 +141,28 @@ class OrderSubmissionService
             // Evaluate auto-triggered penalty rules (seeded from Event.onsite_penalty_rate).
             $this->penaltyService->evaluateAndApply($order);
 
-            // Apply promo code if supplied. Throws ValidationException on an
-            // invalid code, aborting the transaction.
-            if (! empty($options['promo_code'])) {
-                $email = $options['promo_email'] ?? $user?->email ?? '';
-                $this->promoCodeService->applyByCode(
-                    (string) $options['promo_code'],
-                    $order->fresh(['items', 'adjustments.promotionRule', 'brandEvent']),
-                    (string) $email,
-                    $user?->id,
-                );
-                $order->forceFill([
-                    'promo_code_applied' => strtoupper(trim((string) $options['promo_code'])),
-                ])->save();
-            }
+            // Apply promo code + finalize pricing. Both run as part of creating
+            // the order, so they are wrapped in withoutLogs: the "created"
+            // activity already records the order. Logging these would emit
+            // misleading "updated total: Rp0 -> ..." entries at creation.
+            // Throws ValidationException on an invalid code, aborting the transaction.
+            activity()->withoutLogs(function () use ($options, $order, $user): void {
+                if (! empty($options['promo_code'])) {
+                    $email = $options['promo_email'] ?? $user?->email ?? '';
+                    $this->promoCodeService->applyByCode(
+                        (string) $options['promo_code'],
+                        $order->fresh(['items', 'adjustments.promotionRule', 'brandEvent']),
+                        (string) $email,
+                        $user?->id,
+                    );
+                    $order->forceFill([
+                        'promo_code_applied' => strtoupper(trim((string) $options['promo_code'])),
+                    ])->save();
+                }
 
-            // Final recalculate persists discount/penalty/tax/total.
-            $this->pricingService->recalculateAndPersist($order->fresh(['adjustments', 'brandEvent']));
+                // Final recalculate persists discount/penalty/tax/total.
+                $this->pricingService->recalculateAndPersist($order->fresh(['adjustments', 'brandEvent']));
+            });
 
             return $order->fresh(['adjustments']);
         });

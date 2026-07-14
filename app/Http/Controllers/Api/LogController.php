@@ -981,6 +981,10 @@ class LogController extends Controller
         $properties = $activity->properties;
         $changes = [];
 
+        // Currency stamped by the subject (e.g. Order) so money changes render
+        // in the right currency; defaults to IDR for everything else.
+        $currency = $properties['currency'] ?? 'IDR';
+
         $attributes = $properties['attributes'] ?? [];
         $old = $properties['old'] ?? [];
 
@@ -1013,14 +1017,14 @@ class LogController extends Controller
             $isCurrency = self::isCurrencyField($field);
             $changes[] = [
                 'field' => self::humanizeFieldName($field),
-                'old' => $isCurrency ? self::formatCurrencyValue($oldValue) : $oldValue,
-                'new' => $isCurrency ? self::formatCurrencyValue($newValue) : $newValue,
+                'old' => $isCurrency ? self::formatCurrencyValue($oldValue, $currency) : $oldValue,
+                'new' => $isCurrency ? self::formatCurrencyValue($newValue, $currency) : $newValue,
             ];
         }
 
         // For custom events without attributes/old structure, show relevant properties
         if (empty($changes) && ! isset($properties['attributes'])) {
-            $skip = array_merge(['project_id'], self::HIDDEN_CHANGE_FIELDS);
+            $skip = array_merge(['project_id', 'currency'], self::HIDDEN_CHANGE_FIELDS);
             foreach ($properties->toArray() as $key => $value) {
                 if (in_array($key, $skip, true)) {
                     continue;
@@ -1032,7 +1036,7 @@ class LogController extends Controller
                 $changes[] = [
                     'field' => self::humanizeFieldName($key),
                     'old' => null,
-                    'new' => self::isCurrencyField($key) ? self::formatCurrencyValue($value) : $value,
+                    'new' => self::isCurrencyField($key) ? self::formatCurrencyValue($value, $currency) : $value,
                 ];
             }
         }
@@ -1041,20 +1045,23 @@ class LogController extends Controller
     }
 
     /**
-     * Format a numeric amount as Indonesian Rupiah (e.g. "Rp9.952.250").
+     * Format a numeric amount in the given currency: USD as "$1,000.00",
+     * everything else as Indonesian Rupiah "Rp9.952.250".
      */
-    private static function formatCurrency(int|float|string $amount): string
+    private static function formatCurrency(int|float|string $amount, string $currency = 'IDR'): string
     {
-        return 'Rp'.number_format((float) $amount, 0, ',', '.');
+        return strtoupper((string) $currency) === 'USD'
+            ? '$'.number_format((float) $amount, 2)
+            : 'Rp'.number_format((float) $amount, 0, ',', '.');
     }
 
     /**
      * Format a value as currency when numeric; otherwise return it unchanged
      * so null old-values stay null for the frontend's "added" rendering.
      */
-    private static function formatCurrencyValue(mixed $value): mixed
+    private static function formatCurrencyValue(mixed $value, string $currency = 'IDR'): mixed
     {
-        return is_numeric($value) ? self::formatCurrency($value) : $value;
+        return is_numeric($value) ? self::formatCurrency($value, $currency) : $value;
     }
 
     /**

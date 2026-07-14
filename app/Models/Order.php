@@ -238,6 +238,10 @@ class Order extends Model implements HasMedia, Purchasable
         if ($projectId = $this->loadMissing('brandEvent.event')->brandEvent?->event?->project_id) {
             $activity->properties = $activity->properties->put('project_id', $projectId);
         }
+
+        // Stamp the order currency so the activity log formats money changes in
+        // the right currency ($ vs Rp) instead of assuming Rupiah.
+        $activity->properties = $activity->properties->put('currency', $this->currency);
     }
 
     public function getRouteKeyName(): string
