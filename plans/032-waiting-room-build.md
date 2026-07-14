@@ -1,183 +1,155 @@
-# Plan 032: Virtual waiting room — build plan (follow-up to spike 023)
+# Plan 032: Virtual waiting room — platform-first build (follow-up to spike 023)
 
-> Follow-up implementation plan produced by **spike 023**. The spike's job was
-> the build-vs-buy decision + the admission contract; this plan is the concrete
-> build. **Read spike 023 first.** STOP conditions from 023 are carried down.
+> Follow-up implementation plan produced by **spike 023**, **revised 2026-07-14 to
+> platform-first**. PM One is a product sold to many event organizers for events of
+> every type and scale, so a big-event capability must be **built into the platform
+> and ready before any big on-sale** — not assembled reactively when a concert
+> client shows up. This plan builds the waiting room as a **standing, tenant-wide
+> platform feature**. **Read spike 023 first.**
 
 ## Status
 
-- **Priority**: P2 (concert-grade on-sales only)
-- **Effort**: M (Option A) / L–XL (Option B fallback)
-- **Risk**: MED (must fail-open so normal events are never queued)
-- **Depends on**: 016 (atomic inventory) + 017 (async checkout) already deployed —
-  the waiting room only throttles *arrivals*; the drain rate is 016/017's job.
-- **Planned at**: `advisor/022-manifest-scale` base, 2026-07-14
+- **Priority**: P1 for the platform's scale story (was P2 as a single-organizer nicety)
+- **Effort**: L (built-in engine) + optional M (Cloudflare edge layer)
+- **Risk**: MED — must fail-open (normal events are never queued) + must be
+  load-tested before any real on-sale
+- **Depends on**: 016 (atomic inventory) + 017 (async checkout) + 018 (queue/DB
+  hardening) already deployed. **Prerequisite gate: the 016 k6 load test** (still
+  owed) sizes the admission rate.
+- **Planned at**: `advisor/022-manifest-scale` base, 2026-07-14 (revised)
 
-## Spike 023 outcome — recommendation
+## Recommendation (revised) — build the built-in engine; Cloudflare is optional edge
 
-**Build vs buy → BUY (Cloudflare Waiting Room), with a small origin-side guard.**
-Grounded in the actual deploy topology (verified read-only):
+The spike's original "buy Cloudflare" call was framed for a single organizer who
+rarely needs it. For a **platform reseller** the calculus flips:
 
-- Every event website is its **own Cloudflare zone** (per-domain), deployed on CF
-  Pages. Confirmed in `~/Frontend/pmone-events/docs/cloudflare-cache-rule.md`
-  ("Rule identik untuk setiap zone / domain event", per-zone API loop) and the
-  per-app `nuxt.config.ts` domain map.
-- CF is already the platform for edge concerns here: **Turnstile** (bot protection,
-  plan 019 — `docs/cloudflare-turnstile.md`), **Cache Rules** (Workers-CPU trim),
-  **Access** (staging block). CF-native is the established pattern; a bespoke
-  Redis queue would be the *only* non-CF piece of edge infrastructure.
-- CF **Waiting Room** is a zone-level product that supports **scheduled Waiting
-  Room Events** (per-event start/end, custom queueing, session renewal). That maps
-  1:1 onto per-event on-sale timing — exactly the "can it be armed per-event on a
-  schedule?" question the spike had to answer. **Yes, it can.**
+- **Cloudflare Waiting Room is per-zone (per-domain), paid (Business plan tier).**
+  With one domain per organizer/event and a constantly growing customer base,
+  requiring every client domain to carry a paid CF plan is expensive to buy and
+  awkward to provision. It cannot be the platform's *baseline* scale guarantee.
+- **A built-in, application-level admission engine serves every tenant uniformly**,
+  with no per-domain fee, full control, and admission that can be tied to the
+  event's real inventory/drain rate. This is the right architectural home for a
+  capability the product *promises to every customer*.
 
-So Option A wins the spike's own STOP condition ("if CF Waiting Room is available
-and can be armed per-event, recommend buy — don't build B for fun"). Option B (a
-Redis token queue) is fully designed below as the **fallback only if the plan tier
-doesn't include Waiting Room or the cost is rejected**.
+So: **the primary waiting room is built in (Redis-backed).** Cloudflare Waiting Room
+stays as an **optional premium edge layer** for enterprise-scale on-sales (strictly
+stronger — it queues before traffic reaches the origin — sold as a higher tier). The
+**origin integration is identical either way** (one `waiting-room` middleware, a
+driver switch), so adding the CF layer later is cheap.
 
-### The one blocking fact ops must confirm (STOP)
+## Architecture — the built-in engine
 
-CF Waiting Room requires a **Business plan** (or an Enterprise plan / paid add-on)
-**per zone**. With ~11–16 event zones, confirm:
+Everything below the "admitted" line reuses the already-hardened purchase path
+(016/017/018). The waiting room only controls **who is let in, and how fast**.
 
-1. Which plan tier each event zone is on today (dashboard → each zone → Overview).
-2. Whether Waiting Room is included or an add-on, and the per-zone cost.
-3. Whether only a *few* zones ever run concert-grade on-sales (arm WR only on those
-   — you don't need it on every expo zone).
+### 1. Admission control (driver-agnostic)
+- Middleware alias `waiting-room` (class `EnsureAdmitted`) on the purchase entry
+  points: `POST /public/ticket-orders` (currently `throttle:10,1` + `tickets-enabled`),
+  plus `…/tickets/…availability` + `…/preview-pricing`.
+- **Fail-open**: an event with no armed on-sale window (`events.waiting_room_enabled
+  = false` or outside `on_sale_starts_at`) passes untouched — the default expo path is
+  byte-identical to today. This is the core safety property.
+- When armed, require a valid **admission token**; else `403 WAITING_ROOM_NOT_ADMITTED`
+  + queue info, so the frontend sends the user to the queue.
+- Drivers behind one interface: `redis` (built-in, default), `cloudflare` (verify the
+  CF WR JWT — premium edge), `null` (always-admit — disables the feature).
 
-**Do not start the Option A build until 1–3 are answered.** If WR is unavailable or
-rejected on cost, switch to Option B (below). The rest of Option A assumes it's
-available.
+### 2. The Redis queue engine (the built-in driver)
+- **Enqueue**: on arrival to an armed on-sale, issue a signed **queue token** and
+  place it in a per-event **Redis sorted set** (score = arrival timestamp → FIFO
+  fairness). Per-event key namespace isolates events from each other.
+- **Admission worker** (scheduled/looped): promotes the head of the queue into an
+  **admitted set** at a controlled **drain rate**, minting a short-TTL HMAC admission
+  token. The middleware admits requests whose token is in that set and unexpired.
+- **Status endpoint** `GET /public/events/{event}/queue/status` → `{state:
+  queued|admitted, position, estimated_wait, token}`. **Redis-only reads, never
+  Postgres** — this is what lets it absorb a flood without touching the order DB.
+- **Fairness + abandonment**: idempotent re-entry (same session keeps its place on
+  refresh — no line-jumping, no refresh-storm reward); token + queue TTL recycle
+  abandoned slots.
+- **Anti-bot**: gate queue entry with Turnstile (019, already integrated) so bots
+  can't flood the queue itself.
 
-## The integration problem the spike solved (why a naive arming fails)
+### 3. Isolation & reliability (non-negotiable for a platform)
+- The queue lives in a **separate Redis connection/instance** from Horizon's job
+  queue (018), so a queue flood never starves job processing or the order path.
+- That Redis needs **persistence + HA (replica/failover)** — if it hiccups mid
+  on-sale, queue state (positions, admissions) must not vanish.
+- **Monitoring**: live queue length, admission rate, admitted count, error rate —
+  a platform-admin view (optionally surfaced to the organizer).
 
-The event page (e.g. `megabuild.id`, its own zone) and the order API
-(`POST /public/ticket-orders` on the **PM One API host**) are **different origins**.
-CF Waiting Room on the event zone queues users before they load the *page*, but the
-browser then calls the API host directly — which the event-zone Waiting Room does
-**not** cover. Two clean ways to make admission end-to-end:
+### 4. Config model
+- `config/waiting_room.php`: `default_driver` (redis|cloudflare|null), queue Redis
+  connection name, default drain rate + token/queue TTLs.
+- Per-event: `events.waiting_room_enabled`, `events.on_sale_starts_at`, a per-event
+  **drain-rate override**, and an optional per-event **driver** (an enterprise event
+  can use `cloudflare` while everyone else uses the built-in `redis`).
 
-- **A1 (recommended): same-zone API path.** Front the public order/availability
-  endpoints under the event zone (a CF Pages Function / Worker route on
-  `megabuild.id/api/*` that proxies to the PM One API), and arm the Waiting Room on
-  the event zone covering **both** the on-sale page path and `…/api/public/
-  ticket-orders`. Admitted users clear one queue; their WR session cookie is valid
-  for every same-zone request. No cross-site cookie problem.
-- **A2 (defense-in-depth): verify the WR JWT at the origin.** CF signs the Waiting
-  Room cookie as a JWT. A Laravel middleware on `POST /public/ticket-orders` can
-  verify it (CF public key / shared secret) and reject requests without a valid
-  admission claim for that event. Pairs with A1 so a user who skips the page and
-  hits the API directly is still rejected during an armed on-sale.
+### 5. Drain rate = measured, not guessed
+Admit N buyers per interval where N ≈ the purchase path's **load-tested** clearing
+rate (the 016 k6 gate). A waiting room that feeds faster than the purchase path
+drains just moves the stampede inside the gate — so the load test is a hard
+prerequisite, not a nicety.
 
-The origin integration point is identical for Option B — a `waiting-room` middleware
-on the same route — so the backend work is the same shape either way.
+## Cloudflare — optional premium edge layer (later, enterprise tier)
+- Same `waiting-room` middleware, driver `cloudflare`: verify the CF Waiting Room
+  JWT so a user who skips the queue page and hits the API directly is still rejected.
+- Ops: arm a scheduled CF Waiting Room on the enterprise event's zone (CF API), with
+  same-zone API routing so admission is enforced end-to-end (each event site is
+  already its own CF zone — verified). Sold as a higher plan.
 
-## Admission-token contract (the reusable backend piece)
+## Build sequence (the work order)
 
-A middleware alias `waiting-room` (class `EnsureAdmitted`) on
-`POST /public/ticket-orders` (and `POST /public/tickets/…availability` +
-`preview-pricing`):
+> **Phase 0 is a prerequisite gate for sizing; Phases 1–3 are the built-in feature;
+> Phase 4 is the optional edge layer; Phase 5 is the GA hardening gate.**
 
-1. Resolve the Event from the request (same resolver as `tickets-enabled`).
-2. **Fail-open** when the event has no armed on-sale window (`events.waiting_room_
-   enabled = false` or no active window) — normal events are never gated. This is
-   the safety property: the default path is untouched.
-3. When armed, require proof of admission:
-   - **Option A**: a valid CF Waiting Room JWT (cookie/header), claims match the
-     event + not expired.
-   - **Option B**: a Redis-issued admission token (opaque, HMAC-signed, event-scoped,
-     TTL-bounded) presented as a header; verified against Redis.
-4. On failure → `403` with `error_code: WAITING_ROOM_NOT_ADMITTED` and a hint the
-   frontend uses to send the user (back) to the queue.
+- **Phase 0 — Measure (prerequisite).** Run the owed 016 k6 load test against a
+  production-like stack → the purchase path's real throughput (tickets/sec drained
+  without errors). This number sizes the admission rate. *Also surfaces any
+  pgbouncer/DB ceiling (018 ops TODO) before it bites during a real on-sale.*
+- **Phase 1 — Admission plumbing (backend, driver-agnostic).** `config/waiting_room.php`
+  + `events.waiting_room_enabled` / `on_sale_starts_at` migration + the
+  `waiting-room` middleware (fail-open) + the driver interface with a `null` driver.
+  Tests: non-armed event byte-identical to today; armed + no token → 403; armed +
+  valid token → pass.
+- **Phase 2 — Redis queue engine (the built-in driver).** Enqueue (sorted set) +
+  admission worker (drain rate) + admitted-set TTL tokens + status endpoint
+  (Redis-only) + idempotent re-entry + Turnstile at entry + separate Redis
+  connection. Tests: FIFO order, re-entry keeps place, drain rate respected, expired
+  tokens rejected, per-event isolation.
+- **Phase 3 — Frontend + organizer controls.** Thin queue page (position + wait +
+  auto-advance) on the checkout entry; handle `WAITING_ROOM_NOT_ADMITTED` → queue
+  page; admin per-event toggle + on-sale time + drain-rate override + live queue
+  monitor.
+- **Phase 4 — Cloudflare edge layer (optional, enterprise).** `cloudflare` driver
+  (verify WR JWT) + per-zone arming runbook (CF API) + same-zone API routing.
+- **Phase 5 — Hardening + GA gate.** Separate Redis HA + persistence + monitoring/
+  alerting + an **end-to-end k6 load test of queue + purchase together** (sized by
+  Phase 0) + an on-sale operations runbook.
 
-Config: `config/waiting_room.php` (`driver = cloudflare|redis|null`, CF JWT verify
-key, Redis connection, default TTLs). `events.waiting_room_enabled` +
-`events.on_sale_starts_at` gate arming. Fail-open when `driver = null`.
-
-## Fairness + abandonment model (sizes the admission rate)
-
-- **Admission batch size** ties to 016's *measured per-ticket clearing rate* (needs
-  the 016 k6 load test — carried-forward gate). Admit N buyers per interval where N ≈
-  the rate the purchase path drains without contention errors.
-- **Position** — Option A: CF assigns + renders it (no code). Option B: Redis sorted
-  set by arrival timestamp; a lightweight SPA polls position.
-- **Token/session TTL** — a short admission window (e.g. 10–15 min, matching the
-  order `payment_expires_at`); on expiry the buyer re-queues.
-- **Abandonment / refresh** — Option A: CF handles refresh-storms at the edge (the
-  whole point). Option B: idempotent position (re-entering with the same session id
-  keeps your place); a refresh doesn't jump the queue.
-
-## Build slices
-
-### Option A (CF Waiting Room) — recommended
-1. **Ops/config** (no app code): arm a scheduled Waiting Room on the target
-   event zone(s), covering the on-sale page path (+ the same-zone API path from A1).
-   Document per-zone in an ops runbook (mirror `docs/cloudflare-cache-rule.md`'s
-   per-zone API-token approach).
-2. **A1 same-zone API routing**: a CF Pages Function/Worker on the event zone that
-   proxies `…/api/public/{ticket-orders,tickets/*availability,…}` to the PM One API,
-   preserving CORS/CSRF/Sanctum contracts. (Investigate: pmone-events may already
-   proxy some `/api` calls — reuse that path if so.)
-3. **A2 origin guard** (`waiting-room` middleware, fail-open): verify the CF WR JWT
-   on the order POST. `config/waiting_room.php` driver `cloudflare`.
-4. **Frontend**: an armed event's checkout entry routes through the WR page; a
-   `WAITING_ROOM_NOT_ADMITTED` 403 sends the user to the queue. Mostly config +
-   a small guard on the checkout route.
-
-### Option B (Redis token queue) — fallback only
-1. Redis-backed queue service (sorted-set positions, HMAC admission tokens, TTL,
-   idempotent re-entry) on a **separate Redis** from the purchase path (never the
-   order Postgres/Redis under load).
-2. `waiting-room` middleware, driver `redis`, verifying the token.
-3. A thin queue SPA (position + auto-advance on admission).
-4. Admission worker that promotes the head of the queue at the 016-measured rate.
-
-## Prototype (spike deliverable — throwaway, NOT merged)
-
-The integration point is a fail-open middleware stub. A spike-flagged proof:
-
-```php
-// SPIKE ONLY — proves the integration point; do NOT merge.
-Route::post('/public/ticket-orders', /* … */)
-    ->middleware(['throttle:10,1', 'tickets-enabled', 'waiting-room']);
-
-class EnsureAdmitted // spike stub
-{
-    public function handle(Request $r, Closure $next) {
-        $event = $this->resolveEvent($r);
-        if (! $event?->waiting_room_enabled) return $next($r);       // fail-open
-        abort_unless($this->admitted($r, $event), 403,
-            'WAITING_ROOM_NOT_ADMITTED');                             // armed → gate
-        return $next($r);
-    }
-}
-```
-
-The proof to run in the spike: (a) with `waiting_room_enabled = false`, a normal
-order POST passes untouched (fail-open); (b) with it armed and no token, the POST
-403s; (c) with a valid token, it passes. This is a pure middleware test — no queue,
-no CF — and confirms the ONLY origin change is a fail-open guard.
-
-## Done criteria (build)
-- [ ] Ops confirmed CF plan tier + Waiting Room availability per target zone (STOP gate)
-- [ ] `waiting-room` middleware + `config/waiting_room.php` + `events.waiting_room_enabled`
-- [ ] Fail-open verified: a non-armed event's order POST is byte-identical to today
-- [ ] Armed-event admission enforced end-to-end (page + API) for the chosen option
-- [ ] Admission batch size documented against 016's measured clearing rate
-- [ ] `plans/README.md` row updated
+## Done criteria
+- [ ] Phase 0: 016 k6 load test run; measured drain rate recorded
+- [ ] Phase 1: `waiting-room` middleware + config + toggle; fail-open verified (non-armed = identical to today)
+- [ ] Phase 2: Redis queue engine (FIFO, drain rate, TTLs, isolation) on a separate Redis
+- [ ] Phase 3: queue page + organizer controls + live monitor
+- [ ] Phase 4 (optional): `cloudflare` driver + per-zone arming runbook
+- [ ] Phase 5: Redis HA + monitoring + end-to-end load test + on-sale runbook
+- [ ] `plans/README.md` row updated per phase
 
 ## STOP conditions
-- **Do not build until the CF plan tier is confirmed** (Option A) — if WR is
-  unavailable/rejected, build Option B instead; don't half-arm A.
-- The middleware MUST fail-open for non-armed events — a bug here queues every expo.
-  Gate it behind an explicit per-event flag + an active on-sale window.
-- Size the admission rate to 016's **load-tested** clearing rate — that load test is
-  still owed (carried-forward gate from 016). A waiting room feeding faster than the
-  purchase path drains just moves the stampede inside the gate.
-```
+- The middleware **MUST fail-open** for non-armed events — a bug here queues every
+  expo. Gate behind an explicit per-event flag + active on-sale window; test it first.
+- **Load-test before any real on-sale** (Phase 0 sizes it, Phase 5 proves the whole
+  path). Correctness of a queue only shows under real concurrency — never ship it on
+  "it compiled".
+- The queue's Redis MUST be **separate** from the purchase DB/Horizon Redis, or a
+  queue flood drags down the very path it protects.
 
 ## Maintenance notes
-- Waiting room + waitlist (020) + seat holds (024/033) are the concert stack —
-  admission (this) throttles arrivals, waitlist backfills releases, seat holds
-  assign inventory. Design them to compose.
+- Waiting room (this) + waitlist (020) + seat holds (024/033) are the concert stack:
+  admission throttles arrivals, waitlist backfills releases, seat holds assign
+  inventory. Design them to compose.
+- The built-in engine is the platform baseline every tenant gets; Cloudflare is an
+  upsell for the rare giant on-sale — one middleware, one driver switch, so the
+  premium tier is cheap to add once the baseline exists.

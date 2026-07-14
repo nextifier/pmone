@@ -32,6 +32,10 @@ export function useScanSession(eventId: string) {
 
   /* ------------------------------- Manifest ------------------------------- */
   const manifest = ref<any[]>([]);
+  // Delta-sync floor (plan 022): the server timestamp the cached manifest is
+  // current as of. Kept so a refresh pulls only /manifest/changes since this
+  // point instead of re-downloading every attendee.
+  const manifestVersion = ref<string | null>(null);
   const manifestByToken = computed(() => {
     const map = new Map<string, any>();
     for (const a of manifest.value) {
@@ -862,12 +866,79 @@ export function useScanSession(eventId: string) {
   };
 
   /* ----------------------------- Data loading ----------------------------- */
+  const persistManifest = (): void => {
+    idbSet(manifestKey.value, {
+      data: manifest.value,
+      version: manifestVersion.value,
+      generated_at: manifestVersion.value,
+    });
+  };
+
+  // First load / full reconcile: page through the manifest by attendee-id cursor
+  // (plan 022) so a very large event streams in bounded chunks instead of one
+  // huge payload. Keeps the FIRST page's `version` as the delta floor - later
+  // pages are fetched later (larger clocks), so the earliest is the safe floor.
+  const fullPageLoad = async (): Promise<void> => {
+    const collected: any[] = [];
+    let cursor: number | null = null;
+    let version: string | null = null;
+    let guard = 0;
+
+    do {
+      const query = `limit=1000${cursor !== null ? `&cursor=${cursor}` : ""}`;
+      const res = await client(`${scanBase.value}/manifest?${query}`);
+      if (Array.isArray(res.data)) collected.push(...res.data);
+      if (version === null) version = res.version ?? null;
+      cursor = res.next_cursor ?? null;
+    } while (cursor !== null && ++guard < 10000);
+
+    manifest.value = collected;
+    manifestVersion.value = version;
+    persistManifest();
+  };
+
+  // Refresh: pull only the changes since the cached version and patch the
+  // manifest in place (plan 022). Keyed by the stable `ulid` so a rotated
+  // qr_token (reissue/transfer) updates the entry instead of orphaning it.
+  const deltaRefresh = async (): Promise<void> => {
+    const res = await client(
+      `${scanBase.value}/manifest/changes?since=${encodeURIComponent(manifestVersion.value as string)}`,
+    );
+
+    const byUlid = new Map<string, any>();
+    for (const a of manifest.value) {
+      if (a?.ulid) byUlid.set(a.ulid, a);
+    }
+    for (const change of res.data || []) {
+      if (!change?.ulid) continue;
+      if (change.action === "remove") {
+        byUlid.delete(change.ulid);
+      } else {
+        const { action, ...row } = change;
+        byUlid.set(change.ulid, row);
+      }
+    }
+
+    manifest.value = Array.from(byUlid.values());
+    manifestVersion.value = res.version ?? manifestVersion.value;
+    persistManifest();
+  };
+
   const loadManifest = async (): Promise<void> => {
     if (!isOnline.value) return;
     try {
-      const res = await client(`${scanBase.value}/manifest`);
-      manifest.value = res.data || [];
-      idbSet(manifestKey.value, { data: manifest.value, generated_at: res.generated_at });
+      // Delta only when we have a floor AND every cached entry carries the ulid
+      // key the merge needs (a pre-022 cache lacks it → full re-page).
+      const canDelta =
+        !!manifestVersion.value &&
+        manifest.value.length > 0 &&
+        manifest.value.every((a) => a?.ulid);
+
+      if (canDelta) {
+        await deltaRefresh();
+      } else {
+        await fullPageLoad();
+      }
     } catch {
       // keep whatever was restored from the offline cache
     }
@@ -877,6 +948,7 @@ export function useScanSession(eventId: string) {
     try {
       const cachedManifest = await idbGet(manifestKey.value);
       if (Array.isArray(cachedManifest?.data)) manifest.value = cachedManifest.data;
+      if (typeof cachedManifest?.version === "string") manifestVersion.value = cachedManifest.version;
 
       const cachedOutbox = await idbGet(outboxKey.value);
       if (Array.isArray(cachedOutbox)) outbox.value = cachedOutbox;
