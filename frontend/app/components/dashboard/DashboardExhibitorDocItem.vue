@@ -31,11 +31,7 @@
       </p>
 
       <!-- Description -->
-      <div
-        v-if="doc.description"
-        class="prose prose-sm dark:prose-invert text-muted-foreground mt-1.5 max-w-none [&_ol]:text-sm sm:[&_ol]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_p]:tracking-tight sm:[&_p]:text-sm [&_ul]:text-sm sm:[&_ul]:text-sm"
-        v-html="doc.description"
-      />
+      <div v-if="doc.description" class="format-html mt-1.5" v-html="doc.description" />
     </div>
 
     <!-- File actions -->

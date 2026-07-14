@@ -203,7 +203,12 @@
     "failedToLoad": "订购表加载失败",
     "viewCart": "查看购物车",
     "deadlinePassed": "订单截止日期已过。您无法再提交订单。",
-    "deadlineInfo": "订单截止日期: {date}"
+    "deadlineInfo": "订单截止日期: {date}",
+    "successTitle": "订单提交成功！",
+    "successMessage": "我们已收到您的订单，将尽快处理。您可以随时在仪表板中查看订单状态。",
+    "orderNumberReceived": "订单 {number} 已收到。",
+    "viewOrderDetails": "查看订单详情",
+    "backToDashboard": "返回仪表板"
   },
   "promotionPosts": {
     "title": "宣传素材",

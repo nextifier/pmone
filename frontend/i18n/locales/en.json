@@ -203,7 +203,12 @@
     "failedToLoad": "Failed to load order form",
     "viewCart": "View Cart",
     "deadlinePassed": "The order form deadline has passed. You can no longer submit orders.",
-    "deadlineInfo": "Order form deadline: {date}"
+    "deadlineInfo": "Order form deadline: {date}",
+    "successTitle": "Order submitted successfully!",
+    "successMessage": "We've received your order and will process it shortly. You can track its status anytime from your dashboard.",
+    "orderNumberReceived": "Order {number} has been received.",
+    "viewOrderDetails": "View Order Details",
+    "backToDashboard": "Back to Dashboard"
   },
   "promotionPosts": {
     "title": "Promotion Posts",

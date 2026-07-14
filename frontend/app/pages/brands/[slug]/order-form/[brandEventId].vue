@@ -14,6 +14,42 @@
       </div>
     </template>
 
+    <!-- Success State -->
+    <template v-else-if="submitted">
+      <div
+        class="flex min-h-[calc(100svh-var(--navbar-height-mobile)-8rem)] flex-col items-center justify-center text-center lg:min-h-[calc(100svh-var(--navbar-height-desktop)-8rem)]"
+      >
+        <div class="bg-muted flex size-16 items-center justify-center rounded-full">
+          <Icon name="hugeicons:checkmark-circle-03" class="text-foreground size-8" />
+        </div>
+
+        <h2 class="mt-6 text-2xl font-medium tracking-tighter text-balance sm:text-3xl">
+          {{ $t("orderForm.successTitle") }}
+        </h2>
+        <p
+          v-if="submittedOrder?.order_number"
+          class="text-muted-foreground mt-2 text-sm tracking-tight"
+        >
+          {{ $t("orderForm.orderNumberReceived", { number: submittedOrder.order_number }) }}
+        </p>
+        <p class="text-muted-foreground mt-3 max-w-md text-sm tracking-tight text-balance">
+          {{ $t("orderForm.successMessage") }}
+        </p>
+
+        <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+          <Button
+            :to="`/brands/${route.params.slug}/orders/${route.params.brandEventId}/${submittedOrder?.ulid}`"
+          >
+            <Icon name="hugeicons:invoice-03" class="mr-1.5 size-4" />
+            {{ $t("orderForm.viewOrderDetails") }}
+          </Button>
+          <Button to="/dashboard" variant="outline">
+            {{ $t("orderForm.backToDashboard") }}
+          </Button>
+        </div>
+      </div>
+    </template>
+
     <template v-else-if="info">
       <!-- Header -->
       <div class="space-y-1">
@@ -57,10 +93,7 @@
         <h2 class="mb-3 text-sm font-medium tracking-tight">
           {{ $t("orderForm.termsAndConditions") }}
         </h2>
-        <div
-          class="prose prose-sm dark:prose-invert max-w-none text-sm"
-          v-html="info.order_form_content"
-        />
+        <div class="format-html" v-html="info.order_form_content" />
       </div>
 
       <!-- Order Period Banner -->
@@ -108,7 +141,7 @@
                   <div class="space-y-2">
                     <div
                       v-if="category.description"
-                      class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none"
+                      class="format-html"
                       v-html="category.description"
                     />
 
@@ -494,13 +527,14 @@ definePageMeta({
 });
 
 const route = useRoute();
-const router = useRouter();
 const client = useSanctumClient();
 
 const products = ref([]);
 const info = ref(null);
 const loading = ref(true);
 const submitting = ref(false);
+const submitted = ref(false);
+const submittedOrder = ref(null);
 const showConfirmDialog = ref(false);
 const orderNotes = ref("");
 const cartPanelRef = ref(null);
@@ -618,11 +652,8 @@ async function handleSubmitOrder() {
 
     clearCart();
     showConfirmDialog.value = false;
-    toast.success(t("orderForm.submittedSuccess"));
-
-    router.push(
-      `/brands/${route.params.slug}/orders/${route.params.brandEventId}/${res.data.ulid}`
-    );
+    submittedOrder.value = res.data;
+    submitted.value = true;
   } catch (error) {
     toast.error(error.response?._data?.message || t("orderForm.failedToSubmit"));
   } finally {

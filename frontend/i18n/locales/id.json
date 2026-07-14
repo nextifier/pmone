@@ -226,7 +226,12 @@
     "failedToLoad": "Gagal memuat order form",
     "viewCart": "Lihat Keranjang",
     "deadlinePassed": "Batas waktu order form sudah lewat. Anda tidak bisa mengirim order lagi.",
-    "deadlineInfo": "Batas waktu order form: {date}"
+    "deadlineInfo": "Batas waktu order form: {date}",
+    "successTitle": "Pesanan berhasil dikirim!",
+    "successMessage": "Pesanan Anda sudah kami terima dan akan segera diproses. Anda bisa memantau statusnya kapan saja dari dashboard.",
+    "orderNumberReceived": "Pesanan {number} telah diterima.",
+    "viewOrderDetails": "Lihat Detail Pesanan",
+    "backToDashboard": "Kembali ke Dashboard"
   },
   "promotionPosts": {
     "title": "Materi Promosi",

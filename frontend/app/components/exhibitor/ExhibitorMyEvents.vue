@@ -55,18 +55,8 @@
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <h2 class="truncate text-base font-medium tracking-tight sm:text-lg">{{ event.title }}</h2>
-              <span
-                v-if="event.is_active"
-                class="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium tracking-tight text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-              >
-                Active
-              </span>
-              <span
-                v-else-if="isUpcoming(event)"
-                class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium tracking-tight text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-              >
-                Upcoming
-              </span>
+              <Badge v-if="event.is_active" variant="success" class="shrink-0">Active</Badge>
+              <Badge v-else-if="isUpcoming(event)" variant="info" class="shrink-0">Upcoming</Badge>
             </div>
 
             <div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -138,12 +128,9 @@
             </div>
 
             <!-- Actions -->
-            <NuxtLink
-              :to="`/brands/${brand.slug}`"
-              class="border-border hover:bg-muted shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium tracking-tight transition sm:text-sm"
-            >
+            <Button :to="`/brands/${brand.slug}`" variant="outline" size="sm" class="shrink-0">
               View Brand
-            </NuxtLink>
+            </Button>
           </div>
         </div>
       </div>
@@ -152,6 +139,9 @@
 </template>
 
 <script setup>
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 const client = useSanctumClient();
 
 const events = ref([]);

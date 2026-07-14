@@ -8,7 +8,7 @@
     <h2 class="text-lg font-semibold tracking-tighter">{{ normalized.label }}</h2>
     <div
       v-if="normalized.settings?.description"
-      class="prose prose-sm dark:prose-invert text-muted-foreground mt-1.5 max-w-none text-sm tracking-tight"
+      class="format-html mt-1.5"
       v-html="normalized.settings.description"
     />
   </div>

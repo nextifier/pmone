@@ -90,7 +90,7 @@
           <!-- Description -->
           <div
             v-if="item.document.description"
-            class="prose prose-sm dark:prose-invert text-muted-foreground mt-3 max-w-none tracking-tight"
+            class="format-html mt-3"
             v-html="item.document.description"
           />
 
