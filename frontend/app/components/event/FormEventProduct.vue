@@ -41,10 +41,10 @@
       </p>
     </div>
 
-    <!-- Price & Unit -->
-    <div class="grid grid-cols-2 gap-x-3">
+    <!-- Price (IDR) & Price (USD) & Unit -->
+    <div class="grid grid-cols-2 gap-x-2 gap-y-4 sm:grid-cols-3">
       <div class="space-y-2">
-        <Label for="price">Price</Label>
+        <Label for="price">Price (IDR)</Label>
         <InputGroup>
           <InputGroupAddon>
             <InputGroupText>Rp</InputGroupText>
@@ -61,6 +61,27 @@
         </InputGroup>
         <p v-if="errors.price" class="text-destructive mt-1 text-xs">
           {{ Array.isArray(errors.price) ? errors.price[0] : errors.price }}
+        </p>
+      </div>
+
+      <div class="space-y-2">
+        <Label for="price_usd">Price (USD)</Label>
+        <InputGroup>
+          <InputGroupAddon>
+            <InputGroupText>$</InputGroupText>
+          </InputGroupAddon>
+          <InputNumber
+            id="price_usd"
+            v-model="form.price_usd"
+            :min="0"
+            :decimal="true"
+            placeholder="0"
+            data-slot="input-group-control"
+            class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+          />
+        </InputGroup>
+        <p v-if="errors.price_usd" class="text-destructive mt-1 text-xs">
+          {{ Array.isArray(errors.price_usd) ? errors.price_usd[0] : errors.price_usd }}
         </p>
       </div>
 
@@ -189,6 +210,7 @@ const form = reactive({
   name: "",
   description: "",
   price: "",
+  price_usd: "",
   unit: "unit",
   booth_types: [],
   is_active: true,
@@ -201,6 +223,7 @@ watch(
       Object.assign(form, {
         ...newProduct,
         category_id: newProduct.category_id ? String(newProduct.category_id) : "",
+        price_usd: newProduct.price_usd ?? "",
         booth_types: newProduct.booth_types || [],
       });
       imageFiles.value.product_image = [];
@@ -211,6 +234,7 @@ watch(
         name: "",
         description: "",
         price: "",
+        price_usd: "",
         unit: "unit",
         booth_types: [],
         is_active: true,
@@ -256,6 +280,7 @@ async function handleSubmit() {
     const body = {
       ...form,
       category_id: form.category_id ? Number(form.category_id) : null,
+      price_usd: form.price_usd === "" ? null : Number(form.price_usd),
       booth_types: form.booth_types.length > 0 ? form.booth_types : null,
     };
 

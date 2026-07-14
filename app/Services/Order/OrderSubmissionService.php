@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Currency\CurrencyResolver;
 use App\Services\Pricing\PricingService;
 use App\Services\Promotion\PenaltyService;
 use App\Services\Promotion\PromoCodeService;
@@ -23,6 +24,7 @@ class OrderSubmissionService
         private PenaltyService $penaltyService,
         private PromoCodeService $promoCodeService,
         private PricingService $pricingService,
+        private CurrencyResolver $currencyResolver,
     ) {}
 
     /**
@@ -56,7 +58,16 @@ class OrderSubmissionService
     {
         $event = $brandEvent->event;
         $settings = $event->settings ?? [];
-        $taxRate = (float) ($settings['tax_rate'] ?? 11);
+
+        // Currency + reporting rate are resolved server-side (never from the
+        // request) and snapshot onto the order. A missing rate for a foreign
+        // currency throws a RuntimeException that controllers turn into a 422.
+        $currency = $this->currencyResolver->resolveForBrandEvent($brandEvent);
+        $exchangeRateToIdr = $this->currencyResolver->exchangeRateToIdr($currency);
+
+        $taxRate = $currency === 'USD'
+            ? (float) ($settings['tax_rate_usd'] ?? $settings['tax_rate'] ?? 11)
+            : (float) ($settings['tax_rate'] ?? 11);
 
         $productIds = collect($items)->pluck('event_product_id');
         $products = EventProduct::query()
@@ -76,15 +87,24 @@ class OrderSubmissionService
         $source = $options['source'] ?? 'exhibitor';
         $user = $options['user'] ?? null;
 
-        return DB::transaction(function () use ($items, $brandEvent, $products, $taxRate, $orderPeriod, $source, $options, $user) {
+        return DB::transaction(function () use ($items, $brandEvent, $products, $currency, $exchangeRateToIdr, $taxRate, $orderPeriod, $source, $options, $user) {
             $subtotal = 0;
             $itemsData = [];
 
-            // Item unit_price uses the BASE product price. Any onsite-period
-            // penalty is added afterwards as a separate AppliedAdjustment.
+            // Item unit_price uses the BASE product price in the order currency.
+            // Any onsite-period penalty is added afterwards as a separate
+            // AppliedAdjustment.
             foreach ($items as $item) {
                 $product = $products[$item['event_product_id']];
-                $unitPrice = round((float) $product->price, 2);
+
+                // Guard behind the USD-catalog filter: reject the whole order if a
+                // USD order includes a product without a manual USD price.
+                if ($currency === 'USD' && $product->price_usd === null) {
+                    throw new \RuntimeException("Product \"{$product->name}\" is not available for USD orders.");
+                }
+
+                $rawPrice = $currency === 'USD' ? $product->price_usd : $product->price;
+                $unitPrice = round((float) $rawPrice, 2);
                 $totalPrice = $unitPrice * $item['quantity'];
                 $subtotal += $totalPrice;
 
@@ -108,6 +128,8 @@ class OrderSubmissionService
                 'notes' => $options['notes'] ?? null,
                 'internal_notes' => $options['internal_notes'] ?? null,
                 'subtotal' => $subtotal,
+                'currency' => $currency,
+                'exchange_rate_to_idr' => $exchangeRateToIdr,
                 'tax_rate' => $taxRate,
                 'tax_amount' => 0,
                 'total' => 0,

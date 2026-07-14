@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Brand;
+use App\Models\BrandEvent;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\BrandEvent>
+ * @extends Factory<BrandEvent>
  */
 class BrandEventFactory extends Factory
 {
@@ -39,6 +40,16 @@ class BrandEventFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'cancelled',
+        ]);
+    }
+
+    /**
+     * Pin the exhibitor's billing currency, overriding country-based resolution.
+     */
+    public function currencyOverride(string $currency): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'currency_override' => $currency,
         ]);
     }
 }

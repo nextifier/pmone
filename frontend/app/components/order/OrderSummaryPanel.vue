@@ -18,7 +18,7 @@
             <span class="text-muted-foreground">x {{ item.quantity }}</span>
           </span>
           <span class="shrink-0 text-sm tracking-tight">
-            {{ formatPrice(item.price * item.quantity) }}
+            {{ formatPrice(item.price * item.quantity, currency) }}
           </span>
         </div>
       </div>
@@ -26,21 +26,21 @@
       <div class="border-border mt-3 space-y-1.5 border-t pt-3 text-sm">
         <div class="flex justify-between">
           <span class="text-muted-foreground tracking-tight">Subtotal</span>
-          <span>{{ formatPrice(subtotal) }}</span>
+          <span>{{ formatPrice(subtotal, currency) }}</span>
         </div>
         <div v-if="isOnsite" class="flex justify-between">
           <span class="text-warning-foreground tracking-tight">
             Onsite penalty ({{ penaltyRate }}%)
           </span>
-          <span class="text-warning-foreground">+ {{ formatPrice(penaltyAmount) }}</span>
+          <span class="text-warning-foreground">+ {{ formatPrice(penaltyAmount, currency) }}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-muted-foreground tracking-tight">Tax ({{ taxRate }}%)</span>
-          <span>{{ formatPrice(taxAmount) }}</span>
+          <span>{{ formatPrice(taxAmount, currency) }}</span>
         </div>
         <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
           <span>Total</span>
-          <span>{{ formatPrice(total) }}</span>
+          <span>{{ formatPrice(total, currency) }}</span>
         </div>
       </div>
 
@@ -68,25 +68,27 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  currency: {
+    type: String,
+    default: "IDR",
+  },
 });
 
+const { formatPrice } = useFormatters();
+
 const isOnsite = computed(() => props.penaltyRate > 0);
+
+function roundMoney(value) {
+  return props.currency === "USD" ? Math.round(value * 100) / 100 : Math.round(value);
+}
 
 const subtotal = computed(() =>
   props.items.reduce((sum, i) => sum + (i.price || 0) * (i.quantity || 0), 0)
 );
 const penaltyAmount = computed(() =>
-  isOnsite.value ? Math.round((subtotal.value * props.penaltyRate) / 100) : 0
+  isOnsite.value ? roundMoney((subtotal.value * props.penaltyRate) / 100) : 0
 );
 const taxableBase = computed(() => subtotal.value + penaltyAmount.value);
-const taxAmount = computed(() => Math.round((taxableBase.value * props.taxRate) / 100));
+const taxAmount = computed(() => roundMoney((taxableBase.value * props.taxRate) / 100));
 const total = computed(() => taxableBase.value + taxAmount.value);
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(price || 0);
-}
 </script>

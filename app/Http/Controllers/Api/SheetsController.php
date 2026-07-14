@@ -50,6 +50,7 @@ class SheetsController extends Controller
             'Operational Status', 'Payment Status', 'Cancellation Reason',
             'Order Notes', 'Order Internal Notes',
             'Submitted At', 'Confirmed At', 'Created By',
+            'Currency', 'Exchange Rate (to IDR)', 'Total (IDR)',
         ];
 
         $rows = [];
@@ -96,6 +97,9 @@ class SheetsController extends Controller
                 $order->submitted_at?->format('Y-m-d H:i:s'),
                 $order->confirmed_at?->format('Y-m-d H:i:s'),
                 $order->creator?->name ?? '-',
+                $order->currency ?? 'IDR',
+                (float) $order->exchange_rate_to_idr,
+                (float) $order->total_idr,
             ];
 
             if ($items->isEmpty()) {
@@ -418,7 +422,7 @@ class SheetsController extends Controller
             'Brand Users',
             'Event ID', 'Event Title', 'Event Slug',
             'Event Start Date', 'Event End Date', 'Event Location', 'Event Hall', 'Event Status',
-            'Booth Number', 'Booth Size (sqm)', 'Booth Type', 'Booth Price',
+            'Booth Number', 'Booth Size (sqm)', 'Booth Type', 'Booth Price', 'Order Currency',
             'Fascia Name', 'Badge Name',
             'Sales PIC Name', 'Sales PIC Email', 'Sales PIC Phone',
             'Participation Status', 'Notes', 'Promotion Post Limit',
@@ -510,6 +514,7 @@ class SheetsController extends Controller
                 $brandEvent->booth_size,
                 $brandEvent->booth_type?->label() ?? '-',
                 $brandEvent->booth_price,
+                $brandEvent->resolveCurrency(),
                 $brandEvent->fascia_name ?? '-',
                 $brandEvent->badge_name ?? '-',
                 $sales?->name ?? '-',

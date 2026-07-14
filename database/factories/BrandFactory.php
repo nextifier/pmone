@@ -47,4 +47,16 @@ class BrandFactory extends Factory
             'visibility' => 'public',
         ]);
     }
+
+    /**
+     * Force the brand's address country (drives currency resolution).
+     */
+    public function country(?string $country): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'address' => array_merge(is_array($attributes['address'] ?? null) ? $attributes['address'] : [], [
+                'country' => $country,
+            ]),
+        ]);
+    }
 }

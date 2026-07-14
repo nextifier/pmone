@@ -123,12 +123,24 @@
     </TableData>
 
     <!-- Add/Edit Dialog -->
-    <DialogResponsive v-model:open="showFormDialog" dialog-max-width="500px" :overflow-content="true">
+    <DialogResponsive
+      v-model:open="showFormDialog"
+      dialog-max-width="500px"
+      :overflow-content="true"
+    >
       <template #sticky-header>
-        <div class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left">
-          <div class="text-lg font-semibold tracking-tighter">{{ editingProduct ? "Edit Product" : "Add Product" }}</div>
+        <div
+          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        >
+          <div class="text-lg font-semibold tracking-tighter">
+            {{ editingProduct ? "Edit Product" : "Add Product" }}
+          </div>
           <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">
-            {{ editingProduct ? "Update the product details below." : "Fill in the details to create a new product." }}
+            {{
+              editingProduct
+                ? "Update the product details below."
+                : "Fill in the details to create a new product."
+            }}
           </p>
         </div>
       </template>
@@ -150,8 +162,8 @@
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete Product</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete
-            <span class="font-medium text-foreground">{{ deletingProduct?.name }}</span>?
-            This action cannot be undone.
+            <span class="text-foreground font-medium">{{ deletingProduct?.name }}</span
+            >? This action cannot be undone.
           </p>
           <div class="mt-4 flex justify-end gap-2">
             <button
@@ -179,6 +191,7 @@
 </template>
 
 <script setup>
+import EventProductImportDialog from "@/components/event/EventProductImportDialog.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -190,8 +203,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { TableData, TableBulkAction } from "@/components/ui/table-data";
-import EventProductImportDialog from "@/components/event/EventProductImportDialog.vue";
+import { TableBulkAction, TableData } from "@/components/ui/table-data";
 import { h, resolveComponent } from "vue";
 import { toast } from "vue-sonner";
 
@@ -199,6 +211,7 @@ const props = defineProps({ event: Object, project: Object });
 
 const route = useRoute();
 const client = useSanctumClient();
+const { formatPrice } = useFormatters();
 
 // State
 const products = ref([]);
@@ -223,8 +236,7 @@ const onColumnFiltersChange = (filters) => {
 
 // Computed
 const apiBase = computed(
-  () =>
-    `/api/projects/${route.params.username}/events/${route.params.eventSlug}/products`
+  () => `/api/projects/${route.params.username}/events/${route.params.eventSlug}/products`
 );
 
 // Category filter is applied here (page-level) so TableData receives a list
@@ -232,9 +244,7 @@ const apiBase = computed(
 // the "name" column's custom filterFn (matches name / category / description).
 const categoryFilteredProducts = computed(() => {
   if (selectedCategory.value && selectedCategory.value !== "all") {
-    return products.value.filter(
-      (p) => String(p.category_id) === selectedCategory.value
-    );
+    return products.value.filter((p) => String(p.category_id) === selectedCategory.value);
   }
   return products.value;
 });
@@ -246,16 +256,6 @@ const meta = computed(() => ({
   per_page: categoryFilteredProducts.value.length || 10,
   total: categoryFilteredProducts.value.length,
 }));
-
-// Indonesian Rupiah formatter
-function formatPrice(price) {
-  if (price === null || price === undefined) return "—";
-  return (
-    "Rp" +
-    Number(price)
-      .toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 0 })
-  );
-}
 
 // Table columns
 const columns = computed(() => {
@@ -309,8 +309,8 @@ const columns = computed(() => {
         // `undefined`, which TanStack does not treat as "exclude".
         return Boolean(
           p.name?.toLowerCase().includes(q) ||
-            p.category?.toLowerCase().includes(q) ||
-            p.description?.toLowerCase().includes(q)
+          p.category?.toLowerCase().includes(q) ||
+          p.description?.toLowerCase().includes(q)
         );
       },
     },
@@ -322,11 +322,7 @@ const columns = computed(() => {
         if (!category) {
           return h("span", { class: "text-muted-foreground" }, "—");
         }
-        return h(
-          Badge,
-          { variant: "outline", class: "font-normal" },
-          { default: () => category }
-        );
+        return h(Badge, { variant: "outline", class: "font-normal" }, { default: () => category });
       },
       size: 160,
     },
@@ -338,11 +334,23 @@ const columns = computed(() => {
         if (price === null || price === undefined) {
           return h("span", { class: "text-muted-foreground" }, "—");
         }
-        return h(
-          "span",
-          { class: "font-medium tracking-tight tabular-nums whitespace-nowrap" },
-          formatPrice(price)
-        );
+        const priceUsd = row.original.price_usd;
+        return h("div", { class: "whitespace-nowrap" }, [
+          h(
+            "span",
+            { class: "font-medium text-base tracking-tight tabular-nums" },
+            formatPrice(price)
+          ),
+          priceUsd != null
+            ? h(
+                "div",
+                {
+                  class: "text-muted-foreground text-sm tracking-tight tabular-nums",
+                },
+                formatPrice(priceUsd, "USD")
+              )
+            : null,
+        ]);
       },
       size: 140,
     },
@@ -518,9 +526,7 @@ async function handleDeleteRows(selectedRows) {
   const ids = selectedRows.map((row) => row.original.id);
   bulkDeleting.value = true;
   try {
-    await Promise.all(
-      ids.map((id) => client(`${apiBase.value}/${id}`, { method: "DELETE" }))
-    );
+    await Promise.all(ids.map((id) => client(`${apiBase.value}/${id}`, { method: "DELETE" })));
     await fetchProducts();
     await fetchCategories();
     bulkDeleteDialogOpen.value = false;
@@ -564,10 +570,9 @@ const handleExport = async () => {
       params.append("filter_search", activeSearch.value);
     }
 
-    const response = await client(
-      `${apiBase.value}/export?${params.toString()}`,
-      { responseType: "blob" }
-    );
+    const response = await client(`${apiBase.value}/export?${params.toString()}`, {
+      responseType: "blob",
+    });
 
     const blob = new Blob([response], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -609,8 +614,6 @@ onMounted(() => {
 });
 
 usePageMeta(null, {
-  title: computed(
-    () => `Products · ${props.event?.title || route.params.eventSlug}`
-  ),
+  title: computed(() => `Products · ${props.event?.title || route.params.eventSlug}`),
 });
 </script>

@@ -44,6 +44,7 @@ class StorePromotionRuleRequest extends FormRequest
             'value_config.transfer_option_ids.*' => ['integer'],
             'max_discount_amount' => ['nullable', 'numeric', 'min:0'],
             'min_purchase_amount' => ['nullable', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'in:IDR,USD'],
             'applies_before_tax' => ['boolean'],
             'stacking_mode' => ['required', new Enum(StackingMode::class)],
             'priority' => ['nullable', 'integer', 'min:0', 'max:32000'],

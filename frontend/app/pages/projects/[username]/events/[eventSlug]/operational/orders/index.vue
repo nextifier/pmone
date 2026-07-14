@@ -86,6 +86,12 @@
                 :selected="selectedPaymentStatuses"
                 @change="handleFilterChange('payment_status', $event)"
               />
+              <FilterSection
+                title="Currency"
+                :options="currencyOptions"
+                :selected="selectedCurrencies"
+                @change="handleFilterChange('currency', $event)"
+              />
             </div>
           </PopoverContent>
         </Popover>
@@ -217,10 +223,15 @@
                   </td>
                   <td class="px-3 py-2 text-center tabular-nums tracking-tight">{{ item.quantity }}</td>
                   <td class="px-3 py-2 text-right tabular-nums tracking-tight">
-                    {{ formatPrice(item.unit_price) }}
+                    {{ formatPrice(item.unit_price, row.original.currency) }}
                   </td>
                   <td class="px-3 py-2 text-right font-medium tabular-nums tracking-tight">
-                    {{ formatPrice(item.total_price ?? item.unit_price * item.quantity) }}
+                    {{
+                      formatPrice(
+                        item.total_price ?? item.unit_price * item.quantity,
+                        row.original.currency
+                      )
+                    }}
                   </td>
                 </tr>
               </tbody>
@@ -303,6 +314,7 @@ const { $dayjs } = useNuxtApp();
 const route = useRoute();
 const client = useSanctumClient();
 const { hasPermission, isAdminOrMaster } = usePermission();
+const { formatPrice } = useFormatters();
 
 const canCreateOrder = computed(() => isAdminOrMaster.value || hasPermission("orders.create"));
 const createOrderLink = computed(
@@ -323,6 +335,11 @@ const paymentStatusOptions = [
   { label: "Not Invoiced", value: "not_invoiced" },
   { label: "Unpaid", value: "invoiced" },
   { label: "Paid", value: "paid" },
+];
+
+const currencyOptions = [
+  { label: "IDR", value: "IDR" },
+  { label: "USD", value: "USD" },
 ];
 
 // Status configs for dropdowns
@@ -361,6 +378,7 @@ const buildQueryParams = () => {
     order_number: "filter[search]",
     operational_status: "filter[operational_status]",
     payment_status: "filter[payment_status]",
+    currency: "filter[currency]",
   };
 
   Object.entries(filters).forEach(([columnId, paramKey]) => {
@@ -561,12 +579,6 @@ async function handleDeleteRows(selectedRows) {
   }
 }
 
-// Format helpers
-function formatPrice(amount) {
-  if (amount == null) return "-";
-  return `Rp${Number(amount).toLocaleString("id-ID")}`;
-}
-
 function orderDetailUrl(order) {
   return `/projects/${route.params.username}/events/${route.params.eventSlug}/operational/orders/${order.ulid}`;
 }
@@ -687,11 +699,16 @@ const columns = [
     header: "Total",
     accessorKey: "total",
     cell: ({ row }) =>
-      h(
-        "span",
-        { class: "text-sm font-medium tracking-tight tabular-nums" },
-        formatPrice(row.original.total)
-      ),
+      h("div", { class: "flex items-center gap-x-1.5" }, [
+        h(
+          "span",
+          { class: "text-sm font-medium tracking-tight tabular-nums" },
+          formatPrice(row.original.total, row.original.currency)
+        ),
+        row.original.currency && row.original.currency !== "IDR"
+          ? h(Badge, { variant: "muted" }, () => row.original.currency)
+          : null,
+      ]),
     size: 140,
   },
   {
@@ -812,8 +829,12 @@ const getFilterValue = (columnId) => {
 
 const selectedOperationalStatuses = computed(() => getFilterValue("operational_status"));
 const selectedPaymentStatuses = computed(() => getFilterValue("payment_status"));
+const selectedCurrencies = computed(() => getFilterValue("currency"));
 const totalActiveFilters = computed(
-  () => selectedOperationalStatuses.value.length + selectedPaymentStatuses.value.length
+  () =>
+    selectedOperationalStatuses.value.length +
+    selectedPaymentStatuses.value.length +
+    selectedCurrencies.value.length
 );
 
 const handleFilterChange = (columnId, { checked, value }) => {
@@ -857,6 +878,11 @@ const handleExport = async () => {
     // Add payment status filter
     if (selectedPaymentStatuses.value.length > 0) {
       params.append("filter_payment_status", selectedPaymentStatuses.value.join(","));
+    }
+
+    // Add currency filter
+    if (selectedCurrencies.value.length > 0) {
+      params.append("filter_currency", selectedCurrencies.value.join(","));
     }
 
     // Add sorting

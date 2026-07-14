@@ -34,7 +34,7 @@
             class="mt-2 inline-flex items-center gap-x-2 rounded-md border bg-warning/15 px-3 py-1.5 text-xs sm:text-sm text-warning-foreground"
           >
             <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
-            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount) }} surcharge</span>
+            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount, order.currency) }} surcharge</span>
           </div>
         </div>
         <Badge :variant="statusVariant(order.operational_status)" class="shrink-0 capitalize">
@@ -82,8 +82,8 @@
                 </td>
                 <td class="text-muted-foreground px-4 py-3">{{ item.product_category ?? "-" }}</td>
                 <td class="px-4 py-3 text-right">{{ item.quantity }}</td>
-                <td class="px-4 py-3 text-right">{{ formatPrice(item.unit_price) }}</td>
-                <td class="px-4 py-3 text-right font-medium">{{ formatPrice(item.total_price) }}</td>
+                <td class="px-4 py-3 text-right">{{ formatPrice(item.unit_price, order.currency) }}</td>
+                <td class="px-4 py-3 text-right font-medium">{{ formatPrice(item.total_price, order.currency) }}</td>
               </tr>
             </tbody>
           </table>
@@ -95,26 +95,33 @@
         <div class="w-64 space-y-2 text-sm">
           <div class="flex justify-between">
             <span class="text-muted-foreground">{{ $t('orderDetail.subtotal') }}</span>
-            <span>{{ formatPrice(order.subtotal) }}</span>
+            <span>{{ formatPrice(order.subtotal, order.currency) }}</span>
           </div>
           <div v-if="order.penalty_amount && parseFloat(order.penalty_amount) > 0" class="flex justify-between">
             <span class="text-warning-foreground">Penalty</span>
-            <span class="text-warning-foreground">+{{ formatPrice(order.penalty_amount) }}</span>
+            <span class="text-warning-foreground">+{{ formatPrice(order.penalty_amount, order.currency) }}</span>
           </div>
           <div v-if="order.discount_amount && parseFloat(order.discount_amount) > 0" class="flex justify-between">
             <span class="text-success-foreground">
               {{ $t('orderDetail.discount') }}
               <span v-if="order.promo_code_applied" class="text-muted-foreground">({{ order.promo_code_applied }})</span>
             </span>
-            <span class="text-success-foreground">-{{ formatPrice(order.discount_amount) }}</span>
+            <span class="text-success-foreground">-{{ formatPrice(order.discount_amount, order.currency) }}</span>
           </div>
           <div class="flex justify-between">
             <span class="text-muted-foreground">{{ $t('orderDetail.tax', { rate: order.tax_rate }) }}</span>
-            <span>{{ formatPrice(order.tax_amount) }}</span>
+            <span>{{ formatPrice(order.tax_amount, order.currency) }}</span>
           </div>
           <div class="flex justify-between border-t pt-2 font-semibold">
             <span>{{ $t('orderDetail.total') }}</span>
-            <span>{{ formatPrice(order.total) }}</span>
+            <span>{{ formatPrice(order.total, order.currency) }}</span>
+          </div>
+          <div
+            v-if="order.currency === 'USD' && order.total_idr"
+            class="text-muted-foreground flex justify-between text-xs tracking-tight"
+          >
+            <span>{{ $t('orderDetail.total') }} (IDR)</span>
+            <span>{{ formatPrice(order.total_idr, 'IDR') }}</span>
           </div>
         </div>
       </div>

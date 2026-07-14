@@ -137,6 +137,26 @@ class PromoCodeService
             );
         }
 
+        $orderCurrency = strtoupper($entity->getPurchaseContext()['currency'] ?? 'IDR');
+
+        if ($rule->currency !== null) {
+            if (strtoupper($rule->currency) !== $orderCurrency) {
+                return PromoCodeValidation::fail(
+                    PromoCodeValidation::ERROR_CURRENCY_MISMATCH,
+                    "Promo code is not valid for this order's currency.",
+                    $promo,
+                    $rule,
+                );
+            }
+        } elseif ($orderCurrency !== 'IDR' && $this->ruleCarriesNominalSemantics($rule)) {
+            return PromoCodeValidation::fail(
+                PromoCodeValidation::ERROR_CURRENCY_MISMATCH,
+                "Promo code is not valid for this order's currency.",
+                $promo,
+                $rule,
+            );
+        }
+
         $applicabilityResult = $this->applicability->run(
             $rule->applicability ?? [],
             $entity,
@@ -263,6 +283,24 @@ class PromoCodeService
         }
 
         return $bonus;
+    }
+
+    /**
+     * Whether a rule carries nominal (currency-denominated) semantics. Legacy
+     * rules with no explicit currency are treated as IDR, so a nominal rule
+     * cannot apply to a foreign-currency order.
+     */
+    private function ruleCarriesNominalSemantics(PromotionRule $rule): bool
+    {
+        $nominalValueTypes = [
+            AdjustmentValueType::FixedAmount,
+            AdjustmentValueType::TieredFixedAmount,
+            AdjustmentValueType::BundlePrice,
+        ];
+
+        return in_array($rule->value_type, $nominalValueTypes, true)
+            || $rule->min_purchase_amount !== null
+            || $rule->max_discount_amount !== null;
     }
 
     /**

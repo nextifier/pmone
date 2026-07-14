@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Event;
+use App\Models\EventProduct;
 use App\Models\EventProductCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\EventProduct>
+ * @extends Factory<EventProduct>
  */
 class EventProductFactory extends Factory
 {
@@ -24,10 +25,21 @@ class EventProductFactory extends Factory
             'name' => fake()->words(3, true),
             'description' => fake()->optional(0.5)->sentence(),
             'price' => fake()->randomFloat(2, 50000, 5000000),
+            'price_usd' => null,
             'unit' => fake()->randomElement(['unit', 'set', 'meter', 'sqm']),
             'booth_types' => null,
             'is_active' => true,
         ];
+    }
+
+    /**
+     * Set a manual USD price so the product is offered to USD-billed exhibitors.
+     */
+    public function withUsdPrice(float $price = 500): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'price_usd' => $price,
+        ]);
     }
 
     public function inactive(): static

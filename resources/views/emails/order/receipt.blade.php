@@ -12,7 +12,7 @@ We have received your payment{{ $event ? ' for **'.$event->title.'**' : '' }}. T
 @if($brand?->company_name)
 **Company:** {{ $brand->company_name }}<br>
 @endif
-**Total Paid:** Rp {{ number_format($order->total, 0, ',', '.') }}
+**Total Paid:** {{ $order->formatMoney($order->total) }}
 
 Thank you for your payment.
 

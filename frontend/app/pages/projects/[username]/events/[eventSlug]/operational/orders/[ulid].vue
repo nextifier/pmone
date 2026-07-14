@@ -127,7 +127,7 @@
             <TableCell
               class="border-border border-t pt-3 pb-1.5 text-right text-sm tracking-tight tabular-nums"
             >
-              {{ formatPrice(order.subtotal) }}
+              {{ formatPrice(order.subtotal, order.currency) }}
             </TableCell>
             <TableCell v-if="hasActionsCol" class="border-border border-t pt-3 pb-1.5" />
           </TableRow>
@@ -147,7 +147,7 @@
             <TableCell
               class="text-warning-foreground border-0 py-1.5 text-right text-sm tracking-tight tabular-nums"
             >
-              +{{ formatPrice(order.penalty_amount) }}
+              +{{ formatPrice(order.penalty_amount, order.currency) }}
             </TableCell>
             <TableCell v-if="hasActionsCol" class="border-0 py-1.5" />
           </TableRow>
@@ -167,7 +167,7 @@
             <TableCell
               class="text-success-foreground border-0 py-1.5 text-right text-sm tracking-tight tabular-nums"
             >
-              -{{ formatPrice(order.discount_amount) }}
+              -{{ formatPrice(order.discount_amount, order.currency) }}
             </TableCell>
             <TableCell v-if="hasActionsCol" class="border-0 py-1.5" />
           </TableRow>
@@ -180,7 +180,7 @@
               Tax<span v-if="taxPct != null"> ({{ taxPct }}%)</span>
             </TableCell>
             <TableCell class="border-0 pt-1.5 pb-3 text-right text-sm tracking-tight tabular-nums">
-              {{ formatPrice(order.tax_amount) }}
+              {{ formatPrice(order.tax_amount, order.currency) }}
             </TableCell>
             <TableCell v-if="hasActionsCol" class="border-0 pt-1.5 pb-3" />
           </TableRow>
@@ -195,9 +195,40 @@
             <TableCell
               class="border-border border-t py-3 text-right text-sm font-semibold tracking-tight tabular-nums"
             >
-              {{ formatPrice(order.total) }}
+              {{ formatPrice(order.total, order.currency) }}
             </TableCell>
             <TableCell v-if="hasActionsCol" class="border-border border-t py-3" />
+          </TableRow>
+
+          <!-- FX snapshot for USD orders: reporting is done in IDR (total_idr). -->
+          <TableRow v-if="order.currency === 'USD'" class="border-0 hover:bg-transparent">
+            <TableCell
+              :colspan="5"
+              class="text-muted-foreground border-border border-t py-1.5 text-right text-sm tracking-tight"
+            >
+              Exchange rate
+            </TableCell>
+            <TableCell
+              class="text-muted-foreground border-border border-t py-1.5 text-right text-sm tracking-tight tabular-nums"
+            >
+              {{ formatPrice(order.exchange_rate_to_idr, "IDR") }} / USD
+            </TableCell>
+            <TableCell v-if="hasActionsCol" class="border-border border-t py-1.5" />
+          </TableRow>
+
+          <TableRow v-if="order.currency === 'USD'" class="border-0 hover:bg-transparent">
+            <TableCell
+              :colspan="5"
+              class="text-muted-foreground border-0 pt-1.5 pb-3 text-right text-sm tracking-tight"
+            >
+              Total (IDR)
+            </TableCell>
+            <TableCell
+              class="text-muted-foreground border-0 pt-1.5 pb-3 text-right text-sm tracking-tight tabular-nums"
+            >
+              {{ formatPrice(order.total_idr, "IDR") }}
+            </TableCell>
+            <TableCell v-if="hasActionsCol" class="border-0 pt-1.5 pb-3" />
           </TableRow>
         </template>
       </TableData>
@@ -290,7 +321,8 @@
                   <p class="text-muted-foreground truncate text-sm tracking-tight">{{ adj.label }}</p>
                 </div>
                 <p class="shrink-0 text-sm font-medium tracking-tight tabular-nums">
-                  {{ adj.kind === "discount" ? "-" : "+" }}{{ formatPrice(adj.amount) }}
+                  {{ adj.kind === "discount" ? "-" : "+"
+                  }}{{ formatPrice(adj.amount, order.currency) }}
                 </p>
               </div>
               <div v-if="!adj.is_voided && canVoid" class="mt-2 flex justify-end">
@@ -467,6 +499,7 @@
       v-model:open="adjustmentDialogOpen"
       target-type="Order"
       :target-email="order?.brand_event?.brand?.company_email"
+      :currency="order?.currency"
       @apply="handleApplyAdjustment"
     />
 
@@ -477,6 +510,7 @@
       manual-only
       :item-id="adjustItem?.id ?? null"
       :item-label="adjustItem?.product_name ?? ''"
+      :currency="order?.currency"
       @apply="handleApplyAdjustment"
     />
 
@@ -517,6 +551,7 @@ const props = defineProps({ event: Object, project: Object });
 const route = useRoute();
 const client = useSanctumClient();
 const { hasPermission, hasRole, hasAnyPermission } = usePermission();
+const { formatPrice } = useFormatters();
 
 const canApplyManual = computed(() => hasPermission("promotions.apply_manual"));
 const canVoid = computed(() => hasPermission("promotions.void_adjustment"));
@@ -629,6 +664,7 @@ const itemColumns = computed(() => {
         h(OrderItemProductCell, {
           item: row.original,
           adjustments: itemAdjustments(row.original.id),
+          currency: order.value?.currency,
         }),
       size: 260,
       enableSorting: false,
@@ -678,7 +714,7 @@ const itemColumns = computed(() => {
         h(
           "div",
           { class: "text-right text-sm tracking-tight tabular-nums" },
-          formatPrice(row.original.unit_price)
+          formatPrice(row.original.unit_price, order.value?.currency)
         ),
       size: 140,
       enableSorting: false,
@@ -691,7 +727,8 @@ const itemColumns = computed(() => {
           "div",
           { class: "text-right text-sm font-medium tracking-tight tabular-nums" },
           formatPrice(
-            row.original.total_price ?? row.original.unit_price * row.original.quantity
+            row.original.total_price ?? row.original.unit_price * row.original.quantity,
+            order.value?.currency
           )
         ),
       size: 140,
@@ -964,11 +1001,6 @@ async function handlePaymentStatusUpdate(newStatus) {
   } finally {
     paymentStatusLoading.value = false;
   }
-}
-
-function formatPrice(amount) {
-  if (amount == null) return "-";
-  return `Rp${Number(amount).toLocaleString("id-ID")}`;
 }
 
 // Configured tax rate (stored as a percent, e.g. 11.00).

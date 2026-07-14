@@ -151,7 +151,7 @@
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
           <div class="space-y-2">
-            <Label for="settings_tax_rate">Tax Rate (%)</Label>
+            <Label for="settings_tax_rate">Tax Rate (IDR) %</Label>
             <InputGroup>
               <InputNumber
                 id="settings_tax_rate"
@@ -167,6 +167,27 @@
               </InputGroupAddon>
             </InputGroup>
             <p class="text-muted-foreground text-xs tracking-tight">Default: 11% (PPN)</p>
+          </div>
+
+          <div class="space-y-2">
+            <Label for="settings_tax_rate_usd">Tax Rate (USD) %</Label>
+            <InputGroup>
+              <InputNumber
+                id="settings_tax_rate_usd"
+                v-model="form.settings.tax_rate_usd"
+                :min="0"
+                :max="100"
+                :placeholder="String(form.settings.tax_rate ?? 11)"
+                data-slot="input-group-control"
+                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupText>%</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
+            <p class="text-muted-foreground text-xs tracking-tight">
+              Applied to USD orders. Falls back to the IDR tax rate if empty.
+            </p>
           </div>
 
           <div class="space-y-2">

@@ -34,7 +34,7 @@
                     {{ product.description }}
                   </p>
                   <p class="mt-1 text-sm font-medium">
-                    {{ formatPrice(product.price) }}
+                    {{ formatPrice(product.price, currency) }}
                     <span class="text-muted-foreground font-normal">/ {{ product.unit }}</span>
                   </p>
                 </div>
@@ -98,9 +98,15 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  currency: {
+    type: String,
+    default: "IDR",
+  },
 });
 
 const emit = defineEmits(["update:modelValue"]);
+
+const { formatPrice } = useFormatters();
 
 function getItem(productId) {
   return props.modelValue.find((i) => i.event_product_id === productId);
@@ -132,13 +138,5 @@ function setNotes(productId, notes) {
     i.event_product_id === productId ? { ...i, notes } : i
   );
   emit("update:modelValue", items);
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(price || 0);
 }
 </script>

@@ -26,6 +26,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string $name
  * @property string|null $description
  * @property numeric $price
+ * @property numeric|null $price_usd
  * @property string $unit
  * @property array<array-key, mixed>|null $booth_types
  * @property bool $is_active
@@ -64,6 +65,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|EventProduct whereName($value)
  * @method static Builder<static>|EventProduct whereOrderColumn($value)
  * @method static Builder<static>|EventProduct wherePrice($value)
+ * @method static Builder<static>|EventProduct wherePriceUsd($value)
  * @method static Builder<static>|EventProduct whereUnit($value)
  * @method static Builder<static>|EventProduct whereUpdatedAt($value)
  * @method static Builder<static>|EventProduct whereUpdatedBy($value)
@@ -84,6 +86,7 @@ class EventProduct extends Model implements HasMedia, Sortable
         'name',
         'description',
         'price',
+        'price_usd',
         'unit',
         'booth_types',
         'is_active',
@@ -98,6 +101,7 @@ class EventProduct extends Model implements HasMedia, Sortable
     {
         return [
             'price' => 'decimal:2',
+            'price_usd' => 'decimal:2',
             'booth_types' => 'array',
             'is_active' => 'boolean',
         ];
@@ -123,7 +127,7 @@ class EventProduct extends Model implements HasMedia, Sortable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'category_id', 'price', 'is_active'])
+            ->logOnly(['name', 'category_id', 'price', 'price_usd', 'is_active'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }

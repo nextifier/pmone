@@ -82,7 +82,7 @@
         <div class="rounded-md border p-4">
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Total Amount</p>
           <p class="mt-1 text-xl font-medium tabular-nums tracking-tighter">
-            Rp{{ formatRupiah(report.stats?.total_amount) }}
+            {{ formatPrice(report.stats?.total_amount ?? 0, rule.currency) }}
           </p>
         </div>
       </div>
@@ -95,10 +95,14 @@
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Type</p>
             <p>{{ rule.value_type_label || rule.value_type }}</p>
           </div>
+          <div v-if="rule.currency">
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Currency</p>
+            <p>{{ rule.currency }}</p>
+          </div>
           <div v-if="['percentage', 'fixed_amount'].includes(rule.value_type)">
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Value</p>
             <p class="tabular-nums">
-              {{ rule.value_type === "percentage" ? `${rule.value}%` : `Rp${formatRupiah(rule.value)}` }}
+              {{ rule.value_type === "percentage" ? `${rule.value}%` : formatPrice(rule.value, rule.currency) }}
             </p>
           </div>
           <template v-for="(item, idx) in valueConfigRows" :key="idx">
@@ -109,11 +113,11 @@
           </template>
           <div v-if="rule.max_discount_amount">
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Max Discount Cap</p>
-            <p class="tabular-nums">Rp{{ formatRupiah(rule.max_discount_amount) }}</p>
+            <p class="tabular-nums">{{ formatPrice(rule.max_discount_amount, rule.currency) }}</p>
           </div>
           <div v-if="rule.min_purchase_amount">
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Min Purchase</p>
-            <p class="tabular-nums">Rp{{ formatRupiah(rule.min_purchase_amount) }}</p>
+            <p class="tabular-nums">{{ formatPrice(rule.min_purchase_amount, rule.currency) }}</p>
           </div>
           <div>
             <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Applies Before Tax</p>
@@ -282,6 +286,7 @@ definePageMeta({
 const route = useRoute();
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
+const { formatPrice } = useFormatters();
 
 const canEdit = computed(() => hasPermission("promotion_rules.update"));
 const canDelete = computed(() => hasPermission("promotion_rules.delete"));
@@ -313,7 +318,6 @@ usePageMeta(null, {
   title: computed(() => (rule.value ? `${rule.value.name} · Promotion Rules` : "Promotion Rule")),
 });
 
-const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
 const formatDate = (iso) =>
   iso ? new Date(iso).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "-";
 
@@ -351,7 +355,7 @@ const valueConfigRows = computed(() => {
             ? cfg.tiers
                 .map(
                   (t) =>
-                    `≥ ${t.min} → ${r.value_type === "tiered_percentage" ? `${t.value}%` : `Rp${formatRupiah(t.value)}`}`,
+                    `≥ ${t.min} → ${r.value_type === "tiered_percentage" ? `${t.value}%` : formatPrice(t.value, r.currency)}`,
                 )
                 .join("; ")
             : "-",
@@ -360,7 +364,7 @@ const valueConfigRows = computed(() => {
     case "bundle_price":
       return [
         { label: "Bundle quantity", value: cfg.bundle_qty ?? "-", mono: true },
-        { label: "Bundle price", value: cfg.bundle_price !== undefined ? `Rp${formatRupiah(cfg.bundle_price)}` : "-", mono: true },
+        { label: "Bundle price", value: cfg.bundle_price !== undefined ? formatPrice(cfg.bundle_price, r.currency) : "-", mono: true },
       ];
     case "free_addon":
       return [

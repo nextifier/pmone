@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\BoothType;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +20,7 @@ class StoreEventProductRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -28,6 +29,7 @@ class StoreEventProductRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             'price' => ['required', 'numeric', 'min:0'],
+            'price_usd' => ['nullable', 'numeric', 'min:0'],
             'unit' => ['sometimes', 'string', 'max:50'],
             'booth_types' => ['nullable', 'array'],
             'booth_types.*' => ['string', Rule::in(array_column(BoothType::cases(), 'value'))],
@@ -49,6 +51,7 @@ class StoreEventProductRequest extends FormRequest
             'name.required' => 'Product name is required.',
             'price.required' => 'Product price is required.',
             'price.min' => 'Product price cannot be negative.',
+            'price_usd.min' => 'Product USD price cannot be negative.',
             'booth_types.*.in' => 'Invalid booth type specified.',
         ];
     }

@@ -73,6 +73,7 @@
           v-else-if="info"
           v-model="items"
           :products-by-category="info.products_by_category"
+          :currency="info?.currency ?? 'IDR'"
         />
 
         <!-- Order-level fields -->
@@ -105,10 +106,15 @@
       <!-- Summary (1/3) -->
       <div class="lg:col-span-1">
         <div class="sticky top-[var(--navbar-height-desktop)] space-y-4">
+          <div v-if="info" class="flex items-center justify-end">
+            <Badge variant="outline">Currency: {{ info?.currency ?? "IDR" }}</Badge>
+          </div>
+
           <OrderSummaryPanel
             :items="items"
             :tax-rate="Number(info?.tax_rate ?? 11)"
             :penalty-rate="Number(info?.penalty_rate ?? 0)"
+            :currency="info?.currency ?? 'IDR'"
           />
 
           <div v-if="info" class="space-y-3">
@@ -132,6 +138,7 @@
 
 <script setup>
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {

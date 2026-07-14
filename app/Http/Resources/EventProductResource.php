@@ -22,6 +22,7 @@ class EventProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'price' => $this->price,
+            'price_usd' => $this->price_usd,
             'unit' => $this->unit,
             'booth_types' => $this->booth_types,
             'is_active' => $this->is_active,

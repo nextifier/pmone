@@ -35,6 +35,10 @@ class UpdateEventRequest extends FormRequest
             'hall' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', 'string', Rule::in(['draft', 'published', 'archived', 'cancelled'])],
             'visibility' => ['sometimes', 'string', Rule::in(['public', 'private'])],
+            // tax_rate_usd (and every other order-form setting) flows through the
+            // array passthrough. Do NOT add nested `settings.*` rules here: a nested
+            // rule makes validated() drop every sibling settings key, wiping the
+            // rest of the event settings on save.
             'settings' => ['nullable', 'array'],
             'custom_fields' => ['nullable', 'array'],
             'saleable_area' => ['nullable', 'numeric', 'min:0'],

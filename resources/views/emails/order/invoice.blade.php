@@ -12,7 +12,7 @@ Please find attached the invoice for your order{{ $event ? ' for **'.$event->tit
 @if($brand?->company_name)
 **Company:** {{ $brand->company_name }}<br>
 @endif
-**Total:** Rp {{ number_format($order->total, 0, ',', '.') }}
+**Total:** {{ $order->formatMoney($order->total) }}
 
 Kindly review the attached document and proceed with the payment according to the instructions provided.
 

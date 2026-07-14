@@ -238,6 +238,23 @@
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
             <div class="space-y-2">
+              <Label for="currency">Currency</Label>
+              <Select v-model="form.currency">
+                <SelectTrigger id="currency" class="w-full"><SelectValue placeholder="Select currency" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="IDR">IDR (Rupiah)</SelectItem>
+                  <SelectItem value="USD">USD (Dollar)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Order currency this rule applies to. A rule only applies to orders of the same currency.
+              </p>
+              <FieldError :errors="errors.currency" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-x-2 gap-y-6">
+            <div class="space-y-2">
               <Label for="min_purchase_amount">Minimum Purchase (Rp)</Label>
               <InputGroup>
                 <InputNumber
@@ -616,6 +633,7 @@ const form = ref({
   },
   max_discount_amount: null,
   min_purchase_amount: null,
+  currency: "IDR",
   applies_before_tax: true,
   stacking_mode: "exclusive",
   priority: 100,

@@ -166,6 +166,7 @@ definePageMeta({
 usePageMeta(null, { title: "Promotion Rules" });
 
 const { hasPermission } = usePermission();
+const { formatPrice } = useFormatters();
 const canCreate = computed(() => hasPermission("promotion_rules.create"));
 const canUpdate = computed(() => hasPermission("promotion_rules.update"));
 const canDelete = computed(() => hasPermission("promotion_rules.delete"));
@@ -345,8 +346,6 @@ const handleDeleteSingleRow = async (ulid) => {
   }
 };
 
-const formatRupiah = (n) => new Intl.NumberFormat("id-ID").format(Number(n) || 0);
-
 const columns = [
   {
     id: "select",
@@ -403,10 +402,20 @@ const columns = [
     accessorKey: "value",
     cell: ({ row }) => {
       const r = row.original;
-      const display = r.value_type === "percentage" ? `${r.value}%` : `Rp${formatRupiah(r.value)}`;
+      const display =
+        r.value_type === "percentage" ? `${r.value}%` : formatPrice(r.value, r.currency);
       return h("span", { class: "text-sm tabular-nums tracking-tight" }, display);
     },
     size: 120,
+  },
+  {
+    header: "Currency",
+    accessorKey: "currency",
+    cell: ({ row }) =>
+      row.original.currency
+        ? h(Badge, { variant: "muted", plain: true }, { default: () => row.original.currency })
+        : h("span", { class: "text-muted-foreground text-xs sm:text-sm tracking-tight" }, "-"),
+    size: 100,
   },
   {
     header: "Stacking",

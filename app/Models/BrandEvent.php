@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BoothType;
+use App\Services\Currency\CurrencyResolver;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Builder;
@@ -35,6 +36,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int|null $sales_id
  * @property string $status
  * @property string|null $notes
+ * @property string|null $currency_override
  * @property int $promotion_post_limit
  * @property array<array-key, mixed>|null $custom_fields
  * @property int|null $order_column
@@ -72,6 +74,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|BrandEvent whereBoothType($value)
  * @method static Builder<static>|BrandEvent whereBrandId($value)
  * @method static Builder<static>|BrandEvent whereCreatedAt($value)
+ * @method static Builder<static>|BrandEvent whereCurrencyOverride($value)
  * @method static Builder<static>|BrandEvent whereCustomFields($value)
  * @method static Builder<static>|BrandEvent whereEventId($value)
  * @method static Builder<static>|BrandEvent whereFasciaName($value)
@@ -106,6 +109,7 @@ class BrandEvent extends Model implements HasMedia, Sortable
         'sales_id',
         'status',
         'notes',
+        'currency_override',
         'promotion_post_limit',
         'custom_fields',
         'fascia_name',
@@ -169,6 +173,15 @@ class BrandEvent extends Model implements HasMedia, Sortable
     public function buildSortQuery(): Builder
     {
         return static::query()->where('event_id', $this->event_id);
+    }
+
+    /**
+     * Resolve the billing currency for this exhibitor (manual override, else the
+     * brand's country). Thin delegate to the CurrencyResolver service.
+     */
+    public function resolveCurrency(): string
+    {
+        return app(CurrencyResolver::class)->resolveForBrandEvent($this);
     }
 
     public function registerMediaCollections(): void

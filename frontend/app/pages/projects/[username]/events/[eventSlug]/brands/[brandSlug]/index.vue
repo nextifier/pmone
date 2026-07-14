@@ -744,6 +744,7 @@ const boothForm = reactive({
   booth_size: props.brandEvent?.booth_size || null,
   booth_price: props.brandEvent?.booth_price || null,
   booth_type: props.brandEvent?.booth_type || "",
+  currency_override: props.brandEvent?.currency_override || "auto",
   fascia_name: props.brandEvent?.fascia_name || "",
   badge_name: props.brandEvent?.badge_name || "",
   sales_id: props.brandEvent?.sales?.id || null,
@@ -814,6 +815,7 @@ watch(
       boothForm.booth_size = val.booth_size || null;
       boothForm.booth_price = val.booth_price || null;
       boothForm.booth_type = val.booth_type || "";
+      boothForm.currency_override = val.currency_override || "auto";
       boothForm.fascia_name = val.fascia_name || "";
       boothForm.badge_name = val.badge_name || "";
       boothForm.sales_id = val.sales?.id || null;
@@ -894,6 +896,7 @@ async function handleSubmit() {
     if (boothBody.booth_size === "" || boothBody.booth_size === null) boothBody.booth_size = null;
     if (boothBody.booth_price === "" || boothBody.booth_price === null)
       boothBody.booth_price = null;
+    if (boothBody.currency_override === "auto") boothBody.currency_override = null;
 
     await Promise.all([
       client(profileUrl.value, { method: "PUT", body: brandBody }),

@@ -627,11 +627,18 @@ class ExhibitorDashboardController extends Controller
             ->with('event')
             ->findOrFail($brandEventId);
 
+        $currency = $brandEvent->resolveCurrency();
+
         $query = EventProduct::query()
             ->with(['media', 'productCategory.media'])
             ->where('event_id', $brandEvent->event_id)
             ->where('is_active', true)
             ->ordered();
+
+        // USD catalogs hide products without a USD price.
+        if ($currency === 'USD') {
+            $query->whereNotNull('price_usd');
+        }
 
         // Filter by booth type if exhibitor has one
         if ($brandEvent->booth_type) {
@@ -645,7 +652,7 @@ class ExhibitorDashboardController extends Controller
         $products = $query->get();
 
         // Group by category
-        $grouped = $products->groupBy(fn ($p) => $p->productCategory?->title ?? 'Uncategorized')->map(function ($items, $category) {
+        $grouped = $products->groupBy(fn ($p) => $p->productCategory?->title ?? 'Uncategorized')->map(function ($items, $category) use ($currency) {
             $firstCategory = $items->first()?->productCategory;
             $catalogFile = $firstCategory?->getMediaUrls('catalog_files');
 
@@ -660,14 +667,14 @@ class ExhibitorDashboardController extends Controller
                     'id' => $p->id,
                     'name' => $p->name,
                     'description' => $p->description,
-                    'price' => $p->price,
+                    'price' => $currency === 'USD' ? $p->price_usd : $p->price,
                     'unit' => $p->unit,
                     'product_image' => $p->product_image,
                 ])->values(),
             ];
         })->values();
 
-        return response()->json(['data' => $grouped]);
+        return response()->json(['data' => $grouped, 'currency' => $currency]);
     }
 
     /**
@@ -683,6 +690,7 @@ class ExhibitorDashboardController extends Controller
 
         $event = $brandEvent->event;
         $settings = $event->settings ?? [];
+        $currency = $brandEvent->resolveCurrency();
 
         // Determine current order period
         $now = now();
@@ -703,7 +711,10 @@ class ExhibitorDashboardController extends Controller
         return response()->json([
             'data' => [
                 'order_form_content' => $event->order_form_content,
-                'tax_rate' => $settings['tax_rate'] ?? 11,
+                'currency' => $currency,
+                'tax_rate' => $currency === 'USD'
+                    ? ($settings['tax_rate_usd'] ?? $settings['tax_rate'] ?? 11)
+                    : ($settings['tax_rate'] ?? 11),
                 'order_form_deadline' => $event->order_form_deadline?->toIso8601String(),
                 'promotion_post_deadline' => $event->promotion_post_deadline?->toIso8601String(),
                 'current_period' => $currentPeriod,

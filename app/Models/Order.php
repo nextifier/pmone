@@ -6,6 +6,7 @@ use App\Contracts\Pricing\Purchasable;
 use App\Enums\OperationalStatus;
 use App\Enums\PaymentStatus;
 use App\Traits\HasAdjustments;
+use App\Traits\HasBillingCurrency;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +34,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property numeric $tax_rate
  * @property numeric $tax_amount
  * @property numeric $total
+ * @property string $currency
+ * @property numeric $exchange_rate_to_idr
+ * @property numeric $total_idr
  * @property Carbon|null $submitted_at
  * @property Carbon|null $confirmed_at
  * @property int|null $created_by
@@ -70,6 +74,9 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCancellationReason($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereConfirmedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCurrency($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereExchangeRateToIdr($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotalIdr($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountAmount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
@@ -94,6 +101,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Order extends Model implements HasMedia, Purchasable
 {
     use HasAdjustments;
+    use HasBillingCurrency;
     use HasFactory;
     use HasMediaManager;
     use InteractsWithMedia;
@@ -116,6 +124,9 @@ class Order extends Model implements HasMedia, Purchasable
         'tax_rate',
         'tax_amount',
         'total',
+        'currency',
+        'exchange_rate_to_idr',
+        'total_idr',
         'submitted_at',
         'confirmed_at',
     ];
@@ -131,6 +142,8 @@ class Order extends Model implements HasMedia, Purchasable
             'tax_rate' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'total' => 'decimal:2',
+            'exchange_rate_to_idr' => 'decimal:6',
+            'total_idr' => 'decimal:2',
             'submitted_at' => 'datetime',
             'confirmed_at' => 'datetime',
         ];
@@ -287,11 +300,19 @@ class Order extends Model implements HasMedia, Purchasable
 
     public function persistTotals(array $totals): void
     {
+        $total = (float) ($totals['total_amount'] ?? 0);
+
+        // Reporting-currency (IDR) equivalent, frozen from the FX snapshot taken at
+        // order creation. Recomputed on every recalculate path (submit, adjustment,
+        // promo, void) so total_idr never drifts from total. Never computed elsewhere.
+        $totalIdr = $this->convertToIdr($total);
+
         $this->forceFill([
             'discount_amount' => $totals['discount_amount'] ?? 0,
             'penalty_amount' => $totals['penalty_amount'] ?? 0,
             'tax_amount' => $totals['tax_amount'] ?? 0,
-            'total' => $totals['total_amount'] ?? 0,
+            'total' => $total,
+            'total_idr' => $totalIdr,
         ])->save();
     }
 
@@ -308,6 +329,7 @@ class Order extends Model implements HasMedia, Purchasable
             'qty' => (int) $items->sum('quantity'),
             'morph_class' => $this->getMorphClass(),
             'email' => $this->customerEmail(),
+            'currency' => $this->currency,
         ];
     }
 

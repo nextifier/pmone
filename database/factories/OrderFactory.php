@@ -31,8 +31,23 @@ class OrderFactory extends Factory
             'tax_rate' => $taxRate,
             'tax_amount' => $taxAmount,
             'total' => $total,
+            'currency' => 'IDR',
+            'exchange_rate_to_idr' => 1,
+            'total_idr' => $total,
             'submitted_at' => now(),
         ];
+    }
+
+    /**
+     * Denominate the order in USD with an FX snapshot (default 16000 IDR/USD).
+     */
+    public function usd(float $rate = 16000): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'currency' => 'USD',
+            'exchange_rate_to_idr' => $rate,
+            'total_idr' => round((float) $attributes['total'] * $rate, 2),
+        ]);
     }
 
     public function confirmed(): static
@@ -59,11 +74,14 @@ class OrderFactory extends Factory
             $taxRate = (float) $attributes['tax_rate'];
             $taxableAmount = $subtotal - $discountAmount;
             $taxAmount = round($taxableAmount * $taxRate / 100, 2);
+            $total = $taxableAmount + $taxAmount;
+            $rate = (float) ($attributes['exchange_rate_to_idr'] ?? 1);
 
             return [
                 'discount_amount' => $discountAmount,
                 'tax_amount' => $taxAmount,
-                'total' => $taxableAmount + $taxAmount,
+                'total' => $total,
+                'total_idr' => round($total * $rate, 2),
             ];
         });
     }

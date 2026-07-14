@@ -33,7 +33,7 @@
           </p>
         </div>
         <div class="flex items-center gap-x-3">
-          <p class="text-sm font-semibold">{{ formatPrice(order.total) }}</p>
+          <p class="text-sm font-semibold">{{ formatPrice(order.total, order.currency) }}</p>
           <span
             class="rounded-full px-2.5 py-0.5 text-xs font-medium"
             :class="statusClass(order.operational_status)"
@@ -50,6 +50,7 @@
 const props = defineProps({ brandEvent: Object });
 const route = useRoute();
 const client = useSanctumClient();
+const { formatPrice } = useFormatters();
 
 const orders = ref([]);
 const loading = ref(true);
@@ -72,10 +73,6 @@ async function fetchOrders() {
   } finally {
     loading.value = false;
   }
-}
-
-function formatPrice(amount) {
-  return `Rp${Number(amount).toLocaleString("id-ID")}`;
 }
 
 function formatDate(dateStr) {

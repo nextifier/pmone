@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\EventProduct;
 use Illuminate\Database\Eloquent\Builder;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class EventProductsExport extends BaseExport
 {
@@ -27,12 +28,44 @@ class EventProductsExport extends BaseExport
             'Category',
             'Name',
             'Description',
-            'Price',
+            'Price (IDR)',
+            'Price (USD)',
             'Unit',
             'Booth Types',
             'Active',
             'Created At',
         ];
+    }
+
+    /**
+     * Thousand-separated money columns: E = Price (IDR), F = Price (USD).
+     *
+     * @return array<string, string>
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'E' => '#,##0',
+            'F' => '#,##0.00',
+        ];
+    }
+
+    public function styles(Worksheet $sheet): array
+    {
+        $styles = parent::styles($sheet);
+
+        $numberFont = [
+            'font' => [
+                'name' => 'Open Sans',
+                'size' => 14,
+            ],
+        ];
+
+        foreach (['E', 'F'] as $column) {
+            $styles[$column] = $numberFont;
+        }
+
+        return $styles;
     }
 
     /**
@@ -50,6 +83,7 @@ class EventProductsExport extends BaseExport
             $product->name ?? '-',
             $product->description ?? '-',
             $product->price,
+            $product->price_usd,
             $product->unit ?? '-',
             $boothTypes,
             $product->is_active ? 'Yes' : 'No',

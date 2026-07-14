@@ -23,6 +23,7 @@ class PromotionRuleResource extends JsonResource
             'value_config' => $this->value_config,
             'max_discount_amount' => $this->max_discount_amount !== null ? (float) $this->max_discount_amount : null,
             'min_purchase_amount' => $this->min_purchase_amount !== null ? (float) $this->min_purchase_amount : null,
+            'currency' => $this->currency,
             'applies_before_tax' => (bool) $this->applies_before_tax,
             'stacking_mode' => $this->stacking_mode?->value,
             'stacking_mode_label' => $this->stacking_mode?->label(),

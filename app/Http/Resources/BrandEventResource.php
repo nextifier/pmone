@@ -18,6 +18,8 @@ class BrandEventResource extends JsonResource
             'booth_number' => $this->booth_number,
             'booth_size' => $this->booth_size,
             'booth_price' => $this->booth_price,
+            'currency_override' => $this->currency_override,
+            'currency' => $this->resolveCurrency(),
             'booth_type' => $this->booth_type?->value,
             'booth_type_label' => $this->booth_type?->label(),
             'sales_id' => $this->sales_id,

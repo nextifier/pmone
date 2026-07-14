@@ -234,6 +234,7 @@ const form = reactive({
   booth_size: null,
   booth_price: null,
   booth_type: "",
+  currency_override: "auto",
   company_name: "",
   country: "",
   sales_id: null,
@@ -308,6 +309,7 @@ watch(isOpen, (val) => {
     form.booth_size = null;
     form.booth_price = null;
     form.booth_type = "";
+    form.currency_override = "auto";
     form.company_name = "";
     form.country = "";
     form.sales_id = null;
@@ -347,6 +349,7 @@ async function submit() {
         booth_size: form.booth_size || null,
         booth_price: form.booth_price || null,
         booth_type: form.booth_type || null,
+        currency_override: form.currency_override === "auto" ? null : form.currency_override,
         company_name: form.company_name || null,
         country: form.country || null,
         sales_id: form.sales_id || null,

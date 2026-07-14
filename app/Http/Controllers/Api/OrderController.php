@@ -72,16 +72,26 @@ class OrderController extends Controller
             $query->where('payment_status', $paymentStatus);
         }
 
+        if (in_array($currency = $request->input('currency'), ['IDR', 'USD'], true)) {
+            $query->where('currency', $currency);
+        }
+
+        if ($request->filled('total_min')) {
+            $query->where('total_idr', '>=', (float) $request->input('total_min'));
+        }
+
+        if ($request->filled('total_max')) {
+            $query->where('total_idr', '<=', (float) $request->input('total_max'));
+        }
+
         if ($request->boolean('client_only')) {
             $orders = $query->orderByDesc('submitted_at')->get();
 
             return response()->json(['data' => OrderIndexResource::collection($orders)]);
         }
 
-        $sort = $request->input('sort', '-submitted_at');
-        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-        $field = ltrim($sort, '-');
-        $query->orderBy($field, $direction);
+        [$sortColumn, $sortDirection] = $this->resolveOrderSort($request->input('sort', '-submitted_at'));
+        $query->orderBy($sortColumn, $sortDirection);
 
         $orders = $query->paginate($request->input('per_page', 15));
 
@@ -104,6 +114,31 @@ class OrderController extends Controller
     private function resolveEvent(Project $project, string $eventSlug): Event
     {
         return $project->events()->where('slug', $eventSlug)->firstOrFail();
+    }
+
+    /**
+     * Resolve a client sort string to a whitelisted [column, direction] pair.
+     * Reporting sorts on money always target the IDR-normalised column.
+     *
+     * @return array{0: string, 1: 'asc'|'desc'}
+     */
+    private function resolveOrderSort(string $sort): array
+    {
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+        $field = ltrim($sort, '-');
+
+        $columns = [
+            'submitted_at' => 'submitted_at',
+            'order_number' => 'order_number',
+            'total' => 'total_idr',
+            'total_idr' => 'total_idr',
+            'operational_status' => 'operational_status',
+            'payment_status' => 'payment_status',
+            'confirmed_at' => 'confirmed_at',
+            'created_at' => 'created_at',
+        ];
+
+        return [$columns[$field] ?? 'submitted_at', $direction];
     }
 
     public function index(Request $request, string $username, string $eventSlug): JsonResponse
@@ -136,10 +171,20 @@ class OrderController extends Controller
             $query->whereIn('payment_status', $paymentStatuses);
         }
 
-        $sort = $request->input('sort', '-submitted_at');
-        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-        $field = ltrim($sort, '-');
-        $query->orderBy($field, $direction);
+        if ($request->has('filter.currency')) {
+            $query->whereIn('currency', explode(',', $request->input('filter.currency')));
+        }
+
+        if ($request->filled('filter.total_min')) {
+            $query->where('total_idr', '>=', (float) $request->input('filter.total_min'));
+        }
+
+        if ($request->filled('filter.total_max')) {
+            $query->where('total_idr', '<=', (float) $request->input('filter.total_max'));
+        }
+
+        [$sortColumn, $sortDirection] = $this->resolveOrderSort($request->input('sort', '-submitted_at'));
+        $query->orderBy($sortColumn, $sortDirection);
 
         $orders = $query->withCount('items')->paginate($request->input('per_page', 15));
 
@@ -169,6 +214,8 @@ class OrderController extends Controller
             ->with('brand.media')
             ->findOrFail($request->integer('brand_event_id'));
 
+        $currency = $brandEvent->resolveCurrency();
+
         $products = EventProduct::query()
             ->with(['media', 'productCategory.media'])
             ->where('event_id', $event->id)
@@ -181,6 +228,7 @@ class OrderController extends Controller
                         ->orWhereJsonContains('booth_types', $boothType);
                 });
             })
+            ->when($currency === 'USD', fn ($q) => $q->whereNotNull('price_usd'))
             ->get();
 
         $productsByCategory = $products
@@ -191,7 +239,7 @@ class OrderController extends Controller
                     'id' => $p->id,
                     'name' => $p->name,
                     'description' => $p->description,
-                    'price' => $p->price,
+                    'price' => $currency === 'USD' ? $p->price_usd : $p->price,
                     'unit' => $p->unit,
                     'product_image' => $p->product_image,
                 ])->values(),
@@ -214,7 +262,10 @@ class OrderController extends Controller
         return response()->json([
             'data' => [
                 'products_by_category' => $productsByCategory,
-                'tax_rate' => $settings['tax_rate'] ?? 11,
+                'currency' => $currency,
+                'tax_rate' => $currency === 'USD'
+                    ? ($settings['tax_rate_usd'] ?? $settings['tax_rate'] ?? 11)
+                    : ($settings['tax_rate'] ?? 11),
                 'current_period' => $currentPeriod,
                 'penalty_rate' => $penaltyRate,
                 'order_form_content' => $event->order_form_content,
@@ -423,6 +474,9 @@ class OrderController extends Controller
             'search' => $request->input('filter_search'),
             'operational_status' => $request->input('filter_operational_status'),
             'payment_status' => $request->input('filter_payment_status'),
+            'currency' => $request->input('filter_currency'),
+            'total_min' => $request->input('filter_total_min'),
+            'total_max' => $request->input('filter_total_max'),
         ]);
 
         $sort = $request->input('sort', '-submitted_at');

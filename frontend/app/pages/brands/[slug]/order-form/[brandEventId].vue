@@ -151,11 +151,11 @@
                           </p>
                           <p class="mt-1 text-sm font-medium">
                             <template v-if="isOnsite">
-                              <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(product.price) }}</span>
-                              {{ formatPrice(withPenalty(product.price)) }}
+                              <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(product.price, currency) }}</span>
+                              {{ formatPrice(withPenalty(product.price), currency) }}
                             </template>
                             <template v-else>
-                              {{ formatPrice(product.price) }}
+                              {{ formatPrice(product.price, currency) }}
                             </template>
                             <span class="text-muted-foreground font-normal">/ {{ product.unit }}</span>
                           </p>
@@ -255,11 +255,11 @@
                         <p class="truncate text-sm font-medium">{{ item.name }}</p>
                         <p class="text-muted-foreground mt-0.5 text-sm">
                           <template v-if="isOnsite">
-                            <span class="text-xs line-through sm:text-sm">{{ formatPrice(item.price) }}</span>
-                            {{ formatPrice(withPenalty(item.price)) }}
+                            <span class="text-xs line-through sm:text-sm">{{ formatPrice(item.price, currency) }}</span>
+                            {{ formatPrice(withPenalty(item.price), currency) }}
                           </template>
                           <template v-else>
-                            {{ formatPrice(item.price) }}
+                            {{ formatPrice(item.price, currency) }}
                           </template>
                           x {{ item.quantity }}
                         </p>
@@ -304,11 +304,11 @@
                     <span class="text-muted-foreground">{{ $t("orderForm.subtotal") }}</span>
                     <span>
                       <template v-if="isOnsite">
-                        <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(subtotal) }}</span>
-                        {{ formatPrice(subtotalWithPenalty) }}
+                        <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(subtotal, currency) }}</span>
+                        {{ formatPrice(subtotalWithPenalty, currency) }}
                       </template>
                       <template v-else>
-                        {{ formatPrice(subtotal) }}
+                        {{ formatPrice(subtotal, currency) }}
                       </template>
                     </span>
                   </div>
@@ -316,11 +316,11 @@
                     <span class="text-muted-foreground">{{
                       $t("orderForm.tax", { rate: taxRate })
                     }}</span>
-                    <span>{{ formatPrice(computedTaxAmount) }}</span>
+                    <span>{{ formatPrice(computedTaxAmount, currency) }}</span>
                   </div>
                   <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
                     <span>{{ $t("orderForm.total") }}</span>
-                    <span>{{ formatPrice(computedTotal) }}</span>
+                    <span>{{ formatPrice(computedTotal, currency) }}</span>
                   </div>
                 </div>
 
@@ -400,11 +400,11 @@
                   <p class="text-muted-foreground text-xs sm:text-sm">
                     {{ item.quantity }} ×
                     <template v-if="isOnsite">
-                      <span class="text-xs line-through">{{ formatPrice(item.price) }}</span>
-                      {{ formatPrice(withPenalty(item.price)) }}
+                      <span class="text-xs line-through">{{ formatPrice(item.price, currency) }}</span>
+                      {{ formatPrice(withPenalty(item.price), currency) }}
                     </template>
                     <template v-else>
-                      {{ formatPrice(item.price) }}
+                      {{ formatPrice(item.price, currency) }}
                     </template>
                   </p>
                   <p v-if="item.notes" class="text-muted-foreground mt-0.5 text-xs sm:text-sm italic">
@@ -413,10 +413,10 @@
                 </div>
                 <span class="shrink-0 text-sm font-medium">
                   <template v-if="isOnsite">
-                    {{ formatPrice(withPenalty(item.price) * item.quantity) }}
+                    {{ formatPrice(withPenalty(item.price) * item.quantity, currency) }}
                   </template>
                   <template v-else>
-                    {{ formatPrice(item.price * item.quantity) }}
+                    {{ formatPrice(item.price * item.quantity, currency) }}
                   </template>
                 </span>
               </div>
@@ -428,11 +428,11 @@
                 <span class="text-muted-foreground">{{ $t("orderForm.subtotal") }}</span>
                 <span>
                   <template v-if="isOnsite">
-                    <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(subtotal) }}</span>
-                    {{ formatPrice(subtotalWithPenalty) }}
+                    <span class="text-muted-foreground text-xs line-through sm:text-sm">{{ formatPrice(subtotal, currency) }}</span>
+                    {{ formatPrice(subtotalWithPenalty, currency) }}
                   </template>
                   <template v-else>
-                    {{ formatPrice(subtotal) }}
+                    {{ formatPrice(subtotal, currency) }}
                   </template>
                 </span>
               </div>
@@ -440,11 +440,11 @@
                 <span class="text-muted-foreground">{{
                   $t("orderForm.tax", { rate: taxRate })
                 }}</span>
-                <span>{{ formatPrice(computedTaxAmount) }}</span>
+                <span>{{ formatPrice(computedTaxAmount, currency) }}</span>
               </div>
               <div class="border-border flex justify-between border-t pt-1.5 font-semibold">
                 <span>{{ $t("orderForm.total") }}</span>
-                <span>{{ formatPrice(computedTotal) }}</span>
+                <span>{{ formatPrice(computedTotal, currency) }}</span>
               </div>
             </div>
 
@@ -518,6 +518,7 @@ const {
   total,
 } = useOrderCart(route.params.brandEventId);
 
+const currency = computed(() => info.value?.currency || "IDR");
 const taxRate = computed(() => info.value?.tax_rate || 11);
 const penaltyRate = computed(() => info.value?.penalty_rate || 0);
 const isOnsite = computed(() => penaltyRate.value > 0);

@@ -41,6 +41,23 @@
         </InputGroupAddon>
       </InputGroup>
     </div>
+    <div class="space-y-2">
+      <Label>Order Currency</Label>
+      <Select v-model="form.currency_override">
+        <SelectTrigger class="w-full">
+          <SelectValue placeholder="Select currency" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            v-for="option in CURRENCY_OVERRIDE_OPTIONS"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
   </div>
 </template>
 

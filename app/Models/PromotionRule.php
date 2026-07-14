@@ -29,6 +29,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property AdjustmentValueType $value_type
  * @property numeric $value
  * @property array<array-key, mixed>|null $value_config
+ * @property string|null $currency
  * @property numeric|null $max_discount_amount
  * @property numeric|null $min_purchase_amount
  * @property bool $applies_before_tax
@@ -74,6 +75,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static Builder<static>|PromotionRule whereAppliesBeforeTax($value)
  * @method static Builder<static>|PromotionRule whereCreatedAt($value)
  * @method static Builder<static>|PromotionRule whereCreatedBy($value)
+ * @method static Builder<static>|PromotionRule whereCurrency($value)
  * @method static Builder<static>|PromotionRule whereDeletedAt($value)
  * @method static Builder<static>|PromotionRule whereDeletedBy($value)
  * @method static Builder<static>|PromotionRule whereDescription($value)
@@ -121,6 +123,7 @@ class PromotionRule extends Model
         'value_type',
         'value',
         'value_config',
+        'currency',
         'max_discount_amount',
         'min_purchase_amount',
         'applies_before_tax',

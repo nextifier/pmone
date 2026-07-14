@@ -79,7 +79,7 @@ class DashboardController extends Controller
                 'brand_event.event_id',
                 'orders.operational_status',
                 DB::raw('COUNT(*) as count'),
-                DB::raw('SUM(orders.total) as total_sum')
+                DB::raw('SUM(orders.total_idr) as total_sum')
             )
             ->get();
 

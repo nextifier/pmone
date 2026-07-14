@@ -43,7 +43,7 @@
       </div>
     </NuxtLink>
     <DashboardStatsCard
-      title="Revenue"
+      title="Revenue (IDR)"
       description="Confirmed orders"
       :value="event.total_revenue ?? 0"
       icon="hugeicons:money-bag-02"

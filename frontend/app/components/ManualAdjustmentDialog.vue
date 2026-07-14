@@ -92,7 +92,7 @@
             <div class="space-y-2">
               <Label for="value">
                 Value                <span class="text-muted-foreground text-xs ml-1">
-                  ({{ form.value_type === "percentage" ? "%" : "Rp" }})
+                  ({{ form.value_type === "percentage" ? "%" : currencySymbol }})
                 </span>
               </Label>
               <InputGroup>
@@ -105,7 +105,7 @@
                   class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
                 />
                 <InputGroupAddon :align="form.value_type === 'percentage' ? 'inline-end' : 'inline-start'">
-                  <InputGroupText>{{ form.value_type === "percentage" ? "%" : "Rp" }}</InputGroupText>
+                  <InputGroupText>{{ form.value_type === "percentage" ? "%" : currencySymbol }}</InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
               <FieldError :errors="errors.value" />
@@ -157,6 +157,8 @@ const props = defineProps({
   // Optional order item this adjustment is scoped to.
   itemId: { type: [Number, null], default: null },
   itemLabel: { type: String, default: "" },
+  // Currency of the target entity; drives the fixed-amount input symbol.
+  currency: { type: String, default: "IDR" },
 });
 
 const emit = defineEmits(["update:open", "apply"]);
@@ -165,6 +167,8 @@ const dialogOpen = computed({
   get: () => props.open,
   set: (v) => emit("update:open", v),
 });
+
+const currencySymbol = computed(() => (props.currency === "USD" ? "$" : "Rp"));
 
 const mode = ref("manual");
 const errors = ref({});

@@ -36,8 +36,16 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
             $data['unit'] = strtolower(trim($data['unit']));
         }
 
+        // Accept both the "Price" and "Price (IDR)" heading (slugged to price_idr),
+        // so a re-imported export file resolves the IDR price either way.
+        $data['price'] ??= $data['price_idr'] ?? null;
+
         if (isset($data['price']) && ! is_null($data['price'])) {
             $data['price'] = (string) $data['price'];
+        }
+
+        if (isset($data['price_usd']) && ! is_null($data['price_usd'])) {
+            $data['price_usd'] = (string) $data['price_usd'];
         }
 
         return $data;
@@ -55,6 +63,9 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
             'name' => trim($row['name']),
             'description' => ! empty($row['description']) ? trim($row['description']) : null,
             'price' => (float) $row['price'],
+            'price_usd' => isset($row['price_usd']) && $row['price_usd'] !== null && $row['price_usd'] !== ''
+                ? (float) $row['price_usd']
+                : null,
             'unit' => ! empty($row['unit']) ? strtolower(trim($row['unit'])) : 'unit',
             'booth_types' => $boothTypes,
             'is_active' => $isActive,
@@ -72,6 +83,7 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
+            'price_usd' => ['nullable', 'numeric', 'min:0'],
             'unit' => ['nullable', 'string', 'max:50'],
             'booth_types' => ['nullable', 'string'],
             'active' => ['nullable', 'string'],
@@ -85,6 +97,8 @@ class EventProductsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, Wi
             'name.required' => 'Product name is required.',
             'price.required' => 'Price is required.',
             'price.numeric' => 'Price must be a number.',
+            'price_usd.numeric' => 'Price (USD) must be a number.',
+            'price_usd.min' => 'Price (USD) cannot be negative.',
         ];
     }
 

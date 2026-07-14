@@ -18,6 +18,7 @@ class PromotionRuleIndexResource extends JsonResource
             'kind_label' => $this->kind?->label(),
             'value_type' => $this->value_type?->value,
             'value' => (float) $this->value,
+            'currency' => $this->currency,
             'stacking_mode' => $this->stacking_mode?->value,
             'stacking_mode_label' => $this->stacking_mode?->label(),
             'priority' => (int) $this->priority,

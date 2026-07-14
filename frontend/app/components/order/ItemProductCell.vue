@@ -16,7 +16,7 @@
           {{ adj.kind_label }}
         </Badge>
         <span class="text-xs tracking-tight tabular-nums">
-          {{ adj.kind === "discount" ? "-" : "+" }}{{ formatPrice(adj.amount) }}
+          {{ adj.kind === "discount" ? "-" : "+" }}{{ formatPrice(adj.amount, currency) }}
         </span>
       </div>
     </div>
@@ -29,12 +29,8 @@ import { Badge } from "@/components/ui/badge";
 defineProps({
   item: { type: Object, required: true },
   adjustments: { type: Array, default: () => [] },
+  currency: { type: String, default: "IDR" },
 });
 
-function formatPrice(amount) {
-  if (amount == null) {
-    return "-";
-  }
-  return `Rp${Number(amount).toLocaleString("id-ID")}`;
-}
+const { formatPrice } = useFormatters();
 </script>

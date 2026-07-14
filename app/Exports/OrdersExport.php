@@ -58,6 +58,9 @@ class OrdersExport extends BaseExport
             'Submitted At',
             'Confirmed At',
             'Created By',
+            'Currency',
+            'Exchange Rate (to IDR)',
+            'Total (IDR)',
         ];
     }
 
@@ -101,6 +104,9 @@ class OrdersExport extends BaseExport
             $order->submitted_at?->format('Y-m-d H:i:s'),
             $order->confirmed_at?->format('Y-m-d H:i:s'),
             $order->creator?->name ?? '-',
+            $order->currency ?? 'IDR',
+            (float) $order->exchange_rate_to_idr,
+            (float) $order->total_idr,
         ];
 
         if ($items->isEmpty()) {
@@ -124,7 +130,8 @@ class OrdersExport extends BaseExport
     /**
      * Number columns (after inserting "Badge Name" at col J): G=Booth Size,
      * H=Booth Price, O=Qty, P=Unit Price, Q=Item Total, S=Subtotal,
-     * T=Discount Amount, U=Penalty Amount, W=Tax Rate, X=Tax Amount, Y=Total.
+     * T=Discount Amount, U=Penalty Amount, W=Tax Rate, X=Tax Amount, Y=Total,
+     * AH=Exchange Rate (to IDR), AI=Total (IDR).
      */
     public function columnFormats(): array
     {
@@ -140,6 +147,8 @@ class OrdersExport extends BaseExport
             'W' => '#,##0.00',
             'X' => '#,##0',
             'Y' => '#,##0',
+            'AH' => '#,##0.000000',
+            'AI' => '#,##0',
         ];
     }
 
@@ -154,7 +163,7 @@ class OrdersExport extends BaseExport
             ],
         ];
 
-        foreach (['G', 'H', 'O', 'P', 'Q', 'S', 'T', 'U', 'W', 'X', 'Y'] as $column) {
+        foreach (['G', 'H', 'O', 'P', 'Q', 'S', 'T', 'U', 'W', 'X', 'Y', 'AH', 'AI'] as $column) {
             $styles[$column] = $numberFont;
         }
 
@@ -182,6 +191,10 @@ class OrdersExport extends BaseExport
         if (isset($this->filters['payment_status'])) {
             $statuses = explode(',', $this->filters['payment_status']);
             $query->whereIn('payment_status', $statuses);
+        }
+
+        if (isset($this->filters['currency'])) {
+            $query->whereIn('currency', explode(',', $this->filters['currency']));
         }
     }
 

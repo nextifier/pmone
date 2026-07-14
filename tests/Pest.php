@@ -19,7 +19,7 @@ pest()->extend(TestCase::class)
     ->in('Feature');
 
 pest()->extend(TestCase::class)
-    ->in('Unit/Pricing', 'Unit/Promotion', 'Unit/Brand');
+    ->in('Unit/Pricing', 'Unit/Promotion', 'Unit/Brand', 'Unit/Currency');
 
 /*
 |--------------------------------------------------------------------------

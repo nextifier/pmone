@@ -66,9 +66,20 @@ export function useFormatters() {
     }).format(amount);
   }
 
-  function formatPrice(amount) {
+  function formatPrice(amount, currency = "IDR") {
     if (amount == null) return "-";
-    return `Rp${Number(amount).toLocaleString("id-ID")}`;
+    if (String(currency).toUpperCase() === "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(amount));
+    }
+    return `Rp${Number(amount).toLocaleString("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    })}`;
   }
 
   // Full, exact Rupiah, e.g. "Rp20.900.000". No abbreviation, never ambiguous.

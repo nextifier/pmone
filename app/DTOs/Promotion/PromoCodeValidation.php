@@ -32,6 +32,8 @@ final readonly class PromoCodeValidation
 
     public const ERROR_STACKING_NOT_ALLOWED = 'STACKING_NOT_ALLOWED';
 
+    public const ERROR_CURRENCY_MISMATCH = 'CURRENCY_MISMATCH';
+
     /**
      * @param  array<int, array{item_id: int|null, label: string, bonus_qty: int, unit_price: float}>|null  $bonusItems
      */

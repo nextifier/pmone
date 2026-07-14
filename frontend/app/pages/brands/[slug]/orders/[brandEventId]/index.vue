@@ -63,7 +63,7 @@
               </p>
             </div>
             <p class="shrink-0 text-sm font-medium tracking-tight">
-              {{ formatPrice(order.total) }}
+              {{ formatPrice(order.total, order.currency) }}
             </p>
           </div>
 
@@ -73,7 +73,7 @@
             class="text-muted-foreground mt-2 flex items-center gap-x-1.5 text-xs tracking-tight sm:text-sm"
           >
             <Icon name="hugeicons:alert-02" class="size-3.5 shrink-0 text-warning-foreground" />
-            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount) }} surcharge</span>
+            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount, order.currency) }} surcharge</span>
           </div>
 
           <!-- Items list -->
@@ -85,7 +85,7 @@
             >
               <span class="min-w-0 flex-1 truncate">{{ item.product_name }}</span>
               <span class="ml-3 shrink-0 tabular-nums">
-                {{ item.quantity }} x {{ formatPrice(item.unit_price) }}
+                {{ item.quantity }} x {{ formatPrice(item.unit_price, order.currency) }}
               </span>
             </div>
           </div>

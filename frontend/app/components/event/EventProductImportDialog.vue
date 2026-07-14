@@ -22,6 +22,7 @@
                 <ul class="text-muted-foreground list-inside list-disc space-y-1">
                   <li>Download the template file with sample data</li>
                   <li><strong>Category</strong>, <strong>Name</strong>, and <strong>Price</strong> are required</li>
+                  <li>Price (USD) is optional; leave blank for IDR-only products.</li>
                   <li>Supported formats: CSV, XLS, XLSX (max 5MB)</li>
                   <li>
                     Category options: Booth, Electricity, Audio Visual, Lighting & Furniture, Decoration,
