@@ -24,8 +24,9 @@ class EmailController extends Controller
     /**
      * Every figure is counted from our own tables, so the dashboard never
      * depends on a provider API being reachable. Delivery outcomes come from the
-     * message status; opens and clicks come from the event log, because a
-     * delivered-then-opened message keeps its higher-ranked "delivery" status.
+     * message status. Open/click tracking is deliberately not used (it rewrites
+     * links and adds pixels that hurt transactional deliverability), so those
+     * metrics are not reported.
      */
     public function overview(Request $request): JsonResponse
     {
@@ -42,16 +43,6 @@ class EmailController extends Controller
         $bounced = (int) $counts->get(EmailEventType::Bounce->value, 0);
         $complained = (int) $counts->get(EmailEventType::Complaint->value, 0);
 
-        $engagement = EmailEvent::query()
-            ->whereBetween('occurred_at', [$from, $to])
-            ->whereIn('type', [EmailEventType::Open, EmailEventType::Click])
-            ->selectRaw('type, count(distinct message_id) as total')
-            ->groupBy('type')
-            ->pluck('total', 'type');
-
-        $opened = (int) $engagement->get(EmailEventType::Open->value, 0);
-        $clicked = (int) $engagement->get(EmailEventType::Click->value, 0);
-
         return response()->json([
             'data' => [
                 'range' => [
@@ -63,15 +54,10 @@ class EmailController extends Controller
                     'delivered' => $delivered,
                     'bounced' => $bounced,
                     'complained' => $complained,
-                    'opened' => $opened,
-                    'clicked' => $clicked,
                     'delivery_rate' => $this->rate($delivered, $sent),
-                    // Deliverability is judged against everything sent; engagement
-                    // against what actually reached a mailbox.
+                    // Deliverability is judged against everything sent.
                     'bounce_rate' => $this->rate($bounced, $sent),
                     'complaint_rate' => $this->rate($complained, $sent),
-                    'open_rate' => $this->rate($opened, $delivered),
-                    'click_rate' => $this->rate($clicked, $delivered),
                 ],
                 'daily' => $this->dailyTrend($from, $to),
                 'suppressed_total' => EmailSuppression::query()->count(),
@@ -109,11 +95,11 @@ class EmailController extends Controller
 
     /**
      * A continuous day-by-day series for the trend chart across the selected
-     * range: sends keyed by the day the message left, deliveries and opens keyed
-     * by the day the event landed. Days with no activity are filled with zeros so
-     * the x-axis never has gaps.
+     * range: sends keyed by the day the message left, deliveries keyed by the day
+     * the event landed. Days with no activity are filled with zeros so the x-axis
+     * never has gaps.
      *
-     * @return list<array{date: string, sent: int, delivered: int, opened: int}>
+     * @return list<array{date: string, sent: int, delivered: int}>
      */
     private function dailyTrend(Carbon $from, Carbon $to): array
     {
@@ -123,22 +109,12 @@ class EmailController extends Controller
             ->groupBy('day')
             ->pluck('total', 'day');
 
-        $delivered = [];
-        $opened = [];
-
-        EmailEvent::query()
+        $delivered = EmailEvent::query()
             ->whereBetween('occurred_at', [$from, $to])
-            ->whereIn('type', [EmailEventType::Delivery, EmailEventType::Open])
-            ->selectRaw('date(occurred_at) as day, type, count(distinct message_id) as total')
-            ->groupBy('day', 'type')
-            ->get()
-            ->each(function ($row) use (&$delivered, &$opened) {
-                if ($row->type === EmailEventType::Delivery) {
-                    $delivered[$row->day] = (int) $row->total;
-                } elseif ($row->type === EmailEventType::Open) {
-                    $opened[$row->day] = (int) $row->total;
-                }
-            });
+            ->where('type', EmailEventType::Delivery)
+            ->selectRaw('date(occurred_at) as day, count(distinct message_id) as total')
+            ->groupBy('day')
+            ->pluck('total', 'day');
 
         $series = [];
         $cursor = $from->copy()->startOfDay();
@@ -150,8 +126,7 @@ class EmailController extends Controller
             $series[] = [
                 'date' => $day,
                 'sent' => (int) ($sentByDay[$day] ?? 0),
-                'delivered' => $delivered[$day] ?? 0,
-                'opened' => $opened[$day] ?? 0,
+                'delivered' => (int) ($delivered[$day] ?? 0),
             ];
 
             $cursor->addDay();

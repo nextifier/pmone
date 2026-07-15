@@ -26,9 +26,9 @@
         <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Overview</h2>
       </div>
 
-      <GridFill :count="8" min-col-width="210px" rounded="xl">
+      <GridFill :count="6" min-col-width="210px" rounded="xl">
         <template v-if="overviewPending">
-          <div v-for="i in 8" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
+          <div v-for="i in 6" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
             <Skeleton class="size-5 rounded" />
             <div class="space-y-1.5">
               <Skeleton class="h-3.5 w-20" />
@@ -233,24 +233,6 @@ const stats = computed(() => {
       captionClass: neutral,
     },
     {
-      key: "opened",
-      label: "Opened",
-      icon: "hugeicons:mail-open-01",
-      color: "text-sky-500",
-      value: s.opened ?? 0,
-      caption: `${formatRate(s.open_rate)} of delivered`,
-      captionClass: neutral,
-    },
-    {
-      key: "clicked",
-      label: "Clicked",
-      icon: "hugeicons:cursor-01",
-      color: "text-indigo-500",
-      value: s.clicked ?? 0,
-      caption: `${formatRate(s.click_rate)} of delivered`,
-      captionClass: neutral,
-    },
-    {
       key: "bounced",
       label: "Bounced",
       icon: "hugeicons:cancel-circle",
@@ -273,22 +255,18 @@ const stats = computed(() => {
 
 /* -------------------------------------------------------------------- trend */
 
-const trendKeys = ["sent", "delivered", "opened"];
+const trendKeys = ["sent", "delivered"];
 const trendConfig = {
   sent: { label: "Sent", color: "var(--chart-1)" },
   delivered: { label: "Delivered", color: "var(--chart-2)" },
-  opened: { label: "Opened", color: "var(--chart-3)" },
 };
 const trendData = computed(() =>
   daily.value.map((d) => ({
     date: d.date,
     sent: d.sent,
     delivered: d.delivered,
-    opened: d.opened,
   })),
 );
-const hasTrend = computed(() =>
-  daily.value.some((d) => d.sent > 0 || d.delivered > 0 || d.opened > 0),
-);
+const hasTrend = computed(() => daily.value.some((d) => d.sent > 0 || d.delivered > 0));
 const formatTrendDate = (value) => $dayjs(value).format("D MMM");
 </script>

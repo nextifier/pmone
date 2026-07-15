@@ -153,9 +153,9 @@
         </div>
       </div>
 
-      <GridFill :count="8" min-col-width="210px" rounded="xl">
+      <GridFill :count="6" min-col-width="210px" rounded="xl">
         <template v-if="overviewPending">
-          <div v-for="i in 8" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
+          <div v-for="i in 6" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
             <Skeleton class="size-5 rounded" />
             <div class="space-y-1.5">
               <Skeleton class="h-3.5 w-20" />
@@ -539,22 +539,6 @@ const stats = computed(() => {
       color: "text-emerald-500",
       value: s.delivered ?? 0,
       caption: `${formatRate(s.delivery_rate)} of sent`,
-    },
-    {
-      key: "opened",
-      label: "Opened",
-      icon: "hugeicons:mail-open-01",
-      color: "text-sky-500",
-      value: s.opened ?? 0,
-      caption: `${formatRate(s.open_rate)} of delivered`,
-    },
-    {
-      key: "clicked",
-      label: "Clicked",
-      icon: "hugeicons:cursor-01",
-      color: "text-indigo-500",
-      value: s.clicked ?? 0,
-      caption: `${formatRate(s.click_rate)} of delivered`,
     },
     {
       key: "bounced",

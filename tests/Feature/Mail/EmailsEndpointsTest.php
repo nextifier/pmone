@@ -35,17 +35,9 @@ it('refuses a user without the emails.view permission', function () {
 
 it('reports delivery counters and rates drawn from our own tables', function () {
     EmailMessage::factory()->count(2)->create();
-    $delivered = EmailMessage::factory()->delivered()->create();
+    EmailMessage::factory()->delivered()->create();
     EmailMessage::factory()->bounced()->create();
     EmailSuppression::factory()->create();
-
-    // A delivered message that was also opened keeps its "delivery" status, so
-    // the open can only be counted from the event log.
-    EmailEvent::factory()->create([
-        'message_id' => $delivered->message_id,
-        'type' => EmailEventType::Open,
-        'occurred_at' => now(),
-    ]);
 
     $response = $this->actingAs($this->viewer)->getJson('/api/emails/overview')->assertOk();
 
@@ -54,11 +46,11 @@ it('reports delivery counters and rates drawn from our own tables', function () 
     expect($data['totals']['sent'])->toBe(4)
         ->and($data['totals']['delivered'])->toBe(1)
         ->and($data['totals']['bounced'])->toBe(1)
-        ->and($data['totals']['opened'])->toBe(1)
         // JSON has no float/int distinction, so 25.0 arrives as 25.
         ->and($data['totals']['bounce_rate'])->toEqual(25.0)
-        // Opens are rated against what was delivered, not everything sent.
-        ->and($data['totals']['open_rate'])->toEqual(100.0)
+        // Open/click tracking is intentionally not used, so those metrics are gone.
+        ->and($data['totals'])->not->toHaveKey('opened')
+        ->and($data['totals'])->not->toHaveKey('open_rate')
         ->and($data['suppressed_total'])->toBe(1)
         ->and($data['daily'])->toHaveCount(30)
         ->and($data['range'])->toHaveKeys(['from', 'to']);
