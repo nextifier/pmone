@@ -8,6 +8,7 @@ use App\Support\CustomFieldValidation;
 use App\Support\Turnstile;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class StorePublicTicketOrderRequest extends FormRequest
 {
@@ -30,7 +31,7 @@ class StorePublicTicketOrderRequest extends FormRequest
             'items.*.selected_event_day_id' => ['nullable', 'integer', 'exists:event_days,id'],
 
             'buyer_name' => ['required', 'string', 'max:255'],
-            'buyer_email' => ['required', 'email', 'max:255'],
+            'buyer_email' => ['required', Email::default(), 'max:255'],
             'buyer_phone' => ['required', 'string', 'max:50'],
 
             'also_attending' => ['sometimes', 'boolean'],

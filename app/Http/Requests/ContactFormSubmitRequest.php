@@ -7,6 +7,7 @@ use App\Rules\HoneypotPassed;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Email;
 
 class ContactFormSubmitRequest extends FormRequest
 {
@@ -32,7 +33,7 @@ class ContactFormSubmitRequest extends FormRequest
             'data' => ['required', 'array', 'min:1'],
             'data.*' => ['nullable'], // Allow dynamic fields
             'data.name' => ['required', 'string', 'max:255'],
-            'data.email' => ['required', 'email', 'max:255'],
+            'data.email' => ['required', Email::default(), 'max:255'],
             'data.phone' => ['required', 'string', 'max:50'],
             'data.message' => ['sometimes', 'string', 'max:5000'],
 

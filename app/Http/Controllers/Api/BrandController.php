@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\ResponseCache\Facades\ResponseCache;
@@ -176,7 +177,7 @@ class BrandController extends Controller
             'address.city' => ['nullable', 'string', 'max:255'],
             'address.province' => ['nullable', 'string', 'max:255'],
             'address.country' => ['nullable', 'string', 'max:255'],
-            'company_email' => ['nullable', 'email', 'max:255'],
+            'company_email' => ['nullable', Email::default(), 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'status' => ['sometimes', 'string', 'in:active,inactive'],
             'business_categories' => ['nullable', 'array'],
@@ -701,7 +702,7 @@ class BrandController extends Controller
         $this->authorizeExhibitorAccess($request->user(), $brand);
 
         $validated = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', Email::default()],
         ]);
 
         $user = User::withTrashed()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->first();

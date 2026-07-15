@@ -7,6 +7,7 @@ use App\Enums\Ticketing\AccessCodeStatus;
 use App\Models\Ticket;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 
 class UpdateAccessCodeRequest extends FormRequest
 {
@@ -25,7 +26,7 @@ class UpdateAccessCodeRequest extends FormRequest
             'max_uses' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'valid_from' => ['sometimes', 'nullable', 'date'],
             'valid_until' => ['sometimes', 'nullable', 'date', 'after_or_equal:valid_from'],
-            'bind_email' => ['sometimes', 'nullable', 'email', 'max:255'],
+            'bind_email' => ['sometimes', 'nullable', Email::default(), 'max:255'],
             'bind_phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'price_effect' => ['sometimes', Rule::in(AccessCodePriceEffect::values())],
             'price_value' => ['sometimes', 'nullable', 'numeric', 'min:0'],

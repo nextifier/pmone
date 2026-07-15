@@ -4,6 +4,7 @@ namespace App\Http\Requests\PublicTicket;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class PreviewTicketCartRequest extends FormRequest
 {
@@ -26,7 +27,7 @@ class PreviewTicketCartRequest extends FormRequest
             'items.*.selected_event_day_id' => ['nullable', 'integer', 'exists:event_days,id'],
             'promo_code' => ['nullable', 'string', 'max:64'],
             'access_code' => ['nullable', 'string', 'max:60'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', Email::default(), 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
         ];
     }

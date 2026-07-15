@@ -4,6 +4,7 @@ namespace App\Http\Requests\Hotel;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 
 class StoreHotelRequest extends FormRequest
 {
@@ -32,7 +33,7 @@ class StoreHotelRequest extends FormRequest
             'google_maps_embed_src' => ['nullable', 'string', 'max:2000'],
             'facilities' => ['nullable', 'array'],
             'facilities.*' => ['string', 'max:100'],
-            'contact_email' => ['nullable', 'email', 'max:255'],
+            'contact_email' => ['nullable', Email::default(), 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:50'],
             'cancellation_policy' => ['nullable', 'string', 'max:5000'],
             'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],

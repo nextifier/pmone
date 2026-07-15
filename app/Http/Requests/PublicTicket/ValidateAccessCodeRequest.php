@@ -3,6 +3,7 @@
 namespace App\Http\Requests\PublicTicket;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class ValidateAccessCodeRequest extends FormRequest
 {
@@ -19,7 +20,7 @@ class ValidateAccessCodeRequest extends FormRequest
         return [
             'event_id' => ['required', 'integer', 'exists:events,id'],
             'code' => ['required', 'string', 'max:60'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', Email::default(), 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'items' => ['nullable', 'array'],
             'items.*.ticket_id' => ['required_with:items', 'integer'],

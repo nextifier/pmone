@@ -12,11 +12,14 @@ use App\Observers\ContactFormSubmissionObserver;
 use App\Observers\LinkPageItemObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\ShortLinkObserver;
+use App\Rules\AllowedEmailDomain;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\Translatable\Facades\Translatable;
@@ -46,6 +49,17 @@ class AppServiceProvider extends ServiceProvider
         // without fallbackAny an id-only record would render empty on the
         // English-default public sites.
         Translatable::fallback(fallbackLocale: 'en', fallbackAny: true);
+
+        // Every email rule in the app resolves through Email::default(). In
+        // production an address must actually be able to receive mail (MX
+        // record, no reserved/disposable domains), which stops fake signups
+        // from ever being sent to - each such send is a guaranteed bounce that
+        // drags down the whole account's sender reputation. Outside production
+        // the network-dependent DNS check and the domain blocklist are skipped:
+        // tests run offline and factories generate @example.com addresses.
+        Email::defaults(fn (): Email => app()->isProduction()
+            ? Rule::email()->rfcCompliant(strict: true)->preventSpoofing()->validateMxRecord()->rules([new AllowedEmailDomain])
+            : Rule::email()->rfcCompliant(strict: true)->preventSpoofing());
 
         // Activity-log rows written before the centralized custom-fields
         // migration still carry subject_type App\Models\ProjectCustomField;

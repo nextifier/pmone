@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
@@ -195,7 +196,7 @@ class BrandEventController extends Controller
             'sales_id' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'string'],
             'emails' => ['nullable', 'array'],
-            'emails.*' => ['email'],
+            'emails.*' => [Email::default()],
             'send_login_email' => ['nullable', 'boolean'],
         ]);
 
@@ -438,7 +439,7 @@ class BrandEventController extends Controller
             'address.city' => ['nullable', 'string', 'max:255'],
             'address.province' => ['nullable', 'string', 'max:255'],
             'address.country' => ['nullable', 'string', 'max:255'],
-            'company_email' => ['nullable', 'email', 'max:255'],
+            'company_email' => ['nullable', Email::default(), 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'custom_fields' => ['nullable', 'array'],
             'tmp_profile_image' => ['nullable', 'string'],
@@ -710,7 +711,7 @@ class BrandEventController extends Controller
         $brandEvent = $this->resolveBrandEvent($event, $brandSlug);
 
         $validated = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', Email::default()],
             'send_login_email' => ['nullable', 'boolean'],
         ]);
 

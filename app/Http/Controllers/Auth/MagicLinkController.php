@@ -14,13 +14,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Email;
 
 class MagicLinkController extends Controller
 {
     public function sendMagicLink(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'email' => ['required', 'string', 'email', 'max:255'],
+            'email' => ['required', 'string', Email::default(), 'max:255'],
         ]);
 
         if ($validator->fails()) {

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Promo;
 use App\Enums\IdentityType;
 use App\Enums\TransferDirection;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\Rules\Enum;
 
 class PreviewPricingRequest extends FormRequest
@@ -19,7 +20,7 @@ class PreviewPricingRequest extends FormRequest
         return [
             'hotel_id' => ['required', 'exists:hotels,id'],
             'event_id' => ['required', 'exists:events,id'],
-            'guest_email' => ['nullable', 'email', 'max:255'],
+            'guest_email' => ['nullable', Email::default(), 'max:255'],
 
             'items' => ['required', 'array', 'min:1'],
             'items.*.room_type_id' => ['required', 'exists:room_types,id'],

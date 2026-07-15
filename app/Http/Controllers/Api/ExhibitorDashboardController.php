@@ -25,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\ValidationException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\ResponseCache\Facades\ResponseCache;
@@ -391,7 +392,7 @@ class ExhibitorDashboardController extends Controller
             'address.city' => ['nullable', 'string', 'max:255'],
             'address.province' => ['nullable', 'string', 'max:255'],
             'address.country' => ['nullable', 'string', 'max:255'],
-            'company_email' => ['nullable', 'email', 'max:255'],
+            'company_email' => ['nullable', Email::default(), 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'custom_fields' => ['nullable', 'array'],
             'business_categories' => ['nullable', 'array'],

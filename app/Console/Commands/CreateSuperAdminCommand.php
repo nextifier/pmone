@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rules\Email;
 
 class CreateSuperAdminCommand extends Command
 {
@@ -28,7 +29,7 @@ class CreateSuperAdminCommand extends Command
             'password' => $password,
         ], [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', Email::default(), 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
         ]);
 

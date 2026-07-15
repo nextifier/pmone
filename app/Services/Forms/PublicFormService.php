@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Email;
 use Spatie\ResponseCache\Facades\ResponseCache;
 
 /**
@@ -65,7 +66,7 @@ class PublicFormService
         $settings = $form->settings ?? [];
 
         if (! empty($settings['require_email'])) {
-            $request->validate(['respondent_email' => ['required', 'email', 'max:255']]);
+            $request->validate(['respondent_email' => ['required', Email::default(), 'max:255']]);
         }
 
         $fieldValidation = $this->buildFieldValidationRules($form);

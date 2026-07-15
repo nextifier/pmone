@@ -6,6 +6,7 @@ use App\Enums\ContactStatus;
 use App\Helpers\PhoneCountryHelper;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class UpdateContactRequest extends FormRequest
 {
@@ -49,7 +50,7 @@ class UpdateContactRequest extends FormRequest
             'name' => ['sometimes', 'string', 'max:255'],
             'job_title' => ['nullable', 'string', 'max:255'],
             'emails' => ['nullable', 'array'],
-            'emails.*' => ['email', 'max:255'],
+            'emails.*' => [Email::default(), 'max:255'],
             'phones' => ['nullable', 'array'],
             'phones.*' => ['string', 'max:50'],
             'company_name' => ['nullable', 'string', 'max:255'],

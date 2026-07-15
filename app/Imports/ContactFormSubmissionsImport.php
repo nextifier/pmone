@@ -8,6 +8,7 @@ use App\Models\ContactFormSubmission;
 use App\Models\Project;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Email;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -199,7 +200,7 @@ class ContactFormSubmissionsImport implements SkipsEmptyRows, SkipsOnFailure, To
         return [
             'name' => ['required', 'string', 'max:255'],
             'brand_name' => ['nullable', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', Email::default(), 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'project' => ['required', 'string', 'max:255'],
             'subject' => ['nullable', 'string', 'max:255'],

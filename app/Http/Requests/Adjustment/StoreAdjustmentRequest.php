@@ -6,6 +6,7 @@ use App\Enums\AdjustmentKind;
 use App\Enums\AdjustmentValueType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\Rules\Enum;
 
 /**
@@ -29,7 +30,7 @@ class StoreAdjustmentRequest extends FormRequest
             'mode' => ['required', 'string', 'in:promo_code,promotion_rule,manual'],
 
             'promo_code' => ['required_if:mode,promo_code', 'string', 'max:60'],
-            'email' => ['required_if:mode,promo_code', 'email', 'max:255'],
+            'email' => ['required_if:mode,promo_code', Email::default(), 'max:255'],
 
             'promotion_rule_id' => ['required_if:mode,promotion_rule', 'exists:promotion_rules,id'],
             'override_value' => ['nullable', 'numeric', 'min:0'],

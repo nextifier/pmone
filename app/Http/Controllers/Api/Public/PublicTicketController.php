@@ -14,6 +14,7 @@ use App\Support\PaymentChannels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Validation\Rules\Email;
 
 class PublicTicketController extends Controller
 {
@@ -169,7 +170,7 @@ class PublicTicketController extends Controller
     public function emailLookup(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', Email::default(), 'max:255'],
         ]);
 
         $exists = User::query()->whereRaw('LOWER(email) = ?', [strtolower(trim($validated['email']))])->exists();

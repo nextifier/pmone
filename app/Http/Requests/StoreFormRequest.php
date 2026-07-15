@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Support\FormTemplates;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 
 class StoreFormRequest extends FormRequest
 {
@@ -29,11 +30,11 @@ class StoreFormRequest extends FormRequest
             'settings.prevent_duplicate_by' => ['nullable', 'string', 'in:email,fingerprint,both'],
             'settings.notification_emails' => ['nullable', 'array'],
             'settings.notification_emails.to' => ['nullable', 'array', 'max:20'],
-            'settings.notification_emails.to.*' => ['email', 'max:255'],
+            'settings.notification_emails.to.*' => [Email::default(), 'max:255'],
             'settings.notification_emails.cc' => ['nullable', 'array', 'max:20'],
-            'settings.notification_emails.cc.*' => ['email', 'max:255'],
+            'settings.notification_emails.cc.*' => [Email::default(), 'max:255'],
             'settings.notification_emails.bcc' => ['nullable', 'array', 'max:20'],
-            'settings.notification_emails.bcc.*' => ['email', 'max:255'],
+            'settings.notification_emails.bcc.*' => [Email::default(), 'max:255'],
             'status' => ['sometimes', 'string', 'in:'.implode(',', Form::allowedStatuses())],
             'is_active' => ['sometimes', 'boolean'],
             'opens_at' => ['nullable', 'date'],

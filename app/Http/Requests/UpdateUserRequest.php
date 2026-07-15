@@ -6,6 +6,7 @@ use App\Helpers\LinkNormalizer;
 use App\Models\ShortLink;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -45,7 +46,7 @@ class UpdateUserRequest extends FormRequest
                     $fail('This username is already in use as a short link slug.');
                 }
             }],
-            'email' => ['sometimes', 'email', 'unique:users,email,'.$user->id],
+            'email' => ['sometimes', Email::default(), 'unique:users,email,'.$user->id],
             'password' => ['sometimes', 'string', 'min:8'],
             'phone' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date', 'before:today'],

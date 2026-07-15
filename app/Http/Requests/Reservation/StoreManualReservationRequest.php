@@ -7,6 +7,7 @@ use App\Enums\TransferDirection;
 use App\Models\HotelTransferOption;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\Rules\Enum;
 
 class StoreManualReservationRequest extends FormRequest
@@ -21,7 +22,7 @@ class StoreManualReservationRequest extends FormRequest
         return [
             'hotel_id' => ['required', 'exists:hotels,id'],
             'guest_name' => ['required', 'string', 'max:255'],
-            'guest_email' => ['required', 'email', 'max:255'],
+            'guest_email' => ['required', Email::default(), 'max:255'],
             'guest_phone' => ['required', 'string', 'max:50'],
             'guest_identity_type' => ['required', new Enum(IdentityType::class)],
             'guest_identity_number' => ['required', 'string', 'max:100'],

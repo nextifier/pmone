@@ -6,6 +6,7 @@ use App\Helpers\PhoneCountryHelper;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -129,7 +130,7 @@ class UsersImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHeadin
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', Email::default(), 'max:255', 'unique:users,email'],
             'password' => ['nullable', 'string', 'min:8'],
             'name' => ['nullable', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._\-\']+$/', 'unique:users,username'],

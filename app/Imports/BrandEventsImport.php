@@ -10,6 +10,7 @@ use App\Models\BrandEvent;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Email;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -243,9 +244,9 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
         return [
             'brand_name' => ['required', 'string', 'max:255'],
             'company_name' => ['nullable', 'string', 'max:255'],
-            'company_email' => ['nullable', 'email', 'max:255'],
+            'company_email' => ['nullable', Email::default(), 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
-            'pic_email' => ['nullable', 'email', 'max:255'],
+            'pic_email' => ['nullable', Email::default(), 'max:255'],
             'booth_number' => ['nullable', 'string', 'max:50'],
             'booth_size_sqm' => ['nullable', 'numeric', 'min:0'],
             'booth_type' => ['nullable', 'string'],

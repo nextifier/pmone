@@ -3,6 +3,7 @@
 namespace App\Http\Requests\PromoCode;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class StorePromoCodeRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class StorePromoCodeRequest extends FormRequest
             'valid_from' => ['nullable', 'date'],
             'valid_until' => ['nullable', 'date', 'after_or_equal:valid_from'],
             'is_active' => ['boolean'],
-            'issued_to_email' => ['nullable', 'email', 'max:255'],
+            'issued_to_email' => ['nullable', Email::default(), 'max:255'],
             'metadata' => ['nullable', 'array'],
             'event_id' => ['nullable', 'exists:events,id'],
         ];

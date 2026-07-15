@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Rules\HoneypotPassed;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class SubmitFormResponseRequest extends FormRequest
 {
@@ -16,7 +17,7 @@ class SubmitFormResponseRequest extends FormRequest
     {
         return [
             'responses' => ['present', 'array', new HoneypotPassed],
-            'respondent_email' => ['nullable', 'email', 'max:255'],
+            'respondent_email' => ['nullable', Email::default(), 'max:255'],
             'browser_fingerprint' => ['nullable', 'string', 'max:255'],
 
             // Honeypot fields (should not be filled by real users)

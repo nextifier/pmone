@@ -18,6 +18,7 @@ use App\Support\CustomFieldValidation;
 use App\Support\CustomFieldValues;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Email;
 use Illuminate\Validation\ValidationException;
 
 class MyTicketsController extends Controller
@@ -95,7 +96,7 @@ class MyTicketsController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', Email::default(), 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'registration' => ['sometimes', 'array'],
         ]);

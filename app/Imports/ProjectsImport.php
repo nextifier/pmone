@@ -6,6 +6,7 @@ use App\Helpers\PhoneCountryHelper;
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -114,7 +115,7 @@ class ProjectsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithHea
         return [
             'name' => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z0-9._\-\']+$/', 'unique:projects,username'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', Email::default(), 'max:255'],
             'phone_sales' => ['nullable', 'string', 'max:20'],
             'phone_marketing' => ['nullable', 'string', 'max:20'],
             'status' => ['nullable', Rule::in(['draft', 'active', 'archived'])],

@@ -7,6 +7,7 @@ use App\Enums\Ticketing\AccessCodePriceEffect;
 use App\Models\Ticket;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 
 class StoreAccessCodeBatchRequest extends FormRequest
 {
@@ -40,7 +41,7 @@ class StoreAccessCodeBatchRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:2000'],
 
             'recipients' => ['nullable', 'array'],
-            'recipients.*.email' => ['nullable', 'email', 'max:255'],
+            'recipients.*.email' => ['nullable', Email::default(), 'max:255'],
             'recipients.*.phone' => ['nullable', 'string', 'max:50'],
             'recipients.*.name' => ['nullable', 'string', 'max:255'],
 

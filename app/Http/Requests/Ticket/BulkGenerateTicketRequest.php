@@ -5,6 +5,7 @@ namespace App\Http\Requests\Ticket;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 
 class BulkGenerateTicketRequest extends FormRequest
 {
@@ -29,7 +30,7 @@ class BulkGenerateTicketRequest extends FormRequest
             'label_prefix' => ['nullable', 'string', 'max:50'],
             'recipients' => ['required_if:mode,named', 'array', 'min:1', 'max:5000'],
             'recipients.*.name' => ['required_with:recipients', 'string', 'max:255'],
-            'recipients.*.email' => ['nullable', 'email', 'max:255'],
+            'recipients.*.email' => ['nullable', Email::default(), 'max:255'],
             'batch_label' => ['nullable', 'string', 'max:120'],
             'reason' => ['nullable', 'string', 'max:500'],
             'delivery' => ['required', 'in:generate_only,auto_email'],

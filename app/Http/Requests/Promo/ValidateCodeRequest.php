@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Promo;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Email;
 
 class ValidateCodeRequest extends FormRequest
 {
@@ -15,7 +16,7 @@ class ValidateCodeRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'max:60'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', Email::default(), 'max:255'],
             'target_type' => ['required', 'string', 'in:Reservation,Order'],
 
             // Payload mirrors the shape of the eventual reservation/order create body,

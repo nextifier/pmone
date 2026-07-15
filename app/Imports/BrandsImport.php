@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Helpers\PhoneCountryHelper;
 use App\Imports\Concerns\TracksImportProgress;
 use App\Models\Brand;
+use Illuminate\Validation\Rules\Email;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
@@ -109,7 +110,7 @@ class BrandsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvent
         return [
             'name' => ['required', 'string', 'max:255'],
             'company_name' => ['nullable', 'string', 'max:255'],
-            'company_email' => ['nullable', 'email', 'max:255'],
+            'company_email' => ['nullable', Email::default(), 'max:255'],
             'company_phone' => ['nullable', 'string', 'max:50'],
             'country' => ['nullable', 'string', 'max:255'],
             'province' => ['nullable', 'string', 'max:255'],

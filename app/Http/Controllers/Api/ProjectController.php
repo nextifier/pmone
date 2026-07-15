@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Email;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\ResponseCache\Facades\ResponseCache;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -139,7 +140,7 @@ class ProjectController extends Controller
             'status' => ['required', Rule::in(['draft', 'active', 'archived'])],
             'visibility' => ['required', Rule::in(['public', 'private', 'members_only'])],
             'organization' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', Email::default(), 'max:255'],
             'phones' => ['nullable', 'array'],
             'phones.*.label' => ['required', 'string', 'max:100'],
             'phones.*.number' => ['required', 'string', 'max:20'],
@@ -245,7 +246,7 @@ class ProjectController extends Controller
             'status' => ['sometimes', Rule::in(['draft', 'active', 'archived'])],
             'visibility' => ['sometimes', Rule::in(['public', 'private', 'members_only'])],
             'organization' => ['nullable', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => ['nullable', Email::default(), 'max:255'],
             'phones' => ['nullable', 'array'],
             'phones.*.label' => ['required', 'string', 'max:100'],
             'phones.*.number' => ['required', 'string', 'max:20'],
@@ -373,11 +374,11 @@ class ProjectController extends Controller
             ],
             'hotels.notification_email' => ['sometimes', 'array'],
             'hotels.notification_email.to' => ['sometimes', 'array'],
-            'hotels.notification_email.to.*' => ['nullable', 'email'],
+            'hotels.notification_email.to.*' => ['nullable', Email::default()],
             'hotels.notification_email.cc' => ['sometimes', 'array'],
-            'hotels.notification_email.cc.*' => ['nullable', 'email'],
+            'hotels.notification_email.cc.*' => ['nullable', Email::default()],
             'hotels.notification_email.bcc' => ['sometimes', 'array'],
-            'hotels.notification_email.bcc.*' => ['nullable', 'email'],
+            'hotels.notification_email.bcc.*' => ['nullable', Email::default()],
             // Per-email-type subject templates. Null/empty = use default.
             // Max 120 chars matches the average Gmail/Outlook subject preview
             // budget after the recipient prefix collapses long inbox lines.
