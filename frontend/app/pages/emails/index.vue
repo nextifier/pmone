@@ -8,7 +8,19 @@
         <h1 class="page-title">Emails</h1>
       </div>
 
-      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+      <div class="flex flex-wrap items-center justify-end gap-1 sm:ml-auto sm:gap-2">
+        <button
+          :disabled="syncPending"
+          title="Fetch the latest emails and statuses from Resend"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          @click="handleSync"
+        >
+          <Spinner v-if="syncPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:refresh" class="size-4 shrink-0" />
+          <span class="hidden sm:inline">Sync from Resend</span>
+          <span class="sm:hidden">Sync</span>
+        </button>
+
         <button
           :disabled="exportPending"
           class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
@@ -723,6 +735,34 @@ const messageColumns = [
     size: 120,
   },
 ];
+
+/* --------------------------------------------------------------------- sync */
+
+// Distinct from the table's Refresh (which only re-queries our own database):
+// this pulls fresh data from Resend on demand, then reloads the view. Useful to
+// verify an email that has just been sent, or one that never reached an inbox.
+const syncPending = ref(false);
+const handleSync = async () => {
+  try {
+    syncPending.value = true;
+
+    const client = useSanctumClient();
+    const res = await client("/api/emails/sync", { method: "POST" });
+    const created = res?.data?.created ?? 0;
+
+    await Promise.all([refreshOverview(), refreshMessages()]);
+
+    toast.success(
+      created > 0 ? `Synced with Resend, ${created} new` : "Synced with Resend, already up to date",
+    );
+  } catch (err) {
+    toast.error("Could not sync with Resend", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    syncPending.value = false;
+  }
+};
 
 /* ------------------------------------------------------------------- export */
 

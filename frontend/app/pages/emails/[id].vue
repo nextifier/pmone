@@ -107,9 +107,47 @@
 
       <!-- Body -->
       <section class="space-y-3">
-        <div class="flex items-center gap-x-2">
-          <Icon name="hugeicons:mail-open-01" class="text-muted-foreground size-4 shrink-0" />
-          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Body</h2>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-x-2">
+            <Icon name="hugeicons:mail-open-01" class="text-muted-foreground size-4 shrink-0" />
+            <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Body</h2>
+          </div>
+
+          <div v-if="content?.available" class="flex items-center gap-1.5">
+            <!-- Simulated dark rendering, defaulting to the app's colour mode.
+                 The email itself has no dark styles, so this mirrors how a client
+                 like Outlook force-darkens it, not a change to the sent email. -->
+            <div
+              v-if="bodyTab === 'preview' && content.html"
+              class="flex items-center rounded-md border p-0.5 text-xs tracking-tight"
+            >
+              <button
+                class="rounded-[5px] px-2 py-1"
+                :class="!previewDark ? 'bg-muted text-foreground' : 'text-muted-foreground'"
+                @click="previewDark = false"
+              >
+                Light
+              </button>
+              <button
+                class="rounded-[5px] px-2 py-1"
+                :class="previewDark ? 'bg-muted text-foreground' : 'text-muted-foreground'"
+                @click="previewDark = true"
+              >
+                Dark
+              </button>
+            </div>
+
+            <button
+              :disabled="contentPending"
+              title="Re-fetch this email's body from Resend"
+              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-xs tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+              @click="loadContent(true)"
+            >
+              <Spinner v-if="contentPending" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:refresh" class="size-4 shrink-0" />
+              <span class="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
         </div>
 
         <div v-if="contentPending" class="rounded-xl border p-4 sm:p-5">
@@ -140,10 +178,12 @@
             <iframe
               v-if="content.html"
               ref="previewFrame"
+              :key="previewDark ? 'dark' : 'light'"
               sandbox="allow-same-origin"
-              :srcdoc="content.html"
+              :srcdoc="previewSrcdoc"
               title="Email preview"
-              class="w-full rounded-lg border bg-white"
+              class="w-full rounded-lg border"
+              :class="previewDark ? 'bg-neutral-950' : 'bg-white'"
               :style="{ height: previewHeight }"
               @load="resizePreview"
             />
@@ -271,6 +311,42 @@ const bodyTab = ref("preview");
 const content = ref(null);
 const contentPending = ref(false);
 
+// Preview theme, defaulting to the app's colour mode (set on mount). The sent
+// email has no dark styles of its own, so "Dark" simulates the force-darkening
+// a client like Outlook applies rather than altering the real email.
+const colorMode = useColorMode();
+const previewDark = ref(false);
+
+// The iframe is a separate document, so the app's custom scrollbar styles do not
+// reach inside it. Inject a matching thin scrollbar. The grey is ~mid-tone, which
+// is stable under the dark-mode invert filter (its inverse is still the same grey).
+const BASE_PREVIEW_STYLE =
+  '<style>::-webkit-scrollbar{width:6px;height:6px}' +
+  '::-webkit-scrollbar-track{background:transparent}' +
+  '::-webkit-scrollbar-thumb{background:rgba(128,128,128,.5);border-radius:6px}' +
+  'html{scrollbar-width:thin;scrollbar-color:rgba(128,128,128,.5) transparent}</style>';
+
+// The backdrop is set to a light colour on purpose: the invert filter flips it,
+// so #f5f5f5 renders as ~#0a0a0a and fills any area the email does not cover
+// (e.g. the padding below its content) with dark instead of an inverted-white
+// strip. #0a0a0a here would invert to white and show as a bright band. Images are
+// inverted a second time so photos and logos keep their real colours.
+const DARK_PREVIEW_STYLE =
+  '<style>html,body{background:#f5f5f5!important}' +
+  'html{filter:invert(1) hue-rotate(180deg)}' +
+  'img,video,[style*="background-image"]{filter:invert(1) hue-rotate(180deg)}</style>';
+
+const previewSrcdoc = computed(() => {
+  const html = content.value?.html;
+  if (!html) return html;
+
+  const inject = BASE_PREVIEW_STYLE + (previewDark.value ? DARK_PREVIEW_STYLE : "");
+
+  return /<\/head>/i.test(html)
+    ? html.replace(/<\/head>/i, `${inject}</head>`)
+    : `${inject}${html}`;
+});
+
 // The preview iframe grows to fit its content so the whole page scrolls, rather
 // than trapping a scroll inside a fixed-height frame (which does not respond to
 // touch on mobile). Reading scrollHeight needs allow-same-origin; scripts stay
@@ -281,9 +357,14 @@ const previewHeight = ref("600px");
 const resizePreview = () => {
   const measure = () => {
     const doc = previewFrame.value?.contentDocument;
-    const height = doc?.documentElement?.scrollHeight || doc?.body?.scrollHeight;
+    // body.scrollHeight is the email's own content height. documentElement's is
+    // floored to the iframe's current height, so once the frame is tall it stays
+    // tall and leaves a large empty band below a shorter email.
+    const height = doc?.body?.scrollHeight || doc?.documentElement?.scrollHeight;
     if (height) {
-      previewHeight.value = `${height + 24}px`;
+      // +4 covers the iframe's own border box and sub-pixel rounding so the
+      // content never triggers a thin internal scrollbar; too small to read as a gap.
+      previewHeight.value = `${height + 4}px`;
     }
   };
 
@@ -294,18 +375,26 @@ const resizePreview = () => {
 
 // Fetched client-side only: the body lives at Resend, not in our tables, and a
 // lazy fetch that resolves only in the client payload would shift Vue ids and
-// break hydration if run during SSR.
-onMounted(async () => {
+// break hydration if run during SSR. `fresh` bypasses the server-side cache so
+// a body that was unavailable (or has changed) can be re-pulled on demand.
+const loadContent = async (fresh = false) => {
   contentPending.value = true;
 
   try {
     const client = useSanctumClient();
-    const res = await client(`/api/emails/messages/${messageId.value}/content`);
+    const res = await client(
+      `/api/emails/messages/${messageId.value}/content${fresh ? "?fresh=1" : ""}`,
+    );
     content.value = res.data;
   } catch {
     content.value = { available: false };
   } finally {
     contentPending.value = false;
   }
+};
+
+onMounted(() => {
+  previewDark.value = colorMode.value === "dark";
+  loadContent();
 });
 </script>

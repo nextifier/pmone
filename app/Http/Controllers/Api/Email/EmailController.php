@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -239,16 +240,41 @@ class EmailController extends Controller
     }
 
     /**
+     * On-demand pull from Resend so a just-sent email (or a status a webhook has
+     * not delivered yet) can be checked immediately, e.g. to confirm an email
+     * that never reached an inbox. This is the incremental sync, bounded to the
+     * recent tail, so it stays well under Resend's rate limit; the route is
+     * throttled as a second guard.
+     */
+    public function sync(): JsonResponse
+    {
+        $before = EmailMessage::query()->count();
+
+        if (Artisan::call('emails:sync-resend') !== 0) {
+            return response()->json(['message' => 'Could not reach Resend. Please try again.'], 502);
+        }
+
+        return response()->json([
+            'data' => [
+                'created' => max(0, EmailMessage::query()->count() - $before),
+                'synced_at' => now()->toIso8601String(),
+            ],
+        ]);
+    }
+
+    /**
      * The message body lives only at Resend, not in our tables, so it is fetched
      * on demand and cached briefly. Resend prunes old emails per plan, so a
      * lookup that fails (expired, unreachable, or a non-Resend row) answers 200
      * with available:false rather than an error the page has to special-case.
      */
-    public function content(EmailMessage $emailMessage): JsonResponse
+    public function content(Request $request, EmailMessage $emailMessage): JsonResponse
     {
         $cacheKey = "resend:email-content:{$emailMessage->message_id}";
 
-        if ($cached = Cache::get($cacheKey)) {
+        // ?fresh=1 skips the cache so a body that was previously unavailable (or
+        // has since changed) can be re-pulled straight from Resend on demand.
+        if (! $request->boolean('fresh') && $cached = Cache::get($cacheKey)) {
             return response()->json(['data' => $cached]);
         }
 

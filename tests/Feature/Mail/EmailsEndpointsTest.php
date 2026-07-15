@@ -8,6 +8,7 @@ use App\Models\EmailSuppression;
 use App\Models\User;
 use App\Services\Resend\ResendEmailApi;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
@@ -195,6 +196,63 @@ it('builds the emails export with headings, mapping, and the same filters', func
     expect($export->headings())->toBe(['To', 'Status', 'Bounce Type', 'Subject', 'From', 'Message ID', 'Sent At'])
         ->and($export->collection())->toHaveCount(1)
         ->and($export->map($export->collection()->first())[3])->toBe('Keeper');
+});
+
+it('runs an on-demand sync from Resend', function () {
+    $this->mock(ResendEmailApi::class, function ($mock) {
+        $mock->shouldReceive('list')->once()->with(null, 100)->andReturn([
+            'has_more' => false,
+            'data' => [[
+                'id' => 'em-sync-1',
+                'from' => 'PM One <noreply@pmone.id>',
+                'to' => ['x@example.com'],
+                'subject' => 'Synced',
+                'created_at' => now()->toIso8601String(),
+                'last_event' => 'delivered',
+            ]],
+        ]);
+    });
+
+    $this->actingAs($this->viewer)
+        ->postJson('/api/emails/sync')
+        ->assertOk()
+        ->assertJsonPath('data.created', 1);
+
+    expect(EmailMessage::query()->where('message_id', 'em-sync-1')->exists())->toBeTrue();
+});
+
+it('refuses an on-demand sync without the emails.view permission', function () {
+    $stranger = User::factory()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($stranger)->postJson('/api/emails/sync')->assertForbidden();
+});
+
+it('re-fetches the body from Resend when a fresh copy is requested', function () {
+    $message = EmailMessage::factory()->create(['mailer' => 'resend']);
+
+    Cache::put(
+        "resend:email-content:{$message->message_id}",
+        ['available' => true, 'html' => 'stale'],
+        now()->addMinutes(10),
+    );
+
+    $this->mock(ResendEmailApi::class, function ($mock) {
+        $mock->shouldReceive('get')->once()->andReturn([
+            'html' => 'fresh',
+            'text' => null,
+            'cc' => [],
+            'bcc' => [],
+            'reply_to' => [],
+            'tags' => [],
+            'last_event' => null,
+            'scheduled_at' => null,
+        ]);
+    });
+
+    $this->actingAs($this->viewer)
+        ->getJson("/api/emails/messages/{$message->message_id}/content?fresh=1")
+        ->assertOk()
+        ->assertJsonPath('data.html', 'fresh');
 });
 
 it('filters messages by several statuses at once', function () {
