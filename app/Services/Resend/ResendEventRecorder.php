@@ -51,10 +51,28 @@ class ResendEventRecorder
         }
 
         if ($messageId !== '') {
-            EmailMessage::query()
-                ->where('message_id', $messageId)
-                ->first()
-                ?->applyEvent($type, $occurredAt);
+            $message = EmailMessage::query()->where('message_id', $messageId)->first();
+
+            if ($message !== null) {
+                // Record the bounce classification (transient = temporary, e.g. a
+                // full mailbox; permanent = a dead address) so the dashboard can
+                // separate reputation-harming permanent bounces from noise.
+                if ($type === EmailEventType::Bounce) {
+                    $bounceType = mb_strtolower((string) ($data['bounce']['type'] ?? ''));
+
+                    if (in_array($bounceType, ['transient', 'permanent'], true)) {
+                        $message->bounce_type = $bounceType;
+                    }
+                }
+
+                $message->applyEvent($type, $occurredAt);
+
+                // applyEvent only saves when status/last_event advances, so a
+                // bounce_type set on an already-bounced message still needs a save.
+                if ($message->isDirty('bounce_type')) {
+                    $message->save();
+                }
+            }
         }
 
         return $type;

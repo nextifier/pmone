@@ -7,6 +7,13 @@
         <div class="flex flex-wrap items-center gap-x-2.5 gap-y-2">
           <h1 class="page-title break-all">{{ primaryRecipient }}</h1>
           <Badge :variant="statusVariant(message.status)" plain>{{ message.status_label }}</Badge>
+          <Badge
+            v-if="message.bounce_type"
+            :variant="message.bounce_type === 'permanent' ? 'destructive' : 'warning'"
+            plain
+          >
+            {{ message.bounce_type === "permanent" ? "Permanent" : "Transient" }}
+          </Badge>
         </div>
         <p class="page-description">{{ message.subject || "(no subject)" }}</p>
       </div>
@@ -56,34 +63,33 @@
 
       <!-- Email events -->
       <section class="space-y-3">
-        <div class="flex items-center gap-x-2">
-          <Icon name="hugeicons:time-schedule" class="text-muted-foreground size-4 shrink-0" />
-          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Email events</h2>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-x-2">
+            <Icon name="hugeicons:time-schedule" class="text-muted-foreground size-4 shrink-0" />
+            <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Email events</h2>
+          </div>
+          <span v-if="timelineIsDerived" class="text-muted-foreground text-xs tracking-tight">
+            Derived from status · exact times and per-event detail arrive with the webhook
+          </span>
         </div>
 
-        <Empty v-if="!message.events?.length" class="border-dashed">
-          <EmptyHeader>
-            <EmptyMedia variant="stacked">
-              <Icon name="hugeicons:inbox" class="size-5" />
-            </EmptyMedia>
-            <EmptyTitle>No events yet</EmptyTitle>
-            <EmptyDescription>
-              Nothing has been reported for this email beyond acceptance. Delivery events arrive once
-              the Resend webhook is configured.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-
-        <ul v-else class="space-y-2">
+        <ul class="space-y-2">
           <li
-            v-for="event in message.events"
+            v-for="event in timeline"
             :key="event.id"
             class="bg-card flex flex-col gap-y-1 rounded-lg border p-3"
           >
             <div class="flex flex-wrap items-center gap-2">
-              <Badge :variant="statusVariant(event.type)" plain>{{ event.type_label }}</Badge>
+              <Badge :variant="statusVariant(event.type)" plain>{{ event.label }}</Badge>
+              <Badge
+                v-if="event.bounceType"
+                :variant="event.bounceType === 'permanent' ? 'destructive' : 'warning'"
+                plain
+              >
+                {{ event.bounceType === "permanent" ? "Permanent" : "Transient" }}
+              </Badge>
               <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                {{ $dayjs(event.occurred_at).format("D MMM YYYY, HH:mm:ss") }}
+                {{ event.at ? $dayjs(event.at).format("D MMM YYYY, HH:mm:ss") : "—" }}
               </span>
             </div>
             <div v-if="event.recipient" class="text-sm tracking-tight break-all">
@@ -224,6 +230,40 @@ const statusVariant = (status) =>
     bounce: "destructive",
     complaint: "destructive",
   })[status] ?? "muted";
+
+// Real webhook events when present; otherwise a minimal Sent -> [status] timeline
+// derived from the message so the section is never empty for a delivered email.
+const timeline = computed(() => {
+  const m = message.value;
+  if (!m) return [];
+
+  if (m.events?.length) {
+    return m.events.map((e) => ({
+      id: e.id,
+      type: e.type,
+      label: e.type_label,
+      at: e.occurred_at,
+      recipient: e.recipient,
+      diagnostic: e.diagnostic,
+    }));
+  }
+
+  const items = [{ id: "sent", type: "send", label: "Sent", at: m.sent_at }];
+
+  if (m.status && m.status !== "send") {
+    items.push({
+      id: "status",
+      type: m.status,
+      label: m.status_label,
+      at: m.last_event_at || m.sent_at,
+      bounceType: m.status === "bounce" ? m.bounce_type : null,
+    });
+  }
+
+  return items;
+});
+
+const timelineIsDerived = computed(() => !!message.value && !message.value.events?.length);
 
 /* ---------------------------------------------------------------------- body */
 

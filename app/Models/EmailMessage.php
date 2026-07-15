@@ -25,6 +25,7 @@ class EmailMessage extends Model
         'subject',
         'recipients',
         'status',
+        'bounce_type',
         'status_rank',
         'sent_at',
         'last_event_at',

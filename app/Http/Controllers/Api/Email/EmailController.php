@@ -43,6 +43,18 @@ class EmailController extends Controller
         $bounced = (int) $counts->get(EmailEventType::Bounce->value, 0);
         $complained = (int) $counts->get(EmailEventType::Complaint->value, 0);
 
+        // Bounce classification comes from the delivery webhook; historical rows
+        // (synced from the list API, which omits it) count as unclassified.
+        $bounceTypes = EmailMessage::query()
+            ->whereBetween('sent_at', [$from, $to])
+            ->where('status', EmailEventType::Bounce)
+            ->selectRaw('bounce_type, count(*) as total')
+            ->groupBy('bounce_type')
+            ->pluck('total', 'bounce_type');
+
+        $permanentBounces = (int) $bounceTypes->get('permanent', 0);
+        $transientBounces = (int) $bounceTypes->get('transient', 0);
+
         return response()->json([
             'data' => [
                 'range' => [
@@ -58,6 +70,11 @@ class EmailController extends Controller
                     // Deliverability is judged against everything sent.
                     'bounce_rate' => $this->rate($bounced, $sent),
                     'complaint_rate' => $this->rate($complained, $sent),
+                ],
+                'bounce_breakdown' => [
+                    'permanent' => $permanentBounces,
+                    'transient' => $transientBounces,
+                    'unclassified' => max(0, $bounced - $permanentBounces - $transientBounces),
                 ],
                 'daily' => $this->dailyTrend($from, $to),
                 'suppressed_total' => EmailSuppression::query()->count(),

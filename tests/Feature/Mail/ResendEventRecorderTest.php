@@ -89,6 +89,20 @@ it('records a transient bounce without suppressing anyone', function () {
         ->and(EmailSuppression::count())->toBe(0);
 });
 
+it('stores the bounce classification on the message', function (string $resendType, string $stored) {
+    $message = EmailMessage::factory()->create(['message_id' => RESEND_ID]);
+
+    resendRecorder()->record(resendEvent('email.bounced', [
+        'to' => ['someone@example.com'],
+        'bounce' => ['type' => $resendType],
+    ]));
+
+    expect($message->fresh()->bounce_type)->toBe($stored);
+})->with([
+    'permanent' => ['Permanent', 'permanent'],
+    'transient' => ['Transient', 'transient'],
+]);
+
 it('suppresses a complaint', function () {
     resendRecorder()->record(resendEvent('email.complained', ['to' => ['angry@example.com']]));
 

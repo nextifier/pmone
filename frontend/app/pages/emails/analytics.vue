@@ -78,6 +78,18 @@
           </div>
         </template>
       </GridFill>
+
+      <div
+        v-if="totals && totals.bounced > 0 && bounceBreakdown"
+        class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs tracking-tight sm:text-sm"
+      >
+        <span class="text-foreground font-medium">Bounce breakdown</span>
+        <span><span class="text-destructive">{{ bounceBreakdown.permanent }}</span> permanent</span>
+        <span><span class="text-warning-foreground">{{ bounceBreakdown.transient }}</span> transient</span>
+        <span v-if="bounceBreakdown.unclassified > 0">
+          {{ bounceBreakdown.unclassified }} unclassified (awaiting webhook)
+        </span>
+      </div>
     </section>
 
     <!-- Client-only: the chart pulls a Vue useId, and the lazy overview fetch
@@ -164,6 +176,7 @@ watch(dateRange, () => refreshOverview(), { deep: true });
 
 const totals = computed(() => overviewResponse.value?.data?.totals ?? null);
 const daily = computed(() => overviewResponse.value?.data?.daily ?? []);
+const bounceBreakdown = computed(() => overviewResponse.value?.data?.bounce_breakdown ?? null);
 const usage = computed(() => overviewResponse.value?.data?.usage ?? null);
 
 // Sending quota gauges, mirroring Resend's own Usage screen (today vs daily

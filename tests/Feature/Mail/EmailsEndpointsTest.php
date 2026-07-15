@@ -56,6 +56,21 @@ it('reports delivery counters and rates drawn from our own tables', function () 
         ->and($data['range'])->toHaveKeys(['from', 'to']);
 });
 
+it('breaks bounces down by classification', function () {
+    EmailMessage::factory()->bounced()->create(['bounce_type' => 'permanent']);
+    EmailMessage::factory()->bounced()->create(['bounce_type' => 'transient']);
+    EmailMessage::factory()->bounced()->create(); // webhook has not classified it yet
+
+    $breakdown = $this->actingAs($this->viewer)
+        ->getJson('/api/emails/overview')
+        ->assertOk()
+        ->json('data.bounce_breakdown');
+
+    expect($breakdown['permanent'])->toBe(1)
+        ->and($breakdown['transient'])->toBe(1)
+        ->and($breakdown['unclassified'])->toBe(1);
+});
+
 it('reports current sending usage against the configured plan limits', function () {
     config([
         'services.resend.limits.daily' => 100,

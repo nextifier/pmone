@@ -23,6 +23,7 @@ class EmailMessageResource extends JsonResource
             'recipients' => $this->recipients,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
+            'bounce_type' => $this->bounce_type,
             'sent_at' => $this->sent_at?->toIso8601String(),
             'last_event_at' => $this->last_event_at?->toIso8601String(),
             'events' => EmailEventResource::collection($this->whenLoaded('events')),
