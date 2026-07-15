@@ -166,23 +166,6 @@
         </template>
 
         <template v-else>
-          <div
-            v-for="stat in stats"
-            :key="stat.key"
-            class="flex flex-col items-start gap-y-2 p-4 sm:p-5"
-          >
-            <Icon :name="stat.icon" class="size-5" :class="stat.color" />
-            <div class="min-w-0">
-              <span class="text-foreground text-sm font-medium tracking-tight">{{
-                stat.label
-              }}</span>
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                {{ stat.caption }}
-              </p>
-            </div>
-            <NumberFlow :class="statValueClass" :value="stat.value" locales="en-US" />
-          </div>
-
           <!-- Sending-limit gauges (today / this month vs plan cap), always live
                regardless of the selected date range. -->
           <div v-for="gauge in usageGauges" :key="gauge.key" class="flex flex-col gap-y-2 p-4 sm:p-5">
@@ -201,6 +184,23 @@
                 class="w-full max-w-[180px]"
               />
             </div>
+          </div>
+
+          <div
+            v-for="stat in stats"
+            :key="stat.key"
+            class="flex flex-col items-start gap-y-2 p-4 sm:p-5"
+          >
+            <Icon :name="stat.icon" class="size-5" :class="stat.color" />
+            <div class="min-w-0">
+              <span class="text-foreground text-sm font-medium tracking-tight">{{
+                stat.label
+              }}</span>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                {{ stat.caption }}
+              </p>
+            </div>
+            <NumberFlow :class="statValueClass" :value="stat.value" locales="en-US" />
           </div>
         </template>
       </GridFill>
