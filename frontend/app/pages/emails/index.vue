@@ -185,19 +185,23 @@
 
           <!-- Sending-limit gauges (today / this month vs plan cap), always live
                regardless of the selected date range. -->
-          <div
-            v-for="gauge in usageGauges"
-            :key="gauge.key"
-            class="flex flex-col items-center justify-center gap-y-1 p-4"
-          >
-            <ChartSemiCircle
-              :value="gauge.used"
-              :max="Math.max(gauge.limit, 1)"
-              show-max
-              :compact="false"
-              :center-label="gauge.label"
-              class="w-full max-w-[190px]"
-            />
+          <div v-for="gauge in usageGauges" :key="gauge.key" class="flex flex-col gap-y-2 p-4 sm:p-5">
+            <div class="flex items-center gap-x-1.5">
+              <Icon :name="gauge.icon" class="size-4 shrink-0" :class="gauge.color" />
+              <span class="text-foreground text-sm font-medium tracking-tight">{{
+                gauge.title
+              }}</span>
+            </div>
+            <div class="flex justify-center">
+              <ChartSemiCircle
+                :value="gauge.used"
+                :max="Math.max(gauge.limit, 1)"
+                show-max
+                :compact="false"
+                :center-label="gauge.label"
+                class="w-full max-w-[180px]"
+              />
+            </div>
           </div>
         </template>
       </GridFill>
@@ -500,13 +504,19 @@ const usage = computed(() => overviewResponse.value?.data?.usage ?? null);
 const usageGauges = computed(() => [
   {
     key: "daily",
-    label: "Today",
+    title: "Daily limit",
+    label: "sent today",
+    icon: "hugeicons:dashboard-speed-02",
+    color: "text-teal-500",
     used: usage.value?.daily.used ?? 0,
     limit: usage.value?.daily.limit ?? 100,
   },
   {
     key: "monthly",
-    label: "This month",
+    title: "Monthly limit",
+    label: "sent this month",
+    icon: "hugeicons:dashboard-speed-02",
+    color: "text-cyan-500",
     used: usage.value?.monthly.used ?? 0,
     limit: usage.value?.monthly.limit ?? 3000,
   },
