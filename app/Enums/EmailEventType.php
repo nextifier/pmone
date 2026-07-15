@@ -3,8 +3,9 @@
 namespace App\Enums;
 
 /**
- * The event types SES publishes to a configuration set destination. The string
- * values are SES's own "eventType" values, lowercased, so mapping stays trivial.
+ * Our own event vocabulary for a sent email's lifecycle. The string values are
+ * lowercase, stable identifiers stored on email_messages.status and
+ * email_events.type; Resend's webhook and list payloads are mapped onto them.
  */
 enum EmailEventType: string
 {
@@ -14,25 +15,8 @@ enum EmailEventType: string
     case Complaint = 'complaint';
     case Reject = 'reject';
     case DeliveryDelay = 'delivery_delay';
-    case RenderingFailure = 'rendering_failure';
     case Open = 'open';
     case Click = 'click';
-
-    public static function fromSes(string $eventType): ?self
-    {
-        return match ($eventType) {
-            'Send' => self::Send,
-            'Delivery' => self::Delivery,
-            'Bounce' => self::Bounce,
-            'Complaint' => self::Complaint,
-            'Reject' => self::Reject,
-            'DeliveryDelay' => self::DeliveryDelay,
-            'Rendering Failure' => self::RenderingFailure,
-            'Open' => self::Open,
-            'Click' => self::Click,
-            default => null,
-        };
-    }
 
     /**
      * Maps a Resend webhook "type" (e.g. "email.bounced") onto our own event
@@ -54,6 +38,26 @@ enum EmailEventType: string
         };
     }
 
+    /**
+     * Maps a bare Resend "last_event" value from the list/get email API (e.g.
+     * "delivered", "bounced") onto our event vocabulary. Values with no lifecycle
+     * meaning for our status ranking (queued, scheduled, canceled) return null.
+     */
+    public static function fromResendLastEvent(string $lastEvent): ?self
+    {
+        return match ($lastEvent) {
+            'sent' => self::Send,
+            'delivered' => self::Delivery,
+            'delivery_delayed' => self::DeliveryDelay,
+            'bounced' => self::Bounce,
+            'complained' => self::Complaint,
+            'opened' => self::Open,
+            'clicked' => self::Click,
+            'failed' => self::Reject,
+            default => null,
+        };
+    }
+
     public function label(): string
     {
         return match ($this) {
@@ -61,9 +65,8 @@ enum EmailEventType: string
             self::Delivery => 'Delivered',
             self::Bounce => 'Bounced',
             self::Complaint => 'Complaint',
-            self::Reject => 'Rejected',
+            self::Reject => 'Failed',
             self::DeliveryDelay => 'Delayed',
-            self::RenderingFailure => 'Rendering failure',
             self::Open => 'Opened',
             self::Click => 'Clicked',
         };
@@ -81,7 +84,7 @@ enum EmailEventType: string
             self::DeliveryDelay => 2,
             self::Open, self::Click => 3,
             self::Delivery => 4,
-            self::RenderingFailure, self::Reject => 5,
+            self::Reject => 5,
             self::Bounce => 6,
             self::Complaint => 7,
         };

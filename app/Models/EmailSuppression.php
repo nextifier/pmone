@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * An address PM One refuses to send to again. SES keeps its own account-level
- * suppression list, but this one is checked before the message ever reaches a
- * provider, so it saves a send charge and applies to every mailer, not just SES.
+ * An address PM One refuses to send to again. Resend keeps its own account-level
+ * suppression list, but this one is checked before the message ever reaches the
+ * provider, so it saves a send charge and applies to every mailer.
  */
 class EmailSuppression extends Model
 {
@@ -58,7 +58,7 @@ class EmailSuppression extends Model
         ?string $subtype = null,
         ?Carbon $suppressedAt = null,
         ?array $payload = null,
-        string $source = 'ses',
+        string $source = 'resend',
     ): self {
         return static::query()->updateOrCreate(
             ['email' => static::normalize($email)],

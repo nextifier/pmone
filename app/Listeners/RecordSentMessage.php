@@ -9,12 +9,11 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mime\Address;
 
 /**
- * Records every message a tracked provider accepts, keyed by the id the
- * transport writes back into a header: "X-Resend-Email-ID" for Resend,
- * "X-SES-Message-ID" for SES. Later webhook events carry that same id, which is
- * how a bounce or open finds its message.
+ * Records every message Resend accepts, keyed by the id its transport writes
+ * back into the "X-Resend-Email-ID" header. Later webhook events carry that same
+ * id, which is how a bounce or open finds its message.
  *
- * Providers that set neither header (cloudflare, log, array) record nothing, so
+ * Providers that set no such header (cloudflare, log, array) record nothing, so
  * the dashboard never claims a delivery it has no evidence for.
  */
 class RecordSentMessage
@@ -23,9 +22,7 @@ class RecordSentMessage
     {
         $email = $event->message;
 
-        $isResend = $email->getHeaders()->has('X-Resend-Email-ID');
-        $header = $email->getHeaders()->get('X-Resend-Email-ID')
-            ?? $email->getHeaders()->get('X-SES-Message-ID');
+        $header = $email->getHeaders()->get('X-Resend-Email-ID');
 
         if ($header === null) {
             return;
@@ -48,11 +45,10 @@ class RecordSentMessage
             EmailMessage::query()->updateOrCreate(
                 ['message_id' => $messageId],
                 [
-                    'mailer' => config('mail.default'),
+                    'mailer' => 'resend',
                     'from_address' => $from === [] ? '' : $from[0]->getAddress(),
                     'subject' => $email->getSubject(),
                     'recipients' => $recipients,
-                    'configuration_set' => $isResend ? null : config('mail.mailers.ses-v2.options.ConfigurationSetName'),
                     'status' => EmailEventType::Send,
                     'status_rank' => EmailEventType::Send->rank(),
                     'sent_at' => now(),

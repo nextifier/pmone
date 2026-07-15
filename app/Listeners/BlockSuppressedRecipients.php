@@ -9,8 +9,8 @@ use Symfony\Component\Mime\Address;
 
 /**
  * Drops recipients that hard-bounced or filed a spam complaint before the
- * message reaches a provider. SES suspends accounts whose bounce rate passes 5%
- * or complaint rate passes 0.1%, and every send to a dead address counts.
+ * message reaches the provider. Resend penalises senders whose bounce or
+ * complaint rate climbs, and every send to a dead address counts against it.
  *
  * Must stay synchronous: Mailer cancels the send only when a MessageSending
  * listener returns false.

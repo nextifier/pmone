@@ -438,11 +438,11 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Email Delivery - requires emails.view permission
+  // Emails - requires emails.view permission
   if (hasPermission("emails.view")) {
     adminItems.push({
-      label: "Email Delivery",
-      path: "/email-delivery",
+      label: "Emails",
+      path: "/emails",
       iconName: "hugeicons:mail-01",
     });
   }

@@ -10,7 +10,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "aws/aws-php-sns-message-validator": "^1.10",
         "aws/aws-sdk-php": "^3.356",
         "fakerphp/faker": "^1.23",
         "google/analytics-data": "^0.22.3",

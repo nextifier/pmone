@@ -21,7 +21,6 @@ class EmailMessageResource extends JsonResource
             'from_address' => $this->from_address,
             'subject' => $this->subject,
             'recipients' => $this->recipients,
-            'configuration_set' => $this->configuration_set,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'sent_at' => $this->sent_at?->toIso8601String(),

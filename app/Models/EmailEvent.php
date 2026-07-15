@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * A single SES event for a message. Kept even when the owning EmailMessage is
- * unknown, so a bounce is never silently dropped.
+ * A single delivery event for a message. Kept even when the owning EmailMessage
+ * is unknown, so a bounce is never silently dropped.
  */
 class EmailEvent extends Model
 {

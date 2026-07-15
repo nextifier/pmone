@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * One outgoing email, recorded the moment SES accepts it. SES itself keeps no
- * searchable history of what you sent, so this table is the only place a sent
- * message can be looked up later.
+ * One outgoing email, recorded the moment Resend accepts it. This table is the
+ * searchable history of what was sent, backfilled from the Resend API and kept
+ * in step by the delivery webhook.
  */
 class EmailMessage extends Model
 {
@@ -24,7 +24,6 @@ class EmailMessage extends Model
         'from_address',
         'subject',
         'recipients',
-        'configuration_set',
         'status',
         'status_rank',
         'sent_at',

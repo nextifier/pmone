@@ -14,10 +14,9 @@ use Illuminate\Support\Carbon;
  * recipient, an updated message status, and a suppression entry when the
  * address hard-bounced or its owner complained.
  *
- * Mirrors SesEventRecorder so the dashboard stays provider-agnostic: both
- * writers feed the same email_messages / email_events / email_suppressions
- * tables, keyed by the id this application already recorded at send time
- * (X-Resend-Email-ID, which Resend echoes back as data.email_id).
+ * Feeds the email_messages / email_events / email_suppressions tables, keyed by
+ * the id this application already recorded at send time (X-Resend-Email-ID,
+ * which Resend echoes back as data.email_id).
  */
 class ResendEventRecorder
 {

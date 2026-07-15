@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\ContactFormController;
 use App\Http\Controllers\Api\ContactFormSubmissionController;
 use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\Email\EmailDeliveryController;
+use App\Http\Controllers\Api\Email\EmailController;
 use App\Http\Controllers\Api\EventAttendeeAnalyticsController;
 use App\Http\Controllers\Api\EventAttendeeController;
 use App\Http\Controllers\Api\EventConjunctionController;
@@ -112,7 +112,6 @@ use App\Http\Controllers\Api\UserNoteController;
 use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\ResendWebhookController;
-use App\Http\Controllers\Api\Webhook\SesNotificationController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
 use App\Http\Controllers\Api\WebsiteCopyController;
 use App\Http\Controllers\Api\WebsitePageController;
@@ -791,15 +790,18 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/clear', [LogController::class, 'clear'])->middleware('can:admin.logs_clear');
     });
 
-    // Email delivery: SES quota, message history and the suppression list.
-    Route::prefix('email-delivery')->middleware('can:emails.view')->group(function () {
-        Route::get('/overview', [EmailDeliveryController::class, 'overview'])->name('email-delivery.overview');
-        Route::get('/messages', [EmailDeliveryController::class, 'messages'])->name('email-delivery.messages');
-        Route::get('/messages/{emailMessage}', [EmailDeliveryController::class, 'show'])->name('email-delivery.messages.show');
-        Route::get('/suppressions', [EmailDeliveryController::class, 'suppressions'])->name('email-delivery.suppressions');
-        Route::delete('/suppressions/{emailSuppression}', [EmailDeliveryController::class, 'destroySuppression'])
+    // Emails: delivery analytics, message history, per-email body and the
+    // suppression list. Backed by our own tables, with bodies fetched on demand
+    // from the Resend API.
+    Route::prefix('emails')->middleware('can:emails.view')->group(function () {
+        Route::get('/overview', [EmailController::class, 'overview'])->name('emails.overview');
+        Route::get('/messages', [EmailController::class, 'messages'])->name('emails.messages');
+        Route::get('/messages/{emailMessage:message_id}', [EmailController::class, 'show'])->name('emails.messages.show');
+        Route::get('/messages/{emailMessage:message_id}/content', [EmailController::class, 'content'])->name('emails.messages.content');
+        Route::get('/suppressions', [EmailController::class, 'suppressions'])->name('emails.suppressions');
+        Route::delete('/suppressions/{emailSuppression}', [EmailController::class, 'destroySuppression'])
             ->middleware('can:emails.manage_suppressions')
-            ->name('email-delivery.suppressions.destroy');
+            ->name('emails.suppressions.destroy');
     });
 
     // Short link management endpoints
@@ -1783,13 +1785,6 @@ Route::post('/webhooks/midtrans', [MidtransWebhookController::class, 'handle'])
 Route::post('/webhooks/midtrans/{segment}', [MidtransWebhookController::class, 'handleWithSegment'])
     ->middleware('log-payment-webhook:midtrans')
     ->name('webhooks.midtrans.segment');
-
-// Amazon SES bounce and complaint events, relayed by SNS (no auth - the SNS
-// signature and the TopicArn allowlist are both checked inside the controller).
-// SNS sends JSON with a text/plain content type, so nothing here may assume a
-// parsed request body.
-Route::post('/webhooks/ses', SesNotificationController::class)
-    ->name('webhooks.ses');
 
 // Resend delivery events (no auth - the Svix signature is verified inside the
 // controller against RESEND_WEBHOOK_SECRET).

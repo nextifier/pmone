@@ -17,8 +17,8 @@ use Resend\WebhookSignature;
  * verified against our webhook signing secret. A missing secret is treated as a
  * misconfiguration and refuses the payload outright rather than trusting it.
  *
- * Mirrors the SES and payment webhooks: anything that is not a genuine
- * authenticity failure answers 200 so Resend does not enter its retry cycle.
+ * Like the payment webhooks: anything that is not a genuine authenticity
+ * failure answers 200 so Resend does not enter its retry cycle.
  */
 class ResendWebhookController extends Controller
 {

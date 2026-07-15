@@ -18,6 +18,9 @@ Schedule::command('telescope:prune --hours=48')->daily();
 
 Schedule::command('posts:publish-scheduled')->everyMinute();
 
+// Keep the local email history and delivery statuses in step with Resend.
+Schedule::command('emails:sync-resend')->everyFifteenMinutes()->withoutOverlapping();
+
 // Prune temp uploads (FilePond) that were never attached to a model.
 Schedule::command('uploads:cleanup-temp')->daily()->at('02:30');
 

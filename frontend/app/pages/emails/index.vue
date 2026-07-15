@@ -5,7 +5,7 @@
     >
       <div class="flex shrink-0 items-center gap-x-2.5">
         <Icon name="hugeicons:mail-01" class="size-5 sm:size-6" />
-        <h1 class="page-title">Email Delivery</h1>
+        <h1 class="page-title">Emails</h1>
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
@@ -132,20 +132,28 @@
       </div>
     </div>
 
-    <section
-      class="t-panel-slide space-y-3"
-      :data-open="revealed"
-      :style="{ '--panel-translate-y': '16px' }"
-    >
-      <div class="flex items-center justify-between gap-2">
+    <section class="space-y-3">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-x-2">
           <Icon name="hugeicons:chart-line-data-02" class="text-muted-foreground size-4 shrink-0" />
-          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Last 30 days</h2>
+          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Overview</h2>
         </div>
-        <Badge v-if="last30" :variant="health.variant" plain>{{ health.label }}</Badge>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <ClientOnly>
+            <div class="w-full sm:w-[210px]">
+              <RangeCalendarPicker v-model="dateRange" size="sm" placeholder="Date range" />
+            </div>
+          </ClientOnly>
+          <Button variant="outline" size="sm" as-child class="w-full sm:w-auto">
+            <NuxtLink to="/emails/analytics">
+              <span>View full analytics</span>
+              <Icon name="hugeicons:arrow-right-01" class="size-4 shrink-0" />
+            </NuxtLink>
+          </Button>
+        </div>
       </div>
 
-      <GridFill :count="6" min-col-width="180px" rounded="xl">
+      <GridFill :count="6" min-col-width="210px" rounded="xl">
         <template v-if="overviewPending">
           <div v-for="i in 6" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
             <Skeleton class="size-5 rounded" />
@@ -168,7 +176,7 @@
               <span class="text-foreground text-sm font-medium tracking-tight">{{
                 stat.label
               }}</span>
-              <p class="text-xs tracking-tight sm:text-sm" :class="stat.captionClass">
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                 {{ stat.caption }}
               </p>
             </div>
@@ -178,40 +186,10 @@
       </GridFill>
     </section>
 
-    <!-- Client-only: the chart pulls a Vue useId, and the lazy overview fetch
-         resolves into the client payload but not the server render, so letting it
-         render during hydration shifts every id after it (the Tabs mismatch). -->
-    <ClientOnly>
-      <section
-        v-if="hasTrend"
-        class="t-panel-slide space-y-3"
-        :data-open="revealed"
-        :style="{ '--panel-translate-y': '16px' }"
-      >
-        <div class="flex items-center gap-x-2">
-          <Icon name="hugeicons:analytics-up" class="text-muted-foreground size-4 shrink-0" />
-          <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Activity</h2>
-        </div>
-
-        <div class="rounded-xl border p-4 sm:p-5">
-          <ChartArea
-            :data="trendData"
-            :config="trendConfig"
-            :data-keys="trendKeys"
-            x-key="date"
-            :x-tick-formatter="formatTrendDate"
-            legend
-            grid
-            class="h-64! w-full"
-          />
-        </div>
-      </section>
-    </ClientOnly>
-
     <Tabs v-model="activeTab" variant="segmented" class="flex flex-col gap-4">
       <TabsList>
         <TabsIndicator />
-        <TabsTrigger value="messages">Messages</TabsTrigger>
+        <TabsTrigger value="messages">Emails</TabsTrigger>
         <TabsTrigger value="suppressions">
           <span>Suppressions</span>
           <Badge v-if="suppressedTotal > 0" variant="muted" plain class="ml-2">
@@ -229,11 +207,11 @@
           :meta="messagesMeta"
           :pending="messagesPending"
           :error="messagesError"
-          model="email-messages"
-          label="Message"
+          model="emails"
+          label="Email"
           search-column="subject"
           search-placeholder="Search subject, sender, or recipient"
-          error-title="Error loading messages"
+          error-title="Error loading emails"
           :initial-pagination="messagesPagination"
           :initial-sorting="messagesSorting"
           :initial-column-filters="messagesFilters"
@@ -248,7 +226,7 @@
               <Popover>
                 <PopoverTrigger asChild>
                   <button
-                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight sm:aspect-auto sm:px-2.5"
                   >
                     <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
                     <span class="hidden sm:flex">Filter</span>
@@ -302,7 +280,7 @@
           :meta="suppressionsMeta"
           :pending="suppressionsPending"
           :error="suppressionsError"
-          model="email-suppressions"
+          model="emails"
           label="Suppressed address"
           search-column="email"
           search-placeholder="Search email address"
@@ -321,7 +299,7 @@
               <Popover>
                 <PopoverTrigger asChild>
                   <button
-                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight sm:aspect-auto sm:px-2.5"
                   >
                     <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
                     <span class="hidden sm:flex">Filter</span>
@@ -367,78 +345,6 @@
       </TabsContent>
     </Tabs>
 
-    <DialogResponsive v-model:open="detailOpen" dialog-max-width="640px">
-      <template #default>
-        <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
-          <div class="space-y-1">
-            <h2 class="text-lg font-semibold tracking-tighter">
-              {{ detail?.subject || "Message" }}
-            </h2>
-            <p class="text-muted-foreground text-sm tracking-tight break-all">
-              {{ detail?.message_id }}
-            </p>
-          </div>
-
-          <div v-if="detailPending" class="space-y-2">
-            <Skeleton v-for="n in 3" :key="n" class="h-14 w-full rounded-lg" />
-          </div>
-
-          <template v-else-if="detail">
-            <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-              <div class="space-y-1">
-                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">From</p>
-                <p class="text-sm tracking-tight">{{ detail.from_address }}</p>
-              </div>
-              <div class="space-y-1">
-                <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">To</p>
-                <p class="text-sm tracking-tight break-all">{{ detail.recipients.join(", ") }}</p>
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Timeline</p>
-
-              <Empty v-if="!detail.events?.length">
-                <EmptyHeader>
-                  <EmptyMedia variant="stacked">
-                    <Icon name="hugeicons:inbox" class="size-5" />
-                  </EmptyMedia>
-                  <EmptyTitle>No events yet</EmptyTitle>
-                  <EmptyDescription>
-                    Nothing has been reported for this message beyond acceptance.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-
-              <ul v-else class="space-y-2">
-                <li
-                  v-for="event in detail.events"
-                  :key="event.id"
-                  class="bg-card flex flex-col gap-y-1 rounded-lg border p-3"
-                >
-                  <div class="flex flex-wrap items-center gap-2">
-                    <Badge :variant="statusVariant(event.type)" plain>{{ event.type_label }}</Badge>
-                    <span class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-                      {{ $dayjs(event.occurred_at).format("D MMM YYYY, HH:mm:ss") }}
-                    </span>
-                  </div>
-                  <div v-if="event.recipient" class="text-sm tracking-tight">
-                    {{ event.recipient }}
-                  </div>
-                  <div
-                    v-if="event.diagnostic"
-                    class="text-muted-foreground text-xs tracking-tight sm:text-sm"
-                  >
-                    {{ event.diagnostic }}
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </template>
-        </div>
-      </template>
-    </DialogResponsive>
-
     <DialogResponsive v-model:open="removeOpen">
       <template #default>
         <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
@@ -472,15 +378,9 @@ import SuppressionRowActions from "@/components/email/SuppressionRowActions.vue"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableData } from "@/components/ui/table-data";
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -493,9 +393,9 @@ definePageMeta({
   layout: "app",
 });
 
-defineOptions({ name: "email-delivery" });
+defineOptions({ name: "emails" });
 
-usePageMeta(null, { title: "Email Delivery" });
+usePageMeta(null, { title: "Emails" });
 
 const { $dayjs } = useNuxtApp();
 const { hasPermission } = usePermission();
@@ -503,15 +403,33 @@ const canManageSuppressions = computed(() => hasPermission("emails.manage_suppre
 
 const activeTab = ref("messages");
 
-// Panel-reveal entrance, mirroring AttendeeAnalyticsSummary: mount closed, then
-// flip open on the next frame so the section slides into place.
-const revealed = ref(false);
-onMounted(() => {
-  requestAnimationFrame(() => requestAnimationFrame(() => (revealed.value = true)));
-});
-
 const statValueClass =
   "text-foreground -mb-1 text-lg leading-tight font-medium tracking-tighter sm:text-xl";
+
+/* --------------------------------------------------------------- date range */
+
+// Default window: the last 30 days, matching the overview endpoint's default.
+const dateRange = ref({
+  start: $dayjs().subtract(29, "day").toDate(),
+  end: $dayjs().toDate(),
+});
+
+const toYmd = (date) => {
+  if (!date) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+const rangeParams = () => {
+  const params = new URLSearchParams();
+  const from = toYmd(dateRange.value.start);
+  const to = toYmd(dateRange.value.end);
+  if (from) params.append("date_from", from);
+  if (to) params.append("date_to", to);
+  return params;
+};
 
 /* ------------------------------------------------------------- shared helpers */
 
@@ -546,48 +464,25 @@ const sortParam = (sorting, fallback) => {
 
 /* ------------------------------------------------------------------ overview */
 
+const buildOverviewQuery = () => rangeParams().toString();
+
 const {
   data: overviewResponse,
   pending: overviewPending,
   refresh: refreshOverview,
-} = await useLazySanctumFetch("/api/email-delivery/overview", {
-  key: "email-delivery-overview",
+} = await useLazySanctumFetch(() => `/api/emails/overview?${buildOverviewQuery()}`, {
+  key: "emails-overview",
+  watch: false,
 });
 
-const last30 = computed(() => overviewResponse.value?.data?.last_30_days ?? null);
+const totals = computed(() => overviewResponse.value?.data?.totals ?? null);
 const suppressedTotal = computed(() => overviewResponse.value?.data?.suppressed_total ?? 0);
-const daily = computed(() => overviewResponse.value?.data?.daily ?? []);
-
-// Bounce and complaint rates are the two numbers a provider suspends an account
-// over, so both the badge and the two red captions read straight off them.
-const bounceVariant = computed(() => {
-  const rate = last30.value?.bounce_rate ?? 0;
-  if (rate >= 5) return "destructive";
-  if (rate >= 2) return "warning";
-  return "success";
-});
-
-const complaintVariant = computed(() => {
-  const rate = last30.value?.complaint_rate ?? 0;
-  if (rate >= 0.1) return "destructive";
-  if (rate >= 0.05) return "warning";
-  return "success";
-});
-
-const health = computed(() => {
-  const bounce = last30.value?.bounce_rate ?? 0;
-  const complaint = last30.value?.complaint_rate ?? 0;
-  if (bounce >= 5 || complaint >= 0.1) return { label: "At risk", variant: "destructive" };
-  if (bounce >= 2 || complaint >= 0.05) return { label: "Watch", variant: "warning" };
-  return { label: "Healthy", variant: "success" };
-});
 
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(Math.round(value ?? 0));
 const formatRate = (value) => `${(value ?? 0).toFixed(2)}%`;
 
 const stats = computed(() => {
-  const s = last30.value ?? {};
-  const neutral = "text-muted-foreground";
+  const s = totals.value ?? {};
 
   return [
     {
@@ -597,7 +492,6 @@ const stats = computed(() => {
       color: "text-violet-500",
       value: s.sent ?? 0,
       caption: "Total sent",
-      captionClass: neutral,
     },
     {
       key: "delivered",
@@ -606,7 +500,6 @@ const stats = computed(() => {
       color: "text-emerald-500",
       value: s.delivered ?? 0,
       caption: `${formatRate(s.delivery_rate)} of sent`,
-      captionClass: neutral,
     },
     {
       key: "opened",
@@ -615,7 +508,6 @@ const stats = computed(() => {
       color: "text-sky-500",
       value: s.opened ?? 0,
       caption: `${formatRate(s.open_rate)} of delivered`,
-      captionClass: neutral,
     },
     {
       key: "clicked",
@@ -624,7 +516,6 @@ const stats = computed(() => {
       color: "text-indigo-500",
       value: s.clicked ?? 0,
       caption: `${formatRate(s.click_rate)} of delivered`,
-      captionClass: neutral,
     },
     {
       key: "bounced",
@@ -632,8 +523,7 @@ const stats = computed(() => {
       icon: "hugeicons:cancel-circle",
       color: "text-rose-500",
       value: s.bounced ?? 0,
-      caption: `${formatRate(s.bounce_rate)} of sent, limit 5%`,
-      captionClass: bounceVariant.value === "success" ? neutral : "text-destructive",
+      caption: `${formatRate(s.bounce_rate)} of sent`,
     },
     {
       key: "complained",
@@ -641,33 +531,10 @@ const stats = computed(() => {
       icon: "hugeicons:alert-02",
       color: "text-amber-500",
       value: s.complained ?? 0,
-      caption: `${formatRate(s.complaint_rate)} of sent, limit 0.1%`,
-      captionClass: complaintVariant.value === "success" ? neutral : "text-destructive",
+      caption: `${formatRate(s.complaint_rate)} of sent`,
     },
   ];
 });
-
-// Trend chart: sent, delivered, opened per day over the window. `date` stays a
-// plain "YYYY-MM-DD" string, which ChartArea treats as an evenly-spaced category
-// and formats through xTickFormatter.
-const trendKeys = ["sent", "delivered", "opened"];
-const trendConfig = {
-  sent: { label: "Sent", color: "var(--chart-1)" },
-  delivered: { label: "Delivered", color: "var(--chart-2)" },
-  opened: { label: "Opened", color: "var(--chart-3)" },
-};
-const trendData = computed(() =>
-  daily.value.map((d) => ({
-    date: d.date,
-    sent: d.sent,
-    delivered: d.delivered,
-    opened: d.opened,
-  })),
-);
-const hasTrend = computed(() =>
-  daily.value.some((d) => d.sent > 0 || d.delivered > 0 || d.opened > 0),
-);
-const formatTrendDate = (value) => $dayjs(value).format("D MMM");
 
 const statusVariant = (status) =>
   ({
@@ -677,12 +544,11 @@ const statusVariant = (status) =>
     click: "info",
     delivery_delay: "warning",
     reject: "destructive",
-    rendering_failure: "destructive",
     bounce: "destructive",
     complaint: "destructive",
   })[status] ?? "muted";
 
-/* ------------------------------------------------------------------ messages */
+/* -------------------------------------------------------------------- emails */
 
 const messagesTableRef = ref();
 const messagesPagination = ref({ pageIndex: 0, pageSize: 25 });
@@ -695,15 +561,14 @@ const statusOptions = [
   { value: "bounce", label: "Bounced" },
   { value: "complaint", label: "Complaint" },
   { value: "delivery_delay", label: "Delayed" },
-  { value: "reject", label: "Rejected" },
-  { value: "rendering_failure", label: "Rendering failure" },
+  { value: "reject", label: "Failed" },
 ];
 
 const activeStatusFilters = computed(() => selectedFilter(messagesFilters, "status"));
 const toggleStatusFilter = (payload) => toggleFilter(messagesFilters, "status", payload);
 
 const buildMessagesQuery = () => {
-  const params = new URLSearchParams();
+  const params = rangeParams();
   params.append("page", messagesPagination.value.pageIndex + 1);
   params.append("per_page", messagesPagination.value.pageSize);
   params.append("sort", sortParam(messagesSorting, "sent_at"));
@@ -723,8 +588,8 @@ const {
   pending: messagesPending,
   error: messagesError,
   refresh: refreshMessages,
-} = await useLazySanctumFetch(() => `/api/email-delivery/messages?${buildMessagesQuery()}`, {
-  key: "email-delivery-messages",
+} = await useLazySanctumFetch(() => `/api/emails/messages?${buildMessagesQuery()}`, {
+  key: "emails-messages",
   watch: false,
 });
 
@@ -736,6 +601,17 @@ const messagesMeta = computed(
 watch([messagesPagination, messagesSorting, messagesFilters], () => refreshMessages(), {
   deep: true,
 });
+
+// The date range drives both the overview figures and the message list.
+watch(
+  dateRange,
+  () => {
+    messagesPagination.value = { ...messagesPagination.value, pageIndex: 0 };
+    refreshOverview();
+    refreshMessages();
+  },
+  { deep: true },
+);
 
 // Narrowing the result set while sitting on a later page would ask the server
 // for a page that no longer exists.
@@ -749,31 +625,28 @@ watch(
 
 const messageColumns = [
   {
-    header: "Subject",
-    accessorKey: "subject",
-    cell: ({ row }) =>
-      h(
-        "button",
+    header: "To",
+    accessorKey: "recipients",
+    cell: ({ row }) => {
+      const recipients = row.original.recipients || [];
+      const first = recipients[0] || "(no recipient)";
+      const extra = recipients.length - 1;
+
+      return h(
+        NuxtLink,
         {
-          type: "button",
-          class:
-            "flex w-full min-w-0 cursor-pointer flex-col gap-0.5 text-left transition-opacity hover:opacity-80",
-          onClick: () => openDetail(row.original.id),
+          to: `/emails/${row.original.message_id}`,
+          class: "flex min-w-0 items-center gap-x-2",
         },
-        [
-          h(
-            "span",
-            { class: "truncate text-sm tracking-tight" },
-            row.original.subject || "(no subject)",
-          ),
-          h(
-            "span",
-            { class: "text-muted-foreground truncate text-xs tracking-tight sm:text-sm" },
-            (row.original.recipients || []).join(", "),
-          ),
+        () => [
+          h("span", { class: "truncate text-sm tracking-tight" }, first),
+          extra > 0
+            ? h(Badge, { variant: "muted", plain: true, class: "shrink-0" }, () => `+${extra}`)
+            : null,
         ],
-      ),
-    size: 320,
+      );
+    },
+    size: 240,
     enableHiding: false,
   },
   {
@@ -785,7 +658,22 @@ const messageColumns = [
         { variant: statusVariant(row.original.status), plain: true },
         () => row.original.status_label,
       ),
-    size: 140,
+    size: 120,
+  },
+  {
+    header: "Subject",
+    accessorKey: "subject",
+    cell: ({ row }) =>
+      h(
+        NuxtLink,
+        {
+          to: `/emails/${row.original.message_id}`,
+          class: "block truncate text-sm tracking-tight hover:underline",
+        },
+        () => row.original.subject || "(no subject)",
+      ),
+    size: 360,
+    enableHiding: false,
   },
   {
     header: "Sent",
@@ -793,55 +681,15 @@ const messageColumns = [
     cell: ({ row }) =>
       h(
         "span",
-        { class: "text-muted-foreground text-xs tracking-tight sm:text-sm" },
-        $dayjs(row.original.sent_at).format("D MMM YYYY, HH:mm"),
+        {
+          class: "text-muted-foreground text-xs tracking-tight sm:text-sm",
+          title: $dayjs(row.original.sent_at).format("D MMM YYYY, HH:mm:ss"),
+        },
+        $dayjs(row.original.sent_at).fromNow(),
       ),
-    size: 150,
-  },
-  {
-    id: "actions",
-    header: () => h("span", { class: "sr-only" }, "Actions"),
-    enableSorting: false,
-    enableHiding: false,
-    size: 56,
-    cell: ({ row }) =>
-      h("div", { class: "flex items-center justify-end" }, [
-        h(
-          Button,
-          {
-            variant: "ghost",
-            size: "iconSm",
-            "aria-label": "View delivery timeline",
-            onClick: () => openDetail(row.original.id),
-          },
-          () => h(resolveComponent("Icon"), { name: "hugeicons:view", class: "size-4" }),
-        ),
-      ]),
+    size: 120,
   },
 ];
-
-/* -------------------------------------------------------------------- detail */
-
-const detailOpen = ref(false);
-const detailPending = ref(false);
-const detail = ref(null);
-
-const openDetail = async (id) => {
-  detail.value = null;
-  detailOpen.value = true;
-  detailPending.value = true;
-
-  try {
-    const client = useSanctumClient();
-    const response = await client(`/api/email-delivery/messages/${id}`);
-    detail.value = response.data;
-  } catch {
-    toast.error("Could not load the delivery timeline.");
-    detailOpen.value = false;
-  } finally {
-    detailPending.value = false;
-  }
-};
 
 /* --------------------------------------------------------------- suppressions */
 
@@ -880,13 +728,10 @@ const {
   pending: suppressionsPending,
   error: suppressionsError,
   refresh: refreshSuppressions,
-} = await useLazySanctumFetch(
-  () => `/api/email-delivery/suppressions?${buildSuppressionsQuery()}`,
-  {
-    key: "email-delivery-suppressions",
-    watch: false,
-  },
-);
+} = await useLazySanctumFetch(() => `/api/emails/suppressions?${buildSuppressionsQuery()}`, {
+  key: "emails-suppressions",
+  watch: false,
+});
 
 const suppressions = computed(() => suppressionsResponse.value?.data ?? []);
 const suppressionsMeta = computed(
@@ -986,7 +831,7 @@ const confirmRemove = async () => {
 
   try {
     const client = useSanctumClient();
-    await client(`/api/email-delivery/suppressions/${removeTarget.value.id}`, { method: "DELETE" });
+    await client(`/api/emails/suppressions/${removeTarget.value.id}`, { method: "DELETE" });
 
     toast.success("Address removed from the suppression list.");
     removeOpen.value = false;

@@ -22,11 +22,8 @@ class EmailSuppressionResource extends JsonResource
             'subtype' => $this->subtype,
             'source' => $this->source,
             'suppressed_at' => $this->suppressed_at?->toIso8601String(),
-            // SES nests the reason under bouncedRecipients; Resend puts it on the
-            // bounce object. Fall back through both shapes.
-            'diagnostic' => $this->payload['bouncedRecipients'][0]['diagnosticCode']
-                ?? $this->payload['bounce']['message']
-                ?? null,
+            // Resend puts the human-readable reason on the bounce object.
+            'diagnostic' => $this->payload['bounce']['message'] ?? null,
         ];
     }
 }

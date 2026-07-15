@@ -22,27 +22,8 @@ function sentMessageFor(Email $email, string $to): SentMessage
 }
 
 /**
- * SesV2Transport writes the SES message id back into this header after the API
- * accepts the message. Other mailers never set it.
- */
-function dispatchSentMessage(?string $sesMessageId, string $to = 'visitor@example.com'): void
-{
-    $email = (new Email)
-        ->from('noreply@pmone.id')
-        ->to($to)
-        ->subject('Your e-ticket')
-        ->text('Attached.');
-
-    if ($sesMessageId !== null) {
-        $email->getHeaders()->addTextHeader('X-SES-Message-ID', $sesMessageId);
-    }
-
-    event(new MessageSent(sentMessageFor($email, $to)));
-}
-
-/**
  * The Resend transport writes the Resend email id into this header after the API
- * accepts the message, mirroring what SesV2Transport does for SES.
+ * accepts the message. Later webhook events carry that same id.
  */
 function dispatchResendMessage(string $resendId, string $to = 'visitor@example.com'): void
 {
@@ -57,31 +38,37 @@ function dispatchResendMessage(string $resendId, string $to = 'visitor@example.c
     event(new MessageSent(sentMessageFor($email, $to)));
 }
 
-it('records a message that SES accepted', function () {
-    dispatchSentMessage('ses-message-id-1');
+/**
+ * A message dispatched by a mailer that sets no Resend tracking header (e.g.
+ * cloudflare in development).
+ */
+function dispatchUntrackedMessage(string $to = 'visitor@example.com'): void
+{
+    $email = (new Email)
+        ->from('noreply@pmone.id')
+        ->to($to)
+        ->subject('Your e-ticket')
+        ->text('Attached.');
 
-    $message = EmailMessage::query()->sole();
+    event(new MessageSent(sentMessageFor($email, $to)));
+}
 
-    expect($message->message_id)->toBe('ses-message-id-1')
-        ->and($message->subject)->toBe('Your e-ticket')
-        ->and($message->from_address)->toBe('noreply@pmone.id')
-        ->and($message->recipients)->toBe(['visitor@example.com'])
-        ->and($message->status)->toBe(EmailEventType::Send);
-});
-
-it('records a message that Resend accepted, untagged by any SES config set', function () {
+it('records a message that Resend accepted', function () {
     dispatchResendMessage('re_listener_test');
 
     $message = EmailMessage::query()->sole();
 
     expect($message->message_id)->toBe('re_listener_test')
+        ->and($message->subject)->toBe('Your e-ticket')
+        ->and($message->from_address)->toBe('noreply@pmone.id')
         ->and($message->recipients)->toBe(['visitor@example.com'])
         ->and($message->status)->toBe(EmailEventType::Send)
+        ->and($message->mailer)->toBe('resend')
         ->and($message->configuration_set)->toBeNull();
 });
 
 it('records nothing when the mailer sets no tracking header', function () {
-    dispatchSentMessage(null);
+    dispatchUntrackedMessage();
 
     expect(EmailMessage::count())->toBe(0);
 });
@@ -93,8 +80,8 @@ it('records nothing for a real send through the array mailer', function () {
 });
 
 it('does not create a second row when the same message id is seen twice', function () {
-    dispatchSentMessage('ses-message-id-2');
-    dispatchSentMessage('ses-message-id-2');
+    dispatchResendMessage('re_seen_twice');
+    dispatchResendMessage('re_seen_twice');
 
     expect(EmailMessage::count())->toBe(1);
 });
@@ -108,7 +95,7 @@ it('captures cc and bcc recipients alongside the to', function () {
         ->subject('Everyone')
         ->text('.');
 
-    $email->getHeaders()->addTextHeader('X-SES-Message-ID', 'ses-message-id-3');
+    $email->getHeaders()->addTextHeader('X-Resend-Email-ID', 're_cc_bcc');
 
     event(new MessageSent(sentMessageFor($email, 'a@example.com')));
 

@@ -107,6 +107,9 @@ export default defineNuxtConfig({
     // redirect on "/" is ignored while pages/index.vue exists.
     "/docs": { redirect: { to: "/docs/staff-dashboard-overview", statusCode: 302 } },
 
+    // The old Email Delivery page was renamed to Emails.
+    "/email-delivery": { redirect: { to: "/emails", statusCode: 302 } },
+
     // Admin / auth pages (everything behind sanctum) are excluded from the
     // sitemap and not indexed by search engines. Public, share-worthy routes are
     // re-enabled below — more specific routeRules win over "/**".

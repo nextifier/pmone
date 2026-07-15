@@ -18,11 +18,10 @@ class EmailMessageFactory extends Factory
     {
         return [
             'message_id' => fake()->unique()->uuid(),
-            'mailer' => 'ses-v2',
+            'mailer' => 'resend',
             'from_address' => 'noreply@pmone.id',
             'subject' => fake()->sentence(4),
             'recipients' => [fake()->unique()->safeEmail()],
-            'configuration_set' => 'pmone-transactional',
             'status' => EmailEventType::Send,
             'status_rank' => EmailEventType::Send->rank(),
             'sent_at' => now(),

@@ -29,9 +29,8 @@ return [
     | when delivering an email. You may specify which one you're using for
     | your mailers below. You may also add additional mailers if needed.
     |
-    | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "resend", "log", "array",
-    |            "failover", "roundrobin"
+    | Supported: "smtp", "sendmail", "mailgun", "postmark", "resend",
+    |            "log", "array", "failover"
     |
     */
 
@@ -47,22 +46,6 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
-        ],
-
-        'ses' => [
-            'transport' => 'ses',
-        ],
-
-        /**
-         * Amazon SES v2. Credentials and region come from "services.ses".
-         * The options array is spread into the SESv2 SendEmail call, so an empty
-         * SES_CONFIGURATION_SET must be dropped rather than passed as null.
-         */
-        'ses-v2' => [
-            'transport' => 'ses-v2',
-            'options' => array_filter([
-                'ConfigurationSetName' => env('SES_CONFIGURATION_SET'),
-            ]),
         ],
 
         'postmark' => [
@@ -96,15 +79,6 @@ return [
             'mailers' => [
                 'smtp',
                 'log',
-            ],
-            'retry_after' => 60,
-        ],
-
-        'roundrobin' => [
-            'transport' => 'roundrobin',
-            'mailers' => [
-                'ses',
-                'postmark',
             ],
             'retry_after' => 60,
         ],
