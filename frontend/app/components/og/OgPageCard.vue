@@ -1,64 +1,53 @@
 <template>
-  <div class="frame">
-    <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
-      <h3 class="text-base font-semibold tracking-tight">{{ label }}</h3>
+  <div class="space-y-4">
+    <div class="space-y-2">
+      <Label :for="`og-image-${pageKey}`">Share image</Label>
+      <InputFileImage
+        :id="`og-image-${pageKey}`"
+        v-model="tmpFiles"
+        v-model:delete-flag="deleteFlag"
+        :initial-image="current.image"
+        container-class="relative isolate aspect-[1200/630] w-full"
+        image-class="border-border size-full rounded-lg border object-cover"
+      />
+      <p class="text-muted-foreground text-xs">
+        Recommended: 1200x630px. Larger images are cropped automatically.
+      </p>
     </div>
 
-    <div class="frame-panel space-y-4">
-      <div class="space-y-2">
-        <Label :for="`og-image-${pageKey}`">OG Image</Label>
-        <InputFileImage
-          :id="`og-image-${pageKey}`"
-          v-model="tmpFiles"
-          v-model:delete-flag="deleteFlag"
-          :initial-image="current.image"
-          container-class="relative isolate aspect-[1200/630] w-full"
-          image-class="border-border size-full rounded-lg border object-cover"
-        />
-        <p class="text-muted-foreground text-xs">
-          Recommended: 1200x630px. Larger images are cropped automatically.
-        </p>
-      </div>
+    <div class="space-y-2">
+      <Label :for="`og-title-${pageKey}`">Share title</Label>
+      <Input
+        :id="`og-title-${pageKey}`"
+        v-model="form.title"
+        placeholder="Falls back to the page title"
+        maxlength="255"
+      />
+    </div>
 
-      <div class="space-y-2">
-        <Label :for="`og-title-${pageKey}`">OG Title</Label>
-        <Input
-          :id="`og-title-${pageKey}`"
-          v-model="form.title"
-          placeholder="Falls back to the page title"
-          maxlength="255"
-        />
-      </div>
+    <div class="space-y-2">
+      <Label :for="`og-description-${pageKey}`">Share description</Label>
+      <Textarea
+        :id="`og-description-${pageKey}`"
+        v-model="form.description"
+        placeholder="Falls back to the page description"
+        maxlength="500"
+        rows="2"
+      />
+    </div>
 
-      <div class="space-y-2">
-        <Label :for="`og-description-${pageKey}`">OG Description</Label>
-        <Textarea
-          :id="`og-description-${pageKey}`"
-          v-model="form.description"
-          placeholder="Falls back to the page description"
-          maxlength="500"
-          rows="2"
-        />
-      </div>
-
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="!websiteUrl || capture.processing.value"
-          v-tippy="captureTooltip"
-          @click="startCapture"
-        >
-          <Spinner v-if="capture.processing.value" />
-          <Icon v-else name="hugeicons:camera-01" />
-          <span>{{ captureLabel }}</span>
-        </Button>
-
-        <Button size="sm" :disabled="saving || !dirty" @click="save">
-          <Spinner v-if="saving" />
-          <span>Save</span>
-        </Button>
-      </div>
+    <div class="flex items-center justify-start">
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="!websiteUrl || capture.processing.value"
+        v-tippy="captureTooltip"
+        @click="startCapture"
+      >
+        <Spinner v-if="capture.processing.value" />
+        <Icon v-else name="hugeicons:camera-01" />
+        <span>{{ captureLabel }}</span>
+      </Button>
     </div>
   </div>
 </template>
@@ -70,6 +59,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";
 
+/**
+ * OG (social share) editor for a single page. Rendered embedded inside the SEO
+ * tab's per-page panel: it owns the image/title/description fields and the
+ * per-page "Capture from website" job, and exposes `save()` / `isDirty()` /
+ * `saving` so the panel's unified Save button can persist it alongside the SEO
+ * meta. It does not render its own frame, label, or Save button.
+ */
 const props = defineProps({
   pageKey: { type: String, required: true },
   label: { type: String, required: true },
@@ -125,7 +121,12 @@ const dirty = computed(
     (deleteFlag.value && !!current.image)
 );
 
+// Persist this page's OG settings. Returns true if a request was made, false
+// when there was nothing to save. Throws on failure so the caller can surface
+// one unified error toast.
 async function save() {
+  if (!dirty.value) return false;
+
   saving.value = true;
   try {
     const body = {
@@ -155,15 +156,17 @@ async function save() {
     tmpFiles.value = [];
     deleteFlag.value = false;
 
-    toast.success(`${props.label} OG settings saved`);
-  } catch (err) {
-    toast.error("Failed to save OG settings", {
-      description: err?.data?.message || err?.message,
-    });
+    return true;
   } finally {
     saving.value = false;
   }
 }
+
+defineExpose({
+  save,
+  saving,
+  isDirty: () => dirty.value,
+});
 
 // Capture from the live website (queued Browsershot job on the backend)
 const capture = useJobProgress();

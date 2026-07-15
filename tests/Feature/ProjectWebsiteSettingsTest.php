@@ -624,3 +624,83 @@ it('exposes the home sections catalog and resolved values to the admin', functio
     expect($catalog)->toBeArray()->not->toBeEmpty();
     expect($catalog[0])->toHaveKeys(['key', 'label', 'default']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Split-form partial PATCH safety (plan 035)
+|--------------------------------------------------------------------------
+| The Website Settings tab is split into "Website Settings" (display toggles)
+| and "Site Config" (nav/analytics/appearance/identity); the SEO date leaves
+| for Legal Pages. Each page now PATCHes only its own slice, so a slice-only
+| save must never clobber the sibling slices it omits.
+*/
+
+function seedFullWebsiteSettings(Project $project): void
+{
+    $project->update(['settings' => ['website_settings' => [
+        'home_sections' => ['about_event' => false, 'partners' => true],
+        'terms' => ['last_update' => '2025-08-21'],
+        'og_pages' => ['home' => ['title' => 'Home OG', 'description' => 'Home OG desc']],
+        'site_config' => [
+            'nav' => ['header' => [['label' => 'Home', 'path' => '/']], 'dialog' => [], 'footer' => []],
+            'analytics' => ['ga4' => ['G-ABC123'], 'tiktok_pixel' => null, 'meta_pixel' => null, 'gtm' => null],
+            'appearance' => ['enabled' => true, 'baseColor' => 'blue', 'theme' => 'blue', 'chartColor' => 'blue', 'radius' => 'medium'],
+            'identity' => ['company_name' => 'Acme Ltd', 'company_address' => 'Jakarta'],
+        ],
+    ]]]);
+}
+
+it('patching only the site_config slice preserves home_sections, og_pages, and terms', function () {
+    $this->actingAs($this->user);
+    seedFullWebsiteSettings($this->project);
+
+    $this->patchJson($this->endpoint, [
+        'site_config' => [
+            'identity' => ['company_name' => 'New Name', 'company_address' => 'Bandung'],
+        ],
+    ])->assertSuccessful();
+
+    $ws = data_get($this->project->fresh()->settings, 'website_settings');
+
+    expect(data_get($ws, 'site_config.identity.company_name'))->toBe('New Name');
+    // Untouched siblings survive.
+    expect(data_get($ws, 'home_sections.about_event'))->toBeFalse();
+    expect(data_get($ws, 'og_pages.home.title'))->toBe('Home OG');
+    expect(data_get($ws, 'terms.last_update'))->toBe('2025-08-21');
+    expect(data_get($ws, 'site_config.nav.header.0.label'))->toBe('Home');
+    expect(data_get($ws, 'site_config.analytics.ga4'))->toBe(['G-ABC123']);
+});
+
+it('patching only home_sections preserves the whole site_config block', function () {
+    $this->actingAs($this->user);
+    seedFullWebsiteSettings($this->project);
+
+    $this->patchJson($this->endpoint, [
+        'home_sections' => ['about_event' => true],
+    ])->assertSuccessful();
+
+    $ws = data_get($this->project->fresh()->settings, 'website_settings');
+
+    expect(data_get($ws, 'home_sections.about_event'))->toBeTrue();
+    // The wholesale-replace guards must NOT fire when site_config is absent.
+    expect(data_get($ws, 'site_config.nav.header.0.label'))->toBe('Home');
+    expect(data_get($ws, 'site_config.analytics.ga4'))->toBe(['G-ABC123']);
+    expect(data_get($ws, 'site_config.identity.company_name'))->toBe('Acme Ltd');
+    expect(data_get($ws, 'og_pages.home.title'))->toBe('Home OG');
+});
+
+it('patching only the terms slice preserves site_config and home_sections', function () {
+    $this->actingAs($this->user);
+    seedFullWebsiteSettings($this->project);
+
+    $this->patchJson($this->endpoint, [
+        'terms' => ['last_update' => '2026-01-01'],
+    ])->assertSuccessful();
+
+    $ws = data_get($this->project->fresh()->settings, 'website_settings');
+
+    expect(data_get($ws, 'terms.last_update'))->toBe('2026-01-01');
+    expect(data_get($ws, 'site_config.identity.company_name'))->toBe('Acme Ltd');
+    expect(data_get($ws, 'site_config.nav.header.0.label'))->toBe('Home');
+    expect(data_get($ws, 'home_sections.about_event'))->toBeFalse();
+});

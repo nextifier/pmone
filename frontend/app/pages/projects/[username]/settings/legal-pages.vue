@@ -15,14 +15,7 @@
 
     <div v-else class="flex flex-col gap-y-4">
       <!-- Locale switcher (shared across all page editors) -->
-      <Tabs v-model="activeLocale" variant="segmented" class="self-start">
-        <TabsList>
-          <TabsIndicator />
-          <TabsTrigger v-for="locale in LOCALES" :key="locale.value" :value="locale.value">
-            {{ locale.label }}
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <SettingsLocaleTabs v-model="activeLocale" />
 
       <div v-for="page in PAGES" :key="page.key" class="frame">
         <div
@@ -114,13 +107,13 @@
 </template>
 
 <script setup>
+import SettingsLocaleTabs from "@/components/project/SettingsLocaleTabs.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { DialogResponsive } from "@/components/ui/dialog-responsive";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { toast } from "vue-sonner";
 
@@ -139,14 +132,6 @@ usePageMeta(null, {
 
 const route = useRoute();
 const client = useSanctumClient();
-
-const LOCALES = [
-  { value: "en", label: "English" },
-  { value: "id", label: "Indonesian" },
-  { value: "ja", label: "日本語" },
-  { value: "ko", label: "한국어" },
-  { value: "zh", label: "中文" },
-];
 
 // The six legal/policy page keys. Must match App\Models\WebsitePage::KEYS. The
 // path is the public route the "View live" link points at.
@@ -209,7 +194,7 @@ const bodies = ref(Object.fromEntries(PAGES.map((p) => [p.key, EMPTY_BODY()])));
 const dates = ref(Object.fromEntries(PAGES.map((p) => [p.key, null])));
 
 const activeLocaleLabel = computed(
-  () => LOCALES.find((l) => l.value === activeLocale.value)?.label ?? "",
+  () => WEBSITE_LOCALES.find((l) => l.value === activeLocale.value)?.label ?? "",
 );
 
 // TipTap emits an "empty" document as tag-only markup ("<p></p>"). Treat any
@@ -227,7 +212,7 @@ function isBlankHtml(html) {
 // the filled locales so coverage is visible at a glance (the locale switcher is
 // shared across pages, so per-page coverage lives on the badge, not the tabs).
 function filledLocales(key) {
-  return LOCALES.filter((l) => !isBlankHtml(bodies.value[key]?.[l.value]));
+  return WEBSITE_LOCALES.filter((l) => !isBlankHtml(bodies.value[key]?.[l.value]));
 }
 
 function statusFor(key) {
@@ -251,7 +236,7 @@ function liveUrlFor(key) {
 // for that language instead of rendering an empty legal page.
 function toPayloadBody(body) {
   const out = {};
-  for (const { value } of LOCALES) {
+  for (const { value } of WEBSITE_LOCALES) {
     out[value] = isBlankHtml(body?.[value]) ? null : body[value];
   }
   return out;
