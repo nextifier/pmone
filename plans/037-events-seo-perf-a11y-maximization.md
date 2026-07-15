@@ -7,6 +7,61 @@
 > schema, BreadcrumbList/BlogPosting, and the edge-cache stack. This plan covers
 > what the new audit found still on the table. Self-contained.
 
+## Execution log — 2026-07-15 (Opus, on `main`, NOT committed/pushed)
+
+Partial execution: the safe, high-confidence, browser-verified subset shipped;
+the measurement-dependent and higher-risk items are deferred with reasons.
+
+**DONE + verified (6 files in `layers/base`, all browser/curl-verified on the
+megabuild dev server):**
+- **WS1 core** — `useHomeSection.ts` now ALWAYS reads the toggle from the
+  SSR-resolved `project-settings` payload (`useNuxtData`), so the visibility
+  decision is server-side for every section; `defaultVisible` now only controls
+  fail-open vs fail-closed. Verified: `id="credits"` is now present in the
+  server-rendered home HTML (was client-only before), zero hydration mismatch.
+  Hotels behaves the same (absent only because megabuild has it off).
+  **Rundown + BrandPreview are unchanged** on purpose: their content-guard data
+  fetches are deliberately client-only (`server: false`) with a documented
+  hydration-avoidance reason, and flipping them to SSR adds an awaited fetch on
+  the home critical path for all 16 sites — deferred (see below).
+- **WS2 dup-`<h1>`** — `FAQ.vue` default tag flipped `h1`→`h2`; the dedicated
+  `pages/faq.vue` now passes `tag="h1"`. campx + iicc home pages get `h2` via the
+  new default. Verified: megabuild home now has exactly one `<h1>`.
+- **WS2 canonical** — verified already emitted by `@nuxtjs/i18n`
+  (`<link rel="canonical">` present in SSR HTML). No change needed.
+- **WS4** — skip-to-content link + `<main id="main" tabindex="-1">` in
+  `layouts/default.vue` (verified in SSR HTML); alt text on `DialogRundown.vue`
+  (activity title) and `Gallery.vue` (event name + index).
+- **WS2 iicc alignment** — `apps/iicc/app/pages/index.vue` now uses
+  `usePageMeta("home", {title, description, ogImage})` (keeping iicc's own i18n
+  copy + OG as overrides) + `useEventSchema()`, replacing its hand-rolled
+  `useSeoMeta`/`useHead`. iicc's **bespoke Hero.vue is kept** (design intact).
+  Verified on iicc dev: title/description unchanged, canonical now via i18n,
+  OG image now dashboard-managed, and structured data went from WebSite-only to
+  **Event + Organization + Offer + Place + PostalAddress + WebSite + FAQPage**.
+  The dev content-contract warning for `components.hero` is silenced correctly:
+  `contentContract.ts` now honors a `contentContractOmit` state key, and iicc's
+  content.js declares `contentContractOmit: ["components.hero"]` (it renders a
+  bespoke Hero, so it legitimately omits that base key). Zero console errors.
+
+**DEFERRED (with reason) — remaining plan items:**
+- WS1 Rundown/BrandPreview full SSR: needs flipping deliberate client-only guard
+  fetches → TTFB cost on the home critical path × 16 sites + hydration care;
+  needs measurement (couldn't run PSI/TTFB from here).
+- WS2 sitemap completeness: `guests/[slug]` (+ maybe experiences/events) detail
+  pages exist but need the right slug-list API endpoint + an indexability check
+  before adding. Private token/ulid routes (tickets/hotels) must stay excluded.
+- WS2 Event schema `offers.price`: needs a cheap already-SSR/cached price source.
+- WS3 AVIF: needs confirming CF Image Resizing has AVIF enabled on the plan.
+- WS3 lazy hydration + root-`/` edge-cache: need TBT / Worker-CPU measurement.
+- WS3 orphan `apps/outingexpo/public/video/hero-video.mp4` (16MB, git-tracked,
+  confirmed unreferenced repo-wide): NOT deleted — it's a committed binary I did
+  not author; flagged for the operator to remove (git-recoverable).
+- Step 0 PSI baselines: couldn't run PageSpeed from this environment.
+
+**Deploy note**: all 6 changed files are in `layers/base`, so a pmone-events
+push rebuilds ALL 16 CF Pages sites. No backend/migrate.
+
 ## Status
 
 - **Priority**: P2 overall; workstream 1 is P1 (real SEO content gap)

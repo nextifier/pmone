@@ -113,37 +113,22 @@
         <Label>Visitor E-guide</Label>
         <p class="text-muted-foreground text-xs">PDF file, max 20MB</p>
       </div>
-      <div
+      <AttachmentLink
         v-if="initialData?.visitor_eguide && !eguideFiles.length && !deleteFlags.visitor_eguide"
-        class="border-border flex min-w-0 items-center gap-x-3 rounded-md border p-3"
+        :file="initialData.visitor_eguide"
       >
-        <Icon name="hugeicons:pdf-02" class="text-foreground size-5 shrink-0" />
-        <div class="min-w-0 flex-1">
-          <a
-            :href="initialData.visitor_eguide.url"
-            target="_blank"
-            rel="noopener"
-            class="text-primary block truncate text-sm tracking-tight hover:underline"
-          >
-            {{ initialData.visitor_eguide.name }}
-          </a>
-          <p class="text-muted-foreground text-xs tracking-tight">
-            {{ formatFileSize(initialData.visitor_eguide.size) }}
-          </p>
-        </div>
-        <div class="flex shrink-0 items-center gap-x-1">
+        <template #actions>
           <ButtonCopy :text="initialData.visitor_eguide.url" />
-          <button
+          <AttachmentAction
+            v-tippy="'Remove file'"
             type="button"
             aria-label="Remove file"
-            v-tippy="'Remove file'"
-            class="text-muted-foreground hover:text-destructive flex size-7 items-center justify-center rounded-lg"
             @click="deleteFlags.visitor_eguide = true"
           >
             <Icon name="hugeicons:delete-01" class="size-4" />
-          </button>
-        </div>
-      </div>
+          </AttachmentAction>
+        </template>
+      </AttachmentLink>
       <InputFile
         v-else
         ref="visitorEguideInputRef"
@@ -222,6 +207,7 @@
 </template>
 
 <script setup>
+import { AttachmentAction } from "@/components/ui/attachment";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -301,17 +287,6 @@ const eguideFiles = ref([]);
 const posterImageInputRef = ref(null);
 const visitorEguideInputRef = ref(null);
 
-function formatFileSize(bytes) {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
-}
 const slugManuallyEdited = ref(false);
 
 const form = reactive(createEmptyForm());

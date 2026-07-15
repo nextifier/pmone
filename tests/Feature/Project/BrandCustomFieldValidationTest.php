@@ -121,6 +121,30 @@ it('coerces the year_select alias to a preset-backed select but keeps exposing y
         ->assertJsonPath('data.0.type', 'year_select');
 });
 
+it('defaults new fields to public and persists the visibility flag', function () {
+    $this->postJson($this->fieldsUrl, [
+        'label' => 'Public Field',
+        'type' => 'text',
+    ])->assertStatus(201)->assertJsonPath('data.is_public', true);
+
+    $internal = $this->postJson($this->fieldsUrl, [
+        'label' => 'Buyer Target',
+        'type' => 'text',
+        'is_public' => false,
+    ])->assertStatus(201)->assertJsonPath('data.is_public', false);
+
+    $fieldId = $internal->json('data.id');
+    expect(CustomField::query()->findOrFail($fieldId)->settings['public'])->toBeFalse();
+
+    $this->putJson("{$this->fieldsUrl}/{$fieldId}", [
+        'label' => 'Buyer Target',
+        'type' => 'text',
+        'is_public' => true,
+    ])->assertSuccessful()->assertJsonPath('data.is_public', true);
+
+    expect(CustomField::query()->findOrFail($fieldId)->settings['public'])->toBeTrue();
+});
+
 it('rejects types outside the brand whitelist', function () {
     $this->postJson($this->fieldsUrl, [
         'label' => 'Attachment',

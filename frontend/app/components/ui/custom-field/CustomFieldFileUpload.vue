@@ -28,7 +28,7 @@
             aria-label="Replace file"
             @click="startReplace"
           >
-            <Icon name="lucide:refresh-cw" class="size-4" />
+            <Icon name="hugeicons:exchange-01" class="size-4" />
           </AttachmentAction>
         </AttachmentActions>
         <AttachmentTrigger
@@ -52,7 +52,7 @@
         </AttachmentContent>
         <AttachmentActions>
           <AttachmentAction type="button" aria-label="Remove file" @click="removeFile(file)">
-            <Icon name="lucide:x" class="size-4" />
+            <Icon name="hugeicons:cancel-01" class="size-4" />
           </AttachmentAction>
         </AttachmentActions>
       </Attachment>
@@ -86,7 +86,7 @@
           :disabled="!canUpload || uploadingFile || maxFilesReached"
           @click="fileInputRef?.click()"
         >
-          <Icon name="lucide:paperclip" class="size-4" />
+          <Icon name="hugeicons:attachment-01" class="size-4" />
           <span>{{ addLabel }}</span>
         </Button>
         <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">or drag and drop here</p>
@@ -222,13 +222,21 @@ const extensionOf = (name) => String(name || "").split(".").pop()?.toLowerCase()
 const isImage = (file) =>
   ["png", "jpg", "jpeg", "webp", "gif", "svg"].includes(extensionOf(file.name)) && !!file.url;
 
+// hugeicons names verified against @iconify-json/hugeicons so each renders.
 const fileIcon = (name) => {
   const ext = extensionOf(name);
-  if (["pdf"].includes(ext)) return "lucide:file-text";
-  if (["doc", "docx"].includes(ext)) return "lucide:file-text";
-  if (["xls", "xlsx", "csv"].includes(ext)) return "lucide:sheet";
-  if (["png", "jpg", "jpeg", "webp", "gif", "svg"].includes(ext)) return "lucide:image";
-  return "lucide:file";
+  if (["png", "jpg", "jpeg", "webp", "gif", "svg", "avif", "bmp"].includes(ext)) return "hugeicons:image-01";
+  if (["mp4", "mov", "avi", "mkv", "webm", "m4v"].includes(ext)) return "hugeicons:file-video";
+  if (["mp3", "wav", "ogg", "m4a", "aac", "flac"].includes(ext)) return "hugeicons:file-audio";
+  if (ext === "pdf") return "hugeicons:pdf-01";
+  if (["doc", "docx"].includes(ext)) return "hugeicons:doc-01";
+  if (ext === "csv") return "hugeicons:csv-01";
+  if (["xls", "xlsx"].includes(ext)) return "hugeicons:xls-01";
+  if (["ppt", "pptx"].includes(ext)) return "hugeicons:ppt-01";
+  if (ext === "txt") return "hugeicons:txt-01";
+  if (ext === "ai") return "hugeicons:ai-file";
+  if (["zip", "rar", "7z", "tar", "gz"].includes(ext)) return "hugeicons:zip-01";
+  return "hugeicons:file-01";
 };
 
 const describeFile = (file) => {

@@ -15,7 +15,7 @@
     </CollapsibleTrigger>
 
     <CollapsibleContent class="mt-2 space-y-3">
-      <div v-for="group in history" :key="group.field_ulid" class="space-y-1.5">
+      <div v-for="group in history" :key="group.field_ulid" class="space-y-2">
         <div
           v-for="version in group.versions"
           :key="version.id"
@@ -24,19 +24,13 @@
           <Badge :variant="version.is_current ? 'success' : 'muted'" class="shrink-0">
             {{ version.is_current ? "Current" : `v${version.version}` }}
           </Badge>
-          <a
-            :href="version.url"
-            target="_blank"
-            rel="noopener"
-            class="text-primary min-w-0 truncate text-sm tracking-tight hover:underline"
-          >
-            {{ version.name }}
-          </a>
-          <span class="text-muted-foreground shrink-0 text-sm tracking-tight">
-            <span v-if="version.size">{{ formatSize(version.size) }} · </span>
-            <span v-if="version.uploaded_by_name">{{ version.uploaded_by_name }} · </span>
-            {{ formatDate(version.uploaded_at) }}
-          </span>
+          <AttachmentLink size="sm" :file="version" fallback-name="File">
+            <template #description>
+              <span v-if="version.size">{{ formatFileSize(version.size) }} · </span>
+              <span v-if="version.uploaded_by_name">{{ version.uploaded_by_name }} · </span>
+              {{ formatDate(version.uploaded_at) }}
+            </template>
+          </AttachmentLink>
         </div>
       </div>
     </CollapsibleContent>
@@ -46,6 +40,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { formatFileSize } from "@/utils/attachments";
 
 const { $dayjs } = useNuxtApp();
 
@@ -61,13 +56,6 @@ const open = ref(false);
 const totalVersions = computed(() =>
   props.history.reduce((sum, group) => sum + (group.versions?.length || 0), 0)
 );
-
-function formatSize(bytes) {
-  if (!bytes || bytes <= 0) return "";
-  const units = ["B", "KB", "MB", "GB"];
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
 
 function formatDate(value) {
   return value ? $dayjs(value).format("MMM D, YYYY [at] h:mm A") : "-";

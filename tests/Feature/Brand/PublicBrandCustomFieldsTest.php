@@ -72,6 +72,50 @@ it('exposes every filled brand custom field with label and formatted value', fun
     expect($fields[1]['value'])->toBe('SMEs');
 });
 
+it('hides custom fields marked as not public', function () {
+    CustomField::factory()->brand($this->project)
+        ->type(CustomField::TYPE_TEXT)
+        ->create([
+            'label' => ['en' => 'Public Tagline'],
+            'key' => 'public_tagline',
+            'order_column' => 1,
+        ]);
+
+    CustomField::factory()->brand($this->project)
+        ->type(CustomField::TYPE_TEXT)
+        ->create([
+            'label' => ['en' => 'Buyer Target #1'],
+            'key' => 'buyer_target_1',
+            'order_column' => 2,
+            'settings' => ['public' => false],
+        ]);
+
+    $brand = Brand::factory()->create([
+        'status' => 'active',
+        'visibility' => 'public',
+        'custom_fields' => [
+            'public_tagline' => 'We sell things',
+            'buyer_target_1' => 'SMEs',
+        ],
+    ]);
+    BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $this->event->id,
+        'status' => 'active',
+    ]);
+
+    $fields = collect(
+        $this->withHeaders($this->headers)
+            ->getJson("/api/public/projects/{$this->project->username}/brands/{$brand->slug}")
+            ->assertOk()
+            ->json('data.custom_fields')
+    );
+
+    expect($fields)->toHaveCount(1);
+    expect($fields->pluck('label')->all())->toBe(['Public Tagline']);
+    expect($fields->pluck('key')->all())->not->toContain('buyer_target_1');
+});
+
 it('drops empty custom fields', function () {
     CustomField::factory()->brand($this->project)
         ->type(CustomField::TYPE_TEXT)

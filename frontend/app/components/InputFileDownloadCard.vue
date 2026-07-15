@@ -1,63 +1,26 @@
 <template>
   <div class="w-full space-y-2">
     <!-- Existing / uploaded file card -->
-    <div
+    <AttachmentLink
       v-if="showCard"
-      class="border-border flex items-center gap-3 rounded-lg border p-3"
+      :file="fileMeta"
+      fallback-name="Uploaded file"
+      :disable-open="!fileMeta.url"
     >
-      <div class="bg-muted flex size-11 shrink-0 items-center justify-center rounded-lg">
-        <Icon :name="fileIcon" class="text-muted-foreground size-5.5" />
-      </div>
-
-      <div class="min-w-0 flex-1">
-        <p class="truncate text-sm font-medium tracking-tight">{{ fileName }}</p>
-        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-          <span v-if="fileMeta.size">{{ formatSize(fileMeta.size) }}</span>
-          <span v-if="fileMeta.size && fileMeta.uploaded_at"> · </span>
-          <span v-if="fileMeta.uploaded_at">{{ $dayjs(fileMeta.uploaded_at).format("MMM D, YYYY") }}</span>
-        </p>
-      </div>
-
-      <div class="flex shrink-0 items-center gap-1.5">
-        <Tippy v-if="fileMeta.url">
-          <a
-            :href="fileMeta.url"
-            target="_blank"
-            rel="noopener"
-            class="text-muted-foreground hover:bg-muted hover:text-foreground flex size-8 items-center justify-center rounded-md transition"
-          >
-            <Icon name="hugeicons:download-01" class="size-4" />
-          </a>
-          <template #content>
-            <span class="text-xs tracking-tight">Download</span>
-          </template>
-        </Tippy>
-        <Tippy>
-          <button
-            type="button"
-            @click="handleReplace"
-            class="text-muted-foreground hover:bg-muted hover:text-foreground flex size-8 items-center justify-center rounded-md transition"
-          >
-            <Icon name="hugeicons:exchange-01" class="size-4" />
-          </button>
-          <template #content>
-            <span class="text-xs tracking-tight">Replace</span>
-          </template>
-        </Tippy>
-        <Tippy>
-          <button
-            type="button"
-            @click="handleDelete"
-            class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-md transition"
-          >
-            <Icon name="hugeicons:delete-02" class="size-4" />
-          </button>
-          <template #content>
-            <span class="text-xs tracking-tight">Remove</span>
-          </template>
-        </Tippy>
-      </div>
-    </div>
+      <template #description>
+        <span v-if="fileMeta.size">{{ formatFileSize(fileMeta.size) }}</span>
+        <span v-if="fileMeta.size && fileMeta.uploaded_at"> · </span>
+        <span v-if="fileMeta.uploaded_at">{{ $dayjs(fileMeta.uploaded_at).format("MMM D, YYYY") }}</span>
+      </template>
+      <template #actions>
+        <AttachmentAction v-tippy="'Replace'" type="button" aria-label="Replace" @click="handleReplace">
+          <Icon name="hugeicons:exchange-01" class="size-4" />
+        </AttachmentAction>
+        <AttachmentAction v-tippy="'Remove'" type="button" aria-label="Remove" @click="handleDelete">
+          <Icon name="hugeicons:delete-02" class="size-4" />
+        </AttachmentAction>
+      </template>
+    </AttachmentLink>
 
     <!-- Uploader (empty or replacing) -->
     <template v-else>
@@ -83,6 +46,9 @@
 </template>
 
 <script setup>
+import { AttachmentAction } from "@/components/ui/attachment";
+import { formatFileSize } from "@/utils/attachments";
+
 const client = useSanctumClient();
 
 const inputFileRef = ref(null);
@@ -157,26 +123,6 @@ const fileMeta = computed(() => {
   }
   return props.initialFile || {};
 });
-
-const fileName = computed(() => fileMeta.value.name || "Uploaded file");
-
-const fileIcon = computed(() => {
-  const mime = fileMeta.value.mime_type || "";
-  const ext = (fileMeta.value.extension || "").toLowerCase();
-  if (mime.startsWith("image/")) return "hugeicons:image-01";
-  if (mime === "application/pdf" || ext === "pdf") return "hugeicons:pdf-01";
-  if (mime.includes("zip") || ext === "zip") return "hugeicons:zip-01";
-  if (ext === "ai" || mime.includes("postscript") || mime.includes("illustrator"))
-    return "hugeicons:ai-01";
-  return "hugeicons:file-01";
-});
-
-function formatSize(bytes) {
-  if (!bytes || bytes <= 0) return "";
-  const units = ["B", "KB", "MB", "GB"];
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
 
 function handleReplace() {
   isReplacing.value = true;

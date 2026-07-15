@@ -416,6 +416,15 @@ class EventDocument extends Model implements HasMedia, Sortable
         return in_array($boothType, $this->booth_types);
     }
 
+    /**
+     * Whether the submission deadline has passed. A null deadline means the
+     * document never closes.
+     */
+    public function isPastDeadline(): bool
+    {
+        return $this->submission_deadline !== null && $this->submission_deadline->isPast();
+    }
+
     // Relationships
 
     public function event(): BelongsTo

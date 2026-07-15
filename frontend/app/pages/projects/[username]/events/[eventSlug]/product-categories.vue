@@ -122,16 +122,12 @@
                 >
                   {{ stripHtml(category.description) }}
                 </div>
-                <a
+                <AttachmentLink
                   v-if="category.catalog_files?.url"
-                  :href="category.catalog_files.url"
-                  target="_blank"
-                  class="text-muted-foreground hover:text-foreground mt-1.5 inline-flex items-center gap-x-1.5 text-sm font-medium tracking-tight transition"
-                >
-                  <Icon name="teenyicons:pdf-solid" class="text-destructive size-8 shrink-0" />
-                  <span class="truncate">{{ category.catalog_files.alt || "Catalog PDF" }}</span>
-                  <Icon name="hugeicons:arrow-up-right-01" class="size-3 shrink-0" />
-                </a>
+                  :file="category.catalog_files"
+                  fallback-name="Catalog PDF"
+                  class="mt-1.5"
+                />
               </td>
               <td class="px-4 py-3">
                 <code class="text-muted-foreground text-xs">{{ category.slug }}</code>

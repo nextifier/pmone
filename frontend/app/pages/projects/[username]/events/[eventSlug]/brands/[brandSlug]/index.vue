@@ -417,32 +417,21 @@
                     >
                       <span class="text-foreground font-medium">{{ answer.label }}:</span>
                       <template v-if="answer.files?.length">
-                        <a
+                        <AttachmentLink
                           v-for="file in answer.files"
                           :key="file.id"
-                          :href="file.url"
-                          target="_blank"
-                          class="text-primary ml-1 inline-flex items-center gap-1 hover:underline"
-                        >
-                          <Icon name="hugeicons:attachment-02" class="size-3.5 shrink-0" />
-                          {{ file.name }}
-                        </a>
+                          :file="file"
+                        />
                       </template>
                       <span v-else class="ml-1">{{ answer.value }}</span>
                     </div>
                   </div>
-                  <a
+                  <AttachmentLink
                     v-else-if="item.submission?.submission_file"
-                    :href="
-                      item.submission.submission_file.url ||
-                      item.submission.submission_file.original
-                    "
-                    target="_blank"
-                    class="text-primary mt-2 inline-flex items-center gap-1 hover:underline"
-                  >
-                    <Icon name="teenyicons:pdf-solid" class="text-destructive size-8 shrink-0" />
-                    {{ item.submission.submission_file.alt || "View file" }}
-                  </a>
+                    :file="item.submission.submission_file"
+                    fallback-name="View file"
+                    class="mt-2"
+                  />
                   <template v-else-if="item.submission?.text_value">
                     {{ item.submission.text_value }}
                   </template>

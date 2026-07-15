@@ -30,28 +30,17 @@
       <Label>Catalog File (PDF)</Label>
 
       <!-- Existing file -->
-      <div
+      <AttachmentLink
         v-if="existingCatalogFile && !deleteCatalogFile"
-        class="border-border bg-muted/50 flex items-center justify-between rounded-lg border px-3 py-2.5"
+        :file="existingCatalogFile"
+        fallback-name="Catalog file"
       >
-        <div class="flex items-center gap-x-2 overflow-hidden">
-          <Icon name="hugeicons:file-02" class="text-muted-foreground size-4 shrink-0" />
-          <a
-            :href="existingCatalogFile.url"
-            target="_blank"
-            class="truncate text-sm tracking-tight underline underline-offset-2"
-          >
-            {{ existingCatalogFile.alt }}
-          </a>
-        </div>
-        <button
-          type="button"
-          @click="deleteCatalogFile = true"
-          class="text-muted-foreground hover:text-destructive shrink-0 p-1"
-        >
-          <Icon name="hugeicons:delete-02" class="size-4" />
-        </button>
-      </div>
+        <template #actions>
+          <AttachmentAction type="button" aria-label="Remove" @click="deleteCatalogFile = true">
+            <Icon name="hugeicons:delete-02" class="size-4" />
+          </AttachmentAction>
+        </template>
+      </AttachmentLink>
 
       <!-- Upload new file -->
       <div v-else>
@@ -79,6 +68,7 @@
 
 <script setup>
 import InputFile from "@/components/InputFile.vue";
+import { AttachmentAction } from "@/components/ui/attachment";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

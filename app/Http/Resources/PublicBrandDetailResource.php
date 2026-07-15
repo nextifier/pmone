@@ -62,10 +62,11 @@ class PublicBrandDetailResource extends PublicBrandIndexResource
     }
 
     /**
-     * All non-empty brand custom fields, in definition order, formatted per
-     * field type (option labels, multi-value joins, etc.). Returns a list of
-     * {key, label, value} so the public page can render labels and the admin
-     * live preview stays identical.
+     * Non-empty, public brand custom fields, in definition order, formatted per
+     * field type (option labels, multi-value joins, etc.). Fields whose
+     * settings.public is false are internal-only and excluded here. Returns a
+     * list of {key, label, value} so the public page can render labels and the
+     * admin live preview stays identical.
      *
      * @return array<int, array{key: string, label: string, value: string}>
      */
@@ -93,6 +94,7 @@ class PublicBrandDetailResource extends PublicBrandIndexResource
         return $project->customFields()
             ->get()
             ->filter(fn (CustomField $field) => $field->type !== CustomField::TYPE_SECTION
+                && ($field->settings['public'] ?? true) !== false
                 && filled($values[$field->key] ?? null))
             ->map(fn (CustomField $field) => [
                 'key' => $field->key,

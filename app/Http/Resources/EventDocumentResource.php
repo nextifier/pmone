@@ -23,6 +23,7 @@ class EventDocumentResource extends JsonResource
             'is_required' => $this->is_required,
             'blocks_next_step' => $this->blocks_next_step,
             'submission_deadline' => $this->submission_deadline,
+            'is_overdue' => $this->isPastDeadline(),
             'booth_types' => $this->booth_types,
             'settings' => $this->settings,
             'content_version' => $this->content_version,

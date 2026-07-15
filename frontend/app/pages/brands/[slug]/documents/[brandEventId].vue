@@ -164,17 +164,11 @@
             <!-- File Upload -->
             <template v-else-if="item.document.document_type === 'file_upload'">
               <!-- Existing file -->
-              <div v-if="item.submission?.submission_file" class="flex items-center gap-x-2">
-                <Icon name="hugeicons:file-01" class="text-muted-foreground size-4" />
-                <a
-                  :href="item.submission.submission_file.url || item.submission.submission_file"
-                  target="_blank"
-                  class="text-primary text-sm hover:underline"
-                >
-                  View uploaded file
-                </a>
-                <Icon name="hugeicons:checkmark-circle-02" class="text-success-foreground size-4" />
-              </div>
+              <AttachmentLink
+                v-if="item.submission?.submission_file"
+                :file="item.submission.submission_file"
+                fallback-name="Uploaded file"
+              />
 
               <div class="space-y-2">
                 <Label>Upload File</Label>
@@ -205,33 +199,21 @@
                 "
                 class="flex flex-wrap gap-2"
               >
-                <a
+                <AttachmentLink
                   v-if="item.document.template_en"
-                  :href="getMediaUrl(item.document.template_en)"
-                  target="_blank"
-                  class="text-primary inline-flex items-center gap-x-1 text-xs hover:underline"
-                >
-                  <Icon name="hugeicons:download-01" class="size-4.5" />
-                  Template (EN)
-                </a>
-                <a
+                  :file="item.document.template_en"
+                  label="Template (EN)"
+                />
+                <AttachmentLink
                   v-if="item.document.template_id"
-                  :href="getMediaUrl(item.document.template_id)"
-                  target="_blank"
-                  class="text-primary inline-flex items-center gap-x-1 text-xs hover:underline"
-                >
-                  <Icon name="hugeicons:download-01" class="size-4.5" />
-                  Template (ID)
-                </a>
-                <a
+                  :file="item.document.template_id"
+                  label="Template (ID)"
+                />
+                <AttachmentLink
                   v-if="item.document.example_file"
-                  :href="getMediaUrl(item.document.example_file)"
-                  target="_blank"
-                  class="text-primary inline-flex items-center gap-x-1 text-xs hover:underline"
-                >
-                  <Icon name="hugeicons:download-01" class="size-4.5" />
-                  Example
-                </a>
+                  :file="item.document.example_file"
+                  label="Example"
+                />
               </div>
             </template>
 
@@ -313,12 +295,6 @@ function formatDate(dateStr) {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function getMediaUrl(media) {
-  if (!media) return "";
-  if (typeof media === "string") return media;
-  return media.url || media.original || "";
 }
 
 function getStatus(item) {

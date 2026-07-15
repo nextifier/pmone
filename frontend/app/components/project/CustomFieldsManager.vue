@@ -58,6 +58,12 @@
               >
                 Hidden
               </span>
+              <span
+                v-else-if="!field.is_public"
+                class="bg-warning/10 text-warning-foreground border-warning/20 shrink-0 rounded-md border px-1.5 py-0.5 text-xs tracking-tight"
+              >
+                Internal
+              </span>
             </div>
             <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
               {{ typeLabel(field.type) }}
@@ -181,6 +187,17 @@
               <Label for="brand-field-active" class="cursor-pointer">Active</Label>
             </div>
 
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2">
+                <Switch id="brand-field-public" v-model="form.is_public" />
+                <Label for="brand-field-public" class="cursor-pointer">Show on public page</Label>
+              </div>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                Off keeps this field internal. Brands still fill it in, but it won't appear on the
+                public brand page or the live preview.
+              </p>
+            </div>
+
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
               <Button type="submit" :disabled="saving">
@@ -297,6 +314,7 @@ const form = reactive({
   options: [],
   is_required: false,
   is_active: true,
+  is_public: true,
 });
 
 const labelField = computed({
@@ -322,6 +340,7 @@ const resetForm = () => {
     options: [],
     is_required: false,
     is_active: true,
+    is_public: true,
   });
   errors.value = {};
   activeLocale.value = "en";
@@ -346,6 +365,7 @@ const openEditDialog = (field) => {
     options: Array.isArray(field.options) ? [...field.options] : [],
     is_required: field.is_required ?? false,
     is_active: field.is_active ?? true,
+    is_public: field.is_public ?? true,
   });
   dialogOpen.value = true;
 };
@@ -389,6 +409,7 @@ const handleSubmit = async () => {
       type: form.type,
       is_required: form.is_required,
       is_active: form.is_active,
+      is_public: form.is_public,
     };
 
     if (showOptions.value) {

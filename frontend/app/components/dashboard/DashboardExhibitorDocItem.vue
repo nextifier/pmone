@@ -34,72 +34,19 @@
       <div v-if="doc.description" class="format-html mt-1.5" v-html="doc.description" />
     </div>
 
-    <!-- File actions -->
+    <!-- File actions: templates + example, all open in a new tab -->
     <div v-if="hasFiles" class="mt-3 flex flex-wrap gap-2">
-      <!-- Event Rules / read-only docs: open PDF in new tab -->
-      <template v-if="mode === 'view'">
-        <a
-          v-if="doc.template_en"
-          :href="getMediaUrl(doc.template_en)"
-          target="_blank"
-          rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-lg border p-3 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
-        >
-          <Icon name="teenyicons:pdf-solid" class="text-destructive size-9" />
-          {{ $t("ed.docs.viewDocEn") }}
-          <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
-        </a>
-        <a
-          v-if="doc.template_id"
-          :href="getMediaUrl(doc.template_id)"
-          target="_blank"
-          rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex w-full items-center gap-1.5 rounded-lg border p-3 text-sm font-medium tracking-tight transition-colors sm:w-auto sm:text-sm"
-        >
-          <Icon name="teenyicons:pdf-solid" class="text-destructive size-9" />
-          {{ $t("ed.docs.viewDocId") }}
-          <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
-        </a>
-      </template>
-
-      <!-- Operational docs: templates open in new tab -->
-      <template v-else>
-        <a
-          v-if="doc.template_en"
-          :href="getMediaUrl(doc.template_en)"
-          target="_blank"
-          rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium tracking-tight transition-colors sm:text-sm"
-        >
-          <Icon name="hugeicons:download-01" class="text-foreground size-4.5" />
-          {{ $t("ed.docs.downloadTemplateEn") }}
-          <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
-        </a>
-        <a
-          v-if="doc.template_id"
-          :href="getMediaUrl(doc.template_id)"
-          target="_blank"
-          rel="noopener"
-          class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium tracking-tight transition-colors sm:text-sm"
-        >
-          <Icon name="hugeicons:download-01" class="text-foreground size-4.5" />
-          {{ $t("ed.docs.downloadTemplateId") }}
-          <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
-        </a>
-      </template>
-
-      <!-- Example file: always open in new tab -->
-      <a
-        v-if="doc.example_file"
-        :href="getMediaUrl(doc.example_file)"
-        target="_blank"
-        rel="noopener"
-        class="border-border bg-card hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-sm font-medium tracking-tight transition-colors sm:text-sm"
-      >
-        <Icon name="hugeicons:file-search" class="text-muted-foreground size-4.5" />
-        {{ $t("ed.docs.viewExample") }}
-        <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-3" />
-      </a>
+      <AttachmentLink
+        v-if="doc.template_en"
+        :file="doc.template_en"
+        :label="mode === 'view' ? $t('ed.docs.viewDocEn') : $t('ed.docs.downloadTemplateEn')"
+      />
+      <AttachmentLink
+        v-if="doc.template_id"
+        :file="doc.template_id"
+        :label="mode === 'view' ? $t('ed.docs.viewDocId') : $t('ed.docs.downloadTemplateId')"
+      />
+      <AttachmentLink v-if="doc.example_file" :file="doc.example_file" :label="$t('ed.docs.viewExample')" />
     </div>
 
     <!-- Submission area (only for action mode with apiBase) -->
@@ -125,12 +72,19 @@
             :existing-files="existingFilesByUlid"
             :upload-handler="uploadHandlers.uploadHandler"
             :revert-handler="uploadHandlers.revertHandler"
+            :disabled="isPastDeadline"
             @update:model-value="(v) => (customValues = v)"
           />
-          <Button size="sm" :disabled="submitting" @click="handleCustomSubmit">
+          <Button v-if="!isPastDeadline" size="sm" :disabled="submitting" @click="handleCustomSubmit">
             <Spinner v-if="submitting" class="mr-1.5 size-4" />
             {{ currentSubmission ? $t("ed.docs.update") : $t("ed.docs.submit") }}
           </Button>
+          <p
+            v-else
+            class="text-muted-foreground bg-muted rounded-lg px-3 py-2 text-sm tracking-tight"
+          >
+            {{ $t("ed.docs.deadlinePassed") }}
+          </p>
         </div>
       </template>
 
@@ -139,20 +93,7 @@
       <template v-else-if="doc.document_type === 'file_upload'">
         <!-- Existing uploaded file: show file info + replace option -->
         <div v-if="currentSubmission?.submission_file && !isReplacingFile" class="space-y-2.5">
-          <div class="flex items-center gap-x-2">
-            <Icon name="hugeicons:file-01" class="text-muted-foreground size-4 shrink-0" />
-            <a
-              :href="getMediaUrl(currentSubmission.submission_file)"
-              target="_blank"
-              class="text-primary truncate text-sm tracking-tight hover:underline sm:text-sm"
-            >
-              {{ currentSubmission.submission_file?.alt || currentSubmission.submission_file?.file_name || 'View uploaded file' }}
-            </a>
-            <Icon
-              name="hugeicons:checkmark-circle-02"
-              class="text-success-foreground size-4 shrink-0"
-            />
-          </div>
+          <AttachmentLink :file="currentSubmission.submission_file" fallback-name="Uploaded file" />
           <Button v-if="!isPastDeadline" size="sm" variant="outline" @click="isReplacingFile = true">
             <Icon name="hugeicons:exchange-01" class="mr-1 size-3.5" />
             {{ $t("ed.docs.replaceFile") }}
@@ -230,6 +171,12 @@
           </div>
         </div>
       </template>
+
+      <!-- Upload history (current + superseded versions), shared with staff -->
+      <BrandEventDocumentFileHistory
+        v-if="currentSubmission?.file_history?.length"
+        :history="currentSubmission.file_history"
+      />
     </div>
   </div>
 </template>
@@ -281,6 +228,9 @@ const hasFiles = computed(() => {
 });
 
 const isPastDeadline = computed(() => {
+  // Prefer the server-computed flag (authoritative clock); fall back to the
+  // browser clock only when the API predates `is_overdue`.
+  if (typeof props.doc.is_overdue === "boolean") return props.doc.is_overdue;
   if (!props.doc.submission_deadline) return false;
   return new Date() > new Date(props.doc.submission_deadline);
 });
@@ -325,12 +275,6 @@ watch(
     customValues.value = { ...(val?.field_values || {}) };
   }
 );
-
-function getMediaUrl(media) {
-  if (!media) return "";
-  if (typeof media === "string") return media;
-  return media.url || media.original || "";
-}
 
 async function handleFileUpload() {
   if (!tmpFile.value.length || !props.apiBase) return;

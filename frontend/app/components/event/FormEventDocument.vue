@@ -80,28 +80,18 @@
       <!-- Template EN -->
       <div class="space-y-2">
         <Label class="text-muted-foreground text-xs">Template (English)</Label>
-        <div
+        <AttachmentLink
           v-if="existingTemplateEn && !deleteTemplateEn"
-          class="border-border bg-muted/50 flex items-center justify-between rounded-lg border px-3 py-2.5"
+          :file="existingTemplateEn"
+          :label="'Template EN'"
+          fallback-name="Template EN"
         >
-          <div class="flex items-center gap-x-2 overflow-hidden">
-            <Icon name="hugeicons:file-02" class="text-muted-foreground size-4 shrink-0" />
-            <a
-              :href="existingTemplateEn.url"
-              target="_blank"
-              class="truncate text-sm tracking-tight underline underline-offset-2"
-            >
-              {{ existingTemplateEn.alt || 'Template EN' }}
-            </a>
-          </div>
-          <button
-            type="button"
-            @click="deleteTemplateEn = true"
-            class="text-muted-foreground hover:text-destructive shrink-0 p-1"
-          >
-            <Icon name="hugeicons:delete-02" class="size-4" />
-          </button>
-        </div>
+          <template #actions>
+            <AttachmentAction type="button" aria-label="Remove" @click="deleteTemplateEn = true">
+              <Icon name="hugeicons:delete-02" class="size-4" />
+            </AttachmentAction>
+          </template>
+        </AttachmentLink>
         <InputFile
           v-else
           v-model="tmpTemplateEn"
@@ -113,28 +103,18 @@
       <!-- Template ID -->
       <div class="space-y-2">
         <Label class="text-muted-foreground text-xs">Template (Indonesian)</Label>
-        <div
+        <AttachmentLink
           v-if="existingTemplateId && !deleteTemplateId"
-          class="border-border bg-muted/50 flex items-center justify-between rounded-lg border px-3 py-2.5"
+          :file="existingTemplateId"
+          :label="'Template ID'"
+          fallback-name="Template ID"
         >
-          <div class="flex items-center gap-x-2 overflow-hidden">
-            <Icon name="hugeicons:file-02" class="text-muted-foreground size-4 shrink-0" />
-            <a
-              :href="existingTemplateId.url"
-              target="_blank"
-              class="truncate text-sm tracking-tight underline underline-offset-2"
-            >
-              {{ existingTemplateId.alt || 'Template ID' }}
-            </a>
-          </div>
-          <button
-            type="button"
-            @click="deleteTemplateId = true"
-            class="text-muted-foreground hover:text-destructive shrink-0 p-1"
-          >
-            <Icon name="hugeicons:delete-02" class="size-4" />
-          </button>
-        </div>
+          <template #actions>
+            <AttachmentAction type="button" aria-label="Remove" @click="deleteTemplateId = true">
+              <Icon name="hugeicons:delete-02" class="size-4" />
+            </AttachmentAction>
+          </template>
+        </AttachmentLink>
         <InputFile
           v-else
           v-model="tmpTemplateId"
@@ -146,28 +126,18 @@
       <!-- Example File -->
       <div class="space-y-2">
         <Label class="text-muted-foreground text-xs">Example File</Label>
-        <div
+        <AttachmentLink
           v-if="existingExampleFile && !deleteExampleFile"
-          class="border-border bg-muted/50 flex items-center justify-between rounded-lg border px-3 py-2.5"
+          :file="existingExampleFile"
+          :label="'Example File'"
+          fallback-name="Example File"
         >
-          <div class="flex items-center gap-x-2 overflow-hidden">
-            <Icon name="hugeicons:file-02" class="text-muted-foreground size-4 shrink-0" />
-            <a
-              :href="existingExampleFile.url"
-              target="_blank"
-              class="truncate text-sm tracking-tight underline underline-offset-2"
-            >
-              {{ existingExampleFile.alt || 'Example File' }}
-            </a>
-          </div>
-          <button
-            type="button"
-            @click="deleteExampleFile = true"
-            class="text-muted-foreground hover:text-destructive shrink-0 p-1"
-          >
-            <Icon name="hugeicons:delete-02" class="size-4" />
-          </button>
-        </div>
+          <template #actions>
+            <AttachmentAction type="button" aria-label="Remove" @click="deleteExampleFile = true">
+              <Icon name="hugeicons:delete-02" class="size-4" />
+            </AttachmentAction>
+          </template>
+        </AttachmentLink>
         <InputFile
           v-else
           v-model="tmpExampleFile"
@@ -230,6 +200,7 @@
 
 import InputFile from "@/components/InputFile.vue";
 import DocumentFieldsBuilder from "@/components/event/DocumentFieldsBuilder.vue";
+import { AttachmentAction } from "@/components/ui/attachment";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

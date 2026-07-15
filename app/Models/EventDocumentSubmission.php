@@ -229,6 +229,39 @@ class EventDocumentSubmission extends Model implements HasMedia
         ];
     }
 
+    /**
+     * The per-field upload history (current + superseded versions), grouped by
+     * field and newest version first. Shared by the staff review and exhibitor
+     * dashboard so both render an identical audit trail.
+     *
+     * @return array<int, array{field_ulid: string, versions: array<int, array{id: int, name: string, url: string, size: int, mime_type: string, version: int, is_current: bool, uploaded_at: string|null, uploaded_by_name: mixed, superseded_at: mixed}>}>
+     */
+    public function fileHistory(): array
+    {
+        return $this->getMedia('submission_file')
+            ->groupBy(fn (Media $media) => $media->getCustomProperty('field_ulid') ?? 'legacy')
+            ->map(fn ($group, $fieldUlid) => [
+                'field_ulid' => $fieldUlid,
+                'versions' => $group
+                    ->sortByDesc(fn (Media $media) => (int) $media->getCustomProperty('version', 1))
+                    ->values()
+                    ->map(fn (Media $media) => [
+                        'id' => $media->id,
+                        'name' => $media->file_name,
+                        'url' => $media->getUrl(),
+                        'size' => $media->size,
+                        'mime_type' => $media->mime_type,
+                        'version' => (int) $media->getCustomProperty('version', 1),
+                        'is_current' => $media->getCustomProperty('superseded_at') === null,
+                        'uploaded_at' => $media->created_at?->toIso8601String(),
+                        'uploaded_by_name' => $media->getCustomProperty('uploaded_by_name'),
+                        'superseded_at' => $media->getCustomProperty('superseded_at'),
+                    ]),
+            ])
+            ->values()
+            ->toArray();
+    }
+
     // Relationships
 
     public function eventDocument(): BelongsTo

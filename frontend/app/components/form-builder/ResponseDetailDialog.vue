@@ -102,19 +102,25 @@
 
             <!-- File -->
             <div v-else-if="field.type === 'file' && filePaths(field).length" class="space-y-1.5">
-              <button
-                v-for="(path, index) in filePaths(field)"
-                :key="path"
-                type="button"
-                :disabled="downloadingKey === `${field.ulid}-${index}`"
-                class="bg-muted/50 border-border hover:bg-muted flex w-full items-center gap-x-2 rounded-md border px-3 py-2 text-left transition-colors disabled:opacity-50"
-                @click="downloadFile(field, index, path)"
-              >
-                <Icon name="lucide:file" class="text-muted-foreground size-4 shrink-0" />
-                <span class="min-w-0 flex-1 truncate text-sm tracking-tight">{{ fileName(path) }}</span>
-                <Spinner v-if="downloadingKey === `${field.ulid}-${index}`" class="size-4 shrink-0" />
-                <Icon v-else name="lucide:download" class="text-muted-foreground size-4 shrink-0" />
-              </button>
+              <Attachment v-for="(path, index) in filePaths(field)" :key="path" state="done">
+                <AttachmentMedia>
+                  <Icon name="lucide:file" class="size-5" />
+                </AttachmentMedia>
+                <AttachmentContent>
+                  <AttachmentTitle>{{ fileName(path) }}</AttachmentTitle>
+                </AttachmentContent>
+                <AttachmentActions>
+                  <AttachmentAction
+                    type="button"
+                    aria-label="Download"
+                    :disabled="downloadingKey === `${field.ulid}-${index}`"
+                    @click="downloadFile(field, index, path)"
+                  >
+                    <Spinner v-if="downloadingKey === `${field.ulid}-${index}`" class="size-4" />
+                    <Icon v-else name="lucide:download" class="size-4" />
+                  </AttachmentAction>
+                </AttachmentActions>
+              </Attachment>
             </div>
 
             <!-- Empty answer -->
@@ -139,6 +145,14 @@
 
 <script setup>
 import countries from "@/data/countries.json";
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@/components/ui/attachment";
 import { Flag } from "@/components/ui/flag";
 import {
   Select,

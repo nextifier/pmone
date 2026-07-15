@@ -36,6 +36,9 @@ class ProjectCustomFieldResource extends JsonResource
             'type' => $isYearSelect ? 'year_select' : $this->type,
             'options' => $isYearSelect ? null : $this->legacyOptions(),
             'is_required' => (bool) ($this->validation['required'] ?? false),
+            // Absent settings.public defaults to visible; only an explicit false
+            // hides the field from the public brand page + live preview.
+            'is_public' => ($this->settings['public'] ?? true) !== false,
             'validation' => $this->validation,
             'settings' => $this->settings,
             'is_active' => $this->is_active,

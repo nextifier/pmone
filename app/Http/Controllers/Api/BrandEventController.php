@@ -370,44 +370,13 @@ class BrandEventController extends Controller
                 'document' => new EventDocumentResource($doc),
                 'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
                 'status' => $status,
-                // Staff-only upload history, grouped by field, newest version
-                // first. This is the audit trail for file re-uploads.
-                'file_history' => $submission ? $this->buildFileHistory($submission) : [],
+                // Upload history, grouped by field, newest version first. This
+                // is the audit trail for file re-uploads.
+                'file_history' => $submission ? $submission->fileHistory() : [],
             ];
         })->values();
 
         return response()->json(['data' => $data]);
-    }
-
-    /**
-     * Build the per-field version history of submission files for staff review.
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function buildFileHistory(EventDocumentSubmission $submission): array
-    {
-        return $submission->getMedia('submission_file')
-            ->groupBy(fn ($media) => $media->getCustomProperty('field_ulid') ?? 'legacy')
-            ->map(fn ($group, $fieldUlid) => [
-                'field_ulid' => $fieldUlid,
-                'versions' => $group
-                    ->sortByDesc(fn ($media) => (int) $media->getCustomProperty('version', 1))
-                    ->values()
-                    ->map(fn ($media) => [
-                        'id' => $media->id,
-                        'name' => $media->file_name,
-                        'url' => $media->getUrl(),
-                        'size' => $media->size,
-                        'mime_type' => $media->mime_type,
-                        'version' => (int) $media->getCustomProperty('version', 1),
-                        'is_current' => $media->getCustomProperty('superseded_at') === null,
-                        'uploaded_at' => $media->created_at?->toIso8601String(),
-                        'uploaded_by_name' => $media->getCustomProperty('uploaded_by_name'),
-                        'superseded_at' => $media->getCustomProperty('superseded_at'),
-                    ]),
-            ])
-            ->values()
-            ->toArray();
     }
 
     /**

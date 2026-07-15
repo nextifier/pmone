@@ -354,16 +354,12 @@
             <div v-for="doc in documentTypes" :key="doc.type" class="space-y-2">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-sm font-medium tracking-tight">{{ doc.label }}</span>
-                <a
+                <AttachmentLink
                   v-if="order[doc.type]?.url"
-                  :href="order[doc.type].url"
-                  target="_blank"
-                  rel="noopener"
-                  class="text-primary inline-flex items-center gap-x-1 text-xs tracking-tight hover:underline sm:text-sm"
-                >
-                  <Icon name="hugeicons:download-01" class="size-3.5 shrink-0" />
-                  Download
-                </a>
+                  :file="order[doc.type]"
+                  :label="doc.label"
+                  size="sm"
+                />
               </div>
               <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">{{ doc.accept }}</p>
               <InputFile

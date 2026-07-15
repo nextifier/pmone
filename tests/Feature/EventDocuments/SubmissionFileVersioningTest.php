@@ -122,6 +122,32 @@ it('only exposes the current file to the exhibitor', function () {
     expect($docData['submission']['files'][0]['name'])->toContain('new');
 });
 
+it('exposes the full version history to the exhibitor too', function () {
+    $file = CustomField::factory()->document($this->document)
+        ->type(CustomField::TYPE_FILE)
+        ->required()
+        ->create();
+
+    $this->actingAs($this->exhibitor)
+        ->postJson($this->submitUrl, ['files' => [$file->ulid => tmpDoc('v1.pdf')]])
+        ->assertSuccessful();
+    $this->actingAs($this->exhibitor)
+        ->postJson($this->submitUrl, ['files' => [$file->ulid => tmpDoc('v2.pdf')]])
+        ->assertSuccessful();
+
+    $listing = $this->actingAs($this->exhibitor)
+        ->getJson("{$this->exhibitorApiBase}/documents")
+        ->assertSuccessful();
+
+    $docData = collect($listing->json('data.documents'))->firstWhere('document.id', $this->document->id);
+    $history = collect($docData['submission']['file_history'])->firstWhere('field_ulid', $file->ulid);
+
+    expect($history['versions'])->toHaveCount(2);
+    expect($history['versions'][0]['version'])->toBe(2);
+    expect($history['versions'][0]['is_current'])->toBeTrue();
+    expect($history['versions'][1]['version'])->toBe(1);
+});
+
 it('exposes the full version history to staff, newest first', function () {
     $file = CustomField::factory()->document($this->document)
         ->type(CustomField::TYPE_FILE)

@@ -916,6 +916,12 @@ class ExhibitorDashboardController extends Controller
             return response()->json(['message' => 'This document does not apply to your booth type.'], 422);
         }
 
+        // Enforce the submission deadline server-side; staff may still submit on
+        // an exhibitor's behalf after it passes (mirrors submitOrder).
+        if ($document->isPastDeadline() && ! $request->user()->hasRole(['master', 'admin', 'staff'])) {
+            return response()->json(['message' => 'The submission deadline for this document has passed.'], 422);
+        }
+
         $boothIdentifier = $brandEvent->booth_number ?: "be-{$brandEvent->id}";
 
         $validated = $request->validate([

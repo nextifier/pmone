@@ -146,21 +146,7 @@
                     />
 
                     <!-- Catalog PDF -->
-                    <a
-                      v-if="category.catalog_file"
-                      :href="category.catalog_file.url"
-                      target="_blank"
-                      class="border-border bg-muted/50 hover:bg-muted flex items-center gap-x-2 rounded-lg border p-4 transition"
-                    >
-                      <Icon name="teenyicons:pdf-solid" class="text-destructive size-10 shrink-0" />
-                      <span class="truncate text-sm tracking-tight">{{
-                        category.catalog_file.name
-                      }}</span>
-                      <Icon
-                        name="hugeicons:arrow-up-right-01"
-                        class="text-muted-foreground ml-auto size-3.5 shrink-0"
-                      />
-                    </a>
+                    <AttachmentLink v-if="category.catalog_file" :file="category.catalog_file" />
 
                     <div
                       v-for="product in category.products"

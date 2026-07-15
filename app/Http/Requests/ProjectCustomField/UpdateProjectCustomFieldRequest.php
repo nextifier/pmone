@@ -29,10 +29,23 @@ class UpdateProjectCustomFieldRequest extends FormRequest
             $merge['label'] = ['en' => $this->label];
         }
 
+        $settings = (array) $this->input('settings', []);
+
         if ($this->input('type') === 'year_select') {
             $merge['type'] = CustomField::TYPE_SELECT;
-            $merge['settings'] = array_merge((array) $this->input('settings', []), ['options_preset' => 'years']);
+            $settings['options_preset'] = 'years';
             $merge['options'] = null;
+        }
+
+        // Public visibility maps onto settings.public (no column needed). Absent
+        // means public; only an explicit false hides the field from the public
+        // brand page and the admin live preview.
+        if ($this->has('is_public')) {
+            $settings['public'] = $this->boolean('is_public');
+        }
+
+        if ($settings !== (array) $this->input('settings', [])) {
+            $merge['settings'] = $settings;
         }
 
         if ($this->has('is_required')) {

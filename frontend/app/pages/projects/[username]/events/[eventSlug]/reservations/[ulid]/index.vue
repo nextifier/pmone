@@ -181,12 +181,12 @@
                 Download Receipt
               </a>
             </Button>
-            <Button v-if="reservation.voucher" as-child variant="outline" size="sm">
-              <a :href="reservation.voucher.url" target="_blank" rel="noopener">
-                <Icon name="hugeicons:ticket-01" class="size-4 shrink-0" />
-                Download Hotel Voucher
-              </a>
-            </Button>
+            <AttachmentLink
+              v-if="reservation.voucher"
+              :file="reservation.voucher"
+              :label="'Hotel Voucher'"
+              size="sm"
+            />
           </div>
         </div>
       </div>

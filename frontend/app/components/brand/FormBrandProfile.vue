@@ -389,7 +389,7 @@ const savedProfileImageUrl = computed(() => {
 // the public brand page reads them (matches PublicBrandDetailResource).
 const previewCustomFields = computed(() =>
   (props.customFieldDefinitions || [])
-    .filter((def) => def.type !== "section")
+    .filter((def) => def.type !== "section" && def.is_public !== false)
     .map((def) => ({
       key: def.key,
       label: localizedLabel(def.label),
