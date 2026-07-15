@@ -1,9 +1,12 @@
 <?php
 
 use App\Rules\AllowedEmailDomain;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Email;
+
+uses(RefreshDatabase::class);
 
 it('rejects reserved and disposable domains', function (string $email) {
     $validator = Validator::make(['email' => $email], ['email' => [new AllowedEmailDomain]]);
@@ -42,6 +45,25 @@ it('keeps the shared email default lenient outside production', function () {
     $validator = Validator::make(['email' => 'user@example.com'], ['email' => Email::default()]);
 
     expect($validator->passes())->toBeTrue();
+});
+
+it('surfaces a field-level error from the magic link endpoint for an invalid email', function () {
+    $response = $this->postJson('/auth/magic-link', ['email' => 'a..b@gmail.com']);
+
+    // The SPA login/magic-link pages render errors.email under the input, so
+    // the error must arrive as a standard validation bag, not a bare message.
+    $response->assertUnprocessable()->assertJsonValidationErrors(['email']);
+});
+
+it('surfaces a field-level error from the register endpoint for an invalid email', function () {
+    $response = $this->postJson('/register', [
+        'name' => 'Test User',
+        'email' => 'a..b@gmail.com',
+        'password' => 'super-secret-password',
+        'password_confirmation' => 'super-secret-password',
+    ]);
+
+    $response->assertUnprocessable()->assertJsonValidationErrors(['email']);
 });
 
 it('rejects fake domains under the production email rule composition', function () {
