@@ -151,14 +151,19 @@ class EmailController extends Controller
                 fn ($query, Carbon $to) => $query->where('sent_at', '<=', $to->endOfDay())
             )
             ->when($request->string('search')->toString(), function ($query, $search) {
-                $query->where(function ($query) use ($search) {
+                // recipients is a json array; casting it to text lets a partial
+                // match hit any address (e.g. "paulus" finds
+                // "paulusfelix.92@gmail.com"). whereJsonContains only matched a
+                // full, exact address, so a partial query returned nothing.
+                // CAST(... AS TEXT) + LOWER is portable across Postgres/SQLite;
+                // Postgres rejects LIKE on a json column directly.
+                $recipientsLike = '%'.mb_strtolower($search).'%';
+
+                $query->where(function ($query) use ($search, $recipientsLike) {
                     $query->whereLike('subject', "%{$search}%")
                         ->orWhereLike('from_address', "%{$search}%")
                         ->orWhereLike('message_id', "%{$search}%")
-                        // recipients is a json column: LIKE against it is not
-                        // portable, and Postgres rejects it outright. An exact
-                        // address match is what a support lookup needs anyway.
-                        ->orWhereJsonContains('recipients', $search);
+                        ->orWhereRaw('LOWER(CAST(recipients AS TEXT)) LIKE ?', [$recipientsLike]);
                 });
             })
             ->tap(fn ($query) => $this->applySort($query, $request, ['sent_at', 'status', 'subject'], 'sent_at'))

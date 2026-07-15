@@ -197,7 +197,9 @@ class ResendEventRecorder
         foreach ($candidates as $candidate) {
             if (is_string($candidate) && $candidate !== '') {
                 try {
-                    return Carbon::parse($candidate);
+                    // Resend timestamps are UTC; store them as real local time
+                    // so event times line up with sent_at (see SyncResendEmails).
+                    return Carbon::parse($candidate)->setTimezone(config('app.timezone'));
                 } catch (\Throwable) {
                     continue;
                 }

@@ -96,7 +96,11 @@ class SyncResendEmails extends Command
      */
     private function upsert(array $item): bool
     {
-        $createdAt = Carbon::parse($item['created_at']);
+        // Resend timestamps are UTC. Convert to the app timezone before storing
+        // so the value round-trips through the datetime cast as real local time
+        // - otherwise a UTC wall-clock gets reinterpreted as local and every
+        // displayed "sent" time (and its day bucket) lands hours off.
+        $createdAt = Carbon::parse($item['created_at'])->setTimezone(config('app.timezone'));
 
         $message = EmailMessage::query()->firstOrNew(['message_id' => $item['id']]);
         $isNew = ! $message->exists;
