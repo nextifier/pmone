@@ -57,9 +57,26 @@ class AppServiceProvider extends ServiceProvider
         // drags down the whole account's sender reputation. Outside production
         // the network-dependent DNS check and the domain blocklist are skipped:
         // tests run offline and factories generate @example.com addresses.
-        Email::defaults(fn (): Email => app()->isProduction()
-            ? Rule::email()->rfcCompliant(strict: true)->preventSpoofing()->validateMxRecord()->rules([new AllowedEmailDomain])
-            : Rule::email()->rfcCompliant(strict: true)->preventSpoofing());
+        // The spoof and dns validators hard-require ext-intl, so they are
+        // guarded - a server without intl degrades to strict + blocklist
+        // instead of throwing on every form that validates an email.
+        Email::defaults(function (): Email {
+            $rule = Rule::email()->rfcCompliant(strict: true);
+
+            if (extension_loaded('intl')) {
+                $rule->preventSpoofing();
+            }
+
+            if (app()->isProduction()) {
+                if (extension_loaded('intl')) {
+                    $rule->validateMxRecord();
+                }
+
+                $rule->rules([new AllowedEmailDomain]);
+            }
+
+            return $rule;
+        });
 
         // Activity-log rows written before the centralized custom-fields
         // migration still carry subject_type App\Models\ProjectCustomField;
