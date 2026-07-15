@@ -111,7 +111,7 @@ it('adds event, country, source and adjustment reason to the orders sheet', func
         'applied_by' => User::factory()->create()->id,
     ]);
 
-    $response = $this->getJson("/api/sheets/orders/{$event->id}?token={$this->token}")->assertSuccessful();
+    $response = $this->getJson("/api/sheets/orders?token={$this->token}")->assertSuccessful();
     $headings = $response->json('headings');
 
     expect($headings)->toContain('Event ID');
@@ -126,6 +126,32 @@ it('adds event, country, source and adjustment reason to the orders sheet', func
     expect($response->json("rows.0.{$reasonCol}"))->toBe('Repeat exhibitor');
     expect($response->json("rows.0.{$countryCol}"))->toBe('Indonesia');
     expect($response->json("rows.0.{$sourceCol}"))->toBe('Staff');
+});
+
+it('returns orders across every event, unscoped', function () {
+    $eventA = Event::factory()->create(['title' => 'Event A']);
+    $eventB = Event::factory()->create(['title' => 'Event B']);
+
+    $brandEventA = BrandEvent::factory()->create(['event_id' => $eventA->id]);
+    $brandEventB = BrandEvent::factory()->create(['event_id' => $eventB->id]);
+
+    $orderA = Order::factory()->create(['brand_event_id' => $brandEventA->id, 'submitted_at' => now()]);
+    $orderB = Order::factory()->create(['brand_event_id' => $brandEventB->id, 'submitted_at' => now()]);
+
+    $response = $this->getJson("/api/sheets/orders?token={$this->token}")->assertSuccessful();
+
+    $headings = $response->json('headings');
+    $orderNumberCol = array_search('Order Number', $headings, true);
+    $eventTitleCol = array_search('Event Title', $headings, true);
+
+    $orderNumbers = collect($response->json('rows'))->pluck($orderNumberCol);
+    expect($orderNumbers)->toContain($orderA->order_number)
+        ->toContain($orderB->order_number);
+
+    $eventTitles = collect($response->json('rows'))->pluck($eventTitleCol)->unique()->values();
+    expect($eventTitles)->toContain('Event A')->toContain('Event B');
+
+    expect($response->json('title'))->toBe('Orders');
 });
 
 it('lists a row per applicable document with file history', function () {

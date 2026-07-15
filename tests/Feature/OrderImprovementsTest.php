@@ -335,7 +335,7 @@ it('orders sheet includes Badge Name and resolves Product Category title', funct
 
     submitImprovementOrder($this);
 
-    $response = $this->getJson("/api/sheets/orders/{$this->event->id}?token=test-token");
+    $response = $this->getJson('/api/sheets/orders?token=test-token');
     $response->assertSuccessful();
 
     $headings = $response->json('headings');

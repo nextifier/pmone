@@ -7,7 +7,6 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\CustomField;
-use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventDocumentSubmission;
 use App\Models\Order;
@@ -20,23 +19,17 @@ use Illuminate\Support\Str;
 
 class SheetsController extends Controller
 {
-    public function orders(Request $request, string $eventId): JsonResponse
+    public function orders(Request $request): JsonResponse
     {
         if ($request->query('token') !== config('services.sheets.api_token')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        $eventId = (int) $eventId;
-
-        $event = Event::find($eventId);
-
-        if (! $event) {
-            return response()->json(['error' => 'Event not found'], 404);
-        }
+        $brandEventTable = (new BrandEvent)->getTable();
 
         $orders = Order::query()
-            ->whereIn('brand_event_id', BrandEvent::where('event_id', $eventId)->select('id'))
             ->with(['brandEvent.brand', 'brandEvent.event:id,title', 'brandEvent.sales', 'items.productCategory', 'adjustments', 'creator'])
+            ->orderBy(BrandEvent::select('event_id')->whereColumn("{$brandEventTable}.id", 'orders.brand_event_id'))
             ->orderByDesc('submitted_at')
             ->get();
 
@@ -126,7 +119,7 @@ class SheetsController extends Controller
         }
 
         return response()->json([
-            'event' => $event->title,
+            'title' => 'Orders',
             'headings' => $headings,
             'rows' => $rows,
             'updated_at' => now()->toIso8601String(),

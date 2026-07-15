@@ -3,7 +3,7 @@
 Panduan ini untuk membuat Google Spreadsheet yang menampilkan data dari PM One. Data update otomatis setiap 1 menit, atau bisa di-refresh manual kapan saja.
 
 Contoh spreadsheet PM One:
-1. PM One - Orders - Global Ai Expo 2026:
+1. PM One - Orders:
 https://docs.google.com/spreadsheets/d/1qdz_nLY8-d8doUMGyrSKjRTfJKyi_Z__T60KN59eY6M
 
 2. PM One - Contacts:
@@ -23,10 +23,11 @@ https://docs.google.com/spreadsheets/d/1Wsgv39nxma0LfYmQcaHJlYOGHxllgar6aHI6MAPh
 
 Ada 5 jenis data yang bisa ditampilkan:
 
-**1. Orders (per event)**
-- URL API: `https://api.pmone.id/api/sheets/orders/{EVENT_ID}`
-- Perlu Event ID (lihat cara cari di bawah)
+**1. Orders (semua)**
+- URL API: `https://api.pmone.id/api/sheets/orders`
+- Tidak perlu ID apapun
 - Sheet name: `Orders`
+- Berisi: satu baris per item order dari SEMUA event. Ada kolom `Event ID` dan `Event Title` untuk memfilter/mengelompokkan per event (baris sudah dikelompokkan per event, order terbaru di atas)
 
 **2. Contacts (semua)**
 - URL API: `https://api.pmone.id/api/sheets/contacts`
@@ -52,21 +53,12 @@ Ada 5 jenis data yang bisa ditampilkan:
 - Berisi: satu baris per (brand event × dokumen), status pengumpulan dokumen operasional & event rules, riwayat file
 
 
-## Cara cari Event ID (khusus Orders)
-
-1. Buka PM One, masuk ke halaman event yang diinginkan
-2. Klik tab **Details**
-3. Di bagian **Event Metadata**, catat angka **ID** (bukan ULID)
-
-Contoh: https://pmone.id/projects/morefood/events/morefood-expo-indonesia/details
-
-
 ## Langkah 1: Buat Google Spreadsheet baru
 
 1. Buka https://sheets.google.com
 2. Klik tombol "+" (Blank spreadsheet)
 3. Ganti judul, contoh:
-   - Untuk orders: `Orders - MoreFood Expo Indonesia`
+   - Untuk orders: `Orders - PM One`
    - Untuk contacts: `Contacts - PM One`
    - Untuk brands: `Brands - PM One`
    - Untuk brand events: `Brand Events - PM One`
@@ -92,8 +84,8 @@ Contoh: https://pmone.id/projects/morefood/events/morefood-expo-indonesia/detail
 var CONFIG = {
   // Pilih salah satu API_URL sesuai jenis data, hapus/komentari yang tidak dipakai:
   //
-  // Orders (ganti angka di akhir dengan Event ID):
-  //   'https://api.pmone.id/api/sheets/orders/8'
+  // Orders:
+  //   'https://api.pmone.id/api/sheets/orders'
   // Contacts:
   //   'https://api.pmone.id/api/sheets/contacts'
   // Brands:
@@ -103,7 +95,7 @@ var CONFIG = {
   // Operational Documents:
   //   'https://api.pmone.id/api/sheets/operational-documents'
   //
-  API_URL: 'https://api.pmone.id/api/sheets/orders/8',
+  API_URL: 'https://api.pmone.id/api/sheets/orders',
 
   API_TOKEN: '94442717d87fb2aa4fcd9ad70439ac8671783761b64281a6f726ff7091433338',
 
@@ -232,7 +224,7 @@ function removeAutoRefresh() {
 3. Sesuaikan bagian CONFIG di atas:
 
    **Untuk Orders:**
-   - Ganti angka `8` di `API_URL` dengan Event ID yang kamu dapat
+   - Pakai `API_URL`: `'https://api.pmone.id/api/sheets/orders'`
    - Biarkan `SHEET_NAME` tetap `'Orders'`
 
    **Untuk Contacts:**
@@ -285,9 +277,8 @@ Kalau mau menampilkan beberapa jenis data sekaligus (misal Brands + Brand Events
 ## Kalau ada masalah
 
 **Data tidak muncul / error saat Run:**
-- Untuk orders: pastikan Event ID benar (cek di halaman Details)
 - Pastikan API_TOKEN tidak berubah
-- Pastikan `API_URL` sesuai jenis data (Brands/Brand Events/Operational Documents tidak pakai ID)
+- Pastikan `API_URL` sesuai jenis data (semua jenis data tidak pakai ID)
 - Coba Run ulang
 
 **Menu "PM One" tidak muncul di Google Sheets:**

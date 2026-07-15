@@ -107,7 +107,7 @@ it('exposes currency columns on the Google Sheets orders feed', function () {
         'total_idr' => 3520000,
     ]);
 
-    $response = $this->getJson("/api/sheets/orders/{$event->id}?token=test-sheets-token")
+    $response = $this->getJson('/api/sheets/orders?token=test-sheets-token')
         ->assertSuccessful();
 
     $headings = $response->json('headings');

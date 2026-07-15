@@ -914,8 +914,7 @@ Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
 });
 
 // Google Sheets integration (token-based auth)
-Route::get('/sheets/orders/{eventId}', [SheetsController::class, 'orders'])
-    ->whereNumber('eventId')
+Route::get('/sheets/orders', [SheetsController::class, 'orders'])
     ->middleware('throttle:60,1')
     ->name('sheets.orders');
 Route::get('/sheets/contacts', [SheetsController::class, 'contacts'])
