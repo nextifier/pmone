@@ -44,9 +44,10 @@ class ExhibitorDashboardController extends Controller
         $brands = $user->brands()->with([
             'media',
             'brandEvents' => function ($q) {
-                $q->with(['event.media', 'event.eventDocuments' => function ($q2) {
-                    $q2->with(['media', 'fields'])->ordered();
-                }])
+                $q->whereHas('event', fn ($e) => $e->where('is_active', true))
+                    ->with(['event.media', 'event.project', 'event.eventDocuments' => function ($q2) {
+                        $q2->with(['media', 'fields'])->ordered();
+                    }])
                     ->withCount(['promotionPosts', 'orders']);
             },
         ])->get();
@@ -64,7 +65,27 @@ class ExhibitorDashboardController extends Controller
             ->get()
             ->groupBy(fn ($s) => "{$s->event_id}:{$s->booth_identifier}:{$s->event_document_id}");
 
-        $brandEventsData = $brands->flatMap(function (Brand $brand) use ($allSubmissions) {
+        // Resolve the primary brand-event per shared booth across ALL brands in
+        // these events (not just this user's), so a booth used by several brands
+        // has a single owner for operational documents + the order form.
+        $boothPrimaries = BrandEvent::query()
+            ->whereIn('event_id', $eventIds)
+            ->whereNotNull('booth_number')
+            ->selectRaw('MIN(id) as primary_id, event_id, booth_number')
+            ->groupBy('event_id', 'booth_number')
+            ->get();
+
+        $primaryIdByBooth = $boothPrimaries->mapWithKeys(
+            fn ($row) => ["{$row->event_id}|{$row->booth_number}" => (int) $row->primary_id]
+        );
+
+        $primaryBrandNames = BrandEvent::query()
+            ->whereIn('id', $primaryIdByBooth->values()->all())
+            ->with('brand:id,name')
+            ->get()
+            ->mapWithKeys(fn (BrandEvent $be) => [$be->id => $be->brand?->name]);
+
+        $brandEventsData = $brands->flatMap(function (Brand $brand) use ($allSubmissions, $primaryIdByBooth, $primaryBrandNames) {
             $hasAddress = collect($brand->address ?? [])->contains(fn ($value) => filled($value));
 
             $brandMissingFields = collect([
@@ -78,7 +99,7 @@ class ExhibitorDashboardController extends Controller
                 : empty($brand->{$field})
             )->values()->all();
 
-            return $brand->brandEvents->map(function (BrandEvent $be) use ($brand, $brandMissingFields, $allSubmissions) {
+            return $brand->brandEvents->map(function (BrandEvent $be) use ($brand, $brandMissingFields, $allSubmissions, $primaryIdByBooth, $primaryBrandNames) {
                 $event = $be->event;
                 if (! $event) {
                     return null;
@@ -86,6 +107,14 @@ class ExhibitorDashboardController extends Controller
 
                 $boothIdentifier = $be->booth_number ?: "be-{$be->id}";
                 $boothTypeValue = $be->booth_type?->value;
+
+                // Booth-primary: a brand-event without a booth number owns its own
+                // booth; otherwise the lowest-id brand-event on that booth owns it.
+                $primaryId = empty($be->booth_number)
+                    ? $be->id
+                    : ($primaryIdByBooth["{$be->event_id}|{$be->booth_number}"] ?? $be->id);
+                $isBoothPrimary = $primaryId === $be->id;
+                $boothPrimaryBrandName = $isBoothPrimary ? null : ($primaryBrandNames[$primaryId] ?? null);
 
                 // Filter documents by booth type
                 $applicableDocs = $event->eventDocuments
@@ -158,10 +187,13 @@ class ExhibitorDashboardController extends Controller
                         'date_label' => $event->date_label,
                         'location' => $event->location,
                         'poster_image' => $event->poster_image,
+                        'project_contact' => $event->project?->whatsappContactNumber(),
                     ],
                     'booth_number' => $be->booth_number,
                     'booth_type' => $boothTypeValue,
                     'booth_type_label' => $be->booth_type?->label(),
+                    'is_booth_primary' => $isBoothPrimary,
+                    'booth_primary_brand_name' => $boothPrimaryBrandName,
                     'fascia_name' => $be->fascia_name,
                     'badge_name' => $be->badge_name,
                     'event_rules' => $eventRulesData,
@@ -305,8 +337,8 @@ class ExhibitorDashboardController extends Controller
             ->where('brands.slug', $brandSlug)
             ->firstOrFail();
 
-        // Collect business category options from all projects the brand participates in
-        $projectIds = $brand->brandEvents->pluck('event.project.id')->filter()->unique();
+        // Scope category options to the brand's active event project(s).
+        $projectIds = $brand->activeProjectIds();
         $businessCategoryOptions = [];
 
         foreach ($projectIds as $projectId) {
@@ -719,6 +751,8 @@ class ExhibitorDashboardController extends Controller
                 'promotion_post_deadline' => $event->promotion_post_deadline?->toIso8601String(),
                 'current_period' => $currentPeriod,
                 'penalty_rate' => $penaltyRate,
+                'is_booth_primary' => $brandEvent->isBoothPrimary(),
+                'booth_primary_brand_name' => $brandEvent->boothPrimaryBrandName(),
                 'brand_event' => [
                     'id' => $brandEvent->id,
                     'booth_number' => $brandEvent->booth_number,
@@ -751,6 +785,8 @@ class ExhibitorDashboardController extends Controller
             ->where('brand_id', $brand->id)
             ->with('event')
             ->findOrFail($brandEventId);
+
+        $this->assertBoothPrimary($brandEvent);
 
         $event = $brandEvent->event;
 
@@ -879,6 +915,8 @@ class ExhibitorDashboardController extends Controller
                     'title' => $event->title,
                     'date_label' => $event->date_label,
                 ],
+                'is_booth_primary' => $brandEvent->isBoothPrimary(),
+                'booth_primary_brand_name' => $brandEvent->boothPrimaryBrandName(),
                 'brand_event' => [
                     'id' => $brandEvent->id,
                     'booth_number' => $brandEvent->booth_number,
@@ -907,6 +945,8 @@ class ExhibitorDashboardController extends Controller
             ->where('brand_id', $brand->id)
             ->with('event')
             ->findOrFail($brandEventId);
+
+        $this->assertBoothPrimary($brandEvent);
 
         $event = $brandEvent->event;
         $document = $event->eventDocuments()->where('ulid', $documentUlid)->firstOrFail();
@@ -1269,6 +1309,8 @@ class ExhibitorDashboardController extends Controller
             ->where('brand_id', $brand->id)
             ->findOrFail($brandEventId);
 
+        $this->assertBoothPrimary($brandEvent);
+
         $validated = $request->validate([
             'fascia_name' => ['nullable', 'string', 'max:24'],
             'badge_name' => ['nullable', 'string', 'max:255'],
@@ -1288,6 +1330,23 @@ class ExhibitorDashboardController extends Controller
                 'badge_name' => $brandEvent->badge_name,
             ],
         ]);
+    }
+
+    /**
+     * Guard write access to booth-shared surfaces (operational documents, order
+     * form, booth fields): when several brands share one booth, only the booth's
+     * primary brand-event may write.
+     */
+    private function assertBoothPrimary(BrandEvent $brandEvent): void
+    {
+        if ($brandEvent->isBoothPrimary()) {
+            return;
+        }
+
+        abort(response()->json([
+            'message' => 'Operational documents and the order form for this booth are managed under another brand.',
+            'error_code' => 'BOOTH_NOT_PRIMARY',
+        ], 403));
     }
 
     /**

@@ -96,9 +96,21 @@
         <div class="format-html" v-html="info.order_form_content" />
       </div>
 
+      <!-- Shared-booth notice: order form handled under the primary brand -->
+      <div
+        v-if="!isBoothPrimary"
+        class="border-border bg-muted/40 mt-4 flex items-start gap-3 rounded-lg border border-dashed px-4 py-3 text-sm tracking-tight"
+      >
+        <Icon name="hugeicons:information-circle" class="text-muted-foreground mt-0.5 size-4 shrink-0" />
+        <span class="text-muted-foreground">
+          The order form for booth {{ info.brand_event?.booth_number }} is managed under
+          {{ info.booth_primary_brand_name || "another brand" }}.
+        </span>
+      </div>
+
       <!-- Order Period Banner -->
       <div
-        v-if="info.current_period === 'onsite_order'"
+        v-if="isBoothPrimary && info.current_period === 'onsite_order'"
         class="border-warning/40 bg-warning/10 text-warning-foreground mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
@@ -109,7 +121,7 @@
 
       <!-- Order Closed Banner -->
       <div
-        v-if="!canOrder"
+        v-if="isBoothPrimary && !canOrder"
         class="border-destructive/40 bg-destructive/10 text-destructive mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
@@ -117,7 +129,7 @@
       </div>
 
       <!-- Main content grid -->
-      <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div v-if="isBoothPrimary" class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
         <!-- Product Catalog (2/3) -->
         <div class="space-y-6 lg:col-span-2">
           <template v-if="products.length > 0">
@@ -558,8 +570,12 @@ const computedTaxAmount = computed(() =>
 );
 const computedTotal = computed(() => subtotalWithPenalty.value + computedTaxAmount.value);
 
+// When a booth is shared, only the primary brand can place orders for it.
+const isBoothPrimary = computed(() => info.value?.is_booth_primary !== false);
+
 const canOrder = computed(() => {
   if (!info.value) return false;
+  if (!isBoothPrimary.value) return false;
   // If current_period is set (normal_order or onsite_order), ordering is allowed
   return !!info.value.current_period;
 });

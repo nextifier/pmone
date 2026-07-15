@@ -340,13 +340,7 @@ const selectedCategoryOptions = computed({
 // Links
 const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
 
-const brandLinks = reactive(
-  (props.brand?.links || []).map((link) => ({
-    label: link.label || "",
-    url: link.url || "",
-    isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
-  }))
-);
+const brandLinks = reactive(seedPredefinedLinks(props.brand?.links, PREDEFINED_LINK_LABELS));
 
 function addLink() {
   brandLinks.push({ label: "", url: "", isCustomLabel: false });
@@ -453,16 +447,11 @@ watch(
       form.business_categories = newBrand.business_categories || [];
 
       // Sync links
-      brandLinks.splice(0, brandLinks.length);
-      if (newBrand.links?.length) {
-        brandLinks.push(
-          ...newBrand.links.map((link) => ({
-            label: link.label || "",
-            url: link.url || "",
-            isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
-          }))
-        );
-      }
+      brandLinks.splice(
+        0,
+        brandLinks.length,
+        ...seedPredefinedLinks(newBrand.links, PREDEFINED_LINK_LABELS)
+      );
     }
   }
 );

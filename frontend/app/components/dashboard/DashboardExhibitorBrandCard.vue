@@ -16,23 +16,22 @@
         <h3 class="truncate text-lg font-semibold tracking-tight sm:text-xl">
           {{ be.brand.name }}
         </h3>
-        <div v-if="be.booth_number || be.booth_type_label" class="mt-1 flex flex-wrap items-center gap-2">
-          <span
-            v-if="be.booth_number"
-            class="bg-muted inline-flex items-baseline gap-1.5 rounded-lg px-2.5 py-1"
-          >
-            <span class="text-muted-foreground text-sm tracking-tight">Booth</span>
-            <span class="text-foreground font-semibold tracking-tight">{{ be.booth_number }}</span>
-          </span>
-          <span v-if="be.booth_type_label" class="text-muted-foreground text-sm tracking-tight">
+        <div v-if="be.booth_type_label" class="mt-1 flex flex-wrap items-center gap-2">
+          <span class="text-muted-foreground text-sm tracking-tight">
             {{ be.booth_type_label }}
           </span>
         </div>
       </div>
 
-      <div v-if="collapsible" class="flex items-center gap-2">
-        <span class="text-muted-foreground text-sm tracking-tight">{{ progressLabel }}</span>
+      <div v-if="be.booth_number || collapsible" class="flex items-center gap-3">
+        <div v-if="be.booth_number" class="text-right leading-tight">
+          <div class="text-muted-foreground text-xs tracking-tight">Booth</div>
+          <div class="text-foreground text-lg font-semibold tracking-tighter sm:text-xl">
+            {{ be.booth_number }}
+          </div>
+        </div>
         <Icon
+          v-if="collapsible"
           name="hugeicons:arrow-down-01"
           :class="['text-muted-foreground size-5 shrink-0 transition-transform', open && 'rotate-180']"
         />
@@ -76,11 +75,6 @@ const open = ref(props.defaultOpen);
 const sectionsRef = ref(null);
 
 const steps = computed(() => getExhibitorSteps(props.be, props.dashboard?.profile_complete, t));
-
-const progressLabel = computed(() => {
-  const done = steps.value.filter((s) => s.completed).length;
-  return `${done}/${steps.value.length}`;
-});
 
 function handleJump(key) {
   if (props.collapsible) open.value = true;

@@ -251,7 +251,7 @@ class SheetsController extends Controller
             'Total Visits', 'Total Link Clicks',
             'Total Promotion Posts',
             'Created By', 'Updated By', 'Created At', 'Updated At',
-            ...$brandFieldDefs->map(fn (CustomField $field) => (string) $field->label)->all(),
+            ...$brandFieldDefs->map(fn (array $col) => $col['label'])->all(),
         ];
 
         $rows = $brands->map(function (Brand $brand) use ($linkLabels, $brandFieldDefs) {
@@ -392,7 +392,7 @@ class SheetsController extends Controller
         // (formatted via the field catalog); BrandEvent fields have no catalog
         // so they are rendered from their raw jsonb keys.
         $brandFieldDefs = $this->brandCustomFieldDefinitions();
-        $brandFieldLabels = $brandFieldDefs->map(fn (CustomField $field) => (string) $field->label)->all();
+        $brandFieldLabels = $brandFieldDefs->map(fn (array $col) => $col['label'])->all();
 
         $brandEventFieldKeys = $brandEvents
             ->flatMap(fn (BrandEvent $be) => array_keys($be->custom_fields ?? []))
@@ -543,11 +543,13 @@ class SheetsController extends Controller
     }
 
     /**
-     * Brand-context custom-field definitions across every project, deduped by
-     * key so a shared field appears once. These drive the dynamic Brand /
-     * BrandEvent custom-field columns.
+     * Brand-context custom-field columns across every project, mapped to one
+     * column per field label (case-insensitive, English label). Fields sharing a
+     * label across projects collapse into a single column whose value is read
+     * from whichever of the underlying keys holds it. These drive the dynamic
+     * Brand / BrandEvent custom-field columns.
      *
-     * @return Collection<int, CustomField>
+     * @return Collection<int, array{label: string, type: string, options: array, keys: array<int, string>}>
      */
     private function brandCustomFieldDefinitions(): Collection
     {
@@ -556,7 +558,20 @@ class SheetsController extends Controller
             ->where('fieldable_type', Project::class)
             ->ordered()
             ->get()
-            ->unique('key')
+            ->groupBy(fn (CustomField $field) => mb_strtolower(trim((string) $field->getTranslation('label', 'en'))))
+            ->map(function (Collection $group) {
+                // Group order follows order_column; pick the lowest-id member as
+                // the canonical definition so a same-label duplicate never wins
+                // the label/type/options non-deterministically.
+                $canonical = $group->sortBy('id')->first();
+
+                return [
+                    'label' => (string) $canonical->label,
+                    'type' => $canonical->type,
+                    'options' => $canonical->options ?? [],
+                    'keys' => $group->pluck('key')->unique()->values()->all(),
+                ];
+            })
             ->values();
     }
 

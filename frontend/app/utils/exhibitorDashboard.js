@@ -63,7 +63,12 @@ export function getExhibitorSteps(be, profileComplete, t) {
     locked: rulesLocked,
   });
 
-  if (be.documents?.length || exhibitorShowFascia(be) || exhibitorShowBadge(be)) {
+  // When several brands share one booth, operational documents and the order
+  // form are handled under the booth's primary brand only, so these steps are
+  // omitted for the non-primary brands.
+  const boothPrimary = be.is_booth_primary !== false;
+
+  if (boothPrimary && (be.documents?.length || exhibitorShowFascia(be) || exhibitorShowBadge(be))) {
     steps.push({
       key: "docs",
       label: t("ed.stepper.docs"),
@@ -73,13 +78,15 @@ export function getExhibitorSteps(be, profileComplete, t) {
     });
   }
 
-  steps.push({
-    key: "order",
-    label: t("ed.stepper.order"),
-    completed: be.orders_count > 0,
-    current: !rulesLocked && be.brand_complete && be.orders_count === 0,
-    locked: rulesLocked,
-  });
+  if (boothPrimary) {
+    steps.push({
+      key: "order",
+      label: t("ed.stepper.order"),
+      completed: be.orders_count > 0,
+      current: !rulesLocked && be.brand_complete && be.orders_count === 0,
+      locked: rulesLocked,
+    });
+  }
 
   return steps;
 }

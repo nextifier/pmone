@@ -57,6 +57,80 @@ it('renders brand custom fields as typed columns, not a json blob', function () 
     expect($response->json("rows.0.{$col}"))->toBe('Food & Beverage');
 });
 
+it('maps same-label brand fields from different projects to one column', function () {
+    $projectA = Project::factory()->create();
+    $projectB = Project::factory()->create();
+
+    // Same label, different storage keys across two projects.
+    CustomField::factory()->brand($projectA)->type(CustomField::TYPE_TEXT)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target',
+    ]);
+    CustomField::factory()->brand($projectB)->type(CustomField::TYPE_TEXT)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target_2',
+    ]);
+
+    $brandA = Brand::factory()->create(['custom_fields' => ['buyer_target' => 'Investors']]);
+    BrandEvent::factory()->create([
+        'brand_id' => $brandA->id,
+        'event_id' => Event::factory()->create(['project_id' => $projectA->id])->id,
+    ]);
+
+    $brandB = Brand::factory()->create(['custom_fields' => ['buyer_target_2' => 'Distributors']]);
+    BrandEvent::factory()->create([
+        'brand_id' => $brandB->id,
+        'event_id' => Event::factory()->create(['project_id' => $projectB->id])->id,
+    ]);
+
+    $response = $this->getJson("/api/sheets/brands?token={$this->token}")->assertSuccessful();
+    $headings = $response->json('headings');
+
+    // Only one "Buyer Target" column.
+    expect(collect($headings)->filter(fn ($h) => $h === 'Buyer Target')->count())->toBe(1);
+
+    // Each brand's value is read from whichever key holds it (coalesced).
+    $col = array_search('Buyer Target', $headings, true);
+    $rows = collect($response->json('rows'));
+    $nameCol = array_search('Name', $headings, true);
+    $rowA = $rows->first(fn ($r) => $r[$nameCol] === $brandA->name);
+    $rowB = $rows->first(fn ($r) => $r[$nameCol] === $brandB->name);
+    expect($rowA[$col])->toBe('Investors');
+    expect($rowB[$col])->toBe('Distributors');
+});
+
+it('uses the canonical lowest-id definition for same-label select options', function () {
+    $projectA = Project::factory()->create();
+    $projectB = Project::factory()->create();
+
+    // Older field (lower id) holds the real option label for value "inv".
+    CustomField::factory()->brand($projectA)->type(CustomField::TYPE_SELECT)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target',
+        'options' => [['value' => 'inv', 'label' => 'Investors']],
+    ]);
+    // Newer duplicate maps the same value to a junk label.
+    CustomField::factory()->brand($projectB)->type(CustomField::TYPE_SELECT)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target_dup',
+        'options' => [['value' => 'inv', 'label' => 'JUNK']],
+    ]);
+
+    $brand = Brand::factory()->create(['custom_fields' => ['buyer_target' => 'inv']]);
+    BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => Event::factory()->create(['project_id' => $projectA->id])->id,
+    ]);
+
+    $response = $this->getJson("/api/sheets/brands?token={$this->token}")->assertSuccessful();
+    $headings = $response->json('headings');
+    $col = array_search('Buyer Target', $headings, true);
+    $nameCol = array_search('Name', $headings, true);
+    $row = collect($response->json('rows'))->first(fn ($r) => $r[$nameCol] === $brand->name);
+
+    expect($row[$col])->toBe('Investors');
+});
+
 it('drops the doc and custom-field json columns from the brand-events sheet', function () {
     $project = Project::factory()->create();
     $event = Event::factory()->create(['project_id' => $project->id]);

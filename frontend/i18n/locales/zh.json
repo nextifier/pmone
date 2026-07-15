@@ -110,7 +110,7 @@
     "brandLogo": "品牌 Logo",
     "brandName": "品牌名称",
     "businessCategories": "业务类别",
-    "addCategory": "添加类别...",
+    "addCategory": "添加类别",
     "pressEnterToAdd": "按回车键添加类别",
     "description": "描述",
     "writeBrandDescription": "请输入品牌描述...",
@@ -288,6 +288,10 @@
   },
   "ed": {
     "noEvents": "暂无展会，请联系主办方确认品牌参展信息。",
+    "booth": {
+      "sharedNote": "展位 {booth} 的运营文件和订购表由 {brand} 统一负责。",
+      "anotherBrand": "其他品牌"
+    },
     "profile": {
       "title": "完善个人信息",
       "summary": "填好以下信息才能继续操作。",
@@ -340,6 +344,8 @@
       "fasciaName": "楣板名称",
       "fasciaPlaceholder": "楣板上显示的名称",
       "fasciaHint": "最多 24 个字符，只能用大写英文",
+      "fasciaContactHint": "需要超过 24 个字符？",
+      "fasciaContactCta": "通过 WhatsApp 联系我们",
       "badgeName": "胸牌名称",
       "badgeDescription": "这个名称会印在参展商胸牌上。可以填公司名或品牌名，多个品牌的话选一个就好。",
       "badgePlaceholder": "胸牌上显示的名称",

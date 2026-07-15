@@ -90,8 +90,9 @@ class BrandController extends Controller
 
         $brand->load(['media', 'tags', 'links', 'users.media', 'creator', 'updater', 'brandEvents.event.project']);
 
-        // Collect business category options from all projects the brand participates in
-        $projectIds = $brand->brandEvents->pluck('event.project.id')->filter()->unique();
+        // Scope options to the brand's active event project(s) so it never shows
+        // categories or custom fields from unrelated projects/past editions.
+        $projectIds = $brand->activeProjectIds();
         $businessCategoryOptions = [];
 
         foreach ($projectIds as $projectId) {
@@ -106,8 +107,7 @@ class BrandController extends Controller
 
         $businessCategoryOptions = array_values(array_unique($businessCategoryOptions));
 
-        // Collect custom field definitions from all associated projects
-        $customFieldDefinitions = $this->brandFieldDefinitionsFor($projectIds->all());
+        $customFieldDefinitions = $this->brandFieldDefinitionsFor($projectIds);
 
         return response()->json([
             'data' => [
@@ -222,8 +222,7 @@ class BrandController extends Controller
         // only validated when the payload actually carries the key, so partial
         // updates that skip brand fields are never blocked.
         if ($projectCustomFields !== null) {
-            $projectIds = $brand->brandEvents()->with('event')->get()->pluck('event.project_id')->filter()->unique();
-            $customFieldDefinitions = $this->brandFieldDefinitionsFor($projectIds->all());
+            $customFieldDefinitions = $this->brandFieldDefinitionsFor($brand->activeProjectIds());
 
             $errors = CustomFieldValidation::errorsFor(
                 $customFieldDefinitions,
@@ -772,7 +771,9 @@ class BrandController extends Controller
     }
 
     /**
-     * Brand-field definitions across every project the brand participates in.
+     * Brand-field definitions for the given projects, de-duplicated by their
+     * (English) label so a project that accidentally holds two fields with the
+     * same name never surfaces a duplicate column/input.
      *
      * @param  array<int, int>  $projectIds
      * @return Collection<int, CustomField>
@@ -784,7 +785,10 @@ class BrandController extends Controller
             ->where('fieldable_type', Project::class)
             ->whereIn('fieldable_id', $projectIds)
             ->ordered()
-            ->get();
+            ->get()
+            ->groupBy(fn (CustomField $field) => mb_strtolower(trim((string) $field->getTranslation('label', 'en'))))
+            ->map(fn (Collection $group) => $group->sortBy('id')->first())
+            ->values();
     }
 
     /**

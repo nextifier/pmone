@@ -191,7 +191,7 @@ class BrandEventController extends Controller
             'booth_price' => ['nullable', 'numeric', 'min:0'],
             'currency_override' => ['nullable', 'in:IDR,USD'],
             'badge_name' => ['nullable', 'string', 'max:255'],
-            'fascia_name' => ['nullable', 'string', 'max:24'],
+            'fascia_name' => ['nullable', 'string', 'max:255'],
             'sales_id' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'string'],
             'emails' => ['nullable', 'array'],
@@ -400,7 +400,7 @@ class BrandEventController extends Controller
             'status' => ['nullable', 'string', 'max:20'],
             'notes' => ['nullable', 'string'],
             'promotion_post_limit' => ['nullable', 'integer', 'min:1', 'max:100'],
-            'fascia_name' => ['nullable', 'string', 'max:24'],
+            'fascia_name' => ['nullable', 'string', 'max:255'],
             'badge_name' => ['nullable', 'string', 'max:255'],
             'custom_fields' => ['nullable', 'array'],
         ]);

@@ -2,7 +2,6 @@
 
 namespace App\Support\Sheets;
 
-use App\Models\CustomField;
 use App\Support\FormFieldTypes;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -26,23 +25,36 @@ class SheetFormatting
     }
 
     /**
-     * One formatted cell per typed custom-field definition, in the given order.
-     * Values are keyed by the field `key` (how Brand/BrandEvent store them).
+     * One formatted cell per custom-field column, in the given order. Each column
+     * may map to several storage keys (fields sharing a label across projects);
+     * the value is the first non-empty one among them.
      *
-     * @param  Collection<int, CustomField>  $fields
+     * @param  Collection<int, array{label: string, type: string, options: array, keys: array<int, string>}>  $columns
      * @param  array<string, mixed>|null  $values
      * @return array<int, string>
      */
-    public static function customFieldColumns(Collection $fields, ?array $values): array
+    public static function customFieldColumns(Collection $columns, ?array $values): array
     {
         $values ??= [];
 
-        return $fields
-            ->map(fn (CustomField $field) => FormFieldTypes::formatValueForType(
-                $field->type,
-                $values[$field->key] ?? null,
-                $field->options ?? [],
-            ))
+        return $columns
+            ->map(function (array $column) use ($values) {
+                $value = null;
+
+                foreach ($column['keys'] as $key) {
+                    $candidate = $values[$key] ?? null;
+                    if ($candidate !== null && $candidate !== '' && $candidate !== []) {
+                        $value = $candidate;
+                        break;
+                    }
+                }
+
+                return FormFieldTypes::formatValueForType(
+                    $column['type'],
+                    $value,
+                    $column['options'] ?? [],
+                );
+            })
             ->values()
             ->all();
     }

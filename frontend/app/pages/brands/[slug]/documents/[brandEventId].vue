@@ -22,9 +22,21 @@
     </div>
 
     <template v-else-if="pageData">
+      <!-- Shared-booth notice: docs handled under the primary brand -->
+      <div
+        v-if="pageData.is_booth_primary === false"
+        class="border-border bg-muted/40 flex items-start gap-3 rounded-xl border border-dashed p-5"
+      >
+        <Icon name="hugeicons:information-circle" class="text-muted-foreground mt-0.5 size-5 shrink-0" />
+        <p class="text-muted-foreground text-sm tracking-tight">
+          Operational documents for booth {{ pageData.brand_event.booth_number }} are managed under
+          {{ pageData.booth_primary_brand_name || "another brand" }}.
+        </p>
+      </div>
+
       <!-- Empty State -->
       <div
-        v-if="documents.length === 0"
+        v-else-if="documents.length === 0"
         class="border-border flex flex-col items-center gap-3 rounded-xl border px-4 py-12"
       >
         <div class="bg-muted flex size-12 items-center justify-center rounded-full">

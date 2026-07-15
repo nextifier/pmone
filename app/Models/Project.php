@@ -609,6 +609,49 @@ class Project extends Model implements HasMedia, Sortable
     }
 
     /**
+     * Resolve a contact WhatsApp number from the project's phone list, following a
+     * label priority order (case-insensitive), and normalise it to bare digits
+     * suitable for a wa.me link. Returns null when none of the labels match.
+     *
+     * @param  list<string>  $labelPriority
+     */
+    public function whatsappContactNumber(array $labelPriority = ['WhatsApp PC', 'WhatsApp Sales']): ?string
+    {
+        $phones = collect($this->phone ?? []);
+
+        foreach ($labelPriority as $wanted) {
+            $match = $phones->first(
+                fn ($phone) => strtolower(trim((string) ($phone['label'] ?? ''))) === strtolower($wanted)
+            );
+
+            if ($match && ! empty($match['number'])) {
+                return self::normalizeWhatsappNumber((string) $match['number']);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Strip a phone number to bare digits and convert a leading Indonesian "0"
+     * trunk prefix to the "62" country code, for use in wa.me links.
+     */
+    public static function normalizeWhatsappNumber(string $number): ?string
+    {
+        $digits = preg_replace('/\D+/', '', $number);
+
+        if (empty($digits)) {
+            return null;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            $digits = '62'.substr($digits, 1);
+        }
+
+        return $digits;
+    }
+
+    /**
      * A remote logo URL suitable for an email header (medium conversion), or null
      * when the project has no profile image.
      */

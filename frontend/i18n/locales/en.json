@@ -110,7 +110,7 @@
     "brandLogo": "Brand Logo",
     "brandName": "Brand Name",
     "businessCategories": "Business Categories",
-    "addCategory": "Add category...",
+    "addCategory": "Add category",
     "pressEnterToAdd": "Press Enter to add a category",
     "description": "Description",
     "writeBrandDescription": "Write brand description...",
@@ -300,6 +300,10 @@
   },
   "ed": {
     "noEvents": "No events found for your brands.",
+    "booth": {
+      "sharedNote": "Operational documents and the order form for booth {booth} are managed under {brand}.",
+      "anotherBrand": "another brand"
+    },
     "profile": {
       "title": "Complete Your Profile",
       "summary": "Fill in all required fields to continue.",
@@ -352,6 +356,8 @@
       "fasciaName": "Fascia Name",
       "fasciaPlaceholder": "Name displayed on booth fascia",
       "fasciaHint": "Max 24 characters, uppercase only",
+      "fasciaContactHint": "Need more than 24 characters?",
+      "fasciaContactCta": "Contact us on WhatsApp",
       "badgeName": "Badge Name",
       "badgeDescription": "This is the name that will be printed on your Exhibitor Badge. You can use your company name or brand name. If you choose your brand name and have multiple brands, select which brand name to use.",
       "badgePlaceholder": "Name displayed on exhibitor badge",

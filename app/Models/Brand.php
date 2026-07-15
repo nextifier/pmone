@@ -375,6 +375,41 @@ class Brand extends Model implements HasMedia, Sortable
         return $this->hasMany(BrandEvent::class)->ordered();
     }
 
+    /**
+     * Project IDs whose configuration (categories, custom fields) applies to this
+     * brand: the projects of its currently-active events. Falls back to the
+     * project of the brand's most recent event so the brand stays configurable
+     * even when it has no active event. Uses the loaded brandEvents relation when
+     * available to avoid an extra query.
+     *
+     * @return array<int, int>
+     */
+    public function activeProjectIds(): array
+    {
+        $brandEvents = $this->relationLoaded('brandEvents')
+            ? $this->brandEvents
+            : $this->brandEvents()->with('event.project')->get();
+
+        $activeProjectIds = $brandEvents
+            ->filter(fn (BrandEvent $be) => $be->event && $be->event->is_active)
+            ->pluck('event.project.id')
+            ->filter()
+            ->unique();
+
+        if ($activeProjectIds->isNotEmpty()) {
+            return $activeProjectIds->values()->all();
+        }
+
+        $latest = $brandEvents
+            ->filter(fn (BrandEvent $be) => $be->event)
+            ->sortByDesc(fn (BrandEvent $be) => $be->event->start_date)
+            ->first();
+
+        return $latest && $latest->event->project_id
+            ? [$latest->event->project_id]
+            : [];
+    }
+
     public function exhibitorLeads(): HasMany
     {
         return $this->hasMany(ExhibitorLead::class);

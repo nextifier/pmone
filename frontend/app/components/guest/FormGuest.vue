@@ -104,11 +104,7 @@ const form = ref({
     start: parseISODate(props.guest?.appearance_date?.start),
     end: parseISODate(props.guest?.appearance_date?.end),
   } as { start: Date | null; end: Date | null },
-  links: (props.guest?.links ?? []).map((l) => ({
-    label: l.label || "",
-    url: l.url || "",
-    isCustomLabel: !PREDEFINED_LINK_LABELS.includes(l.label),
-  })) as Link[],
+  links: seedPredefinedLinks(props.guest?.links, PREDEFINED_LINK_LABELS) as Link[],
 });
 
 const imageFiles = ref<{ profile: string[] }>({ profile: [] });

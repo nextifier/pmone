@@ -222,8 +222,26 @@
       </DashboardExhibitorSection>
     </div>
 
+    <!-- Shared-booth notice: docs + order form handled under the primary brand -->
+    <div v-if="!isBoothPrimary" class="border-border bg-muted/40 rounded-xl border border-dashed p-4 sm:p-5">
+      <div class="flex items-start gap-3">
+        <Icon name="hugeicons:information-circle" class="text-muted-foreground mt-0.5 size-5 shrink-0" />
+        <p class="text-muted-foreground text-sm tracking-tight">
+          {{
+            $t("ed.booth.sharedNote", {
+              booth: be.booth_number,
+              brand: be.booth_primary_brand_name || $t("ed.booth.anotherBrand"),
+            })
+          }}
+        </p>
+      </div>
+    </div>
+
     <!-- Section 5: Operational Documents -->
-    <div v-if="be.documents?.length || showFascia || showBadge" :ref="(el) => (wrapRefs.docs = el)">
+    <div
+      v-if="isBoothPrimary && (be.documents?.length || showFascia || showBadge)"
+      :ref="(el) => (wrapRefs.docs = el)"
+    >
       <DashboardExhibitorSection
         v-model:open="sectionStates.docs"
         :title="$t('ed.docs.title')"
@@ -268,6 +286,20 @@
               <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
                 {{ $t("ed.docs.fasciaHint") }}
               </p>
+              <p
+                v-if="be.event?.project_contact"
+                class="text-muted-foreground text-sm tracking-tight sm:text-sm"
+              >
+                {{ $t("ed.docs.fasciaContactHint") }}
+                <a
+                  :href="`https://wa.me/${be.event.project_contact}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary font-medium underline-offset-2 hover:underline"
+                >
+                  {{ $t("ed.docs.fasciaContactCta") }}
+                </a>
+              </p>
             </div>
             <div v-if="showBadge" class="space-y-2">
               <Label :for="`badge_${be.brand_event_id}`">{{ $t("ed.docs.badgeName") }}</Label>
@@ -293,7 +325,7 @@
     </div>
 
     <!-- Section 6: Order Form -->
-    <div :ref="(el) => (wrapRefs.order = el)">
+    <div v-if="isBoothPrimary" :ref="(el) => (wrapRefs.order = el)">
       <DashboardExhibitorSection
         v-model:open="sectionStates.order"
         :title="$t('ed.order.title')"
@@ -337,6 +369,10 @@ const agreeingId = ref(null);
 const boothFields = reactive({});
 const savingBoothFields = ref(false);
 const wrapRefs = {};
+
+// When a booth is shared by several brands, only the primary brand handles
+// operational documents and the order form; the others see a note instead.
+const isBoothPrimary = computed(() => props.be.is_booth_primary !== false);
 
 // --- Booth fields / docs (shared logic) ---
 const showFascia = computed(() => exhibitorShowFascia(props.be));

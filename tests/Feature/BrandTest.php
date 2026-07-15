@@ -3,6 +3,7 @@
 use App\Enums\BoothType;
 use App\Models\Brand;
 use App\Models\BrandEvent;
+use App\Models\CustomField;
 use App\Models\Event;
 use App\Models\Project;
 use App\Models\PromotionPost;
@@ -246,6 +247,64 @@ test('staff can update booth info', function () {
     expect($brandEvent->booth_number)->toBe('A-101');
     expect((float) $brandEvent->booth_size)->toBe(36.5);
     expect($brandEvent->status)->toBe('confirmed');
+});
+
+test('staff can set fascia name longer than 24 characters', function () {
+    $brand = Brand::factory()->create();
+    $brandEvent = BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $this->event->id,
+    ]);
+
+    $longFascia = str_repeat('A', 30);
+
+    $response = $this->putJson("{$this->baseUrl}/{$brand->slug}", [
+        'fascia_name' => $longFascia,
+    ]);
+
+    $response->assertSuccessful();
+    expect($brandEvent->refresh()->fascia_name)->toBe($longFascia);
+});
+
+test('exhibitor cannot set fascia name longer than 24 characters', function () {
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    $exhibitor->assignRole('exhibitor');
+
+    $brand = Brand::factory()->create();
+    $brand->users()->attach($exhibitor->id);
+    $brandEvent = BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $this->event->id,
+    ]);
+
+    $this->actingAs($exhibitor);
+
+    $response = $this->putJson(
+        "/api/exhibitor/brands/{$brand->slug}/events/{$brandEvent->id}/booth-fields",
+        ['fascia_name' => str_repeat('A', 30)]
+    );
+
+    $response->assertStatus(422);
+});
+
+test('project resolves whatsapp contact number by label priority', function () {
+    $withPc = Project::factory()->create([
+        'phone' => [
+            ['label' => 'WhatsApp Sales', 'number' => '0812 3456 7890'],
+            ['label' => 'WhatsApp PC', 'number' => '+62 856-1111-2222'],
+        ],
+    ]);
+    expect($withPc->whatsappContactNumber())->toBe('6285611112222');
+
+    $salesOnly = Project::factory()->create([
+        'phone' => [['label' => 'WhatsApp Sales', 'number' => '08123456789']],
+    ]);
+    expect($salesOnly->whatsappContactNumber())->toBe('628123456789');
+
+    $neither = Project::factory()->create([
+        'phone' => [['label' => 'WhatsApp Marketing', 'number' => '08110001111']],
+    ]);
+    expect($neither->whatsappContactNumber())->toBeNull();
 });
 
 test('staff can update brand profile', function () {
@@ -684,6 +743,226 @@ test('exhibitor can access dashboard', function () {
                 'brand_events',
             ],
         ]);
+});
+
+test('dashboard only shows brand events from active events', function () {
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    $exhibitor->assignRole('exhibitor');
+
+    $activeEvent = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+    ]);
+    $inactiveEvent = Event::factory()->create([
+        'project_id' => $this->project->id,
+        'is_active' => false,
+    ]);
+
+    $brand = Brand::factory()->create();
+    $brand->users()->attach($exhibitor->id);
+
+    BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $activeEvent->id,
+    ]);
+    BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $inactiveEvent->id,
+    ]);
+
+    $this->actingAs($exhibitor);
+
+    $response = $this->getJson('/api/exhibitor/dashboard');
+
+    $response->assertSuccessful();
+    $eventIds = collect($response->json('data.brand_events'))->pluck('event.id')->all();
+    expect($eventIds)->toContain($activeEvent->id);
+    expect($eventIds)->not->toContain($inactiveEvent->id);
+});
+
+test('brand show returns custom fields only from active event project', function () {
+    $projectA = Project::factory()->create();
+    $projectB = Project::factory()->create();
+
+    $activeEvent = Event::factory()->create(['project_id' => $projectA->id, 'is_active' => true]);
+    $inactiveEvent = Event::factory()->create(['project_id' => $projectB->id, 'is_active' => false]);
+
+    $brand = Brand::factory()->create();
+    BrandEvent::factory()->create(['brand_id' => $brand->id, 'event_id' => $activeEvent->id]);
+    BrandEvent::factory()->create(['brand_id' => $brand->id, 'event_id' => $inactiveEvent->id]);
+
+    CustomField::factory()->brand($projectA)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target_a',
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+    CustomField::factory()->brand($projectB)->create([
+        'label' => ['en' => 'Legacy Field'],
+        'key' => 'legacy_b',
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+
+    $response = $this->getJson("/api/brands/{$brand->slug}");
+
+    $response->assertSuccessful();
+    $keys = collect($response->json('custom_field_definitions'))->pluck('key')->all();
+    expect($keys)->toContain('buyer_target_a');
+    expect($keys)->not->toContain('legacy_b');
+});
+
+test('brand show de-duplicates custom fields with the same label', function () {
+    $project = Project::factory()->create();
+    $event = Event::factory()->create(['project_id' => $project->id, 'is_active' => true]);
+
+    $brand = Brand::factory()->create();
+    BrandEvent::factory()->create(['brand_id' => $brand->id, 'event_id' => $event->id]);
+
+    CustomField::factory()->brand($project)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target_1',
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+    CustomField::factory()->brand($project)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target_2',
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+
+    $response = $this->getJson("/api/brands/{$brand->slug}");
+
+    $response->assertSuccessful();
+    $labels = collect($response->json('custom_field_definitions'))->pluck('label');
+    expect($labels->filter(fn ($l) => str_contains(json_encode($l), 'Buyer Target'))->count())->toBe(1);
+});
+
+test('brand update preserves custom field values from other projects', function () {
+    $projectA = Project::factory()->create();
+    $projectB = Project::factory()->create();
+
+    $activeEvent = Event::factory()->create(['project_id' => $projectA->id, 'is_active' => true]);
+    $inactiveEvent = Event::factory()->create(['project_id' => $projectB->id, 'is_active' => false]);
+
+    $brand = Brand::factory()->create([
+        'custom_fields' => ['legacy_b' => 'keep-me'],
+    ]);
+    BrandEvent::factory()->create(['brand_id' => $brand->id, 'event_id' => $activeEvent->id]);
+    BrandEvent::factory()->create(['brand_id' => $brand->id, 'event_id' => $inactiveEvent->id]);
+
+    CustomField::factory()->brand($projectA)->create([
+        'label' => ['en' => 'Buyer Target'],
+        'key' => 'buyer_target_a',
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+    CustomField::factory()->brand($projectB)->create([
+        'label' => ['en' => 'Legacy Field'],
+        'key' => 'legacy_b',
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+
+    $response = $this->putJson("/api/brands/{$brand->slug}", [
+        'project_custom_fields' => ['buyer_target_a' => 'new-value'],
+    ]);
+
+    $response->assertSuccessful();
+    $brand->refresh();
+    expect($brand->custom_fields['buyer_target_a'])->toBe('new-value');
+    expect($brand->custom_fields['legacy_b'])->toBe('keep-me');
+});
+
+test('dashboard flags booth primary and names the owner for shared booths', function () {
+    $this->event->update(['is_active' => true]);
+
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    $exhibitor->assignRole('exhibitor');
+
+    $primaryBrand = Brand::factory()->create(['name' => 'Primary Brand']);
+    $secondaryBrand = Brand::factory()->create(['name' => 'Secondary Brand']);
+    $primaryBrand->users()->attach($exhibitor->id);
+    $secondaryBrand->users()->attach($exhibitor->id);
+
+    $primaryBe = BrandEvent::factory()->create([
+        'brand_id' => $primaryBrand->id,
+        'event_id' => $this->event->id,
+        'booth_number' => 'A-1',
+    ]);
+    $secondaryBe = BrandEvent::factory()->create([
+        'brand_id' => $secondaryBrand->id,
+        'event_id' => $this->event->id,
+        'booth_number' => 'A-1',
+    ]);
+
+    $this->actingAs($exhibitor);
+    $response = $this->getJson('/api/exhibitor/dashboard');
+
+    $response->assertSuccessful();
+    $byId = collect($response->json('data.brand_events'))->keyBy('brand_event_id');
+    expect($byId[$primaryBe->id]['is_booth_primary'])->toBeTrue();
+    expect($byId[$primaryBe->id]['booth_primary_brand_name'])->toBeNull();
+    expect($byId[$secondaryBe->id]['is_booth_primary'])->toBeFalse();
+    expect($byId[$secondaryBe->id]['booth_primary_brand_name'])->toBe('Primary Brand');
+});
+
+test('only the booth primary can update booth fields and submit documents', function () {
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    $exhibitor->assignRole('exhibitor');
+
+    $primaryBrand = Brand::factory()->create();
+    $secondaryBrand = Brand::factory()->create();
+    $primaryBrand->users()->attach($exhibitor->id);
+    $secondaryBrand->users()->attach($exhibitor->id);
+
+    $primaryBe = BrandEvent::factory()->create([
+        'brand_id' => $primaryBrand->id,
+        'event_id' => $this->event->id,
+        'booth_number' => 'A-1',
+    ]);
+    $secondaryBe = BrandEvent::factory()->create([
+        'brand_id' => $secondaryBrand->id,
+        'event_id' => $this->event->id,
+        'booth_number' => 'A-1',
+    ]);
+
+    $this->actingAs($exhibitor);
+
+    // Primary can write booth fields.
+    $this->putJson(
+        "/api/exhibitor/brands/{$primaryBrand->slug}/events/{$primaryBe->id}/booth-fields",
+        ['fascia_name' => 'HELLO']
+    )->assertSuccessful();
+
+    // Non-primary is blocked on booth fields.
+    $this->putJson(
+        "/api/exhibitor/brands/{$secondaryBrand->slug}/events/{$secondaryBe->id}/booth-fields",
+        ['fascia_name' => 'HELLO']
+    )->assertStatus(403)->assertJson(['error_code' => 'BOOTH_NOT_PRIMARY']);
+
+    // Non-primary is blocked on document submission (guard runs before lookup).
+    $this->postJson(
+        "/api/exhibitor/brands/{$secondaryBrand->slug}/events/{$secondaryBe->id}/documents/any-ulid",
+        []
+    )->assertStatus(403)->assertJson(['error_code' => 'BOOTH_NOT_PRIMARY']);
+});
+
+test('brand event without a booth number is always its own primary', function () {
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    $exhibitor->assignRole('exhibitor');
+
+    $brand = Brand::factory()->create();
+    $brand->users()->attach($exhibitor->id);
+    $brandEvent = BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $this->event->id,
+        'booth_number' => null,
+    ]);
+
+    $this->actingAs($exhibitor);
+
+    $this->putJson(
+        "/api/exhibitor/brands/{$brand->slug}/events/{$brandEvent->id}/booth-fields",
+        ['fascia_name' => 'SOLO']
+    )->assertSuccessful();
+
+    expect($brandEvent->fresh()->isBoothPrimary())->toBeTrue();
 });
 
 test('exhibitor can list their brands', function () {

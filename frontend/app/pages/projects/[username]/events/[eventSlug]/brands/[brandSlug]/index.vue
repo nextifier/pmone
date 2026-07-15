@@ -32,8 +32,7 @@
                   id="fascia_name"
                   :model-value="boothForm.fascia_name"
                   @update:model-value="(v) => (boothForm.fascia_name = v.toUpperCase())"
-                  maxlength="24"
-                  placeholder="Fascia name (max 24 chars)"
+                  placeholder="Fascia name"
                 />
               </div>
               <div class="space-y-2">
@@ -745,11 +744,7 @@ const boothForm = reactive({
 const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
 
 const brandLinks = reactive(
-  (props.brandEvent?.brand?.links || []).map((link) => ({
-    label: link.label || "",
-    url: link.url || "",
-    isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
-  }))
+  seedPredefinedLinks(props.brandEvent?.brand?.links, PREDEFINED_LINK_LABELS)
 );
 
 function addLink() {
@@ -812,16 +807,11 @@ watch(
       boothForm.notes = val.notes || "";
 
       // Sync links
-      brandLinks.splice(0, brandLinks.length);
-      if (val.brand?.links?.length) {
-        brandLinks.push(
-          ...val.brand.links.map((link) => ({
-            label: link.label || "",
-            url: link.url || "",
-            isCustomLabel: !PREDEFINED_LINK_LABELS.includes(link.label),
-          }))
-        );
-      }
+      brandLinks.splice(
+        0,
+        brandLinks.length,
+        ...seedPredefinedLinks(val.brand?.links, PREDEFINED_LINK_LABELS)
+      );
     }
   }
 );

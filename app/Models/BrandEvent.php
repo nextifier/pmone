@@ -176,6 +176,45 @@ class BrandEvent extends Model implements HasMedia, Sortable
     }
 
     /**
+     * Several brands can share one physical booth (same booth_number in the same
+     * event). Operational documents and the order form for that booth are the
+     * responsibility of a single "primary" brand-event: the earliest one (lowest
+     * id) sharing the booth. A brand-event without a booth number shares nothing
+     * and is always its own primary.
+     */
+    public function boothPrimaryId(): int
+    {
+        if (empty($this->booth_number)) {
+            return $this->id;
+        }
+
+        return (int) static::query()
+            ->where('event_id', $this->event_id)
+            ->where('booth_number', $this->booth_number)
+            ->min('id');
+    }
+
+    public function isBoothPrimary(): bool
+    {
+        return $this->boothPrimaryId() === $this->id;
+    }
+
+    /**
+     * Name of the brand that owns this booth's documents/order form, or null when
+     * this brand-event is itself the primary.
+     */
+    public function boothPrimaryBrandName(): ?string
+    {
+        $primaryId = $this->boothPrimaryId();
+
+        if ($primaryId === $this->id) {
+            return null;
+        }
+
+        return static::query()->with('brand:id,name')->find($primaryId)?->brand?->name;
+    }
+
+    /**
      * Resolve the billing currency for this exhibitor (manual override, else the
      * brand's country). Thin delegate to the CurrencyResolver service.
      */
