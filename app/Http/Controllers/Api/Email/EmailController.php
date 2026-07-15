@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Email;
 
 use App\Enums\EmailEventType;
+use App\Exports\EmailMessagesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Email\EmailMessageResource;
 use App\Http\Resources\Email\EmailSuppressionResource;
@@ -16,9 +17,17 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class EmailController extends Controller
 {
+    /**
+     * Widest daily trend the chart will plot. A multi-year range would otherwise
+     * build thousands of points; the headline totals still span the full range.
+     */
+    private const MAX_TREND_DAYS = 366;
+
     public function __construct(private readonly ResendEmailApi $resendEmails) {}
 
     /**
@@ -120,22 +129,30 @@ class EmailController extends Controller
      */
     private function dailyTrend(Carbon $from, Carbon $to): array
     {
+        $lastDay = $to->copy()->startOfDay();
+        $firstDay = $from->copy()->startOfDay();
+
+        // Clamp an over-wide window to the most recent MAX_TREND_DAYS so the
+        // series can never balloon (e.g. a 5-year range is ~1825 points).
+        if ($firstDay->diffInDays($lastDay) + 1 > self::MAX_TREND_DAYS) {
+            $firstDay = $lastDay->copy()->subDays(self::MAX_TREND_DAYS - 1);
+        }
+
         $sentByDay = EmailMessage::query()
-            ->whereBetween('sent_at', [$from, $to])
+            ->whereBetween('sent_at', [$firstDay, $to])
             ->selectRaw('date(sent_at) as day, count(*) as total')
             ->groupBy('day')
             ->pluck('total', 'day');
 
         $delivered = EmailEvent::query()
-            ->whereBetween('occurred_at', [$from, $to])
+            ->whereBetween('occurred_at', [$firstDay, $to])
             ->where('type', EmailEventType::Delivery)
             ->selectRaw('date(occurred_at) as day, count(distinct message_id) as total')
             ->groupBy('day')
             ->pluck('total', 'day');
 
         $series = [];
-        $cursor = $from->copy()->startOfDay();
-        $lastDay = $to->copy()->startOfDay();
+        $cursor = $firstDay->copy();
 
         while ($cursor->lessThanOrEqualTo($lastDay)) {
             $day = $cursor->toDateString();
@@ -187,6 +204,31 @@ class EmailController extends Controller
             ->paginate($request->integer('per_page', 25));
 
         return EmailMessageResource::collection($messages);
+    }
+
+    /**
+     * Downloads the message list as a spreadsheet, honouring the same search,
+     * status, and date-range filters the table is currently showing.
+     */
+    public function export(Request $request): BinaryFileResponse
+    {
+        $filters = array_filter([
+            'search' => $request->string('search')->toString() ?: null,
+            'status' => $request->string('status')->toString() ?: null,
+            'date_from' => $request->string('date_from')->toString() ?: null,
+            'date_to' => $request->string('date_to')->toString() ?: null,
+        ], fn ($value): bool => $value !== null);
+
+        $sort = $request->string('sort')->toString() ?: '-sent_at';
+        $filename = 'emails_'.now()->format('Y-m-d_His').'.xlsx';
+
+        activity()
+            ->causedBy($request->user())
+            ->event('exported')
+            ->withProperties(['model_type' => 'EmailMessage', 'filename' => $filename])
+            ->log('Exported emails');
+
+        return Excel::download(new EmailMessagesExport($filters, $sort), $filename);
     }
 
     public function show(EmailMessage $emailMessage): EmailMessageResource

@@ -796,6 +796,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('emails')->middleware('can:emails.view')->group(function () {
         Route::get('/overview', [EmailController::class, 'overview'])->name('emails.overview');
         Route::get('/messages', [EmailController::class, 'messages'])->name('emails.messages');
+        Route::get('/export', [EmailController::class, 'export'])->name('emails.export');
         Route::get('/messages/{emailMessage:message_id}', [EmailController::class, 'show'])->name('emails.messages.show');
         Route::get('/messages/{emailMessage:message_id}/content', [EmailController::class, 'content'])->name('emails.messages.content');
         Route::get('/suppressions', [EmailController::class, 'suppressions'])->name('emails.suppressions');

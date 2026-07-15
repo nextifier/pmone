@@ -63,16 +63,34 @@ class SyncResendEmails extends Command
             }
 
             foreach ($items as $item) {
+                // Resend always returns id + created_at, but guard so one
+                // malformed row cannot abort the whole run.
+                if (empty($item['id']) || empty($item['created_at'])) {
+                    continue;
+                }
+
                 $this->upsert($item) ? $created++ : $updated++;
             }
 
             $pages++;
 
-            $oldest = Carbon::parse($items[array_key_last($items)]['created_at']);
-            $after = $items[array_key_last($items)]['id'];
+            $last = $items[array_key_last($items)];
+            $after = $last['id'] ?? null;
+
+            // Without a cursor there is no safe way to page further.
+            if ($after === null) {
+                break;
+            }
+
             $hasMore = $page['has_more'];
 
-            if ($overlapCutoff !== null && $oldest->lessThan($overlapCutoff)) {
+            // Compare in the app timezone, matching the DB-derived cutoff, so the
+            // overlap window is measured against like units.
+            $oldest = isset($last['created_at'])
+                ? Carbon::parse($last['created_at'])->setTimezone(config('app.timezone'))
+                : null;
+
+            if ($overlapCutoff !== null && $oldest !== null && $oldest->lessThan($overlapCutoff)) {
                 break;
             }
 

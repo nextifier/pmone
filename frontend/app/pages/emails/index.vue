@@ -9,6 +9,16 @@
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        <button
+          :disabled="exportPending"
+          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          @click="handleExport"
+        >
+          <Spinner v-if="exportPending" class="size-4 shrink-0" />
+          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+          <span>Export</span>
+        </button>
+
         <DialogResponsive dialog-max-width="640px">
           <template #trigger="{ open }">
             <Button variant="outline" size="sm" @click="open()">
@@ -546,7 +556,7 @@ const stats = computed(() => {
       icon: "hugeicons:cancel-circle",
       color: "text-rose-500",
       value: s.bounced ?? 0,
-      caption: `${formatRate(s.bounce_rate)} of sent`,
+      caption: `${formatRate(s.bounce_rate)} of sent, limit 5%`,
     },
     {
       key: "complained",
@@ -554,7 +564,7 @@ const stats = computed(() => {
       icon: "hugeicons:alert-02",
       color: "text-amber-500",
       value: s.complained ?? 0,
-      caption: `${formatRate(s.complaint_rate)} of sent`,
+      caption: `${formatRate(s.complaint_rate)} of sent, limit 0.1%`,
     },
   ];
 });
@@ -713,6 +723,52 @@ const messageColumns = [
     size: 120,
   },
 ];
+
+/* ------------------------------------------------------------------- export */
+
+// Exports exactly what the table currently shows: same search, status, and
+// date-range filters, same sort. Pagination is dropped so the whole result set
+// downloads, not just the visible page.
+const exportPending = ref(false);
+const handleExport = async () => {
+  try {
+    exportPending.value = true;
+
+    const params = rangeParams();
+    params.append("sort", sortParam(messagesSorting, "sent_at"));
+
+    const search = messagesFilters.value.find((filter) => filter.id === "subject")?.value;
+    if (search) params.append("search", search);
+    if (activeStatusFilters.value.length) {
+      params.append("status", activeStatusFilters.value.join(","));
+    }
+
+    const client = useSanctumClient();
+    const fileResponse = await client(`/api/emails/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([fileResponse], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `emails_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    toast.success("Emails exported");
+  } catch (err) {
+    toast.error("Failed to export emails", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    exportPending.value = false;
+  }
+};
 
 /* --------------------------------------------------------------- suppressions */
 

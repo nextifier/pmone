@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\EmailEventType;
+use App\Exports\EmailMessagesExport;
 use App\Models\EmailEvent;
 use App\Models\EmailMessage;
 use App\Models\EmailSuppression;
@@ -155,6 +156,45 @@ it('filters messages by status', function () {
         ->assertOk();
 
     expect($response->json('data'))->toHaveCount(1);
+});
+
+it('caps the daily trend so an over-wide range cannot balloon the series', function () {
+    $from = now()->subYears(3)->toDateString();
+    $to = now()->toDateString();
+
+    $daily = $this->actingAs($this->viewer)
+        ->getJson("/api/emails/overview?date_from={$from}&date_to={$to}")
+        ->assertOk()
+        ->json('data.daily');
+
+    // Clamped to the most recent year (366 inclusive days) rather than ~1095.
+    expect($daily)->toHaveCount(366);
+});
+
+it('downloads the emails export as a spreadsheet', function () {
+    EmailMessage::factory()->create();
+
+    $response = $this->actingAs($this->viewer)->get('/api/emails/export');
+
+    $response->assertOk();
+    expect($response->headers->get('content-disposition'))->toContain('.xlsx');
+});
+
+it('refuses to export without the emails.view permission', function () {
+    $stranger = User::factory()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($stranger)->get('/api/emails/export')->assertForbidden();
+});
+
+it('builds the emails export with headings, mapping, and the same filters', function () {
+    EmailMessage::factory()->create(['subject' => 'Keeper', 'recipients' => ['keeper@example.com']]);
+    EmailMessage::factory()->create(['subject' => 'Other', 'recipients' => ['someone@example.com']]);
+
+    $export = new EmailMessagesExport(['search' => 'keeper'], '-sent_at');
+
+    expect($export->headings())->toBe(['To', 'Status', 'Bounce Type', 'Subject', 'From', 'Message ID', 'Sent At'])
+        ->and($export->collection())->toHaveCount(1)
+        ->and($export->map($export->collection()->first())[3])->toBe('Keeper');
 });
 
 it('filters messages by several statuses at once', function () {

@@ -89,6 +89,24 @@ it('stops at the overlap window in incremental mode', function () {
     expect(EmailMessage::query()->whereIn('message_id', ['em-new', 'em-old'])->count())->toBe(2);
 });
 
+it('skips a malformed row without aborting the run', function () {
+    $this->mock(ResendEmailApi::class, function ($mock) {
+        $mock->shouldReceive('list')->once()->with(null, 100)->andReturn([
+            'has_more' => false,
+            'data' => [
+                resendItem('em-ok', now()->toIso8601String()),
+                ['from' => 'x', 'to' => [], 'subject' => 'no id or date'],
+            ],
+        ]);
+    });
+
+    Artisan::call('emails:sync-resend', ['--full' => true]);
+
+    // The good row still lands; the malformed one is skipped, not fatal.
+    expect(EmailMessage::count())->toBe(1)
+        ->and(EmailMessage::query()->where('message_id', 'em-ok')->exists())->toBeTrue();
+});
+
 it('never downgrades a status already recorded by a webhook', function () {
     // A webhook has already marked this address as bounced.
     EmailMessage::factory()->bounced()->create(['message_id' => 'em-bounced']);
