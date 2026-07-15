@@ -26,9 +26,9 @@
         <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Overview</h2>
       </div>
 
-      <GridFill :count="6" min-col-width="210px" rounded="xl">
+      <GridFill :count="8" min-col-width="210px" rounded="xl">
         <template v-if="overviewPending">
-          <div v-for="i in 6" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
+          <div v-for="i in 8" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
             <Skeleton class="size-5 rounded" />
             <div class="space-y-1.5">
               <Skeleton class="h-3.5 w-20" />
@@ -55,37 +55,26 @@
             </div>
             <NumberFlow :class="statValueClass" :value="stat.value" locales="en-US" />
           </div>
-        </template>
-      </GridFill>
-    </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center gap-x-2">
-        <Icon name="hugeicons:dashboard-speed-02" class="text-muted-foreground size-4 shrink-0" />
-        <h2 class="text-muted-foreground text-sm font-semibold tracking-tight">Sending limits</h2>
-      </div>
-
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div
-          v-for="gauge in usageGauges"
-          :key="gauge.key"
-          class="flex flex-col items-center gap-y-1 rounded-xl border p-4 sm:p-6"
-        >
-          <ClientOnly>
+          <!-- Sending-limit gauges fill the same grid, mirroring the check-in
+               gauge in AttendeeAnalyticsSummary. "Today"/"This month" are always
+               live, independent of the selected date range. -->
+          <div
+            v-for="gauge in usageGauges"
+            :key="gauge.key"
+            class="flex flex-col items-center justify-center gap-y-1 p-4"
+          >
             <ChartSemiCircle
               :value="gauge.used"
               :max="Math.max(gauge.limit, 1)"
               show-max
               :compact="false"
               :center-label="gauge.label"
-              class="w-full max-w-[200px]"
+              class="w-full max-w-[190px]"
             />
-            <template #fallback>
-              <Skeleton class="h-[110px] w-full max-w-[200px] rounded-lg" />
-            </template>
-          </ClientOnly>
-        </div>
-      </div>
+          </div>
+        </template>
+      </GridFill>
     </section>
 
     <!-- Client-only: the chart pulls a Vue useId, and the lazy overview fetch

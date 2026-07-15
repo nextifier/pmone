@@ -153,9 +153,9 @@
         </div>
       </div>
 
-      <GridFill :count="6" min-col-width="210px" rounded="xl">
+      <GridFill :count="8" min-col-width="210px" rounded="xl">
         <template v-if="overviewPending">
-          <div v-for="i in 6" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
+          <div v-for="i in 8" :key="`sk-${i}`" class="flex flex-col gap-y-3 p-4 sm:p-5">
             <Skeleton class="size-5 rounded" />
             <div class="space-y-1.5">
               <Skeleton class="h-3.5 w-20" />
@@ -181,6 +181,23 @@
               </p>
             </div>
             <NumberFlow :class="statValueClass" :value="stat.value" locales="en-US" />
+          </div>
+
+          <!-- Sending-limit gauges (today / this month vs plan cap), always live
+               regardless of the selected date range. -->
+          <div
+            v-for="gauge in usageGauges"
+            :key="gauge.key"
+            class="flex flex-col items-center justify-center gap-y-1 p-4"
+          >
+            <ChartSemiCircle
+              :value="gauge.used"
+              :max="Math.max(gauge.limit, 1)"
+              show-max
+              :compact="false"
+              :center-label="gauge.label"
+              class="w-full max-w-[190px]"
+            />
           </div>
         </template>
       </GridFill>
@@ -477,6 +494,23 @@ const {
 
 const totals = computed(() => overviewResponse.value?.data?.totals ?? null);
 const suppressedTotal = computed(() => overviewResponse.value?.data?.suppressed_total ?? 0);
+const usage = computed(() => overviewResponse.value?.data?.usage ?? null);
+
+// Sending quota gauges (today / this month vs plan limit), always live.
+const usageGauges = computed(() => [
+  {
+    key: "daily",
+    label: "Today",
+    used: usage.value?.daily.used ?? 0,
+    limit: usage.value?.daily.limit ?? 100,
+  },
+  {
+    key: "monthly",
+    label: "This month",
+    used: usage.value?.monthly.used ?? 0,
+    limit: usage.value?.monthly.limit ?? 3000,
+  },
+]);
 
 const formatNumber = (value) => new Intl.NumberFormat("en-US").format(Math.round(value ?? 0));
 const formatRate = (value) => `${(value ?? 0).toFixed(2)}%`;

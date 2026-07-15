@@ -133,10 +133,13 @@
           <TabsContent value="preview">
             <iframe
               v-if="content.html"
-              sandbox=""
+              ref="previewFrame"
+              sandbox="allow-same-origin"
               :srcdoc="content.html"
               title="Email preview"
-              class="h-[600px] w-full rounded-lg border bg-white"
+              class="w-full rounded-lg border bg-white"
+              :style="{ height: previewHeight }"
+              @load="resizePreview"
             />
             <p v-else class="text-muted-foreground rounded-lg border p-4 text-sm tracking-tight">
               This email has no HTML version.
@@ -227,6 +230,27 @@ const statusVariant = (status) =>
 const bodyTab = ref("preview");
 const content = ref(null);
 const contentPending = ref(false);
+
+// The preview iframe grows to fit its content so the whole page scrolls, rather
+// than trapping a scroll inside a fixed-height frame (which does not respond to
+// touch on mobile). Reading scrollHeight needs allow-same-origin; scripts stay
+// disabled, so the email HTML still cannot run anything.
+const previewFrame = ref(null);
+const previewHeight = ref("600px");
+
+const resizePreview = () => {
+  const measure = () => {
+    const doc = previewFrame.value?.contentDocument;
+    const height = doc?.documentElement?.scrollHeight || doc?.body?.scrollHeight;
+    if (height) {
+      previewHeight.value = `${height + 24}px`;
+    }
+  };
+
+  measure();
+  // Re-measure once late-loading images and fonts have settled.
+  setTimeout(measure, 300);
+};
 
 // Fetched client-side only: the body lives at Resend, not in our tables, and a
 // lazy fetch that resolves only in the client payload would shift Vue ids and
