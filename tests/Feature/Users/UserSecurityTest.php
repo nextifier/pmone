@@ -120,3 +120,31 @@ it('returns user stats', function () {
         ->assertOk()
         ->assertJsonStructure(['data' => ['total', 'online_now', 'verified', 'verified_percent', 'new_this_week', 'per_role']]);
 });
+
+it('scopes stats to the role and exclude_role filters', function () {
+    $admin = securityTestUser(); // seeded with the "user" role
+
+    $visitor = User::factory()->create();
+    $visitor->assignRole('user');
+
+    $exhibitor = User::factory()->create();
+    $exhibitor->assignRole('exhibitor');
+
+    $staff = User::factory()->create();
+    $staff->assignRole('staff');
+
+    // role=user -> the acting admin + the visitor
+    actingAs($admin)->getJson('/api/users/stats?role=user')
+        ->assertOk()
+        ->assertJsonPath('data.total', 2);
+
+    // role=exhibitor -> just the one exhibitor
+    actingAs($admin)->getJson('/api/users/stats?role=exhibitor')
+        ->assertOk()
+        ->assertJsonPath('data.total', 1);
+
+    // exclude_role=exhibitor,user -> only the staff account survives
+    actingAs($admin)->getJson('/api/users/stats?exclude_role=exhibitor,user')
+        ->assertOk()
+        ->assertJsonPath('data.total', 1);
+});

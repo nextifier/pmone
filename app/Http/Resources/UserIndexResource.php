@@ -10,6 +10,7 @@ class UserIndexResource extends JsonResource
     public function toArray(Request $request): array
     {
         $canViewSecurity = (bool) auth()->user()?->can('users.view_security');
+        $isMaster = (bool) auth()->user()?->hasRole('master');
 
         return [
             'id' => $this->id,
@@ -22,6 +23,10 @@ class UserIndexResource extends JsonResource
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'is_online' => $this->isOnline(),
             'last_seen' => $this->last_seen?->toISOString(),
+            'current_page' => $this->when($isMaster && $this->isOnline() && $this->last_page, fn () => [
+                'path' => $this->last_page,
+                'title' => $this->last_page_title,
+            ]),
             'last_login_at' => $this->when($canViewSecurity, fn () => $this->last_login_at?->toISOString()),
             'two_factor_enabled' => $this->when($canViewSecurity, fn () => ! is_null($this->two_factor_secret)),
             'sessions_count' => $this->when($canViewSecurity && isset($this->sessions_count), fn () => (int) $this->sessions_count),

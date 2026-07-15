@@ -11,6 +11,7 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $canViewSecurity = (bool) auth()->user()?->can('users.view_security');
+        $isMaster = (bool) auth()->user()?->hasRole('master');
 
         return [
             'id' => $this->id,
@@ -37,6 +38,10 @@ class UserResource extends JsonResource
             'is_online' => $this->isOnline(),
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'last_seen' => $this->last_seen?->toISOString(),
+            'current_page' => $this->when($isMaster && $this->isOnline() && $this->last_page, fn () => [
+                'path' => $this->last_page,
+                'title' => $this->last_page_title,
+            ]),
             'last_login_at' => $this->when($canViewSecurity, fn () => $this->last_login_at?->toISOString()),
             'last_login_ip' => $this->when($canViewSecurity, fn () => $this->last_login_ip),
             'last_login_device' => $this->when($canViewSecurity, fn () => UserAgentParser::parse($this->last_login_user_agent)),

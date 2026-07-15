@@ -22,6 +22,9 @@ import ImpersonateExitBanner from "@/components/user/ImpersonateExitBanner.vue";
 const defaultOpen = useCookie("sidebar_state");
 const route = useRoute();
 
+// Report presence (current page + keepalive) for every authenticated admin.
+usePresenceHeartbeat();
+
 const isExcluded = computed(() => ["posts-create", "posts-slug-edit"].includes(route.name));
 
 const isProjectPage = computed(() => {

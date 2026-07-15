@@ -377,6 +377,13 @@ return [
                 'users.manage_notes' => 'Read and write internal admin notes on a user',
             ],
         ],
+        'user_activity' => [
+            'label' => 'User Activity Analytics',
+            'description' => 'Internal analytics on admin app usage (presence, page views)',
+            'permissions' => [
+                'users.view_analytics' => 'View the user activity analytics dashboard',
+            ],
+        ],
         'staff_roles' => [
             'label' => 'Staff Sub-roles',
             'description' => 'Staff department-level permissions',

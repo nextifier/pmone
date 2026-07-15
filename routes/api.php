@@ -61,6 +61,7 @@ use App\Http\Controllers\Api\Payment\PaymentGatewayWebhookEventController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostAutosaveController;
 use App\Http\Controllers\Api\PostController;
+use App\Http\Controllers\Api\PresenceController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProgramController;
 use App\Http\Controllers\Api\ProjectActivityController;
@@ -104,6 +105,7 @@ use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\TicketPricePhaseController;
 use App\Http\Controllers\Api\TicketSessionController;
 use App\Http\Controllers\Api\TrackingController;
+use App\Http\Controllers\Api\UserActivityAnalyticsController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserImpersonationController;
 use App\Http\Controllers\Api\UserNoteController;
@@ -127,6 +129,21 @@ Route::middleware(['auth:sanctum'])->get('/user', [UserController::class, 'profi
 // account may be unverified or lack permissions), so it lives here, not in the
 // permission-gated users group.
 Route::middleware(['auth:sanctum'])->post('/users/impersonate/leave', [UserImpersonationController::class, 'leave']);
+
+// Presence heartbeat: reports the SPA's current page + keeps last_seen fresh.
+// No `verified` and no permission gate so EVERY authenticated role is tracked.
+Route::middleware(['auth:sanctum', 'throttle:heartbeat'])
+    ->post('/presence/heartbeat', [PresenceController::class, 'heartbeat']);
+
+// User activity analytics (presence + page views). Deliberately NOT under the
+// `users` prefix to avoid the /users/{user} wildcard and the group-level
+// can:users.read gate.
+Route::middleware(['auth:sanctum', 'verified'])->prefix('user-activity')->group(function () {
+    Route::get('/analytics/summary', [UserActivityAnalyticsController::class, 'summary'])
+        ->middleware('can:users.view_analytics')->name('user-activity.analytics.summary');
+    Route::get('/analytics', [UserActivityAnalyticsController::class, 'detail'])
+        ->middleware('can:users.view_analytics')->name('user-activity.analytics.detail');
+});
 
 // Dashboard routes (authenticated + verified)
 Route::middleware(['auth:sanctum', 'verified'])->prefix('dashboard')->group(function () {

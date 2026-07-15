@@ -19,11 +19,13 @@
       </div>
     </div>
 
+    <UserStatsHeader v-if="canViewSecurity" :params="{ role: 'user' }" />
+
     <TableData
       :clientOnly="clientOnly"
       ref="tableRef"
       :data="data"
-      :columns="columns"
+      :columns="visibleColumns"
       :meta="meta"
       :pending="pending"
       :error="error"
@@ -200,6 +202,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import FilterSection from "@/components/user/FilterSection.vue";
 import RowActions from "@/components/user/RowActions.vue";
+import UserStatsHeader from "@/components/user/StatsHeader.vue";
 import UserTableItem from "@/components/user/TableItem.vue";
 import { useUserTable } from "@/composables/useUserTable";
 import { resolveDirective, withDirectives } from "vue";
@@ -216,9 +219,11 @@ defineOptions({
 
 usePageMeta(null, { title: "Visitors" });
 
-const { hasPermission } = usePermission();
+const { hasPermission, isMaster } = usePermission();
+const { currentUserId, selfPage } = useSelfCurrentPage();
 const canDelete = computed(() => hasPermission("users.delete"));
 const canSendEmails = computed(() => hasPermission("users.send_account_emails"));
+const canViewSecurity = computed(() => hasPermission("users.view_security"));
 
 const {
   columnFilters,
@@ -361,6 +366,32 @@ const columns = [
     enableSorting: true,
   },
   {
+    // Master-only: filtered out of `visibleColumns` for everyone else.
+    id: "current_page",
+    header: "Current Page",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const isSelf = row.original.id === currentUserId.value;
+      const currentPage = isSelf ? selfPage() : row.original.current_page;
+      if ((!isSelf && !row.original.is_online) || !currentPage) {
+        return h("span", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
+      }
+      return withDirectives(
+        h(
+          "div",
+          { class: "scroll-fade-x no-scrollbar max-w-[200px] overflow-x-auto" },
+          h(
+            "span",
+            { class: "whitespace-nowrap text-sm tracking-tight" },
+            currentPage.title || currentPage.path
+          )
+        ),
+        [[resolveDirective("tippy"), currentPage.path]]
+      );
+    },
+    size: 160,
+  },
+  {
     header: "Created",
     accessorKey: "created_at",
     cell: ({ row }) => {
@@ -378,14 +409,21 @@ const columns = [
     header: () => h("span", { class: "sr-only" }, "Actions"),
     cell: ({ row }) =>
       h(RowActions, {
+        id: row.original.id,
         username: row.original.username,
         isVerified: !!row.original.email_verified_at,
         phone: row.original.phone,
         email: row.original.email,
+        roles: row.original.roles,
         onRefresh: () => refresh(),
       }),
     size: 140,
     enableHiding: false,
   },
 ];
+
+// The current-page column is master-only, mirroring Impersonate (RowActions).
+const visibleColumns = computed(() =>
+  columns.filter((column) => column.id !== "current_page" || isMaster.value)
+);
 </script>

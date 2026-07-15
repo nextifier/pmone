@@ -14,6 +14,7 @@ const { hasRole, isStaffOrAbove } = usePermission();
 definePageMeta({
   middleware: ["sanctum:auth"],
   layout: "app",
+  scrollToTop: true,
 });
 
 usePageMeta(null, { title: "Dashboard" });

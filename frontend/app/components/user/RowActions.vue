@@ -68,6 +68,18 @@
             </NuxtLink>
           </PopoverClose>
 
+          <PopoverClose v-if="canImpersonate" as-child>
+            <button
+              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
+              :disabled="impersonatePending"
+              @click="impersonate"
+            >
+              <Spinner v-if="impersonatePending" class="size-4 shrink-0" />
+              <Icon v-else name="hugeicons:user-switch" class="size-4 shrink-0" />
+              <span>Impersonate</span>
+            </button>
+          </PopoverClose>
+
           <PopoverClose as-child>
             <button
               :class="[
@@ -210,10 +222,12 @@ import { PopoverClose } from "reka-ui";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
+  id: { type: [Number, String], default: null },
   username: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   phone: { type: String, default: null },
   email: { type: String, default: null },
+  roles: { type: Array, default: () => [] },
 });
 
 const whatsappLink = computed(() => {
@@ -224,8 +238,36 @@ const whatsappLink = computed(() => {
 
 const emit = defineEmits(["refresh"]);
 
-const { hasPermission } = usePermission();
+const { hasPermission, isMaster, user } = usePermission();
 const canSendEmails = computed(() => hasPermission("users.send_account_emails"));
+
+const { refreshIdentity } = useSanctumAuth();
+
+// Master-only, in code (never a grantable permission). Cannot impersonate self
+// or another master account.
+const canImpersonate = computed(() => {
+  if (!isMaster.value) return false;
+  if (!props.id || props.id === user.value?.id) return false;
+  return !(props.roles || []).includes("master");
+});
+
+const impersonatePending = ref(false);
+
+const impersonate = async () => {
+  impersonatePending.value = true;
+  try {
+    const client = useSanctumClient();
+    await client(`/api/users/${props.username}/impersonate`, { method: "POST" });
+    await refreshIdentity();
+    // Full navigation so every composable re-reads the impersonated identity.
+    window.location.assign("/dashboard");
+  } catch (error) {
+    toast.error("Failed to impersonate user", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+    impersonatePending.value = false;
+  }
+};
 
 const deleteDialogOpen = ref(false);
 const verifyDialogOpen = ref(false);

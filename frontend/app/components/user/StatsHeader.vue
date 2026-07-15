@@ -19,6 +19,10 @@
 </template>
 
 <script setup>
+const props = defineProps({
+  params: { type: Object, default: () => ({}) },
+});
+
 const client = useSanctumClient();
 
 const stats = ref(null);
@@ -38,7 +42,7 @@ const cards = computed(() => [
 
 onMounted(async () => {
   try {
-    const res = await client("/api/users/stats");
+    const res = await client("/api/users/stats", { query: props.params });
     stats.value = res.data || null;
   } catch (err) {
     console.error("Error loading user stats:", err);

@@ -12,7 +12,7 @@
           }"
         />
       </NuxtLayout>
-      <ScrollToTop v-if="!isTasksPage" />
+      <ScrollToTop v-if="route.meta.scrollToTop" />
       <Toaster class="pointer-events-auto" />
     </Body>
   </Html>
@@ -22,7 +22,6 @@
 import "vue-sonner/style.css";
 
 const route = useRoute();
-const isTasksPage = computed(() => route.path === "/tasks");
 
 // Single source of truth for ALL theming (color mode + style + design tokens).
 // Self-registers the SSR-rendered <body class="style-X">, the appearance-vars

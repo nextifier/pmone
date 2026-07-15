@@ -8,6 +8,7 @@ use App\Http\Resources\SessionResource;
 use App\Http\Resources\TokenResource;
 use App\Models\User;
 use App\Support\UserAgentParser;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -293,41 +294,71 @@ class UserSecurityController extends Controller
      */
     public function stats(Request $request): JsonResponse
     {
+        // Scope the header metrics to the same role filters the listing uses so the
+        // cards always agree with the table below them (mirrors UserController@index).
+        $role = $request->input('role');
+        $excludeRole = $request->input('exclude_role');
+
+        $cacheKey = 'user-security-stats:'.md5(($role ?? '').'|'.($excludeRole ?? ''));
+
         // Cached briefly: these are header metrics, a ~minute of staleness is fine
         // and avoids ~7 COUNT queries per request once the user table is large.
-        $data = Cache::remember('user-security-stats', 60, function () {
-            $total = User::query()->count();
-            $verified = User::query()->whereNotNull('email_verified_at')->count();
+        $data = Cache::remember($cacheKey, 60, function () use ($role, $excludeRole) {
+            $scope = fn (): Builder => $this->scopedUserQuery($role, $excludeRole);
+
+            $total = $scope()->count();
+            $verified = $scope()->whereNotNull('email_verified_at')->count();
 
             // Spatie's Role::users() relation is guard-dependent and cannot be used
-            // with withCount(), so count through the pivot directly.
+            // with withCount(), so count through the pivot directly, constrained to
+            // the scoped user set.
             $roleCounts = DB::table('model_has_roles')
                 ->where('model_type', (new User)->getMorphClass())
+                ->whereIn('model_id', $scope()->select('id'))
                 ->select('role_id', DB::raw('count(*) as aggregate'))
                 ->groupBy('role_id')
                 ->pluck('aggregate', 'role_id');
 
             $perRole = Role::query()
                 ->get()
-                ->map(fn (Role $role) => [
-                    'name' => $role->name,
-                    'count' => (int) ($roleCounts[$role->id] ?? 0),
+                ->map(fn (Role $r) => [
+                    'name' => $r->name,
+                    'count' => (int) ($roleCounts[$r->id] ?? 0),
                 ])
                 ->sortByDesc('count')
                 ->values();
 
             return [
                 'total' => $total,
-                'online_now' => User::query()->where('last_seen', '>', now()->subMinutes(5))->count(),
+                'online_now' => $scope()->where('last_seen', '>', now()->subMinutes(5))->count(),
                 'verified' => $verified,
                 'verified_percent' => $total > 0 ? (int) round($verified / $total * 100) : 0,
-                'new_this_week' => User::query()->where('created_at', '>=', now()->subWeek())->count(),
-                'suspended' => User::query()->whereNotNull('suspended_at')->count(),
+                'new_this_week' => $scope()->where('created_at', '>=', now()->subWeek())->count(),
+                'suspended' => $scope()->whereNotNull('suspended_at')->count(),
                 'per_role' => $perRole,
             ];
         });
 
         return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Build a User query scoped by optional role / exclude_role filters, matching
+     * the semantics used by the user listing endpoint.
+     */
+    protected function scopedUserQuery(?string $role, ?string $excludeRole): Builder
+    {
+        $query = User::query();
+
+        if ($excludeRole) {
+            $query->whereDoesntHave('roles', fn ($q) => $q->whereIn('name', explode(',', $excludeRole)));
+        }
+
+        if ($role) {
+            $query->whereHas('roles', fn ($q) => $q->where('name', $role));
+        }
+
+        return $query;
     }
 
     /**

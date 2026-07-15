@@ -4,6 +4,7 @@ use App\Jobs\Hotel\ReleaseExpiredAllotmentsJob;
 use App\Jobs\Reservation\ExpireUnpaidReservationsJob;
 use App\Jobs\Ticket\ExpireStaleWaitlistOffersJob;
 use App\Jobs\Ticket\ExpireUnpaidTicketOrdersJob;
+use App\Models\UserPageView;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -19,6 +20,9 @@ Schedule::command('posts:publish-scheduled')->everyMinute();
 
 // Prune temp uploads (FilePond) that were never attached to a model.
 Schedule::command('uploads:cleanup-temp')->daily()->at('02:30');
+
+// Prune user page-view history past its retention window (all environments).
+Schedule::command('model:prune', ['--model' => [UserPageView::class]])->dailyAt('01:30');
 
 Schedule::command('activitylog:clean --force')->daily()->at('01:00')->environments(['production']);
 Schedule::command('backup:clean')->daily()->at('02:00')->environments(['production']);

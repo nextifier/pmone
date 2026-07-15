@@ -100,6 +100,12 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // Presence heartbeat fires on navigation + a 60s keepalive; a per-user
+        // ceiling well above that rate absorbs redirect bursts without abuse.
+        RateLimiter::for('heartbeat', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
+
         // Register observers
         ContactFormSubmission::observe(ContactFormSubmissionObserver::class);
         Project::observe(ProjectObserver::class);

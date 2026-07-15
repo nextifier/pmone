@@ -402,6 +402,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // User Activity analytics - requires users.view_analytics permission
+  if (hasPermission("users.view_analytics")) {
+    adminItems.push({
+      label: "User Activity",
+      path: "/users/analytics",
+      iconName: "hugeicons:chart-line-data-02",
+    });
+  }
+
   // Roles - requires roles.read permission
   if (hasPermission("roles.read")) {
     adminItems.push({

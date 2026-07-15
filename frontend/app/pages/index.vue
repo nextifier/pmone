@@ -7,7 +7,7 @@
 <script setup>
 import BrandHome from "#brand/Home.vue";
 
-definePageMeta({});
+definePageMeta({ scrollToTop: true });
 
 const appConfig = useAppConfig();
 
