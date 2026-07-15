@@ -60,12 +60,19 @@ on deploy. What shipped:
   "Last updated" line on all 6 legal pages. Legacy `terms.last_update` kept as a
   frozen fallback; NO backfill of `website_pages` (documented fail-open design).
 
-**037 (events SEO/perf/a11y) — TODO.** Key audit facts: home-section toggles are
-SSR-decided EXCEPT Rundown/Brand Preview/Hotels/Credits, which are client-only
-(`server: false`) and never in the initial HTML (workstream 1); those fetches
-were a prerender-era artifact and moving them to SSR is operator-approved (home
-is no longer prerendered — executor must confirm no app still prerenders `/`).
-Also: legal-pages emptiness is the documented fail-open design.
+**037 (events SEO/perf/a11y) — shipped subset DONE + deployed; plan file removed.**
+The high-confidence, browser-verified subset shipped to all 16 sites (pushed):
+WS1 core (home-section visibility toggle now SSR-resolved via `useHomeSection` →
+Hotels + Credits are in the server-rendered HTML; Rundown/BrandPreview kept
+client-only by design), WS2 (fixed the duplicate `<h1>` — `FAQ.vue` default
+`h1`→`h2` + explicit `h1` on the dedicated `/faq`; iicc aligned to
+`usePageMeta` + `useEventSchema`, adding full Event/Organization/Offer structured
+data while keeping its bespoke Hero; canonical confirmed already emitted by
+`@nuxtjs/i18n`), WS4 (skip-to-content link + `<main id="main">` + descriptive alt
+text). The remaining deferred items (Rundown/BrandPreview full-SSR, sitemap
+completeness, `offers.price`, AVIF, lazy hydration, root-`/` edge caching, the
+16MB orphan `outingexpo` hero video, PSI baselines) were **skipped by operator
+decision** as not important right now; recoverable from git history if revisited.
 
 ## Multi-brand wave (plan 031) — DONE / merged / deployed
 
