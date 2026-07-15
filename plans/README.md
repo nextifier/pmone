@@ -33,60 +33,39 @@ when done.
 
 ## Wave 3 — settings IA + events SEO/perf/a11y (plans 035–037, authored 2026-07-14)
 
-Operator-requested, authored from 3 parallel read-only audits (settings-tab
-inventory, pmone-events SEO/perf/a11y sweep, legal-pages end-to-end trace +
-prod-DB check). Independent of each other. Operator decisions 2026-07-14 baked
-in: (a) the global "Terms & Privacy last update" card is DELETED (035) and
-replaced by a per-legal-page `last_updated_at` (036, with server-side fallback
-to the legacy value); (b) the `server: false` home-section fetches were a
-prerender-era artifact — home is no longer prerendered, so moving them to SSR
-is approved (037 workstream 1).
+Three independent plans from parallel read-only audits (settings-tab inventory,
+pmone-events SEO/perf/a11y sweep, legal-pages trace + prod-DB check).
 
-| Plan | Title | Repo(s) | Priority | Effort | Status |
-|------|-------|---------|----------|--------|--------|
-| 035 | Merge SEO Meta + OG Images into one "SEO" tab; split Website Settings into toggles + "Site Config" | pmone `/frontend` (+ Pest partial-PATCH tests) | P2 | M | TODO |
-| 036 | Legal Pages: empty-by-design UX (status badges, view-live links) + "Load default template" endpoint + per-page last-update | pmone + pmone-events | P2 | S-M | **DONE / BROWSER-VERIFIED** (branch `advisor/036-legal-pages-ux-templates`, not committed). See execution log below. |
-| 037 | Maximize SEO/perf/a11y/PageSpeed: SSR the 4 legacy home sections, canonical/iicc/h1 fixes, lazy hydration, AVIF, skip link | pmone-events (small pmone payload change possible) | P1/P2 | L | TODO |
+**035 (settings IA) + 036 (legal pages UX) — DONE / merged to main; plan files
+removed.** 036 is also prod-deployed + browser-verified (migration
+`website_pages.last_updated_at` ran on prod; both repos pushed). 035 merged to
+main (commit `fac060fb`); admin-only frontend, needs the pmone CF Pages rebuild
+on deploy. What shipped:
 
-Key audit facts baked into the plans: legal-pages emptiness is the documented
-fail-open design (prod `website_pages` = 2 rows, both megabuild); home-section
-toggles are SSR-decided EXCEPT Rundown/Brand Preview/Hotels/Credits which are
-client-only and never in the initial HTML (037 workstream 1).
+- **035**: merged SEO Meta + OG Images into one master-detail **"SEO"** tab
+  (per-page search meta + social/OG share, unified dirty Save, unsaved-switch
+  guard; old `seo-meta`/`og-images` routes 301-redirect to `/seo`). Split
+  **Website Settings** into display-toggles only (fixed project-level scoping
+  copy, removed the global Terms date card) + a new **"Site Config"** tab
+  (nav/analytics/appearance/identity, debounced autosave so free text no longer
+  PATCHes per keystroke). Shared `SettingsLocaleTabs` + `WEBSITE_LOCALES`/
+  `blankToNull`; 3 Pest tests prove a slice-only PATCH never clobbers the sibling
+  `site_config`/`home_sections`/`terms` slices (backend merge already guards it).
+- **036**: per-page `last_updated_at` on `website_pages` (+ server fallback to
+  legacy `terms.last_update`); "Load default template" endpoint + 6
+  `resources/website-page-templates/*.html` (`App\Support\WebsitePageTemplates`);
+  legal-pages admin badges / view-live / per-card DatePicker; public endpoint
+  fails open on visually-empty HTML (`hasVisibleText`, fixing megabuild's real
+  `<p></p>` rows rendering an empty override); pmone-events renders a per-page
+  "Last updated" line on all 6 legal pages. Legacy `terms.last_update` kept as a
+  frozen fallback; NO backfill of `website_pages` (documented fail-open design).
 
-### Plan 036 execution log — 2026-07-14 (branch `advisor/036-legal-pages-ux-templates`, NOT committed)
-
-Scope delivered across both repos. **31 WebsitePage tests + 100 WebsitePage/
-WebsiteSettings tests green; browser-verified end-to-end.**
-
-- **Backend (pmone)**: migration `website_pages.last_updated_at` (nullable date);
-  model cast/fillable; `UpdateWebsitePageRequest` `last_updated_at nullable|date`;
-  `WebsitePageController` `index` (+`last_updated_at`, +`website_url`), `update`
-  (explicit set, no body clobber), new `GET .../website-pages/{key}/template`;
-  `PublicProjectController::websitePages` payload `{body,last_update}` with legacy
-  fallback to `terms.last_update`. **Extra correctness fix (found during
-  browser-verify)**: the public endpoint now fails open on *visually-empty* HTML
-  (`<p></p>`, `<p>&nbsp;</p>`) via `hasVisibleText()` - previously such a body
-  rendered an empty override, violating the never-empty invariant (megabuild's
-  real `terms`/`ticket-terms` rows are exactly `<p></p>`).
-- **Templates**: 6 `resources/website-page-templates/*.html` extracted from the
-  baked pmone-events `.vue` bodies via a one-off script (deleted after) + manual
-  cleanup of `help-center` (its baked page uses `<Icon>`/styled cards that don't
-  round-trip TipTap, so its template is a plain-prose adaptation - the STOP
-  condition case). `App\Support\WebsitePageTemplates` interpolates
-  `{company_name}`/`{company_address}`/`{website_name}`/`{website_url}`/`{contact_email}`.
-- **Frontend admin (`legal-pages.vue`)**: status badge (Built-in template /
-  Customized · EN,ID), "View live" link, "Load default template" + overwrite
-  confirm, per-card DatePicker. HTML-aware blank check (`isBlankHtml`) so an empty
-  `<p></p>` reads as built-in AND saves as null (fail-open).
-- **pmone-events (7 files)**: `useWebsitePage` returns formatted `lastUpdate`
-  (server resolves per-page → legacy precedence); all 6 legal pages render a
-  page-level "Last updated" line above both branches; inline date removed from
-  terms/privacy/event-policy. Zero console errors on megabuild `/terms`.
-- **Decisions**: NO backfill/seed of `website_pages` (documented fail-open design).
-  Legacy `terms.last_update` NOT removed (frozen fallback; plan 035 deletes the
-  admin card). Templates + baked `.vue` are copy-paste siblings (doc-noted).
-- **Deploy**: `php artisan migrate` on prod (the new column). pmone-events changes
-  ride the next CF Pages rebuild. No `permissions:sync`.
+**037 (events SEO/perf/a11y) — TODO.** Key audit facts: home-section toggles are
+SSR-decided EXCEPT Rundown/Brand Preview/Hotels/Credits, which are client-only
+(`server: false`) and never in the initial HTML (workstream 1); those fetches
+were a prerender-era artifact and moving them to SSR is operator-approved (home
+is no longer prerendered — executor must confirm no app still prerenders `/`).
+Also: legal-pages emptiness is the documented fail-open design.
 
 ## Multi-brand wave (plan 031) — DONE / merged / deployed
 
