@@ -31,6 +31,23 @@ it('returns login history gated by view_security', function () {
         ->assertForbidden();
 });
 
+it('returns the sign-ins the user caused, including the oauth provider suffix', function () {
+    $viewer = securityTestUser(['users.view_security']);
+    $target = User::factory()->create();
+
+    activity()->causedBy($target)->performedOn($target)->log('User logged in');
+    activity()->causedBy($target)->performedOn($target)->log('User logged in via google');
+    activity()->causedBy($target)->event('created')->log('Created a project');
+
+    $descriptions = actingAs($viewer)->getJson("/api/users/{$target->username}/login-history")
+        ->assertOk()
+        ->json('data.*.description');
+
+    expect($descriptions)->toHaveCount(2);
+    expect($descriptions)->toContain('User logged in', 'User logged in via google');
+    expect($descriptions)->not->toContain('Created a project');
+});
+
 it('resets a users two-factor and writes an audit log', function () {
     $admin = securityTestUser(['users.reset_2fa']);
     $target = User::factory()->create(['two_factor_secret' => 'secret', 'two_factor_confirmed_at' => now()]);

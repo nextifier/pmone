@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+  <div class="grid grid-cols-2 gap-x-2 gap-y-3 lg:grid-cols-4">
     <div v-for="card in cards" :key="card.label" class="rounded-lg border p-3.5">
       <div class="text-muted-foreground flex items-center gap-x-1.5 text-sm tracking-tight">
         <Icon :name="card.icon" class="size-4 shrink-0" />
@@ -33,7 +33,7 @@ const cards = computed(() => [
   { label: "Online now", icon: "hugeicons:radar-01", value: stats.value?.online_now ?? 0 },
   {
     label: "Verified",
-    icon: "material-symbols:verified",
+    icon: "hugeicons:checkmark-badge-01",
     value: `${stats.value?.verified_percent ?? 0}%`,
     suffix: stats.value ? `${stats.value.verified} users` : null,
   },

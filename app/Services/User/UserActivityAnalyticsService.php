@@ -31,6 +31,11 @@ class UserActivityAnalyticsService
     private const ONLINE_MINUTES = 5;
 
     /**
+     * How many of a user's latest page views the per-user timeline shows.
+     */
+    private const RECENT_VIEWS_LIMIT = 30;
+
+    /**
      * Lightweight KPI block for the summary strip / header cards.
      *
      * @return array<string, mixed>
@@ -62,14 +67,37 @@ class UserActivityAnalyticsService
     }
 
     /**
-     * Every page view inside the rolling window, loaded once and reused.
+     * Full analytics payload for a single user. The global-only sections
+     * (online_users, by_role, most_active_users) are deliberately absent: they
+     * are either constant or meaningless for one person.
+     *
+     * @return array<string, mixed>
+     */
+    public function forUser(User $user): array
+    {
+        $views = $this->pageViews($user);
+
+        return [
+            'summary' => $this->userSummary($user, $views),
+            'activity_trend' => $this->userActivityTrend($views),
+            'peak_hours' => $this->peakHours($views),
+            'top_pages' => $this->userTopPages($views),
+            'recent_views' => $this->recentPageViews($user),
+            'devices' => $this->devices($user),
+        ];
+    }
+
+    /**
+     * Every page view inside the rolling window, loaded once and reused. Scoped
+     * to one user when given; rides the (user_id, visited_at) composite index.
      *
      * @return Collection<int, UserPageView>
      */
-    private function pageViews(): Collection
+    private function pageViews(?User $user = null): Collection
     {
         return UserPageView::query()
             ->where('visited_at', '>=', now()->subDays(self::WINDOW_DAYS))
+            ->when($user, fn ($query) => $query->where('user_id', $user->id))
             ->get(['user_id', 'path', 'title', 'visited_at']);
     }
 
@@ -94,6 +122,119 @@ class UserActivityAnalyticsService
             'page_views_today' => $pageViewsToday,
             'avg_pages_per_active_user' => round($pageViewsToday / max($activeToday, 1), 1),
         ];
+    }
+
+    /**
+     * KPI block for a single user. The global counterpart's active_today /
+     * active_week / active_month are dropped: they are always 0 or 1 here.
+     *
+     * @param  Collection<int, UserPageView>  $views
+     * @return array<string, mixed>
+     */
+    private function userSummary(User $user, Collection $views): array
+    {
+        $byDate = $views->groupBy(fn (UserPageView $v): string => $v->visited_at->format('Y-m-d'));
+        $activeDays = $byDate->count();
+        $busiestDate = $byDate->sortByDesc(fn (Collection $group): int => $group->count())->keys()->first();
+
+        return [
+            'is_online' => $user->isOnline(),
+            'last_seen' => $user->last_seen?->toISOString(),
+            'current_page' => $user->last_page ? [
+                'path' => $user->last_page,
+                'title' => $user->last_page_title,
+            ] : null,
+            'page_views_today' => $views->filter(
+                fn (UserPageView $v): bool => $v->visited_at->gte(now()->startOfDay())
+            )->count(),
+            'page_views_30d' => $views->count(),
+            'distinct_pages_30d' => $views->pluck('path')->unique()->count(),
+            'active_days_30d' => $activeDays,
+            'avg_views_per_active_day' => round($views->count() / max($activeDays, 1), 1),
+            'busiest_day' => $busiestDate === null ? null : [
+                'date' => $busiestDate,
+                'page_views' => $byDate->get($busiestDate)->count(),
+            ],
+            'first_view_at' => $views->min('visited_at')?->toISOString(),
+            'last_view_at' => $views->max('visited_at')?->toISOString(),
+        ];
+    }
+
+    /**
+     * Daily page views + distinct pages for one user. Mirrors activityTrend()'s
+     * zero-filled window, but counts breadth instead of active users (which is
+     * always 0 or 1 for a single person).
+     *
+     * @param  Collection<int, UserPageView>  $views
+     * @return array<int, array<string, mixed>>
+     */
+    private function userActivityTrend(Collection $views): array
+    {
+        $byDate = $views->groupBy(fn (UserPageView $v): string => $v->visited_at->format('Y-m-d'));
+
+        $period = CarbonPeriod::create(now()->subDays(self::WINDOW_DAYS - 1)->startOfDay(), now()->startOfDay());
+
+        $rows = [];
+        foreach ($period as $day) {
+            $group = $byDate->get($day->format('Y-m-d'), collect());
+            $rows[] = [
+                'date' => $day->format('Y-m-d'),
+                'page_views' => $group->count(),
+                'distinct_pages' => $group->pluck('path')->unique()->count(),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * The 10 paths one user visits most. Drops topPages()'s `users` count (always
+     * 1 here) and adds when they last opened each page.
+     *
+     * @param  Collection<int, UserPageView>  $views
+     * @return array<int, array<string, mixed>>
+     */
+    private function userTopPages(Collection $views): array
+    {
+        return $views
+            ->groupBy('path')
+            ->map(function (Collection $group, string $path): array {
+                $title = $group->firstWhere(fn (UserPageView $v): bool => $v->title !== null && $v->title !== '')?->title;
+
+                return [
+                    'path' => $path,
+                    'title' => $title,
+                    'views' => $group->count(),
+                    'last_visited_at' => $group->max('visited_at')?->toISOString(),
+                ];
+            })
+            ->sortByDesc('views')
+            ->take(10)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The user's latest page views. Deliberately queried outside the rolling
+     * window so someone idle for longer than it still gets a timeline, and
+     * separately from pageViews() so the global load need not select the id.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function recentPageViews(User $user): array
+    {
+        return UserPageView::query()
+            ->where('user_id', $user->id)
+            ->orderByDesc('visited_at')
+            ->limit(self::RECENT_VIEWS_LIMIT)
+            ->get(['id', 'path', 'title', 'visited_at'])
+            ->map(fn (UserPageView $view): array => [
+                'id' => $view->id,
+                'path' => $view->path,
+                'title' => $view->title,
+                'visited_at' => $view->visited_at->toISOString(),
+            ])
+            ->all();
     }
 
     /**
@@ -233,14 +374,20 @@ class UserActivityAnalyticsService
     }
 
     /**
-     * Device-type + browser split of the currently stored sessions. A snapshot
-     * of active sessions, not historical page views.
+     * Device-type + browser split of the currently stored sessions, for one user
+     * when given. A snapshot of active sessions, not historical page views.
      *
-     * @return array{device_types: array<int, array<string, mixed>>, browsers: array<int, array<string, mixed>>}
+     * @return array{device_types: array<int, array<string, mixed>>, browsers: array<int, array<string, mixed>>, total_sessions: int}
      */
-    private function devices(): array
+    private function devices(?User $user = null): array
     {
-        $agents = DB::table('sessions')->whereNotNull('user_id')->pluck('user_agent');
+        $agents = DB::table('sessions')
+            ->when(
+                $user,
+                fn ($query) => $query->where('user_id', $user->id),
+                fn ($query) => $query->whereNotNull('user_id')
+            )
+            ->pluck('user_agent');
 
         $deviceTypes = [];
         $browsers = [];
@@ -255,6 +402,7 @@ class UserActivityAnalyticsService
         return [
             'device_types' => $this->labelledCounts($deviceTypes),
             'browsers' => $this->labelledCounts($browsers),
+            'total_sessions' => $agents->count(),
         ];
     }
 

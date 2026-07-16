@@ -106,6 +106,7 @@ use App\Http\Controllers\Api\TicketPricePhaseController;
 use App\Http\Controllers\Api\TicketSessionController;
 use App\Http\Controllers\Api\TrackingController;
 use App\Http\Controllers\Api\UserActivityAnalyticsController;
+use App\Http\Controllers\Api\UserActivityLogController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserImpersonationController;
 use App\Http\Controllers\Api\UserNoteController;
@@ -142,6 +143,15 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('user-activity')->group(
         ->middleware('can:users.view_analytics')->name('user-activity.analytics.summary');
     Route::get('/analytics', [UserActivityAnalyticsController::class, 'detail'])
         ->middleware('can:users.view_analytics')->name('user-activity.analytics.detail');
+
+    // Per-user. The literal `users/` segment cannot collide with the analytics
+    // routes above, so binding {user} by username stays unambiguous.
+    Route::get('/users/{user}/analytics', [UserActivityAnalyticsController::class, 'forUser'])
+        ->middleware('can:users.view_analytics')->name('user-activity.user.analytics');
+    // Reading someone's log needs both "may see this user's activity" and "may
+    // read logs" - stacked can: middleware is AND.
+    Route::get('/users/{user}/activity-log', [UserActivityLogController::class, 'index'])
+        ->middleware(['can:users.view_analytics', 'can:admin.logs'])->name('user-activity.user.activity-log');
 });
 
 // Dashboard routes (authenticated + verified)

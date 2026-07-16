@@ -7,6 +7,7 @@ use App\Http\Requests\SuspendUserRequest;
 use App\Http\Resources\SessionResource;
 use App\Http\Resources\TokenResource;
 use App\Models\User;
+use App\Support\AuthActivity;
 use App\Support\UserAgentParser;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -108,19 +109,18 @@ class UserSecurityController extends Controller
      */
     public function loginHistory(Request $request, User $user): JsonResponse
     {
-        $loginDescriptions = ['User logged in', 'User logged out', 'User logged in via magic link'];
-
         $activities = Activity::query()
             ->with('causer.media')
-            ->where(function ($outer) use ($user, $loginDescriptions) {
-                $outer->where(function ($q) use ($user, $loginDescriptions) {
+            ->where(function ($outer) use ($user) {
+                // Sign-ins the user caused. AuthActivity owns the definition so
+                // the Activity tab can exclude exactly this set.
+                $outer->where(function ($q) use ($user) {
                     $q->where('causer_id', $user->id)
-                        ->where('causer_type', User::class)
-                        ->where(function ($d) use ($loginDescriptions) {
-                            $d->whereIn('description', $loginDescriptions)
-                                ->orWhere('description', 'like', 'User logged in via %');
-                        });
+                        ->where('causer_type', User::class);
+
+                    AuthActivity::whereCausedLogin($q);
                 })->orWhere(function ($q) use ($user) {
+                    // Failed attempts have no causer, so they are scoped by subject.
                     $q->where('log_name', 'auth')
                         ->where('event', 'login_failed')
                         ->where('subject_type', User::class)

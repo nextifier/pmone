@@ -82,7 +82,7 @@ it('throttles heartbeats past the per-minute ceiling', function () {
         ->assertStatus(429);
 });
 
-it('exposes current_page in the users list only to master while online', function () {
+it('exposes last_page in the users list to master whether the user is online or not', function () {
     $admin = User::factory()->create(['email_verified_at' => now()]);
     $admin->assignRole('master');
 
@@ -98,17 +98,21 @@ it('exposes current_page in the users list only to master while online', functio
         'last_page' => '/settings',
         'last_page_title' => 'Settings',
     ]);
+    $neverSeen = User::factory()->create(['email_verified_at' => now(), 'last_page' => null]);
 
     $data = actingAs($admin)->getJson('/api/users')->assertOk()->json('data');
 
     $onlineRow = collect($data)->firstWhere('id', $online->id);
     $offlineRow = collect($data)->firstWhere('id', $offline->id);
+    $neverSeenRow = collect($data)->firstWhere('id', $neverSeen->id);
 
-    expect($onlineRow['current_page']['path'])->toBe('/dashboard');
-    expect($offlineRow)->not->toHaveKey('current_page');
+    expect($onlineRow['last_page']['path'])->toBe('/dashboard');
+    expect($offlineRow['last_page']['path'])->toBe('/settings');
+    expect($offlineRow['last_page']['title'])->toBe('Settings');
+    expect($neverSeenRow)->not->toHaveKey('last_page');
 });
 
-it('hides current_page from non-master viewers even when online', function () {
+it('hides last_page from non-master viewers even when online', function () {
     $admin = User::factory()->create(['email_verified_at' => now()]);
     $admin->givePermissionTo('users.read');
 
@@ -122,5 +126,5 @@ it('hides current_page from non-master viewers even when online', function () {
     $data = actingAs($admin)->getJson('/api/users')->assertOk()->json('data');
     $onlineRow = collect($data)->firstWhere('id', $online->id);
 
-    expect($onlineRow)->not->toHaveKey('current_page');
+    expect($onlineRow)->not->toHaveKey('last_page');
 });

@@ -241,6 +241,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import FilterSection from "@/components/user/FilterSection.vue";
 import ImportDialog from "@/components/user/ImportDialog.vue";
 import RowActions from "@/components/user/RowActions.vue";
+import UserLastPageCell from "@/components/user/LastPageCell.vue";
 import UserStatsHeader from "@/components/user/StatsHeader.vue";
 import UserTableItem from "@/components/user/TableItem.vue";
 import { useUserTable } from "@/composables/useUserTable";
@@ -448,27 +449,15 @@ const columns = [
   },
   {
     // Master-only: filtered out of `visibleColumns` for everyone else.
-    id: "current_page",
-    header: "Current Page",
+    id: "last_page",
+    header: "Last page",
     enableSorting: false,
     cell: ({ row }) => {
       const isSelf = row.original.id === currentUserId.value;
-      const currentPage = isSelf ? selfPage() : row.original.current_page;
-      if ((!isSelf && !row.original.is_online) || !currentPage) {
-        return h("span", { class: "text-sm text-muted-foreground tracking-tight" }, "-");
-      }
-      return withDirectives(
-        h(
-          "div",
-          { class: "scroll-fade-x no-scrollbar max-w-[200px] overflow-x-auto" },
-          h(
-            "span",
-            { class: "whitespace-nowrap text-sm tracking-tight" },
-            currentPage.title || currentPage.path
-          )
-        ),
-        [[resolveDirective("tippy"), currentPage.path]]
-      );
+      return h(UserLastPageCell, {
+        user: row.original,
+        page: isSelf ? selfPage() : row.original.last_page || null,
+      });
     },
     size: 160,
   },
@@ -502,6 +491,6 @@ const columns = [
 
 // The current-page column is master-only, mirroring Impersonate (RowActions).
 const visibleColumns = computed(() =>
-  columns.filter((column) => column.id !== "current_page" || isMaster.value)
+  columns.filter((column) => column.id !== "last_page" || isMaster.value)
 );
 </script>

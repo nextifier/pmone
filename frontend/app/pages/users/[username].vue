@@ -152,6 +152,10 @@ const userTabs = computed(() => {
   const tabs = [
     { label: "Overview", icon: "hugeicons:dashboard-circle", to: base.value, exact: true },
   ];
+  // Icon matches the global User Activity dashboard's, which links here.
+  if (hasPermission("users.view_analytics")) {
+    tabs.push({ label: "Activity", icon: "hugeicons:chart-line-data-02", to: `${base.value}/activity` });
+  }
   if (hasPermission("users.manage_sessions")) {
     tabs.push({ label: "Sessions & Devices", icon: "hugeicons:laptop", to: `${base.value}/sessions` });
   }

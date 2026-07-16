@@ -38,7 +38,7 @@ class UserResource extends JsonResource
             'is_online' => $this->isOnline(),
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'last_seen' => $this->last_seen?->toISOString(),
-            'current_page' => $this->when($isMaster && $this->isOnline() && $this->last_page, fn () => [
+            'last_page' => $this->when($isMaster && $this->last_page, fn () => [
                 'path' => $this->last_page,
                 'title' => $this->last_page_title,
             ]),

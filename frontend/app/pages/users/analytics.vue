@@ -114,30 +114,32 @@
           </CardHeader>
           <CardContent>
             <ul v-if="online.length" class="divide-border divide-y">
-              <li
-                v-for="u in online"
-                :key="u.id"
-                class="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
-              >
-                <div class="flex min-w-0 items-center gap-x-3">
-                  <Avatar :model="u" size="sm" class="size-8" no-tooltip />
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-x-2">
-                      <p class="truncate text-sm font-medium tracking-tight">{{ u.name }}</p>
-                      <Badge v-if="u.role" variant="muted" class="shrink-0 capitalize">{{ u.role }}</Badge>
+              <li v-for="u in online" :key="u.id">
+                <component
+                  :is="canOpenUser ? NuxtLink : 'div'"
+                  :to="canOpenUser ? `/users/${u.username}/activity` : undefined"
+                  class="hover:bg-muted/40 -mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors"
+                >
+                  <div class="flex min-w-0 items-center gap-x-3">
+                    <Avatar :model="u" size="sm" class="size-8" no-tooltip />
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-x-2">
+                        <p class="truncate text-sm font-medium tracking-tight">{{ u.name }}</p>
+                        <Badge v-if="u.role" variant="muted" class="shrink-0 capitalize">{{ u.role }}</Badge>
+                      </div>
+                      <p
+                        v-if="u.current_page"
+                        class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
+                        :title="u.current_page.path"
+                      >
+                        {{ u.current_page.title || u.current_page.path }}
+                      </p>
                     </div>
-                    <p
-                      v-if="u.current_page"
-                      class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm"
-                      :title="u.current_page.path"
-                    >
-                      {{ u.current_page.title || u.current_page.path }}
-                    </p>
                   </div>
-                </div>
-                <span class="text-muted-foreground shrink-0 text-xs tracking-tight tabular-nums">
-                  {{ $dayjs(u.last_seen).fromNow() }}
-                </span>
+                  <span class="text-muted-foreground shrink-0 text-xs tracking-tight tabular-nums">
+                    {{ $dayjs(u.last_seen).fromNow() }}
+                  </span>
+                </component>
               </li>
             </ul>
             <p v-else class="text-muted-foreground py-8 text-center text-sm tracking-tight">
@@ -271,7 +273,7 @@
                 :radius="100"
                 :arc-width="28"
                 :corner-radius="5"
-                :pad-angle="padAngle"
+                :pad-angle="chartPadAngle"
                 :segment-fill="roleSegmentFill"
                 segment-stroke-color="var(--background)"
                 :total="s.active_month ?? 0"
@@ -353,33 +355,35 @@
           </CardHeader>
           <CardContent>
             <ul class="divide-border divide-y">
-              <li
-                v-for="(u, i) in mostActive"
-                :key="u.id"
-                class="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
-              >
-                <div class="flex min-w-0 items-center gap-x-3">
-                  <span
-                    class="bg-muted text-muted-foreground squircle flex size-7 shrink-0 items-center justify-center text-xs font-medium tabular-nums"
-                  >
-                    {{ i + 1 }}
-                  </span>
-                  <Avatar :model="u" size="sm" class="size-8" no-tooltip />
-                  <div class="min-w-0">
-                    <p class="truncate text-sm font-medium tracking-tight">{{ u.name }}</p>
-                    <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
-                      Last seen {{ $dayjs(u.last_seen).fromNow() }}
-                    </p>
+              <li v-for="(u, i) in mostActive" :key="u.id">
+                <component
+                  :is="canOpenUser ? NuxtLink : 'div'"
+                  :to="canOpenUser ? `/users/${u.username}/activity` : undefined"
+                  class="hover:bg-muted/40 -mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-2.5 transition-colors"
+                >
+                  <div class="flex min-w-0 items-center gap-x-3">
+                    <span
+                      class="bg-muted text-muted-foreground squircle flex size-7 shrink-0 items-center justify-center text-xs font-medium tabular-nums"
+                    >
+                      {{ i + 1 }}
+                    </span>
+                    <Avatar :model="u" size="sm" class="size-8" no-tooltip />
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-medium tracking-tight">{{ u.name }}</p>
+                      <p class="text-muted-foreground truncate text-xs tracking-tight sm:text-sm">
+                        Last seen {{ $dayjs(u.last_seen).fromNow() }}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div class="flex items-baseline gap-x-1 shrink-0 tabular-nums">
-                  <NumberFlow
-                    class="text-sm font-medium tracking-tight"
-                    :value="u.views"
-                    locales="en-US"
-                  />
-                  <span class="text-muted-foreground text-xs tracking-tight">views</span>
-                </div>
+                  <div class="flex shrink-0 items-baseline gap-x-1 tabular-nums">
+                    <NumberFlow
+                      class="text-sm font-medium tracking-tight"
+                      :value="u.views"
+                      locales="en-US"
+                    />
+                    <span class="text-muted-foreground text-xs tracking-tight">views</span>
+                  </div>
+                </component>
               </li>
             </ul>
           </CardContent>
@@ -424,6 +428,12 @@ const updatedAgo = computed(() => {
 
 const { currentUserId, selfPage } = useSelfCurrentPage();
 
+const NuxtLink = resolveComponent("NuxtLink");
+const { hasPermission } = usePermission();
+// The per-user page sits behind users.read, which users.view_analytics does not
+// imply - linking without it would hand the viewer a 403.
+const canOpenUser = computed(() => hasPermission("users.read"));
+
 const s = computed(() => d.value?.summary ?? {});
 // The current user's own entry is overridden with their live client page: the
 // server value lags one navigation behind (heartbeat lands after this fetch).
@@ -466,37 +476,8 @@ const clampLabel = (value) => {
   return str.length > max ? `${str.slice(0, max - 1)}…` : str;
 };
 
-// ── Shared monochrome texture defs ───────────────────────────────────────────
-// The chart palette is grayscale (--chart-1..5); variety comes from chart TYPE
-// and texture, not colour. Each chart references a pattern/gradient via url(#id).
-const areaGlowDefs = `
-  <linearGradient id="ua-area-fill" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="5%" stop-color="var(--chart-1)" stop-opacity="0.4" />
-    <stop offset="95%" stop-color="var(--chart-1)" stop-opacity="0" />
-  </linearGradient>`;
-
-const dotDefs = `<pattern id="ua-dots" width="5" height="5" patternUnits="userSpaceOnUse">
-  <rect width="5" height="5" fill="var(--chart-1)" opacity="0.1" />
-  <circle cx="2.5" cy="2.5" r="1.2" fill="var(--chart-1)" opacity="0.55" /></pattern>`;
-
-const stripeDefs = `<pattern id="ua-stripe" patternUnits="userSpaceOnUse" width="6" height="6">
-  <rect width="6" height="6" fill="var(--chart-1)" opacity="0.05" />
-  <path d="M0,6 L6,0" stroke="var(--chart-1)" stroke-width="0.8" opacity="0.35" /></pattern>`;
-
-const duotoneDefs = `<linearGradient id="ua-duotone" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0%" stop-color="var(--chart-1)" stop-opacity="0.4" />
-  <stop offset="100%" stop-color="var(--chart-1)" stop-opacity="1" /></linearGradient>`;
-
-const padAngle = (2 * Math.PI) / 180;
-
-const CHART_VARS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
-const chartVar = (i) => CHART_VARS[i % CHART_VARS.length];
+// Texture defs + chart ramp live in utils/chartTextures.js so this page and the
+// per-user activity tab stay one visual system (auto-imported).
 
 // KPI cards ──────────────────────────────────────────────────────────────────
 const kpis = computed(() => [

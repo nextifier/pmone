@@ -38,6 +38,18 @@
             </NuxtLink>
           </PopoverClose>
 
+          <!-- Admin-app usage. Kept next to Manage and away from the public
+               profile links below, which include a similar-sounding item. -->
+          <PopoverClose v-if="canViewActivity" as-child>
+            <NuxtLink
+              :to="`/users/${username}/activity`"
+              class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+            >
+              <Icon name="hugeicons:chart-line-data-02" class="size-4 shrink-0" />
+              <span>App activity</span>
+            </NuxtLink>
+          </PopoverClose>
+
           <PopoverClose as-child>
             <NuxtLink
               :to="`/${username}`"
@@ -64,7 +76,7 @@
               class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
             >
               <Icon name="lucide:chart-no-axes-combined" class="size-4 shrink-0" />
-              <span>Analytics</span>
+              <span>Profile analytics</span>
             </NuxtLink>
           </PopoverClose>
 
@@ -238,36 +250,25 @@ const whatsappLink = computed(() => {
 
 const emit = defineEmits(["refresh"]);
 
-const { hasPermission, isMaster, user } = usePermission();
+const { hasPermission } = usePermission();
 const canSendEmails = computed(() => hasPermission("users.send_account_emails"));
+const canViewActivity = computed(() => hasPermission("users.view_analytics"));
 
-const { refreshIdentity } = useSanctumAuth();
+const {
+  canImpersonate: canImpersonateTarget,
+  impersonate: startImpersonation,
+  pending: impersonatePending,
+} = useImpersonate();
 
-// Master-only, in code (never a grantable permission). Cannot impersonate self
-// or another master account.
-const canImpersonate = computed(() => {
-  if (!isMaster.value) return false;
-  if (!props.id || props.id === user.value?.id) return false;
-  return !(props.roles || []).includes("master");
-});
+const impersonateTarget = computed(() => ({
+  id: props.id,
+  username: props.username,
+  roles: props.roles,
+}));
 
-const impersonatePending = ref(false);
+const canImpersonate = computed(() => canImpersonateTarget(impersonateTarget.value));
 
-const impersonate = async () => {
-  impersonatePending.value = true;
-  try {
-    const client = useSanctumClient();
-    await client(`/api/users/${props.username}/impersonate`, { method: "POST" });
-    await refreshIdentity();
-    // Full navigation so every composable re-reads the impersonated identity.
-    window.location.assign("/dashboard");
-  } catch (error) {
-    toast.error("Failed to impersonate user", {
-      description: error?.data?.message || error?.message || "An error occurred",
-    });
-    impersonatePending.value = false;
-  }
-};
+const impersonate = () => startImpersonation(impersonateTarget.value);
 
 const deleteDialogOpen = ref(false);
 const verifyDialogOpen = ref(false);
