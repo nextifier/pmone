@@ -9,8 +9,18 @@ import {
 import { cn } from "@/lib/utils";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { createReusableTemplate, reactiveOmit, useVModel } from "@vueuse/core";
-import type { CalendarRootProps, DateRange, DateValue, RangeCalendarRootProps } from "reka-ui";
-import { CalendarRoot, RangeCalendarRoot, useDateFormatter, useForwardPropsEmits } from "reka-ui";
+import type {
+  CalendarRootProps,
+  DateRange,
+  DateValue,
+  RangeCalendarRootProps,
+} from "reka-ui";
+import {
+  CalendarRoot,
+  RangeCalendarRoot,
+  useDateFormatter,
+  useForwardPropsEmits,
+} from "reka-ui";
 import { createYear, createYearRange, toDate } from "reka-ui/date";
 import type { Grid } from "reka-ui/date";
 import type { HTMLAttributes, Ref } from "vue";
@@ -37,7 +47,10 @@ const props = withDefaults(
       Partial<
         Pick<
           RangeCalendarRootProps,
-          "allowNonContiguousRanges" | "maximumDays" | "fixedDate" | "isDateHighlightable"
+          | "allowNonContiguousRanges"
+          | "maximumDays"
+          | "fixedDate"
+          | "isDateHighlightable"
         >
       > & {
         class?: HTMLAttributes["class"];
@@ -55,7 +68,7 @@ const props = withDefaults(
     modelValue: undefined,
     mode: "single",
     layout: "month-and-year",
-  }
+  },
 );
 
 const emits = defineEmits<{
@@ -69,13 +82,14 @@ const emits = defineEmits<{
 
 const isRange = computed(() => props.mode === "range");
 const isMultiple = computed(
-  () => props.mode === "multiple" || (props.mode === "single" && !!props.multiple)
+  () =>
+    props.mode === "multiple" || (props.mode === "single" && !!props.multiple),
 );
 
 provideCalendarMode(
   computed<CalendarMode>(() =>
-    isRange.value ? "range" : isMultiple.value ? "multiple" : "single"
-  )
+    isRange.value ? "range" : isMultiple.value ? "multiple" : "single",
+  ),
 );
 
 // `multiple` is bound explicitly on CalendarRoot and the range-only props are
@@ -92,7 +106,7 @@ const delegatedSingle = reactiveOmit(
   "allowNonContiguousRanges",
   "maximumDays",
   "fixedDate",
-  "isDateHighlightable"
+  "isDateHighlightable",
 );
 const delegatedRange = reactiveOmit(
   props,
@@ -101,7 +115,7 @@ const delegatedRange = reactiveOmit(
   "yearRange",
   "mode",
   "placeholder",
-  "multiple"
+  "multiple",
 );
 
 const placeholder = useVModel(props, "placeholder", emits, {
@@ -117,23 +131,29 @@ const yearRange = computed(() => {
     createYearRange({
       start:
         props?.minValue ??
-        (toRaw(props.placeholder) ?? props.defaultPlaceholder ?? today(getLocalTimeZone())).cycle(
-          "year",
-          -100
-        ),
+        (
+          toRaw(props.placeholder) ??
+          props.defaultPlaceholder ??
+          today(getLocalTimeZone())
+        ).cycle("year", -100),
 
       end:
         props?.maxValue ??
-        (toRaw(props.placeholder) ?? props.defaultPlaceholder ?? today(getLocalTimeZone())).cycle(
-          "year",
-          10
-        ),
+        (
+          toRaw(props.placeholder) ??
+          props.defaultPlaceholder ??
+          today(getLocalTimeZone())
+        ).cycle("year", 10),
     })
   );
 });
 
-const [DefineMonthTemplate, ReuseMonthTemplate] = createReusableTemplate<{ date: DateValue }>();
-const [DefineYearTemplate, ReuseYearTemplate] = createReusableTemplate<{ date: DateValue }>();
+const [DefineMonthTemplate, ReuseMonthTemplate] = createReusableTemplate<{
+  date: DateValue;
+}>();
+const [DefineYearTemplate, ReuseYearTemplate] = createReusableTemplate<{
+  date: DateValue;
+}>();
 // Both roots expose the same default-slot payload, so the whole calendar body is
 // authored once and reused by either branch.
 const [DefineCalendarContent, ReuseCalendarContent] = createReusableTemplate<{
@@ -148,8 +168,8 @@ const [DefineCalendarContent, ReuseCalendarContent] = createReusableTemplate<{
 const rootClass = computed(() =>
   cn(
     "cn-calendar group/calendar bg-background in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent w-fit",
-    props.class
-  )
+    props.class,
+  ),
 );
 
 // reka gives locale-aware weekday names ("Sun"); shadcn's calendar shows two
@@ -267,9 +287,13 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
           <CalendarGridRow
             v-for="(weekDates, index) in month.rows"
             :key="`weekDate-${index}`"
-            class="mt-2 w-full"
+            class="mt-1.5 w-full"
           >
-            <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
+            <CalendarCell
+              v-for="weekDate in weekDates"
+              :key="weekDate.toString()"
+              :date="weekDate"
+            >
               <CalendarCellTrigger :day="weekDate" :month="month.value">
                 <!-- Only pass content when a #day slot exists: an empty default
                      slot would suppress reka-ui's own day-number fallback. -->
