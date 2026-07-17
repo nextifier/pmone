@@ -464,9 +464,11 @@ function syncUrl() {
 
 let fetchSeq = 0;
 
-async function fetchActivities() {
-  syncUrl();
-  loading.value = true;
+async function fetchActivities({ silent = false } = {}) {
+  if (!silent) {
+    syncUrl();
+    loading.value = true;
+  }
   const seq = ++fetchSeq;
   try {
     const params = new URLSearchParams();
@@ -491,12 +493,15 @@ async function fetchActivities() {
     error.value = false;
   } catch (err) {
     if (seq !== fetchSeq) return;
+    // A silent (polling) failure keeps the last snapshot on screen; rethrow
+    // so the poller backs off instead of hammering a failing endpoint.
+    if (silent) throw err;
     console.error("Error loading activity logs:", err);
     activities.value = [];
     meta.value = null;
     error.value = true;
   } finally {
-    if (seq === fetchSeq) loading.value = false;
+    if (seq === fetchSeq && !silent) loading.value = false;
   }
 }
 
@@ -591,6 +596,10 @@ onMounted(() => {
   fetchActivities();
   loadFilterOptions();
 });
+
+// Logs grow from every actor in the system; poll silently so the list stays
+// current without flashing the loading state.
+usePolling(() => fetchActivities({ silent: true }), 30000);
 
 defineShortcuts({
   r: {

@@ -250,27 +250,86 @@ return [
             'timeout' => 120,
             'nice' => 0,
         ],
+        /*
+         * Long admin-triggered batches (bulk attendee generation). Runs on the
+         * redis-long connection, whose retry_after (1900) exceeds this timeout so
+         * a slow batch is never handed to a second worker mid-run. Deliberately
+         * capped at one process and niced: it must never crowd out ticket
+         * checkout on an event day.
+         */
+        'supervisor-bulk' => [
+            'connection' => 'redis-long',
+            'queue' => ['bulk'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 1800,
+            'nice' => 5,
+        ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Process Ceilings
+    |--------------------------------------------------------------------------
+    |
+    | These caps are a MEMORY BUDGET, not a throughput dial. Every supervisor's
+    | maxProcesses adds to one shared total, and the app server also has to hold
+    | PHP-FPM, PostgreSQL and Redis. Sizing (measured on the 4GB production box):
+    |
+    |   3915 MB  total
+    |   - 250    OS + nginx
+    |   - 400    PostgreSQL
+    |   -  50    Redis
+    |   - 1460   PHP-FPM (pm.max_children 20 x 73 MB measured)
+    |   - 500    page cache PostgreSQL needs to stay off disk
+    |   ------
+    |   ~1255 MB left for every Horizon worker combined, i.e. ~10 workers.
+    |
+    | The ceilings previously summed to 26 processes. Nothing had gone wrong yet
+    | only because the queues sit idle; the shape that breaks is an event day,
+    | where ticket checkout is a POST (so Cloudflare cannot cache it and it lands
+    | on PHP-FPM) at the same moment the tickets queue floods. Both then compete
+    | for the same RAM, and the OOM killer picks the biggest process - PostgreSQL.
+    |
+    | Tickets keeps the largest share deliberately: on an event day it is the
+    | queue that must not fall behind. Raise these only alongside more RAM, and
+    | re-measure rather than guessing - a worker is not 50 MB.
+    |
+    | Note supervisor-pdf is heavier than its `memory` value suggests: Browsershot
+    | spawns Chromium as a *child* process, whose few hundred MB Horizon never
+    | sees or counts.
+    |
+    */
 
     'environments' => [
         'production' => [
             'supervisor-1' => [
-                'maxProcesses' => (int) env('HORIZON_DEFAULT_MAX_PROCESSES', 10),
+                'maxProcesses' => (int) env('HORIZON_DEFAULT_MAX_PROCESSES', 3),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-analytics' => [
-                'maxProcesses' => (int) env('HORIZON_ANALYTICS_MAX_PROCESSES', 3),
+                'maxProcesses' => (int) env('HORIZON_ANALYTICS_MAX_PROCESSES', 1),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-pdf' => [
-                'maxProcesses' => (int) env('HORIZON_PDF_MAX_PROCESSES', 2),
+                'maxProcesses' => (int) env('HORIZON_PDF_MAX_PROCESSES', 1),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
             'supervisor-tickets' => [
-                'maxProcesses' => (int) env('HORIZON_TICKETS_MAX_PROCESSES', 10),
+                'maxProcesses' => (int) env('HORIZON_TICKETS_MAX_PROCESSES', 6),
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'supervisor-bulk' => [
+                'maxProcesses' => (int) env('HORIZON_BULK_MAX_PROCESSES', 1),
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
@@ -288,6 +347,9 @@ return [
             ],
             'supervisor-tickets' => [
                 'maxProcesses' => 3,
+            ],
+            'supervisor-bulk' => [
+                'maxProcesses' => 1,
             ],
         ],
     ],

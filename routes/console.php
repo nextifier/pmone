@@ -4,6 +4,7 @@ use App\Jobs\Hotel\ReleaseExpiredAllotmentsJob;
 use App\Jobs\Reservation\ExpireUnpaidReservationsJob;
 use App\Jobs\Ticket\ExpireStaleWaitlistOffersJob;
 use App\Jobs\Ticket\ExpireUnpaidTicketOrdersJob;
+use App\Models\ApiConsumerRequest;
 use App\Models\UserPageView;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -16,16 +17,29 @@ Artisan::command('inspire', function () {
 
 Schedule::command('telescope:prune --hours=48')->daily();
 
-Schedule::command('posts:publish-scheduled')->everyMinute();
+Schedule::command('posts:publish-scheduled')->everyMinute()->withoutOverlapping();
 
 // Keep the local email history and delivery statuses in step with Resend.
 Schedule::command('emails:sync-resend')->everyFifteenMinutes()->withoutOverlapping();
 
-// Prune temp uploads (FilePond) that were never attached to a model.
-Schedule::command('uploads:cleanup-temp')->daily()->at('02:30');
+// Note: temp upload cleanup lives in bootstrap/app.php (hourly, --hours=1).
+// A second daily registration here used the default 24h window and could never
+// match anything the hourly run had not already deleted, so it was removed.
 
-// Prune user page-view history past its retention window (all environments).
-Schedule::command('model:prune', ['--model' => [UserPageView::class]])->dailyAt('01:30');
+// Prune append-only history past its retention window (all environments).
+Schedule::command('model:prune', ['--model' => [
+    UserPageView::class,
+    ApiConsumerRequest::class,
+]])->dailyAt('01:30');
+
+// Failed jobs and batches are stored in Postgres and were never pruned.
+// Horizon's own trim settings only cover its Redis copy, not these tables.
+Schedule::command('queue:prune-failed --hours=168')->daily()->at('01:10');
+Schedule::command('queue:prune-batches --hours=168')->daily()->at('01:15');
+Schedule::command('auth:clear-resets')->daily()->at('01:20');
+
+// Horizon's metrics dashboard is fed by snapshots; without this it stays empty.
+Schedule::command('horizon:snapshot')->everyFiveMinutes();
 
 Schedule::command('activitylog:clean --force')->daily()->at('01:00')->environments(['production']);
 Schedule::command('backup:clean')->daily()->at('02:00')->environments(['production']);

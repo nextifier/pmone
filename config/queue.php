@@ -63,11 +63,34 @@ return [
             'after_commit' => false,
         ],
 
+        /*
+         * retry_after MUST stay greater than both the longest $timeout of any job
+         * on this connection and the timeout of every Horizon supervisor that
+         * consumes it (currently 600 on supervisor-1 and supervisor-analytics).
+         * If it is lower, Redis hands a still-running job to a second worker —
+         * which for a tries=1 destructive job such as BulkDeleteMedia means two
+         * concurrent delete passes over the same records.
+         */
         'redis' => [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 700),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
+        /*
+         * Same Redis server, separate reservation window for genuinely long jobs
+         * (bulk attendee generation runs for up to 30 minutes). Kept off the
+         * `redis` connection so ordinary work is not stuck waiting ~32 minutes to
+         * be retried after a worker actually crashes.
+         */
+        'redis-long' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => 'bulk',
+            'retry_after' => (int) env('REDIS_LONG_QUEUE_RETRY_AFTER', 1900),
             'block_for' => null,
             'after_commit' => false,
         ],

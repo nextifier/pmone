@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
+ * One row per public API request that did real origin work. Cache hits are
+ * skipped by ValidateApiKey. Rows are append-only and mass-pruned on a
+ * schedule — without that this table reached 17M rows / 3.5GB in production.
+ *
  * @property int $id
  * @property int $api_consumer_id
  * @property string $endpoint
@@ -16,8 +23,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $ip_address
  * @property string|null $user_agent
  * @property string|null $origin
- * @property \Illuminate\Support\Carbon $created_at
- * @property-read \App\Models\ApiConsumer|null $apiConsumer
+ * @property Carbon $created_at
+ * @property-read ApiConsumer|null $apiConsumer
+ *
  * @method static \Database\Factories\ApiConsumerRequestFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest forConsumer(int $consumerId)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest inPeriod(int $days)
@@ -34,13 +42,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest whereResponseTimeMs($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest whereStatusCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumerRequest whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class ApiConsumerRequest extends Model
 {
-    use HasFactory;
+    use HasFactory, MassPrunable;
 
     public $timestamps = false;
+
+    /**
+     * Rows older than this are removed by the scheduled model:prune command.
+     */
+    public const RETENTION_DAYS = 30;
 
     protected $fillable = [
         'api_consumer_id',
@@ -61,6 +75,14 @@ class ApiConsumerRequest extends Model
             'status_code' => 'integer',
             'response_time_ms' => 'integer',
         ];
+    }
+
+    /**
+     * @return Builder<ApiConsumerRequest>
+     */
+    public function prunable(): Builder
+    {
+        return static::where('created_at', '<', now()->subDays(self::RETENTION_DAYS));
     }
 
     public function apiConsumer(): BelongsTo

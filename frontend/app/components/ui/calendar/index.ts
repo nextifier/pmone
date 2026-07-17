@@ -11,4 +11,7 @@ export { default as CalendarHeading } from "./CalendarHeading.vue"
 export { default as CalendarNextButton } from "./CalendarNextButton.vue"
 export { default as CalendarPrevButton } from "./CalendarPrevButton.vue"
 
+export { CALENDAR_MODE_KEY, provideCalendarMode, useCalendarMode } from "./context"
+export type { CalendarMode } from "./context"
+
 export type LayoutTypes = "month-and-year" | "month-only" | "year-only" | undefined

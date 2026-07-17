@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Form;
 use App\Support\FormTemplates;
+use App\Support\InputNormalizer;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Email;
@@ -13,6 +14,23 @@ class StoreFormRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user() !== null;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $settings = $this->input('settings');
+
+        if (! is_array($settings)) {
+            return;
+        }
+
+        foreach (['to', 'cc', 'bcc'] as $list) {
+            if (is_array(data_get($settings, "notification_emails.{$list}"))) {
+                data_set($settings, "notification_emails.{$list}", InputNormalizer::emailList(data_get($settings, "notification_emails.{$list}")));
+            }
+        }
+
+        $this->merge(['settings' => $settings]);
     }
 
     public function rules(): array

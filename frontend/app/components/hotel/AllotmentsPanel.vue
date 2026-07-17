@@ -51,8 +51,8 @@
             <div class="grid grid-cols-2 gap-x-2">
               <div class="space-y-2">
                 <Label>Date Range</Label>
-                <RangeCalendarPicker
-                  size="default"
+                <DatePicker
+                  mode="range"
                   placeholder="Pick date range"
                   :model-value="{ start: form._start_date_obj, end: form._end_date_obj }"
                   @update:model-value="onDateRangeUpdate"
@@ -211,7 +211,6 @@ import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
 import {
   Select,
   SelectContent,

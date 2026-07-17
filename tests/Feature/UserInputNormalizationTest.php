@@ -6,40 +6,29 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('User Input Normalization', function () {
-    test('name is normalized to title case on model assignment', function () {
-        $user = new User;
+    test('single-case names are normalized to title case on save', function () {
+        $lowercase = User::factory()->create(['name' => 'antonius richardo']);
+        expect($lowercase->name)->toBe('Antonius Richardo');
 
-        // Test lowercase input
-        $user->name = 'antonius richardo';
-        expect($user->name)->toBe('Antonius Richardo');
+        $uppercase = User::factory()->create(['name' => 'ANTONIUS RICHARDO']);
+        expect($uppercase->name)->toBe('Antonius Richardo');
 
-        // Test uppercase input
-        $user->name = 'ANTONIUS RICHARDO';
-        expect($user->name)->toBe('Antonius Richardo');
-
-        // Test mixed case input
-        $user->name = 'aNtOnIuS rIcHaRdO';
-        expect($user->name)->toBe('Antonius Richardo');
-
-        // Test input with extra spaces
-        $user->name = '  antonius richardo  ';
-        expect($user->name)->toBe('Antonius Richardo');
+        $padded = User::factory()->create(['name' => '  antonius   richardo  ']);
+        expect($padded->name)->toBe('Antonius Richardo');
     });
 
-    test('email is normalized to lowercase on model assignment', function () {
-        $user = new User;
+    test('intentional mixed-case names are preserved on save', function () {
+        $user = User::factory()->create(['name' => 'Alistair McDonald']);
 
-        // Test mixed case email
-        $user->email = 'Antonius@panoramamedia.co.id';
-        expect($user->email)->toBe('antonius@panoramamedia.co.id');
+        expect($user->name)->toBe('Alistair McDonald');
+    });
 
-        // Test uppercase email
-        $user->email = 'ANTONIUS@PANORAMAMEDIA.CO.ID';
-        expect($user->email)->toBe('antonius@panoramamedia.co.id');
+    test('email is normalized to lowercase on save', function () {
+        $mixed = User::factory()->create(['email' => 'Antonius@panoramamedia.co.id']);
+        expect($mixed->email)->toBe('antonius@panoramamedia.co.id');
 
-        // Test email with extra spaces
-        $user->email = '  Antonius@PanoramaMEDIA.co.id  ';
-        expect($user->email)->toBe('antonius@panoramamedia.co.id');
+        $padded = User::factory()->create(['email' => '  ANTONIUS2@PANORAMAMEDIA.CO.ID  ']);
+        expect($padded->email)->toBe('antonius2@panoramamedia.co.id');
     });
 
     test('normalization works during user creation', function () {
@@ -71,13 +60,14 @@ describe('User Input Normalization', function () {
         expect($user->email)->toBe('antonius@panoramamedia.co.id');
     });
 
-    test('normalization works through mass assignment', function () {
+    test('normalization works through mass assignment once saved', function () {
         $user = User::factory()->create();
 
         $user->fill([
             'name' => 'mass assignment test',
             'email' => 'MASS@ASSIGNMENT.TEST',
         ]);
+        $user->save();
 
         expect($user->name)->toBe('Mass Assignment Test');
         expect($user->email)->toBe('mass@assignment.test');

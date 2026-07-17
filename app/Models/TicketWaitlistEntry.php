@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Ticketing\TicketWaitlistEntryStatus;
+use App\Traits\NormalizesAttributes;
 use Database\Factories\TicketWaitlistEntryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,15 @@ class TicketWaitlistEntry extends Model
     /** @use HasFactory<TicketWaitlistEntryFactory> */
     use HasFactory;
 
+    use NormalizesAttributes;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'name' => 'personName',
+        'email' => 'email',
+        'phone' => 'phone',
+    ];
+
     protected $fillable = [
         'event_id',
         'ticket_id',
@@ -61,23 +71,6 @@ class TicketWaitlistEntry extends Model
             'offered_at' => 'datetime',
             'offer_expires_at' => 'datetime',
         ];
-    }
-
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        static::creating(function (self $model) {
-            if (! empty($model->email)) {
-                $model->email = strtolower(trim($model->email));
-            }
-        });
-
-        static::updating(function (self $model) {
-            if ($model->isDirty('email') && ! empty($model->email)) {
-                $model->email = strtolower(trim($model->email));
-            }
-        });
     }
 
     public function event(): BelongsTo

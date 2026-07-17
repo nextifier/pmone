@@ -71,6 +71,16 @@ return [
     'cloudflare' => [
         'account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
         'key' => env('CLOUDFLARE_KEY'),
+
+        /*
+         * Edge cache purging. The zone's cache rules give the public API a one
+         * hour edge TTL, which would otherwise keep serving content the app has
+         * already invalidated at the origin. Both values must be set for
+         * purging to happen at all; unset (local, CI) it is a no-op.
+         * The token needs only the Zone > Cache Purge permission on this zone.
+         */
+        'zone_id' => env('CLOUDFLARE_ZONE_ID'),
+        'purge_token' => env('CLOUDFLARE_PURGE_TOKEN'),
     ],
 
     'whatsapp' => [

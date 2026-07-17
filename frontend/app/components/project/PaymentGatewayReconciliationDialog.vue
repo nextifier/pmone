@@ -13,7 +13,7 @@
         <div class="space-y-1.5">
           <Label class="text-muted-foreground text-xs tracking-tight">Date range</Label>
           <div class="w-52">
-            <RangeCalendarPicker v-model="dateRange" placeholder="Date range" />
+            <DatePicker mode="range" v-model="dateRange" size="sm" placeholder="Date range" />
           </div>
         </div>
         <Button
@@ -146,7 +146,7 @@ const appConfig = useAppConfig();
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Table,
   TableBody,

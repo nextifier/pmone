@@ -163,7 +163,13 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
           <ClientOnly>
             <div class="w-full sm:w-[210px]">
-              <RangeCalendarPicker v-model="dateRange" size="sm" placeholder="Date range" />
+              <DatePicker
+                v-model="dateRange"
+                mode="range"
+                size="sm"
+                placeholder="Date range"
+                :presets="datePresets"
+              />
             </div>
           </ClientOnly>
           <Button variant="outline" size="sm" as-child class="w-full sm:w-auto">
@@ -422,7 +428,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TableData } from "@/components/ui/table-data";
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -455,6 +461,30 @@ const dateRange = ref({
   start: $dayjs().subtract(29, "day").toDate(),
   end: $dayjs().toDate(),
 });
+
+// Getters, not fixed dates: these pages stay open for hours and "Today" has to
+// still mean today when the picker is finally used.
+const lastNDays = (n) => () => ({
+  start: $dayjs()
+    .subtract(n - 1, "day")
+    .toDate(),
+  end: $dayjs().toDate(),
+});
+
+const datePresets = [
+  { label: "Today", value: lastNDays(1) },
+  {
+    label: "Yesterday",
+    value: () => ({
+      start: $dayjs().subtract(1, "day").toDate(),
+      end: $dayjs().subtract(1, "day").toDate(),
+    }),
+  },
+  { label: "Last 3 days", value: lastNDays(3) },
+  { label: "Last 7 days", value: lastNDays(7) },
+  { label: "Last 15 days", value: lastNDays(15) },
+  { label: "Last 30 days", value: lastNDays(30) },
+];
 
 const toYmd = (date) => {
   if (!date) return null;

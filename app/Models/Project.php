@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\OgPages;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -119,8 +120,15 @@ class Project extends Model implements HasMedia, Sortable
     use HasTranslations;
     use InteractsWithMedia;
     use LogsActivity;
+    use NormalizesAttributes;
     use SoftDeletes;
     use SortableTrait;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'email' => 'email',
+        'phone' => 'labeledPhoneList',
+    ];
 
     /**
      * Public-cache tags backed by the settings JSON column. The website

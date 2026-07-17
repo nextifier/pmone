@@ -4,8 +4,8 @@ import { ButtonGroup } from "../ui/button-group";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { PricingCalendar } from "../ui/pricing-calendar";
 import BookingStep1RoomCard from "./BookingStep1RoomCard.vue";
+import PricingCalendar from "./PricingCalendar.vue";
 import {
   CalendarDate,
   DateFormatter,
@@ -206,8 +206,10 @@ watch(
                 </span>
               </Button>
             </PopoverTrigger>
+            <!-- The popover is the surface here: the calendar paints no
+                 background of its own once it is inside one. -->
             <PopoverContent
-              class="z-50 max-h-[var(--reka-popover-content-available-height,85vh)] w-auto max-w-[95vw] overflow-auto overscroll-contain border-0 bg-transparent p-0 shadow-none"
+              class="no-scrollbar z-50 max-h-[var(--reka-popover-content-available-height,85vh)] w-auto max-w-[95vw] overflow-auto overscroll-contain p-0"
               align="start"
               :side-offset="6"
               :collision-padding="8"
@@ -219,7 +221,7 @@ watch(
                 :max-value="maxValue"
                 :pricing-data="pricingData"
                 :is-loading="pricingLoading"
-                class="bg-popover text-popover-foreground shadow-md"
+                class="border-0"
                 @update:model-value="handleRangeChange"
                 @month-change="(p) => emit('monthChange', p)"
               />

@@ -7,6 +7,7 @@ use App\Contracts\Pricing\Purchasable;
 use App\Enums\Ticketing\TicketOrderStatus;
 use App\Support\PaymentChannels;
 use App\Traits\HasAdjustments;
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,6 +56,7 @@ class TicketOrder extends Model implements CheckoutPayable, Purchasable
     use HasAdjustments;
     use HasFactory;
     use LogsActivity;
+    use NormalizesAttributes;
     use SoftDeletes;
 
     /**
@@ -62,6 +64,13 @@ class TicketOrder extends Model implements CheckoutPayable, Purchasable
      * creation so it can be embedded in the e-ticket link / email.
      */
     public ?string $magicLinkRaw = null;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'buyer_name' => 'personName',
+        'buyer_email' => 'email',
+        'buyer_phone' => 'phone',
+    ];
 
     protected $fillable = [
         'order_number',

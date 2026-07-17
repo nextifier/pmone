@@ -7,8 +7,6 @@ export const useNotifications = () => {
   const meta = ref(null);
   const activeTab = ref("unread");
 
-  let pollingInterval = null;
-
   const fetchNotifications = async (filter = activeTab.value) => {
     loading.value = true;
     try {
@@ -79,17 +77,10 @@ export const useNotifications = () => {
     }
   };
 
-  const startPolling = () => {
-    fetchUnreadCount();
-    pollingInterval = setInterval(fetchUnreadCount, 60000);
-  };
+  const poller = usePolling(fetchUnreadCount, 60000, { immediate: true, autoStart: false });
 
-  const stopPolling = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      pollingInterval = null;
-    }
-  };
+  const startPolling = poller.start;
+  const stopPolling = poller.stop;
 
   return {
     notifications,

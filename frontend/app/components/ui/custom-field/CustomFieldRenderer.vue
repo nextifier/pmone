@@ -128,10 +128,10 @@
       />
 
       <!-- Date Range -->
-      <RangeCalendarPicker
+      <DatePicker
         v-else-if="normalized.type === 'date_range'"
+        mode="range"
         :model-value="dateRangeValue"
-        size="default"
         :disabled="disabled"
         :placeholder="normalized.placeholder || 'Pick a date range'"
         @update:model-value="handleDateRange"
@@ -369,7 +369,6 @@ import { Label } from "../label";
 import { LocationCombobox } from "../location-combobox";
 import { MultiSelect } from "../multi-select";
 import { RadioGroup, RadioGroupItem } from "../radio-group";
-import { RangeCalendarPicker } from "../range-calendar-picker";
 import { Rating } from "../rating";
 import {
   Select,

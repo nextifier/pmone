@@ -57,7 +57,7 @@ class CustomFieldValues
                 continue;
             }
 
-            $value = $values[$fieldKey];
+            $value = self::normalizeByType($field, $values[$fieldKey]);
 
             CustomFieldValue::query()->updateOrCreate(
                 [
@@ -68,6 +68,37 @@ class CustomFieldValues
                 ['value' => is_array($value) ? $value : [$value]],
             );
         }
+    }
+
+    /**
+     * Normalize an answer according to its field type (email lowercased,
+     * phone in international format). Other types pass through untouched.
+     * Handles both scalars and the array/multi-value shapes.
+     */
+    public static function normalizeByType(CustomField $field, mixed $value): mixed
+    {
+        $normalizer = match ($field->type) {
+            CustomField::TYPE_EMAIL => 'email',
+            CustomField::TYPE_PHONE => 'phone',
+            default => null,
+        };
+
+        if ($normalizer === null) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return InputNormalizer::{$normalizer}($value);
+        }
+
+        if (is_array($value)) {
+            return array_map(
+                fn ($item) => is_string($item) ? InputNormalizer::{$normalizer}($item) : $item,
+                $value,
+            );
+        }
+
+        return $value;
     }
 
     /**

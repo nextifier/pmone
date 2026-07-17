@@ -2,12 +2,14 @@
 
 namespace App\Http\Middleware;
 
+use App\Listeners\MarkResponseCacheHit;
 use App\Models\ApiConsumer;
 use App\Models\ApiConsumerRequest;
 use App\Models\Event;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -96,6 +98,15 @@ class ValidateApiKey
         // Process the request
         $response = $next($request);
 
+        // A response served from the response cache did no real origin work,
+        // so it is not worth a row. This middleware runs in the api.key group,
+        // which is *before* the cacheResponse route middleware, so without the
+        // flag set by MarkResponseCacheHit every cache hit would still write —
+        // which is how this table reached 17M rows and 3.5GB.
+        if ($request->attributes->getBoolean(MarkResponseCacheHit::ATTRIBUTE)) {
+            return $response;
+        }
+
         // Calculate response time
         $responseTimeMs = (int) round((microtime(true) - $startTime) * 1000);
 
@@ -111,7 +122,7 @@ class ValidateApiKey
         // Log request and update last used timestamp (async to avoid blocking)
         // Use only primitive values to avoid PDO serialization issues
         app()->terminating(function () use ($consumerId, $endpoint, $method, $statusCode, $responseTimeMs, $ipAddress, $userAgent, $origin) {
-            ApiConsumer::where('id', $consumerId)->update(['last_used_at' => now()]);
+            $this->touchLastUsedAt($consumerId);
 
             ApiConsumerRequest::create([
                 'api_consumer_id' => $consumerId,
@@ -126,6 +137,23 @@ class ValidateApiKey
         });
 
         return $response;
+    }
+
+    /**
+     * Refresh a consumer's last_used_at at most once a minute. The column is
+     * only ever read at minute-or-coarser granularity, so writing it on every
+     * request bought nothing and churned dead tuples on a hot, tiny table.
+     * Mirrors the throttle in UpdateLastSeen.
+     */
+    private function touchLastUsedAt(int $consumerId): void
+    {
+        $throttleKey = 'api-consumer-last-used:'.$consumerId;
+
+        if (! Cache::add($throttleKey, true, now()->addMinute())) {
+            return;
+        }
+
+        ApiConsumer::where('id', $consumerId)->update(['last_used_at' => now()]);
     }
 
     /**

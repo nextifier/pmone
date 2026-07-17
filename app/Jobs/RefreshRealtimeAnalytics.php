@@ -14,7 +14,8 @@ use Throwable;
 /**
  * Pre-compute realtime analytics data in background.
  * Ensures instant response for realtime active users endpoint.
- * Runs every 2 minutes via scheduler.
+ * Dispatched on demand by AnalyticsService::getRealtimeActiveUsers() when its
+ * cache goes stale, so the GA API is only polled while someone is watching.
  */
 class RefreshRealtimeAnalytics implements ShouldBeUnique, ShouldQueue
 {

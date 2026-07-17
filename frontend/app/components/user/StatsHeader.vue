@@ -40,14 +40,22 @@ const cards = computed(() => [
   { label: "New this week", icon: "hugeicons:user-add-01", value: stats.value?.new_this_week ?? 0 },
 ]);
 
+async function loadStats() {
+  const res = await client("/api/users/stats", { query: props.params });
+  stats.value = res.data || null;
+}
+
 onMounted(async () => {
   try {
-    const res = await client("/api/users/stats", { query: props.params });
-    stats.value = res.data || null;
+    await loadStats();
   } catch (err) {
     console.error("Error loading user stats:", err);
   } finally {
     loading.value = false;
   }
 });
+
+// The "Online now" card would go stale while the users table below it polls;
+// keep both on the same cadence.
+usePolling(loadStats, 20000);
 </script>

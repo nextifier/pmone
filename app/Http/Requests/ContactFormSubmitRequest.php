@@ -2,11 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Helpers\PhoneCountryHelper;
 use App\Rules\HoneypotPassed;
+use App\Support\InputNormalizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Email;
 
 class ContactFormSubmitRequest extends FormRequest
@@ -86,19 +85,16 @@ class ContactFormSubmitRequest extends FormRequest
                 }
             }
 
-            // Normalize person name to title case
             if (isset($sanitizedData['name']) && is_string($sanitizedData['name'])) {
-                $sanitizedData['name'] = Str::title(strtolower($sanitizedData['name']));
+                $sanitizedData['name'] = InputNormalizer::personName($sanitizedData['name']);
             }
 
-            // Normalize email to lowercase
             if (isset($sanitizedData['email']) && is_string($sanitizedData['email'])) {
-                $sanitizedData['email'] = strtolower($sanitizedData['email']);
+                $sanitizedData['email'] = InputNormalizer::email($sanitizedData['email']);
             }
 
-            // Normalize phone number to international format
             if (isset($sanitizedData['phone']) && is_string($sanitizedData['phone'])) {
-                $sanitizedData['phone'] = PhoneCountryHelper::normalizePhoneNumber($sanitizedData['phone']);
+                $sanitizedData['phone'] = InputNormalizer::phone($sanitizedData['phone']);
             }
 
             $this->merge(['data' => $sanitizedData]);

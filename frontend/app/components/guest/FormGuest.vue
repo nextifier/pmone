@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Switch } from "@/components/ui/switch";
 import {
   TagsInput,
@@ -227,12 +227,12 @@ defineShortcuts({
 
     <div class="space-y-2">
       <Label>Appearance Date</Label>
-      <RangeCalendarPicker
+      <DatePicker
         v-model="form.appearanceDate"
+        mode="range"
         :min="eventStart"
         :max="eventEnd"
         :number-of-months="1"
-        size="default"
         placeholder="Select the day(s) this guest appears"
       />
       <p class="text-muted-foreground text-sm tracking-tight">

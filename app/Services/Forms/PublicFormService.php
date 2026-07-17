@@ -9,7 +9,9 @@ use App\Models\CustomField;
 use App\Models\Form;
 use App\Models\FormResponse;
 use App\Notifications\FormResponseReceivedNotification;
+use App\Support\CustomFieldValues;
 use App\Support\FormFieldTypes;
+use App\Support\InputNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -74,12 +76,14 @@ class PublicFormService
             $request->validate($fieldValidation['rules'], [], $fieldValidation['attributes']);
         }
 
+        $respondentEmail = InputNormalizer::email($request->input('respondent_email'));
+
         $duplicateConfig = $form->getPreventDuplicateConfig();
         if ($duplicateConfig['prevent_duplicate']) {
             $isDuplicate = $this->checkDuplicateSubmission(
                 $form,
                 $duplicateConfig['prevent_duplicate_by'],
-                $request->input('respondent_email'),
+                $respondentEmail,
                 $request->input('browser_fingerprint')
             );
 
@@ -91,7 +95,7 @@ class PublicFormService
         $formResponse = FormResponse::create([
             'form_id' => $form->id,
             'response_data' => $this->onlyKnownFieldValues($form, $request->input('responses', [])),
-            'respondent_email' => $request->input('respondent_email'),
+            'respondent_email' => $respondentEmail,
             'browser_fingerprint' => $request->input('browser_fingerprint'),
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
@@ -222,12 +226,17 @@ class PublicFormService
 
     private function onlyKnownFieldValues(Form $form, array $responses): array
     {
-        $allowedUlids = $form->fields
-            ->reject(fn (CustomField $field) => $field->type === CustomField::TYPE_SECTION)
-            ->pluck('ulid')
-            ->all();
+        $values = [];
 
-        return array_intersect_key($responses, array_flip($allowedUlids));
+        foreach ($form->fields as $field) {
+            if ($field->type === CustomField::TYPE_SECTION || ! array_key_exists($field->ulid, $responses)) {
+                continue;
+            }
+
+            $values[$field->ulid] = CustomFieldValues::normalizeByType($field, $responses[$field->ulid]);
+        }
+
+        return $values;
     }
 
     private function checkDuplicateSubmission(Form $form, ?string $by, ?string $email, ?string $fingerprint): bool

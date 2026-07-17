@@ -9,9 +9,10 @@ import {
 import { cn } from "@/lib/utils";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { createReusableTemplate, reactiveOmit, useVModel } from "@vueuse/core";
-import type { CalendarRootEmits, CalendarRootProps, DateValue } from "reka-ui";
-import { CalendarRoot, useDateFormatter, useForwardPropsEmits } from "reka-ui";
+import type { CalendarRootProps, DateRange, DateValue, RangeCalendarRootProps } from "reka-ui";
+import { CalendarRoot, RangeCalendarRoot, useDateFormatter, useForwardPropsEmits } from "reka-ui";
 import { createYear, createYearRange, toDate } from "reka-ui/date";
+import type { Grid } from "reka-ui/date";
 import type { HTMLAttributes, Ref } from "vue";
 import { computed, toRaw } from "vue";
 import type { LayoutTypes } from ".";
@@ -28,23 +29,80 @@ import {
   CalendarNextButton,
   CalendarPrevButton,
 } from ".";
+import { provideCalendarMode, type CalendarMode } from "./context";
 
 const props = withDefaults(
   defineProps<
-    CalendarRootProps & {
-      class?: HTMLAttributes["class"];
-      layout?: LayoutTypes;
-      yearRange?: DateValue[];
-    }
+    Omit<CalendarRootProps, "modelValue" | "multiple" | "defaultValue"> &
+      Partial<
+        Pick<
+          RangeCalendarRootProps,
+          "allowNonContiguousRanges" | "maximumDays" | "fixedDate" | "isDateHighlightable"
+        >
+      > & {
+        class?: HTMLAttributes["class"];
+        /** Selection behaviour. Picks the underlying reka-ui primitive family. */
+        mode?: CalendarMode;
+        modelValue?: DateValue | DateValue[] | DateRange | null;
+        defaultValue?: DateValue | DateRange;
+        /** Legacy alias for mode="multiple". Only honoured when mode is left at its default. */
+        multiple?: boolean;
+        layout?: LayoutTypes;
+        yearRange?: DateValue[];
+      }
   >(),
   {
     modelValue: undefined,
+    mode: "single",
     layout: "month-and-year",
   }
 );
-const emits = defineEmits<CalendarRootEmits>();
 
-const delegatedProps = reactiveOmit(props, "class", "layout", "placeholder");
+const emits = defineEmits<{
+  "update:modelValue": [value: DateValue | DateValue[] | DateRange | undefined];
+  "update:placeholder": [value: DateValue];
+  /** Range mode only. */
+  "update:startValue": [value: DateValue | undefined];
+  /** Range mode only. */
+  "update:validModelValue": [value: DateRange];
+}>();
+
+const isRange = computed(() => props.mode === "range");
+const isMultiple = computed(
+  () => props.mode === "multiple" || (props.mode === "single" && !!props.multiple)
+);
+
+provideCalendarMode(
+  computed<CalendarMode>(() =>
+    isRange.value ? "range" : isMultiple.value ? "multiple" : "single"
+  )
+);
+
+// `multiple` is bound explicitly on CalendarRoot and the range-only props are
+// forwarded only to RangeCalendarRoot, so neither leaks onto the other root as
+// an unknown attribute.
+const delegatedSingle = reactiveOmit(
+  props,
+  "class",
+  "layout",
+  "yearRange",
+  "mode",
+  "placeholder",
+  "multiple",
+  "allowNonContiguousRanges",
+  "maximumDays",
+  "fixedDate",
+  "isDateHighlightable"
+);
+const delegatedRange = reactiveOmit(
+  props,
+  "class",
+  "layout",
+  "yearRange",
+  "mode",
+  "placeholder",
+  "multiple"
+);
 
 const placeholder = useVModel(props, "placeholder", emits, {
   passive: true,
@@ -76,8 +134,32 @@ const yearRange = computed(() => {
 
 const [DefineMonthTemplate, ReuseMonthTemplate] = createReusableTemplate<{ date: DateValue }>();
 const [DefineYearTemplate, ReuseYearTemplate] = createReusableTemplate<{ date: DateValue }>();
+// Both roots expose the same default-slot payload, so the whole calendar body is
+// authored once and reused by either branch.
+const [DefineCalendarContent, ReuseCalendarContent] = createReusableTemplate<{
+  grid: Grid<DateValue>[];
+  weekDays: string[];
+  date: DateValue;
+}>();
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
+// `--cell-size` / `--cell-radius` come from the active style's `.cn-calendar`
+// rule, so a per-theme calendar keeps its own geometry. A consumer can still
+// override them per instance: utilities outrank the styles' `base` layer.
+const rootClass = computed(() =>
+  cn(
+    "cn-calendar group/calendar bg-background in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent w-fit",
+    props.class
+  )
+);
+
+// reka gives locale-aware weekday names ("Sun"); shadcn's calendar shows two
+// letters ("Su"), which is also what keeps a 7-column grid narrow.
+function shortWeekday(day: string): string {
+  return day.slice(0, 2);
+}
+
+const forwardedSingle = useForwardPropsEmits(delegatedSingle, emits);
+const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
 </script>
 
 <template>
@@ -129,15 +211,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     </Select>
   </DefineYearTemplate>
 
-  <CalendarRoot
-    v-slot="{ grid, weekDays, date }"
-    weekday-format="short"
-    :weekStartsOn="1"
-    v-bind="forwarded"
-    v-model:placeholder="placeholder"
-    data-slot="calendar"
-    :class="cn('cn-calendar group/calendar bg-background in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent', props.class)"
-  >
+  <DefineCalendarContent v-slot="{ grid, weekDays, date }">
     <CalendarHeader class="pt-0">
       <nav
         class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1 [&>*]:pointer-events-auto"
@@ -157,19 +231,19 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
         :year="ReuseYearTemplate"
       >
         <template v-if="layout === 'month-and-year'">
-          <div class="flex items-center justify-center gap-1">
+          <div class="flex items-center justify-center gap-1.5">
             <ReuseMonthTemplate :date="date" />
             <ReuseYearTemplate :date="date" />
           </div>
         </template>
         <template v-else-if="layout === 'month-only'">
-          <div class="flex items-center justify-center gap-1">
+          <div class="flex items-center justify-center gap-1.5">
             <ReuseMonthTemplate :date="date" />
             {{ formatter.custom(toDate(date), { year: "numeric" }) }}
           </div>
         </template>
         <template v-else-if="layout === 'year-only'">
-          <div class="flex items-center justify-center gap-1">
+          <div class="flex items-center justify-center gap-1.5">
             {{ formatter.custom(toDate(date), { month: "short" }) }}
             <ReuseYearTemplate :date="date" />
           </div>
@@ -180,12 +254,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       </slot>
     </CalendarHeader>
 
-    <div class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+    <div class="relative mt-4 flex flex-col gap-4 md:flex-row">
       <CalendarGrid v-for="month in grid" :key="month.value.toString()">
         <CalendarGridHead>
           <CalendarGridRow>
             <CalendarHeadCell v-for="day in weekDays" :key="day">
-              {{ day }}
+              {{ shortWeekday(day) }}
             </CalendarHeadCell>
           </CalendarGridRow>
         </CalendarGridHead>
@@ -196,11 +270,44 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
             class="mt-2 w-full"
           >
             <CalendarCell v-for="weekDate in weekDates" :key="weekDate.toString()" :date="weekDate">
-              <CalendarCellTrigger :day="weekDate" :month="month.value" />
+              <CalendarCellTrigger :day="weekDate" :month="month.value">
+                <!-- Only pass content when a #day slot exists: an empty default
+                     slot would suppress reka-ui's own day-number fallback. -->
+                <template v-if="$slots.day" #default>
+                  <slot name="day" :day="weekDate" :month="month.value" />
+                </template>
+              </CalendarCellTrigger>
             </CalendarCell>
           </CalendarGridRow>
         </CalendarGridBody>
       </CalendarGrid>
     </div>
+  </DefineCalendarContent>
+
+  <CalendarRoot
+    v-if="!isRange"
+    v-slot="{ grid, weekDays, date }"
+    weekday-format="short"
+    :weekStartsOn="1"
+    :multiple="isMultiple"
+    v-bind="forwardedSingle"
+    v-model:placeholder="placeholder"
+    data-slot="calendar"
+    :class="rootClass"
+  >
+    <ReuseCalendarContent :grid="grid" :week-days="weekDays" :date="date" />
   </CalendarRoot>
+
+  <RangeCalendarRoot
+    v-else
+    v-slot="{ grid, weekDays, date }"
+    weekday-format="short"
+    :weekStartsOn="1"
+    v-bind="forwardedRange"
+    v-model:placeholder="placeholder"
+    data-slot="calendar"
+    :class="rootClass"
+  >
+    <ReuseCalendarContent :grid="grid" :week-days="weekDays" :date="date" />
+  </RangeCalendarRoot>
 </template>

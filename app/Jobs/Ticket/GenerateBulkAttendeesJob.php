@@ -22,12 +22,26 @@ class GenerateBulkAttendeesJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    /**
+     * Consumed by supervisor-bulk, which reads the `bulk` queue over the
+     * redis-long connection so a run this long is never re-reserved mid-flight.
+     * Previously this sat on the default queue, where the supervisor killed it
+     * at 600s and Redis re-reserved it every 90s — long enough batches could
+     * issue their attendees twice.
+     *
+     * Only the queue is pinned, not the connection: re-reservation is governed
+     * by the connection the *worker* pulls with, and pinning the connection here
+     * would push the job at Redis even where the app runs the sync driver.
+     */
     public int $timeout = 1800;
 
     /**
      * @param  array<string, mixed>  $spec
      */
-    public function __construct(public int $ticketOrderId, public array $spec) {}
+    public function __construct(public int $ticketOrderId, public array $spec)
+    {
+        $this->onQueue('bulk');
+    }
 
     public function handle(TicketPurchaseService $purchases): void
     {

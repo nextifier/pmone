@@ -22,7 +22,7 @@ test('can update user profile', function () {
             'name' => 'New Name',
             'username' => 'newusername',
             'email' => 'new@example.com',
-            'phone' => '987654321',
+            'phone' => '081234567890',
             'birth_date' => '1990-01-01',
             'gender' => 'female',
             'bio' => 'New bio description',
@@ -50,7 +50,7 @@ test('can update user profile', function () {
     expect($user->name)->toBe('New Name');
     expect($user->username)->toBe('newusername');
     expect($user->email)->toBe('new@example.com');
-    expect($user->phone)->toBe('987654321');
+    expect($user->phone)->toBe('+6281234567890');
     expect($user->birth_date->format('Y-m-d'))->toBe('1990-01-01');
     expect($user->gender)->toBe('female');
     expect($user->bio)->toBe('New bio description');

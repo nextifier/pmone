@@ -10,6 +10,7 @@ use App\Enums\ReservationSource;
 use App\Enums\ReservationStatus;
 use App\Traits\HasAdjustments;
 use App\Traits\HasMediaManager;
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -176,12 +177,22 @@ class Reservation extends Model implements CheckoutPayable, HasMedia, Purchasabl
     use HasMediaManager;
     use InteractsWithMedia;
     use LogsActivity;
+    use NormalizesAttributes;
     use SoftDeletes;
 
     /**
      * Raw magic link token (only set in-memory after creation, never persisted).
      */
     public ?string $magicLinkRaw = null;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'guest_name' => 'personName',
+        'guest_email' => 'email',
+        'guest_phone' => 'phone',
+        'guest_company' => 'orgName',
+        'guest_nationality' => 'orgName',
+    ];
 
     protected $fillable = [
         'reservation_number',

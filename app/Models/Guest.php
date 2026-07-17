@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\HasSlug;
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -113,8 +114,14 @@ class Guest extends Model implements HasMedia, Sortable
     use HasTags;
     use InteractsWithMedia;
     use LogsActivity;
+    use NormalizesAttributes;
     use SoftDeletes;
     use SortableTrait;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'name' => 'personName',
+    ];
 
     protected $fillable = [
         'event_id',

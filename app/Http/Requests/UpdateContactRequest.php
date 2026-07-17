@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\ContactStatus;
-use App\Helpers\PhoneCountryHelper;
+use App\Support\InputNormalizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Email;
@@ -21,20 +21,20 @@ class UpdateContactRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->has('emails') && is_array($this->emails)) {
-            $this->merge([
-                'emails' => array_map(fn ($e) => strtolower(trim($e)), $this->emails),
-            ]);
+            $this->merge(['emails' => InputNormalizer::emailList($this->emails)]);
         }
 
         if ($this->has('phones') && is_array($this->phones)) {
-            $this->merge([
-                'phones' => array_map(fn ($p) => PhoneCountryHelper::normalizePhoneNumber(trim($p)), $this->phones),
-            ]);
+            $this->merge(['phones' => InputNormalizer::phoneList($this->phones)]);
         }
 
-        foreach (['name', 'job_title', 'company_name'] as $field) {
+        if ($this->has('name') && is_string($this->name)) {
+            $this->merge(['name' => InputNormalizer::personName($this->name)]);
+        }
+
+        foreach (['job_title', 'company_name'] as $field) {
             if ($this->has($field) && is_string($this->$field)) {
-                $this->merge([$field => trim($this->$field)]);
+                $this->merge([$field => InputNormalizer::orgName($this->$field)]);
             }
         }
     }

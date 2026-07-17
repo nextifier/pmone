@@ -23,6 +23,11 @@ class ExpireUnpaidTicketOrdersJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public function __construct()
+    {
+        $this->onQueue('tickets');
+    }
+
     public function handle(TicketPurchaseService $purchases): int
     {
         $expiring = TicketOrder::query()

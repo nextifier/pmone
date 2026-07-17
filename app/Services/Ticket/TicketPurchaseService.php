@@ -1492,12 +1492,17 @@ class TicketPurchaseService
             } else {
                 $prefix = $spec['label_prefix'] ?: 'Tamu';
                 $total = (int) ($spec['quantity'] ?? 0);
-                for ($index = 1; $index <= $total; $index++) {
-                    $item->attendees()->create([
-                        'ticket_id' => $item->ticket_id,
-                        'name' => $this->attendeeDisplayName($prefix, $index, $total),
-                    ]);
-                }
+
+                // Placeholder labels ("VIP #1") are system-generated, not person
+                // names — store them verbatim instead of title-casing.
+                Attendee::withoutNormalization(function () use ($item, $prefix, $total) {
+                    for ($index = 1; $index <= $total; $index++) {
+                        $item->attendees()->create([
+                            'ticket_id' => $item->ticket_id,
+                            'name' => $this->attendeeDisplayName($prefix, $index, $total),
+                        ]);
+                    }
+                });
             }
 
             $order->update(['batch_status' => 'completed']);

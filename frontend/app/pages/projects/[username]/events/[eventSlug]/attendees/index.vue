@@ -424,6 +424,10 @@ const showEmptyState = computed(
 
 watch([columnFilters, sorting, pagination], () => refresh(), { deep: true });
 
+// Check-ins and ticket purchases land from outside this session; poll so the
+// list follows along during a live event.
+usePolling(refresh, 20000);
+
 const totalActiveFilters = computed(() =>
   filterParams.reduce((sum, { id }) => sum + selectedFilter(id).length, 0)
 );

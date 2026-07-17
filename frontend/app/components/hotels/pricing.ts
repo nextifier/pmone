@@ -26,3 +26,18 @@ export function formatRupiahShort(value: number): string {
   }
   return `Rp${Math.round(value)}`;
 }
+
+/**
+ * The `YYYY-MM-DD` window spanned by `months` calendar months starting at
+ * `start`: the first day of the start month through the last day of the final
+ * visible month. Used to lazy-load pricing for whatever the calendar shows.
+ */
+export function visibleMonthRange(start: DateValue, months: number): { start: string; end: string } {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const last = start.add({ months: Math.max(0, months - 1) });
+  const lastMonthDays = new Date(last.year, last.month, 0).getDate();
+  return {
+    start: `${start.year}-${pad(start.month)}-01`,
+    end: `${last.year}-${pad(last.month)}-${pad(lastMonthDays)}`,
+  };
+}

@@ -21,6 +21,11 @@ class ExpireStaleWaitlistOffersJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    public function __construct()
+    {
+        $this->onQueue('tickets');
+    }
+
     public function handle(WaitlistService $waitlist): int
     {
         return $waitlist->expireStaleOffers();

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,6 +58,12 @@ use Illuminate\Support\Str;
 class ReservationItem extends Model
 {
     use HasFactory;
+    use NormalizesAttributes;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'guest_name' => 'personName',
+    ];
 
     protected $fillable = [
         'reservation_id',

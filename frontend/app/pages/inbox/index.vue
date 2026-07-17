@@ -304,6 +304,10 @@ watch(
 
 const refresh = fetchSubmissions;
 
+// Submissions arrive from the public contact form; poll so they surface
+// without a manual refresh.
+usePolling(refresh, 30000);
+
 // Detail dialog
 const detailDialogOpen = ref(false);
 const detailSubmission = ref(null);

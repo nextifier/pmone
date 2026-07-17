@@ -423,6 +423,9 @@ watch(
 
 const refresh = fetchOrders;
 
+// Orders come in from public checkout; poll to keep the list current.
+usePolling(refresh, 30000);
+
 // Status update handlers
 const statusUpdating = ref(null);
 

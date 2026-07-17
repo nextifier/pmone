@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CalendarDate, getLocalTimeZone, today as todayFn } from "@internationalized/date";
-import { PricingCalendar, type PricingMap } from "@/components/ui/pricing-calendar";
+import PricingCalendar from "@/components/hotels/PricingCalendar.vue";
+import type { PricingMap } from "@/components/hotels/pricing";
 import { computed, ref } from "vue";
 
 definePageMeta({ layout: "default" });

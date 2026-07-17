@@ -346,6 +346,14 @@ const showEmptyState = computed(() => isUnavailable.value || isEmpty.value);
 
 watch([columnFilters, sorting, pagination], () => refresh(), { deep: true });
 
+// Bookings come in from the public site; poll to keep the list current — but
+// not while the feature is gated (the endpoint 404s), to avoid polling a 404.
+usePolling(() => {
+  if (!isUnavailable.value) {
+    return refresh();
+  }
+}, 30000);
+
 const totalActiveFilters = computed(() =>
   filterParams.reduce((sum, { id }) => sum + selectedFilter(id).length, 0)
 );

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ContactStatus;
 use App\Helpers\PhoneCountryHelper;
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -94,7 +95,16 @@ class Contact extends Model
     use HasFactory;
     use HasTags;
     use LogsActivity;
+    use NormalizesAttributes;
     use SoftDeletes;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'name' => 'personName',
+        'emails' => 'emailList',
+        'phones' => 'phoneList',
+        'company_name' => 'orgName',
+    ];
 
     protected $fillable = [
         'name',
@@ -124,14 +134,6 @@ class Contact extends Model
     public function getRouteKeyName(): string
     {
         return 'ulid';
-    }
-
-    /**
-     * Set the contact's name (normalize to title case).
-     */
-    public function setNameAttribute(string $value): void
-    {
-        $this->attributes['name'] = Str::title(strtolower(trim($value)));
     }
 
     protected static function boot(): void

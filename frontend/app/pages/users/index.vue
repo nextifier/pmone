@@ -409,6 +409,10 @@ const {
   extraParams: { exclude_role: "exhibitor,user" },
 });
 
+// Presence columns (is_online / last seen / last page) go stale without a
+// reload; poll keeps them fresh while the tab is visible.
+usePolling(refresh, 20000);
+
 // Filter computed values
 const selectedStatuses = computed(() => getFilterValue("status"));
 const selectedRoles = computed(() => getFilterValue("roles"));

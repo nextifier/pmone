@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Notifications\ProjectMemberAddedNotification;
 use App\Notifications\ProjectMemberRemovedNotification;
 use App\Support\HomeSectionCatalog;
+use App\Support\InputNormalizer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -479,7 +480,15 @@ class ProjectController extends Controller
         // resurrect recipients the user just removed. Replace the hotel
         // notification email block wholesale whenever it is part of the payload.
         if (array_key_exists('notification_email', $validated['hotels'] ?? [])) {
-            data_set($merged, 'hotels.notification_email', $validated['hotels']['notification_email']);
+            $notificationEmail = $validated['hotels']['notification_email'];
+
+            foreach (['to', 'cc', 'bcc'] as $list) {
+                if (is_array($notificationEmail[$list] ?? null)) {
+                    $notificationEmail[$list] = InputNormalizer::emailList($notificationEmail[$list]);
+                }
+            }
+
+            data_set($merged, 'hotels.notification_email', $notificationEmail);
         }
 
         // Same trap for the dashboard-managed nav: replace the whole nav block

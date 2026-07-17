@@ -73,7 +73,9 @@ class DailyDataAggregator
 
         // Special case: If filtering for "today" returns empty, try direct fetch
         if ($isToday && empty($filteredRows)) {
-            \Log::info('Today data not found in 365-day cache, fetching directly from GA API', [
+            // Expected on every run, not an anomaly: GA needs 24-48h to process a
+            // day, so the current day is never present in the 365-day report.
+            \Log::debug('Today data not found in 365-day cache, fetching directly from GA API', [
                 'property_id' => $property->property_id,
                 'cache_has_rows' => count($dailyData['rows']),
             ]);
@@ -258,7 +260,7 @@ class DailyDataAggregator
 
             // If we got data, return it
             if (! empty($metricsData['rows']) || ! empty($metricsData['totals'])) {
-                \Log::info('Successfully fetched today data directly from GA API', [
+                \Log::debug('Successfully fetched today data directly from GA API', [
                     'property_id' => $property->property_id,
                     'has_rows' => ! empty($metricsData['rows']),
                     'has_totals' => ! empty($metricsData['totals']),
@@ -434,7 +436,7 @@ class DailyDataAggregator
             $availableDates = array_map(fn ($row) => $row['date'] ?? 'no-date', $rows);
             $lastFiveDates = array_slice($availableDates, -5);
 
-            \Log::info('Filtering rows for TODAY period', [
+            \Log::debug('Filtering rows for TODAY period', [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'total_rows_in_cache' => count($rows),
@@ -451,7 +453,7 @@ class DailyDataAggregator
 
         // Debug logging for today period result
         if ($startDate === $endDate && $startDate === now()->format('Y-m-d')) {
-            \Log::info('Filter result for TODAY period', [
+            \Log::debug('Filter result for TODAY period', [
                 'filtered_rows_count' => count($filtered),
                 'filtered_dates' => array_map(fn ($row) => $row['date'] ?? 'no-date', $filtered),
             ]);

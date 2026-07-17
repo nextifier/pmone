@@ -13,7 +13,13 @@
 
         <div class="ml-auto flex shrink-0 items-center gap-2">
           <ClientOnly>
-            <RangeCalendarPicker v-model="dateRange" size="sm" placeholder="Date range" />
+            <DatePicker
+              v-model="dateRange"
+              mode="range"
+              size="sm"
+              placeholder="Date range"
+              :presets="datePresets"
+            />
           </ClientOnly>
           <Badge v-if="totals" :variant="health.variant" plain>{{ health.label }}</Badge>
         </div>
@@ -121,7 +127,7 @@
 
 <script setup>
 import { Badge } from "@/components/ui/badge";
-import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 
 definePageMeta({
@@ -145,6 +151,30 @@ const dateRange = ref({
   start: $dayjs().subtract(29, "day").toDate(),
   end: $dayjs().toDate(),
 });
+
+// Getters, not fixed dates: these pages stay open for hours and "Today" has to
+// still mean today when the picker is finally used.
+const lastNDays = (n) => () => ({
+  start: $dayjs()
+    .subtract(n - 1, "day")
+    .toDate(),
+  end: $dayjs().toDate(),
+});
+
+const datePresets = [
+  { label: "Today", value: lastNDays(1) },
+  {
+    label: "Yesterday",
+    value: () => ({
+      start: $dayjs().subtract(1, "day").toDate(),
+      end: $dayjs().subtract(1, "day").toDate(),
+    }),
+  },
+  { label: "Last 3 days", value: lastNDays(3) },
+  { label: "Last 7 days", value: lastNDays(7) },
+  { label: "Last 15 days", value: lastNDays(15) },
+  { label: "Last 30 days", value: lastNDays(30) },
+];
 
 const toYmd = (date) => {
   if (!date) return null;

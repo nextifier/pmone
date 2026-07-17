@@ -60,7 +60,7 @@
         </Select>
 
         <div class="w-52">
-          <RangeCalendarPicker v-model="dateRange" placeholder="Date range" />
+          <DatePicker mode="range" v-model="dateRange" size="sm" placeholder="Date range" />
         </div>
 
         <Button
@@ -171,7 +171,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
-import { RangeCalendarPicker } from "@/components/ui/range-calendar-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,

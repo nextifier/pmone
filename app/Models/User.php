@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasMediaManager;
+use App\Traits\NormalizesAttributes;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Collection;
@@ -172,9 +173,17 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
     use HasRoles;
     use InteractsWithMedia;
     use LogsActivity;
+    use NormalizesAttributes;
     use Notifiable;
     use SoftDeletes;
     use TwoFactorAuthenticatable;
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'name' => 'personName',
+        'email' => 'email',
+        'phone' => 'phone',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -246,22 +255,6 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
         'custom_fields' => 'array',
         'business_matching_opt_in' => 'boolean',
     ];
-
-    /**
-     * Set the user's name (normalize to title case).
-     */
-    public function setNameAttribute(string $value): void
-    {
-        $this->attributes['name'] = Str::title(strtolower(trim($value)));
-    }
-
-    /**
-     * Set the user's email (normalize to lowercase).
-     */
-    public function setEmailAttribute(string $value): void
-    {
-        $this->attributes['email'] = strtolower(trim($value));
-    }
 
     /**
      * Set the user's username (normalize to lowercase if provided).

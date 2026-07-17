@@ -6,7 +6,6 @@ use App\Http\Middleware\LogPaymentWebhook;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Http\Middleware\ValidateApiKey;
 use App\Jobs\FetchExchangeRates;
-use App\Jobs\RefreshRealtimeAnalytics;
 use App\Jobs\SyncTodayAnalyticsJob;
 use App\Jobs\WarmAggregateCacheJob;
 use Illuminate\Console\Scheduling\Schedule;
@@ -95,8 +94,8 @@ return Application::configure(basePath: dirname(__DIR__))
             ->runInBackground()
             ->environments(['production']);
 
-        // Cleanup tracking data older than 5 years, run daily at 2 AM
-        $schedule->command('tracking:cleanup')->dailyAt('02:00');
+        // Cleanup tracking data past its retention window (90 days), daily at 2 AM
+        $schedule->command('tracking:cleanup')->dailyAt('02:00')->withoutOverlapping();
 
         // Sync Google Analytics properties - fetch 365 days of daily data for all properties
         // The daily aggregation system will then filter this data for any requested period
@@ -113,12 +112,26 @@ return Application::configure(basePath: dirname(__DIR__))
         // background job computes them. Reads cached daily data, no extra GA API calls.
         $schedule->job(new WarmAggregateCacheJob)->everyFifteenMinutes();
 
-        // Realtime analytics - refresh every 2 minutes for live user counts
-        $schedule->job(new RefreshRealtimeAnalytics)->everyTwoMinutes();
+        // Realtime analytics is refreshed on demand: AnalyticsService::getRealtimeActiveUsers()
+        // already dispatches RefreshRealtimeAnalytics when its cache goes stale and serves the
+        // last known good value meanwhile. Refreshing it on a schedule as well meant hitting the
+        // GA API for all 13 properties every 2 minutes around the clock (~9k calls/day, 6-9s per
+        // run) whether or not anyone had the dashboard open.
 
-        // Fetch exchange rates - interval configurable via EXCHANGE_RATE_SYNC_INTERVAL (default: 60 minutes)
-        $exchangeRateInterval = (int) config('services.exchange_rate.sync_interval_minutes', 60);
-        $schedule->job(new FetchExchangeRates)->cron("*/{$exchangeRateInterval} * * * *");
+        // Fetch exchange rates - interval configurable via EXCHANGE_RATE_SYNC_INTERVAL (default: 60 minutes).
+        // The minute field only accepts 0-59, so a step built straight from the interval breaks for
+        // any value of 60 or more: "*/60" happens to match minute 0, but "*/90" matches nothing.
+        // Anything from an hour up is expressed as an hourly step instead.
+        $exchangeRateInterval = max(1, (int) config('services.exchange_rate.sync_interval_minutes', 60));
+
+        if ($exchangeRateInterval < 60) {
+            $exchangeRateCron = "*/{$exchangeRateInterval} * * * *";
+        } else {
+            $exchangeRateHours = max(1, intdiv($exchangeRateInterval, 60));
+            $exchangeRateCron = $exchangeRateHours >= 24 ? '0 0 * * *' : "0 */{$exchangeRateHours} * * *";
+        }
+
+        $schedule->job(new FetchExchangeRates)->cron($exchangeRateCron);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Force JSON response for API requests
