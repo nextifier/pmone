@@ -23,8 +23,8 @@ const isRange = computed(() => mode.value === "range")
     :is="isRange ? RangeCalendarNext : CalendarNext"
     data-slot="calendar-next-button"
     :class="cn(
-      buttonVariants({ variant: 'outline' }),
-      'size-7 bg-transparent p-0 opacity-50 select-none hover:opacity-100 aria-disabled:opacity-50',
+      buttonVariants({ variant: 'ghost' }),
+      'size-7 p-0 select-none aria-disabled:opacity-50',
       props.class,
     )"
     v-bind="forwardedProps"

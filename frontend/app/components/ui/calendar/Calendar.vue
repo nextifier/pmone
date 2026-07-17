@@ -232,9 +232,11 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
   </DefineYearTemplate>
 
   <DefineCalendarContent v-slot="{ grid, weekDays, date }">
-    <CalendarHeader class="pt-0">
+    <CalendarHeader>
+      <!-- inset-0 + items-center keeps the arrows on the same optical line as
+           the heading, whatever the layout makes the caption row's height. -->
       <nav
-        class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1 [&>*]:pointer-events-auto"
+        class="pointer-events-none absolute inset-0 flex items-center justify-between gap-1 [&>*]:pointer-events-auto"
       >
         <CalendarPrevButton>
           <slot name="calendar-prev-icon" />
@@ -287,7 +289,7 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
           <CalendarGridRow
             v-for="(weekDates, index) in month.rows"
             :key="`weekDate-${index}`"
-            class="mt-1.5 w-full"
+            class="mt-2 w-full"
           >
             <CalendarCell
               v-for="weekDate in weekDates"

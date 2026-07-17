@@ -24,7 +24,9 @@ const isRange = computed(() => mode.value === "range");
     data-slot="calendar-header"
     :class="
       cn(
-        'relative flex w-full items-center justify-center px-8 pt-1',
+        // min-h matches the nav buttons' size-7: they are absolutely positioned,
+        // so the caption row must be at least as tall or they overflow it.
+        'relative flex min-h-7 w-full items-center justify-center px-8',
         props.class,
       )
     "
