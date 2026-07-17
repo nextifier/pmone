@@ -18,21 +18,61 @@
         <span class="truncate">{{ displayText }}</span>
       </button>
     </PopoverTrigger>
-    <PopoverContent class="w-auto max-w-[calc(100vw-0.5rem)] rounded-xl p-0" align="start">
-      <div class="flex flex-col sm:flex-row">
-        <!-- Presets: scrollable chips above the calendar on mobile, sidebar from sm -->
-        <div
-          v-if="showPresets"
-          class="border-border flex gap-1 overflow-x-auto border-b p-2 sm:w-32 sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-r sm:border-b-0"
-        >
+    <!-- max-h + scroll so short viewports (landscape phones) can still reach
+         the presets/time rows below the calendar. -->
+    <PopoverContent
+      class="no-scrollbar max-h-[var(--reka-popover-content-available-height,80vh)] w-auto max-w-[calc(100vw-0.5rem)] overflow-y-auto overscroll-contain rounded-xl p-0"
+      align="start"
+    >
+      <!-- fixed-weeks: always six rows, so the popover height doesn't jump
+           while navigating between 4/5/6-row months. -->
+      <Calendar
+        v-if="mode === 'range'"
+        v-model="selectedRange"
+        mode="range"
+        fixed-weeks
+        :layout="layout"
+        :placeholder="calendarPlaceholder"
+        :number-of-months="effectiveNumberOfMonths"
+        :min-value="calendarMinValue"
+        :max-value="calendarMaxValue"
+        :is-date-unavailable="isDateUnavailable"
+        :year-range="calendarYearRange"
+        initial-focus
+        @update:model-value="onRangeSelect"
+      />
+      <Calendar
+        v-else
+        v-model="selectedDate"
+        fixed-weeks
+        :layout="layout"
+        :placeholder="calendarPlaceholder"
+        :number-of-months="effectiveNumberOfMonths"
+        :min-value="calendarMinValue"
+        :max-value="calendarMaxValue"
+        :is-date-unavailable="isDateUnavailable"
+        :year-range="calendarYearRange"
+        initial-focus
+        @update:model-value="onDateSelect"
+      />
+
+      <!--
+        Presets wrap in a footer under the calendar, as in shadcn's calendar-presets.
+        `w-0` keeps this row out of the popover's shrink-to-fit width — laid out on
+        one line the presets are far wider than the calendar, and they would drag the
+        popover out to the viewport edge. `min-w-full` then stretches the row back to
+        whatever width the calendar settled on.
+      -->
+      <div v-if="showPresets" class="border-border w-0 min-w-full border-t p-3">
+        <div class="flex flex-wrap gap-2">
           <slot name="presets" :apply="applyPreset">
             <Button
               v-for="preset in presets"
               :key="preset.label"
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              class="shrink-0 justify-start text-xs tracking-tight sm:text-sm"
+              class="flex-1"
               :class="isPresetActive(preset) && 'bg-accent text-accent-foreground'"
               @click="applyPreset(resolvePreset(preset))"
             >
@@ -40,84 +80,53 @@
             </Button>
           </slot>
         </div>
+      </div>
 
-        <div>
-          <Calendar
-            v-if="mode === 'range'"
-            v-model="selectedRange"
-            mode="range"
-            :layout="layout"
-            :placeholder="calendarPlaceholder"
-            :number-of-months="effectiveNumberOfMonths"
-            :min-value="calendarMinValue"
-            :max-value="calendarMaxValue"
-            :is-date-unavailable="isDateUnavailable"
-            :year-range="calendarYearRange"
-            @update:model-value="onRangeSelect"
-          />
-          <Calendar
-            v-else
-            v-model="selectedDate"
-            :layout="layout"
-            :placeholder="calendarPlaceholder"
-            :number-of-months="effectiveNumberOfMonths"
-            :min-value="calendarMinValue"
-            :max-value="calendarMaxValue"
-            :is-date-unavailable="isDateUnavailable"
-            :year-range="calendarYearRange"
-            initial-focus
-            @update:model-value="onDateSelect"
-          />
+      <!-- Time section (single mode only) -->
+      <div
+        v-if="withTimeEnabled"
+        class="border-border flex items-center justify-center gap-2 border-t px-2.5 py-2"
+      >
+        <Select v-model="selectedHour">
+          <SelectTrigger size="sm">
+            <SelectValue placeholder="HH" />
+          </SelectTrigger>
+          <SelectContent class="min-w-0!">
+            <SelectItem v-for="h in hours" :key="h" :value="h" class="py-1">
+              {{ String(h).padStart(2, "0") }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <span class="text-muted-foreground text-sm">:</span>
+        <Select v-model="selectedMinute">
+          <SelectTrigger size="sm">
+            <SelectValue placeholder="MM" />
+          </SelectTrigger>
+          <SelectContent class="!min-w-0">
+            <SelectItem v-for="m in minutes" :key="m" :value="m" class="py-1">
+              {{ String(m).padStart(2, "0") }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-          <!-- Time section (single mode only) -->
-          <div
-            v-if="withTimeEnabled"
-            class="border-border flex items-center justify-center gap-2 border-t px-2.5 py-2"
-          >
-            <Select v-model="selectedHour">
-              <SelectTrigger size="sm">
-                <SelectValue placeholder="HH" />
-              </SelectTrigger>
-              <SelectContent class="min-w-0!">
-                <SelectItem v-for="h in hours" :key="h" :value="h" class="py-1">
-                  {{ String(h).padStart(2, "0") }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <span class="text-muted-foreground text-sm">:</span>
-            <Select v-model="selectedMinute">
-              <SelectTrigger size="sm">
-                <SelectValue placeholder="MM" />
-              </SelectTrigger>
-              <SelectContent class="!min-w-0">
-                <SelectItem v-for="m in minutes" :key="m" :value="m" class="py-1">
-                  {{ String(m).padStart(2, "0") }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <!-- Actions (single + time) -->
-          <div v-if="withTimeEnabled" class="border-border flex items-center border-t px-3 py-2">
-            <Button v-if="modelValue" type="button" variant="ghost" size="sm" @click="clear">
-              Clear
-            </Button>
-            <div class="ml-auto flex gap-2">
-              <Button type="button" variant="ghost" size="sm" @click="isOpen = false">
-                Cancel
-              </Button>
-              <Button type="button" size="sm" @click="apply"> Apply </Button>
-            </div>
-          </div>
-
-          <!-- Clear row (range) -->
-          <div
-            v-else-if="mode === 'range' && hasValue"
-            class="border-border flex justify-end border-t px-3 py-2"
-          >
-            <Button type="button" variant="ghost" size="sm" @click="clear">Clear</Button>
-          </div>
+      <!-- Actions (single + time) -->
+      <div v-if="withTimeEnabled" class="border-border flex items-center border-t px-3 py-2">
+        <Button v-if="modelValue" type="button" variant="ghost" size="sm" @click="clear">
+          Clear
+        </Button>
+        <div class="ml-auto flex gap-2">
+          <Button type="button" variant="ghost" size="sm" @click="isOpen = false"> Cancel </Button>
+          <Button type="button" size="sm" @click="apply"> Apply </Button>
         </div>
+      </div>
+
+      <!-- Clear row (range) -->
+      <div
+        v-else-if="mode === 'range' && hasValue"
+        class="border-border flex justify-end border-t px-3 py-2"
+      >
+        <Button type="button" variant="ghost" size="sm" @click="clear">Clear</Button>
       </div>
     </PopoverContent>
   </Popover>
@@ -143,7 +152,7 @@ import {
   type DateValue,
 } from "@internationalized/date";
 import { useMediaQuery } from "@vueuse/core";
-import type { HTMLAttributes } from "vue";
+import { computed, ref, useSlots, watch, type HTMLAttributes } from "vue";
 
 export type DatePickerMode = "single" | "range";
 export type DateRangeValue = { start: Date | null; end: Date | null };
@@ -208,7 +217,8 @@ const emit = defineEmits<{
 
 const slots = useSlots();
 
-const isOpen = ref(false);
+/** Popover state, exposed as v-model:open for programmatic control. */
+const isOpen = defineModel<boolean>("open", { default: false });
 const todayDate = today(getLocalTimeZone());
 
 const df = new DateFormatter("en-US", { dateStyle: "long" });
