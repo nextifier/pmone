@@ -162,11 +162,12 @@
         </div>
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
           <ClientOnly>
-            <div class="w-full sm:w-[210px]">
+            <div class="w-fit sm:w-[210px]">
               <DatePicker
                 v-model="dateRange"
                 mode="range"
                 size="sm"
+                align="end"
                 placeholder="Date range"
                 :presets="datePresets"
               />

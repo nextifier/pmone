@@ -22,7 +22,8 @@
          the presets/time rows below the calendar. -->
     <PopoverContent
       class="no-scrollbar max-h-[var(--reka-popover-content-available-height,80vh)] w-auto max-w-[calc(100vw-0.5rem)] overflow-y-auto overscroll-contain rounded-xl p-0"
-      align="start"
+      :align="effectiveAlign"
+      :collision-padding="8"
     >
       <!-- fixed-weeks: always six rows, so the popover height doesn't jump
            while navigating between 4/5/6-row months. -->
@@ -88,7 +89,7 @@
         class="border-border flex items-center justify-center gap-2 border-t px-2.5 py-2"
       >
         <Select v-model="selectedHour">
-          <SelectTrigger size="sm">
+          <SelectTrigger size="sm" class="dark:bg-transparent">
             <SelectValue placeholder="HH" />
           </SelectTrigger>
           <SelectContent class="min-w-0!">
@@ -99,7 +100,7 @@
         </Select>
         <span class="text-muted-foreground text-sm">:</span>
         <Select v-model="selectedMinute">
-          <SelectTrigger size="sm">
+          <SelectTrigger size="sm" class="dark:bg-transparent">
             <SelectValue placeholder="MM" />
           </SelectTrigger>
           <SelectContent class="!min-w-0">
@@ -189,6 +190,8 @@ const props = withDefaults(
     size?: "default" | "sm" | "lg";
     layout?: LayoutTypes;
     presets?: DatePickerPreset[];
+    /** Popover alignment against the trigger. Forced to "start" below md. */
+    align?: "start" | "center" | "end";
   }>(),
   {
     mode: "single",
@@ -208,6 +211,7 @@ const props = withDefaults(
     size: "default",
     layout: "month-and-year",
     presets: () => [],
+    align: "start",
   }
 );
 
@@ -247,6 +251,10 @@ const effectiveNumberOfMonths = computed(() => {
   if (!isDesktop.value) return 1;
   return props.numberOfMonths ?? (props.mode === "range" ? 2 : 1);
 });
+
+// On narrow screens the popover is nearly viewport-wide; "start" plus reka's
+// collision handling is the only alignment that reliably stays on screen.
+const effectiveAlign = computed(() => (isDesktop.value ? props.align : "start"));
 
 const singleValue = computed(() => (props.mode === "single" ? (props.modelValue as Date | null) : null));
 const rangeValue = computed(() =>

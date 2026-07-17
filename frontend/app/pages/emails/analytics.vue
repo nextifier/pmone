@@ -17,6 +17,7 @@
               v-model="dateRange"
               mode="range"
               size="sm"
+              align="end"
               placeholder="Date range"
               :presets="datePresets"
             />

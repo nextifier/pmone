@@ -219,7 +219,13 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
 <template>
   <DefineMonthTemplate v-slot="{ date }">
     <Select :model-value="date.month" @update:model-value="setMonth">
-      <SelectTrigger size="sm" class="h-8 gap-1 px-2 text-sm" aria-label="Select month">
+      <!-- No own surface (theme adds dark:bg-background): inside a popover the
+           trigger should sit on the popover's color, as shadcn's caption does. -->
+      <SelectTrigger
+        size="sm"
+        class="h-8 gap-1 px-2 text-sm dark:bg-transparent"
+        aria-label="Select month"
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -237,7 +243,11 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
 
   <DefineYearTemplate v-slot="{ date }">
     <Select :model-value="date.year" @update:model-value="setYear">
-      <SelectTrigger size="sm" class="h-8 gap-1 px-2 text-sm" aria-label="Select year">
+      <SelectTrigger
+        size="sm"
+        class="h-8 gap-1 px-2 text-sm dark:bg-transparent"
+        aria-label="Select year"
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
