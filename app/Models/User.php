@@ -360,10 +360,10 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
     /**
      * Fields embedded in publicly cached payloads: the /resolve/{slug} profile
-     * (short-links), project member lists (projects) and blog author bylines
-     * (blog-posts). Deliberately EXCLUDES high-frequency columns such as
-     * last_seen (written by the UpdateLastSeen middleware up to once a minute
-     * per user) so routine traffic never flushes the response cache.
+     * (short-links) and blog author bylines (blog-posts). Deliberately
+     * EXCLUDES high-frequency columns such as last_seen (written by the
+     * UpdateLastSeen middleware up to once a minute per user) so routine
+     * traffic never flushes the response cache.
      *
      * @var string[]
      */
@@ -374,7 +374,10 @@ class User extends Authenticatable implements HasMedia, MustVerifyEmail
 
     protected static function clearPublicProfileResponseCache(): void
     {
-        DB::afterCommit(fn () => ResponseCache::clear(['short-links', 'projects', 'blog-posts']));
+        // No 'projects' tag: the cached public project payload embeds no
+        // user-derived data (only raw created_by ids), so user writes cannot
+        // stale it. Re-add if member rosters return to PublicProjectResource.
+        DB::afterCommit(fn () => ResponseCache::clear(['short-links', 'blog-posts']));
     }
 
     /**

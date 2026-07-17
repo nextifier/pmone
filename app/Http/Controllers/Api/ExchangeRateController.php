@@ -276,7 +276,10 @@ class ExchangeRateController extends Controller
             'meta' => [
                 'api_updated_at' => $exchangeRate->api_updated_at?->toIso8601String(),
                 'fetched_at' => $exchangeRate->fetched_at->toIso8601String(),
-                'is_stale' => $exchangeRate->isStale(),
+                // No is_stale here: it is wall-clock derived, so no write can
+                // ever bust a cached copy of it. Ship the threshold instead
+                // and let the client derive staleness from fetched_at.
+                'stale_after_minutes' => (int) config('services.exchange_rate.cache_ttl_minutes', 120),
             ],
         ]);
     }

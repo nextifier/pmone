@@ -9,10 +9,10 @@ use App\Models\Hotel;
 use App\Models\HotelTransferOption;
 use App\Models\Partner;
 use App\Models\Post;
-use App\Models\Project;
 use App\Models\PromotionPost;
 use App\Models\RoomType;
 use App\Support\ImageOptimizer;
+use App\Support\MediaResponseCacheTags;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -610,29 +610,13 @@ class MediaController extends Controller
      * Spatie MediaLibrary delete only removes the Media row; it does not fire
      * the owning model's Eloquent events, so the ClearsResponseCache trait
      * never runs. Mirror that invalidation here for owners whose media is
-     * rendered in cached public responses (mirrors Link::booted()).
+     * rendered in cached public responses (mirrors Link::booted()). The
+     * owner-to-tags map lives in MediaResponseCacheTags, shared with the
+     * queued-conversion listener.
      */
     private function clearOwnerResponseCache(Media $media): void
     {
-        $tags = match ($media->model_type) {
-            Hotel::class,
-            RoomType::class,
-            HotelTransferOption::class => ['hotels'],
-            Brand::class => ['brands'],
-            PromotionPost::class => ['brands', 'promotion-posts'],
-            Partner::class => ['partners'],
-            Guest::class => ['guests'],
-            // Event media spans the gallery collection AND the poster_image /
-            // visitor_eguide embedded in cached event payloads.
-            Event::class => ['gallery', 'events'],
-            // Project profile_image is embedded in every cached event payload
-            // (EventResource) besides the project profile itself. OG media is
-            // embedded in the cached website-settings og_pages payload
-            // (PublicProjectController::ogPagesPayload).
-            Project::class => ['projects', 'events', 'website-settings'],
-            Post::class => ['blog-posts'],
-            default => [],
-        };
+        $tags = MediaResponseCacheTags::for($media->model_type);
 
         if ($tags !== []) {
             ResponseCache::clear($tags);

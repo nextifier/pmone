@@ -47,6 +47,10 @@ class LinkPageItemController extends Controller
 
             $this->handleTemporaryUpload($request, $item, 'tmp_poster', 'poster');
 
+            // The trait clear from create() fired BEFORE the poster write, so
+            // clear again after it. Mirrors LinkPageBannerController.
+            ResponseCache::clear(['short-links']);
+
             return response()->json([
                 'message' => 'Item created successfully',
                 'data' => new LinkPageItemResource($item),
@@ -72,6 +76,10 @@ class LinkPageItemController extends Controller
             $linkPageItem->update($request->validated());
 
             $this->handleTemporaryUpload($request, $linkPageItem, 'tmp_poster', 'poster');
+
+            // The trait clear from update() fired BEFORE the poster write, so
+            // clear again after it. Mirrors LinkPageBannerController.
+            ResponseCache::clear(['short-links']);
 
             return response()->json([
                 'message' => 'Item updated successfully',

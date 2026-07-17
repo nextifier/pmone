@@ -415,6 +415,11 @@ class ExhibitorDashboardController extends Controller
         $this->handleTemporaryUpload($request, $brand, 'tmp_profile_image', 'profile_image');
         $this->handleTemporaryUpload($request, $brand, 'tmp_brand_logo', 'brand_logo');
 
+        // $brand->update() above fires the trait clear BEFORE categories and
+        // media are written, so clear once more after all writes to avoid
+        // repopulating the cache with stale data on a concurrent public hit.
+        ResponseCache::clear(['brands']);
+
         $brand->load('media');
 
         return response()->json([

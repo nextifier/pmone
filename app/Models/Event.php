@@ -268,6 +268,7 @@ class Event extends Model implements HasMedia, Sortable
         return [
             'events', 'faqs', 'brands', 'gallery',
             'partners', 'programs', 'guests', 'media-coverages', 'rundown', 'hotels',
+            'promotion-posts',
         ];
     }
 

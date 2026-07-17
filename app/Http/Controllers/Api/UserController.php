@@ -469,11 +469,10 @@ class UserController extends Controller
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
             // User display fields + avatar appear on cached public payloads:
-            // the resolve profile (short-links), project member lists (projects),
-            // and blog author bylines (blog-posts). Project membership is also
-            // synced above. Media changes do not fire the User saved event, so
+            // the resolve profile (short-links) and blog author bylines
+            // (blog-posts). Media changes do not fire the User saved event, so
             // clear here after all writes.
-            ResponseCache::clear(['short-links', 'projects', 'blog-posts']);
+            ResponseCache::clear(['short-links', 'blog-posts']);
 
             $user->load(['roles', 'media', 'links', 'projects.media']);
 
@@ -839,9 +838,8 @@ class UserController extends Controller
             $this->handleTemporaryUpload($request, $user, 'tmp_cover_image', 'cover_image');
 
             // Same fields as the admin update(): the avatar and name/title
-            // feed project member lists and blog author bylines, not just the
-            // /resolve profile.
-            ResponseCache::clear(['short-links', 'projects', 'blog-posts']);
+            // feed blog author bylines, not just the /resolve profile.
+            ResponseCache::clear(['short-links', 'blog-posts']);
 
             $user->load(['roles', 'media', 'links']);
 

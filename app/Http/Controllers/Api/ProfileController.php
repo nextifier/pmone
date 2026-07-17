@@ -107,16 +107,20 @@ class ProfileController extends Controller
         $user = User::where('username', $slug)->first();
 
         if ($user) {
+            // Deliberately NO 'roles' eager-load: this response is cached for
+            // anonymous visitors under the 'short-links' tag, and role or
+            // permission changes never bust it (Spatie pivot syncs fire no
+            // User events). Leaving the relation unloaded keeps roles AND
+            // permissions out of the cached payload entirely.
             $user->load([
                 'links' => function ($query) {
                     $query->active()->orderBy('order');
                 },
-                'roles',
             ]);
 
             return response()->json([
                 'type' => 'user',
-                'data' => new UserResource($user),
+                'data' => (new UserResource($user))->withoutPresence(),
             ]);
         }
 

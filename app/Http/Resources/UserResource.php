@@ -8,6 +8,21 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class UserResource extends JsonResource
 {
+    protected bool $includePresence = true;
+
+    /**
+     * Strip is_online / last_seen from the payload. Used by the cached public
+     * /resolve branch: presence has a 5-minute semantic window, so serving it
+     * from a response cached for an hour is wrong in both directions, and
+     * last_seen is deliberately excluded from the cache-busting field list.
+     */
+    public function withoutPresence(): static
+    {
+        $this->includePresence = false;
+
+        return $this;
+    }
+
     public function toArray(Request $request): array
     {
         $canViewSecurity = (bool) auth()->user()?->can('users.view_security');
@@ -35,9 +50,14 @@ class UserResource extends JsonResource
             ),
             'status' => $this->status,
             'visibility' => $this->visibility,
-            'is_online' => $this->isOnline(),
-            'email_verified_at' => $this->email_verified_at?->toISOString(),
-            'last_seen' => $this->last_seen?->toISOString(),
+            'is_online' => $this->when($this->includePresence, fn () => $this->isOnline()),
+            // email_verified_at and the two_factor_* flags are gated to
+            // authenticated callers: the anonymous /resolve payload is cached
+            // for an hour and the self-serve verify/2FA writes never bust it
+            // (they sit outside User::PUBLIC_PROFILE_FIELDS) - and a stranger's
+            // 2FA status is not public information in the first place.
+            'email_verified_at' => $this->when(auth()->check(), fn () => $this->email_verified_at?->toISOString()),
+            'last_seen' => $this->when($this->includePresence, fn () => $this->last_seen?->toISOString()),
             'last_page' => $this->when($isMaster && $this->last_page, fn () => [
                 'path' => $this->last_page,
                 'title' => $this->last_page_title,
@@ -68,8 +88,8 @@ class UserResource extends JsonResource
                 $this->relationLoaded('permissions') || $this->relationLoaded('roles'),
                 fn () => $this->getAllPermissions()->pluck('name')
             ),
-            'two_factor_enabled' => ! is_null($this->two_factor_secret),
-            'two_factor_confirmed' => ! is_null($this->two_factor_confirmed_at),
+            'two_factor_enabled' => $this->when(auth()->check(), fn () => ! is_null($this->two_factor_secret)),
+            'two_factor_confirmed' => $this->when(auth()->check(), fn () => ! is_null($this->two_factor_confirmed_at)),
             'oauth_providers' => $this->whenLoaded(
                 'oauthProviders',
                 fn () => $this->oauthProviders->pluck('provider')

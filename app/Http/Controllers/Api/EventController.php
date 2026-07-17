@@ -576,10 +576,16 @@ class EventController extends Controller
      */
     private function handleTemporaryUpload(Request $request, Event $event, string $fieldName, string $collection): void
     {
+        // poster_image is embedded in the cached brand-detail payload
+        // (PublicBrandDetailResource::getEventPoster), so a poster change must
+        // bust 'brands' too. The trait clear from $event->update() in update()
+        // fires BEFORE this media write, so it cannot cover it.
+        $tags = $collection === 'poster_image' ? ['events', 'brands'] : ['events'];
+
         $deleteFieldName = 'delete_'.str_replace('tmp_', '', $fieldName);
         if ($request->has($deleteFieldName) && $request->input($deleteFieldName) === true) {
             $event->clearMediaCollection($collection);
-            ResponseCache::clear(['events']);
+            ResponseCache::clear($tags);
 
             return;
         }
@@ -622,7 +628,7 @@ class EventController extends Controller
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$value}");
 
-        ResponseCache::clear(['events']);
+        ResponseCache::clear($tags);
     }
 
     /**

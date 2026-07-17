@@ -140,7 +140,7 @@ class Project extends Model implements HasMedia, Sortable
      */
     public const SETTINGS_RESPONSE_CACHE_TAGS = [
         'website-settings', 'rundown', 'events', 'hotels',
-        'brands', 'partners', 'programs', 'faqs', 'media-coverages', 'gallery', 'guests',
+        'brands', 'promotion-posts', 'partners', 'programs', 'faqs', 'media-coverages', 'gallery', 'guests',
     ];
 
     protected $fillable = [

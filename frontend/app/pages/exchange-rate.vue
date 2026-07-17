@@ -286,7 +286,7 @@
       >
         <Icon name="hugeicons:clock-01" class="size-4 shrink-0" />
         <span>Last updated {{ formatRelativeTime(meta.fetched_at) }}</span>
-        <span v-if="meta?.is_stale" class="text-warning-foreground">(stale)</span>
+        <span v-if="isStale" class="text-warning-foreground">(stale)</span>
       </div>
     </div>
 
@@ -663,6 +663,14 @@ const formatRelativeTime = (dateStr) => {
   if (diffHours < 24) return `${diffHours}h ago`;
   return `${Math.floor(diffHours / 24)}d ago`;
 };
+
+// Derived client-side because the API response is cached: a server-computed
+// is_stale flag would freeze at cache time and go wrong within the TTL.
+const isStale = computed(() => {
+  if (!meta.value?.fetched_at) return false;
+  const ageMinutes = (Date.now() - new Date(meta.value.fetched_at)) / 60000;
+  return ageMinutes > (meta.value.stale_after_minutes ?? 120);
+});
 
 onMounted(() => {
   baseCurrency.value = getStoredValue(STORAGE_KEY_BASE, "USD");

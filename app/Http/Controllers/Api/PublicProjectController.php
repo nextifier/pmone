@@ -1020,14 +1020,14 @@ class PublicProjectController extends Controller
     {
         $event = $this->findEvent($username, $eventSlug);
 
-        $hasActivePartners = fn ($q) => $q->whereHas('partners', fn ($p) => $p->active());
+        $hasActivePartners = fn ($q) => $q->whereHas('partners', fn ($p) => $p->active()->publiclyVisible());
 
-        $source = $event->partnerCategories()->whereHas('partners', fn ($p) => $p->active())->exists()
+        $source = $event->partnerCategories()->whereHas('partners', fn ($p) => $p->active()->publiclyVisible())->exists()
             ? $event
             : ($this->fallbackEventWithItems($event, 'partnerCategories', $hasActivePartners, 'partners') ?? $event);
 
         $categories = $source->partnerCategories()
-            ->with(['partners' => fn ($q) => $q->active()->with('media')])
+            ->with(['partners' => fn ($q) => $q->active()->publiclyVisible()->with('media')])
             ->ordered()
             ->get();
 
@@ -1058,7 +1058,7 @@ class PublicProjectController extends Controller
         $event = $this->findEventByEdition($username, $editionNumber);
 
         $categories = $event->partnerCategories()
-            ->with(['partners' => fn ($q) => $q->active()->with('media')])
+            ->with(['partners' => fn ($q) => $q->active()->publiclyVisible()->with('media')])
             ->ordered()
             ->get();
 

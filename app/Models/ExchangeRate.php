@@ -5,15 +5,17 @@ namespace App\Models;
 use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property string $base_currency
  * @property array<array-key, mixed> $rates
- * @property \Illuminate\Support\Carbon|null $api_updated_at
- * @property \Illuminate\Support\Carbon $fetched_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $api_updated_at
+ * @property Carbon $fetched_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
  * @method static Builder<static>|ExchangeRate forCurrency(string $currency)
  * @method static Builder<static>|ExchangeRate newModelQuery()
  * @method static Builder<static>|ExchangeRate newQuery()
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder<static>|ExchangeRate whereId($value)
  * @method static Builder<static>|ExchangeRate whereRates($value)
  * @method static Builder<static>|ExchangeRate whereUpdatedAt($value)
+ *
  * @mixin \Eloquent
  */
 class ExchangeRate extends Model
@@ -59,7 +62,10 @@ class ExchangeRate extends Model
 
     protected static function responseCacheTags(): array
     {
-        return ['exchange-rates'];
+        // hotels included because the cached public hotel payloads embed
+        // estimated_price derived from the latest rate (PublicHotelController::
+        // attachEstimatedPrice), so a rate refresh must bust them too.
+        return ['exchange-rates', 'hotels'];
     }
 
     /**

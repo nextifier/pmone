@@ -244,3 +244,27 @@ test('resolve endpoint returns 404 for nonexistent slug', function () {
 
     $response->assertNotFound();
 });
+
+test('resolve endpoint omits roles, permissions, presence and security fields for guests', function () {
+    User::factory()->create([
+        'username' => 'cleanprofile',
+        'status' => 'active',
+        'email_verified_at' => now(),
+        'last_seen' => now(),
+    ]);
+
+    // The payload is cached for anonymous visitors under the short-links tag:
+    // role/permission syncs and self-serve verify/2FA writes never bust it,
+    // and presence has a 5-minute semantic window - none of them may be baked
+    // into a response cached for an hour.
+    $this->getJson('/api/resolve/cleanprofile')
+        ->assertOk()
+        ->assertJsonPath('type', 'user')
+        ->assertJsonMissingPath('data.roles')
+        ->assertJsonMissingPath('data.permissions')
+        ->assertJsonMissingPath('data.is_online')
+        ->assertJsonMissingPath('data.last_seen')
+        ->assertJsonMissingPath('data.email_verified_at')
+        ->assertJsonMissingPath('data.two_factor_enabled')
+        ->assertJsonMissingPath('data.two_factor_confirmed');
+});

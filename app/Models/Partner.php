@@ -233,6 +233,11 @@ class Partner extends Model implements HasMedia, Sortable
         return $query->where('status', 'active');
     }
 
+    public function scopePubliclyVisible($query)
+    {
+        return $query->where('visibility', 'public');
+    }
+
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);

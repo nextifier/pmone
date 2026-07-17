@@ -157,7 +157,11 @@ class Brand extends Model implements HasMedia, Sortable
 
     protected static function responseCacheTags(): array
     {
-        return ['brands'];
+        // promotion-posts included because the public promotion-posts route
+        // resolves through whereHas('brand') on the brand slug: a soft-deleted
+        // brand must 404 there, but the soft delete cascades to brandEvents
+        // only on force delete, so Brand's own trait hooks are the sole cover.
+        return ['brands', 'promotion-posts'];
     }
 
     public function sluggable(): array

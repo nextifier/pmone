@@ -178,3 +178,48 @@ test('does not fall back to an event whose partners are all inactive', function 
         ->assertOk()
         ->assertJsonCount(0, 'data');
 });
+
+test('excludes private partners from the public payload', function () {
+    $category = PartnerCategory::create(['event_id' => $this->event->id, 'name' => 'Sponsors']);
+    ($this->attachPartner)($category, ($this->partnerWithLogo)('visible'), 1);
+    ($this->attachPartner)($category, Partner::factory()->private()->create(['name' => 'secret']), 2);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partner'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonCount(1, 'data.0.partners')
+        ->assertJsonPath('data.0.partners.0.name', 'visible');
+});
+
+test('treats an event with only private partners as empty and falls back', function () {
+    $current = PartnerCategory::create(['event_id' => $this->event->id, 'name' => 'Private Only']);
+    ($this->attachPartner)($current, Partner::factory()->private()->create(['name' => 'secret']), 1);
+
+    $older = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'start_date' => '2025-01-01 10:00:00',
+    ]);
+    $past = PartnerCategory::create(['event_id' => $older->id, 'name' => 'Past Sponsors']);
+    ($this->attachPartner)($past, ($this->partnerWithLogo)('legacy'), 1);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partner'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.category', 'Past Sponsors')
+        ->assertJsonPath('data.0.partners.0.name', 'legacy');
+});
+
+test('excludes private partners from the by-edition payload', function () {
+    $this->event->update(['edition_number' => 3]);
+
+    $category = PartnerCategory::create(['event_id' => $this->event->id, 'name' => 'Sponsors']);
+    ($this->attachPartner)($category, ($this->partnerWithLogo)('visible'), 1);
+    ($this->attachPartner)($category, Partner::factory()->private()->create(['name' => 'secret']), 2);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_partner'])
+        ->getJson("/api/public/projects/{$this->project->username}/editions/3/partners")
+        ->assertOk()
+        ->assertJsonCount(1, 'data.0.partners')
+        ->assertJsonPath('data.0.partners.0.name', 'visible');
+});

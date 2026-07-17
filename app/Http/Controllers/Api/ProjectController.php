@@ -164,11 +164,6 @@ class ProjectController extends Controller
 
         if (! empty($validated['member_ids'])) {
             $project->members()->attach($validated['member_ids']);
-
-            // Pivot attach runs after Project::create() fired its trait clear,
-            // and pivot writes do not fire the Project saved event. The public
-            // project payload embeds the member list, so bust again here.
-            ResponseCache::clear(['projects']);
         }
 
         // Handle links (skip Email/WhatsApp from form)
@@ -199,6 +194,11 @@ class ProjectController extends Controller
 
         // Process content images in bio
         $this->processContentImages($project);
+
+        // Project::create() fired the trait clear before members, links and
+        // media were written (none of which fire Project events), so clear
+        // once more after all writes. Covers the member-attach case too.
+        ResponseCache::clear(['projects']);
 
         return response()->json([
             'message' => 'Project created successfully',

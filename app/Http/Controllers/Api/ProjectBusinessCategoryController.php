@@ -11,11 +11,25 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\ResponseCache\Facades\ResponseCache;
 use Spatie\Tags\Tag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectBusinessCategoryController extends Controller
 {
+    /**
+     * Invalidate the cached public brand responses.
+     *
+     * Spatie's Tag model does not use ClearsResponseCache, and reorder writes
+     * go through the query builder, so no model event fires for category
+     * renames/deletes even though the tag NAME is rendered into the cached
+     * public brand payloads via Brand::getBusinessCategoriesListAttribute().
+     */
+    private function clearBrandsCache(): void
+    {
+        ResponseCache::clear(['brands']);
+    }
+
     /**
      * List all business categories for a project.
      */
@@ -102,6 +116,8 @@ class ProjectBusinessCategoryController extends Controller
         $tag->name = $validated['name'];
         $tag->save();
 
+        $this->clearBrandsCache();
+
         return response()->json([
             'message' => 'Business category updated successfully.',
             'data' => [
@@ -123,6 +139,8 @@ class ProjectBusinessCategoryController extends Controller
         $tag = Tag::withType($type)->findOrFail($id);
 
         $tag->delete();
+
+        $this->clearBrandsCache();
 
         return response()->json([
             'message' => 'Business category deleted successfully.',
@@ -149,6 +167,8 @@ class ProjectBusinessCategoryController extends Controller
                 ->where('id', $orderData['id'])
                 ->update(['order_column' => $orderData['order']]);
         }
+
+        $this->clearBrandsCache();
 
         return response()->json([
             'message' => 'Business category order updated successfully.',

@@ -326,7 +326,8 @@ class Post extends Model implements HasMedia
         $this->addMediaConversion('md')
             ->width(900)
             ->quality(90)
-            ->performOnCollections('featured_image');
+            ->performOnCollections('featured_image')
+            ->nonQueued();
 
         $this->addMediaConversion('lg')
             ->width(1200)
@@ -337,7 +338,8 @@ class Post extends Model implements HasMedia
         $this->addMediaConversion('xl')
             ->width(1500)
             ->quality(95)
-            ->performOnCollections('featured_image');
+            ->performOnCollections('featured_image')
+            ->nonQueued();
 
         // Content images conversions (maintain aspect ratio, no crop)
         $this->addMediaConversion('lqip')

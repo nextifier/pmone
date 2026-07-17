@@ -19,8 +19,10 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Validators\Failure;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, WithEvents, WithHeadingRow, WithMultipleSheets, WithValidation
 {
@@ -292,6 +294,12 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
     {
         return [
             BeforeImport::class => fn (BeforeImport $event) => $this->initProgressTracking($event),
+            // Rows that only enrich an EXISTING brand (logo, links, categories)
+            // return null from model(), so no BrandEvent is saved and no trait
+            // clear fires - a re-import of the same sheet would otherwise
+            // mutate the public payload with no invalidation. One clear per
+            // import covers that all-skipped case.
+            AfterImport::class => fn (AfterImport $event) => ResponseCache::clear(['brands']),
         ];
     }
 

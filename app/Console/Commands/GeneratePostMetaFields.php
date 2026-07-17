@@ -6,6 +6,7 @@ use App\Models\Post;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
 class GeneratePostMetaFields extends Command
 {
@@ -112,5 +113,12 @@ class GeneratePostMetaFields extends Command
 
         $this->newLine(2);
         $this->info("Updated {$updated} posts");
+
+        if ($updated > 0) {
+            // saveQuietly() suppresses model events, so the ClearsResponseCache
+            // trait never fires - clear once per run. Mirrors ImportDocsCommand.
+            ResponseCache::clear(['blog-posts']);
+            $this->comment('Cleared blog-posts response cache.');
+        }
     }
 }

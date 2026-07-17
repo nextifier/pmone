@@ -200,6 +200,11 @@ class LinkPageController extends Controller
                 $linkPage->clearMediaCollection('cover_image');
             }
 
+            // The trait clear from update() fired BEFORE the media writes
+            // above, so clear again to avoid a concurrent public hit
+            // re-caching the old cover. Mirrors LinkPageBannerController.
+            ResponseCache::clear(['short-links']);
+
             $linkPage->load(['user', 'items' => fn ($q) => $q->ordered()]);
             $linkPage->loadCount(['items', 'visits', 'clicks']);
 

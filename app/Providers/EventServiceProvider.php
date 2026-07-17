@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Listeners\AutoVerifyPrivilegedUsers;
 use App\Listeners\BlockSuppressedRecipients;
+use App\Listeners\ClearResponseCacheOnConversionCompleted;
 use App\Listeners\MarkResponseCacheHit;
 use App\Listeners\PurgeCloudflareCacheOnResponseCacheCleared;
 use App\Listeners\RecordFailedLogin;
@@ -12,6 +13,7 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Mail\Events\MessageSent;
+use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
 use Spatie\Permission\Events\RoleAttached;
 use Spatie\ResponseCache\Events\ClearedResponseCacheEvent;
 use Spatie\ResponseCache\Events\ResponseCacheHitEvent;
@@ -41,6 +43,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         ClearedResponseCacheEvent::class => [
             PurgeCloudflareCacheOnResponseCacheCleared::class,
+        ],
+        ConversionHasBeenCompletedEvent::class => [
+            ClearResponseCacheOnConversionCompleted::class,
         ],
     ];
 

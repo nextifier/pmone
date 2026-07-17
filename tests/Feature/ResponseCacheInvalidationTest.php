@@ -1,5 +1,6 @@
 <?php
 
+use App\Imports\BrandEventsImport;
 use App\Jobs\ExtractOpenGraphMetadata;
 use App\Models\ApiConsumer;
 use App\Models\Brand;
@@ -7,9 +8,12 @@ use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\Event;
 use App\Models\EventDay;
+use App\Models\ExchangeRate;
 use App\Models\Faq;
 use App\Models\Hotel;
 use App\Models\HotelEvent;
+use App\Models\LinkPage;
+use App\Models\LinkPageItem;
 use App\Models\Partner;
 use App\Models\Post;
 use App\Models\Project;
@@ -23,11 +27,17 @@ use App\Models\TicketPricePhase;
 use App\Models\TicketSession;
 use App\Models\User;
 use App\Services\OpenGraph\OpenGraphExtractor;
+use App\Support\MediaResponseCacheTags;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Events\AfterImport;
+use Spatie\MediaLibrary\Conversions\Conversion;
+use Spatie\MediaLibrary\Conversions\Events\ConversionHasBeenCompletedEvent;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\ResponseCache\Facades\ResponseCache;
+use Spatie\Tags\Tag;
 
 uses(RefreshDatabase::class);
 
@@ -267,7 +277,7 @@ test('deactivating a project payment gateway busts the projects, hotels, events 
 // ---------------------------------------------------------------------------
 // Users (P2) — display fields / avatar feed cached member lists + bylines
 // ---------------------------------------------------------------------------
-test('updating a user busts short-links, projects and blog-posts caches', function () {
+test('updating a user busts short-links and blog-posts caches', function () {
     $target = User::factory()->create(['email_verified_at' => now()]);
 
     $spy = ResponseCache::spy();
@@ -276,7 +286,7 @@ test('updating a user busts short-links, projects and blog-posts caches', functi
         'name' => 'Renamed Author',
     ])->assertOk();
 
-    $spy->shouldHaveReceived('clear')->with(['short-links', 'projects', 'blog-posts']);
+    $spy->shouldHaveReceived('clear')->with(['short-links', 'blog-posts']);
 });
 
 test('verifying a user busts the short-links cache', function () {
@@ -481,14 +491,14 @@ test('saving a link owned by a project busts the projects, events and faqs cache
     $spy->shouldHaveReceived('clear')->with(['projects', 'events', 'faqs']);
 });
 
-test('changing a user public profile field via the model busts short-links, projects and blog-posts', function () {
+test('changing a user public profile field via the model busts short-links and blog-posts', function () {
     $target = User::factory()->create(['email_verified_at' => now()]);
 
     $spy = ResponseCache::spy();
 
     $target->update(['title' => 'Head of Events']);
 
-    $spy->shouldHaveReceived('clear')->with(['short-links', 'projects', 'blog-posts']);
+    $spy->shouldHaveReceived('clear')->with(['short-links', 'blog-posts']);
 });
 
 test('a last_seen touch does not clear the response cache', function () {
@@ -856,4 +866,257 @@ test('updating a rundown item busts the rundown cache twice (trait clear + post-
     ])->assertOk();
 
     $spy->shouldHaveReceived('clear')->with(['rundown'])->twice();
+});
+
+// ---------------------------------------------------------------------------
+// Business categories (P1) — Spatie Tag writes fire no owner model events
+// ---------------------------------------------------------------------------
+test('renaming a business category busts the brands cache', function () {
+    $tag = Tag::findOrCreate('F&B', "business_category:{$this->project->id}");
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson("/api/projects/{$this->project->username}/business-categories/{$tag->id}", [
+        'name' => 'Food & Beverage',
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['brands']);
+});
+
+test('deleting a business category busts the brands cache', function () {
+    $tag = Tag::findOrCreate('F&B', "business_category:{$this->project->id}");
+
+    $spy = ResponseCache::spy();
+
+    $this->deleteJson("/api/projects/{$this->project->username}/business-categories/{$tag->id}")
+        ->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['brands']);
+});
+
+test('reordering business categories busts the brands cache', function () {
+    $tag = Tag::findOrCreate('F&B', "business_category:{$this->project->id}");
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson("/api/projects/{$this->project->username}/business-categories/reorder", [
+        'orders' => [['id' => $tag->id, 'order' => 2]],
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['brands']);
+});
+
+// ---------------------------------------------------------------------------
+// Queued media conversions — ConversionHasBeenCompletedEvent listener
+// ---------------------------------------------------------------------------
+test('a completed conversion busts the owner cache tags', function () {
+    $media = new Media(['model_type' => RundownItem::class]);
+
+    $spy = ResponseCache::spy();
+
+    event(new ConversionHasBeenCompletedEvent($media, Conversion::create('md')));
+
+    $spy->shouldHaveReceived('clear')->with(['rundown']);
+});
+
+test('a completed conversion for an unmapped owner clears nothing', function () {
+    $media = new Media(['model_type' => Contact::class]);
+
+    $spy = ResponseCache::spy();
+
+    event(new ConversionHasBeenCompletedEvent($media, Conversion::create('md')));
+
+    $spy->shouldNotHaveReceived('clear');
+});
+
+test('the media tag map covers the owners embedded in cached payloads', function () {
+    expect(MediaResponseCacheTags::for(RundownItem::class))->toBe(['rundown'])
+        ->and(MediaResponseCacheTags::for(User::class))->toBe(['short-links', 'blog-posts'])
+        ->and(MediaResponseCacheTags::for(LinkPage::class))->toBe(['short-links'])
+        ->and(MediaResponseCacheTags::for(LinkPageItem::class))->toBe(['short-links'])
+        ->and(MediaResponseCacheTags::for(Event::class))->toContain('brands')
+        ->and(MediaResponseCacheTags::for(Contact::class))->toBe([]);
+});
+
+test('uploading a rundown poster via the generic media endpoint busts the rundown cache', function () {
+    Storage::fake('public');
+
+    $item = RundownItem::factory()->create(['event_id' => $this->event->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->post('/api/media/upload', [
+        'file' => UploadedFile::fake()->image('poster.png', 10, 10),
+        'collection' => 'poster',
+        'model_type' => RundownItem::class,
+        'model_id' => $item->id,
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['rundown']);
+});
+
+// ---------------------------------------------------------------------------
+// Promotion-posts gates — brand/event/project writes must bust the tag
+// ---------------------------------------------------------------------------
+test('soft deleting a brand busts the brands and promotion-posts caches', function () {
+    $brand = Brand::factory()->create();
+
+    $spy = ResponseCache::spy();
+
+    $brand->delete();
+
+    $spy->shouldHaveReceived('clear')->with(['brands', 'promotion-posts']);
+});
+
+test('event and project settings tags include promotion-posts', function () {
+    $eventTags = (new ReflectionMethod(Event::class, 'responseCacheTags'))->invoke(null);
+
+    expect($eventTags)->toContain('promotion-posts')
+        ->and(Project::SETTINGS_RESPONSE_CACHE_TAGS)->toContain('promotion-posts')
+        ->and($this->project->settingsResponseCacheTags())->toContain("promotion-posts:{$this->project->username}");
+});
+
+// ---------------------------------------------------------------------------
+// Exchange rates — hotels embed estimated_price derived from the latest rate
+// ---------------------------------------------------------------------------
+test('creating an exchange rate busts the exchange-rates and hotels caches', function () {
+    $spy = ResponseCache::spy();
+
+    ExchangeRate::create([
+        'base_currency' => 'USD',
+        'rates' => ['IDR' => 16000],
+        'fetched_at' => now(),
+    ]);
+
+    $spy->shouldHaveReceived('clear')->with(['exchange-rates', 'hotels']);
+});
+
+test('the exchange rate listing ships a stale threshold instead of a frozen is_stale flag', function () {
+    ExchangeRate::create([
+        'base_currency' => 'USD',
+        'rates' => ['IDR' => 16000],
+        'fetched_at' => now(),
+    ]);
+
+    $this->getJson('/api/exchange-rates')
+        ->assertOk()
+        ->assertJsonPath('meta.stale_after_minutes', 120)
+        ->assertJsonMissingPath('meta.is_stale');
+});
+
+// ---------------------------------------------------------------------------
+// Event poster — embedded in the cached brand-detail payload
+// ---------------------------------------------------------------------------
+test('removing an event poster busts the events and brands caches', function () {
+    $spy = ResponseCache::spy();
+
+    $this->putJson(route('events.update', [
+        'username' => $this->project->username,
+        'eventSlug' => $this->event->slug,
+    ]), [
+        'delete_poster_image' => true,
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['events', 'brands']);
+});
+
+// ---------------------------------------------------------------------------
+// Clear-then-mutate races — an explicit clear must land AFTER media writes
+// ---------------------------------------------------------------------------
+test('creating a project busts the projects cache after all writes', function () {
+    $spy = ResponseCache::spy();
+
+    $this->postJson('/api/projects', [
+        'name' => 'Cache Race Project',
+        'username' => 'cache_race_project',
+        'status' => 'active',
+        'visibility' => 'public',
+    ])->assertCreated();
+
+    $spy->shouldHaveReceived('clear')->with(['projects']);
+});
+
+test('exhibitor brand update busts brands again after category and media writes', function () {
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    $exhibitor->assignRole('exhibitor');
+
+    $brand = Brand::factory()->create();
+    $brand->users()->attach($exhibitor->id);
+
+    $this->actingAs($exhibitor);
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson("/api/exhibitor/brands/{$brand->slug}", [
+        'description' => 'Updated description',
+    ])->assertOk();
+
+    // Trait clear (now tagged with promotion-posts) plus the trailing guard.
+    $spy->shouldHaveReceived('clear')->with(['brands', 'promotion-posts']);
+    $spy->shouldHaveReceived('clear')->with(['brands']);
+});
+
+test('updating a link page busts short-links twice (trait clear + post-media clear)', function () {
+    $linkPage = LinkPage::factory()->create(['user_id' => $this->user->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson("/api/link-pages/{$linkPage->slug}", [
+        'title' => 'Updated Title',
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['short-links'])->twice();
+});
+
+test('creating a link page item busts short-links twice (trait clear + post-upload clear)', function () {
+    $linkPage = LinkPage::factory()->create(['user_id' => $this->user->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->postJson("/api/link-pages/{$linkPage->slug}/items", [
+        'label' => 'My Link',
+        'url' => 'https://example.com',
+    ])->assertCreated();
+
+    $spy->shouldHaveReceived('clear')->with(['short-links'])->twice();
+});
+
+test('updating a link page item busts short-links twice (trait clear + post-upload clear)', function () {
+    $linkPage = LinkPage::factory()->create(['user_id' => $this->user->id]);
+    $item = LinkPageItem::factory()->create(['link_page_id' => $linkPage->id]);
+
+    $spy = ResponseCache::spy();
+
+    $this->putJson("/api/link-pages/{$linkPage->slug}/items/{$item->id}", [
+        'label' => 'Renamed Link',
+    ])->assertOk();
+
+    $spy->shouldHaveReceived('clear')->with(['short-links'])->twice();
+});
+
+// ---------------------------------------------------------------------------
+// Write paths that bypass model events entirely
+// ---------------------------------------------------------------------------
+test('the brand events import clears brands after import', function () {
+    $import = new BrandEventsImport($this->event->id);
+
+    $spy = ResponseCache::spy();
+
+    $callbacks = $import->registerEvents();
+    $callbacks[AfterImport::class](Mockery::mock(AfterImport::class));
+
+    $spy->shouldHaveReceived('clear')->with(['brands']);
+});
+
+test('posts:generate-meta busts the blog-posts cache after quiet saves', function () {
+    // The model auto-fills meta on save, so blank the columns quietly to
+    // simulate the legacy rows the command exists to backfill.
+    $post = Post::factory()->create();
+    $post->forceFill(['meta_title' => null, 'meta_description' => null])->saveQuietly();
+
+    $spy = ResponseCache::spy();
+
+    $this->artisan('posts:generate-meta', ['--force' => true])->assertSuccessful();
+
+    $spy->shouldHaveReceived('clear')->with(['blog-posts']);
 });
