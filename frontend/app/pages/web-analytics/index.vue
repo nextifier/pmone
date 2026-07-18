@@ -39,7 +39,15 @@
         />
 
         <ClientOnly>
-          <DateRangeSelect v-model="selectedRange" />
+          <DatePicker
+            v-model="selectedRange"
+            mode="range"
+            size="sm"
+            align="end"
+            disable-future-dates
+            class="w-fit"
+            :presets="analyticsRangePresets()"
+          />
         </ClientOnly>
       </div>
     </div>
@@ -327,7 +335,7 @@
           </div>
           <div v-else class="flex items-center gap-x-2">
             <div
-              v-if="selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60"
+              v-if="isTodayRange && cacheInfo?.cache_age_minutes > 60"
               class="bg-warning/10 text-warning-foreground border-warning/20 flex items-center gap-x-1.5 rounded-md border px-2 py-1"
             >
               <Icon name="hugeicons:alert-01" class="size-3.5 shrink-0" />
@@ -336,7 +344,7 @@
 
             <span
               :class="{
-                'text-warning': selectedRange === 'today' && cacheInfo?.cache_age_minutes > 60,
+                'text-warning': isTodayRange && cacheInfo?.cache_age_minutes > 60,
               }"
               >Last updated {{ formatCacheAge(cacheInfo?.cache_age_minutes) }}.
               <span v-if="cacheInfo?.next_update_in_minutes"
@@ -381,7 +389,7 @@
 </template>
 
 <script setup>
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import GaPropertyProfile from "@/components/ga-property/Profile.vue";
 import { TableData } from "@/components/ui/table-data";
@@ -413,13 +421,78 @@ usePageMeta(null, {
   description: "View aggregated analytics data from all Google Analytics 4 properties",
 });
 
-// Load selected range from localStorage immediately (client-side only)
+/**
+ * Load the selected range from localStorage (client-side only).
+ *
+ * v2 stores either { days: N } (a relative window resolved on load, so
+ * "Last 30 days" never freezes to the day it was saved) or { from, to }
+ * ymd strings for absolute custom ranges. A legacy v1 string key
+ * ("30", "today", "this_month", ...) is migrated once.
+ */
+const RANGE_STORAGE_KEY = "analytics_selected_range_v2";
+
+const rangeFromStored = (stored) => {
+  if (stored?.days) return lastNDaysRange(Number(stored.days))();
+  if (stored?.from && stored?.to) {
+    return { start: $dayjs(stored.from).toDate(), end: $dayjs(stored.to).toDate() };
+  }
+  return null;
+};
+
+const migrateLegacyRange = () => {
+  const legacy = localStorage.getItem("analytics_selected_range");
+  if (!legacy) return null;
+  localStorage.removeItem("analytics_selected_range");
+
+  if (!isNaN(Number(legacy))) return { days: Number(legacy) };
+
+  const today = $dayjs();
+  const legacyRanges = {
+    today: { from: today, to: today },
+    yesterday: { from: today.subtract(1, "day"), to: today.subtract(1, "day") },
+    this_week: { from: today.startOf("week"), to: today },
+    last_week: {
+      from: today.subtract(1, "week").startOf("week"),
+      to: today.subtract(1, "week").endOf("week"),
+    },
+    this_month: { from: today.startOf("month"), to: today },
+    last_month: {
+      from: today.subtract(1, "month").startOf("month"),
+      to: today.subtract(1, "month").endOf("month"),
+    },
+    this_year: { from: today.startOf("year"), to: today },
+  };
+  const resolved = legacyRanges[legacy];
+  if (!resolved) return { days: 30 };
+  return { from: resolved.from.format("YYYY-MM-DD"), to: resolved.to.format("YYYY-MM-DD") };
+};
+
 const getInitialRange = () => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("analytics_selected_range") || "30";
+    try {
+      const raw = localStorage.getItem(RANGE_STORAGE_KEY);
+      const stored = raw ? JSON.parse(raw) : migrateLegacyRange();
+      const range = rangeFromStored(stored);
+      if (range) return range;
+    } catch {
+      // Corrupt storage falls through to the default below.
+    }
   }
-  return "30";
+  return lastNDaysRange(30)();
 };
+
+const persistRange = (range) => {
+  if (typeof window === "undefined") return;
+  const days = rangeDaysOf(range);
+  const endsToday = toYmd(range.end) === toYmd(new Date());
+  const payload = endsToday
+    ? { days }
+    : { from: toYmd(range.start), to: toYmd(range.end) };
+  localStorage.setItem(RANGE_STORAGE_KEY, JSON.stringify(payload));
+};
+
+const rangeDaysOf = (range) =>
+  $dayjs(range.end).startOf("day").diff($dayjs(range.start).startOf("day"), "day") + 1;
 
 const getInitialMetric = () => {
   if (typeof window !== "undefined") {
@@ -468,12 +541,14 @@ const selectedMetricInfo = computed(() => {
 });
 
 // Watch for changes and save to localStorage
-watch(selectedRange, async (newValue) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("analytics_selected_range", newValue);
-  }
-  await changeDateRange(newValue);
-});
+watch(
+  selectedRange,
+  async (newValue) => {
+    persistRange(newValue);
+    await changeDateRange(newValue);
+  },
+  { deep: true }
+);
 
 // Watch selectedMetric and save to localStorage
 watch(selectedMetric, (newValue) => {
@@ -522,46 +597,13 @@ const isBackgroundUpdating = computed(() => {
   return loading.value || cacheInfo.value?.is_updating === true;
 });
 
-/**
- * Calculate start and end dates based on the selected range
- */
-const getDateRange = (range) => {
-  const today = $dayjs();
-
-  switch (range) {
-    case "today":
-      return { start: today.startOf("day"), end: today.endOf("day") };
-    case "yesterday":
-      return {
-        start: today.subtract(1, "day").startOf("day"),
-        end: today.subtract(1, "day").endOf("day"),
-      };
-    case "this_week":
-      return { start: today.startOf("week"), end: today.endOf("day") };
-    case "last_week":
-      return {
-        start: today.subtract(1, "week").startOf("week"),
-        end: today.subtract(1, "week").endOf("week"),
-      };
-    case "this_month":
-      return { start: today.startOf("month"), end: today.endOf("day") };
-    case "last_month":
-      return {
-        start: today.subtract(1, "month").startOf("month"),
-        end: today.subtract(1, "month").endOf("month"),
-      };
-    case "this_year":
-      return { start: today.startOf("year"), end: today.endOf("day") };
-    default:
-      // Numeric values like 7, 30, 90, 365 - "last N days"
-      const days = parseInt(range);
-      return { start: today.subtract(days - 1, "day").startOf("day"), end: today.endOf("day") };
-  }
-};
-
-const dateRange = computed(() => getDateRange(selectedRange.value));
-const startDate = computed(() => dateRange.value.start);
-const endDate = computed(() => dateRange.value.end);
+// Dayjs views of the selected range — the header, export, and child
+// components all consume dayjs objects.
+const startDate = computed(() => $dayjs(selectedRange.value.start).startOf("day"));
+const endDate = computed(() => $dayjs(selectedRange.value.end).endOf("day"));
+const isTodayRange = computed(
+  () => rangeDaysOf(selectedRange.value) === 1 && toYmd(selectedRange.value.end) === toYmd(new Date())
+);
 
 const METRIC_CONFIGS = [
   {
@@ -968,10 +1010,6 @@ const refreshData = () => {
 
 const isRefreshing = ref(false);
 
-const getDaysFromRange = (range) => {
-  return range === "today" || range === "yesterday" ? 1 : parseInt(range) || 30;
-};
-
 const forceRefresh = async () => {
   if (isRefreshing.value) return;
 
@@ -980,7 +1018,7 @@ const forceRefresh = async () => {
   try {
     await sanctumFetch("/api/google-analytics/aggregate/sync-now", {
       method: "POST",
-      body: { days: getDaysFromRange(selectedRange.value) },
+      body: { days: rangeDaysOf(selectedRange.value) },
     });
 
     await fetchAnalytics(true);
@@ -996,18 +1034,12 @@ const forceRefresh = async () => {
   }
 };
 
-const DATE_RANGE_LABELS = {
-  today: "Today",
-  yesterday: "Yesterday",
-  this_week: "This Week",
-  last_week: "Last Week",
-  this_month: "This Month",
-  last_month: "Last Month",
-  this_year: "This Year",
-};
-
 const getDateRangeLabel = () => {
-  return DATE_RANGE_LABELS[selectedRange.value] || `Last ${selectedRange.value} days`;
+  if (isTodayRange.value) return "Today";
+  if (toYmd(selectedRange.value.end) === toYmd(new Date())) {
+    return `Last ${rangeDaysOf(selectedRange.value)} days`;
+  }
+  return `${formatDate(startDate.value)} - ${formatDate(endDate.value)}`;
 };
 
 const getPreviousPeriodLabel = () => {

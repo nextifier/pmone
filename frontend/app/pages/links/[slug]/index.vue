@@ -19,7 +19,15 @@
           </a>
         </div>
 
-        <DateRangeSelect v-model="selectedPeriod" />
+        <DatePicker
+          v-model="dateRange"
+          mode="range"
+          size="sm"
+          align="end"
+          disable-future-dates
+          class="w-fit"
+          :presets="analyticsRangePresets()"
+        />
       </div>
     </div>
 
@@ -231,7 +239,7 @@
 
 <script setup>
 import QRCodeComponent from "@/components/QRCode.vue";
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";
 
@@ -249,7 +257,10 @@ const config = useRuntimeConfig();
 const copied = ref(false);
 const { downloadSVG: qrDownloadSVG, downloadJPG: qrDownloadJPG } = useQRCode();
 
-const selectedPeriod = ref("7");
+const dateRange = ref(lastNDaysRange(7)());
+
+const rangeQuery = () =>
+  `start_date=${toYmd(dateRange.value.start)}&end_date=${toYmd(dateRange.value.end)}`;
 
 // Fetch short link details with lazy loading
 const { data: shortLinkResponse, error: shortLinkError } = await useLazySanctumFetch(
@@ -267,13 +278,11 @@ const {
   pending: loading,
   error: analyticsError,
   refresh: loadAnalytics,
-} = await useLazySanctumFetch(
-  () => `/api/short-links/${slug.value}/analytics?period=${selectedPeriod.value}`,
-  {
-    key: `short-link-analytics-${slug.value}-${selectedPeriod.value}`,
-    watch: [selectedPeriod],
-  }
-);
+} = await useLazySanctumFetch(() => `/api/short-links/${slug.value}/analytics?${rangeQuery()}`, {
+  key: `short-link-analytics-${slug.value}`,
+});
+
+watch(dateRange, () => loadAnalytics(), { deep: true });
 
 const analyticsData = computed(() => analyticsResponse.value?.data || null);
 

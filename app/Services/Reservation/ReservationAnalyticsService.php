@@ -8,6 +8,7 @@ use App\Models\Event;
 use App\Models\HotelEventAllotment;
 use App\Models\Reservation;
 use App\Services\Ticket\AttendeeAnalyticsService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,9 +24,9 @@ class ReservationAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function summary(Event $event): array
+    public function summary(Event $event, ?Carbon $from = null, ?Carbon $to = null): array
     {
-        return $this->buildSummary($event, $this->reservations($event));
+        return $this->buildSummary($event, $this->reservations($event, $from, $to));
     }
 
     /**
@@ -33,9 +34,9 @@ class ReservationAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function detail(Event $event): array
+    public function detail(Event $event, ?Carbon $from = null, ?Carbon $to = null): array
     {
-        $reservations = $this->reservations($event);
+        $reservations = $this->reservations($event, $from, $to);
 
         return [
             'summary' => $this->buildSummary($event, $reservations),
@@ -54,10 +55,12 @@ class ReservationAnalyticsService
     /**
      * @return Collection<int, Reservation>
      */
-    private function reservations(Event $event): Collection
+    private function reservations(Event $event, ?Carbon $from = null, ?Carbon $to = null): Collection
     {
         return Reservation::query()
             ->where('event_id', $event->id)
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
             ->with([
                 'items:id,reservation_id,room_type_id,nights,qty,subtotal',
                 'items.roomType:id,name',

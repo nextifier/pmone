@@ -17,7 +17,15 @@
           </p>
         </div>
 
-        <DateRangeSelect v-model="selectedPeriod" />
+        <DatePicker
+          v-model="dateRange"
+          mode="range"
+          size="sm"
+          align="end"
+          disable-future-dates
+          class="w-fit"
+          :presets="analyticsRangePresets()"
+        />
       </div>
     </div>
 
@@ -202,7 +210,7 @@
 
 <script setup>
 import QRCodeComponent from "@/components/QRCode.vue";
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";
 
@@ -221,7 +229,10 @@ const loading = ref(true);
 const error = ref(null);
 const linkPage = ref(null);
 const analytics = ref(null);
-const selectedPeriod = ref("7");
+const dateRange = ref(lastNDaysRange(7)());
+
+const rangeQuery = () =>
+  `start_date=${toYmd(dateRange.value.start)}&end_date=${toYmd(dateRange.value.end)}`;
 
 usePageMeta(null, {
   title: computed(() => (linkPage.value ? `Analytics · ${linkPage.value.title}` : "Analytics")),
@@ -266,7 +277,7 @@ const fetchData = async () => {
   try {
     const [linkPageRes, analyticsRes] = await Promise.all([
       client(`/api/link-pages/${slug.value}`),
-      client(`/api/link-pages/${slug.value}/analytics?period=${selectedPeriod.value}`),
+      client(`/api/link-pages/${slug.value}/analytics?${rangeQuery()}`),
     ]);
 
     linkPage.value = linkPageRes.data;
@@ -281,7 +292,7 @@ const fetchData = async () => {
 };
 
 onMounted(fetchData);
-watch(selectedPeriod, fetchData);
+watch(dateRange, fetchData, { deep: true });
 
 // Copy to clipboard
 const copyToClipboard = async () => {

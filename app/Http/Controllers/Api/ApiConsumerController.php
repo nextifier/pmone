@@ -11,6 +11,8 @@ use App\Services\ApiConsumerAnalyticsService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class ApiConsumerController extends Controller
 {
@@ -214,20 +216,53 @@ class ApiConsumerController extends Controller
     {
         $this->authorize('view', $apiConsumer);
 
-        $days = $analyticsService->parseDays((int) $request->input('days', 7));
-        $startDate = $analyticsService->getStartDate($days);
+        [$startDate, $endDate, $days] = $this->resolveAnalyticsRange($request, $analyticsService);
 
         return response()->json([
             'data' => [
                 'consumer' => new ApiConsumerResource($apiConsumer),
-                'period' => $analyticsService->buildPeriodData($days, $startDate),
-                'summary' => $analyticsService->getSummary($apiConsumer->id, $startDate),
-                'requests_per_day' => $analyticsService->getRequestsPerDay($apiConsumer->id, $startDate),
-                'top_endpoints' => $analyticsService->getTopEndpoints($apiConsumer->id, $startDate),
-                'status_distribution' => $analyticsService->getStatusDistribution($apiConsumer->id, $startDate),
+                'period' => $analyticsService->buildPeriodData($days, $startDate, $endDate),
+                'summary' => $analyticsService->getSummary($apiConsumer->id, $startDate, endDate: $endDate),
+                'requests_per_day' => $analyticsService->getRequestsPerDay($apiConsumer->id, $startDate, $endDate),
+                'top_endpoints' => $analyticsService->getTopEndpoints($apiConsumer->id, $startDate, endDate: $endDate),
+                'status_distribution' => $analyticsService->getStatusDistribution($apiConsumer->id, $startDate, $endDate),
                 'hourly_distribution' => $analyticsService->getHourlyDistribution($apiConsumer->id),
             ],
         ]);
+    }
+
+    /**
+     * Resolve the analytics window: an explicit start_date/end_date pair wins
+     * (capped at the same 90-day span parseDays enforces), otherwise the
+     * legacy relative `days` parameter.
+     *
+     * @return array{0: Carbon, 1: ?Carbon, 2: int}
+     */
+    private function resolveAnalyticsRange(Request $request, ApiConsumerAnalyticsService $analyticsService): array
+    {
+        $validated = $request->validate([
+            'days' => ['nullable', 'integer'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        if (isset($validated['start_date'], $validated['end_date'])) {
+            $startDate = Carbon::parse($validated['start_date'])->startOfDay();
+            $endDate = Carbon::parse($validated['end_date'])->endOfDay();
+            $days = (int) $startDate->diffInDays($endDate->copy()->startOfDay()) + 1;
+
+            if ($days > 90) {
+                throw ValidationException::withMessages([
+                    'end_date' => 'The date range may not exceed 90 days.',
+                ]);
+            }
+
+            return [$startDate, $endDate, $days];
+        }
+
+        $days = $analyticsService->parseDays((int) $request->input('days', 7));
+
+        return [$analyticsService->getStartDate($days), null, $days];
     }
 
     /**
@@ -237,10 +272,9 @@ class ApiConsumerController extends Controller
     {
         $this->authorize('viewAny', ApiConsumer::class);
 
-        $days = $analyticsService->parseDays((int) $request->input('days', 7));
-        $startDate = $analyticsService->getStartDate($days);
+        [$startDate, $endDate, $days] = $this->resolveAnalyticsRange($request, $analyticsService);
 
-        $summary = $analyticsService->getSummary(null, $startDate, includeConsumerCount: true);
+        $summary = $analyticsService->getSummary(null, $startDate, includeConsumerCount: true, endDate: $endDate);
         $consumersWithRequests = $summary['active_consumers'] ?? 0;
         unset($summary['active_consumers']);
 
@@ -250,11 +284,11 @@ class ApiConsumerController extends Controller
 
         return response()->json([
             'data' => [
-                'period' => $analyticsService->buildPeriodData($days, $startDate),
+                'period' => $analyticsService->buildPeriodData($days, $startDate, $endDate),
                 'summary' => $summary,
-                'requests_per_day' => $analyticsService->getRequestsPerDay(null, $startDate),
-                'top_consumers' => $analyticsService->getTopConsumers($startDate),
-                'status_distribution' => $analyticsService->getStatusDistribution(null, $startDate),
+                'requests_per_day' => $analyticsService->getRequestsPerDay(null, $startDate, $endDate),
+                'top_consumers' => $analyticsService->getTopConsumers($startDate, endDate: $endDate),
+                'status_distribution' => $analyticsService->getStatusDistribution(null, $startDate, $endDate),
             ],
         ]);
     }

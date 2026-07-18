@@ -128,32 +128,14 @@
                 <div class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                   Date Range
                 </div>
-                <div class="flex flex-wrap gap-1.5">
-                  <Button
-                    v-for="preset in datePresets"
-                    :key="preset.label"
-                    variant="outline"
-                    class="h-auto px-2 py-0.5 text-xs font-normal active:scale-98"
-                    :class="{ 'bg-muted': activePreset === preset.label }"
-                    @click="applyDatePreset(preset)"
-                  >
-                    {{ preset.label }}
-                  </Button>
-                </div>
-                <div class="flex flex-col gap-y-2">
-                  <DatePicker
-                    :modelValue="dateFrom"
-                    placeholder="From date"
-                    :disableFutureDates="true"
-                    @update:modelValue="onDateFromChange"
-                  />
-                  <DatePicker
-                    :modelValue="dateTo"
-                    placeholder="To date"
-                    :disableFutureDates="true"
-                    @update:modelValue="onDateToChange"
-                  />
-                </div>
+                <DatePicker
+                  :modelValue="dateRange"
+                  mode="range"
+                  placeholder="Date range"
+                  :disableFutureDates="true"
+                  :presets="analyticsRangePresets()"
+                  @update:modelValue="onDateRangeChange"
+                />
               </div>
 
               <div v-if="logNameOptions.length > 0" class="border-t" />
@@ -324,8 +306,10 @@ const perPage = ref(q.per_page ? Number(q.per_page) : 50);
 const selectedLogNames = ref(parseList(q.log_name));
 const selectedEvents = ref(parseList(q.event));
 const selectedCauserId = ref(typeof q.causer_id === "string" ? q.causer_id : "");
-const dateFrom = ref(typeof q.from === "string" ? $dayjs(q.from).toDate() : null);
-const dateTo = ref(typeof q.to === "string" ? $dayjs(q.to).toDate() : null);
+const dateRange = ref({
+  start: typeof q.from === "string" ? $dayjs(q.from).toDate() : null,
+  end: typeof q.to === "string" ? $dayjs(q.to).toDate() : null,
+});
 const logNameOptions = ref([]);
 const eventOptions = ref([]);
 const causerOptions = ref([]);
@@ -353,44 +337,9 @@ const filteredEventOptions = computed(() => {
 const totalActiveFilters = computed(() => {
   let count = selectedLogNames.value.length + selectedEvents.value.length;
   if (selectedCauserId.value) count++;
-  if (dateFrom.value) count++;
-  if (dateTo.value) count++;
+  if (dateRange.value.start || dateRange.value.end) count++;
   return count;
 });
-
-const datePresets = [
-  { label: "Today", fromOffset: 0 },
-  { label: "7d", fromOffset: 6 },
-  { label: "30d", fromOffset: 29 },
-  { label: "This month", startOfMonth: true },
-];
-
-const activePreset = computed(() => {
-  if (!dateFrom.value || !dateTo.value) return null;
-  const today = $dayjs().startOf("day");
-  const from = $dayjs(dateFrom.value).startOf("day");
-  const to = $dayjs(dateTo.value).startOf("day");
-  if (!to.isSame(today)) return null;
-  for (const preset of datePresets) {
-    if (preset.startOfMonth) {
-      if (from.isSame(today.startOf("month"))) return preset.label;
-    } else if (from.isSame(today.subtract(preset.fromOffset, "day"))) {
-      return preset.label;
-    }
-  }
-  return null;
-});
-
-function applyDatePreset(preset) {
-  const today = $dayjs().startOf("day");
-  const from = preset.startOfMonth
-    ? today.startOf("month")
-    : today.subtract(preset.fromOffset, "day");
-  dateFrom.value = from.toDate();
-  dateTo.value = today.toDate();
-  page.value = 1;
-  fetchActivities();
-}
 
 const causerName = computed(() => {
   if (!selectedCauserId.value) return "";
@@ -408,15 +357,14 @@ const activeChips = computed(() => {
       clear: () => onCauserChange("all"),
     });
   }
-  if (dateFrom.value || dateTo.value) {
+  if (dateRange.value.start || dateRange.value.end) {
     const fmt = (d) => (d ? $dayjs(d).format("MMM D") : "…");
     chips.push({
       key: "date",
       label: "Date",
-      value: `${fmt(dateFrom.value)} - ${fmt(dateTo.value)}`,
+      value: `${fmt(dateRange.value.start)} - ${fmt(dateRange.value.end)}`,
       clear: () => {
-        dateFrom.value = null;
-        dateTo.value = null;
+        dateRange.value = { start: null, end: null };
         page.value = 1;
         fetchActivities();
       },
@@ -457,8 +405,8 @@ function syncUrl() {
   if (selectedLogNames.value.length) query.log_name = selectedLogNames.value.join(",");
   if (selectedEvents.value.length) query.event = selectedEvents.value.join(",");
   if (selectedCauserId.value) query.causer_id = selectedCauserId.value;
-  if (dateFrom.value) query.from = $dayjs(dateFrom.value).format("YYYY-MM-DD");
-  if (dateTo.value) query.to = $dayjs(dateTo.value).format("YYYY-MM-DD");
+  if (dateRange.value.start) query.from = $dayjs(dateRange.value.start).format("YYYY-MM-DD");
+  if (dateRange.value.end) query.to = $dayjs(dateRange.value.end).format("YYYY-MM-DD");
   router.replace({ query });
 }
 
@@ -478,11 +426,11 @@ async function fetchActivities({ silent = false } = {}) {
     if (selectedLogNames.value.length) params.append("log_name", selectedLogNames.value.join(","));
     if (selectedEvents.value.length) params.append("event", selectedEvents.value.join(","));
     if (selectedCauserId.value) params.append("causer_id", selectedCauserId.value);
-    if (dateFrom.value) {
-      params.append("from", $dayjs(dateFrom.value).format("YYYY-MM-DD"));
+    if (dateRange.value.start) {
+      params.append("from", $dayjs(dateRange.value.start).format("YYYY-MM-DD"));
     }
-    if (dateTo.value) {
-      params.append("to", $dayjs(dateTo.value).format("YYYY-MM-DD"));
+    if (dateRange.value.end) {
+      params.append("to", $dayjs(dateRange.value.end).format("YYYY-MM-DD"));
     }
 
     const res = await client(`/api/logs?${params.toString()}`);
@@ -551,14 +499,8 @@ function onCauserChange(value) {
   fetchActivities();
 }
 
-function onDateFromChange(value) {
-  dateFrom.value = value;
-  page.value = 1;
-  fetchActivities();
-}
-
-function onDateToChange(value) {
-  dateTo.value = value;
+function onDateRangeChange(value) {
+  dateRange.value = value ?? { start: null, end: null };
   page.value = 1;
   fetchActivities();
 }
@@ -568,8 +510,7 @@ function clearFilters() {
   selectedLogNames.value = [];
   selectedEvents.value = [];
   selectedCauserId.value = "";
-  dateFrom.value = null;
-  dateTo.value = null;
+  dateRange.value = { start: null, end: null };
   page.value = 1;
   fetchActivities();
 }

@@ -9,17 +9,25 @@
  * - Never show loading spinner if cached data exists
  * - Never show error if cached data exists (silent background retry)
  *
- * @param initialPeriod - Initial period to fetch (days number or named period)
+ * @param initialRange - Initial date range to fetch ({ start, end } Dates)
  * @param withComparison - Whether to include comparison data from previous period
  */
-export function useAnalyticsData(initialPeriod: string | number = 30, withComparison: boolean = true) {
+export function useAnalyticsData(
+  initialRange: { start: Date; end: Date },
+  withComparison: boolean = true
+) {
   const client = useSanctumClient();
   const analyticsStore = useAnalyticsStore();
 
   // State - Start with false, only show loading if no cached data
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const selectedPeriod = ref(initialPeriod);
+  const selectedRange = ref(initialRange);
+
+  // Store cache key for the current range; keys are opaque strings to the store.
+  const rangeKey = computed(
+    () => `${toYmd(selectedRange.value.start)}_${toYmd(selectedRange.value.end)}`
+  );
 
   // Auto-refresh management
   let autoRefreshTimeout: NodeJS.Timeout | null = null;
@@ -29,7 +37,7 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
 
   // Get aggregate data from store
   const aggregateData = computed(() => {
-    return analyticsStore.getAggregate(String(selectedPeriod.value));
+    return analyticsStore.getAggregate(rangeKey.value);
   });
 
   // Computed
@@ -50,23 +58,6 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
     return cacheInfo.value.last_updated || null;
   });
 
-  /**
-   * Convert period to API parameters.
-   *
-   * For named periods (today, yesterday, etc.), we pass the period name to backend
-   * so backend can calculate dates using server timezone (Asia/Jakarta).
-   * This prevents timezone mismatch between client and server.
-   */
-  function getPeriodParams(period: string | number) {
-    // If numeric, use days parameter
-    if (typeof period === 'number' || !isNaN(Number(period))) {
-      return { days: Number(period) };
-    }
-
-    // For named periods, pass period name to backend
-    // Backend will calculate dates using server timezone (Asia/Jakarta)
-    return { period: period };
-  }
 
   /**
    * Fetch analytics data with cache-first strategy.
@@ -79,7 +70,7 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
    * 5. On error without cache -> show error message
    */
   async function fetchAnalytics(silent: boolean = false, skipAutoRefresh: boolean = false) {
-    const period = String(selectedPeriod.value);
+    const period = rangeKey.value;
     const hasCachedData = !!analyticsStore.getAggregate(period);
 
     // Check if we have fresh data in store - return immediately
@@ -125,7 +116,8 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
 
     try {
       const params = {
-        ...getPeriodParams(selectedPeriod.value),
+        start_date: toYmd(selectedRange.value.start),
+        end_date: toYmd(selectedRange.value.end),
         with_comparison: withComparison,
       };
 
@@ -218,11 +210,11 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
    * Change date range and refresh data.
    * Shows cached data immediately if available, fetches fresh in background.
    */
-  async function changeDateRange(period: string | number) {
-    selectedPeriod.value = period;
+  async function changeDateRange(range: { start: Date; end: Date }) {
+    selectedRange.value = range;
 
-    // Check if we have any cached data for the new period
-    const hasCachedData = !!analyticsStore.getAggregate(String(period));
+    // Check if we have any cached data for the new range
+    const hasCachedData = !!analyticsStore.getAggregate(rangeKey.value);
 
     if (hasCachedData) {
       // We have cached data - show it immediately, fetch fresh in background
@@ -277,7 +269,7 @@ export function useAnalyticsData(initialPeriod: string | number = 30, withCompar
     aggregateData: readonly(aggregateData),
     loading: readonly(loading),
     error: readonly(error),
-    selectedPeriod: readonly(selectedPeriod),
+    selectedRange: readonly(selectedRange),
 
     // Computed
     cacheInfo,

@@ -2,7 +2,15 @@
   <div class="mx-auto max-w-4xl space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-3">
       <h2 class="text-base font-semibold tracking-tighter">Analytics</h2>
-      <DateRangeSelect v-model="selectedPeriod" />
+      <DatePicker
+        v-model="dateRange"
+        mode="range"
+        size="sm"
+        align="end"
+        disable-future-dates
+        class="w-fit"
+        :presets="analyticsRangePresets()"
+      />
     </div>
 
     <template v-if="loading">
@@ -216,7 +224,7 @@
 
 <script setup>
 import countries from "@/data/countries.json";
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { ChartLine } from "@/components/ui/chart";
 import {
@@ -238,19 +246,19 @@ defineProps({
 
 const route = useRoute();
 const slug = computed(() => route.params.slug);
-const selectedPeriod = ref("30");
+const dateRange = ref(lastNDaysRange(30)());
+
+const rangeQuery = () =>
+  `start_date=${toYmd(dateRange.value.start)}&end_date=${toYmd(dateRange.value.end)}`;
 
 const {
   data: analyticsResponse,
   pending: loading,
   error: analyticsError,
   refresh: loadAnalytics,
-} = await useLazySanctumFetch(
-  () => `/api/forms/${slug.value}/analytics?period=${selectedPeriod.value}`,
-  {
-    key: `form-analytics-${slug.value}-${selectedPeriod.value}`,
-  }
-);
+} = await useLazySanctumFetch(() => `/api/forms/${slug.value}/analytics?${rangeQuery()}`, {
+  key: `form-analytics-${slug.value}`,
+});
 
 const analytics = computed(() => analyticsResponse.value?.data || null);
 
@@ -259,9 +267,7 @@ const error = computed(() => {
   return analyticsError.value.response?._data?.message || "Failed to load analytics";
 });
 
-watch(selectedPeriod, () => {
-  loadAnalytics();
-});
+watch(dateRange, () => loadAnalytics(), { deep: true });
 
 const summaryCards = computed(() => {
   const summary = analytics.value?.summary;

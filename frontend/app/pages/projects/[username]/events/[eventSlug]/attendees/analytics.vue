@@ -23,12 +23,24 @@
           Updated {{ updatedAgo }}
         </p>
       </div>
-      <Button variant="outline" size="sm" as-child class="shrink-0">
-        <NuxtLink :to="`${eventBase}/attendees`">
-          <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
-          <span>Attendees</span>
-        </NuxtLink>
-      </Button>
+      <div class="flex shrink-0 flex-wrap items-center gap-2">
+        <DatePicker
+          v-model="dateRange"
+          mode="range"
+          size="sm"
+          align="end"
+          disable-future-dates
+          placeholder="All time"
+          class="w-fit"
+          :presets="analyticsRangePresets()"
+        />
+        <Button variant="outline" size="sm" as-child class="shrink-0">
+          <NuxtLink :to="`${eventBase}/attendees`">
+            <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
+            <span>Attendees</span>
+          </NuxtLink>
+        </Button>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -659,9 +671,13 @@ usePageMeta(null, {
   title: computed(() => `Analytics · ${props.event?.title || "Event"}`),
 });
 
+// Empty = all-time, the dashboard's historical default; Clear returns to it.
+const dateRange = ref({ start: null, end: null });
+
 // Live feed: polls, refetches on focus, reacts to attendee mutations - no reload.
 const { data: d, pending, lastUpdatedAt } = useAttendeeAnalytics(props.event?.id, "detail", {
   interval: 20000,
+  range: dateRange,
 });
 
 // Ticking "Updated Xs ago" affordance so staff know how fresh the live feed is.

@@ -15,6 +15,7 @@ use App\Models\TicketOrder;
 use App\Models\TicketSession;
 use App\Models\User;
 use App\Support\FormFieldTypes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -30,9 +31,9 @@ class AttendeeAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function summary(Event $event): array
+    public function summary(Event $event, ?Carbon $from = null, ?Carbon $to = null): array
     {
-        return $this->buildSummary($event, $this->attendees($event), $this->orders($event));
+        return $this->buildSummary($event, $this->attendees($event, $from, $to), $this->orders($event, $from, $to));
     }
 
     /**
@@ -40,10 +41,10 @@ class AttendeeAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function detail(Event $event): array
+    public function detail(Event $event, ?Carbon $from = null, ?Carbon $to = null): array
     {
-        $attendees = $this->attendees($event);
-        $orders = $this->orders($event);
+        $attendees = $this->attendees($event, $from, $to);
+        $orders = $this->orders($event, $from, $to);
         $days = EventDay::query()->where('event_id', $event->id)->orderBy('day_number')->get();
         $tickets = Ticket::query()->where('event_id', $event->id)->with('validDays:id')->get()->keyBy('id');
         $businessMatching = $event->business_matching_enabled ? $this->businessMatching($event, $orders) : null;
@@ -51,7 +52,7 @@ class AttendeeAnalyticsService
         return [
             'summary' => $this->buildSummary($event, $attendees, $orders),
             'registrations_over_time' => $this->registrationsOverTime($orders),
-            'check_ins_over_time' => $this->checkInsOverTime($attendees),
+            'check_ins_over_time' => $this->checkInsOverTime($attendees, $from, $to),
             'by_ticket_type' => $this->byTicketType($attendees, $orders, $tickets),
             'by_event_day' => $this->byEventDay($attendees, $days, $tickets),
             'by_session' => $this->bySession($event, $attendees),
@@ -114,10 +115,12 @@ class AttendeeAnalyticsService
     /**
      * @return Collection<int, Attendee>
      */
-    private function attendees(Event $event): Collection
+    private function attendees(Event $event, ?Carbon $from = null, ?Carbon $to = null): Collection
     {
         return Attendee::query()
             ->forEvent($event->id)
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
             ->with([
                 'ticketOrderItem:id,ticket_order_id,ticket_id,ticket_session_id,selected_event_day_id',
                 'ticketOrderItem.ticketOrder:id,status',
@@ -128,10 +131,12 @@ class AttendeeAnalyticsService
     /**
      * @return Collection<int, TicketOrder>
      */
-    private function orders(Event $event): Collection
+    private function orders(Event $event, ?Carbon $from = null, ?Carbon $to = null): Collection
     {
         return TicketOrder::query()
             ->where('event_id', $event->id)
+            ->when($from, fn ($q) => $q->where('created_at', '>=', $from))
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
             ->with(['items:id,ticket_order_id,ticket_id,ticket_session_id,quantity,subtotal'])
             ->get(['id', 'status', 'total', 'payment_channel', 'created_at', 'paid_at', 'buyer_name', 'buyer_email', 'user_id']);
     }
@@ -210,10 +215,12 @@ class AttendeeAnalyticsService
      * @param  Collection<int, Attendee>  $attendees
      * @return array<int, array<string, mixed>>
      */
-    private function checkInsOverTime(Collection $attendees): array
+    private function checkInsOverTime(Collection $attendees, ?Carbon $from = null, ?Carbon $to = null): array
     {
         return $attendees
-            ->filter(fn (Attendee $a): bool => $a->checked_in_at !== null)
+            ->filter(fn (Attendee $a): bool => $a->checked_in_at !== null
+                && ($from === null || $a->checked_in_at->gte($from))
+                && ($to === null || $a->checked_in_at->lte($to)))
             ->groupBy(fn (Attendee $a): string => $a->checked_in_at->format('Y-m-d H:00'))
             ->sortKeys()
             ->map(fn (Collection $group, string $slot): array => [

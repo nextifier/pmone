@@ -239,6 +239,75 @@ describe('Consumer Analytics Endpoint', function () {
             ->assertJsonPath('data.period.days', 90);
     });
 
+    it('respects an explicit start_date and end_date range', function () {
+        $consumer = ApiConsumer::factory()->create();
+
+        ApiConsumerRequest::factory()
+            ->for($consumer, 'apiConsumer')
+            ->create(['created_at' => now()->subDays(3)]);
+
+        ApiConsumerRequest::factory()
+            ->for($consumer, 'apiConsumer')
+            ->create(['created_at' => now()->subDays(20)]);
+
+        $start = now()->subDays(5)->toDateString();
+        $end = now()->toDateString();
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->getJson("/api/api-consumers/{$consumer->id}/analytics?start_date={$start}&end_date={$end}");
+
+        $response->assertSuccessful()
+            ->assertJsonPath('data.summary.total_requests', 1)
+            ->assertJsonPath('data.period.days', 6)
+            ->assertJsonPath('data.period.start_date', $start)
+            ->assertJsonPath('data.period.end_date', $end);
+    });
+
+    it('rejects a date range longer than 90 days', function () {
+        $consumer = ApiConsumer::factory()->create();
+
+        $start = now()->subDays(120)->toDateString();
+        $end = now()->toDateString();
+
+        $this->actingAs($this->admin, 'sanctum')
+            ->getJson("/api/api-consumers/{$consumer->id}/analytics?start_date={$start}&end_date={$end}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['end_date']);
+    });
+
+    it('rejects an end_date before start_date', function () {
+        $consumer = ApiConsumer::factory()->create();
+
+        $start = now()->toDateString();
+        $end = now()->subDays(3)->toDateString();
+
+        $this->actingAs($this->admin, 'sanctum')
+            ->getJson("/api/api-consumers/{$consumer->id}/analytics?start_date={$start}&end_date={$end}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['end_date']);
+    });
+
+    it('respects the date range on overall analytics', function () {
+        $consumer = ApiConsumer::factory()->create();
+
+        ApiConsumerRequest::factory()
+            ->for($consumer, 'apiConsumer')
+            ->create(['created_at' => now()->subDays(2)]);
+
+        ApiConsumerRequest::factory()
+            ->for($consumer, 'apiConsumer')
+            ->create(['created_at' => now()->subDays(30)]);
+
+        $start = now()->subDays(5)->toDateString();
+        $end = now()->toDateString();
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->getJson("/api/api-consumers/analytics?start_date={$start}&end_date={$end}");
+
+        $response->assertSuccessful()
+            ->assertJsonPath('data.summary.total_requests', 1);
+    });
+
     it('returns empty data when no requests exist', function () {
         $consumer = ApiConsumer::factory()->create();
 

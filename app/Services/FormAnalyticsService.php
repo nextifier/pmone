@@ -17,13 +17,13 @@ class FormAnalyticsService
     /**
      * @return array{summary: array, responses_per_day: array, fields: array}
      */
-    public function analyze(Form $form, string $period = '30'): array
+    public function analyze(Form $form, string $period = '30', ?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
         $form->loadMissing('fields');
 
         return [
             'summary' => $this->buildSummary($form),
-            'responses_per_day' => $this->buildTimeSeries($form, $period),
+            'responses_per_day' => $this->buildTimeSeries($form, $period, $startDate, $endDate),
             'fields' => $this->aggregateFields($form),
         ];
     }
@@ -52,9 +52,12 @@ class FormAnalyticsService
         ];
     }
 
-    private function buildTimeSeries(Form $form, string $period): array
+    private function buildTimeSeries(Form $form, string $period, ?Carbon $rangeStart = null, ?Carbon $rangeEnd = null): array
     {
-        if ($period === 'all') {
+        if ($rangeStart !== null && $rangeEnd !== null) {
+            $startDate = $rangeStart->copy()->startOfDay();
+            $endDate = $rangeEnd->copy()->endOfDay();
+        } elseif ($period === 'all') {
             $firstResponseAt = $form->responses()->min('submitted_at');
             $startDate = $firstResponseAt
                 ? Carbon::parse($firstResponseAt)->startOfDay()

@@ -14,7 +14,15 @@
           </p>
         </div>
 
-        <DateRangeSelect v-model="selectedPeriod" />
+        <DatePicker
+          v-model="dateRange"
+          mode="range"
+          size="sm"
+          align="end"
+          disable-future-dates
+          class="w-fit"
+          :presets="analyticsRangePresets()"
+        />
       </div>
     </div>
 
@@ -192,7 +200,7 @@
 </template>
 
 <script setup>
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -204,7 +212,10 @@ const slug = computed(() => route.params.slug);
 
 const { $dayjs } = useNuxtApp();
 
-const selectedPeriod = ref("30");
+const dateRange = ref(lastNDaysRange(30)());
+
+const rangeQuery = () =>
+  `start_date=${toYmd(dateRange.value.start)}&end_date=${toYmd(dateRange.value.end)}`;
 
 // Fetch post details with lazy loading
 const { data: postResponse, error: postError } = await useLazySanctumFetch(
@@ -222,13 +233,9 @@ const {
   pending: loading,
   error: analyticsError,
   refresh: loadAnalytics,
-} = await useLazySanctumFetch(
-  () => `/api/posts/${slug.value}/analytics?period=${selectedPeriod.value}`,
-  {
-    key: `post-analytics-${slug.value}-${selectedPeriod.value}`,
-    watch: [selectedPeriod],
-  }
-);
+} = await useLazySanctumFetch(() => `/api/posts/${slug.value}/analytics?${rangeQuery()}`, {
+  key: `post-analytics-${slug.value}`,
+});
 
 const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
@@ -263,10 +270,8 @@ const chartConfig = computed(() => {
   };
 });
 
-// Watch for period changes and refresh data
-watch(selectedPeriod, () => {
-  loadAnalytics();
-});
+// Watch for range changes and refresh data
+watch(dateRange, () => loadAnalytics(), { deep: true });
 
 usePageMeta(null, {
   title: `Analytics - ${slug.value}`,

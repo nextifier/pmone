@@ -13,7 +13,7 @@
         <div class="space-y-1.5">
           <Label class="text-muted-foreground text-xs tracking-tight">Date range</Label>
           <div class="w-52">
-            <DatePicker mode="range" v-model="dateRange" size="sm" placeholder="Date range" />
+            <DatePicker mode="range" v-model="dateRange" size="sm" placeholder="Date range" :presets="standardRangePresets()" />
           </div>
         </div>
       </div>
@@ -130,14 +130,6 @@ const dateRange = ref({
 const summary = ref(null);
 const loading = ref(false);
 const error = ref(null);
-
-function toYmd(date) {
-  if (!date) return null;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 async function fetchSummary() {
   if (!props.gateway) return;

@@ -458,42 +458,10 @@ const statValueClass =
 /* --------------------------------------------------------------- date range */
 
 // Default window: the last 30 days, matching the overview endpoint's default.
-const dateRange = ref({
-  start: $dayjs().subtract(29, "day").toDate(),
-  end: $dayjs().toDate(),
-});
+// Presets and toYmd come from the shared utils/datePresets helper.
+const dateRange = ref(lastNDaysRange(30)());
 
-// Getters, not fixed dates: these pages stay open for hours and "Today" has to
-// still mean today when the picker is finally used.
-const lastNDays = (n) => () => ({
-  start: $dayjs()
-    .subtract(n - 1, "day")
-    .toDate(),
-  end: $dayjs().toDate(),
-});
-
-const datePresets = [
-  { label: "Today", value: lastNDays(1) },
-  {
-    label: "Yesterday",
-    value: () => ({
-      start: $dayjs().subtract(1, "day").toDate(),
-      end: $dayjs().subtract(1, "day").toDate(),
-    }),
-  },
-  { label: "Last 3 days", value: lastNDays(3) },
-  { label: "Last 7 days", value: lastNDays(7) },
-  { label: "Last 15 days", value: lastNDays(15) },
-  { label: "Last 30 days", value: lastNDays(30) },
-];
-
-const toYmd = (date) => {
-  if (!date) return null;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
+const datePresets = standardRangePresets();
 
 const rangeParams = () => {
   const params = new URLSearchParams();

@@ -23,6 +23,15 @@
       <p v-else-if="isSelf" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
         This is your own activity.
       </p>
+      <DatePicker
+        v-model="dateRange"
+        mode="range"
+        size="sm"
+        align="end"
+        disable-future-dates
+        class="ml-auto w-fit"
+        :presets="analyticsRangePresets()"
+      />
     </div>
 
     <!-- Loading -->
@@ -325,11 +334,15 @@ const client = useSanctumClient();
 const { hasPermission } = usePermission();
 const canViewLogs = computed(() => hasPermission("admin.logs"));
 
+// Starts on the backend's default window so the UI states the real range.
+const dateRange = ref(lastNDaysRange(30)());
+
 // Live feed: polls, refetches on focus, and follows the username so switching
 // users swaps the payload instead of reusing the previous one.
 const { data: d, pending, lastUpdatedAt } = useUserActivityAnalytics("user", {
   interval: 20000,
   username: () => props.user.username,
+  range: dateRange,
 });
 
 // Ticking "Updated Xs ago" affordance so staff know how fresh the live feed is.

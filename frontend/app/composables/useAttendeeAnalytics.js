@@ -17,7 +17,7 @@ export function useAttendeesChangedSignal(eventId) {
  *
  * @param {number|string} eventId
  * @param {"summary"|"detail"} variant
- * @param {{ interval?: number }} options
+ * @param {{ interval?: number, range?: import("vue").MaybeRefOrGetter<{start: Date|null, end: Date|null}|null> }} options
  */
 export function useAttendeeAnalytics(eventId, variant = "summary", options = {}) {
   const interval = options.interval ?? 15000;
@@ -26,10 +26,20 @@ export function useAttendeeAnalytics(eventId, variant = "summary", options = {})
   const pending = ref(true);
   const lastUpdatedAt = ref(null);
 
-  const path =
+  const basePath =
     variant === "summary"
       ? `/api/events/${eventId}/attendees/analytics/summary`
       : `/api/events/${eventId}/attendees/analytics`;
+
+  // Only a complete range narrows the window; a half-picked range keeps the
+  // current (all-time) payload on screen.
+  const path = computed(() => {
+    const range = toValue(options.range);
+    if (range?.start && range?.end) {
+      return `${basePath}?date_from=${toYmd(range.start)}&date_to=${toYmd(range.end)}`;
+    }
+    return basePath;
+  });
 
   let inFlight = false;
   const refresh = async () => {
@@ -38,7 +48,7 @@ export function useAttendeeAnalytics(eventId, variant = "summary", options = {})
     }
     inFlight = true;
     try {
-      const res = await client(path);
+      const res = await client(path.value);
       data.value = res?.data ?? null;
       lastUpdatedAt.value = Date.now();
     } catch {
@@ -51,6 +61,7 @@ export function useAttendeeAnalytics(eventId, variant = "summary", options = {})
 
   const signal = useAttendeesChangedSignal(eventId);
   watch(signal, () => refresh());
+  watch(path, () => refresh());
 
   const visibility = useDocumentVisibility();
   const { pause, resume } = useIntervalFn(refresh, interval, { immediate: false });

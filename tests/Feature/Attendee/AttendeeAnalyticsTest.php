@@ -339,6 +339,62 @@ it('counts per-day check-ins by assigned/valid day and excludes add-ons', functi
     expect($byDay[2]['checked_in'])->toBe(0);
 });
 
+it('narrows the summary to orders created inside date_from/date_to', function () {
+    $old = makeOrder([
+        'status' => TicketOrderStatus::Confirmed,
+        'total' => 120000,
+        'subtotal' => 120000,
+        'created_at' => now()->subDays(20),
+    ], qty: 2);
+    Attendee::query()
+        ->whereIn('ticket_order_item_id', $old->items()->pluck('id'))
+        ->update(['created_at' => now()->subDays(20)]);
+    $recent = makeOrder([
+        'status' => TicketOrderStatus::Confirmed,
+        'total' => 60000,
+        'subtotal' => 60000,
+        'created_at' => now()->subDays(2),
+    ], qty: 1);
+    Attendee::query()
+        ->whereIn('ticket_order_item_id', $recent->items()->pluck('id'))
+        ->update(['created_at' => now()->subDays(2)]);
+
+    $from = now()->subDays(5)->toDateString();
+    $to = now()->toDateString();
+
+    $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics/summary?date_from={$from}&date_to={$to}")
+        ->assertOk()
+        ->assertJsonPath('data.total_orders', 1)
+        ->assertJsonPath('data.total_attendees', 1)
+        ->assertJsonPath('data.total_revenue', 60000);
+});
+
+it('keeps the full event history when the range params are absent', function () {
+    makeOrder([
+        'status' => TicketOrderStatus::Confirmed,
+        'total' => 120000,
+        'subtotal' => 120000,
+        'created_at' => now()->subDays(200),
+    ], qty: 2);
+
+    $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics/summary")
+        ->assertOk()
+        ->assertJsonPath('data.total_orders', 1)
+        ->assertJsonPath('data.total_attendees', 2);
+});
+
+it('rejects a date_to before date_from', function () {
+    $from = now()->toDateString();
+    $to = now()->subDays(3)->toDateString();
+
+    $this->actingAs($this->staff)
+        ->getJson("/api/events/{$this->event->id}/attendees/analytics/summary?date_from={$from}&date_to={$to}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['date_to']);
+});
+
 it('forbids analytics without the attendees.read permission', function () {
     $outsider = User::factory()->create(['email_verified_at' => now()]);
     $outsider->assignRole('exhibitor');

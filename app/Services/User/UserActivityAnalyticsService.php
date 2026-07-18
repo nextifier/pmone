@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserPageView;
 use App\Support\UserAgentParser;
 use Carbon\CarbonPeriod;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,9 +41,9 @@ class UserActivityAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function summary(): array
+    public function summary(?Carbon $from = null, ?Carbon $to = null): array
     {
-        return $this->buildSummary($this->pageViews());
+        return $this->buildSummary($this->pageViews(null, $from, $to));
     }
 
     /**
@@ -50,14 +51,14 @@ class UserActivityAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function detail(): array
+    public function detail(?Carbon $from = null, ?Carbon $to = null): array
     {
-        $views = $this->pageViews();
+        $views = $this->pageViews(null, $from, $to);
 
         return [
             'summary' => $this->buildSummary($views),
             'online_users' => $this->onlineUsers(),
-            'activity_trend' => $this->activityTrend($views),
+            'activity_trend' => $this->activityTrend($views, $from, $to),
             'peak_hours' => $this->peakHours($views),
             'top_pages' => $this->topPages($views),
             'by_role' => $this->byRole($views),
@@ -73,13 +74,13 @@ class UserActivityAnalyticsService
      *
      * @return array<string, mixed>
      */
-    public function forUser(User $user): array
+    public function forUser(User $user, ?Carbon $from = null, ?Carbon $to = null): array
     {
-        $views = $this->pageViews($user);
+        $views = $this->pageViews($user, $from, $to);
 
         return [
             'summary' => $this->userSummary($user, $views),
-            'activity_trend' => $this->userActivityTrend($views),
+            'activity_trend' => $this->userActivityTrend($views, $from, $to),
             'peak_hours' => $this->peakHours($views),
             'top_pages' => $this->userTopPages($views),
             'recent_views' => $this->recentPageViews($user),
@@ -93,10 +94,11 @@ class UserActivityAnalyticsService
      *
      * @return Collection<int, UserPageView>
      */
-    private function pageViews(?User $user = null): Collection
+    private function pageViews(?User $user = null, ?Carbon $from = null, ?Carbon $to = null): Collection
     {
         return UserPageView::query()
-            ->where('visited_at', '>=', now()->subDays(self::WINDOW_DAYS))
+            ->where('visited_at', '>=', $from ?? now()->subDays(self::WINDOW_DAYS))
+            ->when($to, fn ($query) => $query->where('visited_at', '<=', $to))
             ->when($user, fn ($query) => $query->where('user_id', $user->id))
             ->get(['user_id', 'path', 'title', 'visited_at']);
     }
@@ -168,11 +170,11 @@ class UserActivityAnalyticsService
      * @param  Collection<int, UserPageView>  $views
      * @return array<int, array<string, mixed>>
      */
-    private function userActivityTrend(Collection $views): array
+    private function userActivityTrend(Collection $views, ?Carbon $from = null, ?Carbon $to = null): array
     {
         $byDate = $views->groupBy(fn (UserPageView $v): string => $v->visited_at->format('Y-m-d'));
 
-        $period = CarbonPeriod::create(now()->subDays(self::WINDOW_DAYS - 1)->startOfDay(), now()->startOfDay());
+        $period = $this->trendPeriod($from, $to);
 
         $rows = [];
         foreach ($period as $day) {
@@ -272,11 +274,11 @@ class UserActivityAnalyticsService
      * @param  Collection<int, UserPageView>  $views
      * @return array<int, array<string, mixed>>
      */
-    private function activityTrend(Collection $views): array
+    private function activityTrend(Collection $views, ?Carbon $from = null, ?Carbon $to = null): array
     {
         $byDate = $views->groupBy(fn (UserPageView $v): string => $v->visited_at->format('Y-m-d'));
 
-        $period = CarbonPeriod::create(now()->subDays(self::WINDOW_DAYS - 1)->startOfDay(), now()->startOfDay());
+        $period = $this->trendPeriod($from, $to);
 
         $rows = [];
         foreach ($period as $day) {
@@ -289,6 +291,18 @@ class UserActivityAnalyticsService
         }
 
         return $rows;
+    }
+
+    /**
+     * The trend's zero-filled x-axis: the explicit range when given, else the
+     * default rolling window ending today.
+     */
+    private function trendPeriod(?Carbon $from, ?Carbon $to): CarbonPeriod
+    {
+        return CarbonPeriod::create(
+            ($from ?? now()->subDays(self::WINDOW_DAYS - 1))->copy()->startOfDay(),
+            ($to ?? now())->copy()->startOfDay(),
+        );
     }
 
     /**

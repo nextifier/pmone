@@ -23,12 +23,23 @@
           Updated {{ updatedAgo }}
         </p>
       </div>
-      <Button variant="outline" size="sm" as-child class="shrink-0">
-        <NuxtLink to="/users">
-          <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
-          <span>Users</span>
-        </NuxtLink>
-      </Button>
+      <div class="flex shrink-0 flex-wrap items-center gap-2">
+        <DatePicker
+          v-model="dateRange"
+          mode="range"
+          size="sm"
+          align="end"
+          disable-future-dates
+          class="w-fit"
+          :presets="analyticsRangePresets()"
+        />
+        <Button variant="outline" size="sm" as-child class="shrink-0">
+          <NuxtLink to="/users">
+            <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
+            <span>Users</span>
+          </NuxtLink>
+        </Button>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -405,9 +416,13 @@ definePageMeta({
 
 usePageMeta(null, { title: "User Activity" });
 
+// Starts on the backend's default window so the UI states the real range.
+const dateRange = ref(lastNDaysRange(30)());
+
 // Live feed: polls, refetches on focus - no reload.
 const { data: d, pending, lastUpdatedAt } = useUserActivityAnalytics("detail", {
   interval: 20000,
+  range: dateRange,
 });
 
 // Ticking "Updated Xs ago" affordance so staff know how fresh the live feed is.

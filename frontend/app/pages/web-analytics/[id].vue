@@ -45,7 +45,15 @@
             :on-excel-export="exportToExcel"
           />
 
-          <DateRangeSelect v-model="selectedRange" />
+          <DatePicker
+            v-model="selectedRange"
+            mode="range"
+            size="sm"
+            align="end"
+            disable-future-dates
+            class="w-fit"
+            :presets="analyticsRangePresets()"
+          />
         </div>
       </ClientOnly>
     </div>
@@ -263,7 +271,7 @@
 </template>
 
 <script setup>
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 import AnalyticsDevicesList from "@/components/analytics/DevicesList.vue";
 import GaPropertyProfile from "@/components/ga-property/Profile.vue";
 import { TableData } from "@/components/ui/table-data";
@@ -291,13 +299,37 @@ defineOptions({
   name: "web-analytics-id",
 });
 
-// Load selected range from localStorage immediately (client-side only)
-// Use same key as index page for consistency
+// Load the selected range from localStorage (client-side only).
+// Shares the v2 key with the index page: { days: N } for relative windows
+// (resolved on load so "Last 30 days" never goes stale) or { from, to } ymd
+// strings for absolute custom ranges.
+const RANGE_STORAGE_KEY = "analytics_selected_range_v2";
+
+const rangeDaysOf = (range) =>
+  Math.round((range.end - range.start) / 86400000) + 1;
+
 const getInitialRange = () => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("analytics_selected_range") || "30";
+    try {
+      const stored = JSON.parse(localStorage.getItem(RANGE_STORAGE_KEY) ?? "null");
+      if (stored?.days) return lastNDaysRange(Number(stored.days))();
+      if (stored?.from && stored?.to) {
+        return { start: new Date(stored.from), end: new Date(stored.to) };
+      }
+    } catch {
+      // Corrupt storage falls through to the default below.
+    }
   }
-  return "30";
+  return lastNDaysRange(30)();
+};
+
+const persistRange = (range) => {
+  if (typeof window === "undefined") return;
+  const endsToday = toYmd(range.end) === toYmd(new Date());
+  const payload = endsToday
+    ? { days: rangeDaysOf(range) }
+    : { from: toYmd(range.start), to: toYmd(range.end) };
+  localStorage.setItem(RANGE_STORAGE_KEY, JSON.stringify(payload));
 };
 
 const getInitialMetric = () => {
@@ -349,63 +381,14 @@ const selectedMetricInfo = computed(() => {
 // Realtime data
 const { realtimeData, startAutoRefresh } = useRealtimeAnalytics();
 
-/**
- * Calculate start and end dates based on the selected range
- */
-const getDateRange = (range) => {
-  const today = $dayjs();
+// Dayjs views of the selected range — the header and child components
+// consume dayjs objects.
+const startDate = computed(() => $dayjs(selectedRange.value.start).startOf("day"));
+const endDate = computed(() => $dayjs(selectedRange.value.end).endOf("day"));
 
-  switch (range) {
-    case "today":
-      return { start: today.startOf("day"), end: today.endOf("day") };
-    case "yesterday":
-      return {
-        start: today.subtract(1, "day").startOf("day"),
-        end: today.subtract(1, "day").endOf("day"),
-      };
-    case "this_week":
-      return { start: today.startOf("week"), end: today.endOf("day") };
-    case "last_week":
-      return {
-        start: today.subtract(1, "week").startOf("week"),
-        end: today.subtract(1, "week").endOf("week"),
-      };
-    case "this_month":
-      return { start: today.startOf("month"), end: today.endOf("day") };
-    case "last_month":
-      return {
-        start: today.subtract(1, "month").startOf("month"),
-        end: today.subtract(1, "month").endOf("month"),
-      };
-    case "this_year":
-      return { start: today.startOf("year"), end: today.endOf("day") };
-    default:
-      // Numeric values like 7, 30, 90, 365 - "last N days"
-      const days = parseInt(range);
-      return { start: today.subtract(days - 1, "day").startOf("day"), end: today.endOf("day") };
-  }
-};
-
-const dateRange = computed(() => getDateRange(selectedRange.value));
-const startDate = computed(() => dateRange.value.start);
-const endDate = computed(() => dateRange.value.end);
-
-// Build query params
-// For named periods (today, yesterday, etc.), send period name to backend
-// so backend can calculate dates using server timezone (Asia/Jakarta)
-// This prevents timezone mismatch between client and server
-const buildQueryParams = computed(() => {
-  const range = selectedRange.value;
-
-  // Check if it's a named period
-  const namedPeriods = ['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year'];
-  if (namedPeriods.includes(range)) {
-    return `period=${range}`;
-  }
-
-  // For numeric periods (7, 30, 90, 365), send as days parameter
-  return `days=${range}`;
-});
+const buildQueryParams = computed(
+  () => `start_date=${toYmd(selectedRange.value.start)}&end_date=${toYmd(selectedRange.value.end)}`
+);
 
 // Fetch property analytics using lazy loading
 const {
@@ -431,13 +414,14 @@ const error = computed(() => {
 });
 
 // Watch for changes and save to localStorage, then refresh data
-watch(selectedRange, async (newValue) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("analytics_selected_range", newValue);
-  }
-  // Refresh data with new date range
-  await fetchPropertyAnalytics();
-});
+watch(
+  selectedRange,
+  async (newValue) => {
+    persistRange(newValue);
+    await fetchPropertyAnalytics();
+  },
+  { deep: true }
+);
 
 // Watch selectedMetric and save to localStorage
 watch(selectedMetric, (newValue) => {
@@ -786,18 +770,12 @@ const trafficSourcesColumns = [
 // Handlers
 const refreshData = () => fetchPropertyAnalytics();
 
-const DATE_RANGE_LABELS = {
-  today: "Today",
-  yesterday: "Yesterday",
-  this_week: "This Week",
-  last_week: "Last Week",
-  this_month: "This Month",
-  last_month: "Last Month",
-  this_year: "This Year",
-};
-
 const getDateRangeLabel = () => {
-  return DATE_RANGE_LABELS[selectedRange.value] || `Last ${selectedRange.value} days`;
+  if (toYmd(selectedRange.value.end) === toYmd(new Date())) {
+    const days = rangeDaysOf(selectedRange.value);
+    return days === 1 ? "Today" : `Last ${days} days`;
+  }
+  return `${formatDate(startDate.value)} - ${formatDate(endDate.value)}`;
 };
 
 // Export analytics

@@ -41,10 +41,14 @@ class ApiConsumerAnalyticsService
     /**
      * Build a base query with optional consumer filter
      */
-    private function baseQuery(?int $consumerId, Carbon $startDate): Builder
+    private function baseQuery(?int $consumerId, Carbon $startDate, ?Carbon $endDate = null): Builder
     {
         $query = ApiConsumerRequest::query()
             ->where('created_at', '>=', $startDate);
+
+        if ($endDate !== null) {
+            $query->where('created_at', '<=', $endDate);
+        }
 
         if ($consumerId !== null) {
             $query->where('api_consumer_id', $consumerId);
@@ -58,7 +62,7 @@ class ApiConsumerAnalyticsService
      *
      * @return array{total_requests: int, successful_requests: int, failed_requests: int, success_rate: float, avg_response_time: float, max_response_time: int, min_response_time: int, active_consumers?: int}
      */
-    public function getSummary(?int $consumerId, Carbon $startDate, bool $includeConsumerCount = false): array
+    public function getSummary(?int $consumerId, Carbon $startDate, bool $includeConsumerCount = false, ?Carbon $endDate = null): array
     {
         $selectParts = [
             'COUNT(*) as total_requests',
@@ -76,7 +80,7 @@ class ApiConsumerAnalyticsService
             $selectParts[] = 'COUNT(DISTINCT api_consumer_id) as active_consumers';
         }
 
-        $summary = $this->baseQuery($consumerId, $startDate)
+        $summary = $this->baseQuery($consumerId, $startDate, $endDate)
             ->selectRaw(implode(', ', $selectParts))
             ->first();
 
@@ -110,9 +114,9 @@ class ApiConsumerAnalyticsService
      *
      * @return Collection<int, array{date: string, count: int}>
      */
-    public function getRequestsPerDay(?int $consumerId, Carbon $startDate): Collection
+    public function getRequestsPerDay(?int $consumerId, Carbon $startDate, ?Carbon $endDate = null): Collection
     {
-        return $this->baseQuery($consumerId, $startDate)
+        return $this->baseQuery($consumerId, $startDate, $endDate)
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
@@ -128,9 +132,9 @@ class ApiConsumerAnalyticsService
      *
      * @return array{2xx: int, 3xx: int, 4xx: int, 5xx: int}
      */
-    public function getStatusDistribution(?int $consumerId, Carbon $startDate): array
+    public function getStatusDistribution(?int $consumerId, Carbon $startDate, ?Carbon $endDate = null): array
     {
-        $distribution = $this->baseQuery($consumerId, $startDate)
+        $distribution = $this->baseQuery($consumerId, $startDate, $endDate)
             ->selectRaw(self::STATUS_DISTRIBUTION_SQL)
             ->groupBy('status_group')
             ->get()
@@ -149,9 +153,9 @@ class ApiConsumerAnalyticsService
      *
      * @return Collection<int, array{endpoint: string, method: string, count: int, avg_time: float}>
      */
-    public function getTopEndpoints(int $consumerId, Carbon $startDate, int $limit = 10): Collection
+    public function getTopEndpoints(int $consumerId, Carbon $startDate, int $limit = 10, ?Carbon $endDate = null): Collection
     {
-        return $this->baseQuery($consumerId, $startDate)
+        return $this->baseQuery($consumerId, $startDate, $endDate)
             ->selectRaw('endpoint, method, COUNT(*) as count, AVG(response_time_ms) as avg_time')
             ->groupBy('endpoint', 'method')
             ->orderByDesc('count')
@@ -197,10 +201,11 @@ class ApiConsumerAnalyticsService
      *
      * @return Collection<int, array{id: int, name: string, website_url: string, request_count: int, avg_time: float}>
      */
-    public function getTopConsumers(Carbon $startDate, int $limit = 5): Collection
+    public function getTopConsumers(Carbon $startDate, int $limit = 5, ?Carbon $endDate = null): Collection
     {
         $consumerIds = ApiConsumerRequest::query()
             ->where('created_at', '>=', $startDate)
+            ->when($endDate !== null, fn ($q) => $q->where('created_at', '<=', $endDate))
             ->selectRaw('api_consumer_id, COUNT(*) as request_count, AVG(response_time_ms) as avg_time')
             ->groupBy('api_consumer_id')
             ->orderByDesc('request_count')
@@ -230,12 +235,12 @@ class ApiConsumerAnalyticsService
      *
      * @return array{days: int, start_date: string, end_date: string}
      */
-    public function buildPeriodData(int $days, Carbon $startDate): array
+    public function buildPeriodData(int $days, Carbon $startDate, ?Carbon $endDate = null): array
     {
         return [
             'days' => $days,
             'start_date' => $startDate->toDateString(),
-            'end_date' => now()->toDateString(),
+            'end_date' => ($endDate ?? now())->toDateString(),
         ];
     }
 }

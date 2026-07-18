@@ -60,7 +60,7 @@
         </Select>
 
         <div class="w-52">
-          <DatePicker mode="range" v-model="dateRange" size="sm" placeholder="Date range" />
+          <DatePicker mode="range" v-model="dateRange" size="sm" placeholder="Date range" :presets="standardRangePresets()" />
         </div>
 
         <Button
@@ -211,14 +211,6 @@ const filterStatus = ref("all");
 const dateRange = ref({ start: null, end: null });
 const searchQuery = ref("");
 const exporting = ref(false);
-
-function toYmd(date) {
-  if (!date) return null;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
 
 function statusVariant(status) {
   const map = {

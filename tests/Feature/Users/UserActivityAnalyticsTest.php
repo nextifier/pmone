@@ -81,6 +81,71 @@ it('returns detail sections with continuous hours and days', function () {
     expect($onlineRow['current_page']['path'])->toBe('/users');
 });
 
+it('narrows the window to date_from/date_to and sizes the trend to the span', function () {
+    $viewer = analyticsViewer();
+    $user = User::factory()->create(['email_verified_at' => now()]);
+
+    UserPageView::factory()->count(2)->create(['user_id' => $user->id, 'visited_at' => now()->subDays(10)]);
+    UserPageView::factory()->count(3)->create(['user_id' => $user->id, 'visited_at' => now()->subDays(2)]);
+
+    $from = now()->subDays(4)->toDateString();
+    $to = now()->toDateString();
+
+    $data = actingAs($viewer)
+        ->getJson("/api/user-activity/analytics?date_from={$from}&date_to={$to}")
+        ->assertOk()
+        ->json('data');
+
+    expect($data['activity_trend'])->toHaveCount(5);
+    expect(collect($data['activity_trend'])->first()['date'])->toBe($from);
+    expect(collect($data['activity_trend'])->last()['date'])->toBe($to);
+    expect(collect($data['activity_trend'])->sum('page_views'))->toBe(3);
+    expect($data['summary']['active_month'])->toBe(1);
+});
+
+it('rejects a range longer than 366 days', function () {
+    $viewer = analyticsViewer();
+
+    $from = now()->subDays(400)->toDateString();
+    $to = now()->toDateString();
+
+    actingAs($viewer)
+        ->getJson("/api/user-activity/analytics?date_from={$from}&date_to={$to}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['date_to']);
+});
+
+it('rejects a date_to before date_from', function () {
+    $viewer = analyticsViewer();
+
+    $from = now()->toDateString();
+    $to = now()->subDays(3)->toDateString();
+
+    actingAs($viewer)
+        ->getJson("/api/user-activity/analytics?date_from={$from}&date_to={$to}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['date_to']);
+});
+
+it('narrows the per-user payload to the requested range', function () {
+    $viewer = analyticsViewer();
+    $user = User::factory()->create(['email_verified_at' => now()]);
+
+    UserPageView::factory()->count(4)->create(['user_id' => $user->id, 'visited_at' => now()->subDays(12)]);
+    UserPageView::factory()->count(2)->create(['user_id' => $user->id, 'visited_at' => now()->subDay()]);
+
+    $from = now()->subDays(3)->toDateString();
+    $to = now()->toDateString();
+
+    $data = actingAs($viewer)
+        ->getJson("/api/user-activity/users/{$user->username}/analytics?date_from={$from}&date_to={$to}")
+        ->assertOk()
+        ->json('data');
+
+    expect($data['summary']['page_views_30d'])->toBe(2);
+    expect($data['activity_trend'])->toHaveCount(4);
+});
+
 it('blocks guests and users without the analytics permission from the per-user payload', function () {
     $target = User::factory()->create(['email_verified_at' => now()]);
 

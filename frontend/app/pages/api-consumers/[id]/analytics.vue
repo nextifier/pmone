@@ -14,7 +14,15 @@
           </p>
         </div>
 
-        <DateRangeSelect v-model="selectedPeriod" />
+        <DatePicker
+          v-model="dateRange"
+          mode="range"
+          size="sm"
+          align="end"
+          disable-future-dates
+          class="w-fit"
+          :presets="analyticsRangePresets()"
+        />
       </div>
     </div>
 
@@ -302,7 +310,7 @@
 </template>
 
 <script setup>
-import DateRangeSelect from "@/components/analytics/DateRangeSelect.vue";
+import { DatePicker } from "@/components/ui/date-picker";
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
@@ -313,18 +321,12 @@ definePageMeta({
 const route = useRoute();
 const consumerId = computed(() => route.params.id);
 
-const selectedPeriod = ref("7");
+// The backend caps ranges at 90 days; presets beyond that are rejected with a
+// validation error surfaced through the page's error state.
+const dateRange = ref(lastNDaysRange(7)());
 
-// Convert period string to days number
-const periodDays = computed(() => {
-  const period = selectedPeriod.value;
-  if (period === "today") return 1;
-  if (period === "yesterday") return 2;
-  if (period === "this_week" || period === "last_week") return 7;
-  if (period === "this_month" || period === "last_month") return 30;
-  if (period === "this_year") return 365;
-  return parseInt(period) || 7;
-});
+const rangeQuery = () =>
+  `start_date=${toYmd(dateRange.value.start)}&end_date=${toYmd(dateRange.value.end)}`;
 
 // Fetch analytics with lazy loading
 const {
@@ -332,13 +334,9 @@ const {
   pending: loading,
   error: analyticsError,
   refresh: loadAnalytics,
-} = await useLazySanctumFetch(
-  () => `/api/api-consumers/${consumerId.value}/analytics?days=${periodDays.value}`,
-  {
-    key: `api-consumer-analytics-${consumerId.value}-${selectedPeriod.value}`,
-    watch: [selectedPeriod],
-  }
-);
+} = await useLazySanctumFetch(() => `/api/api-consumers/${consumerId.value}/analytics?${rangeQuery()}`, {
+  key: `api-consumer-analytics-${consumerId.value}`,
+});
 
 const analyticsData = computed(() => analyticsResponse.value?.data || null);
 const consumer = computed(() => analyticsData.value?.consumer || null);
@@ -416,10 +414,8 @@ const getMethodClass = (method) => {
   return classes[method] || "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
 };
 
-// Watch for period changes and refresh data
-watch(selectedPeriod, () => {
-  loadAnalytics();
-});
+// Watch for range changes and refresh data
+watch(dateRange, () => loadAnalytics(), { deep: true });
 
 usePageMeta(null, {
   title: consumer.value?.name ? `Analytics - ${consumer.value.name}` : "API Consumer Analytics",

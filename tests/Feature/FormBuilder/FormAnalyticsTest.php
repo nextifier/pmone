@@ -107,6 +107,40 @@ it('returns the full analytics contract', function () {
         ->and($textAgg['latest'])->toBe(['Great event']);
 });
 
+it('respects an explicit start_date/end_date range in responses_per_day', function () {
+    FormResponse::factory()->create([
+        'form_id' => $this->form->id,
+        'response_data' => [],
+        'submitted_at' => now()->subDays(10),
+    ]);
+    FormResponse::factory()->create([
+        'form_id' => $this->form->id,
+        'response_data' => [],
+        'submitted_at' => now()->subDays(2),
+    ]);
+
+    $start = now()->subDays(4)->toDateString();
+    $end = now()->toDateString();
+
+    $data = $this->getJson("/api/forms/{$this->form->slug}/analytics?start_date={$start}&end_date={$end}")
+        ->json('data');
+
+    $series = collect($data['responses_per_day']);
+    expect($series)->toHaveCount(5)
+        ->and($series->first()['date'])->toBe($start)
+        ->and($series->last()['date'])->toBe($end)
+        ->and($series->sum('count'))->toBe(1);
+});
+
+it('rejects an end_date before start_date', function () {
+    $start = now()->toDateString();
+    $end = now()->subDays(3)->toDateString();
+
+    $this->getJson("/api/forms/{$this->form->slug}/analytics?start_date={$start}&end_date={$end}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['end_date']);
+});
+
 it('counts each selection for multi-value fields', function () {
     $multi = CustomField::factory()->type('multi_select')->create([
         'form_id' => $this->form->id,

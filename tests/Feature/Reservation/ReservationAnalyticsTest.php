@@ -177,6 +177,59 @@ it('clamps occupancy to 100 percent when bookings exceed the allotment', functio
     expect((float) $summary['occupancy_rate'])->toBe(100.0);
 });
 
+it('narrows the summary to reservations created inside date_from/date_to', function () {
+    makeAnalyticsReservation(
+        [
+            'status' => ReservationStatus::Paid,
+            'total_amount' => 2000000,
+            'payment_channel' => 'BCA',
+            'created_at' => now()->subDays(20),
+        ],
+        [['nights' => 2, 'qty' => 1, 'subtotal' => 2000000]],
+    );
+    makeAnalyticsReservation(
+        [
+            'status' => ReservationStatus::Paid,
+            'total_amount' => 3000000,
+            'payment_channel' => 'QRIS',
+            'created_at' => now()->subDays(2),
+        ],
+        [['nights' => 3, 'qty' => 1, 'subtotal' => 3000000]],
+    );
+
+    $from = now()->subDays(5)->toDateString();
+    $to = now()->toDateString();
+
+    $this->actingAs($this->reader)
+        ->getJson("/api/events/{$this->event->id}/reservations/analytics/summary?date_from={$from}&date_to={$to}")
+        ->assertOk()
+        ->assertJsonPath('data.total_reservations', 1)
+        ->assertJsonPath('data.paid_reservations', 1)
+        ->assertJsonPath('data.total_revenue', 3000000);
+});
+
+it('keeps the full history when the range params are absent', function () {
+    makeAnalyticsReservation(
+        ['status' => ReservationStatus::Paid, 'total_amount' => 2000000, 'created_at' => now()->subDays(200)],
+        [['nights' => 2, 'qty' => 1, 'subtotal' => 2000000]],
+    );
+
+    $this->actingAs($this->reader)
+        ->getJson("/api/events/{$this->event->id}/reservations/analytics/summary")
+        ->assertOk()
+        ->assertJsonPath('data.total_reservations', 1);
+});
+
+it('rejects a date_to before date_from', function () {
+    $from = now()->toDateString();
+    $to = now()->subDays(3)->toDateString();
+
+    $this->actingAs($this->reader)
+        ->getJson("/api/events/{$this->event->id}/reservations/analytics/summary?date_from={$from}&date_to={$to}")
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['date_to']);
+});
+
 it('404s when hotel reservations are disabled for the project', function () {
     $this->project->update(['hotel_reservation_enabled' => false]);
 

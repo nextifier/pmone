@@ -15,6 +15,7 @@ use App\Support\FormTemplates;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -188,12 +189,22 @@ class FormController extends Controller
     {
         $this->authorize('view', $form);
 
-        $request->validate([
+        $validated = $request->validate([
             'period' => ['nullable', 'string', 'max:20'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
 
+        $startDate = isset($validated['start_date']) ? Carbon::parse($validated['start_date']) : null;
+        $endDate = isset($validated['end_date']) ? Carbon::parse($validated['end_date']) : null;
+
         return response()->json([
-            'data' => $analyticsService->analyze($form, $request->input('period', '30')),
+            'data' => $analyticsService->analyze(
+                $form,
+                $request->input('period', '30'),
+                $startDate,
+                $endDate,
+            ),
         ]);
     }
 
