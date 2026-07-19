@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import { brands } from "./brands";
 
 const noopMock = fileURLToPath(new URL("./mock/noop.mjs", import.meta.url));
+const unheadStreamIifeMock = fileURLToPath(new URL("./mock/unhead-stream-iife.mjs", import.meta.url));
 
 // Brand selection is BUILD-time: each brand's admin is its own deployment
 // (Cloudflare Pages project) building this repo with a different BRAND env.
@@ -474,6 +475,14 @@ export default defineNuxtConfig({
     sourceMap: false,
     alias: {
       "vue-stream-markdown": noopMock,
+      // Nuxt 4.5 statically imports unhead's SSR-streaming IIFE (a JS module
+      // exporting the whole script as one big string) even when ssrStreaming is
+      // off. Nitro's replace plugin rewrites `typeof window` INSIDE that string,
+      // breaking its quote escaping and failing the server build with
+      // "RollupError: Expected a semicolon". Streaming is disabled here, so the
+      // module is dead code — stub it out until nitro/unhead fix this upstream.
+      "@unhead/vue/stream/iife": unheadStreamIifeMock,
+      "unhead/stream/iife": unheadStreamIifeMock,
     },
     cloudflare: {
       // Generate the Cloudflare deploy config (wrangler.json) at build time so
