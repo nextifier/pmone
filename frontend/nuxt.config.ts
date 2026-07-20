@@ -465,13 +465,22 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // Deploy target: Cloudflare Workers (+ Static Assets), migrated from the
+    // `cloudflare-pages` preset. With `cloudflare.deployConfig` below, Nitro
+    // emits the wrangler.json into .output/server (assets binding + main +
+    // nodejs_compat + compat date) plus the .wrangler/deploy/config.json
+    // redirect; the Worker name comes from `cloudflare.wrangler` below (no
+    // hand-written root wrangler config). Deploy with
+    // `npx wrangler --cwd .output deploy`. Only affects `nuxt build`, not dev.
+    preset: "cloudflare_module",
+
     // Nitro defaults `sourceMap: true`, so the Cloudflare worker/server bundle
     // (which SSR-compiles every page + component) still emits source maps even
     // though Vite's client source maps are off. For ~1.3k components this is a
     // major build-memory and bundle-size cost with zero production value — the
     // worker is never debugged via maps. Disabling it cuts the peak heap that
-    // was OOM-ing the Cloudflare Pages build (8 GB VM ceiling) and shrinks the
-    // worker bundle toward the 25 MiB limit.
+    // was OOM-ing the Cloudflare build (8 GB VM ceiling) and shrinks the worker
+    // bundle toward the size limit.
     sourceMap: false,
     alias: {
       "vue-stream-markdown": noopMock,
@@ -485,13 +494,20 @@ export default defineNuxtConfig({
       "unhead/stream/iife": unheadStreamIifeMock,
     },
     cloudflare: {
-      // Generate the Cloudflare deploy config (wrangler.json) at build time so
-      // the `nodejs_compat` flag + compatibility date are applied AUTOMATICALLY
-      // on every deploy. This removes the "[cloudflare] Node.js compatibility is
-      // not enabled" warning and avoids having to toggle the flag by hand in the
-      // Cloudflare Pages dashboard for each project.
+      // Generate a complete wrangler.json into .output/server at build time
+      // (main + assets binding with auto-computed relative paths + nodejs_compat
+      // + compatibility date), plus the .output/.wrangler/deploy/config.json
+      // redirect. Deploy with `npx wrangler --cwd .output deploy` — no
+      // hand-written root wrangler config, so the asset/entry paths can never
+      // drift from Nitro's actual output.
       deployConfig: true,
       nodeCompat: true,
+      // Worker name for the generated config. NOTE: a Cloudflare Pages project
+      // named "pmone" already exists; if the dashboard/deploy rejects the name
+      // during the transition, rename this + the Worker to e.g. "pmone-app".
+      wrangler: {
+        name: "pmone",
+      },
     },
   },
 
