@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ButtonVariants } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -62,12 +63,17 @@ const props = withDefaults(
         multiple?: boolean;
         layout?: LayoutTypes;
         yearRange?: DateValue[];
+        /** Variant applied to the prev/next month navigation buttons. */
+        buttonVariant?: ButtonVariants["variant"];
+        /** Prefix each week with its ISO-8601 week number. */
+        showWeekNumber?: boolean;
       }
   >(),
   {
     modelValue: undefined,
     mode: "single",
     layout: "month-and-year",
+    buttonVariant: "ghost",
   },
 );
 
@@ -103,6 +109,8 @@ const delegatedSingle = reactiveOmit(
   "mode",
   "placeholder",
   "multiple",
+  "buttonVariant",
+  "showWeekNumber",
   "allowNonContiguousRanges",
   "maximumDays",
   "fixedDate",
@@ -116,6 +124,8 @@ const delegatedRange = reactiveOmit(
   "mode",
   "placeholder",
   "multiple",
+  "buttonVariant",
+  "showWeekNumber",
 );
 
 const placeholder = useVModel(props, "placeholder", emits, {
@@ -212,6 +222,25 @@ function shortWeekday(day: string): string {
   return day.slice(0, 2);
 }
 
+// ISO-8601 week number of the week `date` falls in. reka's rows are Monday-first
+// (weekStartsOn=1), so a row's first date maps cleanly onto its week. Computed in
+// UTC to stay DST-safe.
+function weekNumber(date: DateValue): number {
+  const d = toDate(date);
+  const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNr = (target.getUTCDay() + 6) % 7;
+  target.setUTCDate(target.getUTCDate() - dayNr + 3);
+  const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+  const firstDayNr = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNr + 3);
+  return (
+    1 +
+    Math.round(
+      (target.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000),
+    )
+  );
+}
+
 const forwardedSingle = useForwardPropsEmits(delegatedSingle, emits);
 const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
 </script>
@@ -269,10 +298,10 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
       <nav
         class="pointer-events-none absolute inset-0 flex items-center justify-between gap-1 [&>*]:pointer-events-auto"
       >
-        <CalendarPrevButton>
+        <CalendarPrevButton :variant="buttonVariant">
           <slot name="calendar-prev-icon" />
         </CalendarPrevButton>
-        <CalendarNextButton>
+        <CalendarNextButton :variant="buttonVariant">
           <slot name="calendar-next-icon" />
         </CalendarNextButton>
       </nav>
@@ -311,6 +340,11 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
       <CalendarGrid v-for="month in grid" :key="month.value.toString()">
         <CalendarGridHead>
           <CalendarGridRow>
+            <CalendarHeadCell
+              v-if="showWeekNumber"
+              class="w-(--cell-size) flex-none"
+              aria-label="Week number"
+            />
             <CalendarHeadCell v-for="day in weekDays" :key="day">
               {{ shortWeekday(day) }}
             </CalendarHeadCell>
@@ -322,6 +356,12 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
             :key="`weekDate-${index}`"
             class="mt-2 w-full"
           >
+            <td
+              v-if="showWeekNumber && weekDates[0]"
+              class="text-muted-foreground flex w-(--cell-size) flex-none items-center justify-center text-[0.8rem] font-normal select-none"
+            >
+              {{ weekNumber(weekDates[0]) }}
+            </td>
             <CalendarCell
               v-for="weekDate in weekDates"
               :key="weekDate.toString()"

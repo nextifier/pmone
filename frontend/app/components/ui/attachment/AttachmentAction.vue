@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <Button data-slot="attachment-action" :variant="variant" :size="size">
+  <Button data-slot="attachment-action" :variant="variant" :size="size" :class="props.class">
     <slot />
   </Button>
 </template>

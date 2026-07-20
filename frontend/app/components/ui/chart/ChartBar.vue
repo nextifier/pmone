@@ -174,6 +174,13 @@ const props = defineProps({
     type: Function,
     default: null,
   },
+  // Full-control tooltip row formatter, forwarded to ChartTooltipContent's
+  // `formatter(value, name, item, index, payload)`. Returns a string that
+  // replaces the default label/value split for each series row.
+  tooltipFormatter: {
+    type: Function,
+    default: null,
+  },
 });
 
 const keys = computed(() =>
@@ -264,6 +271,7 @@ const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
   indicator: isMulti.value ? "dashed" : "dot",
   hideLabel: false,
   valueFormatter: props.valueFormatter || undefined,
+  formatter: props.tooltipFormatter || undefined,
   // Reuse the axis formatter for the tooltip's x label so index-based charts
   // (numeric x) read the real category instead of a bogus epoch date.
   labelFormatter: (d) => {

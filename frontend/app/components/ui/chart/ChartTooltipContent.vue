@@ -12,6 +12,21 @@ const props = withDefaults(
     labelKey?: string;
     labelFormatter?: (d: number | Date) => string;
     valueFormatter?: (v: any) => string;
+    /**
+     * Full-control row formatter. When set, its returned string replaces the
+     * default label/value split for each series row. Mirrors shadcn's tooltip
+     * `formatter(value, name, item, index, payload)` — returns a string here
+     * because the tooltip is serialized to HTML (see chart/utils.ts).
+     */
+    formatter?: (
+      value: any,
+      name: string,
+      item: { value: any; key: string; itemConfig: any; indicatorColor?: string },
+      index: number,
+      payload: Record<string, any>
+    ) => string;
+    /** Parity with shadcn: render nothing when the tooltip is inactive. */
+    active?: boolean;
     payload?: Record<string, any>;
     config?: ChartConfig;
     class?: HTMLAttributes["class"];
@@ -22,6 +37,7 @@ const props = withDefaults(
     payload: () => ({}),
     config: () => ({}),
     indicator: "dot",
+    active: true,
   }
 );
 
@@ -56,6 +72,7 @@ const tooltipLabel = computed(() => {
 
 <template>
   <div
+    v-if="active"
     :class="
       cn(
         'cn-chart-tooltip grid min-w-9 items-start',
@@ -69,7 +86,7 @@ const tooltipLabel = computed(() => {
       </div>
       <div class="grid gap-1.5">
         <div
-          v-for="{ value, itemConfig, indicatorColor, key } in payload"
+          v-for="({ value, itemConfig, indicatorColor, key }, index) in payload"
           :key="key"
           :class="
             cn(
@@ -104,17 +121,22 @@ const tooltipLabel = computed(() => {
               )
             "
           >
-            <div class="grid gap-1.5">
-              <div v-if="nestLabel" class="text-5xl font-medium">
-                {{ tooltipLabel }}
-              </div>
-              <span class="text-muted-foreground">
-                {{ itemConfig?.label || value }}
-              </span>
-            </div>
-            <span v-if="value != null" class="text-foreground font-medium">
-              {{ valueFormatter ? valueFormatter(value) : value.toLocaleString() }}
+            <span v-if="formatter" class="text-foreground font-medium">
+              {{ formatter(value, key, { value, key, itemConfig, indicatorColor }, index, props.payload) }}
             </span>
+            <template v-else>
+              <div class="grid gap-1.5">
+                <div v-if="nestLabel" class="text-5xl font-medium">
+                  {{ tooltipLabel }}
+                </div>
+                <span class="text-muted-foreground">
+                  {{ itemConfig?.label || value }}
+                </span>
+              </div>
+              <span v-if="value != null" class="text-foreground font-medium">
+                {{ valueFormatter ? valueFormatter(value) : value.toLocaleString() }}
+              </span>
+            </template>
           </div>
         </div>
       </div>

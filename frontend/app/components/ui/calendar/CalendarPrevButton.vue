@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants, type ButtonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { reactiveOmit } from "@vueuse/core"
 import { ChevronLeft } from "lucide-vue-next"
@@ -8,9 +8,14 @@ import { CalendarPrev, RangeCalendarPrev, useForwardProps } from "reka-ui"
 import { computed, type HTMLAttributes } from "vue"
 import { useCalendarMode } from "./context"
 
-const props = defineProps<CalendarPrevProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<
+  CalendarPrevProps & {
+    class?: HTMLAttributes["class"]
+    variant?: ButtonVariants["variant"]
+  }
+>()
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "variant")
 
 const forwardedProps = useForwardProps(delegatedProps)
 
@@ -23,7 +28,7 @@ const isRange = computed(() => mode.value === "range")
     :is="isRange ? RangeCalendarPrev : CalendarPrev"
     data-slot="calendar-prev-button"
     :class="cn(
-      buttonVariants({ variant: 'ghost' }),
+      buttonVariants({ variant: props.variant ?? 'ghost' }),
       'size-7 p-0 select-none aria-disabled:opacity-50',
       props.class,
     )"

@@ -17,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
     data-slot="attachment-trigger"
     :as="as"
     :as-child="asChild"
+    :type="as === 'button' && !asChild ? 'button' : undefined"
     :class="cn('absolute inset-0 z-10 outline-none', props.class)"
   >
     <slot />

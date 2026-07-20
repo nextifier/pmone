@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { computed, nextTick, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { Toaster as Sonner, useVueSonner, type ToasterProps } from "vue-sonner";
 
 const props = withDefaults(defineProps<ToasterProps & { progressBar?: boolean }>(), {
@@ -8,8 +15,32 @@ const props = withDefaults(defineProps<ToasterProps & { progressBar?: boolean }>
 
 const showProgress = computed(() => props.progressBar && !props.expand);
 
+// Follow the app's light/dark automatically so toasts match. We track the `.dark`
+// class on <html> (the Tailwind dark signal every consuming app toggles — see the
+// styles' `.dark` selector) rather than a specific color-mode composable, so this
+// stays correct however each app drives its theme (some diverge from
+// useColorMode's stored preference). A caller can still override via `theme`.
+const isDark = ref(false);
+let themeObserver: MutationObserver | undefined;
+const syncDark = (): void => {
+  isDark.value = document.documentElement.classList.contains("dark");
+};
+onMounted(() => {
+  syncDark();
+  themeObserver = new MutationObserver(syncDark);
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+});
+onBeforeUnmount(() => themeObserver?.disconnect());
+
+const resolvedTheme = computed<ToasterProps["theme"]>(
+  () => props.theme ?? (isDark.value ? "dark" : "light"),
+);
+
 const forwardedProps = computed(() => {
-  const { progressBar: _progressBar, class: _class, style: _style, ...rest } = props;
+  const { progressBar: _progressBar, class: _class, style: _style, theme: _theme, ...rest } = props;
   return rest;
 });
 
@@ -59,6 +90,7 @@ watch(activeToasts, syncDurations, { deep: true, flush: "post" });
 <template>
   <Sonner
     v-bind="forwardedProps"
+    :theme="resolvedTheme"
     :class="['toaster group tracking-tight', props.class, { 'sonner-progress': showProgress }]"
     :toast-options="{ classes: { toast: 'cn-toast' } }"
     :style="[

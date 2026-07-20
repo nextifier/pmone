@@ -18,7 +18,7 @@ const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <HoverCardPortal>
+  <HoverCardPortal data-slot="hover-card-portal">
     <HoverCardContent
       data-slot="hover-card-content"
       v-bind="forwardedProps"

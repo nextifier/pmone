@@ -16,6 +16,7 @@ const delegatedProps = computed(() => {
 
 <template>
   <AccordionContent
+    data-slot="accordion-content"
     v-bind="delegatedProps"
     class="cn-accordion-content overflow-hidden"
   >

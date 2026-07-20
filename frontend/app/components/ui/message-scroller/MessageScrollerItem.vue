@@ -52,7 +52,12 @@ onBeforeUnmount(() => {
     data-slot="message-scroller-item"
     :data-message-id="messageId"
     :data-scroll-anchor="scrollAnchor ? 'true' : 'false'"
-    :class="cn('min-w-0 shrink-0', props.class)"
+    :class="
+      cn(
+        'min-w-0 shrink-0 [content-visibility:auto] [contain-intrinsic-size:auto_4rem]',
+        props.class
+      )
+    "
   >
     <slot />
   </div>

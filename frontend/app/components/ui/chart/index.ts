@@ -2,7 +2,11 @@ import type { Component, Ref } from "vue"
 import { createContext } from "reka-ui"
 
 export { default as ChartContainer } from "./ChartContainer.vue"
+export { default as ChartStyle } from "./ChartStyle.vue"
 export { default as ChartLegendContent } from "./ChartLegendContent.vue"
+// Alias so call sites can use <ChartLegend> (mirrors shadcn's export surface);
+// the content renderer doubles as the legend wrapper in this @unovis chart.
+export { default as ChartLegend } from "./ChartLegendContent.vue"
 export { default as ChartTooltipContent } from "./ChartTooltipContent.vue"
 export { default as ChartSemiCircle } from "./ChartSemiCircle.vue"
 

@@ -8,7 +8,12 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
 <template>
   <div
     data-slot="message-content"
-    :class="cn('flex w-full min-w-0 flex-col gap-1 wrap-break-word', props.class)"
+    :class="
+      cn(
+        'flex w-full min-w-0 flex-col gap-1 wrap-break-word group-data-[align=end]/message:items-end has-[[data-slot=bubble][data-variant=ghost]]:gap-0',
+        props.class
+      )
+    "
   >
     <slot />
   </div>

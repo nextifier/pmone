@@ -16,7 +16,6 @@ const props = defineProps<{
         props.class
       )
     "
-    v-bind="props"
   >
     <slot />
   </div>
