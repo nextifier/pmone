@@ -156,8 +156,9 @@ Semua input harus pakai component dari `frontend/app/components/ui/`. Jangan pak
 - Link / URL / social media: pakai `<InputLink>` (`components/ui/input-link/`). Auto prefix Instagram, Facebook, LinkedIn, dll.
 - Password: pakai `<InputPassword>` (`components/ui/input-password/`).
 - OTP / PIN: pakai `<InputOtp>` atau `<PinInput>`.
-- Date: pakai `<DatePicker>`.
+- Date: pakai `<DatePicker>` (single/range, opsional `with-time`, presets). Semua picker keluarga tanggal ada di `components/ui/date-picker/`.
 - Time: pakai `<TimePicker>` atau `<TimeRangePicker>`.
+- Bulan / Tahun: pakai `<MonthPicker>`, `<MonthRangePicker>`, `<YearPicker>`, atau `<YearRangePicker>`.
 - File: pakai `<InputFile>` atau `<InputFileImage>` (untuk gambar dengan preview + delete + undo).
 - Tags / labels: pakai pattern yang sudah dipakai untuk Spatie Tags di project / event.
 - Rich text: pakai `<TipTapEditor>`.

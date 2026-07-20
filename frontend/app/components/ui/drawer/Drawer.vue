@@ -44,7 +44,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <DrawerRoot v-bind="forwarded" v-model:open="isOpen">
+  <DrawerRoot data-slot="drawer" v-bind="forwarded" v-model:open="isOpen">
     <slot />
   </DrawerRoot>
 </template>

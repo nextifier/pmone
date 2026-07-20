@@ -99,7 +99,7 @@ import FormShareDialog from "@/components/form-builder/FormShareDialog.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TabNav } from "@/components/ui/tab-nav";
+import { TabNav } from "@/components/ui/tabs";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
 
 definePageMeta({

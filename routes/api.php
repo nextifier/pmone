@@ -1082,6 +1082,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('api-consumers')->group(
     Route::get('/{apiConsumer}', [ApiConsumerController::class, 'show'])->name('api-consumers.show');
     Route::put('/{apiConsumer}', [ApiConsumerController::class, 'update'])->name('api-consumers.update');
     Route::delete('/{apiConsumer}', [ApiConsumerController::class, 'destroy'])->name('api-consumers.destroy');
+    Route::get('/{apiConsumer}/reveal-key', [ApiConsumerController::class, 'revealKey'])->name('api-consumers.reveal-key');
     Route::post('/{apiConsumer}/regenerate-key', [ApiConsumerController::class, 'regenerateKey'])->name('api-consumers.regenerate-key');
     Route::post('/{apiConsumer}/toggle-status', [ApiConsumerController::class, 'toggleStatus'])->name('api-consumers.toggle-status');
     Route::get('/{apiConsumer}/statistics', [ApiConsumerController::class, 'statistics'])->name('api-consumers.statistics');

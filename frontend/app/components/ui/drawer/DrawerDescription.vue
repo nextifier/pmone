@@ -16,7 +16,7 @@ const delegatedProps = computed(() => {
 </script>
 
 <template>
-  <DrawerDescription v-bind="delegatedProps" :class="cn('cn-drawer-description', props.class)">
+  <DrawerDescription data-slot="drawer-description" v-bind="delegatedProps" :class="cn('cn-drawer-description', props.class)">
     <slot />
   </DrawerDescription>
 </template>

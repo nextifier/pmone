@@ -1,3 +1,4 @@
+export { MenubarPortal } from "reka-ui"
 export { default as Menubar } from "./Menubar.vue"
 export { default as MenubarCheckboxItem } from "./MenubarCheckboxItem.vue"
 export { default as MenubarContent } from "./MenubarContent.vue"

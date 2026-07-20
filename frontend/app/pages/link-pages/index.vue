@@ -135,7 +135,7 @@
 import FormLinkPage from "@/components/link-page/FormLinkPage.vue";
 import LinkPageTableItem from "@/components/link-page/LinkPageTableItem.vue";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
-import { TableSwitch } from "@/components/ui/table-switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

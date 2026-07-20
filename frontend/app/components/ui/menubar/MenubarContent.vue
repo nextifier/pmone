@@ -31,7 +31,7 @@ const forwardedProps = useForwardProps(delegatedProps)
       v-bind="forwardedProps"
       :class="
         cn(
-          'cn-menubar-content cn-menubar-content-logical cn-menu-target cn-menu-translucent z-50 origin-(--reka-menubar-content-transform-origin) overflow-hidden',
+          'cn-menubar-content cn-menubar-content-logical cn-menu-target z-50 origin-(--reka-menubar-content-transform-origin) overflow-hidden',
           props.class,
         )
       "

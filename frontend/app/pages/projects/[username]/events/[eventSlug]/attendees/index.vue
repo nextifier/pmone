@@ -239,7 +239,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
+import PaymentMethodBadge from "@/components/PaymentMethodBadge.vue";
 import { getPaymentChannelLabel } from "@/lib/payment-method-logos";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";

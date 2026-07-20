@@ -120,7 +120,7 @@
 
 <script setup>
 import { Skeleton } from "@/components/ui/skeleton";
-import { TabNav } from "@/components/ui/tab-nav";
+import { TabNav } from "@/components/ui/tabs";
 
 const props = defineProps({
   project: Object,

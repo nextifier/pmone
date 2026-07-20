@@ -6,3 +6,4 @@ export { default as TabsIndicator } from "./TabsIndicator.vue";
 export { default as TabsList } from "./TabsList.vue";
 export { default as TabsSelectionIndicator } from "./TabsSelectionIndicator.vue";
 export { default as TabsTrigger } from "./TabsTrigger.vue";
+export { default as TabNav } from "./TabNav.vue";

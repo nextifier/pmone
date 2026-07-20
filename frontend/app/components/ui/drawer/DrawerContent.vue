@@ -31,6 +31,7 @@ const handleScroll = () => {
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerContent
+      data-slot="drawer-content"
       v-bind="forwarded"
       :class="
         cn(

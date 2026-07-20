@@ -268,7 +268,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TableSwitch } from "@/components/ui/table-switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";

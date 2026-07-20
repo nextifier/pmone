@@ -24,7 +24,7 @@ const forwardedProps = useForwardProps(delegatedProps);
       )
     "
   >
-    <span class="cn-select-item-indicator">
+    <span data-slot="select-item-indicator" class="cn-select-item-indicator">
       <SelectItemIndicator>
         <Check class="cn-select-item-indicator-icon pointer-events-none" />
       </SelectItemIndicator>

@@ -387,7 +387,7 @@ import {
   TagsInputItemText,
 } from "../tags-input";
 import { Textarea } from "../textarea";
-import { TimePicker } from "../time-picker";
+import { TimePicker } from "../date-picker";
 import { countries as defaultCountries } from "./countries";
 import { normalizeField, parseLocalDateString, toLocalDateString } from "./core";
 

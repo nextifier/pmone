@@ -15,7 +15,7 @@
 </template>
 
 <script setup>
-import { TabNav } from "@/components/ui/tab-nav";
+import { TabNav } from "@/components/ui/tabs";
 
 definePageMeta({
   middleware: ["sanctum:auth"],

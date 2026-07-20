@@ -136,7 +136,7 @@ import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { TableSwitch } from "@/components/ui/table-switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { PopoverClose } from "reka-ui";
 import { toast } from "vue-sonner";
 

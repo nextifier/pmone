@@ -169,6 +169,36 @@ class ApiConsumerController extends Controller
     }
 
     /**
+     * Reveal the current raw API key on demand.
+     *
+     * The plaintext is still stored in the `api_key` column, so it can be
+     * shown again instead of only once at create/regenerate. Gated behind the
+     * `update` ability (parity with regenerate) and audited so every reveal
+     * leaves a trail of who accessed the key.
+     */
+    public function revealKey(ApiConsumer $apiConsumer): JsonResponse
+    {
+        $this->authorize('update', $apiConsumer);
+
+        if (empty($apiConsumer->api_key)) {
+            return response()->json([
+                'message' => 'Raw key unavailable — please regenerate.',
+            ], 422);
+        }
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($apiConsumer)
+            ->event('api_key_revealed')
+            ->withProperties(['consumer_name' => $apiConsumer->name])
+            ->log("Revealed API key for {$apiConsumer->name}");
+
+        return response()->json([
+            'key' => $apiConsumer->api_key,
+        ]);
+    }
+
+    /**
      * Toggle active status for the specified consumer
      */
     public function toggleStatus(ApiConsumer $apiConsumer): JsonResponse

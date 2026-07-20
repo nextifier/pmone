@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { TabNav } from "@/components/ui/tab-nav";
+import { TabNav } from "@/components/ui/tabs";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

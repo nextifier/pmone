@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { TabNav } from "@/components/ui/tab-nav";
+import { TabNav } from "@/components/ui/tabs";
 defineProps({ event: Object, project: Object });
 
 const route = useRoute();

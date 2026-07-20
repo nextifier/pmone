@@ -2,7 +2,7 @@
 import type { ContextMenuRadioItemEmits, ContextMenuRadioItemProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { Circle } from "lucide-vue-next"
+import { Check } from "lucide-vue-next"
 import {
   ContextMenuItemIndicator,
   ContextMenuRadioItem,
@@ -30,7 +30,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
   >
     <span class="cn-context-menu-item-indicator pointer-events-none">
       <ContextMenuItemIndicator>
-        <Circle class="size-2 fill-current" />
+        <Check class="size-4" />
       </ContextMenuItemIndicator>
     </span>
     <slot />

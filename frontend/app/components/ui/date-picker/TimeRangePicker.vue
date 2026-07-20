@@ -92,7 +92,7 @@ function clear() {
       v-if="showClear"
       type="button"
       aria-label="Clear time range"
-      class="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring ml-auto rounded-sm p-0.5 transition-colors focus-visible:ring-1 focus-visible:outline-none"
+      class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring ml-auto rounded-sm p-0.5 transition-colors focus-visible:ring-1 focus-visible:outline-none"
       @mousedown.prevent
       @click="clear"
     >

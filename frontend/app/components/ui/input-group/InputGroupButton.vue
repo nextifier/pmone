@@ -7,11 +7,13 @@ import { inputGroupButtonVariants } from "."
 const props = withDefaults(defineProps<InputGroupButtonProps>(), {
   size: "xs",
   variant: "ghost",
+  type: "button",
 })
 </script>
 
 <template>
   <Button
+    :type="props.type"
     :data-size="props.size"
     :variant="props.variant"
     :class="cn(inputGroupButtonVariants({ size: props.size }), props.class)"

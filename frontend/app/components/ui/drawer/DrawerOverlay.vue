@@ -17,6 +17,7 @@ const delegatedProps = computed(() => {
 
 <template>
   <DrawerOverlay
+    data-slot="drawer-overlay"
     v-bind="delegatedProps"
     :class="cn('cn-drawer-overlay fixed inset-0 z-50', props.class)"
   />

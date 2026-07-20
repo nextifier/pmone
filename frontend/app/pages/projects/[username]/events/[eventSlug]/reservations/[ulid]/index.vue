@@ -760,7 +760,7 @@ import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive
 import Flag from "@/components/ui/flag/Flag.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
+import PaymentMethodBadge from "@/components/PaymentMethodBadge.vue";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import countries from "@/data/countries.json";

@@ -9,7 +9,7 @@ export { default as Button } from "./Button.vue";
 // composes outline + `text-destructive`; `iconSm`/`iconXs` map to the registry's
 // `icon-sm`/`icon-xs`.
 export const buttonVariants = cva(
-  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap transition-[color,box-shadow,transform] outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 tracking-tight",
+  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -29,11 +29,14 @@ export const buttonVariants = cva(
         icon: "cn-button-size-icon",
         iconSm: "cn-button-size-icon-sm",
         iconXs: "cn-button-size-icon-xs",
+        iconLg: "cn-button-size-icon-lg",
         // Kebab aliases so the ported shadcn showcase (which uses the registry's
-        // `icon-sm`/`icon-xs` names) resolves to the same CSS as pmone's camelCase
-        // `iconSm`/`iconXs` call sites. Both are kept — additive, no breakage.
+        // `icon-sm`/`icon-xs`/`icon-lg` names) resolves to the same CSS as pmone's
+        // camelCase `iconSm`/`iconXs`/`iconLg` call sites. Both are kept — additive,
+        // no breakage.
         "icon-sm": "cn-button-size-icon-sm",
         "icon-xs": "cn-button-size-icon-xs",
+        "icon-lg": "cn-button-size-icon-lg",
       },
     },
     defaultVariants: {

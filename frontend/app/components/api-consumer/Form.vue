@@ -187,16 +187,33 @@
                 <ButtonCopy :text="revealedKey" @click.prevent />
               </div>
               <p class="text-warning-foreground text-xs font-medium">
-                Copy this now. For security, it will not be shown again after you leave this page.
+                Copy your new API key. The old key has stopped working.
               </p>
             </template>
             <template v-else>
               <div class="bg-muted flex items-center gap-2 rounded-md p-3">
-                <code class="text-foreground/80 grow font-mono text-sm">pk_••••••••••••••••••••••••••••••••</code>
+                <code class="text-foreground/80 grow font-mono text-sm break-all">
+                  {{ shownKey || "pk_••••••••••••••••••••••••••••••••" }}
+                </code>
+                <ButtonCopy v-if="shownKey" :text="shownKey" @click.prevent />
+                <button
+                  type="button"
+                  @click.prevent="shownKey ? hideKey() : handleRevealKey()"
+                  :disabled="revealing"
+                  :aria-label="shownKey ? 'Hide API key' : 'Reveal API key'"
+                  v-tippy="shownKey ? 'Hide API key' : 'Reveal API key'"
+                  class="text-muted-foreground hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-lg disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Spinner v-if="revealing" class="size-4" />
+                  <Icon v-else :name="shownKey ? 'lucide:eye-off' : 'lucide:eye'" class="size-4 shrink-0" />
+                </button>
               </div>
               <p class="text-muted-foreground text-xs">
-                For security, the full key is only shown once, right when it is created or regenerated.
-                Regenerate to issue a new one.
+                {{
+                  shownKey
+                    ? "This is the current API key. Copy it, then hide it when you're done."
+                    : "The full key is hidden. Reveal it to copy the current API key."
+                }}
               </p>
             </template>
           </div>
@@ -308,9 +325,12 @@ const formData = ref({
 const errors = ref({});
 const regenerating = ref(false);
 const regenerateDialogOpen = ref(false);
-// The raw key is only ever known transiently, right after create/regenerate.
-// It is never fetched from the server afterwards (see ApiConsumerResource).
+// Raw key highlighted right after create/regenerate (labelled "New API Key").
 const revealedKey = ref("");
+// Current raw key fetched on demand via the reveal-key endpoint, so the key
+// can be viewed again instead of only once.
+const shownKey = ref("");
+const revealing = ref(false);
 
 // Initialize form data in edit mode
 if (props.mode === "edit" && props.apiConsumer) {
@@ -415,6 +435,30 @@ const handleSubmit = async () => {
   }
 };
 
+// Reveal the current API key on demand (fetched from the reveal-key endpoint).
+const handleRevealKey = async () => {
+  revealing.value = true;
+
+  try {
+    const response = await sanctumFetch(
+      `/api/api-consumers/${props.apiConsumer.id}/reveal-key`
+    );
+
+    if (response.key) {
+      shownKey.value = response.key;
+    }
+  } catch (error) {
+    console.error("Failed to reveal API key:", error);
+    toast.error(error?.data?.message || "Failed to reveal API key");
+  } finally {
+    revealing.value = false;
+  }
+};
+
+const hideKey = () => {
+  shownKey.value = "";
+};
+
 // Regenerate API key
 const handleRegenerateKey = async () => {
   regenerating.value = true;
@@ -428,9 +472,10 @@ const handleRegenerateKey = async () => {
     );
 
     if (response.key) {
-      // Reveal the new raw key once. The server never returns it again
-      // after this response — not even on the next page load.
+      // Highlight the new raw key. Drop any previously revealed key so a stale
+      // (now-invalid) value is never shown.
       revealedKey.value = response.key;
+      shownKey.value = "";
 
       // Close the dialog
       regenerateDialogOpen.value = false;

@@ -170,7 +170,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
+import PaymentMethodBadge from "@/components/PaymentMethodBadge.vue";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,

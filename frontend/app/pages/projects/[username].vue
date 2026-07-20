@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { TabNav } from "@/components/ui/tab-nav";
+import { TabNav } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 definePageMeta({

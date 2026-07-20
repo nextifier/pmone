@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { PaymentMethodBadge } from "@/components/ui/payment-method-badge";
+import PaymentMethodBadge from "@/components/PaymentMethodBadge.vue";
 import {
   Select,
   SelectContent,

@@ -74,7 +74,7 @@
               variant="outline"
               size="sm"
               class="flex-1"
-              :class="isPresetActive(preset) && 'bg-accent text-accent-foreground'"
+              :class="isPresetActive(preset) && 'bg-muted text-foreground'"
               @click="applyPreset(resolvePreset(preset))"
             >
               {{ preset.label }}

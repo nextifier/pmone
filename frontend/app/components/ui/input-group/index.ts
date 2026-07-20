@@ -52,4 +52,5 @@ export interface InputGroupButtonProps {
   variant?: ButtonVariants["variant"]
   size?: InputGroupButtonVariants["size"]
   class?: HTMLAttributes["class"]
+  type?: "button" | "submit" | "reset"
 }

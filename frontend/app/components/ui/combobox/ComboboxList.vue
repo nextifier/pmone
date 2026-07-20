@@ -26,7 +26,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       v-bind="forwarded"
       :class="
         cn(
-          'cn-combobox-content cn-combobox-content-logical cn-menu-target cn-menu-translucent group/combobox-content z-50 w-(--reka-combobox-trigger-width) min-w-[8rem]',
+          'cn-combobox-content cn-combobox-content-logical cn-menu-target group/combobox-content z-50 w-(--reka-combobox-trigger-width) min-w-[8rem]',
           props.class
         )
       "

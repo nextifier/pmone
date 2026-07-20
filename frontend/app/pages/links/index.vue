@@ -157,7 +157,7 @@
 import ImportDialog from "@/components/short-link/ImportDialog.vue";
 import ShortLinkTableItem from "@/components/short-link/ShortLinkTableItem.vue";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
-import { TableSwitch } from "@/components/ui/table-switch";
+import TableSwitch from "@/components/TableSwitch.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

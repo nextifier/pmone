@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
 import { reactiveOmit } from "@vueuse/core";
-import { Circle } from "lucide-vue-next";
+import { Check } from "lucide-vue-next";
 import type { DropdownMenuRadioItemEmits, DropdownMenuRadioItemProps } from "reka-ui";
 import { DropdownMenuItemIndicator, DropdownMenuRadioItem, useForwardPropsEmits } from "reka-ui";
 import type { HTMLAttributes } from "vue";
@@ -31,7 +31,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       data-slot="dropdown-menu-radio-item-indicator"
     >
       <DropdownMenuItemIndicator>
-        <Circle class="size-2 fill-current" />
+        <Check class="size-4" />
       </DropdownMenuItemIndicator>
     </span>
     <slot />

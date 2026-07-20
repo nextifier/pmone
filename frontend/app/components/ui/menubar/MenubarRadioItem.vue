@@ -2,7 +2,7 @@
 import type { MenubarRadioItemEmits, MenubarRadioItemProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { Circle } from "lucide-vue-next"
+import { Check } from "lucide-vue-next"
 import {
   MenubarItemIndicator,
   MenubarRadioItem,
@@ -30,7 +30,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
   >
     <span class="cn-menubar-radio-item-indicator pointer-events-none absolute flex items-center justify-center">
       <MenubarItemIndicator>
-        <Circle class="size-2 fill-current" />
+        <Check class="size-4" />
       </MenubarItemIndicator>
     </span>
     <slot />
