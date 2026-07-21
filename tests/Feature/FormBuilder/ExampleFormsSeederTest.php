@@ -82,6 +82,60 @@ it('seeds responses that respect field types', function () {
     }
 });
 
+it('seeds showcase answers for the new range types with valid shapes', function () {
+    $this->seed(ExampleFormsSeeder::class);
+
+    $form = Form::where('slug', 'example-field-showcase')->with('fields')->first();
+    $month = $form->fields->firstWhere('type', 'month');
+    $sliderRange = $form->fields->firstWhere('type', 'slider_range');
+    $timeRange = $form->fields->firstWhere('type', 'time_range');
+
+    foreach ($form->responses as $response) {
+        $monthValue = $response->response_data[$month->ulid] ?? null;
+        if ($monthValue !== null) {
+            expect($monthValue)->toMatch('/^\d{4}-\d{2}$/');
+        }
+
+        $rangeValue = $response->response_data[$sliderRange->ulid] ?? null;
+        if ($rangeValue !== null) {
+            expect($rangeValue)->toHaveKeys(['start', 'end'])
+                ->and($rangeValue['start'])->toBeLessThanOrEqual($rangeValue['end'])
+                ->and($rangeValue['start'])->toBeGreaterThanOrEqual(0)
+                ->and($rangeValue['end'])->toBeLessThanOrEqual(100);
+        }
+
+        $timeValue = $response->response_data[$timeRange->ulid] ?? null;
+        if ($timeValue !== null) {
+            expect($timeValue['start'])->toMatch('/^\d{2}:\d{2}$/')
+                ->and($timeValue['end'])->toMatch('/^\d{2}:\d{2}$/')
+                ->and($timeValue['start'] <= $timeValue['end'])->toBeTrue();
+        }
+    }
+});
+
+it('appends missing template fields to existing forms without touching existing data', function () {
+    $this->seed(ExampleFormsSeeder::class);
+
+    $form = Form::where('slug', 'example-field-showcase')->first();
+    $month = $form->fields()->where('type', 'month')->first();
+    $month->delete();
+
+    $keptField = $form->fields()->where('type', 'text')->first();
+    $responseCount = $form->responses()->count();
+    $sample = $form->responses()->first();
+    $sampleAnswer = $sample->response_data[$keptField->ulid] ?? null;
+
+    $this->seed(ExampleFormsSeeder::class);
+
+    $restored = $form->fields()->where('type', 'month')->first();
+
+    expect($restored)->not->toBeNull()
+        ->and($restored->ulid)->not->toBe($month->ulid)
+        ->and($form->fields()->where('ulid', $keptField->ulid)->exists())->toBeTrue()
+        ->and($form->responses()->count())->toBe($responseCount)
+        ->and($sample->fresh()->response_data[$keptField->ulid] ?? null)->toBe($sampleAnswer);
+});
+
 it('seeds realistic responses without lorem ipsum or example.com emails', function () {
     $this->seed(ExampleFormsSeeder::class);
 

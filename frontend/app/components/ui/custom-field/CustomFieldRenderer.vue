@@ -137,6 +137,55 @@
         @update:model-value="handleDateRange"
       />
 
+      <!-- Month -->
+      <MonthPicker
+        v-else-if="normalized.type === 'month'"
+        :model-value="parseMonthString(modelValue)"
+        :disabled="disabled"
+        :placeholder-text="normalized.placeholder || 'Pick a month'"
+        @update:model-value="$emit('update:modelValue', $event ? formatMonthValue($event) : null)"
+      />
+
+      <!-- Month Range -->
+      <MonthRangePicker
+        v-else-if="normalized.type === 'month_range'"
+        :model-value="monthRangeValue"
+        :disabled="disabled"
+        :placeholder-text="normalized.placeholder || 'Pick a month range'"
+        @update:model-value="handleMonthRange"
+      />
+
+      <!-- Year -->
+      <YearPicker
+        v-else-if="normalized.type === 'year'"
+        :model-value="yearToDateValue(modelValue)"
+        :min-value="yearToDateValue(normalized.validation?.min)"
+        :max-value="yearToDateValue(normalized.validation?.max)"
+        :disabled="disabled"
+        :placeholder-text="normalized.placeholder || 'Pick a year'"
+        @update:model-value="$emit('update:modelValue', $event ? $event.year : null)"
+      />
+
+      <!-- Year Range -->
+      <YearRangePicker
+        v-else-if="normalized.type === 'year_range'"
+        :model-value="yearRangeValue"
+        :min-value="yearToDateValue(normalized.validation?.min)"
+        :max-value="yearToDateValue(normalized.validation?.max)"
+        :disabled="disabled"
+        :placeholder-text="normalized.placeholder || 'Pick a year range'"
+        @update:model-value="handleYearRange"
+      />
+
+      <!-- Time Range -->
+      <TimeRangePicker
+        v-else-if="normalized.type === 'time_range'"
+        :model-value="timeRangeValue"
+        clearable
+        :disabled="disabled"
+        @update:model-value="handleTimeRange"
+      />
+
       <!-- Select -->
       <Select
         v-else-if="normalized.type === 'select'"
@@ -245,29 +294,15 @@
       />
 
       <!-- Color -->
-      <div v-else-if="normalized.type === 'color'" class="flex items-center gap-x-2">
-        <label
-          class="border-border relative size-9 shrink-0 cursor-pointer overflow-hidden rounded-md border shadow-xs"
-          :style="{ backgroundColor: isValidHex(modelValue) ? modelValue : '#ffffff' }"
-        >
-          <input
-            :id="fieldId"
-            type="color"
-            :disabled="disabled"
-            :value="isValidHex(modelValue) ? modelValue : '#000000'"
-            class="absolute inset-0 size-full cursor-pointer opacity-0"
-            @input="$emit('update:modelValue', $event.target.value)"
-          />
-        </label>
-        <Input
-          :model-value="modelValue"
-          placeholder="#000000"
-          maxlength="7"
-          :disabled="disabled"
-          class="w-32 font-mono"
-          @update:model-value="$emit('update:modelValue', $event)"
-        />
-      </div>
+      <ColorPicker
+        v-else-if="normalized.type === 'color'"
+        :id="fieldId"
+        alpha
+        :model-value="modelValue"
+        :disabled="disabled"
+        :placeholder="normalized.placeholder || 'Pick a color'"
+        @update:model-value="$emit('update:modelValue', $event)"
+      />
 
       <!-- File -->
       <CustomFieldFileUpload
@@ -306,6 +341,42 @@
           <span class="text-foreground font-medium">{{ modelValue ?? sliderMin }}</span>
           <span>{{ sliderMax }}</span>
         </div>
+      </div>
+
+      <!-- Slider Range -->
+      <div v-else-if="normalized.type === 'slider_range'" class="space-y-2 pt-1">
+        <Slider
+          :model-value="sliderRangeValue"
+          :min="sliderMin"
+          :max="sliderMax"
+          :step="sliderStep"
+          :disabled="disabled"
+          @update:model-value="handleSliderRange"
+        />
+        <div class="text-muted-foreground flex justify-between text-xs tracking-tight sm:text-sm">
+          <span>{{ sliderMin }}</span>
+          <span class="text-foreground font-medium">
+            {{ sliderRangeValue[0] }} - {{ sliderRangeValue[1] }}
+          </span>
+          <span>{{ sliderMax }}</span>
+        </div>
+      </div>
+
+      <!-- Slider Ruler -->
+      <div
+        v-else-if="normalized.type === 'slider_ruler'"
+        class="pt-1"
+        :class="disabled && 'pointer-events-none opacity-50'"
+      >
+        <SliderRuler
+          :label="normalized.placeholder || ''"
+          :model-value="Number(modelValue ?? sliderMin)"
+          :min="sliderMin"
+          :max="sliderMax"
+          :step="sliderStep"
+          :default-value="sliderMin"
+          @update:model-value="$emit('update:modelValue', $event)"
+        />
       </div>
 
       <!-- Linear Scale -->
@@ -356,10 +427,17 @@
 
 <script setup>
 import { computed, defineAsyncComponent } from "vue";
-import { Time } from "@internationalized/date";
+import { CalendarDate, Time } from "@internationalized/date";
 import CustomFieldFileUpload from "./CustomFieldFileUpload.vue";
 import { Checkbox } from "../checkbox";
-import { DatePicker } from "../date-picker";
+import { ColorPicker } from "../color-picker";
+import {
+  DatePicker,
+  MonthPicker,
+  MonthRangePicker,
+  YearPicker,
+  YearRangePicker,
+} from "../date-picker";
 import { FieldError } from "../field";
 import { Input } from "../input";
 import { InputLink } from "../input-link";
@@ -377,7 +455,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../select";
-import { Slider } from "../slider";
+import { Slider, SliderRuler } from "../slider";
 import { Switch } from "../switch";
 import {
   TagsInput,
@@ -387,7 +465,7 @@ import {
   TagsInputItemText,
 } from "../tags-input";
 import { Textarea } from "../textarea";
-import { TimePicker } from "../date-picker";
+import { TimePicker, TimeRangePicker } from "../date-picker";
 import { countries as defaultCountries } from "./countries";
 import { normalizeField, parseLocalDateString, toLocalDateString } from "./core";
 
@@ -488,6 +566,78 @@ const handleDateRange = (range) => {
   }
 };
 
+/* ----- Month & year (reka DateValue-based pickers) ----- */
+const parseMonthString = (value) => {
+  const match = /^(\d{4})-(\d{2})$/.exec(String(value ?? ""));
+  return match ? new CalendarDate(Number(match[1]), Number(match[2]), 1) : null;
+};
+
+const formatMonthValue = (date) =>
+  `${String(date.year).padStart(4, "0")}-${String(date.month).padStart(2, "0")}`;
+
+const monthRangeValue = computed(() => {
+  const value = props.modelValue;
+  if (!value || typeof value !== "object") return null;
+  return { start: parseMonthString(value.start), end: parseMonthString(value.end) };
+});
+
+const handleMonthRange = (range) => {
+  if (!range || (!range.start && !range.end)) {
+    emit("update:modelValue", null);
+    return;
+  }
+  if (range.start && range.end) {
+    emit("update:modelValue", {
+      start: formatMonthValue(range.start),
+      end: formatMonthValue(range.end),
+    });
+  }
+};
+
+const yearToDateValue = (value) => {
+  const year = Number(value);
+  return Number.isInteger(year) && year > 0 ? new CalendarDate(year, 1, 1) : undefined;
+};
+
+const yearRangeValue = computed(() => {
+  const value = props.modelValue;
+  if (!value || typeof value !== "object") return null;
+  return { start: yearToDateValue(value.start) ?? null, end: yearToDateValue(value.end) ?? null };
+});
+
+const handleYearRange = (range) => {
+  if (!range || (!range.start && !range.end)) {
+    emit("update:modelValue", null);
+    return;
+  }
+  if (range.start && range.end) {
+    emit("update:modelValue", { start: range.start.year, end: range.end.year });
+  }
+};
+
+/* ----- Time range ----- */
+const timeRangeValue = computed(() => {
+  const value = props.modelValue;
+  if (!value || typeof value !== "object") return { start: undefined, end: undefined };
+  return {
+    start: parseTimeString(value.start) ?? undefined,
+    end: parseTimeString(value.end) ?? undefined,
+  };
+});
+
+const handleTimeRange = (range) => {
+  if (!range || (!range.start && !range.end)) {
+    emit("update:modelValue", null);
+    return;
+  }
+  if (range.start && range.end) {
+    emit("update:modelValue", {
+      start: formatTimeValue(range.start),
+      end: formatTimeValue(range.end),
+    });
+  }
+};
+
 /* ----- Scales ----- */
 const ratingMax = computed(() => Number(normalized.value.settings?.max) || 5);
 
@@ -514,6 +664,22 @@ const sliderMin = computed(() => Number(normalized.value.validation?.min ?? 0));
 const sliderMax = computed(() => Number(normalized.value.validation?.max ?? 100));
 const sliderStep = computed(() => Number(normalized.value.settings?.step) || 1);
 
-/* ----- Color ----- */
-const isValidHex = (value) => /^#[0-9a-fA-F]{6}$/.test(value || "");
+const sliderRangeValue = computed(() => {
+  const value = props.modelValue;
+  if (value && typeof value === "object" && value.start != null && value.end != null) {
+    return [Number(value.start), Number(value.end)];
+  }
+  return [sliderMin.value, sliderMax.value];
+});
+
+const handleSliderRange = (values) => {
+  if (!Array.isArray(values) || values.length < 2) {
+    emit("update:modelValue", null);
+    return;
+  }
+  emit("update:modelValue", {
+    start: Math.min(values[0], values[1]),
+    end: Math.max(values[0], values[1]),
+  });
+};
 </script>

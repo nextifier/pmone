@@ -79,6 +79,41 @@ it('skips section fields entirely', function () {
     expect(CustomFieldValidation::errorsFor(collect([$section]), []))->toBe([]);
 });
 
+it('validates object-range answers through the nested start and end rules', function () {
+    $event = Event::factory()->create();
+
+    $monthRange = CustomField::factory()->ticketRegistration($event)->type(CustomField::TYPE_MONTH_RANGE)->create();
+    $sliderRange = CustomField::factory()->ticketRegistration($event)->type(CustomField::TYPE_SLIDER_RANGE)->create();
+
+    $valid = CustomFieldValidation::errorsFor(
+        collect([$monthRange, $sliderRange]),
+        [
+            $monthRange->ulid => ['start' => '2026-03', 'end' => '2026-07'],
+            $sliderRange->ulid => ['start' => 10, 'end' => 40],
+        ],
+    );
+
+    expect($valid)->toBe([]);
+
+    $inverted = CustomFieldValidation::errorsFor(
+        collect([$monthRange, $sliderRange]),
+        [
+            $monthRange->ulid => ['start' => '2026-07', 'end' => '2026-03'],
+            $sliderRange->ulid => ['start' => 60, 'end' => 10],
+        ],
+    );
+
+    expect($inverted)->toHaveKey('responses.'.$monthRange->ulid)
+        ->and($inverted)->toHaveKey('responses.'.$sliderRange->ulid);
+
+    $badFormat = CustomFieldValidation::errorsFor(
+        collect([$monthRange]),
+        [$monthRange->ulid => ['start' => '03-2026', 'end' => '2026-07']],
+    );
+
+    expect($badFormat)->toHaveKey('responses.'.$monthRange->ulid);
+});
+
 it('validates multi-select answers item by item', function () {
     $event = Event::factory()->create();
     $field = CustomField::factory()->businessMatching($event)->type(CustomField::TYPE_MULTI_SELECT)->create();

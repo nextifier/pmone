@@ -125,9 +125,15 @@ class CustomFieldFactory extends Factory
                 'validation' => ['required' => false, 'min' => 1, 'max' => 5],
                 'settings' => ['min_label' => 'Poor', 'max_label' => 'Excellent'],
             ],
-            CustomField::TYPE_SLIDER => [
+            CustomField::TYPE_SLIDER,
+            CustomField::TYPE_SLIDER_RANGE,
+            CustomField::TYPE_SLIDER_RULER => [
                 'validation' => ['required' => false, 'min' => 0, 'max' => 100],
                 'settings' => ['step' => 5],
+            ],
+            CustomField::TYPE_YEAR,
+            CustomField::TYPE_YEAR_RANGE => [
+                'validation' => ['required' => false, 'min' => 1990, 'max' => 2030],
             ],
             CustomField::TYPE_FILE => [
                 'validation' => [

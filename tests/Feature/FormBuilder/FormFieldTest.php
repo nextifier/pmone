@@ -45,6 +45,21 @@ it('creates a field of every supported type', function (string $type) {
     expect($this->form->fields()->where('type', $type)->exists())->toBeTrue();
 })->with(fn () => FormFieldTypes::all());
 
+it('persists validation bounds and step for a range slider field', function () {
+    $this->postJson("/api/forms/{$this->form->slug}/fields", [
+        'type' => 'slider_range',
+        'label' => 'Budget Range',
+        'validation' => ['min' => 0, 'max' => 100],
+        'settings' => ['step' => 5],
+    ])->assertSuccessful();
+
+    $field = $this->form->fields()->where('type', 'slider_range')->first();
+
+    expect($field->validation['min'])->toBe(0)
+        ->and($field->validation['max'])->toBe(100)
+        ->and($field->settings['step'])->toBe(5);
+});
+
 it('rejects an unknown field type', function () {
     $this->postJson("/api/forms/{$this->form->slug}/fields", [
         'type' => 'hologram',

@@ -76,8 +76,15 @@ export const TYPE_META: Record<string, TypeMeta> = {
   time: {},
   datetime: {},
   date_range: {},
+  month: {},
+  month_range: {},
+  year: {},
+  year_range: {},
+  time_range: {},
   number: {},
   slider: {},
+  slider_range: {},
+  slider_ruler: {},
   rating: {},
   linear_scale: {},
   file: { noPrefill: true },
@@ -88,6 +95,13 @@ export const TYPE_META: Record<string, TypeMeta> = {
 export const OPTION_TYPES = ["select", "multi_select", "checkbox_group", "radio"];
 export const MULTI_VALUE_TYPES = ["multi_select", "checkbox_group", "tags"];
 export const LAYOUT_TYPES = ["section"];
+
+/**
+ * Types whose logical value is a {start, end} object. They bypass the [value]
+ * scalar storage wrapping and share the joined "start - end" display format.
+ * Mirrors FormFieldTypes::OBJECT_RANGE_TYPES on the backend.
+ */
+export const OBJECT_RANGE_TYPES = ["date_range", "month_range", "year_range", "time_range", "slider_range"];
 
 export const hasOptions = (type: string): boolean => Boolean(TYPE_META[type]?.hasOptions);
 export const isInputType = (type: string): boolean => !TYPE_META[type]?.isLayout;
@@ -214,7 +228,7 @@ export const defaultValueFor = (field: { type: string; settings?: Record<string,
  * renderer as its logical value.
  */
 export const normalizeStoredValue = (field: { type: string }, value: unknown) => {
-  if (field.type === "date_range") {
+  if (OBJECT_RANGE_TYPES.includes(field.type)) {
     return value && typeof value === "object" ? value : null;
   }
   if (MULTI_VALUE_TYPES.includes(field.type)) {
@@ -269,14 +283,33 @@ export const prefillValueFor = (field: CustomFieldShape, rawValue: unknown) => {
       return ["1", "true", "yes", "on"].includes(value.toLowerCase());
     case "number":
     case "slider":
+    case "slider_ruler":
+    case "year":
     case "rating":
     case "linear_scale": {
       const number = Number(value);
       return Number.isNaN(number) ? undefined : number;
     }
+    case "month":
+      return /^\d{4}-\d{2}$/.test(value) ? value : undefined;
     case "date_range": {
       const [start, end] = value.split(",").map((v) => v.trim());
       return start && end ? { start, end } : undefined;
+    }
+    case "month_range": {
+      const [start, end] = value.split(",").map((v) => v.trim());
+      const valid = (v?: string) => Boolean(v && /^\d{4}-\d{2}$/.test(v));
+      return valid(start) && valid(end) ? { start, end } : undefined;
+    }
+    case "time_range": {
+      const [start, end] = value.split(",").map((v) => v.trim());
+      const valid = (v?: string) => Boolean(v && /^\d{1,2}:\d{2}$/.test(v));
+      return valid(start) && valid(end) ? { start, end } : undefined;
+    }
+    case "year_range":
+    case "slider_range": {
+      const [start, end] = value.split(",").map((v) => Number(v.trim()));
+      return Number.isNaN(start) || Number.isNaN(end) ? undefined : { start, end };
     }
     default:
       return value;
@@ -315,10 +348,15 @@ export const formatResponseValue = (field: CustomFieldShape, value: unknown, loc
     case "checkbox":
     case "switch":
       return value ? "Yes" : "No";
-    case "date_range": {
+    case "date_range":
+    case "month_range":
+    case "year_range":
+    case "time_range":
+    case "slider_range": {
       if (value && typeof value === "object") {
-        const range = value as { start?: string; end?: string };
-        return [range.start, range.end].filter(Boolean).join(" - ") || "-";
+        const range = value as { start?: string | number; end?: string | number };
+        const parts = [range.start, range.end].filter((v) => v !== null && v !== undefined && v !== "");
+        return parts.length ? parts.join(" - ") : "-";
       }
       return String(value);
     }

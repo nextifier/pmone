@@ -114,6 +114,20 @@ class CustomField extends Model implements Sortable
 
     public const TYPE_COUNTRY = 'country';
 
+    public const TYPE_MONTH = 'month';
+
+    public const TYPE_MONTH_RANGE = 'month_range';
+
+    public const TYPE_YEAR = 'year';
+
+    public const TYPE_YEAR_RANGE = 'year_range';
+
+    public const TYPE_TIME_RANGE = 'time_range';
+
+    public const TYPE_SLIDER_RANGE = 'slider_range';
+
+    public const TYPE_SLIDER_RULER = 'slider_ruler';
+
     public array $translatable = [
         'label',
         'placeholder',

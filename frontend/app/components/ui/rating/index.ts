@@ -45,4 +45,38 @@ export const valueVariants = cva("font-medium tracking-tight tabular-nums", {
   },
 });
 
+// Warna bintang terisi. Dipakai jalur readonly + overlay nilai pecahan.
+export const starColorVariants = cva("", {
+  variants: {
+    color: {
+      yellow: "text-yellow-400",
+      warning: "text-warning",
+      primary: "text-foreground",
+      foreground: "text-foreground",
+    },
+  },
+  defaultVariants: {
+    color: "yellow",
+  },
+});
+
+// Versi data-state untuk RatingItemIndicator: transparan sampai step-nya aktif.
+// reka menandai data-state="active" berdasarkan hoveredRating || modelValue,
+// jadi kelas ini sekaligus menangani hover preview. Kelas ditulis literal supaya
+// terbaca pemindai Tailwind.
+export const starActiveColorVariants = cva("text-transparent", {
+  variants: {
+    color: {
+      yellow: "data-[state=active]:text-yellow-400",
+      warning: "data-[state=active]:text-warning",
+      primary: "data-[state=active]:text-foreground",
+      foreground: "data-[state=active]:text-foreground",
+    },
+  },
+  defaultVariants: {
+    color: "yellow",
+  },
+});
+
 export type RatingVariants = VariantProps<typeof ratingVariants>;
+export type RatingColorVariants = VariantProps<typeof starColorVariants>;

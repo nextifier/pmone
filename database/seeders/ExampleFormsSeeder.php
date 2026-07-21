@@ -10,6 +10,7 @@ use App\Support\FormFieldTypes;
 use App\Support\FormTemplates;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Production-seedable example forms showcasing every form builder field type,
@@ -185,20 +186,120 @@ class ExampleFormsSeeder extends Seeder
                 ]
             );
 
-            if ($form->wasRecentlyCreated) {
-                foreach (array_values($definition['fields']) as $index => $field) {
-                    $form->fields()->create($field + [
-                        'context' => CustomField::CONTEXT_FORM,
-                        'order_column' => $index + 1,
-                    ]);
-                }
-            }
+            $appended = $this->syncMissingFields($form, array_values($definition['fields']));
 
             if ($form->responses()->doesntExist()) {
                 $this->seedResponses($form->load('fields'), $definition['response_count']);
+            } elseif ($appended->isNotEmpty()) {
+                $this->backfillNewFieldAnswers($form, $appended);
             }
 
             $this->command?->info("Seeded form: {$form->title}");
+        }
+    }
+
+    /**
+     * Append template fields the form doesn't have yet (matched by type +
+     * label), then realign order_column to the template order so late
+     * additions land inside their thematic section. Never updates or deletes
+     * existing fields, so a re-run is a no-op.
+     *
+     * @param  array<int, array<string, mixed>>  $templateFields
+     * @return Collection<int, CustomField>
+     */
+    private function syncMissingFields(Form $form, array $templateFields): Collection
+    {
+        $byKey = $form->fields()
+            ->orderBy('order_column')
+            ->get()
+            ->keyBy(fn (CustomField $field) => $field->type.'|'.$field->label);
+        $appended = collect();
+
+        foreach ($templateFields as $field) {
+            $key = $field['type'].'|'.$field['label'];
+
+            if ($byKey->has($key)) {
+                continue;
+            }
+
+            $created = $form->fields()->create($field + [
+                'context' => CustomField::CONTEXT_FORM,
+            ]);
+
+            $byKey->put($key, $created);
+            $appended->push($created);
+        }
+
+        if ($appended->isNotEmpty()) {
+            $this->realignFieldOrder($form, $templateFields);
+        }
+
+        return $appended;
+    }
+
+    /**
+     * Rewrite order_column only: template-matched fields take the template
+     * order, any extra (user-added) fields keep their relative order at the
+     * end.
+     *
+     * @param  array<int, array<string, mixed>>  $templateFields
+     */
+    private function realignFieldOrder(Form $form, array $templateFields): void
+    {
+        $fields = $form->fields()->orderBy('order_column')->get();
+        $byKey = $fields->keyBy(fn (CustomField $field) => $field->type.'|'.$field->label);
+
+        $ordered = collect($templateFields)
+            ->map(fn (array $field) => $byKey->get($field['type'].'|'.$field['label']))
+            ->filter();
+
+        $rest = $fields->reject(fn (CustomField $field) => $ordered->contains('id', $field->id));
+
+        foreach ($ordered->concat($rest)->values() as $index => $field) {
+            if ((int) $field->order_column !== $index + 1) {
+                $field->forceFill(['order_column' => $index + 1])->saveQuietly();
+            }
+        }
+    }
+
+    /**
+     * Fill answers for just-appended fields into existing responses (~75%
+     * fill, mirroring seedResponses' optional-skip rate). Existing answers are
+     * never touched.
+     *
+     * @param  Collection<int, CustomField>  $fields
+     */
+    private function backfillNewFieldAnswers(Form $form, Collection $fields): void
+    {
+        $inputFields = $fields
+            ->reject(fn (CustomField $field) => $field->type === CustomField::TYPE_SECTION)
+            ->values();
+
+        if ($inputFields->isEmpty()) {
+            return;
+        }
+
+        foreach ($form->responses()->get() as $response) {
+            $persona = $this->makePersona();
+            $data = $response->response_data ?? [];
+            $changed = false;
+
+            foreach ($inputFields as $field) {
+                if (array_key_exists($field->ulid, $data) || mt_rand(1, 100) > 75) {
+                    continue;
+                }
+
+                $value = $this->makeValue($field, $persona);
+
+                if ($value !== null) {
+                    $data[$field->ulid] = $value;
+                    $changed = true;
+                }
+            }
+
+            if ($changed) {
+                $response->forceFill(['response_data' => $data])->saveQuietly();
+            }
         }
     }
 
@@ -327,6 +428,13 @@ class ExampleFormsSeeder extends Seeder
             CustomField::TYPE_TIME => sprintf('%02d:%02d', mt_rand(8, 20), [0, 15, 30, 45][mt_rand(0, 3)]),
             CustomField::TYPE_DATETIME => now()->addDays(mt_rand(3, 30))->setTime(mt_rand(9, 17), [0, 30][mt_rand(0, 1)])->format('Y-m-d H:i'),
             CustomField::TYPE_DATE_RANGE => $this->makeDateRange(),
+            CustomField::TYPE_MONTH => now()->subMonths(mt_rand(0, 18))->format('Y-m'),
+            CustomField::TYPE_MONTH_RANGE => $this->makeMonthRange(),
+            CustomField::TYPE_YEAR => mt_rand((int) ($validation['min'] ?? 1990), (int) ($validation['max'] ?? 2030)),
+            CustomField::TYPE_YEAR_RANGE => $this->makeYearRange($validation),
+            CustomField::TYPE_TIME_RANGE => $this->makeTimeRange(),
+            CustomField::TYPE_SLIDER_RANGE => $this->makeSliderRange($field),
+            CustomField::TYPE_SLIDER_RULER => $this->makeSliderValue($field),
             CustomField::TYPE_SELECT, CustomField::TYPE_RADIO => $optionValues
                 ? $optionValues[$this->weightedIndex(count($optionValues))]
                 : null,
@@ -421,6 +529,57 @@ class ExampleFormsSeeder extends Seeder
             'start' => $start->format('Y-m-d'),
             'end' => $start->copy()->addDays(mt_rand(1, 5))->format('Y-m-d'),
         ];
+    }
+
+    /**
+     * @return array{start: string, end: string}
+     */
+    private function makeMonthRange(): array
+    {
+        $start = now()->subMonths(mt_rand(0, 12))->startOfMonth();
+
+        return [
+            'start' => $start->format('Y-m'),
+            'end' => $start->copy()->addMonths(mt_rand(1, 6))->format('Y-m'),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validation
+     * @return array{start: int, end: int}
+     */
+    private function makeYearRange(array $validation): array
+    {
+        $min = (int) ($validation['min'] ?? 1990);
+        $max = (int) ($validation['max'] ?? 2030);
+        $start = mt_rand($min, max($min, $max - 1));
+
+        return ['start' => $start, 'end' => mt_rand($start, $max)];
+    }
+
+    /**
+     * @return array{start: string, end: string}
+     */
+    private function makeTimeRange(): array
+    {
+        $hour = mt_rand(7, 18);
+        $minute = [0, 15, 30, 45][mt_rand(0, 3)];
+
+        return [
+            'start' => sprintf('%02d:%02d', $hour, $minute),
+            'end' => sprintf('%02d:%02d', min(23, $hour + mt_rand(1, 4)), $minute),
+        ];
+    }
+
+    /**
+     * @return array{start: int, end: int}
+     */
+    private function makeSliderRange(CustomField $field): array
+    {
+        $a = $this->makeSliderValue($field);
+        $b = $this->makeSliderValue($field);
+
+        return ['start' => min($a, $b), 'end' => max($a, $b)];
     }
 
     private function makeScaleValue(int $min, int $max): int

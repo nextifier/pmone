@@ -107,6 +107,42 @@ it('returns the full analytics contract', function () {
         ->and($textAgg['latest'])->toBe(['Great event']);
 });
 
+it('aggregates the new picker and slider types with the expected kinds', function () {
+    $year = CustomField::factory()->type('year')->create(['form_id' => $this->form->id, 'label' => 'Year']);
+    $ruler = CustomField::factory()->type('slider_ruler')->create(['form_id' => $this->form->id, 'label' => 'Intensity']);
+    $monthRange = CustomField::factory()->type('month_range')->create(['form_id' => $this->form->id, 'label' => 'Months']);
+
+    foreach ([
+        [$year->ulid => 2020, $ruler->ulid => 10, $monthRange->ulid => ['start' => '2026-03', 'end' => '2026-07']],
+        [$year->ulid => 2024, $ruler->ulid => 30],
+        [$year->ulid => 2024],
+    ] as $data) {
+        FormResponse::factory()->create([
+            'form_id' => $this->form->id,
+            'submitted_at' => now(),
+            'response_data' => $data,
+        ]);
+    }
+
+    $fields = collect($this->getJson("/api/forms/{$this->form->slug}/analytics?period=7")
+        ->assertSuccessful()
+        ->json('data.fields'));
+
+    $yearAgg = $fields->firstWhere('ulid', $year->ulid);
+    expect($yearAgg['aggregation'])->toBe('numeric')
+        ->and($yearAgg['min'])->toEqual(2020)
+        ->and($yearAgg['max'])->toEqual(2024)
+        ->and(collect($yearAgg['distribution'])->firstWhere('value', 2024)['count'])->toBe(2);
+
+    $rulerAgg = $fields->firstWhere('ulid', $ruler->ulid);
+    expect($rulerAgg['aggregation'])->toBe('numeric')
+        ->and($rulerAgg['average'])->toEqual(20);
+
+    $monthRangeAgg = $fields->firstWhere('ulid', $monthRange->ulid);
+    expect($monthRangeAgg['aggregation'])->toBe('text')
+        ->and($monthRangeAgg['latest'])->toBe(['2026-03 - 2026-07']);
+});
+
 it('respects an explicit start_date/end_date range in responses_per_day', function () {
     FormResponse::factory()->create([
         'form_id' => $this->form->id,

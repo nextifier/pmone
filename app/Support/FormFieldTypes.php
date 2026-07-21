@@ -21,6 +21,19 @@ class FormFieldTypes
     ];
 
     /**
+     * Types whose logical value is a `{start, end}` object. They bypass the
+     * scalar `[value]` storage wrapping and share the joined "start - end"
+     * display format.
+     */
+    public const OBJECT_RANGE_TYPES = [
+        CustomField::TYPE_DATE_RANGE,
+        CustomField::TYPE_MONTH_RANGE,
+        CustomField::TYPE_YEAR_RANGE,
+        CustomField::TYPE_TIME_RANGE,
+        CustomField::TYPE_SLIDER_RANGE,
+    ];
+
+    /**
      * Analytics aggregation kind per type: options | numeric | text | none.
      *
      * @var array<string, string>
@@ -37,6 +50,11 @@ class FormFieldTypes
         CustomField::TYPE_TIME => 'text',
         CustomField::TYPE_DATETIME => 'text',
         CustomField::TYPE_DATE_RANGE => 'text',
+        CustomField::TYPE_MONTH => 'text',
+        CustomField::TYPE_MONTH_RANGE => 'text',
+        CustomField::TYPE_YEAR => 'numeric',
+        CustomField::TYPE_YEAR_RANGE => 'text',
+        CustomField::TYPE_TIME_RANGE => 'text',
         CustomField::TYPE_SELECT => 'options',
         CustomField::TYPE_MULTI_SELECT => 'options',
         CustomField::TYPE_CHECKBOX => 'options',
@@ -50,6 +68,8 @@ class FormFieldTypes
         CustomField::TYPE_RATING => 'numeric',
         CustomField::TYPE_LINEAR_SCALE => 'numeric',
         CustomField::TYPE_SLIDER => 'numeric',
+        CustomField::TYPE_SLIDER_RANGE => 'text',
+        CustomField::TYPE_SLIDER_RULER => 'numeric',
         CustomField::TYPE_SECTION => 'none',
     ];
 
@@ -156,6 +176,7 @@ class FormFieldTypes
 
             case CustomField::TYPE_NUMBER:
             case CustomField::TYPE_SLIDER:
+            case CustomField::TYPE_SLIDER_RULER:
                 $base[] = 'numeric';
                 if (isset($opts['min'])) {
                     $base[] = 'min:'.$opts['min'];
@@ -163,6 +184,19 @@ class FormFieldTypes
                 if (isset($opts['max'])) {
                     $base[] = 'max:'.$opts['max'];
                 }
+                break;
+
+            case CustomField::TYPE_SLIDER_RANGE:
+                $base[] = 'array';
+                $numRules = ['numeric'];
+                if (isset($opts['min'])) {
+                    $numRules[] = 'min:'.$opts['min'];
+                }
+                if (isset($opts['max'])) {
+                    $numRules[] = 'max:'.$opts['max'];
+                }
+                $rules[$key.'.start'] = ['required_with:'.$key, ...$numRules];
+                $rules[$key.'.end'] = ['required_with:'.$key, ...$numRules, 'gte:'.$key.'.start'];
                 break;
 
             case CustomField::TYPE_DATE:
@@ -181,6 +215,35 @@ class FormFieldTypes
                 $base[] = 'array';
                 $rules[$key.'.start'] = ['required_with:'.$key, 'date_format:Y-m-d'];
                 $rules[$key.'.end'] = ['required_with:'.$key, 'date_format:Y-m-d', 'after_or_equal:'.$key.'.start'];
+                break;
+
+            case CustomField::TYPE_MONTH:
+                $base[] = 'date_format:Y-m';
+                break;
+
+            case CustomField::TYPE_MONTH_RANGE:
+                $base[] = 'array';
+                $rules[$key.'.start'] = ['required_with:'.$key, 'date_format:Y-m'];
+                $rules[$key.'.end'] = ['required_with:'.$key, 'date_format:Y-m', 'after_or_equal:'.$key.'.start'];
+                break;
+
+            case CustomField::TYPE_YEAR:
+                $base[] = 'integer';
+                $base[] = 'min:'.($opts['min'] ?? 1900);
+                $base[] = 'max:'.($opts['max'] ?? 2100);
+                break;
+
+            case CustomField::TYPE_YEAR_RANGE:
+                $base[] = 'array';
+                $yearRules = ['integer', 'min:'.($opts['min'] ?? 1900), 'max:'.($opts['max'] ?? 2100)];
+                $rules[$key.'.start'] = ['required_with:'.$key, ...$yearRules];
+                $rules[$key.'.end'] = ['required_with:'.$key, ...$yearRules, 'gte:'.$key.'.start'];
+                break;
+
+            case CustomField::TYPE_TIME_RANGE:
+                $base[] = 'array';
+                $rules[$key.'.start'] = ['required_with:'.$key, 'date_format:H:i'];
+                $rules[$key.'.end'] = ['required_with:'.$key, 'date_format:H:i', 'after_or_equal:'.$key.'.start'];
                 break;
 
             case CustomField::TYPE_SELECT:
@@ -245,7 +308,7 @@ class FormFieldTypes
 
             case CustomField::TYPE_COLOR:
                 $base[] = 'string';
-                $base[] = 'regex:/^#[0-9a-fA-F]{6}$/';
+                $base[] = 'regex:/^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/';
                 break;
 
             case CustomField::TYPE_COUNTRY:
@@ -300,8 +363,17 @@ class FormFieldTypes
                 return $value ? 'Yes' : 'No';
 
             case CustomField::TYPE_DATE_RANGE:
+            case CustomField::TYPE_MONTH_RANGE:
+            case CustomField::TYPE_YEAR_RANGE:
+            case CustomField::TYPE_TIME_RANGE:
+            case CustomField::TYPE_SLIDER_RANGE:
                 if (is_array($value)) {
-                    return trim(($value['start'] ?? '').' - '.($value['end'] ?? ''), ' -') ?: '-';
+                    $parts = array_filter(
+                        [$value['start'] ?? null, $value['end'] ?? null],
+                        fn ($v) => $v !== null && $v !== ''
+                    );
+
+                    return $parts ? implode(' - ', $parts) : '-';
                 }
 
                 return (string) $value;
@@ -341,7 +413,7 @@ class FormFieldTypes
      */
     public static function normalizeStored(string $type, mixed $stored): mixed
     {
-        if ($type === CustomField::TYPE_DATE_RANGE) {
+        if (in_array($type, self::OBJECT_RANGE_TYPES, true)) {
             return is_array($stored) ? $stored : null;
         }
 

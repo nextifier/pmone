@@ -118,24 +118,27 @@
     <Icon name="lucide:chevrons-up-down" class="text-muted-foreground/60 size-3.5 shrink-0" />
   </div>
 
-  <!-- Date / Time / Date & Time (input with trailing icon) -->
+  <!-- Date / Time / Date & Time / Month / Year (input with trailing icon) -->
   <div
-    v-else-if="['date', 'time', 'datetime'].includes(type)"
+    v-else-if="['date', 'time', 'datetime', 'month', 'year'].includes(type)"
     class="border-border bg-card flex w-full max-w-28 items-center gap-1.5 rounded-md border px-2 py-1.5"
   >
     <div class="bg-muted-foreground/20 h-1.5 flex-1 rounded-full" />
     <Icon :name="trailingIcon" class="text-muted-foreground/60 size-3.5 shrink-0" />
   </div>
 
-  <!-- Date Range -->
-  <div v-else-if="type === 'date_range'" class="flex w-full max-w-28 items-center gap-1.5">
+  <!-- Ranges (two boxes joined by an arrow) -->
+  <div
+    v-else-if="['date_range', 'month_range', 'year_range', 'time_range'].includes(type)"
+    class="flex w-full max-w-28 items-center gap-1.5"
+  >
     <div class="border-border bg-card flex h-5 flex-1 items-center gap-1 rounded-md border px-1.5">
-      <Icon name="lucide:calendar" class="text-muted-foreground/60 size-2.5 shrink-0" />
+      <Icon :name="rangeIcon" class="text-muted-foreground/60 size-2.5 shrink-0" />
       <div class="bg-muted-foreground/20 h-1 flex-1 rounded-full" />
     </div>
     <Icon name="lucide:arrow-right" class="text-muted-foreground/50 size-3 shrink-0" />
     <div class="border-border bg-card flex h-5 flex-1 items-center gap-1 rounded-md border px-1.5">
-      <Icon name="lucide:calendar" class="text-muted-foreground/60 size-2.5 shrink-0" />
+      <Icon :name="rangeIcon" class="text-muted-foreground/60 size-2.5 shrink-0" />
       <div class="bg-muted-foreground/20 h-1 flex-1 rounded-full" />
     </div>
   </div>
@@ -156,6 +159,30 @@
       <div
         class="border-border bg-card absolute top-1/2 left-3/5 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border shadow-xs"
       />
+    </div>
+  </div>
+
+  <!-- Range Slider (two thumbs) -->
+  <div v-else-if="type === 'slider_range'" class="flex w-full max-w-28 items-center">
+    <div class="bg-muted-foreground/20 relative h-1.5 w-full rounded-full">
+      <div class="bg-primary absolute inset-y-0 right-1/4 left-1/4 rounded-full" />
+      <div
+        class="border-border bg-card absolute top-1/2 left-1/4 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border shadow-xs"
+      />
+      <div
+        class="border-border bg-card absolute top-1/2 left-3/4 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border shadow-xs"
+      />
+    </div>
+  </div>
+
+  <!-- Value Scrubber (pill with ticks and a raised fill) -->
+  <div v-else-if="type === 'slider_ruler'" class="flex w-full max-w-28 items-center">
+    <div class="bg-muted-foreground/15 relative h-5 w-full overflow-hidden rounded-md">
+      <div class="bg-muted-foreground/30 absolute inset-y-0 left-0 w-3/5 rounded-md" />
+      <div class="absolute inset-0 flex items-center justify-evenly">
+        <div v-for="i in 7" :key="i" class="bg-muted-foreground/40 h-1.5 w-px rounded-full" />
+      </div>
+      <div class="bg-muted-foreground/60 absolute top-1/2 left-3/5 h-2.5 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full" />
     </div>
   </div>
 
@@ -218,9 +245,16 @@ const leadingIcon = computed(
 
 const trailingIcon = computed(
   () =>
-    ({ date: "lucide:calendar", time: "lucide:clock", datetime: "lucide:calendar-clock" })[props.type] ||
-    "lucide:calendar"
+    ({
+      date: "lucide:calendar",
+      time: "lucide:clock",
+      datetime: "lucide:calendar-clock",
+      month: "lucide:calendar-days",
+      year: "lucide:calendar-1",
+    })[props.type] || "lucide:calendar"
 );
+
+const rangeIcon = computed(() => (props.type === "time_range" ? "lucide:clock" : "lucide:calendar"));
 
 const fallbackIcon = computed(() => getTypeIcon(props.type));
 </script>
