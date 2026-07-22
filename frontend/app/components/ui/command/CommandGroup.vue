@@ -28,8 +28,12 @@ const delegatedProps = computed(() => {
       )
     "
   >
+    <!-- `cmdk-group-heading` is what `cn-command-group` targets
+         (`**:[[cmdk-group-heading]]:*`), mirroring the attribute cmdk sets in the
+         React original. Without it the heading renders unstyled. -->
     <ComboboxLabel
       v-if="heading"
+      cmdk-group-heading
       data-slot="command-group-heading"
       class="cn-command-group-heading"
     >

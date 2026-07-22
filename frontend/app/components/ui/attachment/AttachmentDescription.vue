@@ -12,7 +12,7 @@ const props = defineProps<{
     data-slot="attachment-description"
     :class="
       cn(
-        'mt-0.5 text-xs block min-w-0 truncate text-muted-foreground group-data-[state=error]/attachment:text-destructive/80',
+        'cn-attachment-description block max-w-full min-w-0 truncate text-muted-foreground group-data-[state=error]/attachment:text-destructive/80',
         'max-w-full',
         props.class
       )

@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import {
+  Combobox,
   ComboboxAnchor,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxEmpty,
   ComboboxGroup,
   ComboboxItem,
   ComboboxItemIndicator,
+  ComboboxList,
+  ComboboxViewport,
 } from "@/components/ui/combobox";
-import { LucideCheck, LucideChevronsUpDown, LucideX } from "lucide-vue-next";
-import {
-  ComboboxInput,
-  ComboboxRoot,
-  TagsInputInput,
-  TagsInputItem,
-  TagsInputItemDelete,
-  TagsInputItemText,
-  TagsInputRoot,
-  useFilter,
-} from "reka-ui";
-import { computed } from "vue";
+import { LucideCheck, LucideX } from "lucide-vue-next";
+import { useFilter } from "reka-ui";
+import { computed, watch } from "vue";
 import type { Option } from ".";
 
 interface MultySelectProps {
@@ -24,9 +22,14 @@ interface MultySelectProps {
   /** manually controlled options */
   options: Option[];
   placeholder?: string;
+  /**
+   * Clear-all button. Hidden by default: ui.shadcn.com's multi combobox has no
+   * clear-all, chips are removed one by one. Pass false to bring it back.
+   */
   hideClearAllButton?: boolean;
   openOnFocus?: boolean;
   openOnClick?: boolean;
+  disabled?: boolean;
 }
 
 const query = defineModel<string>("query", {
@@ -41,8 +44,10 @@ const {
   defaultOptions,
   options,
   placeholder,
+  hideClearAllButton = true,
   openOnFocus = true,
   openOnClick = true,
+  disabled = false,
 } = defineProps<MultySelectProps>();
 
 const emits = defineEmits<{
@@ -52,11 +57,11 @@ const emits = defineEmits<{
 
 const { contains } = useFilter({ sensitivity: "base" });
 
+// Selected options stay in the list with a check, the way upstream does it, so the
+// list never reflows under the cursor as you pick. Only the query filters.
 const filteredOptions = computed(() =>
   options.filter(
-    (option) =>
-      (contains(option.value, query.value) || contains(option.label, query.value)) &&
-      !modelValue.value.some((item) => item.value === option.value)
+    (option) => contains(option.value, query.value) || contains(option.label, query.value)
   )
 );
 
@@ -68,75 +73,57 @@ watch(
   { deep: true }
 );
 
-const removeTag = (index: number) => {
-  modelValue.value = modelValue.value.filter((item, i) => i !== index);
-};
+const removableCount = computed(() => modelValue.value.filter((item) => !item.fixed).length);
 
-const focusInnerInput = (event: PointerEvent) => {
-  const target = event.target as HTMLElement;
-  if (target.closest("button") || target.tagName === "INPUT") return;
-  event.preventDefault();
-  (event.currentTarget as HTMLElement).querySelector("input")?.focus();
-};
+function clearAll() {
+  modelValue.value = modelValue.value.filter((item) => item.fixed);
+}
 </script>
 
 <template>
-  <ComboboxRoot
+  <!-- Composes the shared Combobox chips parts, so the field, chip and remove button
+       are the same markup (and the same cn-combobox-chip* rules) as the Combobox
+       Multiple example. `fixed` options render without a remove button. -->
+  <Combobox
     v-model="modelValue"
     multiple
     ignore-filter
+    :disabled="disabled"
     :open-on-focus="openOnFocus"
     :open-on-click="openOnClick"
   >
     <ComboboxAnchor class="w-full">
-      <TagsInputRoot
+      <ComboboxChips
         v-model="modelValue"
-        delimiter=""
-        class="cn-select-trigger focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative flex h-auto min-h-(--cn-input-h,2.25rem) w-full min-w-0 cursor-text items-center gap-1 py-0 transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
-        @pointerdown="focusInnerInput"
+        :disabled="disabled"
+        :display-value="(option) => (option as Option).label"
+        class="w-full"
       >
-        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1">
-          <TagsInputItem
-            v-for="(item, index) in modelValue"
-            :key="item.value"
-            :value="item.label"
-            class="animate-fadeIn bg-background text-secondary-foreground hover:bg-background relative inline-flex h-7 cursor-default items-center rounded-md border ps-2 pe-7 pl-2 text-sm font-medium transition-[color,opacity] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-fixed:pe-2"
-          >
-            <TagsInputItemText />
-            <TagsInputItemDelete
-              @click="() => removeTag(index)"
-              class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring absolute -inset-y-px -end-px flex size-7 items-center justify-center rounded-e-md border border-transparent p-0 outline-hidden transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
-            >
-              <LucideX class="size-4" aria-hidden="true" />
-            </TagsInputItemDelete>
-          </TagsInputItem>
-
-          <ComboboxInput v-model="query" as-child>
-            <TagsInputInput
-              :placeholder="placeholder || 'Select'"
-              class="placeholder:text-muted-foreground min-w-16 flex-1 bg-transparent px-0 py-0 outline-hidden disabled:cursor-not-allowed"
-              @keydown.enter.prevent
-            />
-          </ComboboxInput>
-        </div>
-        <div class="pointer-events-none flex shrink-0 items-center gap-0.5">
-          <button
-            v-if="!hideClearAllButton && modelValue.length"
-            type="button"
-            class="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring pointer-events-auto flex size-6 items-center justify-center rounded-md border border-transparent transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
-            aria-label="Clear all"
-            @click="() => (modelValue = [])"
-          >
-            <LucideX class="size-4" aria-hidden="true" />
-          </button>
-          <LucideChevronsUpDown class="cn-select-trigger-icon shrink-0" aria-hidden="true" />
-        </div>
-      </TagsInputRoot>
+        <ComboboxChip
+          v-for="item in modelValue"
+          :key="item.value"
+          :value="item"
+          :show-remove="!item.fixed"
+        />
+        <ComboboxChipsInput :placeholder="placeholder || 'Select'" />
+        <button
+          v-if="!hideClearAllButton && removableCount"
+          type="button"
+          class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+          aria-label="Clear all"
+          @click="clearAll"
+        >
+          <LucideX class="size-3.5" aria-hidden="true" />
+        </button>
+      </ComboboxChips>
     </ComboboxAnchor>
 
     <ComboboxList class="w-(--reka-combobox-trigger-width)">
+      <!-- The viewport carries `cn-combobox-list` (overflow-y-auto + max-height).
+           Without it the panel keeps `cn-combobox-content`'s `overflow-hidden max-h-72`
+           and a long option list is clipped with no way to scroll. -->
       <ComboboxViewport>
-        <ComboboxEmpty class="px-2 py-4">No results found.</ComboboxEmpty>
+        <ComboboxEmpty>No results found.</ComboboxEmpty>
 
         <ComboboxGroup v-if="filteredOptions.length">
           <ComboboxItem
@@ -154,5 +141,5 @@ const focusInnerInput = (event: PointerEvent) => {
         </ComboboxGroup>
       </ComboboxViewport>
     </ComboboxList>
-  </ComboboxRoot>
+  </Combobox>
 </template>

@@ -10,7 +10,7 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
     data-slot="message-footer"
     :class="
       cn(
-        'flex max-w-full min-w-0 items-center gap-2 text-xs tracking-tight text-muted-foreground sm:text-sm group-data-[align=end]/message:justify-end',
+        'cn-message-footer flex max-w-full min-w-0 items-center gap-2 group-data-[align=end]/message:justify-end',
         props.class
       )
     "

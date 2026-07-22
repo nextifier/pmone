@@ -5,6 +5,10 @@ import type { ComboboxContentEmits, ComboboxContentProps } from "reka-ui";
 import { ComboboxContent, ComboboxPortal, useForwardPropsEmits } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const props = withDefaults(
   defineProps<ComboboxContentProps & { class?: HTMLAttributes["class"] }>(),
   {
@@ -22,11 +26,16 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <ComboboxPortal>
     <ComboboxContent
-      data-slot="combobox-list"
-      v-bind="forwarded"
+      data-slot="combobox-content"
+      v-bind="{ ...$attrs, ...forwarded }"
       :class="
         cn(
-          'cn-combobox-content cn-combobox-content-logical cn-menu-target group/combobox-content z-50 w-(--reka-combobox-trigger-width) min-w-[8rem]',
+          // `cn-combobox-list` caps the viewport with
+          // `max-h-[min(…, calc(var(--available-height) - …))]`. That variable comes from
+          // Base UI upstream; reka names it `--reka-combobox-content-available-height`, so
+          // without this alias the calc() is invalid, the whole min() drops, and the
+          // viewport grows past the panel and gets clipped with no scrollbar.
+          'cn-combobox-content cn-combobox-content-logical cn-menu-target cn-menu-translucent group/combobox-content z-50 w-(--reka-combobox-trigger-width) [--available-height:var(--reka-combobox-content-available-height)]',
           props.class
         )
       "

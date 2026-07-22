@@ -16,6 +16,7 @@ const props = withDefaults(
 const engine = useMessageScrollerEngine();
 const el = useTemplateRef<HTMLElement>("viewport");
 let observer: ResizeObserver | null = null;
+let resizeFrame: number | null = null;
 
 watch(
   () => props.preserveScrollOnPrepend,
@@ -26,13 +27,22 @@ watch(
 onMounted(() => {
   engine.setViewportElement(el.value);
   if (el.value && typeof ResizeObserver !== "undefined") {
-    observer = new ResizeObserver(() => engine.handleResize());
+    observer = new ResizeObserver(() => {
+      // rAF-debounced: a synchronous handleResize() here re-enters layout and
+      // trips "ResizeObserver loop completed with undelivered notifications".
+      if (resizeFrame !== null) return;
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null;
+        engine.handleResize();
+      });
+    });
     observer.observe(el.value);
   }
 });
 
 onBeforeUnmount(() => {
   observer?.disconnect();
+  if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
   observer = null;
   engine.setViewportElement(null);
 });
@@ -62,7 +72,7 @@ function onKeyDown(event: KeyboardEvent): void {
     :tabindex="0"
     :class="
       cn(
-        'size-full min-h-0 min-w-0 overflow-y-auto overscroll-contain scroll-fade-b [contain:content]',
+        'cn-message-scroller-viewport size-full min-h-0 min-w-0 overflow-y-auto overscroll-contain scroll-fade-b [contain:content]',
         props.class
       )
     "

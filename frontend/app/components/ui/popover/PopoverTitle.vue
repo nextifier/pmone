@@ -6,7 +6,7 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>()
 </script>
 
 <template>
-  <h4 data-slot="popover-title" :class="cn('cn-popover-title', props.class)">
+  <h4 data-slot="popover-title" :class="cn('cn-popover-title text-foreground', props.class)">
     <slot />
   </h4>
 </template>

@@ -11,7 +11,7 @@ const props = defineProps<{
   <div
     data-slot="field-label"
     :class="cn(
-      'cn-field-title flex w-fit items-center leading-snug',
+      'cn-field-title text-foreground flex w-fit items-center leading-snug',
       props.class,
     )"
   >

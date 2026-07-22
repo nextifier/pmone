@@ -126,7 +126,15 @@ useSwipe(swipeContainerRef, {
 </script>
 
 <template>
-  <TabsRoot ref="tabsRootInstance" v-bind="forwarded" data-slot="tabs">
+    <!-- Tabs is a local fork (pill/segmented/underline + sliding indicator), not the
+         upstream two-variant Tabs, so it deliberately stays off the shared tabs rules
+         in the style sheets: those are written for the upstream markup and force a
+         fixed list height and font size that clip this design. -->
+  <TabsRoot
+    ref="tabsRootInstance"
+    v-bind="forwarded"
+    data-slot="tabs"
+  >
     <slot />
   </TabsRoot>
 </template>

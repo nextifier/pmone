@@ -14,6 +14,7 @@ const content = useTemplateRef<HTMLElement>("content");
 const spacer = useTemplateRef<HTMLElement>("spacer");
 let mutationObserver: MutationObserver | null = null;
 let resizeObserver: ResizeObserver | null = null;
+let resizeFrame: number | null = null;
 
 onMounted(() => {
   engine.setContentElement(content.value);
@@ -25,7 +26,15 @@ onMounted(() => {
     mutationObserver.observe(content.value, { childList: true });
   }
   if (content.value && typeof ResizeObserver !== "undefined") {
-    resizeObserver = new ResizeObserver(() => engine.handleResize());
+    resizeObserver = new ResizeObserver(() => {
+      // rAF-debounced: a synchronous handleResize() here re-enters layout and
+      // trips "ResizeObserver loop completed with undelivered notifications".
+      if (resizeFrame !== null) return;
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = null;
+        engine.handleResize();
+      });
+    });
     resizeObserver.observe(content.value);
   }
 });
@@ -33,6 +42,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mutationObserver?.disconnect();
   resizeObserver?.disconnect();
+  if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
   mutationObserver = null;
   resizeObserver = null;
   engine.setContentElement(null);
@@ -46,7 +56,7 @@ onBeforeUnmount(() => {
     data-slot="message-scroller-content"
     role="log"
     aria-relevant="additions"
-    :class="cn('flex h-max min-h-full flex-col', props.class)"
+    :class="cn('cn-message-scroller-content flex h-max min-h-full flex-col', props.class)"
   >
     <slot />
     <div

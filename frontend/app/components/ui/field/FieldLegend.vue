@@ -12,7 +12,7 @@ const props = defineProps<{
   <legend
     data-slot="field-legend"
     :data-variant="variant"
-    :class="cn('cn-field-legend', props.class)"
+    :class="cn('cn-field-legend text-foreground', props.class)"
   >
     <slot />
   </legend>

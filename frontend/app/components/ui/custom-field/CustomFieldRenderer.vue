@@ -212,6 +212,7 @@
         :placeholder="normalized.placeholder || 'Select options'"
         open-on-click
         @update:model-value="$emit('update:modelValue', $event.map((o) => o.value))"
+        :hide-clear-all-button="false"
       />
 
       <!-- Checkbox (single) -->

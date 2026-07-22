@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
     :as="as"
     :as-child="asChild"
     :type="as === 'button' && !asChild ? 'button' : undefined"
-    :class="cn('absolute inset-0 z-10 outline-none', props.class)"
+    :class="cn('cn-attachment-trigger absolute inset-0 z-10 outline-none', props.class)"
   >
     <slot />
   </Primitive>

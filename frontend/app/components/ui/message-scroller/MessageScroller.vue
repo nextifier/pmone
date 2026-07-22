@@ -19,7 +19,7 @@ onBeforeUnmount(() => engine.setRootElement(null));
     data-slot="message-scroller"
     :class="
       cn(
-        'group/message-scroller relative flex size-full min-h-0 flex-col overflow-hidden',
+        'cn-message-scroller group/message-scroller relative flex size-full min-h-0 flex-col overflow-hidden',
         props.class
       )
     "

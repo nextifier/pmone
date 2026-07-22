@@ -126,6 +126,7 @@
         :options="availableCategoryOptions"
         placeholder="Add category"
         open-on-focus
+        :hide-clear-all-button="false"
       />
       <TagsInput v-else v-model="form.business_categories" class="text-sm">
         <TagsInputItem v-for="cat in form.business_categories" :key="cat" :value="cat">

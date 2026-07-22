@@ -207,6 +207,7 @@
                 :options="availableCategoryOptions"
                 placeholder="Add category"
                 open-on-focus
+                :hide-clear-all-button="false"
               />
             </div>
             <div v-else class="space-y-2">

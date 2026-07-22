@@ -8,7 +8,7 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
 <template>
   <div
     data-slot="bubble-group"
-    :class="cn('flex min-w-0 flex-col gap-1', props.class)"
+    :class="cn('cn-bubble-group flex min-w-0 flex-col', props.class)"
   >
     <slot />
   </div>

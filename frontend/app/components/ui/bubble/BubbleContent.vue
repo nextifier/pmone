@@ -17,7 +17,7 @@ const props = withDefaults(
     data-slot="bubble-content"
     :class="
       cn(
-        'w-fit max-w-full min-w-0 overflow-hidden rounded-xl wrap-break-word px-3 py-2 text-sm tracking-tight [&_a]:underline [&_a]:underline-offset-2 [&_a,&_button]:transition-colors [&_button]:text-left',
+        'cn-bubble-content w-fit max-w-full min-w-0 overflow-hidden wrap-break-word [&_a]:underline [&_a]:underline-offset-2 [&_a,&_button]:transition-colors [&_button]:text-left',
         props.class
       )
     "

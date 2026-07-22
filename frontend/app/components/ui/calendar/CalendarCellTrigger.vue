@@ -30,7 +30,7 @@ const isRange = computed(() => mode.value === "range");
     :class="
       cn(
         buttonVariants({ variant: 'ghost' }),
-        'cn-calendar-day-button group relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) cursor-pointer flex-col gap-1 rounded-(--cell-radius) border-0 p-0 leading-none font-normal select-none',
+        'cn-calendar-day-button group relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) cursor-pointer flex-col gap-1 rounded-(--cell-radius) border-0 p-0 leading-none font-normal select-none dark:hover:text-foreground',
         '[&>span]:text-xs [&>span]:opacity-70',
         '[&[data-today]:not([data-selected])]:bg-muted [&[data-today]:not([data-selected])]:text-foreground',
         isRange

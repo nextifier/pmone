@@ -151,6 +151,7 @@
                 :options="roleOptions"
                 placeholder="Pick one or more roles"
                 open-on-focus
+                :hide-clear-all-button="false"
               />
               <p class="text-muted-foreground text-xs">
                 User must hold any of these roles to see the announcement.
@@ -165,6 +166,7 @@
                 :options="userOptions"
                 placeholder="Pick users to target"
                 open-on-focus
+                :hide-clear-all-button="false"
               />
               <p class="text-muted-foreground text-xs">
                 Optional. Adds these users on top of role targeting.
@@ -179,6 +181,7 @@
                 :options="eventOptions"
                 placeholder="Pick events to target"
                 open-on-focus
+                :hide-clear-all-button="false"
               />
               <p class="text-muted-foreground text-xs">
                 Optional. Members of the selected events' projects will see it.
@@ -193,6 +196,7 @@
                 :options="projectOptions"
                 placeholder="Pick projects to target"
                 open-on-focus
+                :hide-clear-all-button="false"
               />
               <p class="text-muted-foreground text-xs">
                 Optional. Members of these projects will see the announcement.

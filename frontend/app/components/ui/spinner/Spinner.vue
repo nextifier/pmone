@@ -10,6 +10,7 @@ const props = defineProps<{
 <template>
   <Icon
     name="lucide:loader"
+    data-slot="spinner"
     role="status"
     aria-label="Loading"
     :class="cn('size-4 animate-spin', props.class)"

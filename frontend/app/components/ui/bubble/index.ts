@@ -7,26 +7,19 @@ export { default as BubbleContent } from "./BubbleContent.vue";
 export { default as BubbleReactions } from "./BubbleReactions.vue";
 
 export const bubbleVariants = cva(
-  "group/bubble relative flex w-fit max-w-[80%] min-w-0 flex-col gap-1 text-sm tracking-tight data-[align=end]:items-end data-[align=end]:self-end",
+  "cn-bubble group/bubble relative flex w-fit min-w-0 flex-col data-[align=end]:items-end",
   {
     variants: {
       // Colour targets the child content slots (not the root) so a single Bubble
       // can hold multiple <BubbleContent> blocks, each painted as its own pill.
       variant: {
-        default:
-          "*:data-[slot=bubble-content]:bg-primary *:data-[slot=bubble-content]:text-primary-foreground",
-        secondary:
-          "*:data-[slot=bubble-content]:bg-secondary *:data-[slot=bubble-content]:text-secondary-foreground",
-        muted:
-          "*:data-[slot=bubble-content]:bg-muted *:data-[slot=bubble-content]:text-foreground",
-        tinted:
-          "*:data-[slot=bubble-content]:bg-primary/10 *:data-[slot=bubble-content]:text-primary",
-        outline:
-          "*:data-[slot=bubble-content]:border *:data-[slot=bubble-content]:bg-transparent *:data-[slot=bubble-content]:text-foreground",
-        ghost:
-          "*:data-[slot=bubble-content]:bg-transparent *:data-[slot=bubble-content]:px-0 *:data-[slot=bubble-content]:py-0 *:data-[slot=bubble-content]:text-foreground",
-        destructive:
-          "*:data-[slot=bubble-content]:bg-destructive *:data-[slot=bubble-content]:text-white",
+        default: "cn-bubble-variant-default",
+        secondary: "cn-bubble-variant-secondary",
+        muted: "cn-bubble-variant-muted",
+        tinted: "cn-bubble-variant-tinted",
+        outline: "cn-bubble-variant-outline",
+        ghost: "cn-bubble-variant-ghost",
+        destructive: "cn-bubble-variant-destructive",
       },
     },
     defaultVariants: {
@@ -36,16 +29,16 @@ export const bubbleVariants = cva(
 );
 
 export const bubbleReactionsVariants = cva(
-  "absolute z-10 flex w-fit items-center justify-center gap-0.5 rounded-full border bg-background px-1 py-0.5 text-foreground shadow-xs",
+  "cn-bubble-reactions absolute z-10 flex w-fit items-center justify-center",
   {
     variants: {
       side: {
-        top: "bottom-full mb-1",
-        bottom: "top-full mt-1",
+        top: "cn-bubble-reactions-side-top",
+        bottom: "cn-bubble-reactions-side-bottom",
       },
       align: {
-        start: "start-2",
-        end: "end-2",
+        start: "cn-bubble-reactions-align-start",
+        end: "cn-bubble-reactions-align-end",
       },
     },
     defaultVariants: {

@@ -10,7 +10,7 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
     data-slot="message-header"
     :class="
       cn(
-        'flex max-w-full min-w-0 items-center gap-2 text-sm tracking-tight text-muted-foreground',
+        'cn-message-header flex max-w-full min-w-0 items-center gap-2',
         props.class
       )
     "

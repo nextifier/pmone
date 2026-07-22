@@ -14,7 +14,7 @@ const props = withDefaults(
     :data-align="align"
     :class="
       cn(
-        'group/message relative flex w-full min-w-0 gap-2 data-[align=end]:flex-row-reverse',
+        'cn-message group/message relative flex w-full min-w-0 data-[align=end]:flex-row-reverse',
         props.class
       )
     "

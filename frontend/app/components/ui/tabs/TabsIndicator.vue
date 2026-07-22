@@ -25,6 +25,7 @@ const indicatorStyle = computed(() => ({
 
 <template>
   <TabsIndicator
+    data-slot="tabs-indicator"
     v-bind="delegatedProps"
     :class="cn(variantClass, props.class)"
     :style="indicatorStyle"

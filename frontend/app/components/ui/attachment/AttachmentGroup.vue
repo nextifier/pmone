@@ -12,7 +12,7 @@ const props = defineProps<{
     data-slot="attachment-group"
     :class="
       cn(
-        'gap-3 scroll-px-1 py-1 flex min-w-0 scroll-fade-x snap-x snap-mandatory no-scrollbar overflow-x-auto overscroll-x-contain *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start',
+        'cn-attachment-group flex min-w-0 scroll-fade-x snap-x snap-mandatory no-scrollbar overflow-x-auto overscroll-x-contain *:data-[slot=attachment]:flex-none *:data-[slot=attachment]:snap-start',
         props.class
       )
     "

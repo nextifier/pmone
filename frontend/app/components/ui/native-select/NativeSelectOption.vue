@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue";
 import { cn } from "@/lib/utils";
+import type { HTMLAttributes } from "vue";
 
 const props = defineProps<{ class?: HTMLAttributes["class"] }>();
 </script>
 
 <template>
-  <div
-    data-slot="message-group"
-    :class="cn('cn-message-group flex min-w-0 flex-col', props.class)"
+  <option
+    data-slot="native-select-option"
+    :class="cn('bg-[Canvas] text-[CanvasText]', props.class)"
   >
     <slot />
-  </div>
+  </option>
 </template>

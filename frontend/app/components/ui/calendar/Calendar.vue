@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-vue-next";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { createReusableTemplate, reactiveOmit, useVModel } from "@vueuse/core";
 import type {
@@ -19,6 +20,8 @@ import type {
 import {
   CalendarRoot,
   RangeCalendarRoot,
+  SelectIcon as SelectIconPrimitive,
+  SelectTrigger as SelectTriggerPrimitive,
   useDateFormatter,
   useForwardPropsEmits,
 } from "reka-ui";
@@ -250,13 +253,20 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
     <Select :model-value="date.month" @update:model-value="setMonth">
       <!-- No own surface (theme adds dark:bg-background): inside a popover the
            trigger should sit on the popover's color, as shadcn's caption does. -->
-      <SelectTrigger
-        size="sm"
-        class="h-8 gap-1 px-2 text-sm dark:bg-transparent"
-        aria-label="Select month"
-      >
-        <SelectValue />
-      </SelectTrigger>
+      <!-- Wrapper is required: `cn-calendar-dropdown-root` uses `has-focus:` which
+           compiles to `&:has(:focus)`. The trigger is reka's bare primitive so the
+           per-style `cn-calendar-caption-label` wins over `cn-select-trigger`. -->
+      <div class="cn-calendar-dropdown-root relative rounded-(--cell-radius)">
+        <SelectTriggerPrimitive
+          class="cn-calendar-caption-label flex items-center gap-1 rounded-(--cell-radius) text-sm font-medium outline-none select-none [&>svg]:size-3.5 [&>svg]:text-muted-foreground"
+          aria-label="Select month"
+        >
+          <SelectValue />
+          <SelectIconPrimitive as-child>
+            <ChevronDown />
+          </SelectIconPrimitive>
+        </SelectTriggerPrimitive>
+      </div>
       <SelectContent>
         <SelectItem
           v-for="month in createYear({ dateObj: date })"
@@ -272,13 +282,20 @@ const forwardedRange = useForwardPropsEmits(delegatedRange, emits);
 
   <DefineYearTemplate v-slot="{ date }">
     <Select :model-value="date.year" @update:model-value="setYear">
-      <SelectTrigger
-        size="sm"
-        class="h-8 gap-1 px-2 text-sm dark:bg-transparent"
-        aria-label="Select year"
-      >
-        <SelectValue />
-      </SelectTrigger>
+      <!-- Wrapper is required: `cn-calendar-dropdown-root` uses `has-focus:` which
+           compiles to `&:has(:focus)`. The trigger is reka's bare primitive so the
+           per-style `cn-calendar-caption-label` wins over `cn-select-trigger`. -->
+      <div class="cn-calendar-dropdown-root relative rounded-(--cell-radius)">
+        <SelectTriggerPrimitive
+          class="cn-calendar-caption-label flex items-center gap-1 rounded-(--cell-radius) text-sm font-medium outline-none select-none [&>svg]:size-3.5 [&>svg]:text-muted-foreground"
+          aria-label="Select year"
+        >
+          <SelectValue />
+          <SelectIconPrimitive as-child>
+            <ChevronDown />
+          </SelectIconPrimitive>
+        </SelectTriggerPrimitive>
+      </div>
       <SelectContent>
         <SelectItem
           v-for="year in yearRange"

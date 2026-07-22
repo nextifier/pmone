@@ -8,7 +8,7 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>();
 <template>
   <span
     data-slot="marker-content"
-    :class="cn('min-w-0 wrap-break-word', props.class)"
+    :class="cn('cn-marker-content min-w-0 wrap-break-word', props.class)"
   >
     <slot />
   </span>

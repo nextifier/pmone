@@ -6,14 +6,13 @@ export { default as MarkerIcon } from "./MarkerIcon.vue";
 export { default as MarkerContent } from "./MarkerContent.vue";
 
 export const markerVariants = cva(
-  "group/marker relative flex w-full items-center gap-2 text-sm tracking-tight text-muted-foreground",
+  "cn-marker group/marker relative flex w-full items-center",
   {
     variants: {
       variant: {
-        default: "justify-center text-center",
-        separator:
-          "justify-center before:h-px before:flex-1 before:bg-border before:content-[''] after:h-px after:flex-1 after:bg-border after:content-['']",
-        border: "rounded-lg border bg-card px-3 py-2",
+        default: "cn-marker-variant-default",
+        separator: "cn-marker-variant-separator",
+        border: "cn-marker-variant-border",
       },
     },
     defaultVariants: {

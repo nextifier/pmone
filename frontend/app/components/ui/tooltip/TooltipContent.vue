@@ -28,7 +28,9 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     >
       <slot />
 
-      <TooltipArrow class="cn-tooltip-arrow bg-foreground fill-foreground z-50 translate-y-[calc(-50%_-_2px)]" />
+      <!-- The offset lives in `cn-tooltip-arrow` (higher specificity), so repeating it
+           here was inert. -->
+      <TooltipArrow class="cn-tooltip-arrow cn-tooltip-arrow-logical bg-foreground fill-foreground z-50" />
     </TooltipContent>
   </TooltipPortal>
 </template>
