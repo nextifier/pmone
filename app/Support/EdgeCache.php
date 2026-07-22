@@ -92,13 +92,27 @@ class EdgeCache
                     continue;
                 }
 
+                // The worker caches API responses under their REAL query string
+                // (?locale=en …), and purge-by-URL matches exactly — a bare-path
+                // purge hits nothing the frontend actually requests. Locale is
+                // the one enumerable dimension; unenumerable ones (?page,
+                // ?placement…) are bounded by the short API TTL instead.
                 foreach ($paths['api'] ?? [] as $path) {
                     $urls[] = $base.$path;
+                    foreach ($locales as $locale) {
+                        $urls[] = $base.$path.'?locale='.$locale;
+                    }
                 }
 
+                // HTML entries are keyed with the ?__cm colour-mode variant the
+                // worker adds (see buildEdgeCacheKey in the events repo). Purging
+                // the bare URL alone matches NOTHING — this exact mistake made
+                // every dashboard purge a silent no-op on 23 Jul 2026. Keep the
+                // suffixes in lockstep with the worker's key scheme.
                 foreach (array_merge($paths['html'] ?? [], $extraPaths) as $path) {
                     foreach (static::localeVariants($path, $locales) as $variant) {
-                        $urls[] = $base.$variant;
+                        $urls[] = $base.$variant.'?__cm=dark';
+                        $urls[] = $base.$variant.'?__cm=light';
                     }
                 }
             }

@@ -156,9 +156,13 @@ return [
             'api' => ['/api/event/gallery'],
             'html' => ['/gallery'],
         ],
+        // No html entry: banners render client-side from /api/banners
+        // (?placement=… variants, TTL-bounded), and "/" is unpurgeable anyway —
+        // its cache keys carry locale-negotiation variants the backend cannot
+        // enumerate. Nothing else may list "/" here for the same reason.
         'banners' => [
             'api' => ['/api/banners'],
-            'html' => ['/'],
+            'html' => [],
         ],
         // Brand.php emits both 'brands' and, in places, the singular form.
         'brand' => [
