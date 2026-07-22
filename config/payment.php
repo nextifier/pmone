@@ -27,7 +27,7 @@ return [
             'campx.id',
             'cokelatexpo.id',
             'franchise-expo.co.id',
-            'global-ai-expo.pages.dev',
+            'ai.pmone.id',
             'iicc.askindo.id',
             'indocoffeefestival.com',
             'indonesiaanimecon.com',

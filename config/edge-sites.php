@@ -47,18 +47,18 @@ return [
     | Locale prefixes are appended to every HTML path ("" = default locale,
     | which carries no prefix under i18n `prefix_except_default`).
     |
-    | NOT PURGEABLE, deliberately listed anyway so the gap is visible:
-    |  - iicc  -> iicc.askindo.id lives on a zone in a DIFFERENT Cloudflare
+    | NOT PURGEABLE, deliberately listed anyway so the gap stays visible:
+    |  - iicc -> iicc.askindo.id lives on a zone in a DIFFERENT Cloudflare
     |    account, so this token cannot reach it. It falls back to its TTL.
-    |  - global-ai-expo -> *.pages.dev is not a zone we own.
-    | Both are skipped with a log line rather than failing a purge run.
+    |    Moving that domain into this account would close the gap.
+    | It is skipped with a log line rather than failing a purge run.
     */
     'sites' => [
         ['app' => 'cafeexpo',        'project' => 'cbe',          'data_source' => null,  'url' => 'https://cafebrasserieexpo.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
         ['app' => 'campx',           'project' => 'campx',        'data_source' => null,  'url' => 'https://campx.id',              'locales' => ['en']],
         ['app' => 'cokelatexpo',     'project' => 'cei',          'data_source' => 'cbe', 'url' => 'https://cokelatexpo.id',        'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
         ['app' => 'flei',            'project' => 'flei',         'data_source' => null,  'url' => 'https://franchise-expo.co.id',  'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'global-ai-expo',  'project' => 'globalaiexpo',  'data_source' => null,  'url' => 'https://global-ai-expo.pages.dev', 'locales' => ['en', 'id']],
+        ['app' => 'global-ai-expo',  'project' => 'globalaiexpo',  'data_source' => null,  'url' => 'https://ai.pmone.id', 'locales' => ['en', 'id']],
         ['app' => 'icc',             'project' => 'icc',          'data_source' => null,  'url' => 'https://indonesiacomiccon.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
         ['app' => 'icf',             'project' => 'icf',          'data_source' => 'cbe', 'url' => 'https://indocoffeefestival.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
         ['app' => 'iicc',            'project' => 'askindo',      'data_source' => null,  'url' => 'https://iicc.askindo.id',       'locales' => ['en', 'id']],

@@ -157,8 +157,8 @@ class EdgeCache
 
             $zoneId = static::zoneForHost($host);
             if (! $zoneId) {
-                // Expected for iicc.askindo.id (zone lives in another account)
-                // and *.pages.dev. Those sites fall back to their TTL.
+                // Expected for iicc.askindo.id, whose zone lives in another
+                // Cloudflare account. That site falls back to its TTL.
                 continue;
             }
 

@@ -164,6 +164,24 @@ class Brand extends Model implements HasMedia, Sortable
         return ['brands', 'promotion-posts'];
     }
 
+    /**
+     * Public URLs this brand renders as on the event websites.
+     *
+     * Required, not optional: /brands/* is cached at the edge for 7 days
+     * (HTML_TTL_DETAIL in the events repo), which is only safe because saving
+     * here drops the exact URL. Removing this would leave brand edits invisible
+     * for a week. Both slugs are returned so a rename also clears the old URL.
+     */
+    public function edgeCachePaths(): array
+    {
+        $slugs = array_unique(array_filter([
+            $this->slug,
+            $this->getOriginal('slug'),
+        ]));
+
+        return array_map(fn ($slug) => "/brands/{$slug}", array_values($slugs));
+    }
+
     public function sluggable(): array
     {
         return [

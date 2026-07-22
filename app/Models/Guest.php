@@ -158,6 +158,24 @@ class Guest extends Model implements HasMedia, Sortable
         return ['guests'];
     }
 
+    /**
+     * Public URLs this guest renders as on the event websites.
+     *
+     * Required, not optional: /guests/* is cached at the edge for 7 days
+     * (HTML_TTL_DETAIL in the events repo), which is only safe because saving
+     * here drops the exact URL. Both slugs are returned so a rename also clears
+     * the old URL.
+     */
+    public function edgeCachePaths(): array
+    {
+        $slugs = array_unique(array_filter([
+            $this->slug,
+            $this->getOriginal('slug'),
+        ]));
+
+        return array_map(fn ($slug) => "/guests/{$slug}", array_values($slugs));
+    }
+
     public function sluggable(): array
     {
         return [
