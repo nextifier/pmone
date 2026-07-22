@@ -166,6 +166,29 @@ class Post extends Model implements HasMedia
         return ['blog-posts'];
     }
 
+    /**
+     * Public URLs on the event websites that this post renders as, so editing or
+     * unpublishing an article drops its own page from the Cloudflare edge cache
+     * rather than only the /news listing.
+     *
+     * This matters more than it looks: a single popular article was being
+     * re-rendered ~4,000 times a day before edge caching existed, and it is
+     * exactly the kind of page an editor expects to see update instantly.
+     *
+     * The slug is expanded across every locale by App\Support\EdgeCache. Both
+     * the current and the original slug are returned so that renaming an
+     * article also clears the URL it used to live at.
+     */
+    public function edgeCachePaths(): array
+    {
+        $slugs = array_unique(array_filter([
+            $this->slug,
+            $this->getOriginal('slug'),
+        ]));
+
+        return array_map(fn ($slug) => "/news/{$slug}", array_values($slugs));
+    }
+
     public function sluggable(): array
     {
         return [

@@ -37,6 +37,18 @@ class AppServiceProvider extends ServiceProvider
         // too - a fresh instance at terminate() time would silently never
         // store anything.
         $this->app->singleton(TenantCacheResponse::class);
+
+        // Swap in a ResponseCache that also invalidates the event websites'
+        // Cloudflare edge cache, carrying the tags with it. Spatie's
+        // ClearedResponseCacheEvent is empty, so a listener cannot know WHAT was
+        // cleared; decorating the container binding is the only place the tags
+        // are visible, and it covers every existing ResponseCache::clear() call
+        // site (~109 of them) without touching one. The subclass takes the same
+        // constructor dependencies, so the container wires it unchanged.
+        $this->app->extend(
+            'responsecache',
+            fn ($responseCache, $app) => $app->make(\App\Support\TagAwareResponseCache::class),
+        );
     }
 
     /**
