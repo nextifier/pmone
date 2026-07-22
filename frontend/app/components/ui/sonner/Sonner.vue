@@ -9,9 +9,20 @@ import {
 } from "vue";
 import { Toaster as Sonner, useVueSonner, type ToasterProps } from "vue-sonner";
 
-const props = withDefaults(defineProps<ToasterProps & { progressBar?: boolean }>(), {
-  progressBar: true,
-});
+const props = withDefaults(
+  defineProps<
+    ToasterProps & {
+      progressBar?: boolean;
+      sound?: boolean;
+      vibration?: boolean;
+    }
+  >(),
+  {
+    progressBar: true,
+    sound: true,
+    vibration: true,
+  },
+);
 
 const showProgress = computed(() => props.progressBar && !props.expand);
 
@@ -32,15 +43,40 @@ onMounted(() => {
     attributes: true,
     attributeFilter: ["class"],
   });
+  for (const toast of activeToasts.value) {
+    seenToastTypes.set(toast.id, normalizeType(toast.type));
+  }
+  feedbackReady = true;
+  if (props.sound || props.vibration) {
+    // Lazy client-only chunk: keeps the ~27KB of base64 audio out of the entry
+    // bundle and out of SSR entirely.
+    void import("./feedback")
+      .then((mod) => {
+        feedback = mod;
+        disposeFeedback = mod.init();
+      })
+      .catch(() => {});
+  }
 });
-onBeforeUnmount(() => themeObserver?.disconnect());
+onBeforeUnmount(() => {
+  themeObserver?.disconnect();
+  disposeFeedback?.();
+});
 
 const resolvedTheme = computed<ToasterProps["theme"]>(
   () => props.theme ?? (isDark.value ? "dark" : "light"),
 );
 
 const forwardedProps = computed(() => {
-  const { progressBar: _progressBar, class: _class, style: _style, theme: _theme, ...rest } = props;
+  const {
+    progressBar: _progressBar,
+    sound: _sound,
+    vibration: _vibration,
+    class: _class,
+    style: _style,
+    theme: _theme,
+    ...rest
+  } = props;
   return rest;
 });
 
@@ -65,16 +101,17 @@ const syncDurations = async (): Promise<void> => {
     return;
   }
   const toasts = activeToasts.value.filter((toast) => !toast.delete);
-  const nodes = [...root.querySelectorAll<HTMLElement>("[data-sonner-toast]")].filter(
-    (node) => node.getAttribute("data-removed") !== "true"
-  );
+  const nodes = [
+    ...root.querySelectorAll<HTMLElement>("[data-sonner-toast]"),
+  ].filter((node) => node.getAttribute("data-removed") !== "true");
   nodes.forEach((node, index) => {
     const toast = toasts[index];
     if (!toast) {
       return;
     }
     const duration = toast.duration ?? props.duration ?? 4000;
-    const hasAutoDismiss = Number.isFinite(duration) && toast.type !== "loading";
+    const hasAutoDismiss =
+      Number.isFinite(duration) && toast.type !== "loading";
     if (!hasAutoDismiss) {
       node.removeAttribute("data-progress-ready");
       return;
@@ -85,13 +122,62 @@ const syncDurations = async (): Promise<void> => {
 };
 
 watch(activeToasts, syncDurations, { deep: true, flush: "post" });
+
+/**
+ * Per-type sound + subtle haptic when a toast appears. Interception is central:
+ * call sites keep using vue-sonner's `toast.*` untouched — we watch the same
+ * reactive list as the progress bar and key strictly off id/type transitions,
+ * because the deep watcher fires on every internal toast mutation, not only on
+ * additions. A toast plays once when its id first appears, or when it leaves
+ * "loading" (a toast.promise settling). Dismissals and toasts already live on
+ * mount (HMR remount) stay silent. Kept separate from syncDurations, which
+ * early-returns whenever the progress bar is off.
+ */
+type FeedbackModule = typeof import("./feedback");
+let feedback: FeedbackModule | null = null;
+let disposeFeedback: (() => void) | undefined;
+let feedbackReady = false;
+const seenToastTypes = new Map<string | number, string>();
+
+const normalizeType = (
+  type?: string,
+): "default" | "info" | "success" | "warning" | "error" | "loading" =>
+  type === "success" ||
+  type === "error" ||
+  type === "info" ||
+  type === "warning" ||
+  type === "loading"
+    ? type
+    : "default";
+
+const handleToastFeedback = (): void => {
+  const liveIds = new Set<string | number>();
+  for (const toast of activeToasts.value) {
+    liveIds.add(toast.id);
+    const type = normalizeType(toast.type);
+    const prev = seenToastTypes.get(toast.id);
+    seenToastTypes.set(toast.id, type);
+    if (toast.delete || type === "loading" || !feedbackReady) continue;
+    if (prev !== undefined && prev !== "loading") continue;
+    feedback?.notify(type, { sound: props.sound, vibration: props.vibration });
+  }
+  for (const id of seenToastTypes.keys()) {
+    if (!liveIds.has(id)) seenToastTypes.delete(id);
+  }
+};
+
+watch(activeToasts, handleToastFeedback, { deep: true, flush: "post" });
 </script>
 
 <template>
   <Sonner
     v-bind="forwardedProps"
     :theme="resolvedTheme"
-    :class="['toaster group tracking-tight', props.class, { 'sonner-progress': showProgress }]"
+    :class="[
+      'toaster group tracking-tight',
+      props.class,
+      { 'sonner-progress': showProgress },
+    ]"
     :toast-options="{ classes: { toast: 'cn-toast' } }"
     :style="[
       {
@@ -165,7 +251,8 @@ watch(activeToasts, syncDurations, { deep: true, flush: "post" });
 }
 
 /* Only animate once the per-toast duration has been stamped (no first-frame jump). */
-[data-sonner-toaster].sonner-progress [data-sonner-toast][data-progress-ready]::before {
+[data-sonner-toaster].sonner-progress
+  [data-sonner-toast][data-progress-ready]::before {
   animation: sonner-progress var(--progress-duration, 4000ms) linear forwards;
 }
 
@@ -187,13 +274,16 @@ watch(activeToasts, syncDurations, { deep: true, flush: "post" });
 }
 
 /* Pause in sync with vue-sonner's timer on hover (data-expanded) and swipe. */
-[data-sonner-toaster].sonner-progress [data-sonner-toast][data-expanded="true"]::before,
-[data-sonner-toaster].sonner-progress [data-sonner-toast][data-swiping="true"]::before {
+[data-sonner-toaster].sonner-progress
+  [data-sonner-toast][data-expanded="true"]::before,
+[data-sonner-toaster].sonner-progress
+  [data-sonner-toast][data-swiping="true"]::before {
   animation-play-state: paused;
 }
 
 /* Loading toasts have no auto-dismiss, so no progress. */
-[data-sonner-toaster].sonner-progress [data-sonner-toast][data-type="loading"]::before {
+[data-sonner-toaster].sonner-progress
+  [data-sonner-toast][data-type="loading"]::before {
   display: none;
 }
 
