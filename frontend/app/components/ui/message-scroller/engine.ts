@@ -10,7 +10,10 @@
  * element handles on mount and forwarding scroll/resize/mutation events.
  */
 
-export type MessageScrollerDefaultScrollPosition = "start" | "end" | "last-anchor";
+export type MessageScrollerDefaultScrollPosition =
+  | "start"
+  | "end"
+  | "last-anchor";
 export type MessageScrollerButtonDirection = "start" | "end";
 export type MessageScrollerScrollAlign = "start" | "center" | "end" | "nearest";
 
@@ -48,7 +51,9 @@ const DEFAULT_SCROLL_EDGE_THRESHOLD = 8;
 const DEFAULT_SCROLL_PREVIOUS_ITEM_PEEK = 64;
 const DEFAULT_SCROLL_MARGIN = 0;
 const SCROLL_EPSILON = 0.5;
-const AUTOSCROLLING_TIMEOUT = 180;
+const AUTOSCROLL_STALL_TIMEOUT = 500;
+const AUTOSCROLL_ARRIVAL_EPSILON = 1;
+const ANCHOR_DRIFT_TOLERANCE = 4;
 
 const SCROLL_INTENT_KEYS = new Set([
   "ArrowDown",
@@ -60,7 +65,10 @@ const SCROLL_INTENT_KEYS = new Set([
   " ",
 ]);
 
-const DEFAULT_SCROLLABLE: MessageScrollerScrollable = { start: false, end: false };
+const DEFAULT_SCROLLABLE: MessageScrollerScrollable = {
+  start: false,
+  end: false,
+};
 const DEFAULT_VISIBILITY: MessageScrollerVisibilityState = {
   currentAnchorId: null,
   visibleMessageIds: [],
@@ -74,7 +82,11 @@ export type Store<T> = {
   getSnapshot: () => T;
   hasListeners: () => boolean;
   setSnapshot: (next: T) => void;
-  subscribe: (cb: () => void, onFirst?: () => void, onLast?: () => void) => () => void;
+  subscribe: (
+    cb: () => void,
+    onFirst?: () => void,
+    onLast?: () => void,
+  ) => () => void;
 };
 
 function createStore<T>(initial: T, equals: (a: T, b: T) => boolean): Store<T> {
@@ -107,14 +119,14 @@ function createStore<T>(initial: T, equals: (a: T, b: T) => boolean): Store<T> {
 
 function scrollableEquals(
   a: MessageScrollerScrollable,
-  b: MessageScrollerScrollable
+  b: MessageScrollerScrollable,
 ): boolean {
   return a.start === b.start && a.end === b.end;
 }
 
 function visibilityEquals(
   a: MessageScrollerVisibilityState,
-  b: MessageScrollerVisibilityState
+  b: MessageScrollerVisibilityState,
 ): boolean {
   if (a.currentAnchorId !== b.currentAnchorId) {
     return false;
@@ -145,9 +157,10 @@ function getPadding(el: HTMLElement): { start: number; end: number } {
   };
 }
 
-function getSpacerParentPadding(
-  spacer: HTMLElement | null
-): { start: number; end: number } {
+function getSpacerParentPadding(spacer: HTMLElement | null): {
+  start: number;
+  end: number;
+} {
   const parent = spacer?.parentElement;
   return parent ? getPadding(parent) : { start: 0, end: 0 };
 }
@@ -161,10 +174,13 @@ function getRowGap(el: HTMLElement | null): number {
   return parseLength(gap);
 }
 
-function getChildren(content: HTMLElement, spacer: HTMLElement | null): HTMLElement[] {
+function getChildren(
+  content: HTMLElement,
+  spacer: HTMLElement | null,
+): HTMLElement[] {
   return Array.from(content.children).filter(
     (child): child is HTMLElement =>
-      child instanceof HTMLElement && child !== spacer
+      child instanceof HTMLElement && child !== spacer,
   );
 }
 
@@ -185,7 +201,7 @@ function getMaxScroll(viewport: HTMLElement): number {
 function getContentExtent(
   content: HTMLElement,
   spacer: HTMLElement | null,
-  viewport: HTMLElement
+  viewport: HTMLElement,
 ): number {
   const children = getChildren(content, spacer);
   const padding = getPadding(content);
@@ -194,7 +210,10 @@ function getContentExtent(
   let extent = padding.start + padding.end;
   for (const child of children) {
     const rect = child.getBoundingClientRect();
-    extent = Math.max(extent, rect.bottom - viewportTop + scrollTop + padding.end);
+    extent = Math.max(
+      extent,
+      rect.bottom - viewportTop + scrollTop + padding.end,
+    );
   }
   return extent;
 }
@@ -203,7 +222,7 @@ function computeScrollable(
   content: HTMLElement | null,
   spacer: HTMLElement | null,
   viewport: HTMLElement | null,
-  scrollEdgeThreshold: number
+  scrollEdgeThreshold: number,
 ): MessageScrollerScrollable {
   if (!viewport || !content) {
     return DEFAULT_SCROLLABLE;
@@ -211,7 +230,8 @@ function computeScrollable(
   const extent = getContentExtent(content, spacer, viewport);
   return {
     start: viewport.scrollTop > scrollEdgeThreshold,
-    end: extent - viewport.scrollTop - viewport.clientHeight > scrollEdgeThreshold,
+    end:
+      extent - viewport.scrollTop - viewport.clientHeight > scrollEdgeThreshold,
   };
 }
 
@@ -221,7 +241,7 @@ function computeVisibility(
   viewport: HTMLElement | null,
   scrollMargin: number,
   scrollPreviousItemPeek: number,
-  visibleMessageIds: Set<string>
+  visibleMessageIds: Set<string>,
 ): MessageScrollerVisibilityState {
   if (!content || !viewport) {
     return DEFAULT_VISIBILITY;
@@ -261,7 +281,7 @@ function computeVisibility(
 
 function nextAnchorFrom(
   children: HTMLElement[],
-  fromIndex: number
+  fromIndex: number,
 ): HTMLElement | null {
   for (let i = fromIndex; i < children.length; i++) {
     if (children[i]?.dataset.scrollAnchor === "true") {
@@ -273,7 +293,7 @@ function nextAnchorFrom(
 
 function firstUnhandledAnchor(
   children: HTMLElement[],
-  handled: WeakSet<HTMLElement>
+  handled: WeakSet<HTMLElement>,
 ): HTMLElement | null {
   for (const child of children) {
     if (child.dataset.scrollAnchor === "true" && !handled.has(child)) {
@@ -285,7 +305,7 @@ function firstUnhandledAnchor(
 
 function hasMultipleAnchorsFrom(
   children: HTMLElement[],
-  fromIndex: number
+  fromIndex: number,
 ): boolean {
   let count = 0;
   for (let i = fromIndex; i < children.length; i++) {
@@ -311,7 +331,7 @@ function lastAnchor(children: HTMLElement[]): HTMLElement | null {
 function firstVisibleChild(
   content: HTMLElement,
   spacer: HTMLElement | null,
-  viewport: HTMLElement
+  viewport: HTMLElement,
 ): HTMLElement | null {
   const viewportRect = viewport.getBoundingClientRect();
   for (const child of getChildren(content, spacer)) {
@@ -331,23 +351,29 @@ function targetScrollForElement(
   element: HTMLElement,
   scrollMargin: number,
   spacer: HTMLElement | null,
-  viewport: HTMLElement
+  viewport: HTMLElement,
 ): number {
   const offsetTop = getOffsetTop(element, viewport);
   const height = element.getBoundingClientRect().height;
   const padding = getSpacerParentPadding(spacer);
 
   if (align === "center") {
-    const available = Math.max(0, viewport.clientHeight - padding.start - padding.end);
+    const available = Math.max(
+      0,
+      viewport.clientHeight - padding.start - padding.end,
+    );
     return offsetTop - padding.start - (available - height) / 2 - scrollMargin;
   }
   if (align === "end") {
-    return offsetTop - viewport.clientHeight + height + padding.end + scrollMargin;
+    return (
+      offsetTop - viewport.clientHeight + height + padding.end + scrollMargin
+    );
   }
   if (align === "nearest") {
     const bottom = offsetTop + height;
     const visibleTop = viewport.scrollTop + padding.start;
-    const visibleBottom = viewport.scrollTop + viewport.clientHeight - padding.end;
+    const visibleBottom =
+      viewport.scrollTop + viewport.clientHeight - padding.end;
     if (offsetTop >= visibleTop && bottom <= visibleBottom) {
       return viewport.scrollTop;
     }
@@ -362,7 +388,7 @@ function spacerHeightForScrollTop(
   content: HTMLElement,
   spacer: HTMLElement | null,
   viewport: HTMLElement,
-  scrollTop: number
+  scrollTop: number,
 ): number {
   const extent = getContentExtent(content, spacer, viewport);
   return scrollTop + viewport.clientHeight - extent;
@@ -372,12 +398,17 @@ function spacerHeightForScrollTop(
 /*                                 the engine                                 */
 /* -------------------------------------------------------------------------- */
 
-export type MessageScrollerEngine = ReturnType<typeof createMessageScrollerEngine>;
+export type MessageScrollerEngine = ReturnType<
+  typeof createMessageScrollerEngine
+>;
 
-export function createMessageScrollerEngine(options: MessageScrollerEngineOptions) {
+export function createMessageScrollerEngine(
+  options: MessageScrollerEngineOptions,
+) {
   const autoScroll = options.autoScroll ?? false;
   const defaultScrollPosition = options.defaultScrollPosition ?? "end";
-  const scrollEdgeThreshold = options.scrollEdgeThreshold ?? DEFAULT_SCROLL_EDGE_THRESHOLD;
+  const scrollEdgeThreshold =
+    options.scrollEdgeThreshold ?? DEFAULT_SCROLL_EDGE_THRESHOLD;
   const scrollPreviousItemPeek =
     options.scrollPreviousItemPeek ?? DEFAULT_SCROLL_PREVIOUS_ITEM_PEEK;
   const scrollMargin = options.scrollMargin ?? DEFAULT_SCROLL_MARGIN;
@@ -391,7 +422,10 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   // Mutable engine state.
   let mode: ScrollMode = autoScroll ? "following-bottom" : "free-scrolling";
   let autoscrolling = false;
-  let autoscrollingTimeout: number | null = null;
+  let autoscrollWatchdog: number | null = null;
+  let autoscrollLastTop = 0;
+  let lastCommittedScrollTop = 0;
+  let anchoredScrollTop: number | null = null;
   let streamingTurn: HTMLElement | null = null;
   let defaultScrollPositionApplied = false;
   let itemCount = 0;
@@ -399,10 +433,12 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   let spacerGap = 0;
   let spacerHeight = 0;
   let preserveScrollOnPrepend = true;
-  let prependRestore: { element: HTMLElement; viewportTop: number } | null = null;
-  let pendingScrollToMessage:
-    | { messageId: string; options: MessageScrollerScrollOptions }
-    | null = null;
+  let prependRestore: { element: HTMLElement; viewportTop: number } | null =
+    null;
+  let pendingScrollToMessage: {
+    messageId: string;
+    options: MessageScrollerScrollOptions;
+  } | null = null;
 
   const messageElements = new Map<string, HTMLElement>();
   const visibleMessageIds = new Set<string>();
@@ -412,13 +448,16 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   let stateFrame: number | null = null;
   let visibilityFrame: number | null = null;
   let pendingScrollFrame: number | null = null;
+  let followRepinFrame: number | null = null;
 
   const stateStore = createStore(DEFAULT_SCROLLABLE, scrollableEquals);
   const visibilityStore = createStore(DEFAULT_VISIBILITY, visibilityEquals);
 
   /* ----------------------------- attributes ----------------------------- */
 
-  function applyScrollableAttributes(scrollable: MessageScrollerScrollable): void {
+  function applyScrollableAttributes(
+    scrollable: MessageScrollerScrollable,
+  ): void {
     const value = [scrollable.start && "start", scrollable.end && "end"]
       .filter(Boolean)
       .join(" ");
@@ -435,24 +474,93 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
     }
   }
 
-  function updateModeFromScrollable(scrollable: MessageScrollerScrollable): void {
-    if (autoScroll && !scrollable.end && mode !== "settling-jump") {
-      mode = "following-bottom";
-    } else if (mode === "following-bottom" && scrollable.end && !autoscrolling) {
+  function updateModeFromScrollable(
+    scrollable: MessageScrollerScrollable,
+    top: number,
+  ): void {
+    if (autoScroll && !scrollable.end) {
+      if (mode === "free-scrolling") {
+        mode = "following-bottom";
+      } else if (
+        mode === "anchored-to-message" &&
+        (!streamingTurn || !streamingTurn.isConnected)
+      ) {
+        streamingTurn = null;
+        anchoredScrollTop = null;
+        mode = "following-bottom";
+      }
+    } else if (
+      mode === "following-bottom" &&
+      scrollable.end &&
+      !autoscrolling &&
+      viewportEl
+    ) {
+      if (top < lastCommittedScrollTop - SCROLL_EPSILON) {
+        // scrollTop moved up without a wheel/touch/key intent (those already
+        // flipped the mode before this commit): a scrollbar drag, the one
+        // gesture that reaches a commit while still following. Content growth
+        // never decreases scrollTop.
+        streamingTurn = null;
+        anchoredScrollTop = null;
+        mode = "free-scrolling";
+      } else if (top < getMaxScroll(viewportEl) - SCROLL_EPSILON) {
+        // Content grew between the DOM change and the next re-pin frame; stay
+        // pinned instead of letting the stale reading exit following.
+        requestFollowRepin();
+      }
+      // else: at max scroll yet the extent still reads past the fold — publish
+      // the truth and keep following; bounded, cannot loop.
+    }
+    if (
+      mode === "anchored-to-message" &&
+      !autoscrolling &&
+      anchoredScrollTop !== null &&
+      Math.abs(top - anchoredScrollTop) > ANCHOR_DRIFT_TOLERANCE
+    ) {
+      // The viewport left the anchored position without the engine moving it
+      // (scrollbar drag during a stream): stop re-anchoring against the user.
+      streamingTurn = null;
+      anchoredScrollTop = null;
       mode = "free-scrolling";
     }
   }
 
   function commitScrollState(): void {
-    const scrollable = computeScrollable(
+    const raw = computeScrollable(
       contentEl,
       spacerEl,
       viewportEl,
-      scrollEdgeThreshold
+      scrollEdgeThreshold,
     );
-    updateModeFromScrollable(scrollable);
+    const top = viewportEl?.scrollTop ?? 0;
+    updateAutoscrollProgress(top);
+    updateModeFromScrollable(raw, top);
+    lastCommittedScrollTop = top;
+    // While following, an in-flight autoscroll or a pending re-pin means any
+    // gap below is transient — publish end:false so the button never flashes.
+    const scrollable: MessageScrollerScrollable = {
+      start: raw.start,
+      end:
+        raw.end &&
+        !(
+          mode === "following-bottom" &&
+          (autoscrolling || followRepinFrame !== null)
+        ),
+    };
     applyScrollableAttributes(scrollable);
     stateStore.setSnapshot(scrollable);
+  }
+
+  function requestFollowRepin(): void {
+    if (followRepinFrame !== null) {
+      return;
+    }
+    followRepinFrame = window.requestAnimationFrame(() => {
+      followRepinFrame = null;
+      if (mode === "following-bottom" && autoScroll && viewportEl) {
+        scrollToEnd({ behavior: "auto" });
+      }
+    });
   }
 
   function scheduleStateCommit(): void {
@@ -478,8 +586,8 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
             viewportEl,
             scrollMargin,
             scrollPreviousItemPeek,
-            visibleMessageIds
-          )
+            visibleMessageIds,
+          ),
         );
       }
     });
@@ -487,21 +595,63 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
 
   /* ------------------------------- scrolling ------------------------------ */
 
-  function setAutoscrolling(value: boolean): void {
-    if (autoscrollingTimeout !== null) {
-      window.clearTimeout(autoscrollingTimeout);
-      autoscrollingTimeout = null;
+  function clearAutoscrollWatchdog(): void {
+    if (autoscrollWatchdog !== null) {
+      window.clearTimeout(autoscrollWatchdog);
+      autoscrollWatchdog = null;
     }
-    if (autoscrolling !== value) {
-      autoscrolling = value;
-      commitScrollState();
-    }
-    if (value) {
-      autoscrollingTimeout = window.setTimeout(() => {
-        autoscrollingTimeout = null;
+  }
+
+  function armAutoscrollWatchdog(): void {
+    clearAutoscrollWatchdog();
+    autoscrollWatchdog = window.setTimeout(() => {
+      autoscrollWatchdog = null;
+      if (autoscrolling) {
+        // The animation stalled (e.g. silently cancelled by the browser): drop
+        // the guard and let commitScrollState publish the truth — if we are
+        // still following it re-pins on the next frame.
         autoscrolling = false;
         commitScrollState();
-      }, AUTOSCROLLING_TIMEOUT);
+      }
+    }, AUTOSCROLL_STALL_TIMEOUT);
+  }
+
+  function cancelAutoscroll(): void {
+    clearAutoscrollWatchdog();
+    autoscrolling = false;
+  }
+
+  // The guard is target-bounded, not time-bounded: `autoscroll` is only ever
+  // requested by scrollToEnd, so it stays up until scrollTop reaches the
+  // (possibly still growing) max scroll, the user scrolls against it, or the
+  // stall watchdog fires. A fixed timeout would expire mid smooth animation
+  // and let a not-at-bottom reading exit following / flash the button.
+  function beginAutoscrollToEnd(): void {
+    autoscrolling = true;
+    autoscrollLastTop = viewportEl?.scrollTop ?? 0;
+    armAutoscrollWatchdog();
+    commitScrollState();
+  }
+
+  function updateAutoscrollProgress(top: number): void {
+    if (!autoscrolling || !viewportEl) {
+      return;
+    }
+    if (top >= getMaxScroll(viewportEl) - AUTOSCROLL_ARRIVAL_EPSILON) {
+      cancelAutoscroll();
+      return;
+    }
+    if (top < autoscrollLastTop - SCROLL_EPSILON) {
+      // Scrolled up against the in-flight animation: a deliberate interrupt.
+      cancelAutoscroll();
+      streamingTurn = null;
+      anchoredScrollTop = null;
+      mode = "free-scrolling";
+      return;
+    }
+    if (top > autoscrollLastTop + SCROLL_EPSILON) {
+      autoscrollLastTop = top;
+      armAutoscrollWatchdog();
     }
   }
 
@@ -520,7 +670,10 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
 
   function scrollTo(
     top: number,
-    { behavior = "auto", autoscroll = false }: { behavior?: ScrollBehavior; autoscroll?: boolean } = {}
+    {
+      behavior = "auto",
+      autoscroll = false,
+    }: { behavior?: ScrollBehavior; autoscroll?: boolean } = {},
   ): void {
     if (!viewportEl) {
       return;
@@ -532,30 +685,36 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
       return;
     }
     if (autoscroll) {
-      setAutoscrolling(true);
+      beginAutoscrollToEnd();
     }
     viewportEl.scrollTo({ top: target, behavior });
     scheduleStateCommit();
   }
 
-  function scrollToStart({ behavior = "auto" }: { behavior?: ScrollBehavior } = {}): boolean {
+  function scrollToStart({
+    behavior = "auto",
+  }: { behavior?: ScrollBehavior } = {}): boolean {
     if (!viewportEl) {
       return false;
     }
     setSpacerHeight(0);
     streamingTurn = null;
+    anchoredScrollTop = null;
     mode = "free-scrolling";
     scrollTo(0, { behavior });
     scheduleVisibilitySync();
     return true;
   }
 
-  function scrollToEnd({ behavior = "auto" }: { behavior?: ScrollBehavior } = {}): boolean {
+  function scrollToEnd({
+    behavior = "auto",
+  }: { behavior?: ScrollBehavior } = {}): boolean {
     if (!viewportEl) {
       return false;
     }
     setSpacerHeight(0);
     streamingTurn = null;
+    anchoredScrollTop = null;
     mode = autoScroll ? "following-bottom" : "free-scrolling";
     scrollTo(getMaxScroll(viewportEl), { autoscroll: true, behavior });
     scheduleVisibilitySync();
@@ -569,7 +728,7 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
       behavior = "auto",
       scrollMargin: margin = scrollMargin,
     }: MessageScrollerScrollOptions = {},
-    { keepPreviousPeek = false }: { keepPreviousPeek?: boolean } = {}
+    { keepPreviousPeek = false }: { keepPreviousPeek?: boolean } = {},
   ): boolean {
     if (!contentEl || !viewportEl || !contentEl.contains(element)) {
       return false;
@@ -579,18 +738,22 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
       element,
       keepPreviousPeek ? margin + scrollPreviousItemPeek : margin,
       spacerEl,
-      viewportEl
+      viewportEl,
     );
     const requiredSpacer = spacerHeightForScrollTop(
       contentEl,
       spacerEl,
       viewportEl,
-      target
+      target,
     );
     setSpacerHeight(requiredSpacer);
-    prependRestore = { element, viewportTop: getRelativeTop(element, viewportEl) };
+    prependRestore = {
+      element,
+      viewportTop: getRelativeTop(element, viewportEl),
+    };
     mode = keepPreviousPeek ? "anchored-to-message" : "settling-jump";
     streamingTurn = keepPreviousPeek ? element : null;
+    anchoredScrollTop = keepPreviousPeek ? Math.max(0, target) : null;
     scrollTo(target, { behavior });
     scheduleVisibilitySync();
     return true;
@@ -601,12 +764,16 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
     if (!turn || !turn.isConnected || mode !== "anchored-to-message") {
       return false;
     }
-    return scrollToElement(turn, { align: "start" }, { keepPreviousPeek: true });
+    return scrollToElement(
+      turn,
+      { align: "start" },
+      { keepPreviousPeek: true },
+    );
   }
 
   function scrollToMessage(
     messageId: string,
-    options?: MessageScrollerScrollOptions
+    options?: MessageScrollerScrollOptions,
   ): boolean {
     const element = messageElements.get(messageId);
     if (element) {
@@ -647,12 +814,17 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
     if (!restore || !viewportEl || !restore.element.isConnected) {
       return false;
     }
-    const delta = getRelativeTop(restore.element, viewportEl) - restore.viewportTop;
+    const delta =
+      getRelativeTop(restore.element, viewportEl) - restore.viewportTop;
     if (Math.abs(delta) <= SCROLL_EPSILON) {
       return false;
     }
     viewportEl.scrollTop += delta;
     restore.viewportTop = getRelativeTop(restore.element, viewportEl);
+    if (anchoredScrollTop !== null) {
+      anchoredScrollTop += delta;
+    }
+    lastCommittedScrollTop += delta;
     scheduleStateCommit();
     scheduleVisibilitySync();
     return true;
@@ -684,7 +856,11 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   /* ----------------------- default scroll position ------------------------ */
 
   function applyDefaultScrollPosition(): boolean {
-    if (!defaultScrollPosition || defaultScrollPositionApplied || itemCount === 0) {
+    if (
+      !defaultScrollPosition ||
+      defaultScrollPositionApplied ||
+      itemCount === 0
+    ) {
       return false;
     }
     let applied = false;
@@ -700,7 +876,11 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
         applied =
           extent - anchorOffset <= viewportEl.clientHeight
             ? scrollToEnd({ behavior: "auto" })
-            : scrollToElement(anchor, { align: "start" }, { keepPreviousPeek: true });
+            : scrollToElement(
+                anchor,
+                { align: "start" },
+                { keepPreviousPeek: true },
+              );
       }
     } else if (defaultScrollPosition === "end") {
       applied = scrollToEnd({ behavior: "auto" });
@@ -733,7 +913,9 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
       if (previousCount === 0) {
         if (
           applyDefaultScrollPosition() ||
-          (children.length > 0 && autoScroll && scrollToEnd({ behavior: "auto" }))
+          (children.length > 0 &&
+            autoScroll &&
+            scrollToEnd({ behavior: "auto" }))
         ) {
           return;
         }
@@ -759,7 +941,11 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
             scrollToEnd({ behavior: "auto" });
             return;
           }
-          scrollToElement(anchor, { align: "start" }, { keepPreviousPeek: true });
+          scrollToElement(
+            anchor,
+            { align: "start" },
+            { keepPreviousPeek: true },
+          );
           handledScrollAnchors.add(anchor);
           return;
         }
@@ -767,7 +953,11 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
       if (children.length === previousCount) {
         const anchor = firstUnhandledAnchor(children, handledScrollAnchors);
         if (anchor) {
-          scrollToElement(anchor, { align: "start" }, { keepPreviousPeek: true });
+          scrollToElement(
+            anchor,
+            { align: "start" },
+            { keepPreviousPeek: true },
+          );
           handledScrollAnchors.add(anchor);
           return;
         }
@@ -825,7 +1015,7 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
           root: viewportEl,
           rootMargin: `${-(scrollMargin + scrollPreviousItemPeek)}px 0px 0px 0px`,
           threshold: [0, 0.01, 0.5, 1],
-        }
+        },
       );
     }
     messageElements.forEach((el) => visibilityObserver?.observe(el));
@@ -846,7 +1036,7 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   function registerMessage(
     messageId: string,
     element: HTMLElement | null,
-    previousElement: HTMLElement | null
+    previousElement: HTMLElement | null,
   ): void {
     if (element) {
       messageElements.set(messageId, element);
@@ -868,12 +1058,14 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   /* ------------------------------- intents -------------------------------- */
 
   function userScrollIntent(): void {
+    cancelAutoscroll();
     if (
       mode === "following-bottom" ||
       mode === "anchored-to-message" ||
       mode === "settling-jump"
     ) {
       streamingTurn = null;
+      anchoredScrollTop = null;
       mode = "free-scrolling";
     }
   }
@@ -929,7 +1121,12 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
   }
 
   function destroy(): void {
-    for (const frame of [stateFrame, visibilityFrame, pendingScrollFrame]) {
+    for (const frame of [
+      stateFrame,
+      visibilityFrame,
+      pendingScrollFrame,
+      followRepinFrame,
+    ]) {
       if (frame !== null) {
         window.cancelAnimationFrame(frame);
       }
@@ -937,10 +1134,8 @@ export function createMessageScrollerEngine(options: MessageScrollerEngineOption
     stateFrame = null;
     visibilityFrame = null;
     pendingScrollFrame = null;
-    if (autoscrollingTimeout !== null) {
-      window.clearTimeout(autoscrollingTimeout);
-      autoscrollingTimeout = null;
-    }
+    followRepinFrame = null;
+    clearAutoscrollWatchdog();
     visibilityObserver?.disconnect();
     visibilityObserver = null;
   }

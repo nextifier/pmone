@@ -155,6 +155,15 @@ export default defineNuxtConfig({
     // incorrect" warnings that flooded the build log.
     build: { sourcemap: false },
     css: { devSourcemap: false },
+    resolve: {
+      // vue-sonner menyimpan state toast di module scope; pnpm bisa membuat
+      // beberapa salinan fisik versi yang sama (peer-hash berbeda) sehingga
+      // dua importer ter-resolve ke real path berbeda. Di build produksi itu
+      // menjadi dua instance state — toast() menulis ke instance yang tidak
+      // di-subscribe Toaster dan tidak ada toast yang tampil. dedupe memaksa
+      // satu resolusi untuk semua importer.
+      dedupe: ["vue-sonner"],
+    },
     optimizeDeps: {
       // Bumping this forces Vite to compute a new `?v=` hash on the next
       // dev start, busting any stale browser-cached modules from previous

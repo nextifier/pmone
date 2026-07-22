@@ -23,6 +23,10 @@ onMounted(() => {
 
   if (content.value && typeof MutationObserver !== "undefined") {
     mutationObserver = new MutationObserver(() => engine.handleContentChange());
+    // childList only, deliberately: handleContentChange (anchor detection) is
+    // too heavy to run per streamed character. Subtree/text growth is caught
+    // by the ResizeObserver below; the engine's commit path bridges the frame
+    // in between without dropping out of follow mode.
     mutationObserver.observe(content.value, { childList: true });
   }
   if (content.value && typeof ResizeObserver !== "undefined") {
@@ -56,7 +60,12 @@ onBeforeUnmount(() => {
     data-slot="message-scroller-content"
     role="log"
     aria-relevant="additions"
-    :class="cn('cn-message-scroller-content flex h-max min-h-full flex-col', props.class)"
+    :class="
+      cn(
+        'cn-message-scroller-content flex h-max min-h-full flex-col',
+        props.class,
+      )
+    "
   >
     <slot />
     <div
