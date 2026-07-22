@@ -53,9 +53,26 @@ class EdgeCache
         $globalTags = (array) config('edge-sites.global_tags', []);
         $tagMap = (array) config('edge-sites.tags', []);
 
+        // FAIL SAFE. A tag nobody mapped would otherwise resolve to an empty URL
+        // list and purge NOTHING — silently, with no error anywhere. That is how
+        // 'rundown' went unpurged for a while: this file spelled it 'rundowns'.
+        // An unknown tag is now treated as site-wide, so the failure mode of
+        // forgetting to map something is a little wasted work instead of content
+        // that never updates. Add the tag to `tags` to make it precise again.
+        $unmapped = array_values(array_filter(
+            $tags,
+            fn ($tag) => ! isset($tagMap[$tag]) && ! in_array($tag, $globalTags, true),
+        ));
+
+        if ($unmapped !== []) {
+            Log::info('Edge purge: unmapped cache tag, falling back to full purge', [
+                'tags' => $unmapped,
+            ]);
+        }
+
         // A settings/appearance/copy change rewrites the header and footer of
         // every page, so there is no URL list worth building.
-        if (array_intersect($tags, $globalTags)) {
+        if ($unmapped !== [] || array_intersect($tags, $globalTags)) {
             foreach ($sites as $site) {
                 static::purgeSite($site);
             }
@@ -191,7 +208,25 @@ class EdgeCache
      */
     public static function zoneForHost(string $host): ?string
     {
-        $zones = static::zones();
+        $zoneId = static::matchZone($host, static::zones());
+
+        if ($zoneId !== null) {
+            return $zoneId;
+        }
+
+        // A miss usually means the zone list is stale: the domain was added to
+        // Cloudflare after the list was cached, and until the cache expired the
+        // site would silently never be purged. Refresh once and retry, so adding
+        // a domain needs no cache-clearing ritual. A genuinely unknown host just
+        // costs one extra API call, and only on the first purge that mentions it.
+        Cache::forget('edge-cache:zones');
+
+        return static::matchZone($host, static::zones());
+    }
+
+    /** Longest-suffix match of a hostname against zone names. */
+    protected static function matchZone(string $host, array $zones): ?string
+    {
         $best = null;
         $bestLength = 0;
 

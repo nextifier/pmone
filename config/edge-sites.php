@@ -47,11 +47,14 @@ return [
     | Locale prefixes are appended to every HTML path ("" = default locale,
     | which carries no prefix under i18n `prefix_except_default`).
     |
-    | NOT PURGEABLE, deliberately listed anyway so the gap stays visible:
-    |  - iicc -> iicc.askindo.id lives on a zone in a DIFFERENT Cloudflare
-    |    account, so this token cannot reach it. It falls back to its TTL.
-    |    Moving that domain into this account would close the gap.
-    | It is skipped with a log line rather than failing a purge run.
+    | Every site here is purgeable as of 23 Jul 2026: askindo.id was moved into
+    | this Cloudflare account and global-ai-expo moved off *.pages.dev to
+    | ai.pmone.id, which closed the last two gaps.
+    |
+    | If a hostname ever lands on a zone this token cannot reach, EdgeCache skips
+    | it with a log line rather than failing the whole purge — that site would
+    | then silently fall back to its TTL, which for detail pages is SEVEN DAYS.
+    | Check the logs for "unmapped"/"zone" warnings after adding a domain.
     */
     'sites' => [
         ['app' => 'cafeexpo',        'project' => 'cbe',          'data_source' => null,  'url' => 'https://cafebrasserieexpo.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
@@ -141,9 +144,30 @@ return [
             'api' => ['/api/event/active', '/api/editions', '/api/event/rundown'],
             'html' => ['/rundown', '/gallery', '/programs'],
         ],
-        'rundowns' => [
+        // SINGULAR. The models emit 'rundown', not 'rundowns' — an earlier
+        // version of this file spelled it plural, so every rundown edit purged
+        // nothing at all. Verify a tag exists in the code before adding it here:
+        //   grep -rho "ResponseCache::clear(\[[^]]*\])" app/
+        'rundown' => [
             'api' => ['/api/event/rundown'],
             'html' => ['/rundown'],
+        ],
+        'gallery' => [
+            'api' => ['/api/event/gallery'],
+            'html' => ['/gallery'],
+        ],
+        'banners' => [
+            'api' => ['/api/banners'],
+            'html' => ['/'],
+        ],
+        // Brand.php emits both 'brands' and, in places, the singular form.
+        'brand' => [
+            'api' => ['/api/exhibitors', '/api/editions'],
+            'html' => ['/brands'],
+        ],
+        'short-links' => [
+            'api' => [],
+            'html' => ['/links'],
         ],
     ],
 
@@ -152,5 +176,14 @@ return [
     | change alters the header, footer and meta of every page, so there is no
     | useful URL list to build.
     */
-    'global_tags' => ['projects', 'website-copy', 'website-pages'],
+    'global_tags' => [
+        'projects',
+        'website-copy',
+        'website-pages',
+        // Site settings drive the header, footer, nav, appearance and section
+        // toggles on every page — there is no useful URL subset.
+        'website-settings',
+        // Custom-field/validation changes reshape every public form shell.
+        'validation',
+    ],
 ];
