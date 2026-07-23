@@ -7,9 +7,9 @@ export { default as Rating } from "./Rating.vue";
 export const ratingVariants = cva("inline-flex items-center outline-none", {
   variants: {
     size: {
-      sm: "gap-2",
-      default: "gap-2.5",
-      lg: "gap-3",
+      sm: "gap-2.5",
+      default: "gap-3",
+      lg: "gap-3.5",
     },
   },
   defaultVariants: {
@@ -21,9 +21,9 @@ export const ratingVariants = cva("inline-flex items-center outline-none", {
 export const starVariants = cva("shrink-0", {
   variants: {
     size: {
-      sm: "size-4",
-      default: "size-5",
-      lg: "size-6",
+      sm: "size-5",
+      default: "size-7",
+      lg: "size-8",
     },
   },
   defaultVariants: {

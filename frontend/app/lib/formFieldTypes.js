@@ -73,7 +73,7 @@ export const FIELD_TYPES = {
     hasPlaceholder: true,
   },
   multi_select: {
-    label: "Multi Select",
+    label: "Select Multiple",
     icon: "lucide:list-checks",
     group: "choice",
     hasOptions: true,

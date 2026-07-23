@@ -1,22 +1,31 @@
 <script setup lang="ts">
-import type { TagsInputItemDeleteProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { X } from "lucide-vue-next"
-import { TagsInputItemDelete, useForwardProps } from "reka-ui"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { reactiveOmit } from "@vueuse/core";
+import { X } from "lucide-vue-next";
+import type { TagsInputItemDeleteProps } from "reka-ui";
+import { TagsInputItemDelete, useForwardProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-const props = defineProps<TagsInputItemDeleteProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<TagsInputItemDeleteProps & { class?: HTMLAttributes["class"] }>();
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class");
 
-const forwardedProps = useForwardProps(delegatedProps)
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <TagsInputItemDelete v-bind="forwardedProps" :class="cn('flex rounded bg-transparent mr-1', props.class)">
-    <slot>
-      <X class="w-4 h-4" />
-    </slot>
-  </TagsInputItemDelete>
+  <!-- Same remove button as ComboboxChip: a ghost icon button whose data-slot collapses
+       the chip's right padding. Sizing comes from the button, so the X needs no size. -->
+  <Button variant="ghost" size="icon-xs" as-child>
+    <TagsInputItemDelete
+      v-bind="forwardedProps"
+      data-slot="combobox-chip-remove"
+      :class="cn('cn-combobox-chip-remove', props.class)"
+    >
+      <slot>
+        <X class="pointer-events-none" />
+      </slot>
+    </TagsInputItemDelete>
+  </Button>
 </template>

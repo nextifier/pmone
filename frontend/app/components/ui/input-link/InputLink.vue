@@ -93,12 +93,43 @@ watch(
     }
   }
 );
+
+// Keep the prefix scrolled to its END so the join point (the "/" or trailing "@" the
+// user types after) is what shows by default; the hidden head (protocol) is revealed by
+// scrolling left. Re-run on mount, when the prefix changes, and when the field resizes.
+const prefixRef = ref(null);
+function scrollPrefixToEnd() {
+  const el = prefixRef.value;
+  if (el) el.scrollLeft = el.scrollWidth;
+}
+watch(prefix, () => nextTick(scrollPrefixToEnd));
+onMounted(() => {
+  nextTick(scrollPrefixToEnd);
+  if (typeof ResizeObserver === "undefined" || !prefixRef.value) return;
+  const observer = new ResizeObserver(() => scrollPrefixToEnd());
+  observer.observe(prefixRef.value);
+  onBeforeUnmount(() => observer.disconnect());
+});
 </script>
 
 <template>
   <InputGroup :class="props.class">
-    <InputGroupAddon>
-      <InputGroupText>{{ prefix }}</InputGroupText>
+    <!-- The prefix is fixed context, so it yields space to what the user actually types:
+         it is capped at 45% width so the input keeps a usable width on narrow/mobile
+         screens; on wide fields it shows in full.
+         When it overflows, the prefix scrolls (no scrollbar) instead of being clipped, so
+         nothing is permanently hidden. It is scrolled to its END (see scrollPrefixToEnd),
+         so the join point shows by default — the user sees the character their input
+         attaches after ("/" or a trailing "@"), which prevents e.g. typing "@handle" after
+         a prefix that already ends in "@". `scroll-fade-x` fades whichever edge still has
+         hidden content: only the start (protocol) at rest, and the end once the user
+         scrolls left, so there is always a hint toward the content that is off-screen. -->
+    <InputGroupAddon class="min-w-0 max-w-[45%]">
+      <span
+        ref="prefixRef"
+        class="cn-input-group-text no-scrollbar scroll-fade-x block min-w-0 overflow-x-auto whitespace-nowrap"
+        >{{ prefix }}</span
+      >
     </InputGroupAddon>
     <InputGroupInput
       :model-value="displayValue"

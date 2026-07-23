@@ -146,13 +146,51 @@
           <template v-if="!form.is_global">
             <div class="space-y-2">
               <Label>Roles</Label>
-              <MultiSelect
-                v-model="selectedRoles"
-                :options="roleOptions"
-                placeholder="Pick one or more roles"
-                open-on-focus
-                :hide-clear-all-button="false"
-              />
+              <Combobox v-model="selectedRoles" multiple ignore-filter open-on-focus>
+                <ComboboxAnchor class="w-full">
+                  <ComboboxChips
+                    v-model="selectedRoles"
+                    :display-value="(option) => option.label"
+                    class="w-full"
+                  >
+                    <ComboboxChip
+                      v-for="item in selectedRoles"
+                      :key="item.value"
+                      :value="item"
+                    />
+                    <ComboboxChipsInput
+                      v-model="roleQuery"
+                      placeholder="Pick one or more roles"
+                    />
+                    <button
+                      v-if="selectedRoles.length"
+                      type="button"
+                      class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+                      aria-label="Clear all"
+                      @click="selectedRoles = []"
+                    >
+                      <Icon name="lucide:x" class="size-3.5" />
+                    </button>
+                  </ComboboxChips>
+                </ComboboxAnchor>
+                <ComboboxList class="w-(--reka-combobox-trigger-width)">
+                  <ComboboxViewport>
+                    <ComboboxEmpty>No roles found.</ComboboxEmpty>
+                    <ComboboxGroup v-if="filteredRoles.length">
+                      <ComboboxItem
+                        v-for="opt in filteredRoles"
+                        :key="opt.value"
+                        :value="opt"
+                      >
+                        {{ opt.label }}
+                        <ComboboxItemIndicator>
+                          <Icon name="lucide:check" class="ml-auto size-4" />
+                        </ComboboxItemIndicator>
+                      </ComboboxItem>
+                    </ComboboxGroup>
+                  </ComboboxViewport>
+                </ComboboxList>
+              </Combobox>
               <p class="text-muted-foreground text-xs">
                 User must hold any of these roles to see the announcement.
               </p>
@@ -161,13 +199,51 @@
 
             <div class="space-y-2">
               <Label>Specific users</Label>
-              <MultiSelect
-                v-model="selectedUsers"
-                :options="userOptions"
-                placeholder="Pick users to target"
-                open-on-focus
-                :hide-clear-all-button="false"
-              />
+              <Combobox v-model="selectedUsers" multiple ignore-filter open-on-focus>
+                <ComboboxAnchor class="w-full">
+                  <ComboboxChips
+                    v-model="selectedUsers"
+                    :display-value="(option) => option.label"
+                    class="w-full"
+                  >
+                    <ComboboxChip
+                      v-for="item in selectedUsers"
+                      :key="item.value"
+                      :value="item"
+                    />
+                    <ComboboxChipsInput
+                      v-model="userQuery"
+                      placeholder="Pick users to target"
+                    />
+                    <button
+                      v-if="selectedUsers.length"
+                      type="button"
+                      class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+                      aria-label="Clear all"
+                      @click="selectedUsers = []"
+                    >
+                      <Icon name="lucide:x" class="size-3.5" />
+                    </button>
+                  </ComboboxChips>
+                </ComboboxAnchor>
+                <ComboboxList class="w-(--reka-combobox-trigger-width)">
+                  <ComboboxViewport>
+                    <ComboboxEmpty>No users found.</ComboboxEmpty>
+                    <ComboboxGroup v-if="filteredUsers.length">
+                      <ComboboxItem
+                        v-for="opt in filteredUsers"
+                        :key="opt.value"
+                        :value="opt"
+                      >
+                        {{ opt.label }}
+                        <ComboboxItemIndicator>
+                          <Icon name="lucide:check" class="ml-auto size-4" />
+                        </ComboboxItemIndicator>
+                      </ComboboxItem>
+                    </ComboboxGroup>
+                  </ComboboxViewport>
+                </ComboboxList>
+              </Combobox>
               <p class="text-muted-foreground text-xs">
                 Optional. Adds these users on top of role targeting.
               </p>
@@ -176,13 +252,51 @@
 
             <div class="space-y-2">
               <Label>Specific events</Label>
-              <MultiSelect
-                v-model="selectedEvents"
-                :options="eventOptions"
-                placeholder="Pick events to target"
-                open-on-focus
-                :hide-clear-all-button="false"
-              />
+              <Combobox v-model="selectedEvents" multiple ignore-filter open-on-focus>
+                <ComboboxAnchor class="w-full">
+                  <ComboboxChips
+                    v-model="selectedEvents"
+                    :display-value="(option) => option.label"
+                    class="w-full"
+                  >
+                    <ComboboxChip
+                      v-for="item in selectedEvents"
+                      :key="item.value"
+                      :value="item"
+                    />
+                    <ComboboxChipsInput
+                      v-model="eventQuery"
+                      placeholder="Pick events to target"
+                    />
+                    <button
+                      v-if="selectedEvents.length"
+                      type="button"
+                      class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+                      aria-label="Clear all"
+                      @click="selectedEvents = []"
+                    >
+                      <Icon name="lucide:x" class="size-3.5" />
+                    </button>
+                  </ComboboxChips>
+                </ComboboxAnchor>
+                <ComboboxList class="w-(--reka-combobox-trigger-width)">
+                  <ComboboxViewport>
+                    <ComboboxEmpty>No events found.</ComboboxEmpty>
+                    <ComboboxGroup v-if="filteredEvents.length">
+                      <ComboboxItem
+                        v-for="opt in filteredEvents"
+                        :key="opt.value"
+                        :value="opt"
+                      >
+                        {{ opt.label }}
+                        <ComboboxItemIndicator>
+                          <Icon name="lucide:check" class="ml-auto size-4" />
+                        </ComboboxItemIndicator>
+                      </ComboboxItem>
+                    </ComboboxGroup>
+                  </ComboboxViewport>
+                </ComboboxList>
+              </Combobox>
               <p class="text-muted-foreground text-xs">
                 Optional. Members of the selected events' projects will see it.
               </p>
@@ -191,13 +305,51 @@
 
             <div class="space-y-2">
               <Label>Specific projects</Label>
-              <MultiSelect
-                v-model="selectedProjects"
-                :options="projectOptions"
-                placeholder="Pick projects to target"
-                open-on-focus
-                :hide-clear-all-button="false"
-              />
+              <Combobox v-model="selectedProjects" multiple ignore-filter open-on-focus>
+                <ComboboxAnchor class="w-full">
+                  <ComboboxChips
+                    v-model="selectedProjects"
+                    :display-value="(option) => option.label"
+                    class="w-full"
+                  >
+                    <ComboboxChip
+                      v-for="item in selectedProjects"
+                      :key="item.value"
+                      :value="item"
+                    />
+                    <ComboboxChipsInput
+                      v-model="projectQuery"
+                      placeholder="Pick projects to target"
+                    />
+                    <button
+                      v-if="selectedProjects.length"
+                      type="button"
+                      class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+                      aria-label="Clear all"
+                      @click="selectedProjects = []"
+                    >
+                      <Icon name="lucide:x" class="size-3.5" />
+                    </button>
+                  </ComboboxChips>
+                </ComboboxAnchor>
+                <ComboboxList class="w-(--reka-combobox-trigger-width)">
+                  <ComboboxViewport>
+                    <ComboboxEmpty>No projects found.</ComboboxEmpty>
+                    <ComboboxGroup v-if="filteredProjects.length">
+                      <ComboboxItem
+                        v-for="opt in filteredProjects"
+                        :key="opt.value"
+                        :value="opt"
+                      >
+                        {{ opt.label }}
+                        <ComboboxItemIndicator>
+                          <Icon name="lucide:check" class="ml-auto size-4" />
+                        </ComboboxItemIndicator>
+                      </ComboboxItem>
+                    </ComboboxGroup>
+                  </ComboboxViewport>
+                </ComboboxList>
+              </Combobox>
               <p class="text-muted-foreground text-xs">
                 Optional. Members of these projects will see the announcement.
               </p>
@@ -346,10 +498,23 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
+import {
+  Combobox,
+  ComboboxAnchor,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxList,
+  ComboboxViewport,
+} from "@/components/ui/combobox";
 import { IconPicker } from "@/components/ui/icon-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { useFilter } from "reka-ui";
 import {
   Select,
   SelectContent,
@@ -405,6 +570,31 @@ const roleOptions = ref([]);
 const userOptions = ref([]);
 const eventOptions = ref([]);
 const projectOptions = ref([]);
+
+// The target pickers are comboboxes in `multiple` mode. `ignore-filter` hands filtering
+// to us, so a picked option keeps its place in the list with a check instead of
+// disappearing under the cursor.
+const { contains } = useFilter({ sensitivity: "base" });
+
+const roleQuery = ref("");
+const userQuery = ref("");
+const eventQuery = ref("");
+const projectQuery = ref("");
+
+const matching = (options, query) =>
+  options.filter((o) => contains(o.label, query) || contains(o.value, query));
+
+const filteredRoles = computed(() => matching(roleOptions.value, roleQuery.value));
+const filteredUsers = computed(() => matching(userOptions.value, userQuery.value));
+const filteredEvents = computed(() => matching(eventOptions.value, eventQuery.value));
+const filteredProjects = computed(() => matching(projectOptions.value, projectQuery.value));
+
+// reka only auto-clears the search text when the selection changed without typing, so
+// picking a filtered option would otherwise leave the query in the field.
+watch(selectedRoles, () => (roleQuery.value = ""));
+watch(selectedUsers, () => (userQuery.value = ""));
+watch(selectedEvents, () => (eventQuery.value = ""));
+watch(selectedProjects, () => (projectQuery.value = ""));
 
 async function loadRoles() {
   try {

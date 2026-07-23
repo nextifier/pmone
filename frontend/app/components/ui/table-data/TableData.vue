@@ -29,7 +29,7 @@
         <!-- Search and Filters -->
         <div
           v-if="searchable || columnToggle || $slots.filters"
-          class="flex h-9 w-full gap-x-1 sm:gap-x-2"
+          class="flex h-8 w-full gap-x-1 sm:gap-x-2"
         >
           <!-- Search Input -->
           <div v-if="searchable" class="relative flex h-full grow items-center">
@@ -40,8 +40,9 @@
             <input
               ref="searchInputEl"
               type="text"
+              data-slot="input"
               :placeholder="searchPlaceholder || 'Search..'"
-              class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
+              class="cn-input peer placeholder:text-muted-foreground h-full w-full px-9 tracking-tight outline-none"
               :value="searchValue"
               @input="handleSearchInput"
             />
@@ -69,7 +70,10 @@
             <Popover>
               <PopoverTrigger asChild>
                 <button
-                  class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                  :class="[
+                    buttonVariants({ variant: 'outline' }),
+                    'aspect-square h-full shrink-0 gap-x-1.5 active:scale-98 sm:aspect-auto sm:px-2.5',
+                  ]"
                 >
                   <Icon name="hugeicons:layout-3-column" class="size-4 shrink-0" />
                   <span class="hidden sm:flex">Columns</span>
@@ -104,7 +108,10 @@
             </Popover>
             <template #fallback>
               <button
-                class="hover:bg-muted flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+                :class="[
+                  buttonVariants({ variant: 'outline' }),
+                  'aspect-square h-full shrink-0 gap-x-1.5 active:scale-98 sm:aspect-auto sm:px-2.5',
+                ]"
                 disabled
               >
                 <Icon name="hugeicons:layout-3-column" class="size-4 shrink-0" />
@@ -159,16 +166,12 @@
             </Button>
 
             <slot name="add-button">
-              <NuxtLink
-                v-if="showAddButton && !displayOnly"
-                :to="`/${props.model}/create`"
-                class="hover:bg-primary/80 text-primary-foreground bg-primary flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-              >
+              <Button v-if="showAddButton && !displayOnly" :to="`/${props.model}/create`" size="sm">
                 <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
                 <span
                   >Add <span v-if="props.label">{{ props.label }}</span></span
                 >
-              </NuxtLink>
+              </Button>
             </slot>
           </div>
         </div>
@@ -384,22 +387,17 @@
               </p>
             </div>
             <div class="flex items-center gap-2">
-              <NuxtLink
+              <Button
                 v-if="props.showAddButton && !props.displayOnly"
                 :to="`/${props.model}/create`"
-                class="hover:bg-primary/80 bg-primary text-primary-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
               >
                 <Icon name="lucide:plus" class="size-4 shrink-0" />
                 <span>Create new</span>
-              </NuxtLink>
-              <button
-                v-if="hasActiveFilters"
-                class="border-border hover:bg-muted text-foreground flex items-center gap-x-1.5 rounded-lg border px-3 py-2 text-sm font-medium tracking-tight active:scale-98"
-                @click="table.resetColumnFilters()"
-              >
+              </Button>
+              <Button v-if="hasActiveFilters" variant="outline" @click="table.resetColumnFilters()">
                 <Icon name="lucide:x" class="size-4 shrink-0" />
                 <span>Clear filters</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -456,7 +454,7 @@
               <PaginationContent>
                 <PaginationFirst asChild>
                   <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    :class="buttonVariants({ variant: 'outline', size: 'icon' })"
                     @click="goToFirstPage"
                     :disabled="!canGoPrevious"
                   >
@@ -465,7 +463,7 @@
                 </PaginationFirst>
                 <PaginationPrevious asChild>
                   <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    :class="buttonVariants({ variant: 'outline', size: 'icon' })"
                     @click="goToPreviousPage"
                     :disabled="!canGoPrevious"
                   >
@@ -474,7 +472,7 @@
                 </PaginationPrevious>
                 <PaginationNext asChild>
                   <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    :class="buttonVariants({ variant: 'outline', size: 'icon' })"
                     @click="goToNextPage"
                     :disabled="!canGoNext"
                   >
@@ -483,7 +481,7 @@
                 </PaginationNext>
                 <PaginationLast asChild>
                   <button
-                    class="hover:bg-muted bg-background border-border flex size-8 shrink-0 items-center justify-center rounded-md border active:scale-98"
+                    :class="buttonVariants({ variant: 'outline', size: 'icon' })"
                     @click="goToLastPage"
                     :disabled="!canGoNext"
                   >
@@ -500,7 +498,7 @@
 </template>
 
 <script setup>
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import TableBulkAction from "@/components/ui/table-data/TableBulkAction.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";

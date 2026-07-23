@@ -120,7 +120,7 @@ const fieldClass =
         :disabled="disabled"
         :class="
           cn(
-            'cn-input hover:bg-muted/50 data-[state=open]:bg-muted/50 inline-flex h-9 min-w-36 cursor-pointer items-center gap-x-2 text-sm tracking-tight disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+            'cn-input hover:bg-muted/50 data-[state=open]:bg-muted/50 inline-flex min-w-36 cursor-pointer items-center gap-x-2 text-sm tracking-tight disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
             props.class
           )
         "

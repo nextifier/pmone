@@ -133,33 +133,31 @@
                 v-model="linkUrl"
                 type="url"
                 placeholder="https://example.com"
-                class="border-border bg-background text-foreground placeholder:text-muted-foreground h-9 w-full rounded-md border px-3 text-sm tracking-tight outline-none focus:ring-1 focus:ring-ring"
+                class="cn-input w-full min-w-0 outline-none placeholder:text-muted-foreground"
                 @keydown.escape="linkPopoverOpen = false"
               />
               <div class="flex items-center justify-between">
-                <button
+                <Button
                   v-if="linkHasExisting"
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="text-destructive hover:text-destructive/80"
                   @click="removeLink"
-                  class="text-destructive hover:text-destructive/80 text-sm tracking-tight font-medium transition-colors"
                 >
                   Remove
-                </button>
+                </Button>
                 <div v-else />
                 <div class="flex items-center gap-x-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     @click="linkPopoverOpen = false"
-                    class="text-muted-foreground hover:text-foreground text-sm tracking-tight font-medium transition-colors"
                   >
                     Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    class="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-sm tracking-tight font-medium transition-colors"
-                  >
-                    Apply
-                  </button>
+                  </Button>
+                  <Button type="submit" size="sm"> Apply </Button>
                 </div>
               </div>
             </form>
@@ -228,6 +226,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import ImageNodeView from "@/components/tiptap/ImageNodeView.vue";
 import CodeBlockView from "@/components/tiptap/CodeBlockView.vue";
 import { useShiki } from "@/composables/useShiki";

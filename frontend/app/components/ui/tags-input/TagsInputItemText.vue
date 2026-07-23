@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import type { TagsInputItemTextProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { TagsInputItemText, useForwardProps } from "reka-ui"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { reactiveOmit } from "@vueuse/core";
+import type { TagsInputItemTextProps } from "reka-ui";
+import { TagsInputItemText, useForwardProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-const props = defineProps<TagsInputItemTextProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<TagsInputItemTextProps & { class?: HTMLAttributes["class"] }>();
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class");
 
-const forwardedProps = useForwardProps(delegatedProps)
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <TagsInputItemText v-bind="forwardedProps" :class="cn('py-0.5 px-2 text-sm rounded bg-transparent', props.class)" />
+  <!-- Size and padding come from the chip, as they do for combobox chips. -->
+  <TagsInputItemText v-bind="forwardedProps" :class="cn(props.class)" />
 </template>

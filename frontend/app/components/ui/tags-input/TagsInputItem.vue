@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import type { TagsInputItemProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
+import { cn } from "@/lib/utils";
+import { reactiveOmit } from "@vueuse/core";
+import type { TagsInputItemProps } from "reka-ui";
+import { TagsInputItem, useForwardProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-import { reactiveOmit } from "@vueuse/core"
-import { TagsInputItem, useForwardProps } from "reka-ui"
-import { cn } from "@/lib/utils"
+const props = defineProps<TagsInputItemProps & { class?: HTMLAttributes["class"] }>();
 
-const props = defineProps<TagsInputItemProps & { class?: HTMLAttributes["class"] }>()
+const delegatedProps = reactiveOmit(props, "class");
 
-const delegatedProps = reactiveOmit(props, "class")
-
-const forwardedProps = useForwardProps(delegatedProps)
+const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <TagsInputItem v-bind="forwardedProps" :class="cn('flex h-5 items-center rounded-md bg-secondary data-[state=active]:ring-ring data-[state=active]:ring-2 data-[state=active]:ring-offset-2 ring-offset-background', props.class)">
+  <!-- Same chip as ComboboxChip. `cn-combobox-chip` keys its right padding off
+       `has-data-[slot=combobox-chip-remove]`, which TagsInputItemDelete sets. -->
+  <TagsInputItem
+    v-bind="forwardedProps"
+    data-slot="combobox-chip"
+    :class="
+      cn(
+        'cn-combobox-chip has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50',
+        // Arrow keys move focus between tags; the active one needs to show it.
+        'data-[state=active]:ring-ring/50 ring-offset-background data-[state=active]:ring-2',
+        props.class
+      )
+    "
+  >
     <slot />
   </TagsInputItem>
 </template>

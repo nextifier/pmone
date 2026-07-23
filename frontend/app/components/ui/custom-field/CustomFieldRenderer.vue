@@ -203,17 +203,66 @@
         </SelectContent>
       </Select>
 
-      <!-- Multi Select -->
-      <MultiSelect
+      <!-- Multi Select: a combobox in `multiple` mode. Selected options stay in the list
+           with a check so it never reflows under the cursor; only the query filters. -->
+      <Combobox
         v-else-if="normalized.type === 'multi_select'"
         :model-value="multiSelectValue"
-        :options="normalized.options"
-        :disabled="disabled"
-        :placeholder="normalized.placeholder || 'Select options'"
+        multiple
+        ignore-filter
         open-on-click
-        @update:model-value="$emit('update:modelValue', $event.map((o) => o.value))"
-        :hide-clear-all-button="false"
-      />
+        open-on-focus
+        :disabled="disabled"
+        @update:model-value="emitMultiSelect"
+      >
+        <ComboboxAnchor class="w-full">
+          <ComboboxChips
+            :model-value="multiSelectValue"
+            :disabled="disabled"
+            :display-value="(option) => option.label"
+            class="w-full"
+            @update:model-value="emitMultiSelect"
+          >
+            <ComboboxChip v-for="item in multiSelectValue" :key="item.value" :value="item" />
+            <ComboboxChipsInput
+              :id="fieldId"
+              v-model="multiSelectQuery"
+              :placeholder="normalized.placeholder || 'Select options'"
+            />
+            <button
+              v-if="multiSelectValue.length"
+              type="button"
+              class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+              aria-label="Clear all"
+              @click="$emit('update:modelValue', [])"
+            >
+              <X class="size-3.5" aria-hidden="true" />
+            </button>
+          </ComboboxChips>
+        </ComboboxAnchor>
+
+        <ComboboxList class="w-(--reka-combobox-trigger-width)">
+          <!-- The viewport carries the scroll; without it a long list is clipped. -->
+          <ComboboxViewport>
+            <ComboboxEmpty>No results found.</ComboboxEmpty>
+
+            <ComboboxGroup v-if="multiSelectOptions.length">
+              <ComboboxItem
+                v-for="opt in multiSelectOptions"
+                :key="opt.value"
+                :value="opt"
+                :disabled="opt.disabled"
+              >
+                {{ opt.label }}
+
+                <ComboboxItemIndicator>
+                  <Check class="ml-auto size-4" />
+                </ComboboxItemIndicator>
+              </ComboboxItem>
+            </ComboboxGroup>
+          </ComboboxViewport>
+        </ComboboxList>
+      </Combobox>
 
       <!-- Checkbox (single) -->
       <div v-else-if="normalized.type === 'checkbox'" class="flex items-center gap-x-2">
@@ -427,11 +476,26 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { CalendarDate, Time } from "@internationalized/date";
+import { Check, X } from "lucide-vue-next";
+import { useFilter } from "reka-ui";
 import CustomFieldFileUpload from "./CustomFieldFileUpload.vue";
 import { Checkbox } from "../checkbox";
 import { ColorPicker } from "../color-picker";
+import {
+  Combobox,
+  ComboboxAnchor,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxList,
+  ComboboxViewport,
+} from "../combobox";
 import {
   DatePicker,
   MonthPicker,
@@ -446,7 +510,6 @@ import { InputNumber } from "../input-number";
 import { InputPhone } from "../input-phone";
 import { Label } from "../label";
 import { LocationCombobox } from "../location-combobox";
-import { MultiSelect } from "../multi-select";
 import { RadioGroup, RadioGroupItem } from "../radio-group";
 import { Rating } from "../rating";
 import {
@@ -502,10 +565,39 @@ const isRequired = computed(() => !!normalized.value.validation?.required);
 
 const countryOptions = computed(() => props.countries ?? defaultCountries);
 
+/* ----- Multi select ----- */
+// The field stores plain values; the combobox works in option objects so chips can show
+// labels. These map between the two shapes.
 const multiSelectValue = computed(() =>
   (props.modelValue || []).map(
     (v) => normalized.value.options.find((o) => o.value === v) || { value: v, label: v }
   )
+);
+
+const emitMultiSelect = (options) => {
+  emit(
+    "update:modelValue",
+    options.map((o) => o.value)
+  );
+};
+
+const multiSelectQuery = ref("");
+
+const { contains } = useFilter({ sensitivity: "base" });
+
+const multiSelectOptions = computed(() =>
+  normalized.value.options.filter(
+    (o) => contains(o.label, multiSelectQuery.value) || contains(o.value, multiSelectQuery.value)
+  )
+);
+
+// reka only auto-clears the search text when the selection changed without typing, so
+// picking a filtered option would otherwise leave the query in the field.
+watch(
+  () => props.modelValue,
+  () => {
+    multiSelectQuery.value = "";
+  }
 );
 
 const handleMultiCheck = (checked, value) => {

@@ -10,14 +10,16 @@
     <div v-if="model.length > 0" class="space-y-2">
       <div v-for="(email, index) in model" :key="index" class="flex items-center gap-1.5">
         <Input v-model="model[index]" type="email" placeholder="email@example.com" />
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           aria-label="Remove email"
-          class="text-destructive hover:text-destructive/80 flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors"
+          class="text-destructive hover:text-destructive/80 shrink-0"
           @click="remove(index)"
         >
           <Icon name="hugeicons:delete-01" class="size-4" />
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -33,6 +35,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 

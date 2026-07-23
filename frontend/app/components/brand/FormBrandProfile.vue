@@ -88,14 +88,57 @@
 
           <div v-if="showCategories" class="space-y-2">
             <Label>{{ $t("brandsForm.businessCategories") }}</Label>
-            <MultiSelect
+            <Combobox
               v-if="businessCategoryOptions.length"
               v-model="selectedCategoryOptions"
-              :options="availableCategoryOptions"
-              :placeholder="$t('brandsForm.addCategory')"
+              multiple
+              ignore-filter
               open-on-focus
-              :hide-clear-all-button="false"
-            />
+            >
+              <ComboboxAnchor class="w-full">
+                <ComboboxChips
+                  v-model="selectedCategoryOptions"
+                  :display-value="(option) => option.label"
+                  class="w-full"
+                >
+                  <ComboboxChip
+                    v-for="item in selectedCategoryOptions"
+                    :key="item.value"
+                    :value="item"
+                  />
+                  <ComboboxChipsInput
+                    v-model="categoryQuery"
+                    :placeholder="$t('brandsForm.addCategory')"
+                  />
+                  <button
+                    v-if="selectedCategoryOptions.length"
+                    type="button"
+                    class="text-muted-foreground/80 hover:text-foreground focus-visible:ring-ring/50 ml-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2"
+                    aria-label="Clear all"
+                    @click="selectedCategoryOptions = []"
+                  >
+                    <Icon name="lucide:x" class="size-3.5" />
+                  </button>
+                </ComboboxChips>
+              </ComboboxAnchor>
+              <ComboboxList class="w-(--reka-combobox-trigger-width)">
+                <ComboboxViewport>
+                  <ComboboxEmpty>{{ $t("common.noResults") }}</ComboboxEmpty>
+                  <ComboboxGroup v-if="filteredCategoryOptions.length">
+                    <ComboboxItem
+                      v-for="opt in filteredCategoryOptions"
+                      :key="opt.value"
+                      :value="opt"
+                    >
+                      {{ opt.label }}
+                      <ComboboxItemIndicator>
+                        <Icon name="lucide:check" class="ml-auto size-4" />
+                      </ComboboxItemIndicator>
+                    </ComboboxItem>
+                  </ComboboxGroup>
+                </ComboboxViewport>
+              </ComboboxList>
+            </Combobox>
             <TagsInput v-else v-model="form.business_categories" class="text-sm">
               <TagsInputItem v-for="cat in form.business_categories" :key="cat" :value="cat">
                 <TagsInputItemText />
@@ -241,7 +284,19 @@ import AddressFields from "@/components/AddressFields.vue";
 import { CustomFieldGroup } from "@/components/ui/custom-field";
 import { formatResponseValue, localizedLabel } from "@/components/ui/custom-field/core";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
-import { MultiSelect } from "@/components/ui/multi-select";
+import {
+  Combobox,
+  ComboboxAnchor,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxItemIndicator,
+  ComboboxList,
+  ComboboxViewport,
+} from "@/components/ui/combobox";
 import {
   Select,
   SelectContent,
@@ -256,6 +311,7 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
+import { useFilter } from "reka-ui";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();
@@ -323,12 +379,13 @@ const form = reactive({
   business_categories: props.brand?.business_categories || [],
 });
 
-// MultiSelect: convert string[] options to Option[] format
+// Business categories: a combobox in `multiple` mode. `ignore-filter` hands filtering to
+// us, so a picked category keeps its place in the list with a check.
 const availableCategoryOptions = computed(() =>
   props.businessCategoryOptions.map((name) => ({ value: name, label: name }))
 );
 
-// MultiSelect: two-way sync between form.business_categories (string[]) and Option[]
+// Two-way sync between form.business_categories (string[]) and Option[]
 const selectedCategoryOptions = computed({
   get() {
     return (form.business_categories || []).map((name) => ({ value: name, label: name }));
@@ -337,6 +394,23 @@ const selectedCategoryOptions = computed({
     form.business_categories = options.map((opt) => opt.value);
   },
 });
+
+const { contains } = useFilter({ sensitivity: "base" });
+
+const categoryQuery = ref("");
+
+const filteredCategoryOptions = computed(() =>
+  availableCategoryOptions.value.filter((o) => contains(o.label, categoryQuery.value))
+);
+
+// reka only auto-clears the search text when the selection changed without typing, so
+// picking a filtered option would otherwise leave the query in the field.
+watch(
+  () => form.business_categories,
+  () => {
+    categoryQuery.value = "";
+  }
+);
 
 // Links
 const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];

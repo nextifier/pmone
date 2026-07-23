@@ -2,13 +2,14 @@
 import {
   ComboboxAnchor,
   ComboboxEmpty,
+  ComboboxInput,
   ComboboxItem,
   ComboboxItemIndicator,
   ComboboxList,
   ComboboxViewport,
 } from "@/components/ui/combobox";
-import { LucideCheck, LucideChevronsUpDown } from "lucide-vue-next";
-import { ComboboxInput, ComboboxRoot, ComboboxVirtualizer, useFilter } from "reka-ui";
+import { LucideCheck } from "lucide-vue-next";
+import { ComboboxRoot, ComboboxVirtualizer, useFilter } from "reka-ui";
 import { computed, ref, watch } from "vue";
 
 interface Option {
@@ -98,24 +99,15 @@ watch(modelValue, () => {
     "
   >
     <ComboboxAnchor class="w-full">
-      <div
-        class="cn-select-trigger focus-within:border-ring focus-within:ring-ring has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-destructive relative flex h-auto min-h-(--cn-input-h,2.25rem) w-full min-w-0 cursor-text items-center py-0 tracking-tight transition-[color,box-shadow] outline-none focus-within:ring-[1px] has-disabled:pointer-events-none has-disabled:cursor-not-allowed has-disabled:opacity-50"
-        @pointerdown="
-          (e: PointerEvent) => {
-            if ((e.target as HTMLElement).tagName === 'INPUT') return;
-            e.preventDefault();
-            (e.currentTarget as HTMLElement).querySelector('input')?.focus();
-          }
-        "
-      >
-        <ComboboxInput
-          v-model="searchTerm"
-          :display-value="() => modelValue || ''"
-          :placeholder="placeholder || 'Select'"
-          class="placeholder:text-muted-foreground h-full w-full flex-1 bg-transparent px-0 py-0 text-sm outline-hidden"
-        />
-        <LucideChevronsUpDown class="cn-select-trigger-icon shrink-0" />
-      </div>
+      <!-- The shared Combobox field, so the border, focus ring, invalid and disabled
+           states are the same here as in every other combobox. -->
+      <ComboboxInput
+        v-model="searchTerm"
+        :display-value="() => modelValue || ''"
+        :placeholder="placeholder || 'Select'"
+        :disabled="disabled"
+        class="w-full"
+      />
     </ComboboxAnchor>
 
     <ComboboxList class="w-(--reka-combobox-trigger-width)">

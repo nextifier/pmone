@@ -13,6 +13,7 @@
         <PopoverTrigger as-child>
           <button
             type="button"
+            data-slot="input"
             class="cn-input flex w-auto min-w-0 shrink-0 items-center gap-1 rounded-e-none border-e-0"
             aria-label="Select country"
           >

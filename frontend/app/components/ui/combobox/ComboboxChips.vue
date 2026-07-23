@@ -25,8 +25,8 @@ function focusInput(event: PointerEvent) {
 
 <template>
   <!-- Chips container for `multiple` comboboxes. Reka has no Chip primitives (those are
-       Base UI), so this is TagsInput underneath — the same wiring MultiSelect uses —
-       which brings the real keyboard semantics: Backspace removes the last chip and
+       Base UI), so this is TagsInput underneath, which brings the real keyboard
+       semantics for free: Backspace removes the last chip and
        arrows move between chips. `cn-combobox-chips` keys its padding off
        `has-data-[slot=combobox-chip]`, so ComboboxChip must keep that data-slot.
        Bind the same model as the Combobox and place this inside ComboboxAnchor. -->

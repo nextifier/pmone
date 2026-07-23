@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { X } from "lucide-vue-next";
 import type { AcceptableInputValue } from "reka-ui";
 import { TagsInputItem, TagsInputItemDelete, TagsInputItemText } from "reka-ui";
@@ -41,12 +42,10 @@ const slots = useSlots();
     <!-- `cn-combobox-chip` keys its right padding off `has-data-[slot=combobox-chip-remove]`,
          so this data-slot must stay even if the button is restyled. TagsInputItemDelete
          removes the entry from the shared model, which is also the combobox value. -->
-    <TagsInputItemDelete
-      v-if="showRemove"
-      data-slot="combobox-chip-remove"
-      class="cn-combobox-chip-remove inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-    >
-      <X class="pointer-events-none size-3" />
-    </TagsInputItemDelete>
+    <Button v-if="showRemove" variant="ghost" size="icon-xs" as-child>
+      <TagsInputItemDelete data-slot="combobox-chip-remove" class="cn-combobox-chip-remove">
+        <X class="pointer-events-none" />
+      </TagsInputItemDelete>
+    </Button>
   </TagsInputItem>
 </template>
