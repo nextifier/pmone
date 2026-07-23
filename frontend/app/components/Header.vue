@@ -57,7 +57,10 @@
             <span>Docs</span>
           </Button>
 
-          <Tippy v-if="['news-slug'].includes(route.name)">
+          <!-- The sidebar only holds the table of contents, and below 1024px
+               that moved to the sticky ScrollSpyPopover — so on mobile news
+               pages fall back to the regular menu. -->
+          <Tippy v-if="['news-slug'].includes(route.name) && !isMobile">
             <button
               data-sidebar="trigger"
               data-slot="sidebar-trigger"

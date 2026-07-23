@@ -448,5 +448,11 @@
     "contactOrganizer": "Hubungi Penyelenggara",
     "downloadForm": "Download Formulir",
     "viewCatalog": "Lihat Katalog"
+  },
+  "ui": {
+    "loading": "Loading",
+    "posted": "Diposting",
+    "readingTime": "{n} menit baca",
+    "shareThisPost": "Share artikel ini"
   }
 }

@@ -432,5 +432,11 @@
       "order": "订单"
     },
     "daysLeft": "剩{days}天"
+  },
+  "ui": {
+    "loading": "加载中",
+    "posted": "发布于",
+    "readingTime": "{n} 分钟阅读",
+    "shareThisPost": "分享这篇文章"
   }
 }

@@ -444,5 +444,11 @@
       "order": "Order"
     },
     "daysLeft": "{days}d left"
+  },
+  "ui": {
+    "loading": "Loading",
+    "posted": "Posted",
+    "readingTime": "{n} min read | {n} mins read",
+    "shareThisPost": "Share this post"
   }
 }

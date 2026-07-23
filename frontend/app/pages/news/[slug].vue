@@ -21,7 +21,10 @@
             'pt-2': isMobile,
           }"
         >
+          <!-- Desktop only: below 1024px the sidebar turns into a sheet and the
+               table of contents lives in the sticky ScrollSpyPopover instead. -->
           <ScrollSpy
+            v-if="!isMobile"
             v-show="foundHeadings?.length > 0"
             :content-selector="`#${post.slug}`"
             @headings-found="onHeadingsFound"
@@ -43,6 +46,14 @@
     </div>
 
     <div v-else-if="post" class="pb-24">
+      <!-- Mobile "On this page". `lg:hidden` matches the sidebar's own mobile
+           breakpoint (max-width: 1024px), so exactly one of the two is visible. -->
+      <ScrollSpyPopover
+        class="lg:hidden"
+        :content-selector="`#${post.slug}`"
+        :title="post.title"
+      />
+
       <div class="container-wider flex items-start justify-between gap-x-12">
         <main class="mx-auto w-full max-w-[38rem] py-4">
           <div class="flex items-center justify-between lg:-mx-3">
@@ -175,7 +186,7 @@
           </p>
 
           <div
-            class="format-html prose-img:rounded-xl prose-img:cursor-zoom-in prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
+            class="format-html prose-img:rounded-xl prose-img:cursor-zoom-in prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:5rem] lg:mt-8 lg:[--scroll-offset:2.5rem]"
           >
             <article :id="post.slug" v-html="processedHtml"></article>
 

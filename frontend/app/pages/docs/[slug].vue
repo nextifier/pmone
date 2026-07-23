@@ -62,67 +62,78 @@
               </div>
             </div>
 
-            <div v-else class="relative flex items-start gap-x-4">
-              <!-- Main content card -->
-              <main class="my-6 min-w-0 flex-1 sm:p-10">
-                <h1
-                  class="text-foreground mx-auto max-w-2xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-[2.5rem]"
-                >
-                  {{ doc.title }}
-                </h1>
+            <template v-else>
+              <!-- Mobile "On this page": sticky bar right under the docs header.
+                   -mx-4 cancels `container-wider`'s px-4 so it spans edge to edge. -->
+              <ScrollSpyPopover
+                :key="`toc-${contentId}`"
+                class="-mx-4"
+                :content-selector="`#${contentId}`"
+                :title="doc.title"
+              />
 
-                <p
-                  v-if="doc.excerpt"
-                  class="text-muted-foreground mx-auto mt-3 max-w-2xl text-base tracking-tight text-pretty sm:text-lg"
-                >
-                  {{ doc.excerpt }}
-                </p>
-
-                <div
-                  :id="contentId"
-                  class="format-html prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,4rem))] lg:prose-headings:scroll-mt-[calc(var(--navbar-height-desktop)+var(--scroll-offset,2rem))] mx-auto mt-8"
-                  v-html="doc.content"
-                />
-
-                <!-- Prev/Next navigation -->
-                <div
-                  v-if="prevDoc || nextDoc"
-                  class="mx-auto mt-12 flex max-w-2xl items-center justify-between"
-                >
-                  <NuxtLink
-                    v-if="prevDoc"
-                    :to="`/docs/${prevDoc.slug}`"
-                    class="text-muted-foreground hover:text-foreground group inline-flex items-center gap-x-1 text-sm tracking-tight transition"
+              <div class="relative flex items-start gap-x-4">
+                <!-- Main content card -->
+                <main class="my-6 min-w-0 flex-1 sm:p-10">
+                  <h1
+                    class="text-foreground mx-auto max-w-2xl text-3xl font-semibold tracking-tighter sm:text-4xl lg:text-[2.5rem]"
                   >
-                    <Icon
-                      name="lucide:chevron-left"
-                      class="size-4 transition group-hover:-translate-x-0.5"
-                    />
-                    <span>{{ prevDoc.title }}</span>
-                  </NuxtLink>
-                  <div v-else />
+                    {{ doc.title }}
+                  </h1>
 
-                  <NuxtLink
-                    v-if="nextDoc"
-                    :to="`/docs/${nextDoc.slug}`"
-                    class="text-muted-foreground hover:text-foreground group ml-auto inline-flex items-center gap-x-1 text-sm tracking-tight transition"
+                  <p
+                    v-if="doc.excerpt"
+                    class="text-muted-foreground mx-auto mt-3 max-w-2xl text-base tracking-tight text-pretty sm:text-lg"
                   >
-                    <span>{{ nextDoc.title }}</span>
-                    <Icon
-                      name="lucide:chevron-right"
-                      class="size-4 transition group-hover:translate-x-0.5"
-                    />
-                  </NuxtLink>
-                </div>
-              </main>
+                    {{ doc.excerpt }}
+                  </p>
 
-              <!-- Right sidebar: On this page TOC (desktop) -->
-              <aside
-                class="sticky top-[var(--navbar-height-desktop)] hidden h-[calc(100vh-var(--navbar-height-desktop))] w-[220px] shrink-0 overflow-y-auto py-8 xl:block"
-              >
-                <ScrollSpy :content-selector="`#${contentId}`" />
-              </aside>
-            </div>
+                  <div
+                    :id="contentId"
+                    class="format-html prose-headings:scroll-mt-[calc(var(--navbar-height-mobile)+2.5rem+4rem)] lg:prose-headings:scroll-mt-[calc(var(--navbar-height-desktop)+2.5rem+2rem)] xl:prose-headings:scroll-mt-[calc(var(--navbar-height-desktop)+2rem)] mx-auto mt-8"
+                    v-html="doc.content"
+                  />
+
+                  <!-- Prev/Next navigation -->
+                  <div
+                    v-if="prevDoc || nextDoc"
+                    class="mx-auto mt-12 flex max-w-2xl items-center justify-between"
+                  >
+                    <NuxtLink
+                      v-if="prevDoc"
+                      :to="`/docs/${prevDoc.slug}`"
+                      class="text-muted-foreground hover:text-foreground group inline-flex items-center gap-x-1 text-sm tracking-tight transition"
+                    >
+                      <Icon
+                        name="lucide:chevron-left"
+                        class="size-4 transition group-hover:-translate-x-0.5"
+                      />
+                      <span>{{ prevDoc.title }}</span>
+                    </NuxtLink>
+                    <div v-else />
+
+                    <NuxtLink
+                      v-if="nextDoc"
+                      :to="`/docs/${nextDoc.slug}`"
+                      class="text-muted-foreground hover:text-foreground group ml-auto inline-flex items-center gap-x-1 text-sm tracking-tight transition"
+                    >
+                      <span>{{ nextDoc.title }}</span>
+                      <Icon
+                        name="lucide:chevron-right"
+                        class="size-4 transition group-hover:translate-x-0.5"
+                      />
+                    </NuxtLink>
+                  </div>
+                </main>
+
+                <!-- Right sidebar: On this page TOC (desktop) -->
+                <aside
+                  class="sticky top-[var(--navbar-height-desktop)] hidden h-[calc(100vh-var(--navbar-height-desktop))] w-[220px] shrink-0 py-8 xl:flex"
+                >
+                  <ScrollSpy class="flex-1" :content-selector="`#${contentId}`" />
+                </aside>
+              </div>
+            </template>
   </div>
 </template>
 

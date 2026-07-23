@@ -13,12 +13,16 @@
       </p>
     </header>
 
+    <!-- Mobile "On this page": sticky bar right under the app header.
+         -mx-4 cancels the app layout's px-4 so it spans edge to edge. -->
+    <ScrollSpyPopover class="-mx-4" content-selector="#guide-content" :title="pageTitle" />
+
     <div class="mt-10 xl:flex xl:gap-x-12">
       <article id="guide-content" class="text-foreground w-full min-w-0 space-y-14">
         <!-- 1. Konsep dasar -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Konsep dasar
           </h2>
@@ -61,7 +65,7 @@
         <!-- 2. Discount dan Penalty -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Discount dan Penalty
           </h2>
@@ -105,7 +109,7 @@
         <!-- 3. Value Type -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Value Type
           </h2>
@@ -141,7 +145,7 @@
         <!-- 4. Kapan promo berlaku -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Kapan promo berlaku
           </h2>
@@ -170,7 +174,7 @@
         <!-- 5. Menggabungkan promo -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Menggabungkan promo
           </h2>
@@ -232,7 +236,7 @@
         <!-- 6. Penalty otomatis -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Penalty otomatis
           </h2>
@@ -257,7 +261,7 @@
         <!-- 7. Promo Code -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Promo Code
           </h2>
@@ -321,7 +325,7 @@
         <!-- 8. Contoh konfigurasi -->
         <section>
           <h2
-            class="text-foreground scroll-mt-24 text-xl font-semibold tracking-tighter sm:text-2xl"
+            class="text-foreground scroll-mt-28 text-xl font-semibold tracking-tighter sm:text-2xl xl:scroll-mt-24"
           >
             Contoh konfigurasi
           </h2>
@@ -373,7 +377,7 @@
 
       <aside class="hidden shrink-0 xl:block xl:w-44">
         <div class="sticky top-20">
-          <ScrollSpy :show-label="true" content-selector="#guide-content" />
+          <ScrollSpy content-selector="#guide-content" />
         </div>
       </aside>
     </div>
@@ -383,7 +387,7 @@
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ScrollSpy } from "@/components/ui/scroll-spy";
+import { ScrollSpy, ScrollSpyPopover } from "@/components/ui/scroll-spy";
 
 definePageMeta({
   middleware: ["sanctum:auth"],
@@ -392,7 +396,9 @@ definePageMeta({
 
 const appName = useAppConfig().app.name;
 
-usePageMeta(null, { title: "Panduan Sistem Promosi" });
+const pageTitle = "Panduan Sistem Promosi";
+
+usePageMeta(null, { title: pageTitle });
 
 const buildingBlocks = [
   {
