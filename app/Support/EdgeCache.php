@@ -110,6 +110,14 @@ class EdgeCache
                 // every dashboard purge a silent no-op on 23 Jul 2026. Keep the
                 // suffixes in lockstep with the worker's key scheme.
                 foreach (array_merge($paths['html'] ?? [], $extraPaths) as $path) {
+                    if ($path === '/') {
+                        // The homepage is negotiated (locale cookie +
+                        // Accept-Language), so its key space is bigger — but
+                        // deliberately finite. See homeVariantUrls().
+                        array_push($urls, ...static::homeVariantUrls($base, $locales));
+
+                        continue;
+                    }
                     foreach (static::localeVariants($path, $locales) as $variant) {
                         $urls[] = $base.$variant.'?__cm=dark';
                         $urls[] = $base.$variant.'?__cm=light';
@@ -119,6 +127,43 @@ class EdgeCache
         }
 
         static::purgeUrls(array_values(array_unique($urls)));
+    }
+
+    /**
+     * Every cache-key variant the worker can store for a site's bare "/".
+     *
+     * The worker keys "/" on its locale-negotiation inputs, deliberately
+     * collapsed to stay enumerable (see buildEdgeCacheKey in the events repo —
+     * KEEP IN LOCKSTEP):
+     *   __lc = locale cookie clamped to the site's locales, else "none"
+     *   __al = first Accept-Language match; "-" when a cookie exists
+     *          (i18n gives the cookie precedence); "none"/"other" otherwise
+     *   __cm = dark|light
+     * Locale-prefixed homepages ("/id" …) go through the normal path variants;
+     * this list is only for the negotiated bare "/".
+     *
+     * @return string[]
+     */
+    public static function homeVariantUrls(string $base, array $locales): array
+    {
+        $urls = [];
+
+        $alWithoutCookie = array_values(array_unique(['none', 'other', ...$locales]));
+
+        foreach (['dark', 'light'] as $cm) {
+            // Bot requests skip the negotiation inputs entirely (they collapse
+            // onto the default variant), so their key is just ?__cm=….
+            $urls[] = $base.'/?__cm='.$cm;
+
+            foreach ($alWithoutCookie as $al) {
+                $urls[] = $base.'/?__cm='.$cm.'&__lc=none&__al='.$al;
+            }
+            foreach ($locales as $lc) {
+                $urls[] = $base.'/?__cm='.$cm.'&__lc='.$lc.'&__al=-';
+            }
+        }
+
+        return $urls;
     }
 
     /**

@@ -123,6 +123,24 @@ class Form extends Model implements HasMedia
         return ['forms-public'];
     }
 
+    /**
+     * Public URLs this form renders as on the event websites.
+     *
+     * Doubly important since the edge began caching 404 pages (1 h TTL): a form
+     * link shared moments before publishing may have a cached 404 sitting at
+     * its URL, and this purge is what makes the form appear the instant it goes
+     * live. Both slugs are returned so renames clear the old address too.
+     */
+    public function edgeCachePaths(): array
+    {
+        $slugs = array_unique(array_filter([
+            $this->slug,
+            $this->getOriginal('slug'),
+        ]));
+
+        return array_map(fn ($slug) => "/forms/{$slug}", array_values($slugs));
+    }
+
     protected $fillable = [
         'ulid',
         'title',

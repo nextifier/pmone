@@ -122,11 +122,16 @@ return [
         ],
         'media-coverages' => [
             'api' => ['/api/event/media-coverage'],
-            'html' => ['/partners'],
+            'html' => ['/partners', '/'],
         ],
+        // '/' on the html lists below: the post slider, hero/visitor-cta
+        // banners, media-coverage slider and rundown/active-event sections are
+        // SSR-rendered on the homepage (verified in its __NUXT_DATA__), so
+        // these tags must drop the home variants too or the home stays stale
+        // for its full 7-day TTL. EdgeCache expands '/' via homeVariantUrls().
         'blog-posts' => [
             'api' => ['/api/blog/posts'],
-            'html' => ['/news'],
+            'html' => ['/news', '/'],
         ],
         'hotels' => [
             'api' => ['/api/hotels'],
@@ -142,7 +147,7 @@ return [
         ],
         'events' => [
             'api' => ['/api/event/active', '/api/editions', '/api/event/rundown'],
-            'html' => ['/rundown', '/gallery', '/programs'],
+            'html' => ['/rundown', '/gallery', '/programs', '/'],
         ],
         // SINGULAR. The models emit 'rundown', not 'rundowns' — an earlier
         // version of this file spelled it plural, so every rundown edit purged
@@ -150,19 +155,18 @@ return [
         //   grep -rho "ResponseCache::clear(\[[^]]*\])" app/
         'rundown' => [
             'api' => ['/api/event/rundown'],
-            'html' => ['/rundown'],
+            'html' => ['/rundown', '/'],
         ],
         'gallery' => [
             'api' => ['/api/event/gallery'],
             'html' => ['/gallery'],
         ],
-        // No html entry: banners render client-side from /api/banners
-        // (?placement=… variants, TTL-bounded), and "/" is unpurgeable anyway —
-        // its cache keys carry locale-negotiation variants the backend cannot
-        // enumerate. Nothing else may list "/" here for the same reason.
+        // Banners are SSR'd on the homepage (banner-hero / visitor-cta in the
+        // payload), and '/' became purgeable when the worker collapsed its key
+        // space (phase 2) — EdgeCache::homeVariantUrls() enumerates it.
         'banners' => [
             'api' => ['/api/banners'],
-            'html' => [],
+            'html' => ['/'],
         ],
         // Brand.php emits both 'brands' and, in places, the singular form.
         'brand' => [

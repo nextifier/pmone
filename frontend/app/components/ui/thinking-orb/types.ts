@@ -21,12 +21,19 @@ export type OrbState =
   | "shaping";
 
 /**
- * Rendered size in CSS pixels. Exactly two tuned presets ship:
- * 64 (chat-avatar scale) and 20 (inline-text scale). Each size carries
- * its own dot count, dot size and speed tuning — they are separate
- * designs, not a scale factor.
+ * Rendered size in CSS pixels — any positive number.
+ *
+ * Two sizes ship hand-tuned and act as anchors: 64 (chat-avatar scale) and
+ * 20 (inline-text scale). They are separate designs, not a scale factor —
+ * each carries its own dot count, dot size and speed tuning. Sizes between
+ * the anchors interpolate that tuning; sizes outside the range keep the
+ * nearest anchor's tuning while the geometry follows the canvas, since
+ * every mode draws relative to `size`.
  */
-export type OrbSize = 64 | 20;
+export type OrbSize = number;
+
+/** The two hand-tuned anchors the presets are defined at. */
+export type OrbAnchorSize = 64 | 20;
 
 /**
  * Theme mode.

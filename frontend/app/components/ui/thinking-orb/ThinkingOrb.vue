@@ -28,7 +28,11 @@ const props = withDefaults(
   defineProps<{
     /** Which animation to show. */
     state?: OrbState;
-    /** Tuned size preset — 64 or 20 CSS px. */
+    /**
+     * Rendered size in CSS px — any positive number. 64 and 20 are the
+     * hand-tuned anchors; sizes in between blend their tuning, sizes
+     * outside hold the nearest anchor's.
+     */
     size?: OrbSize;
     /** Theme mode; `auto` detects from the host project. */
     theme?: OrbTheme;
@@ -55,6 +59,12 @@ const reduced = useReducedMotion();
 
 const label = computed(() => props.ariaLabel ?? LABELS[props.state]);
 
+// One sanitised size feeds both the canvas and its CSS box, so the two can
+// never disagree. Anything non-finite or non-positive falls back to 64.
+const px = computed(() =>
+  Number.isFinite(props.size) && props.size > 0 ? props.size : 64,
+);
+
 onMounted(() => {
   // Scoped to the component: stops and runs its cleanup on unmount, and
   // re-runs whenever state / size / speed / paused / dark / reduced change.
@@ -62,7 +72,7 @@ onMounted(() => {
     const canvas = canvasRef.value;
     if (!canvas) return;
 
-    const size = props.size;
+    const size = px.value;
     const isDark = dark.value;
     const dpr = Math.min(
       2,
@@ -137,12 +147,14 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- shrink-0: the canvas carries an intrinsic square size, so letting a
+       flex parent squeeze it would only ever distort the drawing. -->
   <canvas
     ref="canvasRef"
     data-slot="thinking-orb"
     role="img"
     :aria-label="label"
-    :class="cn('block', props.class)"
-    :style="{ width: `${size}px`, height: `${size}px` }"
+    :class="cn('block shrink-0', props.class)"
+    :style="{ width: `${px}px`, height: `${px}px` }"
   />
 </template>
