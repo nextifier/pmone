@@ -18,75 +18,83 @@
         <span class="truncate">{{ displayText }}</span>
       </button>
     </PopoverTrigger>
-    <!-- max-h + scroll so short viewports (landscape phones) can still reach
-         the presets/time rows below the calendar. -->
+    <!-- max-h so short viewports (landscape phones) never push the popover off
+         screen. Only the calendar scrolls — see the body wrapper below. -->
     <PopoverContent
-      class="no-scrollbar max-h-[var(--reka-popover-content-available-height,80vh)] w-auto max-w-[calc(100vw-0.5rem)] overflow-y-auto overscroll-contain rounded-xl p-0"
+      class="flex max-h-[var(--reka-popover-content-available-height,80vh)] w-auto max-w-[calc(100vw-0.5rem)] flex-col overflow-hidden rounded-xl p-0"
       :align="effectiveAlign"
       :collision-padding="8"
     >
-      <!-- fixed-weeks: always six rows, so the popover height doesn't jump
-           while navigating between 4/5/6-row months. -->
-      <Calendar
-        v-if="mode === 'range'"
-        v-model="selectedRange"
-        mode="range"
-        fixed-weeks
-        :layout="layout"
-        :placeholder="calendarPlaceholder"
-        :number-of-months="effectiveNumberOfMonths"
-        :min-value="calendarMinValue"
-        :max-value="calendarMaxValue"
-        :is-date-unavailable="isDateUnavailable"
-        :year-range="calendarYearRange"
-        initial-focus
-        @update:model-value="onRangeSelect"
-      />
-      <Calendar
-        v-else
-        v-model="selectedDate"
-        fixed-weeks
-        :layout="layout"
-        :placeholder="calendarPlaceholder"
-        :number-of-months="effectiveNumberOfMonths"
-        :min-value="calendarMinValue"
-        :max-value="calendarMaxValue"
-        :is-date-unavailable="isDateUnavailable"
-        :year-range="calendarYearRange"
-        initial-focus
-        @update:model-value="onDateSelect"
-      />
-
       <!--
-        Presets wrap in a footer under the calendar, as in shadcn's calendar-presets.
-        `w-0` keeps this row out of the popover's shrink-to-fit width — laid out on
-        one line the presets are far wider than the calendar, and they would drag the
-        popover out to the viewport edge. `min-w-full` then stretches the row back to
-        whatever width the calendar settled on.
+        Scroll region: calendar + presets. The time and action rows stay outside
+        it so Apply/Cancel/Clear are always on screen. Cut off, they read as
+        "the date didn't save" — the user changes date and time, closes the
+        popover, and nothing was ever applied.
       -->
-      <div v-if="showPresets" class="border-border w-0 min-w-full border-t p-3">
-        <div class="flex flex-wrap gap-2">
-          <slot name="presets" :apply="applyPreset">
-            <Button
-              v-for="preset in presets"
-              :key="preset.label"
-              type="button"
-              variant="outline"
-              size="sm"
-              class="flex-1"
-              :class="isPresetActive(preset) && 'bg-muted text-foreground'"
-              @click="applyPreset(resolvePreset(preset))"
-            >
-              {{ preset.label }}
-            </Button>
-          </slot>
+      <div class="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <!-- fixed-weeks: always six rows, so the popover height doesn't jump
+             while navigating between 4/5/6-row months. -->
+        <Calendar
+          v-if="mode === 'range'"
+          v-model="selectedRange"
+          mode="range"
+          fixed-weeks
+          :layout="layout"
+          :placeholder="calendarPlaceholder"
+          :number-of-months="effectiveNumberOfMonths"
+          :min-value="calendarMinValue"
+          :max-value="calendarMaxValue"
+          :is-date-unavailable="isDateUnavailable"
+          :year-range="calendarYearRange"
+          initial-focus
+          @update:model-value="onRangeSelect"
+        />
+        <Calendar
+          v-else
+          v-model="selectedDate"
+          fixed-weeks
+          :layout="layout"
+          :placeholder="calendarPlaceholder"
+          :number-of-months="effectiveNumberOfMonths"
+          :min-value="calendarMinValue"
+          :max-value="calendarMaxValue"
+          :is-date-unavailable="isDateUnavailable"
+          :year-range="calendarYearRange"
+          initial-focus
+          @update:model-value="onDateSelect"
+        />
+
+        <!--
+          Presets wrap in a footer under the calendar, as in shadcn's calendar-presets.
+          `w-0` keeps this row out of the popover's shrink-to-fit width — laid out on
+          one line the presets are far wider than the calendar, and they would drag the
+          popover out to the viewport edge. `min-w-full` then stretches the row back to
+          whatever width the calendar settled on.
+        -->
+        <div v-if="showPresets" class="border-border w-0 min-w-full border-t p-3">
+          <div class="flex flex-wrap gap-2">
+            <slot name="presets" :apply="applyPreset">
+              <Button
+                v-for="preset in presets"
+                :key="preset.label"
+                type="button"
+                variant="outline"
+                size="sm"
+                class="flex-1"
+                :class="isPresetActive(preset) && 'bg-muted text-foreground'"
+                @click="applyPreset(resolvePreset(preset))"
+              >
+                {{ preset.label }}
+              </Button>
+            </slot>
+          </div>
         </div>
       </div>
 
       <!-- Time section (single mode only) -->
       <div
         v-if="withTimeEnabled"
-        class="border-border flex items-center justify-center gap-2 border-t px-2.5 py-2"
+        class="border-border flex shrink-0 items-center justify-center gap-2 border-t px-2.5 py-2"
       >
         <Select v-model="selectedHour">
           <SelectTrigger size="sm" class="dark:bg-transparent">
@@ -112,7 +120,10 @@
       </div>
 
       <!-- Actions (single + time) -->
-      <div v-if="withTimeEnabled" class="border-border flex items-center border-t px-3 py-2">
+      <div
+        v-if="withTimeEnabled"
+        class="border-border flex shrink-0 items-center border-t px-3 py-2"
+      >
         <Button v-if="modelValue" type="button" variant="ghost" size="sm" @click="clear">
           Clear
         </Button>
@@ -125,7 +136,7 @@
       <!-- Clear row (range) -->
       <div
         v-else-if="mode === 'range' && hasValue"
-        class="border-border flex justify-end border-t px-3 py-2"
+        class="border-border flex shrink-0 justify-end border-t px-3 py-2"
       >
         <Button type="button" variant="ghost" size="sm" @click="clear">Clear</Button>
       </div>

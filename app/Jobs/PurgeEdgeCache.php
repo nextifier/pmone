@@ -23,9 +23,22 @@ class PurgeEdgeCache implements ShouldBeUnique, ShouldQueue
 
     /**
      * Seconds to wait before purging. Sets the floor on how quickly a published
-     * change reaches visitors; keep it small — the whole point is immediacy.
+     * change reaches visitors, so it should stay small — but it has a HARD
+     * MINIMUM and 5 s was below it.
+     *
+     * Every public GET proxy in the events repo is a `defineCachedEventHandler`
+     * with `maxAge: 15`, and that cache lives inside the Cloudflare Worker where
+     * no purge can reach it. Purging at +5 s therefore dropped the HTML while
+     * the worker still held the OLD payload: the next visitor re-rendered the
+     * page from it and the stale result was stored as fresh for seven days.
+     * That is how a banner CTA edited at 03:38 on 25 Jul 2026 was purged at
+     * 03:39:02 and re-cached, still wrong, at 03:39:07.
+     *
+     * 20 s clears that 15 s window with margin. LOCKSTEP: if the events repo
+     * raises maxAge in server/api/**, raise this to match (the reasoning is
+     * repeated in layers/base/shared/cf-cache-rules.ts).
      */
-    public const DEBOUNCE_SECONDS = 5;
+    public const DEBOUNCE_SECONDS = 20;
 
     public int $tries = 2;
 

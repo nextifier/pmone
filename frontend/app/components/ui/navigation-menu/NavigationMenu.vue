@@ -4,6 +4,7 @@ import {
   NavigationMenuRoot,
   type NavigationMenuRootEmits,
   type NavigationMenuRootProps,
+  type NavigationMenuViewportProps,
   useForwardPropsEmits,
 } from "reka-ui";
 import { cn } from "@/lib/utils";
@@ -11,15 +12,19 @@ import NavigationMenuViewport from "./NavigationMenuViewport.vue";
 
 const props = withDefaults(
   defineProps<
-    NavigationMenuRootProps & { class?: HTMLAttributes["class"]; viewport?: boolean }
+    NavigationMenuRootProps & {
+      class?: HTMLAttributes["class"];
+      viewport?: boolean;
+      align?: NavigationMenuViewportProps["align"];
+    }
   >(),
-  { viewport: true },
+  { viewport: true, align: "start" },
 );
 
 const emits = defineEmits<NavigationMenuRootEmits>();
 
 const delegatedProps = computed(() => {
-  const { class: _, viewport: __, ...delegated } = props;
+  const { class: _, viewport: __, align: ___, ...delegated } = props;
 
   return delegated;
 });
@@ -41,6 +46,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     "
   >
     <slot v-bind="slotProps" />
-    <NavigationMenuViewport v-if="viewport" />
+    <NavigationMenuViewport v-if="viewport" :align="align" />
   </NavigationMenuRoot>
 </template>

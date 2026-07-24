@@ -68,7 +68,17 @@ function detectColumns() {
   columnCount.value = getComputedStyle(gridRef.value).gridTemplateColumns.split(" ").length
 }
 
-useResizeObserver(gridRef, () => detectColumns())
+// Deferred to the next frame on purpose. detectColumns() writes columnCount,
+// which changes fillerCount, which adds or removes grid children and resizes
+// the grid — doing that inside the observer callback keeps the resize loop
+// going, and Chrome reports "ResizeObserver loop completed with undelivered
+// notifications". Measuring a frame later keeps the DOM write out of the loop.
+let pendingFrame = 0
+useResizeObserver(gridRef, () => {
+  cancelAnimationFrame(pendingFrame)
+  pendingFrame = requestAnimationFrame(detectColumns)
+})
+onBeforeUnmount(() => cancelAnimationFrame(pendingFrame))
 </script>
 
 <template>

@@ -25,6 +25,17 @@ class EdgeCache
     /** Cloudflare caps purge-by-URL at 30 URLs per request on non-Enterprise plans. */
     protected const URLS_PER_REQUEST = 30;
 
+    /**
+     * Whether this purge already re-listed the zones after a miss.
+     *
+     * Reset at the top of every purgeUrls() call, so each purge still picks up a
+     * newly added domain once — but an unreachable host repeated across dozens
+     * of URLs (iicc.askindo.id contributes 32 of them) can no longer make the
+     * job fetch the zone list 30+ times, which also evicted the cached list for
+     * every valid host that followed it.
+     */
+    protected static bool $zonesRefreshed = false;
+
     public static function isConfigured(): bool
     {
         return filled(config('edge-sites.token'));
@@ -223,7 +234,12 @@ class EdgeCache
             return;
         }
 
+        // One zone-list refresh per purge, not per unreachable URL. See
+        // zoneForHost().
+        static::$zonesRefreshed = false;
+
         $byZone = [];
+        $skipped = [];
 
         foreach ($urls as $url) {
             $host = parse_url($url, PHP_URL_HOST);
@@ -235,17 +251,40 @@ class EdgeCache
             if (! $zoneId) {
                 // Expected for iicc.askindo.id, whose zone lives in another
                 // Cloudflare account. That site falls back to its TTL.
+                $skipped[$host] = true;
+
                 continue;
             }
 
             $byZone[$zoneId][] = $url;
         }
 
+        $requests = 0;
+        $failed = 0;
+
         foreach ($byZone as $zoneId => $zoneUrls) {
             foreach (array_chunk($zoneUrls, self::URLS_PER_REQUEST) as $chunk) {
-                static::call($zoneId, ['files' => $chunk]);
+                $requests++;
+
+                if (! static::call($zoneId, ['files' => $chunk])) {
+                    $failed++;
+                }
             }
         }
+
+        // Log the SUCCESSFUL path too. Until now only failures were logged, so
+        // "the edit is still stale and the log is empty" could mean the purge
+        // ran fine or never ran at all — the two need completely different
+        // fixes, and telling them apart cost an hour on 25 Jul 2026. Keep this:
+        // one line per publish is cheap, and it is the only evidence that the
+        // model -> ResponseCache::clear -> job -> Cloudflare chain is alive.
+        Log::info('Edge purge: urls', [
+            'urls' => count($urls),
+            'zones' => count($byZone),
+            'requests' => $requests,
+            'failed' => $failed,
+            'unreachable_hosts' => array_keys($skipped),
+        ]);
     }
 
     /** Purge an entire site's zone. Used only for global tags. */
@@ -278,6 +317,16 @@ class EdgeCache
         // site would silently never be purged. Refresh once and retry, so adding
         // a domain needs no cache-clearing ritual. A genuinely unknown host just
         // costs one extra API call, and only on the first purge that mentions it.
+        //
+        // ONCE PER PURGE, not once per URL: a host this token cannot reach shows
+        // up in every URL built for it, and refetching the list each time turned
+        // one purge into 30+ Cloudflare calls against a 60 s job timeout.
+        if (static::$zonesRefreshed) {
+            return null;
+        }
+
+        static::$zonesRefreshed = true;
+
         Cache::forget('edge-cache:zones');
 
         return static::matchZone($host, static::zones());

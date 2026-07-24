@@ -29,7 +29,7 @@ const forwardedProps = useForwardProps(delegatedProps);
       data-slot="navigation-menu-viewport"
       :class="
         cn(
-          'cn-navigation-menu-viewport origin-top-center relative mt-1.5 h-(--reka-navigation-menu-viewport-height) w-full overflow-hidden md:w-(--reka-navigation-menu-viewport-width)',
+          'cn-navigation-menu-viewport origin-top-center relative mt-1.5 left-(--reka-navigation-menu-viewport-left) h-(--reka-navigation-menu-viewport-height) w-full overflow-hidden md:w-(--reka-navigation-menu-viewport-width)',
           props.class,
         )
       "

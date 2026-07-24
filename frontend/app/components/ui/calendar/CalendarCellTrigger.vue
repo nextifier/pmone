@@ -3,7 +3,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { reactiveOmit } from "@vueuse/core";
 import type { CalendarCellTriggerProps } from "reka-ui";
-import { CalendarCellTrigger, RangeCalendarCellTrigger, useForwardProps } from "reka-ui";
+import {
+  CalendarCellTrigger,
+  RangeCalendarCellTrigger,
+  useForwardProps,
+} from "reka-ui";
 import { computed, type HTMLAttributes } from "vue";
 import { useCalendarMode } from "./context";
 
@@ -11,7 +15,7 @@ const props = withDefaults(
   defineProps<CalendarCellTriggerProps & { class?: HTMLAttributes["class"] }>(),
   {
     as: "button",
-  }
+  },
 );
 
 const delegatedProps = reactiveOmit(props, "class");
@@ -30,7 +34,14 @@ const isRange = computed(() => mode.value === "range");
     :class="
       cn(
         buttonVariants({ variant: 'ghost' }),
-        'cn-calendar-day-button group relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) cursor-pointer flex-col gap-1 rounded-(--cell-radius) border-0 p-0 leading-none font-normal select-none dark:hover:text-foreground',
+        // background-color joins the transition so a day's fill and its label
+        // move together — `cn-button` animates colour only, which made a freshly
+        // selected day flash its old text colour over the new primary fill.
+        // No `dark:hover:text-foreground` here: it ties on specificity with the
+        // data-[selected]:hover rules below and, being emitted later by Tailwind,
+        // would win — leaving a selected day's label unreadable while hovered.
+        // The ghost variant already sets the hover colour in both schemes.
+        'cn-calendar-day-button group relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) cursor-pointer flex-col gap-1 rounded-(--cell-radius) border-0 p-0 leading-none font-normal transition-[color,background-color,box-shadow,transform] duration-100 select-none',
         '[&>span]:text-xs [&>span]:opacity-70',
         '[&[data-today]:not([data-selected])]:bg-muted [&[data-today]:not([data-selected])]:text-foreground',
         isRange
@@ -55,8 +66,8 @@ const isRange = computed(() => mode.value === "range");
         // reads clearly even when it is disabled too.
         'data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-100',
         // Today dot indicator
-        'data-[today]:after:bg-primary data-[today]:data-[selected]:after:bg-primary-foreground data-[today]:after:absolute data-[today]:after:bottom-[3px] data-[today]:after:left-1/2 data-[today]:after:size-1 data-[today]:after:-translate-x-1/2 data-[today]:after:rounded-full',
-        props.class
+        'data-[today]:after:bg-primary data-[today]:data-[selected]:after:bg-primary-foreground data-[today]:after:absolute data-[today]:after:bottom-[2px] data-[today]:after:left-1/2 data-[today]:after:size-[3px] data-[today]:after:-translate-x-1/2 data-[today]:after:rounded-full',
+        props.class,
       )
     "
     v-bind="forwardedProps"
