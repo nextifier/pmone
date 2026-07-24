@@ -29,10 +29,10 @@ class EdgeCache
      * Whether this purge already re-listed the zones after a miss.
      *
      * Reset at the top of every purgeUrls() call, so each purge still picks up a
-     * newly added domain once — but an unreachable host repeated across dozens
-     * of URLs (iicc.askindo.id contributes 32 of them) can no longer make the
-     * job fetch the zone list 30+ times, which also evicted the cached list for
-     * every valid host that followed it.
+     * newly added domain once — but an unreachable host can no longer make the
+     * job re-list zones once per URL. Each site contributes ~32 URLs to a tag
+     * purge, so a single unmapped domain meant 30+ Cloudflare calls AND evicted
+     * the cached zone list for every valid host that followed it.
      */
     protected static bool $zonesRefreshed = false;
 
@@ -249,8 +249,10 @@ class EdgeCache
 
             $zoneId = static::zoneForHost($host);
             if (! $zoneId) {
-                // Expected for iicc.askindo.id, whose zone lives in another
-                // Cloudflare account. That site falls back to its TTL.
+                // No zone this token can reach. As of 25 Jul 2026 the token
+                // covers all 28 account zones (askindo.id included), so a host
+                // landing here means a NEW domain outside the account — it
+                // falls back to its TTL, and the log line below names it.
                 $skipped[$host] = true;
 
                 continue;
