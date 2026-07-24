@@ -17,11 +17,16 @@ Tagihan Cloudflare akun `Nextifier@gmail.com` melonjak dari **$5,00 → $12,52**
 
 Akar masalahnya (ini penting dipahami, karena menjelaskan seluruh desain sekarang):
 
-> Di preset Nitro `cloudflare_module`, **Worker berjalan SEBELUM cache Cloudflare**. Jadi Cache
-> Rule level-zone **tidak bisa** meng-cache response yang dihasilkan Worker — ia hanya mengatur
-> `fetch()` subrequest. Nuxt merender di dalam worker tanpa origin fetch, sehingga **setiap
-> request halaman = 1 render SSR penuh** (±150–350 ms CPU). Tanda-tandanya: response worker
-> sama sekali tidak punya header `cf-cache-status`.
+> Di preset Nitro `cloudflare_module`, **Worker berjalan SEBELUM cache Cloudflare** — Cache
+> Rule zone tak bisa meng-cache render segar Worker (selalu membawa `set-cookie`), sehingga
+> awalnya **setiap request halaman = 1 render SSR penuh** (±150–350 ms CPU).
+>
+> **KOREKSI PENTING (24 Jul):** setelah edge-cache in-worker hidup, arsitekturnya menjadi
+> **DUA lapis**: salinan cache kita bebas `set-cookie` → **memenuhi syarat CDN** → Cache Rule
+> ikut meng-cache-nya. Rantai: `CDN (cf-cache-status) → Worker → Cache API (x-edge-cache) →
+> render`. Konsekuensi analisa: request ZONE ≠ invocation worker (zone bisa 31k req API
+> sementara worker hanya 9k invocation) — **analisa CPU wajib dari dataset
+> `workersInvocationsAdaptive`, JANGAN dari `httpRequestsAdaptiveGroups`.**
 
 Ini tidak terlihat sebelumnya karena dulu memakai preset `cloudflare-pages` (project Pages
 diperlakukan sebagai origin, sehingga Cache Rule bekerja). Migrasi ke Workers pada 21 Jul 2026
@@ -34,7 +39,7 @@ di-deploy ke 16 website event. Hasilnya p50 CPU turun dari ±115–145 ms ke **4
 
 Konsekuensi arsitektural yang melahirkan kebutuhan dashboard:
 
-- HTML sekarang di-cache **7 hari (halaman list & home) sampai 30 hari (halaman detail)**.
+- HTML di-cache **7 hari (list & home) sampai 30 hari (detail)**; API **6 jam** (tier STABLE ber-?locale) atau **120 dtk** (tier VARIED ?page/?search/?placement).
 - Karena TTL sepanjang itu, **purge adalah mekanisme utama kesegaran konten** — bukan TTL.
   Saat editor mem-publish artikel/brand/rundown, backend ini mem-purge URL persisnya dalam
   hitungan detik.
@@ -63,6 +68,39 @@ mana pun harus mengulang ritual yang sama. Angka-angka ini perlu berada di dashb
 di akun ini.
 
 ---
+
+### Status terkini (ditulis 24 Jul 2026 malam — baca ini dulu)
+
+**Kronologi fase:** Fase 1–2 (23 Jul): WAF 28 zone, edge cache in-worker + `x-edge-build`,
+TTL HTML 7–30 hari, purge varian, home purgeable, 404 di-cache, watch-paths dipersempit di 20
+worker. Gate H+1 fase-2 **GAGAL 7,8×** → investigasi 24 Jul menemukan model dua-lapis (di atas)
+dan sumber CPU riil = **TTL API kita sendiri (60–120 dtk)** yang memaksa re-render tiap ≤2 mnt
+per endpoint per colo. **Fase 3 (24 Jul sore, `154661e`+`29bbcaa` di pmone-events):** API tier
+STABLE 6 jam (11 endpoint ?locale-only, purge-covered), 302 i18n "/" di-cache, 20 ikon runtime
+→ client bundle, `getCachedData` di profile/event.
+
+**INSIDEN 24 Jul (resolved, pelajaran wajib):** trim payload posts membuang field
+`featured_image.md/.sm/.original` yang ternyata dirender PostCard → semua gambar posts rusak
+±85 menit → di-REVERT total + `php artisan edge:purge --all` (pemakaian perdana). Pelajaran:
+perubahan bentuk data API wajib audit konsumen exhaustive (layers+apps); anomali visual saat
+verifikasi = temuan, bukan noise.
+
+**⚠️ Batasan `purge_everything` yang HARUS dipahami dashboard ini:** tiga situs menumpang zone
+pihak lain — `ai.pmone.id` di zone pmone.id (purge site-nya ikut mengosongkan **cdn.pmone.id
++ api.pmone.id + admin**), `renex.megabuild.co.id` di zone megabuild.co.id (saling nuke dgn
+megabuild), `iicc.askindo.id` di zone askindo.id. Tombol "purge all"/"purge project" di
+dashboard WAJIB menampilkan peringatan dampak ini.
+
+**Yang sedang ditunggu (tak ada pekerjaan kode):** gate H+1 fase-3 (25 Jul) < 3M ms/hari;
+gate H+3 (27 Jul) < 2M ms/hari — metodologi lengkap + query GraphQL ada di
+`~/Frontend/pmone-events/docs/cf-cpu-daily-log.md`. Invoice 22 Ags (perkiraan $5,30–6,50;
+20,2M terbakar pra-fix) lalu 22 Sep (target $5,00). Sesi lama punya cron harian 09:23 WIB
+yang MATI bersama sesinya — sesi baru yang diminta "jalankan laporan gate Cloudflare" cukup
+ikuti metodologi di daily-log tsb.
+
+**Keputusan user yang mengikat:** fetching tetap server-side (client-side ditolak — kehilangan
+2 lapis cache & menghantam origin); tak ada subsistem baru (KV/R2 ditolak); mikro-optimasi
+payload SELESAI — sisa tuas bernilai sen dengan risiko nyata (terbukti lewat insiden).
 
 ## 2. Yang SUDAH ada di repo ini (jangan bangun ulang)
 
