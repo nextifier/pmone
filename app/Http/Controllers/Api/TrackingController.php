@@ -10,6 +10,7 @@ use App\Models\Link;
 use App\Models\LinkPage;
 use App\Models\LinkPageBanner;
 use App\Models\LinkPageItem;
+use App\Models\Post;
 use App\Models\Project;
 use App\Models\ProjectBanner;
 use App\Models\ShortLink;
@@ -32,6 +33,12 @@ class TrackingController extends Controller
         ShortLink::class,
         BrandEvent::class,
         ProjectBanner::class,
+        // Article views. They used to be counted server-side inside
+        // PublicBlogController::post(), which stopped working once the event
+        // websites started edge-caching /news/{slug} — no render, no upstream
+        // call, no view. Counted from the browser now, like every other type
+        // in this list.
+        Post::class,
     ];
 
     /**

@@ -14,39 +14,36 @@
       </div>
     </template>
 
-    <!-- Success State -->
+    <!-- Success State. The viewport height stays on the wrapper: Result is a
+         plain centred column so it can also sit at the top of a scrolling page. -->
     <template v-else-if="submitted">
       <div
-        class="flex min-h-[calc(100svh-var(--navbar-height-mobile)-8rem)] flex-col items-center justify-center text-center lg:min-h-[calc(100svh-var(--navbar-height-desktop)-8rem)]"
+        class="flex min-h-[calc(100svh-var(--navbar-height-mobile)-8rem)] flex-col items-center justify-center lg:min-h-[calc(100svh-var(--navbar-height-desktop)-8rem)]"
       >
-        <div class="bg-muted flex size-16 items-center justify-center rounded-full">
-          <Icon name="hugeicons:checkmark-circle-03" class="text-foreground size-8" />
-        </div>
+        <Result size="lg" variant="muted" :title="$t('orderForm.successTitle')">
+          <!-- Two lines share the description slot: the order number first, then
+               what happens next. The second one steps its own reveal delay. -->
+          <template #description>
+            <ResultDescription v-if="submittedOrder?.order_number" class="text-sm sm:text-sm">
+              {{ $t("orderForm.orderNumberReceived", { number: submittedOrder.order_number }) }}
+            </ResultDescription>
+            <ResultDescription style="--result-i: 3">
+              {{ $t("orderForm.successMessage") }}
+            </ResultDescription>
+          </template>
 
-        <h2 class="mt-6 text-2xl font-medium tracking-tighter text-balance sm:text-3xl">
-          {{ $t("orderForm.successTitle") }}
-        </h2>
-        <p
-          v-if="submittedOrder?.order_number"
-          class="text-muted-foreground mt-2 text-sm tracking-tight"
-        >
-          {{ $t("orderForm.orderNumberReceived", { number: submittedOrder.order_number }) }}
-        </p>
-        <p class="text-muted-foreground mt-3 max-w-md text-sm tracking-tight text-balance">
-          {{ $t("orderForm.successMessage") }}
-        </p>
-
-        <div class="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-          <Button
-            :to="`/brands/${route.params.slug}/orders/${route.params.brandEventId}/${submittedOrder?.ulid}`"
-          >
-            <Icon name="hugeicons:invoice-03" class="mr-1.5 size-4" />
-            {{ $t("orderForm.viewOrderDetails") }}
-          </Button>
-          <Button to="/dashboard" variant="outline">
-            {{ $t("orderForm.backToDashboard") }}
-          </Button>
-        </div>
+          <ResultActions style="--result-i: 4">
+            <Button
+              :to="`/brands/${route.params.slug}/orders/${route.params.brandEventId}/${submittedOrder?.ulid}`"
+            >
+              <Icon name="hugeicons:invoice-03" class="mr-1.5 size-4" />
+              {{ $t("orderForm.viewOrderDetails") }}
+            </Button>
+            <Button to="/dashboard" variant="outline">
+              {{ $t("orderForm.backToDashboard") }}
+            </Button>
+          </ResultActions>
+        </Result>
       </div>
     </template>
 
@@ -512,6 +509,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Result, ResultActions, ResultDescription } from "@/components/ui/result";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrderCart } from "@/composables/useOrderCart";

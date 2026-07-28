@@ -302,7 +302,7 @@ class Ticket extends Model implements HasMedia, Sortable
      */
     public function reserve(int $qty): bool
     {
-        return static::query()
+        $reserved = static::query()
             ->whereKey($this->id)
             // Parenthesized: SQL's AND binds tighter than OR, so an
             // unparenthesized "stock IS NULL OR sold_count + ? <= stock"
@@ -312,6 +312,12 @@ class Ticket extends Model implements HasMedia, Sortable
             // roomy ticket in the table, not just this one.
             ->whereRaw('(stock IS NULL OR sold_count + ? <= stock)', [$qty])
             ->update(['sold_count' => DB::raw('sold_count + '.(int) $qty)]) > 0;
+
+        if ($reserved) {
+            $this->clearResponseCacheForRawUpdate();
+        }
+
+        return $reserved;
     }
 
     /**
@@ -321,7 +327,11 @@ class Ticket extends Model implements HasMedia, Sortable
      */
     public function release(int $qty): void
     {
-        static::query()->whereKey($this->id)->where('sold_count', '>=', $qty)->decrement('sold_count', $qty);
+        $released = static::query()->whereKey($this->id)->where('sold_count', '>=', $qty)->decrement('sold_count', $qty);
+
+        if ($released > 0) {
+            $this->clearResponseCacheForRawUpdate();
+        }
     }
 
     public function event(): BelongsTo

@@ -334,7 +334,16 @@ test('post response includes required fields', function () {
         ]);
 });
 
-test('viewing post increments visit count', function () {
+/**
+ * Views are counted by a browser beacon, not by this endpoint.
+ *
+ * Counting here worked only while every article page was server-rendered per
+ * request. Once the event websites edge-cached /news/{slug}, a cache HIT meant
+ * no render, no upstream call and no row — production went from 23,300
+ * views/day to 4,359 in three days. The endpoint is response-cached now, which
+ * would have made a server-side counter wrong in a second way.
+ */
+test('fetching a post does not count a view', function () {
     $post = Post::factory()->create([
         'slug' => 'test-post',
         'status' => 'published',
@@ -342,13 +351,26 @@ test('viewing post increments visit count', function () {
         'created_by' => $this->author->id,
     ]);
 
-    expect($post->visits()->count())->toBe(0);
-
     $this->withHeaders([
         'X-API-Key' => 'pk_test_123456789',
-    ])->getJson('/api/public/blog/posts/test-post');
+    ])->getJson('/api/public/blog/posts/test-post')->assertSuccessful();
 
-    $post->refresh();
+    expect($post->visits()->count())->toBe(0);
+});
+
+test('the browser beacon counts a view against a post', function () {
+    $post = Post::factory()->create([
+        'slug' => 'test-post',
+        'status' => 'published',
+        'visibility' => 'public',
+        'created_by' => $this->author->id,
+    ]);
+
+    $this->postJson('/api/track/visit', [
+        'visitable_type' => Post::class,
+        'visitable_id' => $post->id,
+    ])->assertStatus(201);
+
     expect($post->visits()->count())->toBe(1);
 });
 

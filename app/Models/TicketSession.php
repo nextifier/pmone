@@ -123,13 +123,19 @@ class TicketSession extends Model implements Sortable
      */
     public function reserve(int $qty): bool
     {
-        return static::query()
+        $reserved = static::query()
             ->whereKey($this->id)
             // Parenthesized - see Ticket::reserve() for why: without the
             // parens, SQL's AND-before-OR precedence would let this clause
             // leak past the whereKey() and match every other roomy session.
             ->whereRaw('(capacity IS NULL OR booked_count + ? <= capacity)', [$qty])
             ->update(['booked_count' => DB::raw('booked_count + '.(int) $qty)]) > 0;
+
+        if ($reserved) {
+            $this->clearResponseCacheForRawUpdate();
+        }
+
+        return $reserved;
     }
 
     /**
@@ -137,6 +143,10 @@ class TicketSession extends Model implements Sortable
      */
     public function release(int $qty): void
     {
-        static::query()->whereKey($this->id)->where('booked_count', '>=', $qty)->decrement('booked_count', $qty);
+        $released = static::query()->whereKey($this->id)->where('booked_count', '>=', $qty)->decrement('booked_count', $qty);
+
+        if ($released > 0) {
+            $this->clearResponseCacheForRawUpdate();
+        }
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Helpers\TrackingHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\UserMinimalResource;
@@ -100,10 +99,16 @@ class PublicBlogController extends Controller
             ->public()
             ->firstOrFail();
 
-        // Track visit - no deduplication, always increment on refresh
-        TrackingHelper::trackVisit($request, $post);
-
-        // Load the updated visits count
+        // Views are NOT counted here any more. This endpoint is what an event
+        // website calls while server-rendering /news/{slug}, and once that HTML
+        // is edge-cached the render stops happening — so a server-side counter
+        // silently became a counter of cache misses. Measured: 23,300 views/day
+        // fell to 4,359 within three days of the edge cache going live, while
+        // banner and brand tracking (both client-side beacons) stayed flat.
+        //
+        // Counting now happens in the browser via POST /api/track/visit, the
+        // same path useBannerTracking and useBrandTracking already use. That
+        // also frees this endpoint to be response-cached — see routes/api.php.
         $post->loadCount('visits');
 
         return response()->json([

@@ -23,24 +23,18 @@
         </div>
       </template>
 
-      <!-- Status card (error / success / already submitted) -->
-      <div
+      <!-- Status card (error / success / already submitted). Result brings its own
+           entrance, so this card no longer carries animate-in classes. -->
+      <Result
         v-else-if="statusCard"
-        class="bg-card animate-in fade-in slide-in-from-bottom-2 rounded-2xl border p-8 text-center shadow-sm duration-500 sm:p-12"
-      >
-        <div
-          class="mx-auto flex size-14 items-center justify-center rounded-full"
-          :class="statusCard.iconClass"
-        >
-          <Icon :name="statusCard.icon" class="size-7" />
-        </div>
-        <h2 class="mt-5 text-lg font-semibold tracking-tighter text-balance sm:text-xl">
-          {{ statusCard.title }}
-        </h2>
-        <p class="text-muted-foreground mx-auto mt-2 max-w-sm text-sm tracking-tight sm:text-base">
-          {{ statusCard.message }}
-        </p>
-      </div>
+        size="sm"
+        class="bg-card rounded-2xl border p-8 shadow-sm sm:p-12"
+        :status="statusCard.status"
+        :variant="statusCard.variant"
+        :icon="statusCard.icon"
+        :title="statusCard.title"
+        :description="statusCard.message"
+      />
 
       <!-- Form -->
       <template v-else-if="form">
@@ -163,6 +157,7 @@ import { Button } from "@/components/ui/button";
 import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Result } from "@/components/ui/result";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createPublicFormUploadHandlers } from "@/lib/uploadHandlers";
 
@@ -223,28 +218,34 @@ const errorState = computed(() => {
   return { title: "Something went wrong", message: message || "Failed to load form." };
 });
 
-// One shared card for error / success / already-submitted states
+// One shared Result for error / success / already-submitted states
 const statusCard = computed(() => {
+  // Painted neutral on purpose: a missing or closed form is not the visitor's
+  // fault, so it should not read as a failure they caused.
   if (errorState.value) {
     return {
+      status: "error",
+      variant: "muted",
       icon: "lucide:alert-circle",
-      iconClass: "bg-muted text-muted-foreground",
       title: errorState.value.title,
       message: errorState.value.message,
     };
   }
+  // No icon here: success is the one state that draws its own checkmark.
   if (submitted.value) {
     return {
-      icon: "lucide:check",
-      iconClass: "bg-success/10 text-success",
+      status: "success",
+      variant: "soft",
+      icon: undefined,
       title: successTitle.value,
       message: successMessage.value,
     };
   }
   if (alreadySubmitted.value && form.value) {
     return {
+      status: "info",
+      variant: "soft",
       icon: "lucide:check-circle-2",
-      iconClass: "bg-primary/10 text-primary",
       title: "You're all set",
       message: "We've received your response. This form only accepts one submission per person.",
     };

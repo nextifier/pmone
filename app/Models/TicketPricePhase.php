@@ -150,13 +150,19 @@ class TicketPricePhase extends Model implements Sortable
      */
     public function reserve(int $qty): bool
     {
-        return static::query()
+        $reserved = static::query()
             ->whereKey($this->id)
             // Parenthesized - see Ticket::reserve() for why: without the
             // parens, SQL's AND-before-OR precedence would let this clause
             // leak past the whereKey() and match every other roomy phase.
             ->whereRaw('(quota IS NULL OR sold_count + ? <= quota)', [$qty])
             ->update(['sold_count' => DB::raw('sold_count + '.(int) $qty)]) > 0;
+
+        if ($reserved) {
+            $this->clearResponseCacheForRawUpdate();
+        }
+
+        return $reserved;
     }
 
     /**
@@ -164,6 +170,10 @@ class TicketPricePhase extends Model implements Sortable
      */
     public function release(int $qty): void
     {
-        static::query()->whereKey($this->id)->where('sold_count', '>=', $qty)->decrement('sold_count', $qty);
+        $released = static::query()->whereKey($this->id)->where('sold_count', '>=', $qty)->decrement('sold_count', $qty);
+
+        if ($released > 0) {
+            $this->clearResponseCacheForRawUpdate();
+        }
     }
 }

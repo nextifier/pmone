@@ -40,6 +40,21 @@ trait ClearsResponseCache
     }
 
     /**
+     * Invalidate this record's caches after a write that bypassed Eloquent.
+     *
+     * `static::query()->update()` / `->decrement()` fire no model events, so
+     * bootClearsResponseCache never sees them. Ticket stock is the case that
+     * made this necessary: reserve()/release() move `sold_count` with a
+     * conditional UPDATE for concurrency, which meant a sold-out ticket kept
+     * showing as available until the edge TTL expired. Any raw write to a
+     * column the public API exposes must call this.
+     */
+    public function clearResponseCacheForRawUpdate(): void
+    {
+        static::clearResponseCacheAfterCommit($this);
+    }
+
+    /**
      * Purge the specific public URLs this record renders as.
      *
      * The tag-level purge above can only name list pages, because a tag carries

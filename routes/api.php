@@ -1548,7 +1548,11 @@ Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
         ->middleware(CacheResponse::for(3600, 'blog-posts'));
     Route::get('/posts/search', [PublicBlogController::class, 'search'])
         ->middleware(CacheResponse::for(1800, 'blog-posts'));
-    Route::get('/posts/{slug}', [PublicBlogController::class, 'post']); // No cache - has trackVisit
+    // Cacheable since view counting moved to the browser beacon (see
+    // PublicBlogController::post). This was the last uncached public endpoint
+    // with real volume: ~3,000 origin round trips/day out of ~6,000 total.
+    Route::get('/posts/{slug}', [PublicBlogController::class, 'post'])
+        ->middleware(CacheResponse::for(3600, 'blog-posts'));
 
     // Categories endpoints (uses Spatie Tags with type 'category')
     Route::get('/categories/{slug}/posts', [PublicBlogController::class, 'postsByCategory'])

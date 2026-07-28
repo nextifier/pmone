@@ -1,7 +1,9 @@
 <template>
   <div class="mx-auto max-w-3xl space-y-6 px-4 pt-4 pb-16">
-    <!-- Loading skeleton while reservation summary is fetching -->
-    <div v-if="pending && !reservation" class="space-y-6">
+    <!-- Loading skeleton, first fetch only. Poll refreshes flip `pending` back to
+         true, and swapping the hero out for the skeleton every 3 seconds would
+         replay its entrance animation each time. -->
+    <div v-if="pending && !reservation && !hasLoadedOnce" class="space-y-6">
       <div class="space-y-4 pt-4 text-center">
         <Skeleton class="mx-auto size-14 rounded-full" />
         <div class="space-y-1.5">
@@ -17,32 +19,17 @@
 
     <template v-else>
       <!-- Hero: status + reservation reference -->
-      <header class="space-y-4 pt-4 text-center">
-        <div class="flex justify-center">
-          <span
-            :class="[
-              'inline-flex size-14 items-center justify-center rounded-full',
-              heroIconBg,
-            ]"
-          >
-            <Icon :name="heroIcon" :class="['size-7', heroIconColor]" />
-          </span>
-        </div>
-        <div class="space-y-1.5">
-          <h1 class="page-title">{{ heroTitle }}</h1>
-          <p class="text-muted-foreground mx-auto max-w-md text-sm tracking-tight sm:text-base">
-            {{ heroDescription }}
-          </p>
-        </div>
-        <div v-if="bookingRef" class="flex items-center justify-center gap-x-2 pt-1">
-          <code
-            class="bg-muted/60 inline-flex items-center rounded px-2 py-1 font-mono text-sm tracking-tight sm:text-base"
-          >
-            {{ bookingRef }}
-          </code>
+      <Result
+        class="pt-4"
+        :status="heroStatus"
+        :title="heroTitle"
+        :description="heroDescription"
+        title-as="h1"
+      >
+        <ResultReference v-if="bookingRef" :value="String(bookingRef)">
           <ButtonCopy :text="String(bookingRef)" />
-        </div>
-      </header>
+        </ResultReference>
+      </Result>
 
       <!-- Booking summary — only when full reservation (magic-link fetch).
            The status-by-number fallback returns just status + label, so the
@@ -194,8 +181,9 @@
 <script setup>
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+import { Result, ResultReference } from "../../components/ui/result";
 import { Skeleton } from "../../components/ui/skeleton";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -234,6 +222,17 @@ const { data, pending, refresh } = await useLazyAsyncData(
 
 const reservation = computed(() => data.value?.data ?? null);
 
+// Latches once the first fetch settles so later poll refreshes never send the
+// page back to the skeleton.
+const hasLoadedOnce = ref(false);
+watch(
+  pending,
+  (value) => {
+    if (!value) hasLoadedOnce.value = true;
+  },
+  { immediate: true }
+);
+
 usePageMeta(null, {
   title: "Booking Successful · Hotels",
 });
@@ -243,12 +242,6 @@ const isPaid = computed(() =>
 );
 
 const isPending = computed(() => reservation.value?.status === "pending_payment");
-
-// Without a magic token the page can't fetch reservation status (Xendit may
-// redirect with `ref` only). Treat that as the neutral "we received your
-// booking" state — don't speculate "Payment successful" while the steps
-// below still show step 1 as incomplete.
-const isUnknownStatus = computed(() => !reservation.value);
 
 // Right after an Xendit redirect the payment webhook may not have landed yet,
 // so poll briefly so the page flips to "Payment successful" on its own.
@@ -271,19 +264,11 @@ onBeforeUnmount(() => {
   }
 });
 
-const heroIcon = computed(() => {
-  if (isPaid.value) return "hugeicons:checkmark-circle-02";
-  if (isPending.value || isUnknownStatus.value) return "hugeicons:clock-02";
-  return "hugeicons:checkmark-circle-02";
-});
-
-const heroIconBg = computed(() =>
-  isPaid.value ? "bg-success/15" : "bg-warning/15"
-);
-
-const heroIconColor = computed(() =>
-  isPaid.value ? "text-success-foreground" : "text-warning-foreground"
-);
+// Anything that isn't confirmed paid stays "pending". Without a magic token the
+// page can't fetch reservation status at all (Xendit sometimes redirects with
+// `ref` only), and that unknown case belongs here too - don't speculate
+// "Payment successful" while the steps below still show step 1 as incomplete.
+const heroStatus = computed(() => (isPaid.value ? "success" : "pending"));
 
 const heroTitle = computed(() => {
   if (isPaid.value) return "Payment successful";
