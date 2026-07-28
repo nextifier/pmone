@@ -1,4 +1,4 @@
-import { buildQRSvgString } from "@/composables/useQRCode";
+import { buildQRSvgString } from "@/components/ui/qr-code";
 
 // Builds a print-ready QR-badge PDF entirely in the browser (jsPDF + the shared
 // buildQRSvgString so the QR matches the on-screen <QRCode> component). Nothing

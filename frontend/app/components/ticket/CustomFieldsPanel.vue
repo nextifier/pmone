@@ -100,24 +100,34 @@
     </div>
 
     <!-- Create / Edit dialog -->
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="32rem" :overflow-content="true">
+    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="760px" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
             {{ editing ? "Edit Field" : "Add Field" }}
           </h3>
 
-          <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
+          <form @submit.prevent="handleSubmit" class="mt-4 space-y-4">
             <div class="space-y-2">
-              <Label>Label</Label>
               <Tabs v-model="activeLocale" variant="segmented">
                 <TabsList>
                   <TabsIndicator />
-                  <TabsTrigger v-for="locale in LOCALES" :key="locale.value" :value="locale.value">
+                  <TabsTrigger
+                    v-for="locale in FIELD_LOCALE_TABS"
+                    :key="locale.value"
+                    :value="locale.value"
+                  >
                     {{ locale.label }}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                The selected language applies to the label, placeholder and help text below.
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <Label for="custom-field-label">Label</Label>
               <Input
                 id="custom-field-label"
                 v-model="labelField"
@@ -162,67 +172,75 @@
               <FieldError :errors="errors.type" />
             </div>
 
-            <div v-if="showOptions" class="space-y-2">
-              <Label>Options</Label>
-              <div class="space-y-2">
-                <div
-                  v-for="(option, index) in form.options"
-                  :key="index"
-                  class="flex items-center gap-x-2"
-                >
-                  <div
-                    v-if="isPredefinedEditing"
-                    class="text-muted-foreground bg-muted/40 flex-1 rounded-md border px-3 py-2 text-sm tracking-tight"
-                  >
-                    {{ optionText(option) }}
-                  </div>
-                  <template v-else>
-                    <Input
-                      :model-value="optionText(option)"
-                      :placeholder="`Option ${index + 1}`"
-                      @update:model-value="(v) => setOptionText(index, v)"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="iconSm"
-                      type="button"
-                      class="hover:bg-destructive/10 text-destructive shrink-0"
-                      v-tippy="'Remove'"
-                      @click="removeOption(index)"
+            <FieldTypeSettings
+              v-model:placeholder="placeholderField"
+              v-model:help-text="helpTextField"
+              v-model:validation="form.validation"
+              v-model:settings="form.settings"
+              :type="form.type"
+              :errors="errors"
+              :error-locale="activeLocale"
+              :allow-file-config="false"
+              id-prefix="custom-field"
+            >
+              <template #options>
+                <div v-if="showOptions" class="space-y-2">
+                  <Label>Options</Label>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(option, index) in form.options"
+                      :key="index"
+                      class="flex items-center gap-x-2"
                     >
-                      <Icon name="hugeicons:delete-02" class="size-4" />
-                    </Button>
-                  </template>
+                      <div
+                        v-if="isPredefinedEditing"
+                        class="text-muted-foreground bg-muted/40 flex-1 rounded-md border px-3 py-2 text-sm tracking-tight"
+                      >
+                        {{ optionText(option) }}
+                      </div>
+                      <template v-else>
+                        <Input
+                          :model-value="optionText(option)"
+                          :placeholder="`Option ${index + 1}`"
+                          @update:model-value="(v) => setOptionText(index, v)"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="iconSm"
+                          type="button"
+                          class="hover:bg-destructive/10 text-destructive shrink-0"
+                          v-tippy="'Remove'"
+                          @click="removeOption(index)"
+                        >
+                          <Icon name="hugeicons:delete-02" class="size-4" />
+                        </Button>
+                      </template>
+                    </div>
+                  </div>
+                  <Button
+                    v-if="!isPredefinedEditing"
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    @click="addOption"
+                  >
+                    <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+                    Add option
+                  </Button>
+                  <p v-else class="text-muted-foreground text-xs tracking-tight">
+                    Options for library fields are managed in the field library.
+                  </p>
+                  <FieldError :errors="errors.options" />
                 </div>
-              </div>
-              <Button
-                v-if="!isPredefinedEditing"
-                variant="outline"
-                size="sm"
-                type="button"
-                @click="addOption"
-              >
-                <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-                Add option
-              </Button>
-              <p
-                v-else
-                class="text-muted-foreground text-xs tracking-tight"
-              >
-                Options for library fields are managed in the field library.
-              </p>
-              <FieldError :errors="errors.options" />
-            </div>
-
-            <div class="flex items-center gap-2">
-              <Switch id="custom-field-required" v-model="form.required" />
-              <Label for="custom-field-required" class="cursor-pointer">Required</Label>
-            </div>
+              </template>
+            </FieldTypeSettings>
 
             <div class="flex items-center gap-2">
               <Switch id="custom-field-active" v-model="form.is_active" />
               <Label for="custom-field-active" class="cursor-pointer">Active</Label>
             </div>
+
+            <FieldPreviewFrame :field="previewField" :locale="activeLocale" />
 
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
@@ -268,6 +286,8 @@
 </template>
 
 <script setup>
+import FieldPreviewFrame from "@/components/custom-field-editor/FieldPreviewFrame.vue";
+import FieldTypeSettings from "@/components/custom-field-editor/FieldTypeSettings.vue";
 import { Button } from "@/components/ui/button";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import PredefinedFieldsDialog from "@/components/ticket/PredefinedFieldsDialog.vue";
@@ -287,6 +307,16 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSortableList } from "@/composables/useSortableList";
+import {
+  buildSettingsPayload,
+  buildTranslatablePayload,
+  buildValidationPayload,
+  cleanTranslatable,
+  emptyFieldState,
+  FIELD_LOCALE_TABS,
+  hydrateFieldState,
+  previewFieldFrom,
+} from "@/lib/customFieldEditor";
 import {
   FIELD_GROUPS,
   FIELD_TYPES,
@@ -335,16 +365,6 @@ const formNoun = computed(() =>
 );
 
 const libraryOpen = ref(false);
-
-const LOCALES = [
-  { value: "en", label: "English" },
-  { value: "id", label: "Indonesian" },
-  { value: "ja", label: "日本語" },
-  { value: "ko", label: "한국어" },
-  { value: "zh", label: "中文" },
-];
-
-const EMPTY_TRANSLATABLE = () => ({ en: "", id: "", ja: "", ko: "", zh: "" });
 
 const activeLocale = ref("en");
 
@@ -398,26 +418,32 @@ const editing = ref(null);
 const saving = ref(false);
 const errors = ref({});
 
-const form = reactive({
-  label: EMPTY_TRANSLATABLE(),
-  type: "text",
-  options: [],
-  // Carries the field's stored settings (e.g. options_preset) so the editor can
-  // hide the manual options list for preset-backed fields. Never sent in the payload.
-  settings: {},
-  required: false,
-  is_active: true,
-});
+const form = reactive(emptyFieldState());
 
-const labelField = computed({
-  get: () => form.label[activeLocale.value] ?? "",
-  set: (value) => {
-    form.label = { ...form.label, [activeLocale.value]: value };
-  },
-});
+// One language tab drives all three translatable inputs.
+const translatableProxy = (key) =>
+  computed({
+    get: () => form[key][activeLocale.value] ?? "",
+    set: (value) => {
+      form[key] = { ...form[key], [activeLocale.value]: value };
+    },
+  });
+
+const labelField = translatableProxy("label");
+const placeholderField = translatableProxy("placeholder");
+const helpTextField = translatableProxy("help_text");
 
 const localizedLabelErrors = computed(
   () => errors.value[`label.${activeLocale.value}`] ?? errors.value.label ?? null
+);
+
+const previewField = computed(() =>
+  previewFieldFrom(form, {
+    label: Object.keys(cleanTranslatable(form.label)).length
+      ? form.label
+      : { en: getTypeLabel(form.type) },
+    options: form.options.filter((o) => String(o.value ?? "").trim() || o.label),
+  })
 );
 
 // Hide the manual options editor for preset-backed fields (e.g. birth_year uses
@@ -448,14 +474,9 @@ const setOptionText = (index, text) => {
 };
 
 const resetForm = () => {
-  Object.assign(form, {
-    label: EMPTY_TRANSLATABLE(),
-    type: "text",
-    options: [],
-    settings: {},
-    required: false,
-    is_active: true,
-  });
+  // Assign into the existing reactive object rather than replacing it, so the
+  // computed proxies and the FieldTypeSettings bindings stay wired up.
+  Object.assign(form, emptyFieldState());
   errors.value = {};
   activeLocale.value = "en";
 };
@@ -470,34 +491,9 @@ const openEditDialog = (field) => {
   editing.value = field;
   errors.value = {};
   activeLocale.value = "en";
-  Object.assign(form, {
-    label: {
-      ...EMPTY_TRANSLATABLE(),
-      ...(field.label_translations ?? (field.label ? { en: field.label } : {})),
-    },
-    type: field.type ?? "text",
-    options: Array.isArray(field.options)
-      ? field.options.map((o) =>
-          o && typeof o === "object"
-            ? { value: o.value != null ? String(o.value) : "", label: o.label ?? "" }
-            : { value: String(o), label: String(o) }
-        )
-      : [],
-    settings: field.settings ?? {},
-    required: field.required ?? false,
-    is_active: field.is_active ?? true,
-  });
+  Object.assign(form, hydrateFieldState(field));
   dialogOpen.value = true;
 };
-
-function cleanTranslatable(t) {
-  const out = {};
-  for (const [k, v] of Object.entries(t ?? {})) {
-    const trimmed = v == null ? "" : String(v).trim();
-    if (trimmed.length > 0) out[k] = trimmed;
-  }
-  return out;
-}
 
 const handleSubmit = async () => {
   if (!String(form.label.en ?? "").trim()) {
@@ -512,12 +508,18 @@ const handleSubmit = async () => {
     const label = cleanTranslatable(form.label);
     label.en = String(form.label.en).trim();
 
+    // `validation` carries required, so the legacy top-level `required` flag is
+    // deliberately left out: sending it makes the backend rebuild validation
+    // from scratch and drop min/max.
     const payload = {
       context: props.context,
       label,
+      placeholder: buildTranslatablePayload(form.placeholder),
+      help_text: buildTranslatablePayload(form.help_text),
       type: form.type,
-      required: form.required,
       is_active: form.is_active,
+      validation: buildValidationPayload(form, form.type),
+      settings: buildSettingsPayload(form, form.type),
     };
 
     // Custom fields send their options as plain strings (the backend canonicalizes

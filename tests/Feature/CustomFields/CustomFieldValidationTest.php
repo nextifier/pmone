@@ -124,3 +124,24 @@ it('validates multi-select answers item by item', function () {
     expect($bad)->toHaveKey('responses.'.$field->ulid)
         ->and($good)->toBe([]);
 });
+
+it('enforces the selection bounds the editor can now set', function () {
+    $event = Event::factory()->create();
+    $field = CustomField::factory()->businessMatching($event)->type(CustomField::TYPE_MULTI_SELECT)->create([
+        'validation' => ['required' => true, 'min_selections' => 2, 'max_selections' => 2],
+    ]);
+
+    $tooFew = CustomFieldValidation::errorsFor(collect([$field]), [$field->ulid => ['option-1']]);
+    $tooMany = CustomFieldValidation::errorsFor(
+        collect([$field]),
+        [$field->ulid => ['option-1', 'option-2', 'option-3']],
+    );
+    $justRight = CustomFieldValidation::errorsFor(
+        collect([$field]),
+        [$field->ulid => ['option-1', 'option-2']],
+    );
+
+    expect($tooFew)->toHaveKey('responses.'.$field->ulid)
+        ->and($tooMany)->toHaveKey('responses.'.$field->ulid)
+        ->and($justRight)->toBe([]);
+});

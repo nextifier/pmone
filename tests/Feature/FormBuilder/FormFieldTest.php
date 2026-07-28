@@ -123,6 +123,17 @@ it('stores a url parameter key in field settings', function () {
     expect($this->form->fields()->first()->settings['param_key'])->toBe('ticket-code_1');
 });
 
+it('keeps the options preset a field was saved with', function () {
+    $this->postJson("/api/forms/{$this->form->slug}/fields", [
+        'type' => 'select',
+        'label' => 'Founded',
+        'options' => [['value' => '2024', 'label' => '2024']],
+        'settings' => ['options_preset' => 'years'],
+    ])->assertSuccessful();
+
+    expect($this->form->fields()->first()->settings['options_preset'])->toBe('years');
+});
+
 it('rejects invalid url parameter keys', function () {
     $this->postJson("/api/forms/{$this->form->slug}/fields", [
         'type' => 'text',

@@ -238,9 +238,8 @@
 </template>
 
 <script setup>
-import QRCodeComponent from "@/components/QRCode.vue";
+import { QRCode as QRCodeComponent, useQRCode } from "@/components/ui/qr-code";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";
 
 definePageMeta({

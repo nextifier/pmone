@@ -14,7 +14,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * localized `label` string, `options` as a flat string list, `is_required`
  * derived from validation.required, and the `year_select` alias for select
  * fields backed by the `years` options preset. New centralized keys (ulid,
- * label_translations, validation, settings, is_active) are exposed additively.
+ * label_translations, placeholder, help_text and their translation maps,
+ * validation, settings, is_active) are exposed additively.
  *
  * @mixin CustomField
  */
@@ -32,6 +33,10 @@ class ProjectCustomFieldResource extends JsonResource
             'ulid' => $this->ulid,
             'label' => $this->label,
             'label_translations' => $this->getTranslations('label'),
+            'placeholder' => $this->placeholder,
+            'placeholder_translations' => $this->getTranslations('placeholder'),
+            'help_text' => $this->help_text,
+            'help_text_translations' => $this->getTranslations('help_text'),
             'key' => $this->key,
             'type' => $isYearSelect ? 'year_select' : $this->type,
             'options' => $isYearSelect ? null : $this->legacyOptions(),

@@ -1,8 +1,9 @@
+import { useLocalStorage } from "@vueuse/core";
 import type QRCodeLib from "qrcode";
 
 export type QRStyleVariant = "rounded" | "square";
 
-interface QRSvgOptions {
+export interface QRSvgOptions {
   size?: number;
   margin?: number;
   fgColor?: string;
@@ -21,7 +22,10 @@ function isInFinderPattern(row: number, col: number, size: number): boolean {
 
 let qrcodeLib: typeof QRCodeLib | null = null;
 
-async function loadLib(): Promise<typeof QRCodeLib> {
+/**
+ * Lazy client-only import: the encoder is ~20KB and is never needed during SSR.
+ */
+export async function loadQRCodeLib(): Promise<typeof QRCodeLib> {
   if (!qrcodeLib) {
     const mod = await import("qrcode");
     qrcodeLib = mod.default;
@@ -146,11 +150,13 @@ export function buildQRSvgString(
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${parts.join("")}</svg>`;
 }
 
+/**
+ * Shared module style (square / rounded), persisted so a deliberate choice
+ * survives navigation and follows every QR the app renders. The key is
+ * app-agnostic on purpose: this component ships identically to every project.
+ */
 export function useQRCodeStyle() {
-  const qrStyle = useLocalStorage<QRStyleVariant>(
-    "pmone:qr-code-style",
-    "square"
-  );
+  const qrStyle = useLocalStorage<QRStyleVariant>("ui:qr-code-style", "square");
 
   const toggleQrStyle = () => {
     qrStyle.value = qrStyle.value === "rounded" ? "square" : "rounded";
@@ -167,7 +173,7 @@ export function useQRCode() {
     errorCorrectionLevel: "L" | "M" | "Q" | "H" = "M"
   ): Promise<QRCodeLib.QRCode | null> {
     try {
-      const lib = await loadLib();
+      const lib = await loadQRCodeLib();
       return lib.create(value, { errorCorrectionLevel });
     } catch {
       return null;

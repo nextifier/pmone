@@ -63,12 +63,11 @@
 </template>
 
 <script setup>
-import QRCodeComponent from "@/components/QRCode.vue";
+import { QRCode as QRCodeComponent, useQRCode } from "@/components/ui/qr-code";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useQRCode } from "@/composables/useQRCode";
 import { useVModel } from "@vueuse/core";
 import { toast } from "vue-sonner";
 

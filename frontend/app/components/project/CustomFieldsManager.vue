@@ -93,24 +93,34 @@
     </div>
 
     <!-- Create / Edit dialog -->
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="32rem" :overflow-content="true">
+    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="760px" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">
             {{ editing ? "Edit Field" : "Add Field" }}
           </h3>
 
-          <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
+          <form @submit.prevent="handleSubmit" class="mt-4 space-y-4">
             <div class="space-y-2">
-              <Label>Label</Label>
               <Tabs v-model="activeLocale" variant="segmented">
                 <TabsList>
                   <TabsIndicator />
-                  <TabsTrigger v-for="locale in LOCALES" :key="locale.value" :value="locale.value">
+                  <TabsTrigger
+                    v-for="locale in FIELD_LOCALE_TABS"
+                    :key="locale.value"
+                    :value="locale.value"
+                  >
                     {{ locale.label }}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
+              <p class="text-muted-foreground text-xs tracking-tight">
+                The selected language applies to the label, placeholder and help text below.
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <Label for="brand-field-label">Label</Label>
               <Input
                 id="brand-field-label"
                 v-model="labelField"
@@ -149,38 +159,47 @@
               <FieldError :errors="errors.type" />
             </div>
 
-            <div v-if="showOptions" class="space-y-2">
-              <Label>Options</Label>
-              <div class="space-y-2">
-                <div
-                  v-for="(option, index) in form.options"
-                  :key="index"
-                  class="flex items-center gap-x-2"
-                >
-                  <Input v-model="form.options[index]" :placeholder="`Option ${index + 1}`" />
-                  <Button
-                    variant="ghost"
-                    size="iconSm"
-                    type="button"
-                    class="hover:bg-destructive/10 text-destructive shrink-0"
-                    v-tippy="'Remove'"
-                    @click="removeOption(index)"
-                  >
-                    <Icon name="hugeicons:delete-02" class="size-4" />
+            <FieldTypeSettings
+              v-model:placeholder="placeholderField"
+              v-model:help-text="helpTextField"
+              v-model:validation="form.validation"
+              v-model:settings="form.settings"
+              :type="editorType"
+              :errors="errors"
+              :error-locale="activeLocale"
+              :allow-file-config="false"
+              id-prefix="brand-field"
+            >
+              <template #options>
+                <div v-if="showOptions" class="space-y-2">
+                  <Label>Options</Label>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(option, index) in form.options"
+                      :key="index"
+                      class="flex items-center gap-x-2"
+                    >
+                      <Input v-model="form.options[index]" :placeholder="`Option ${index + 1}`" />
+                      <Button
+                        variant="ghost"
+                        size="iconSm"
+                        type="button"
+                        class="hover:bg-destructive/10 text-destructive shrink-0"
+                        v-tippy="'Remove'"
+                        @click="removeOption(index)"
+                      >
+                        <Icon name="hugeicons:delete-02" class="size-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" type="button" @click="addOption">
+                    <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+                    Add option
                   </Button>
+                  <FieldError :errors="errors.options" />
                 </div>
-              </div>
-              <Button variant="outline" size="sm" type="button" @click="addOption">
-                <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
-                Add option
-              </Button>
-              <FieldError :errors="errors.options" />
-            </div>
-
-            <div class="flex items-center gap-2">
-              <Switch id="brand-field-required" v-model="form.is_required" />
-              <Label for="brand-field-required" class="cursor-pointer">Required</Label>
-            </div>
+              </template>
+            </FieldTypeSettings>
 
             <div class="flex items-center gap-2">
               <Switch id="brand-field-active" v-model="form.is_active" />
@@ -197,6 +216,8 @@
                 public brand page or the live preview.
               </p>
             </div>
+
+            <FieldPreviewFrame :field="previewField" :locale="activeLocale" />
 
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
@@ -233,6 +254,8 @@
 </template>
 
 <script setup>
+import FieldPreviewFrame from "@/components/custom-field-editor/FieldPreviewFrame.vue";
+import FieldTypeSettings from "@/components/custom-field-editor/FieldTypeSettings.vue";
 import { Button } from "@/components/ui/button";
 import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
 import { Input } from "@/components/ui/input";
@@ -251,7 +274,24 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSortableList } from "@/composables/useSortableList";
-import { FIELD_GROUPS, FIELD_TYPES, getTypeIcon, getTypeLabel, hasOptions } from "@/lib/formFieldTypes";
+import {
+  buildSettingsPayload,
+  buildTranslatablePayload,
+  buildValidationPayload,
+  cleanTranslatable,
+  emptyFieldState,
+  FIELD_LOCALE_TABS,
+  hydrateFieldState,
+  previewFieldFrom,
+} from "@/lib/customFieldEditor";
+import {
+  FIELD_GROUPS,
+  FIELD_TYPES,
+  getTypeIcon,
+  getTypeLabel,
+  hasOptions,
+  resolveEditorType,
+} from "@/lib/formFieldTypes";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";
 
@@ -267,16 +307,6 @@ const { hasPermission } = usePermission();
 const canManage = computed(() => hasPermission("projects.update"));
 
 const baseUrl = computed(() => `/api/projects/${props.projectUsername}/custom-fields`);
-
-const LOCALES = [
-  { value: "en", label: "English" },
-  { value: "id", label: "Indonesian" },
-  { value: "ja", label: "日本語" },
-  { value: "ko", label: "한국어" },
-  { value: "zh", label: "中文" },
-];
-
-const EMPTY_TRANSLATABLE = () => ({ en: "", id: "", ja: "", ko: "", zh: "" });
 
 // The convenience "Year Select" alias is brand-specific (the backend maps it to
 // select + options_preset=years). It is not in the shared catalog, so inject it.
@@ -308,40 +338,52 @@ const editing = ref(null);
 const saving = ref(false);
 const errors = ref({});
 
-const form = reactive({
-  label: EMPTY_TRANSLATABLE(),
-  type: "text",
-  options: [],
-  is_required: false,
-  is_active: true,
-  is_public: true,
-});
+// Brand fields keep options as plain strings and add their own public toggle.
+const emptyBrandState = () => ({ ...emptyFieldState(), is_public: true });
 
-const labelField = computed({
-  get: () => form.label[activeLocale.value] ?? "",
-  set: (value) => {
-    form.label = { ...form.label, [activeLocale.value]: value };
-  },
-});
+const form = reactive(emptyBrandState());
+
+// year_select is an editor-only alias; resolve it before reading type flags so
+// the settings, preview and payload builders all see `select`.
+const editorType = computed(() => resolveEditorType(form.type));
+
+// One language tab drives all three translatable inputs.
+const translatableProxy = (key) =>
+  computed({
+    get: () => form[key][activeLocale.value] ?? "",
+    set: (value) => {
+      form[key] = { ...form[key], [activeLocale.value]: value };
+    },
+  });
+
+const labelField = translatableProxy("label");
+const placeholderField = translatableProxy("placeholder");
+const helpTextField = translatableProxy("help_text");
 
 const localizedLabelErrors = computed(
   () => errors.value[`label.${activeLocale.value}`] ?? errors.value.label ?? null
 );
 
+// Raw type on purpose: year_select generates its options from a preset, so the
+// manual options editor stays hidden for it.
 const showOptions = computed(() => hasOptions(form.type));
+
+const previewField = computed(() =>
+  previewFieldFrom(form, {
+    label: Object.keys(cleanTranslatable(form.label)).length
+      ? form.label
+      : { en: typeLabel(form.type) },
+    options: form.options.filter((o) => String(o).trim().length > 0),
+  })
+);
 
 const addOption = () => form.options.push("");
 const removeOption = (index) => form.options.splice(index, 1);
 
 const resetForm = () => {
-  Object.assign(form, {
-    label: EMPTY_TRANSLATABLE(),
-    type: "text",
-    options: [],
-    is_required: false,
-    is_active: true,
-    is_public: true,
-  });
+  // Assign into the existing reactive object rather than replacing it, so the
+  // computed proxies and the FieldTypeSettings bindings stay wired up.
+  Object.assign(form, emptyBrandState());
   errors.value = {};
   activeLocale.value = "en";
 };
@@ -356,28 +398,11 @@ const openEditDialog = (field) => {
   editing.value = field;
   errors.value = {};
   activeLocale.value = "en";
-  Object.assign(form, {
-    label: {
-      ...EMPTY_TRANSLATABLE(),
-      ...(field.label_translations ?? (field.label ? { en: field.label } : {})),
-    },
-    type: field.type ?? "text",
-    options: Array.isArray(field.options) ? [...field.options] : [],
-    is_required: field.is_required ?? false,
-    is_active: field.is_active ?? true,
+  Object.assign(form, hydrateFieldState(field, { optionsAs: "strings" }), {
     is_public: field.is_public ?? true,
   });
   dialogOpen.value = true;
 };
-
-function cleanTranslatable(t) {
-  const out = {};
-  for (const [k, v] of Object.entries(t ?? {})) {
-    const trimmed = v == null ? "" : String(v).trim();
-    if (trimmed.length > 0) out[k] = trimmed;
-  }
-  return out;
-}
 
 async function fetchFields() {
   loading.value = true;
@@ -404,12 +429,20 @@ const handleSubmit = async () => {
     const label = cleanTranslatable(form.label);
     label.en = String(form.label.en).trim();
 
+    // `validation` carries required, so the legacy `is_required` flag is left
+    // out: sending it makes the backend rebuild validation and drop min/max.
+    // `is_public` stays - the backend folds it into settings.public.
     const payload = {
       label,
+      placeholder: buildTranslatablePayload(form.placeholder),
+      help_text: buildTranslatablePayload(form.help_text),
       type: form.type,
-      is_required: form.is_required,
       is_active: form.is_active,
       is_public: form.is_public,
+      validation: buildValidationPayload(form, editorType.value),
+      settings: buildSettingsPayload(form, editorType.value, {
+        presets: form.type === "year_select",
+      }),
     };
 
     if (showOptions.value) {

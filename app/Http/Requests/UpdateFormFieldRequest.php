@@ -61,6 +61,7 @@ class UpdateFormFieldRequest extends FormRequest
             'settings.max_label' => ['nullable', 'string', 'max:100'],
             'settings.description' => ['nullable', 'string', 'max:10000'],
             'settings.param_key' => ['nullable', 'string', 'max:50', 'regex:/^[a-zA-Z0-9_-]+$/'],
+            'settings.options_preset' => ['nullable', 'string', 'in:years'],
         ];
     }
 }

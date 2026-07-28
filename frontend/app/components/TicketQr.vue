@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import QRCode from "@/components/QRCode.vue";
+import { QRCode } from "@/components/ui/qr-code";
 
 defineProps({
   token: {

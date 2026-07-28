@@ -94,9 +94,8 @@
 </template>
 
 <script setup>
-import QRCode from "@/components/QRCode.vue";
+import { QRCode, useQRCode } from "@/components/ui/qr-code";
 import { Badge } from "@/components/ui/badge";
-import { useQRCode } from "@/composables/useQRCode";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

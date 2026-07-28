@@ -239,6 +239,14 @@ export const FIELD_TYPES = {
   },
 };
 
+// Brand fields expose a "Year Select" convenience type that the backend stores
+// as select + settings.options_preset=years. Resolve it before reading editor
+// flags, otherwise it falls through to the text config and the min/max inputs
+// would be labelled "Min length".
+export const EDITOR_TYPE_ALIASES = { year_select: "select" };
+
+export const resolveEditorType = (type) => EDITOR_TYPE_ALIASES[type] ?? type;
+
 export const getTypeConfig = (type) => FIELD_TYPES[type] || FIELD_TYPES.text;
 
 export const getTypeLabel = (type) => FIELD_TYPES[type]?.label || type;

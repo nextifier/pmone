@@ -61,8 +61,7 @@
 </template>
 
 <script setup>
-import QRCode from "@/components/QRCode.vue";
-import { useQRCode } from "@/composables/useQRCode";
+import { QRCode, useQRCode } from "@/components/ui/qr-code";
 
 definePageMeta({
   middleware: ["sanctum:auth"],

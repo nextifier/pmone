@@ -75,8 +75,7 @@
 </template>
 
 <script setup>
-import QRCode from "@/components/QRCode.vue";
-import { useQRCode } from "@/composables/useQRCode";
+import { QRCode, useQRCode } from "@/components/ui/qr-code";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

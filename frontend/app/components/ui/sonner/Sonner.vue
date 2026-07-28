@@ -19,8 +19,8 @@ const props = withDefaults(
   >(),
   {
     progressBar: true,
-    sound: true,
-    vibration: true,
+    sound: false,
+    vibration: false,
   },
 );
 
