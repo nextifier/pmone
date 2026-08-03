@@ -79,6 +79,16 @@
             >
               <Icon name="hugeicons:arrow-up-right-01" class="size-4 shrink-0" />
             </a>
+            <a
+              v-if="eventUrl"
+              :href="eventUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              v-tippy="'Open on event website'"
+              class="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-lg"
+            >
+              <Icon name="hugeicons:globe-02" class="size-4 shrink-0" />
+            </a>
           </div>
         </div>
       </div>
@@ -145,10 +155,7 @@ const formTabs = computed(() => [
   { label: "Analytics", to: `${formBase.value}/analytics` },
 ]);
 
-const config = useRuntimeConfig();
-const publicFormUrl = computed(() =>
-  form.value ? `${config.public.siteUrl}/f/${form.value.slug}` : ""
-);
+const { pmoneUrl: publicFormUrl, eventUrl } = useFormPublicUrls(form);
 
 const shareDialogOpen = ref(false);
 

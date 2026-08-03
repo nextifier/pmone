@@ -3,14 +3,13 @@
     <form @submit.prevent="handleSubmit" class="space-y-6">
       <div class="space-y-2">
         <label for="name" class="text-sm font-medium">Role Name</label>
-        <input
+        <Input
           id="name"
           v-model="formData.name"
           type="text"
           required
           placeholder="Content Editor"
-          class="border-border bg-background focus:ring-primary w-full rounded-md border px-3 py-2 text-sm tracking-tight focus:ring-2 focus:outline-none"
-          :class="{ 'border-destructive': errors.name }"
+          :aria-invalid="!!errors.name"
         />
         <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
         <p class="text-muted-foreground text-xs">Will be automatically converted to slug format (e.g., "content_editor")</p>

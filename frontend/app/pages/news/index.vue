@@ -17,7 +17,7 @@
                 type="text"
                 v-model="searchInput"
                 ref="searchInputEl"
-                class="input-base peer dark:bg-muted/50! h-9 px-9 py-2 text-sm tracking-tight"
+                class="cn-input peer w-full px-9 outline-none placeholder:text-muted-foreground"
                 placeholder="Search posts"
               />
 

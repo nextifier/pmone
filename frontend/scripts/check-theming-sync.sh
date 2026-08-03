@@ -126,4 +126,9 @@ if [ "$fail" != 0 ]; then
   exit 1
 fi
 echo "${GRN}✓ Shared theming engine is in sync.${RST}"
+echo
+
+# A synced engine is worthless if call sites bypass it, so the hardcode lint runs
+# in the same breath. See check-input-hardcode.sh for the heuristic.
+bash "$(dirname "${BASH_SOURCE[0]}")/check-input-hardcode.sh" || exit 1
 exit 0

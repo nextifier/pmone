@@ -189,7 +189,7 @@
                   :ref="(el) => (fileInputRefs[item.document.id] = el)"
                   @change="(e) => handleFileSelect(item, e)"
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  class="border-border file:bg-muted file:text-muted-foreground block w-full rounded-lg border text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-sm"
+                  class="cn-input file:bg-muted file:text-muted-foreground w-full outline-none file:mr-3 file:rounded-md file:border-0 file:px-3"
                 />
                 <Button
                   v-if="selectedFiles[item.document.id]"

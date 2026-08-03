@@ -33,7 +33,10 @@
           <Popover v-model:open="fromOpen">
             <PopoverTrigger as-child>
               <button
-                class="border-border data-[placeholder]:text-muted-foreground flex h-9 w-full items-center gap-1.5 rounded-md border bg-transparent px-3 text-sm tracking-tight shadow-xs"
+                type="button"
+                data-slot="select-trigger"
+                data-size="default"
+                class="cn-select-trigger flex w-full cursor-pointer items-center whitespace-nowrap outline-none"
               >
                 <template v-if="calculatorFrom">
                   <Flag :country="getCurrencyCountry(calculatorFrom)" />
@@ -45,7 +48,7 @@
                 <span v-else class="text-muted-foreground">Select currency</span>
                 <Icon
                   name="hugeicons:unfold-more"
-                  class="text-muted-foreground ml-auto size-3.5 shrink-0"
+                  class="cn-select-trigger-icon ml-auto shrink-0"
                 />
               </button>
             </PopoverTrigger>
@@ -104,7 +107,10 @@
           <Popover v-model:open="toOpen">
             <PopoverTrigger as-child>
               <button
-                class="border-border data-[placeholder]:text-muted-foreground flex h-9 w-full items-center gap-1.5 rounded-md border bg-transparent px-3 text-sm tracking-tight shadow-xs"
+                type="button"
+                data-slot="select-trigger"
+                data-size="default"
+                class="cn-select-trigger flex w-full cursor-pointer items-center whitespace-nowrap outline-none"
               >
                 <template v-if="calculatorTo">
                   <Flag :country="getCurrencyCountry(calculatorTo)" />
@@ -116,7 +122,7 @@
                 <span v-else class="text-muted-foreground">Select currency</span>
                 <Icon
                   name="hugeicons:unfold-more"
-                  class="text-muted-foreground ml-auto size-3.5 shrink-0"
+                  class="cn-select-trigger-icon ml-auto shrink-0"
                 />
               </button>
             </PopoverTrigger>

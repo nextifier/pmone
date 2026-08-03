@@ -1,9 +1,11 @@
 <?php
 
 use App\Models\Form;
+use App\Models\Project;
 use App\Models\ShortLink;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -90,6 +92,65 @@ it('shows a form with fields', function () {
         ->assertSuccessful()
         ->assertJsonPath('data.title', $form->title)
         ->assertJsonCount(1, 'data.fields');
+});
+
+it('exposes the project website url so the dashboard can link the event copy', function () {
+    $project = Project::factory()->create();
+    $project->links()->create(['label' => 'Website', 'url' => 'https://iicc.askindo.id']);
+
+    $form = Form::factory()->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+        'project_id' => $project->id,
+    ]);
+
+    $this->getJson('/api/forms')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.project.website_url', 'https://iicc.askindo.id');
+
+    $this->getJson("/api/forms/{$form->slug}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.project.website_url', 'https://iicc.askindo.id');
+});
+
+it('resolves every project website url without a query per row', function () {
+    foreach (range(1, 5) as $i) {
+        $project = Project::factory()->create();
+        $project->links()->create(['label' => 'Website', 'url' => "https://event-{$i}.test"]);
+
+        Form::factory()->create([
+            'user_id' => $this->user->id,
+            'created_by' => $this->user->id,
+            'project_id' => $project->id,
+        ]);
+    }
+
+    // websiteUrl() walks the project's links, so a missing eager load turns the
+    // listing into one extra query per form. Counting is the only way that
+    // regression shows up: the response body looks identical either way.
+    $queries = 0;
+    DB::listen(function () use (&$queries) {
+        $queries++;
+    });
+
+    $this->getJson('/api/forms')->assertSuccessful()->assertJsonCount(5, 'data');
+
+    expect($queries)->toBeLessThan(15);
+});
+
+it('leaves the project website url null when no Website link is configured', function () {
+    $project = Project::factory()->create();
+    $project->links()->create(['label' => 'Instagram', 'url' => 'https://instagram.com/askindo']);
+
+    $form = Form::factory()->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+        'project_id' => $project->id,
+    ]);
+
+    $this->getJson("/api/forms/{$form->slug}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.project.website_url', null);
 });
 
 it('updates settings without losing notification emails', function () {

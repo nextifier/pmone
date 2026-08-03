@@ -338,11 +338,11 @@
                     placeholder="Search partners"
                     autocomplete="off"
                     auto-focus
-                    class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+                    class="w-full"
                   />
                 </ComboboxAnchor>
-                <ComboboxList class="z-100 w-(--reka-combobox-trigger-width)">
-                  <ComboboxViewport class="max-h-72 p-1">
+                <ComboboxList class="z-100">
+                  <ComboboxViewport>
                     <ComboboxEmpty as-child>
                       <div
                         v-if="partnerSearchTerm.trim()"
@@ -374,7 +374,7 @@
                         v-for="p in partnerResults"
                         :key="p.id"
                         :value="p.name"
-                        class="data-highlighted:bg-muted flex w-full cursor-default items-center gap-3 rounded-md px-2 py-2 outline-none select-none"
+                        class="gap-3 py-2"
                         @select="selectPartner(p)"
                       >
                         <div
@@ -610,7 +610,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useSortableList } from "@/composables/useSortableList";
-import { ComboboxInput } from "reka-ui";
 import Sortable from "sortablejs";
 import { toast } from "vue-sonner";
 

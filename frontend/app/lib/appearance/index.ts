@@ -17,6 +17,10 @@ export type { AppearanceTheme };
 export { THEMES };
 
 // Base colors = the neutral palette subset (background / muted / border tones).
+// "native" is the app's own palette (the one main.css ships) and the default; it
+// is LAST because this array doubles as the preset-code index (preset.ts FIELDS)
+// — appending is safe, reordering silently remaps every code ever copied.
+// Display order is handled separately by `defaultFirst()` below.
 export const BASE_COLOR_NAMES = [
   "neutral",
   "stone",
@@ -25,6 +29,7 @@ export const BASE_COLOR_NAMES = [
   "olive",
   "mist",
   "taupe",
+  "native",
 ] as const;
 
 // Theme + chart color = any of the 24 themes (accent / chart palettes).
@@ -72,15 +77,63 @@ export interface AppearanceConfig {
   fontHeading?: string; // FONT_HEADING_OPTIONS value ("inherit" = follow body font)
 }
 
+// All three color slots default to "native" together, and they have to: `theme`
+// spreads over `baseColor` wholesale in buildAppearanceTheme, and every full
+// theme carries the same ~32 keys, so changing baseColor alone has zero effect.
 export const DEFAULT_APPEARANCE: AppearanceConfig = {
-  baseColor: "neutral",
-  theme: "neutral",
-  chartColor: "neutral",
+  baseColor: "native",
+  theme: "native",
+  chartColor: "native",
   radius: "default",
   style: DEFAULT_STYLE,
   font: "default",
   fontHeading: "inherit",
 };
+
+/**
+ * The pre-"native" default trio. Until the native palette existed, the defaults
+ * were neutral/neutral/neutral AND `setToken` back-filled all seven fields the
+ * first time a user touched ANY control — style, radius, font, anything. So
+ * virtually every stored config carries this trio without a single user having
+ * deliberately picked "Neutral" three times.
+ */
+const LEGACY_DEFAULT_COLORS = {
+  baseColor: "neutral",
+  theme: "neutral",
+  chartColor: "neutral",
+} as const;
+
+/**
+ * Read-time normalizer for a persisted selection (cookie, backend user_settings,
+ * project site_config). Resolves the legacy default trio — and only that exact
+ * combination — to the current defaults; neutral in one or two slots is a real
+ * choice and is left alone.
+ *
+ * PURE and deterministic, so it produces identical output on server and client
+ * and cannot cause a hydration mismatch. It deliberately does NOT write back:
+ * normalizing on write would mean a Set-Cookie on every SSR render and a PATCH
+ * for every authenticated user's first visit. Stored values self-heal on the
+ * user's next real edit, since the setters normalize their input too.
+ */
+export function normalizeAppearance<T extends Partial<AppearanceConfig> | null | undefined>(
+  config: T,
+): T {
+  if (
+    !config
+    || config.baseColor !== LEGACY_DEFAULT_COLORS.baseColor
+    || config.theme !== LEGACY_DEFAULT_COLORS.theme
+    || config.chartColor !== LEGACY_DEFAULT_COLORS.chartColor
+  ) {
+    return config;
+  }
+
+  return {
+    ...config,
+    baseColor: DEFAULT_APPEARANCE.baseColor,
+    theme: DEFAULT_APPEARANCE.theme,
+    chartColor: DEFAULT_APPEARANCE.chartColor,
+  } as T;
+}
 
 const CHART_KEYS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"];
 
@@ -115,9 +168,29 @@ function toOptions(names: readonly string[], swatchKey: string): AppearanceOptio
     .filter((o): o is AppearanceOption => o !== null);
 }
 
-export const BASE_COLOR_OPTIONS = toOptions(BASE_COLOR_NAMES, "muted-foreground");
-export const THEME_OPTIONS = toOptions(THEME_NAMES, "primary");
-export const CHART_COLOR_OPTIONS = toOptions(CHART_COLOR_NAMES, "chart-1");
+/**
+ * Move the app default to the front of a PICKER list. The index lists it is
+ * built from (BASE_COLOR_NAMES / THEME_NAMES) are positional preset encodings,
+ * so "native" has to stay appended at the END there — only the display order
+ * moves. Reordering the index lists would silently remap every preset code.
+ */
+function defaultFirst(options: AppearanceOption[], name: string): AppearanceOption[] {
+  const i = options.findIndex(o => o.value === name);
+  return i > 0 ? [options[i]!, ...options.slice(0, i), ...options.slice(i + 1)] : options;
+}
+
+export const BASE_COLOR_OPTIONS = defaultFirst(
+  toOptions(BASE_COLOR_NAMES, "muted-foreground"),
+  DEFAULT_APPEARANCE.baseColor,
+);
+export const THEME_OPTIONS = defaultFirst(
+  toOptions(THEME_NAMES, "primary"),
+  DEFAULT_APPEARANCE.theme,
+);
+export const CHART_COLOR_OPTIONS = defaultFirst(
+  toOptions(CHART_COLOR_NAMES, "chart-1"),
+  DEFAULT_APPEARANCE.chartColor!,
+);
 
 /**
  * Merge baseColor + theme (+ optional chartColor + radius) into the final
@@ -128,8 +201,8 @@ export function buildAppearanceTheme(config: AppearanceConfig): {
   light: Record<string, string>;
   dark: Record<string, string>;
 } {
-  const base = getAppearanceTheme(config.baseColor) ?? getAppearanceTheme("neutral")!;
-  const theme = getAppearanceTheme(config.theme) ?? getAppearanceTheme("neutral")!;
+  const base = getAppearanceTheme(config.baseColor) ?? getAppearanceTheme(DEFAULT_APPEARANCE.baseColor)!;
+  const theme = getAppearanceTheme(config.theme) ?? getAppearanceTheme(DEFAULT_APPEARANCE.theme)!;
 
   const light: Record<string, string> = {
     ...base.cssVars.light,

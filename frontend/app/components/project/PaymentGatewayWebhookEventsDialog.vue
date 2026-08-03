@@ -10,30 +10,20 @@
       </div>
 
       <div class="mt-4 flex flex-wrap items-center gap-2">
-        <div class="relative flex min-w-44 flex-1 items-center">
-          <Icon
-            name="lucide:search"
-            class="text-muted-foreground pointer-events-none absolute left-3 size-4"
-          />
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by reference"
-            class="placeholder:text-muted-foreground h-8 w-full rounded-md border bg-transparent px-9 text-sm tracking-tight focus:outline-hidden"
-          />
-          <button
-            v-if="searchQuery"
-            type="button"
-            aria-label="Clear search"
-            class="bg-muted hover:bg-border absolute right-2 flex size-5 items-center justify-center rounded-full"
-            @click="searchQuery = ''"
-          >
-            <Icon name="lucide:x" class="size-3 shrink-0" />
-          </button>
-        </div>
+        <InputGroup class="min-w-44 flex-1">
+          <InputGroupAddon>
+            <Icon name="lucide:search" />
+          </InputGroupAddon>
+          <InputGroupInput v-model="searchQuery" type="text" placeholder="Search by reference" />
+          <InputGroupAddon v-if="searchQuery" align="inline-end">
+            <InputGroupButton size="icon-xs" aria-label="Clear search" @click="searchQuery = ''">
+              <Icon name="lucide:x" />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
 
         <Select v-model="filterStatus">
-          <SelectTrigger class="h-8 w-auto min-w-36">
+          <SelectTrigger class="w-auto min-w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

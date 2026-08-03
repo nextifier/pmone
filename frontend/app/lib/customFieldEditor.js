@@ -65,7 +65,8 @@ const emptySettings = () => ({
 
 /**
  * Blank editor state. `translatable: false` keeps label/placeholder/help_text as
- * plain strings, which is what the single-language Form Builder edits.
+ * plain strings. Every editor is multi-language now, so the flag exists only for
+ * a caller that deliberately wants the flat shape.
  */
 export const emptyFieldState = ({ translatable = true } = {}) => ({
   type: "text",

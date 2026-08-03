@@ -1,170 +1,24 @@
 <template>
-  <div class="relative min-h-dvh" :class="isEmbed ? 'py-4' : 'pt-6 pb-12 sm:pt-8 sm:pb-16'">
-    <div
-      v-if="!isEmbed"
-      class="border-border bg-background/95 supports-backdrop-filter:bg-background/90 absolute top-4 right-3 z-10 flex items-center gap-x-1 rounded-full border p-1 backdrop-blur-sm sm:fixed"
-    >
+  <PublicFormView
+    :form="form"
+    :fetch-error="fetchError"
+    :endpoints="endpoints"
+    :upload-handlers="uploadHandlers"
+    :locale="locale"
+    :embed="isEmbed"
+  >
+    <template #chrome="{ locales }">
+      <LanguageSwitcher :codes="locales" />
       <AppearancePickerButton />
       <ColorModeToggle />
-    </div>
-
-    <div class="container sm:max-w-xl">
-      <!-- Skeleton loading -->
-      <template v-if="isLoading">
-        <div class="">
-          <div class="space-y-8">
-            <div class="space-y-2.5">
-              <Skeleton class="h-8 w-3/5" />
-              <Skeleton class="h-4 w-4/5" />
-            </div>
-            <div class="space-y-6">
-              <div v-for="i in 3" :key="i" class="space-y-2">
-                <Skeleton class="h-4 w-32" />
-                <Skeleton class="h-11 w-full" />
-              </div>
-              <Skeleton class="h-11 w-full rounded-lg" />
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <!-- Status card (error / success / already submitted). Result brings its own
-           entrance, so this card no longer carries animate-in classes. -->
-      <Result
-        v-else-if="statusCard"
-        size="sm"
-        class=""
-        :status="statusCard.status"
-        :variant="statusCard.variant"
-        :icon="statusCard.icon"
-        :title="statusCard.title"
-        :description="statusCard.message"
-      />
-
-      <!-- Form -->
-      <template v-else-if="form">
-        <div class="relative">
-          <img
-            v-if="form.cover_image?.xl && !isEmbed"
-            :src="form.cover_image.xl"
-            :alt="form.title"
-            class="aspect-[3/1] w-full object-cover"
-          />
-          <div class="">
-            <!-- Header -->
-            <div class="space-y-2">
-              <h1 class="text-2xl font-semibold tracking-tighter text-balance sm:text-3xl">
-                {{ form.title }}
-              </h1>
-              <div
-                v-if="form.description"
-                class="prose prose-sm dark:prose-invert text-muted-foreground max-w-none text-sm tracking-tight sm:text-base"
-                v-html="form.description"
-              />
-            </div>
-
-            <div class="bg-border my-6 h-px sm:my-8" />
-
-            <form @submit.prevent="handleSubmit" class="space-y-7">
-              <!-- General error -->
-              <div
-                v-if="formErrors._general"
-                class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm tracking-tight"
-              >
-                {{ formErrors._general }}
-              </div>
-
-              <!-- Honeypot: invisible to humans, bots tend to fill it -->
-              <div
-                class="absolute top-auto -left-[9999px] h-px w-px overflow-hidden"
-                aria-hidden="true"
-              >
-                <label for="hp_website">Website</label>
-                <input
-                  id="hp_website"
-                  v-model="honeypotWebsite"
-                  type="text"
-                  name="website"
-                  tabindex="-1"
-                  autocomplete="off"
-                />
-              </div>
-
-              <!-- Email field (if require_email) -->
-              <div v-if="form.settings?.require_email" class="space-y-2">
-                <Label for="respondent_email" class="text-sm sm:text-base">
-                  Email
-                  <span class="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="respondent_email"
-                  v-model="respondentEmail"
-                  type="email"
-                  placeholder="your@email.com"
-                  :class="{ 'border-destructive': formErrors.respondent_email }"
-                  @blur="checkDuplicate"
-                />
-                <p
-                  v-if="formErrors.respondent_email"
-                  class="text-destructive text-sm tracking-tight"
-                >
-                  {{ formErrors.respondent_email }}
-                </p>
-              </div>
-
-              <!-- Dynamic fields -->
-              <CustomFieldRenderer
-                v-for="(field, index) in sortedFields"
-                :key="field.ulid"
-                :data-field-error="formErrors[`responses.${field.ulid}`] ? field.ulid : undefined"
-                :field="field"
-                :is-first="index === 0"
-                :model-value="responses[field.ulid]"
-                :error="firstFieldError(field)"
-                :upload-handler="uploadHandlers.uploadHandler"
-                :revert-handler="uploadHandlers.revertHandler"
-                @update:model-value="responses[field.ulid] = $event"
-                @uploading="handleUploading"
-              />
-
-              <Button
-                type="submit"
-                :disabled="submitting || uploadsInProgress > 0"
-                class="w-full"
-                size="lg"
-              >
-                <Spinner v-if="submitting" class="size-4" />
-                <span>
-                  {{
-                    uploadsInProgress > 0
-                      ? "Uploading files..."
-                      : submitting
-                        ? "Submitting..."
-                        : "Submit"
-                  }}
-                </span>
-              </Button>
-            </form>
-          </div>
-        </div>
-      </template>
-    </div>
-  </div>
+    </template>
+  </PublicFormView>
 </template>
 
 <script setup>
-import { Button } from "@/components/ui/button";
 import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
-import {
-  prefillValueFor as coercePrefill,
-  CustomFieldRenderer,
-  defaultValueFor,
-  supportsPrefill,
-} from "@/components/ui/custom-field";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Result } from "@/components/ui/result";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { isClosedError, PublicFormView } from "@/components/ui/public-form";
 import { createPublicFormUploadHandlers } from "@/lib/uploadHandlers";
 
 definePageMeta({
@@ -172,313 +26,48 @@ definePageMeta({
 });
 
 const route = useRoute();
-const slug = computed(() => route.params.slug);
+const { t, locale } = useI18n();
 const apiUrl = useRuntimeConfig().public.apiUrl;
+const slug = computed(() => route.params.slug);
 
-const uploadHandlers = computed(() => createPublicFormUploadHandlers(apiUrl, slug.value));
-
+/**
+ * `?embed=1` is what the iframe snippet in FormShareDialog appends. Embedded
+ * mode drops the chrome and never escalates to a full-page error, which would
+ * hijack the host site's iframe.
+ */
 const isEmbed = computed(() => ["1", "true"].includes(String(route.query.embed)));
 
-// Fetch form
-const {
-  data: formResponse,
-  status,
-  error: fetchError,
-} = await useFetch(() => `/api/public/forms/${slug.value}`, {
-  baseURL: apiUrl,
-  key: `public-form-${slug.value}`,
-});
+const base = computed(() => `${apiUrl}/api/public/forms/${slug.value}`);
+
+const endpoints = computed(() => ({
+  check: `${base.value}/check`,
+  submit: `${base.value}/submit`,
+}));
+
+const uploadHandlers = computed(() => createPublicFormUploadHandlers(`${base.value}/upload`));
+
+const { data: formResponse, error: fetchError } = await useFetch(
+  () => `/api/public/forms/${slug.value}`,
+  {
+    baseURL: apiUrl,
+    key: `public-form-${slug.value}`,
+  }
+);
 
 const form = computed(() => formResponse.value?.data || null);
 
-// A missing/unavailable form is a genuine not-found page, so surface it through
-// the shared error.vue boundary - except when embedded, where a full-page error
-// would hijack the host iframe, so the inline status card is kept instead.
-if (fetchError.value && !isEmbed.value) {
+// A missing form is a genuine not-found page, so surface it through the shared
+// error.vue boundary. A 403 (closed / not yet open / limit reached) stays inline
+// as a neutral card, and embedded mode keeps every failure inline.
+if (fetchError.value && !isEmbed.value && !isClosedError(fetchError.value)) {
   throw createError({
     statusCode: fetchError.value.statusCode || fetchError.value.data?.statusCode || 404,
-    statusMessage:
-      fetchError.value.data?.message || fetchError.value.statusMessage || "Form not found",
+    statusMessage: t("forms.notFoundMessage"),
     fatal: true,
   });
 }
 
-const sortedFields = computed(() => {
-  if (!form.value?.fields) return [];
-  return [...form.value.fields].sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
-});
-
-// Error state
-const errorState = computed(() => {
-  if (!fetchError.value) return null;
-
-  const err = fetchError.value;
-  const statusCode = err.statusCode || err.data?.statusCode;
-  const message = err.data?.message || err.message;
-
-  if (statusCode === 404) {
-    return { title: "Form not found", message: message || "This form does not exist." };
-  }
-  if (statusCode === 403) {
-    return { title: "Form unavailable", message: message || "This form is not available." };
-  }
-  return { title: "Something went wrong", message: message || "Failed to load form." };
-});
-
-// One shared Result for error / success / already-submitted states
-const statusCard = computed(() => {
-  // Painted neutral on purpose: a missing or closed form is not the visitor's
-  // fault, so it should not read as a failure they caused.
-  if (errorState.value) {
-    return {
-      status: "error",
-      variant: "muted",
-      icon: "lucide:alert-circle",
-      title: errorState.value.title,
-      message: errorState.value.message,
-    };
-  }
-  // No icon here: success is the one state that draws its own checkmark.
-  if (submitted.value) {
-    return {
-      status: "success",
-      variant: "soft",
-      icon: undefined,
-      title: successTitle.value,
-      message: successMessage.value,
-    };
-  }
-  if (alreadySubmitted.value && form.value) {
-    return {
-      status: "info",
-      variant: "soft",
-      icon: "lucide:check-circle-2",
-      title: "You're all set",
-      message: "We've received your response. This form only accepts one submission per person.",
-    };
-  }
-  return null;
-});
-
-// Page meta
 usePageMeta(null, {
   title: computed(() => form.value?.title || "Form"),
-});
-
-// Form state
-const responses = ref({});
-const respondentEmail = ref("");
-const formErrors = ref({});
-const submitting = ref(false);
-const submitted = ref(false);
-const successMessage = ref("");
-const successTitle = ref("Thank you");
-const alreadySubmitted = ref(false);
-const duplicateCheckDone = ref(false);
-const uploadsInProgress = ref(0);
-
-const handleUploading = (active) => {
-  uploadsInProgress.value = Math.max(0, uploadsInProgress.value + (active ? 1 : -1));
-};
-
-// Honeypot anti-spam: hidden field stays empty, token proves a human-paced fill
-const honeypotWebsite = ref("");
-const honeypotToken = ref("");
-
-const generateHoneypotToken = () => {
-  const rand = () => Math.random().toString(16).slice(2, 10);
-  return btoa(`${rand()}_${Math.floor(Date.now() / 1000)}_${rand()}`);
-};
-
-// Prefill a field from URL query params (?{ulid}=value or ?{param_key}=value).
-// The page owns query extraction; per-type coercion lives in the shared core.
-const prefillValueFor = (field) => {
-  if (!supportsPrefill(field.type)) return undefined;
-
-  const raw =
-    route.query[field.ulid] ?? (field.settings?.param_key && route.query[field.settings.param_key]);
-
-  return coercePrefill(field, raw);
-};
-
-// Initialize default values per field type once the form loads
-watch(
-  sortedFields,
-  (fields) => {
-    for (const field of fields) {
-      if (field.type !== "section" && responses.value[field.ulid] === undefined) {
-        responses.value[field.ulid] = prefillValueFor(field) ?? defaultValueFor(field);
-      }
-    }
-  },
-  { immediate: true }
-);
-
-// First error for a field, including nested keys (date_range start/end, array items)
-const firstFieldError = (field) => {
-  const prefix = `responses.${field.ulid}`;
-  const exact = formErrors.value[prefix];
-  if (exact) return exact;
-  const nestedKey = Object.keys(formErrors.value).find((key) => key.startsWith(`${prefix}.`));
-  return nestedKey ? formErrors.value[nestedKey] : null;
-};
-
-// Browser fingerprint
-const visitorId = ref(null);
-const fingerprintReady = ref(false);
-
-// Loading: show skeleton until form loaded AND duplicate check completed
-const isLoading = computed(() => {
-  if (status.value === "pending") return true;
-  if (fetchError.value) return false;
-  if (!form.value) return true;
-  if (form.value?.settings?.prevent_duplicate && !duplicateCheckDone.value) return true;
-  return false;
-});
-
-onMounted(async () => {
-  honeypotToken.value = generateHoneypotToken();
-
-  try {
-    const FingerprintJS = await import("@fingerprintjs/fingerprintjs");
-    const fp = await FingerprintJS.load();
-    const result = await fp.get();
-    visitorId.value = result.visitorId;
-  } catch {
-    visitorId.value = null;
-  }
-  fingerprintReady.value = true;
-
-  // Auto-check if form already loaded
-  await checkDuplicateOnLoad();
-});
-
-// Also watch for form data becoming available (useLazyFetch may resolve after onMounted)
-watch(form, async (newForm) => {
-  if (newForm && fingerprintReady.value && !alreadySubmitted.value) {
-    await checkDuplicateOnLoad();
-  }
-});
-
-// Check duplicate on initial page load
-const checkDuplicateOnLoad = async () => {
-  if (!form.value?.settings?.prevent_duplicate) {
-    duplicateCheckDone.value = true;
-    return;
-  }
-
-  const by = form.value.settings.prevent_duplicate_by || "fingerprint";
-  if ((by === "fingerprint" || by === "both") && !visitorId.value) {
-    duplicateCheckDone.value = true;
-    return;
-  }
-
-  try {
-    const params = new URLSearchParams();
-    if (visitorId.value) params.append("fingerprint", visitorId.value);
-
-    const result = await $fetch(
-      `${apiUrl}/api/public/forms/${slug.value}/check?${params.toString()}`
-    );
-    if (result.already_submitted) {
-      alreadySubmitted.value = true;
-    }
-  } catch {
-    // Ignore check errors
-  } finally {
-    duplicateCheckDone.value = true;
-  }
-};
-
-// Check duplicate on email blur
-const checkDuplicate = async () => {
-  if (!form.value?.settings?.prevent_duplicate) return;
-
-  const params = new URLSearchParams();
-  if (respondentEmail.value) params.append("email", respondentEmail.value);
-  if (visitorId.value) params.append("fingerprint", visitorId.value);
-
-  try {
-    const result = await $fetch(
-      `${apiUrl}/api/public/forms/${slug.value}/check?${params.toString()}`
-    );
-    if (result.already_submitted) {
-      alreadySubmitted.value = true;
-    }
-  } catch {
-    // Ignore check errors
-  }
-};
-
-// Submit handler
-const handleSubmit = async () => {
-  if (alreadySubmitted.value) {
-    return;
-  }
-
-  submitting.value = true;
-  formErrors.value = {};
-
-  try {
-    const body = {
-      responses: responses.value,
-      respondent_email: respondentEmail.value || null,
-      browser_fingerprint: visitorId.value,
-      website: honeypotWebsite.value,
-      _token_time: honeypotToken.value,
-    };
-
-    const result = await $fetch(`${apiUrl}/api/public/forms/${slug.value}/submit`, {
-      method: "POST",
-      body,
-    });
-
-    // Handle redirect
-    if (result.redirect_url) {
-      window.location.href = result.redirect_url;
-      return;
-    }
-
-    // Show success
-    successMessage.value = result.message || "Your response has been recorded.";
-    submitted.value = true;
-  } catch (err) {
-    if (err.status === 422 && err.data?.errors) {
-      const errors = err.data.errors;
-      const unmapped = [];
-      Object.entries(errors).forEach(([key, messages]) => {
-        const msg = Array.isArray(messages) ? messages[0] : messages;
-        if (key.startsWith("responses.") || key === "respondent_email") {
-          formErrors.value[key] = msg;
-        } else {
-          unmapped.push(msg);
-        }
-      });
-      if (unmapped.length) {
-        formErrors.value._general = unmapped.join(". ");
-      }
-      scrollToFirstError();
-    } else if (err.status === 409) {
-      alreadySubmitted.value = true;
-    } else {
-      formErrors.value._general = err.data?.message || "Failed to submit form. Please try again.";
-    }
-  } finally {
-    submitting.value = false;
-  }
-};
-
-// Scroll the first invalid field into view after server-side validation
-const scrollToFirstError = async () => {
-  await nextTick();
-  const target = document.querySelector("[data-field-error]") || document.querySelector("form");
-  target?.scrollIntoView({ behavior: "smooth", block: "center" });
-};
-
-// Watch email for duplicate check
-watch(respondentEmail, (val) => {
-  if (val && val.includes("@")) {
-    checkDuplicate();
-  }
 });
 </script>

@@ -12,13 +12,13 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="email">Email</Label>
               <Input v-model="form.email" type="email" name="email" id="email" required disabled />
               <FieldError v-if="errors?.email" :errors="errors.email" />
             </div>
 
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="password">New Password</Label>
 
               <InputPassword
@@ -30,7 +30,7 @@
               <FieldError v-if="errors?.password" :errors="errors.password" />
             </div>
 
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="password_confirmation">Confirm New Password</Label>
 
               <InputPassword

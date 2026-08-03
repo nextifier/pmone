@@ -18,31 +18,23 @@
         <div class="space-y-2">
           <Label>Exhibitor Brand</Label>
           <Combobox v-model="selectedBrandEventId" :ignore-filter="true" :open-on-focus="true">
-            <ComboboxAnchor as-child class="w-full">
-              <div
-                class="border-border relative flex h-9 w-full items-center rounded-md border shadow-xs"
-              >
-                <ComboboxInputPrimitive
-                  v-model="brandSearch"
-                  :display-value="() => selectedBrandEvent?.brand_name || ''"
-                  placeholder="Select a brand..."
-                  class="placeholder:text-muted-foreground h-full w-full rounded-md bg-transparent px-3 text-sm tracking-tight outline-none"
-                  autocomplete="off"
-                />
-                <Icon
-                  name="lucide:chevrons-up-down"
-                  class="text-muted-foreground absolute right-2 size-4 shrink-0"
-                />
-              </div>
+            <ComboboxAnchor class="w-full">
+              <ComboboxInput
+                v-model="brandSearch"
+                :display-value="() => selectedBrandEvent?.brand_name || ''"
+                placeholder="Select a brand..."
+                autocomplete="off"
+                class="w-full"
+              />
             </ComboboxAnchor>
-            <ComboboxList class="w-[var(--reka-combobox-trigger-width)]">
-              <ComboboxViewport class="max-h-72 p-1">
+            <ComboboxList>
+              <ComboboxViewport>
                 <ComboboxEmpty>No brand found.</ComboboxEmpty>
                 <ComboboxItem
                   v-for="be in filteredBrandEvents"
                   :key="be.id"
                   :value="be.id"
-                  class="data-highlighted:bg-muted flex w-full cursor-default items-center gap-2 rounded-md px-2 py-2 outline-none select-none"
+                  class="gap-2"
                 >
                   <Avatar
                     :model="{ name: be.brand_name, profile_image: be.profile_image }"
@@ -150,7 +142,6 @@ import {
   ComboboxList,
   ComboboxViewport,
 } from "@/components/ui/combobox";
-import { ComboboxInput as ComboboxInputPrimitive } from "reka-ui";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";

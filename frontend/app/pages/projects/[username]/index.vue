@@ -18,18 +18,12 @@
 
     <!-- Search & Filter -->
     <div class="flex items-center gap-x-2">
-      <div class="relative flex-1">
-        <Icon
-          name="hugeicons:search-01"
-          class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-        />
-        <input
-          v-model="search"
-          type="text"
-          placeholder="Search events"
-          class="border-border bg-background placeholder:text-muted-foreground h-9 w-full rounded-lg border py-1 pr-3 pl-9 text-sm tracking-tight focus:outline-none"
-        />
-      </div>
+      <InputGroup class="flex-1">
+        <InputGroupAddon>
+          <Icon name="hugeicons:search-01" />
+        </InputGroupAddon>
+        <InputGroupInput v-model="search" type="text" placeholder="Search events" />
+      </InputGroup>
 
       <Select v-model="statusFilter">
         <SelectTrigger class="w-36">

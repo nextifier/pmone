@@ -1091,6 +1091,99 @@ export const THEMES: AppearanceTheme[] = [
       },
     },
   },
+  // APPENDED LAST ON PURPOSE. The order of THEMES *is* the preset-code index for
+  // `theme` and `chartColor` (see preset.ts FIELDS), so inserting anywhere else
+  // silently remaps every preset code ever copied. Picker order is a separate
+  // concern — `defaultFirst()` in index.ts hoists this to the top for display.
+  //
+  // The palette main.css already ships in `@layer base`. Values point at
+  // `var(--color-gray-N)` so the gray ramp in main.css `@theme` stays the single
+  // source of truth: swap Zinc for Slate there and this theme follows. The
+  // `var(--native-*)` aliases are per-repo escape hatches for the handful of
+  // tokens whose native value genuinely differs between pmone, pmone-events and
+  // levenium; a repo that does not declare one falls back to pmone's value.
+  {
+    name: "native",
+    title: "Native",
+    type: "registry:theme",
+    cssVars: {
+      light: {
+        "background": "var(--color-white)",
+        "foreground": "var(--color-gray-950)",
+        "card": "var(--native-card, var(--color-white))",
+        "card-foreground": "var(--color-gray-700)",
+        "popover": "var(--native-popover, var(--color-white))",
+        "popover-foreground": "var(--color-gray-700)",
+        "primary": "var(--color-black)",
+        "primary-foreground": "var(--color-white)",
+        "secondary": "var(--color-gray-100)",
+        "secondary-foreground": "var(--native-secondary-foreground, var(--color-gray-950))",
+        "muted": "var(--color-gray-100)",
+        "muted-foreground": "var(--color-gray-600)",
+        // `var(--primary)` rather than `var(--color-primary)`: same result, but
+        // self-contained in this block instead of relying on the `@theme inline`
+        // alias. No cycle — `--primary` resolves to a literal above.
+        "accent": "var(--native-accent, var(--primary))",
+        "accent-foreground": "var(--native-accent-foreground, var(--primary-foreground))",
+        "destructive": "var(--native-destructive, var(--color-red-600))",
+        "border": "var(--color-gray-200)",
+        "input": "var(--color-gray-200)",
+        "ring": "var(--color-black)",
+        "chart-1": "var(--color-gray-300)",
+        "chart-2": "var(--color-gray-500)",
+        "chart-3": "var(--color-gray-600)",
+        "chart-4": "var(--color-gray-700)",
+        "chart-5": "var(--color-gray-800)",
+        "radius": "0.625rem",
+        "sidebar": "var(--color-white)",
+        "sidebar-foreground": "var(--color-gray-950)",
+        "sidebar-primary": "var(--color-black)",
+        "sidebar-primary-foreground": "var(--color-white)",
+        "sidebar-accent": "var(--color-gray-100)",
+        "sidebar-accent-foreground": "var(--color-gray-900)",
+        "sidebar-border": "var(--color-gray-200)",
+        "sidebar-ring": "var(--color-gray-400)",
+      },
+      dark: {
+        "background": "var(--color-gray-950)",
+        "foreground": "var(--color-gray-50)",
+        // The one value with no equivalent stop on the ramp — it sits between
+        // gray-950 and gray-900 — so it stays literal and will NOT follow a ramp swap.
+        "card": "var(--native-card, oklch(0.1744 0.0061 285.74))",
+        "card-foreground": "var(--color-gray-300)",
+        "popover": "var(--native-popover, var(--color-gray-950))",
+        "popover-foreground": "var(--color-gray-300)",
+        "primary": "var(--color-white)",
+        "primary-foreground": "var(--color-black)",
+        "secondary": "var(--color-gray-900)",
+        "secondary-foreground": "var(--native-secondary-foreground, var(--color-white))",
+        "muted": "var(--color-gray-900)",
+        // main.css writes `--alpha(var(--color-gray-300) / 80%)`, a BUILD-TIME
+        // Tailwind function that cannot appear in a runtime style string. This is
+        // what Tailwind compiles that call into.
+        "muted-foreground": "color-mix(in oklab, var(--color-gray-300) 80%, transparent)",
+        "accent": "var(--native-accent, var(--primary))",
+        "accent-foreground": "var(--native-accent-foreground, var(--primary-foreground))",
+        "destructive": "var(--native-destructive, var(--color-red-600))",
+        "border": "var(--color-gray-800)",
+        "input": "var(--color-gray-800)",
+        "ring": "var(--color-white)",
+        "chart-1": "var(--color-gray-300)",
+        "chart-2": "var(--color-gray-500)",
+        "chart-3": "var(--color-gray-600)",
+        "chart-4": "var(--color-gray-700)",
+        "chart-5": "var(--color-gray-800)",
+        "sidebar": "var(--color-gray-950)",
+        "sidebar-foreground": "var(--color-gray-50)",
+        "sidebar-primary": "var(--color-white)",
+        "sidebar-primary-foreground": "var(--color-black)",
+        "sidebar-accent": "var(--color-gray-900)",
+        "sidebar-accent-foreground": "var(--color-gray-100)",
+        "sidebar-border": "var(--color-gray-800)",
+        "sidebar-ring": "var(--color-gray-600)",
+      },
+    },
+  },
 ]
 
 export type Theme = (typeof THEMES)[number]

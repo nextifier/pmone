@@ -235,7 +235,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { BASE_COLOR_OPTIONS, CHART_COLOR_OPTIONS, RADII, THEME_OPTIONS } from "@/lib/appearance";
+import {
+  BASE_COLOR_OPTIONS,
+  CHART_COLOR_OPTIONS,
+  DEFAULT_APPEARANCE,
+  RADII,
+  THEME_OPTIONS,
+} from "@/lib/appearance";
 import { toast } from "vue-sonner";
 
 definePageMeta({
@@ -267,10 +273,10 @@ const identityDefaults = () => ({ company_name: null, company_address: null });
 // palette (mirrors DEFAULT_APPEARANCE's baseColor/theme/chartColor/radius).
 const appearanceDefaults = () => ({
   enabled: false,
-  baseColor: "neutral",
-  theme: "neutral",
-  chartColor: "neutral",
-  radius: "default",
+  baseColor: DEFAULT_APPEARANCE.baseColor,
+  theme: DEFAULT_APPEARANCE.theme,
+  chartColor: DEFAULT_APPEARANCE.chartColor,
+  radius: DEFAULT_APPEARANCE.radius,
 });
 
 // Each analytics field is stored as null | string | string[] (a single id

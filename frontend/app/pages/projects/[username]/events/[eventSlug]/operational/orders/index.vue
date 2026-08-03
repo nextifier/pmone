@@ -258,11 +258,11 @@
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Provide a reason for cancelling this order.
           </p>
-          <textarea
+          <Textarea
             v-model="cancellationReason"
             rows="3"
             placeholder="Cancellation reason"
-            class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring mt-3 w-full rounded-md border px-3 py-2 text-sm tracking-tight outline-none focus:ring-1"
+            class="mt-3"
           />
           <div class="mt-3 flex justify-end gap-2">
             <button

@@ -20,35 +20,25 @@
           <AutocompleteInput
             placeholder="e.g. Marketing Manager"
             autocomplete="off"
-            class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+            class="cn-input w-full min-w-0 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
           />
         </AutocompleteAnchor>
-        <AutocompletePortal>
-          <AutocompleteContent
-            position="popper"
-            :side-offset="4"
-            hide-when-empty
-            class="bg-popover text-popover-foreground z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border shadow-md"
-          >
-            <AutocompleteViewport class="max-h-48 p-1">
-              <AutocompleteItem
-                v-for="title in filteredJobTitles"
-                :key="title"
-                :value="title"
-                class="data-[highlighted]:bg-muted flex w-full cursor-default items-center rounded-sm px-2 py-1.5 text-left text-sm tracking-tight outline-none select-none"
-                @select="form.job_title = title"
-              >
-                {{ title }}
-              </AutocompleteItem>
-              <AutocompleteEmpty
-                v-if="jobTitleSearch.trim()"
-                class="text-muted-foreground px-2 py-4 text-center text-sm"
-              >
-                No suggestions found
-              </AutocompleteEmpty>
-            </AutocompleteViewport>
-          </AutocompleteContent>
-        </AutocompletePortal>
+        <!-- Autocomplete's Content/Viewport/Item/Empty are literal aliases of the
+             Combobox ones in reka-ui, so the ui wrappers (and their cn-* rules)
+             drop straight in here. -->
+        <ComboboxList hide-when-empty>
+          <ComboboxViewport>
+            <ComboboxItem
+              v-for="title in filteredJobTitles"
+              :key="title"
+              :value="title"
+              @select="form.job_title = title"
+            >
+              {{ title }}
+            </ComboboxItem>
+            <ComboboxEmpty v-if="jobTitleSearch.trim()">No suggestions found</ComboboxEmpty>
+          </ComboboxViewport>
+        </ComboboxList>
       </AutocompleteRoot>
     </div>
 
@@ -297,17 +287,7 @@ import {
   TagsInputItemText,
 } from "@/components/ui/tags-input";
 import jobTitles from "@/data/job-titles";
-import {
-  AutocompleteAnchor,
-  AutocompleteContent,
-  AutocompleteEmpty,
-  AutocompleteInput,
-  AutocompleteItem,
-  AutocompletePortal,
-  AutocompleteRoot,
-  AutocompleteViewport,
-  useFilter,
-} from "reka-ui";
+import { AutocompleteAnchor, AutocompleteInput, AutocompleteRoot, useFilter } from "reka-ui";
 import { toast } from "vue-sonner";
 
 defineShortcuts({

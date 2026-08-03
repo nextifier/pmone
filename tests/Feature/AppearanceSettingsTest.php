@@ -232,6 +232,27 @@ test('partial appearance deep-merges and preserves sibling keys', function () {
     expect($user->user_settings['appearance']['chartColor'])->toBe('neutral');
 });
 
+test('accepts the native palette in every color slot', function () {
+    $user = User::factory()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($user, 'sanctum')
+        ->patchJson('/api/user/settings', [
+            'settings' => [
+                'appearance' => [
+                    'baseColor' => 'native',
+                    'theme' => 'native',
+                    'chartColor' => 'native',
+                ],
+            ],
+        ])
+        ->assertOk();
+
+    $user->refresh();
+    expect($user->user_settings['appearance']['baseColor'])->toBe('native')
+        ->and($user->user_settings['appearance']['theme'])->toBe('native')
+        ->and($user->user_settings['appearance']['chartColor'])->toBe('native');
+});
+
 test('settings update persists only validated keys', function () {
     $user = User::factory()->create(['email_verified_at' => now()]);
 

@@ -20,12 +20,12 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="email">{{ $t('auth.email') }}</Label>
               <Input v-model="form.email" type="email" name="email" id="email" required autofocus />
               <FieldError v-if="errors?.email" :errors="errors.email" />
             </div>
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <div class="flex items-center justify-between gap-3">
                 <Label for="password">{{ $t('auth.password') }}</Label>
 

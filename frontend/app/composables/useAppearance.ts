@@ -5,6 +5,7 @@ import {
   appearanceCss,
   DEFAULT_APPEARANCE,
   DEFAULT_STYLE,
+  normalizeAppearance,
   RADIUS_LOCKED_STYLES,
   STYLE_NAMES,
 } from "@/lib/appearance";
@@ -81,9 +82,11 @@ export function useAppearance() {
       c && (c.baseColor || c.theme || c.chartColor || c.radius || c.font || c.fontHeading)
     );
   });
-  // The full token config for injection (null when not customized).
+  // The full token config for injection (null when not customized). Normalizing
+  // here covers both persistence paths at once — cookie and the backend
+  // user_settings seed below both land in `config`.
   const appearance = computed<AppearanceConfig | null>(() =>
-    hasTokens.value ? { ...DEFAULT_APPEARANCE, ...config.value } : null,
+    hasTokens.value ? normalizeAppearance({ ...DEFAULT_APPEARANCE, ...config.value }) : null,
   );
 
   // ---- Backend persistence (cross-device); cookie is the live source ----------
@@ -170,7 +173,9 @@ export function useAppearance() {
   // Setting any single token fills the whole config from DEFAULT_APPEARANCE so
   // `appearanceCss` always receives a complete config (and opt-in turns on).
   const setToken = (key: keyof AppearanceConfig, value: string) => {
-    const cur = config.value || {};
+    // Normalize first: `cur` wins the spread below, so without this a legacy
+    // config would carry its stale color trio forward on every edit, forever.
+    const cur = normalizeAppearance(config.value) || {};
     writeCookie({
       baseColor: DEFAULT_APPEARANCE.baseColor,
       theme: DEFAULT_APPEARANCE.theme,
@@ -196,7 +201,7 @@ export function useAppearance() {
 
   /** Apply a full selection at once (Shuffle / Open Preset) — one write, opt-in on. */
   const applyConfig = (next: Partial<AppearanceConfig>) => {
-    writeCookie(toPresetConfig({ ...config.value, ...next }));
+    writeCookie(toPresetConfig({ ...normalizeAppearance(config.value), ...next }));
   };
 
   /** Write an EXACT config (or null) verbatim — used by undo to restore a snapshot. */
@@ -210,7 +215,8 @@ export function useAppearance() {
    * preset always matches the visible chip.
    */
   const presetConfig = computed(() => {
-    const resolved = toPresetConfig(config.value);
+    // Normalized so a copied code matches the chip the user can see.
+    const resolved = toPresetConfig(normalizeAppearance(config.value));
     resolved.style = style.value;
     const radiusLocked = (RADIUS_LOCKED_STYLES as readonly string[]).includes(resolved.style);
     return radiusLocked ? { ...resolved, radius: "none" } : resolved;

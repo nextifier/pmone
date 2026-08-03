@@ -1,0 +1,19 @@
+{
+  "forms": {
+    "submit": "제출",
+    "submitting": "제출 중...",
+    "uploadingFiles": "파일 업로드 중...",
+    "emailLabel": "이메일",
+    "notFoundTitle": "양식을 찾을 수 없습니다",
+    "notFoundMessage": "이 양식은 존재하지 않거나 더 이상 사용할 수 없습니다.",
+    "closedTitle": "양식을 사용할 수 없습니다",
+    "closedMessage": "이 양식은 현재 응답을 받지 않습니다.",
+    "errorTitle": "문제가 발생했습니다",
+    "errorMessage": "양식을 불러올 수 없습니다. 나중에 다시 시도해 주세요.",
+    "successTitle": "감사합니다",
+    "successMessage": "응답이 접수되었습니다.",
+    "alreadyTitle": "이미 완료되었습니다",
+    "alreadyMessage": "응답을 접수했습니다. 이 양식은 한 사람당 한 번만 제출할 수 있습니다.",
+    "submitFailed": "양식 제출에 실패했습니다. 다시 시도해 주세요."
+  }
+}

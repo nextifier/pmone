@@ -17,69 +17,56 @@
               <AutocompleteInput
                 placeholder="Type to search hotels"
                 autocomplete="off"
-                class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+                class="cn-input w-full min-w-0 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
                 auto-focus
               />
             </AutocompleteAnchor>
-            <AutocompletePortal>
-              <AutocompleteContent
-                position="popper"
-                :side-offset="4"
-                hide-when-empty
-                class="bg-popover text-popover-foreground z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border shadow-md"
-              >
-                <AutocompleteViewport class="max-h-64 p-1">
-                  <AutocompleteItem
-                    v-for="hotel in hotelResults"
-                    :key="hotel.id"
-                    :value="hotel.name"
-                    class="data-[highlighted]:bg-muted flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left outline-none select-none"
-                    @select="selectedHotel = hotel"
-                  >
-                    <img
-                      v-if="hotel.featured?.thumbnail || hotel.featured?.sm"
-                      :src="hotel.featured.thumbnail || hotel.featured.sm"
-                      class="size-8 rounded object-cover"
-                      alt=""
-                    />
-                    <div
-                      v-else
-                      class="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded"
-                    >
-                      <Icon name="hugeicons:hotel-01" class="size-4" />
-                    </div>
-                    <div class="flex min-w-0 flex-col">
-                      <span class="truncate text-sm tracking-tight">{{ hotel.name }}</span>
-                      <span
-                        v-if="hotel.city"
-                        class="text-muted-foreground truncate text-xs tracking-tight"
-                      >
-                        {{ hotel.city
-                        }}<template v-if="hotel.country">, {{ hotel.country }}</template>
-                      </span>
-                    </div>
-                    <Icon
-                      v-if="selectedHotel?.id === hotel.id"
-                      name="lucide:check"
-                      class="ml-auto size-4"
-                    />
-                  </AutocompleteItem>
-                  <AutocompleteEmpty
-                    v-if="searchTerm.trim() && !pendingSearch"
-                    class="text-muted-foreground px-2 py-4 text-center text-sm tracking-tight"
-                  >
-                    No hotels found. Use "Create new hotel" instead.
-                  </AutocompleteEmpty>
+            <!-- Autocomplete's Content/Viewport/Item/Empty are literal aliases of the
+                 Combobox ones in reka-ui, so the ui wrappers (and their cn-* rules)
+                 drop straight in here. -->
+            <ComboboxList hide-when-empty>
+              <ComboboxViewport>
+                <ComboboxItem
+                  v-for="hotel in hotelResults"
+                  :key="hotel.id"
+                  :value="hotel.name"
+                  class="gap-2"
+                  @select="selectedHotel = hotel"
+                >
+                  <img
+                    v-if="hotel.featured?.thumbnail || hotel.featured?.sm"
+                    :src="hotel.featured.thumbnail || hotel.featured.sm"
+                    class="size-8 rounded object-cover"
+                    alt=""
+                  />
                   <div
-                    v-if="pendingSearch"
-                    class="text-muted-foreground flex items-center justify-center gap-2 px-2 py-3 text-sm tracking-tight"
+                    v-else
+                    class="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded"
                   >
-                    <Spinner class="size-3.5" />
-                    <span>Searching...</span>
+                    <Icon name="hugeicons:hotel-01" class="size-4" />
                   </div>
-                </AutocompleteViewport>
-              </AutocompleteContent>
-            </AutocompletePortal>
+                  <div class="flex min-w-0 flex-col">
+                    <span class="truncate">{{ hotel.name }}</span>
+                    <span v-if="hotel.city" class="text-muted-foreground truncate text-xs">
+                      {{ hotel.city }}<template v-if="hotel.country">, {{ hotel.country }}</template>
+                    </span>
+                  </div>
+                  <span v-if="selectedHotel?.id === hotel.id" class="cn-combobox-item-indicator">
+                    <Icon name="lucide:check" class="size-4" />
+                  </span>
+                </ComboboxItem>
+                <ComboboxEmpty v-if="searchTerm.trim() && !pendingSearch">
+                  No hotels found. Use "Create new hotel" instead.
+                </ComboboxEmpty>
+                <div
+                  v-if="pendingSearch"
+                  class="text-muted-foreground flex items-center justify-center gap-2 px-2 py-3 text-sm"
+                >
+                  <Spinner class="size-3.5" />
+                  <span>Searching...</span>
+                </div>
+              </ComboboxViewport>
+            </ComboboxList>
           </AutocompleteRoot>
           <p v-if="errors.hotel_id" class="text-destructive text-xs">{{ errors.hotel_id }}</p>
         </div>
@@ -130,16 +117,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  AutocompleteAnchor,
-  AutocompleteContent,
-  AutocompleteEmpty,
-  AutocompleteInput,
-  AutocompleteItem,
-  AutocompletePortal,
-  AutocompleteRoot,
-  AutocompleteViewport,
-} from "reka-ui";
+import { AutocompleteAnchor, AutocompleteInput, AutocompleteRoot } from "reka-ui";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

@@ -343,8 +343,15 @@ export default defineNuxtConfig({
   },
 
   i18n: {
+    // Mirrors FIELD_LOCALES in lib/customFieldEditor.js, so every language a
+    // custom field can be authored in is also one the public form page can
+    // render. `ja`/`ko` currently ship only the `forms` block; everything else
+    // falls back to English via i18n.config.ts.
     locales: [
       { code: "en", language: "en-US", name: "English", file: "en.json" },
+      { code: "id", language: "id-ID", name: "Indonesian", file: "id.json" },
+      { code: "ja", language: "ja-JP", name: "日本語", file: "ja.json" },
+      { code: "ko", language: "ko-KR", name: "한국어", file: "ko.json" },
       { code: "zh", language: "zh-CN", name: "中文", file: "zh.json" },
     ],
     lazy: true,

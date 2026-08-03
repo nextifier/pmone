@@ -217,11 +217,11 @@ html.appearance-switching *::after {
     --sidebar-border: var(--color-gray-200);
     --sidebar-ring: var(--color-gray-400);
 
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --chart-1: var(--color-gray-300);
+    --chart-2: var(--color-gray-500);
+    --chart-3: var(--color-gray-600);
+    --chart-4: var(--color-gray-700);
+    --chart-5: var(--color-gray-800);
 
     --radius: 0.625rem;
   }
@@ -273,11 +273,11 @@ html.appearance-switching *::after {
     --sidebar-border: var(--color-gray-800);
     --sidebar-ring: var(--color-gray-600);
 
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --chart-1: var(--color-gray-300);
+    --chart-2: var(--color-gray-500);
+    --chart-3: var(--color-gray-600);
+    --chart-4: var(--color-gray-700);
+    --chart-5: var(--color-gray-800);
   }
 }
 
@@ -526,25 +526,6 @@ html.appearance-switching *::after {
 
 @utility gradient-insta {
   @apply from-yellow-300 via-red-500 to-fuchsia-600;
-}
-
-.input-base,
-.input-group input,
-.input-group textarea {
-  @apply border-border bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:border-ring flex w-full rounded-md border text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-.input-group {
-  @apply grid gap-2.5;
-
-  & input {
-    @apply h-10;
-  }
-
-  & input,
-  & textarea {
-    @apply px-3 py-2;
-  }
 }
 
 @layer base {

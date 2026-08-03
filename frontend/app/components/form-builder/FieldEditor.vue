@@ -15,19 +15,39 @@
     </div>
 
     <div class="space-y-2">
+      <Tabs v-model="activeLocale" variant="segmented">
+        <TabsList>
+          <TabsIndicator />
+          <TabsTrigger
+            v-for="locale in FIELD_LOCALE_TABS"
+            :key="locale.value"
+            :value="locale.value"
+          >
+            {{ locale.label }}
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+      <p class="text-muted-foreground text-xs tracking-tight">
+        The selected language applies to the label, placeholder and help text below.
+      </p>
+    </div>
+
+    <div class="space-y-2">
       <Label for="field_label">{{ isSection ? "Section title" : "Label" }}</Label>
       <Input
         id="field_label"
-        v-model="fieldForm.label"
+        v-model="labelField"
+        :required="activeLocale === 'en'"
         :placeholder="isSection ? 'Section title' : 'Field label'"
-        :class="{ 'border-destructive': errors.label }"
+        :class="{ 'border-destructive': localizedLabelErrors }"
       />
-      <FieldError :errors="errors.label" />
+      <FieldError :errors="localizedLabelErrors" />
     </div>
 
     <FieldTypeSettings
-      v-model:placeholder="fieldForm.placeholder"
-      v-model:help-text="fieldForm.help_text"
+      v-model:placeholder="placeholderField"
+      v-model:help-text="helpTextField"
+      :error-locale="activeLocale"
       v-model:validation="fieldForm.validation"
       v-model:settings="fieldForm.settings"
       :type="fieldForm.type"
@@ -89,13 +109,13 @@
       </template>
     </FieldTypeSettings>
 
-    <FieldPreviewFrame :field="previewField" />
+    <FieldPreviewFrame :field="previewField" :locale="activeLocale" />
 
     <div class="flex justify-end gap-2">
       <Button type="button" variant="outline" :disabled="saving" @click="$emit('cancel')">
         Cancel
       </Button>
-      <Button type="button" :disabled="saving || !fieldForm.label || !fieldForm.type" @click="save">
+      <Button type="button" :disabled="saving || !hasEnglishLabel || !fieldForm.type" @click="save">
         <Spinner v-if="saving" class="size-4" />
         <span>{{ editingField ? "Update field" : "Add field" }}</span>
       </Button>
@@ -111,11 +131,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   buildSettingsPayload,
+  buildTranslatablePayload,
   buildValidationPayload,
+  cleanTranslatable,
   emptyFieldState,
+  FIELD_LOCALE_TABS,
   hydrateFieldState,
   previewFieldFrom,
 } from "@/lib/customFieldEditor";
@@ -132,17 +156,35 @@ const emit = defineEmits(["saved", "cancel"]);
 const client = useSanctumClient();
 const saving = ref(false);
 const errors = ref({});
+const activeLocale = ref("en");
 
-// Form Builder forms are single-language: label, placeholder and help text stay
-// plain strings and the backend coerces them to {en: "..."} on the way in.
 const fieldForm = reactive(
-  props.editingField
-    ? hydrateFieldState(props.editingField, { translatable: false })
-    : emptyFieldState({ translatable: false })
+  props.editingField ? hydrateFieldState(props.editingField) : emptyFieldState()
 );
 
 const typeConfig = computed(() => getTypeConfig(fieldForm.type));
 const isSection = computed(() => fieldForm.type === "section");
+
+// One language tab drives all three translatable inputs, same as the brand,
+// ticket and ops-document editors.
+const translatableProxy = (key) =>
+  computed({
+    get: () => fieldForm[key][activeLocale.value] ?? "",
+    set: (value) => {
+      fieldForm[key] = { ...fieldForm[key], [activeLocale.value]: value };
+    },
+  });
+
+const labelField = translatableProxy("label");
+const placeholderField = translatableProxy("placeholder");
+const helpTextField = translatableProxy("help_text");
+
+const localizedLabelErrors = computed(
+  () => errors.value[`label.${activeLocale.value}`] ?? errors.value.label ?? null
+);
+
+// English is the only required translation, so it also gates the save button.
+const hasEnglishLabel = computed(() => Boolean(String(fieldForm.label.en ?? "").trim()));
 
 const changeType = (type) => {
   fieldForm.type = type;
@@ -187,25 +229,37 @@ const applyBulkOptions = () => {
 /* ----- Live preview ----- */
 const previewField = computed(() =>
   previewFieldFrom(fieldForm, {
-    label: fieldForm.label || getTypeLabel(fieldForm.type),
+    label: Object.keys(cleanTranslatable(fieldForm.label)).length
+      ? fieldForm.label
+      : { en: getTypeLabel(fieldForm.type) },
     options: fieldForm.options.filter((o) => o.label || o.value),
   })
 );
 
 /* ----- Save ----- */
 const save = async () => {
-  if (!fieldForm.label || !fieldForm.type) return;
+  if (!fieldForm.type) return;
+
+  if (!String(fieldForm.label.en ?? "").trim()) {
+    activeLocale.value = "en";
+    toast.error("English label is required");
+    return;
+  }
+
   saving.value = true;
   errors.value = {};
 
   try {
+    const label = cleanTranslatable(fieldForm.label);
+    label.en = String(fieldForm.label.en).trim();
+
     const body = {
       type: fieldForm.type,
-      label: fieldForm.label,
-      // "" rather than null so clearing the input actually clears the stored
-      // English translation instead of leaving the old value behind.
-      placeholder: fieldForm.placeholder || "",
-      help_text: fieldForm.help_text || "",
+      label,
+      // Every locale is sent, "" for the empty ones, so clearing an input
+      // actually clears that translation instead of leaving it behind.
+      placeholder: buildTranslatablePayload(fieldForm.placeholder),
+      help_text: buildTranslatablePayload(fieldForm.help_text),
       options: typeConfig.value.hasOptions
         ? fieldForm.options
             .filter((o) => o.label || o.value)

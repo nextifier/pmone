@@ -1,0 +1,19 @@
+{
+  "forms": {
+    "submit": "送信",
+    "submitting": "送信中...",
+    "uploadingFiles": "ファイルをアップロード中...",
+    "emailLabel": "メールアドレス",
+    "notFoundTitle": "フォームが見つかりません",
+    "notFoundMessage": "このフォームは存在しないか、利用できなくなりました。",
+    "closedTitle": "フォームは利用できません",
+    "closedMessage": "このフォームは現在回答を受け付けていません。",
+    "errorTitle": "問題が発生しました",
+    "errorMessage": "フォームを読み込めませんでした。後でもう一度お試しください。",
+    "successTitle": "ありがとうございます",
+    "successMessage": "回答を受け付けました。",
+    "alreadyTitle": "送信済みです",
+    "alreadyMessage": "回答を受け付けました。このフォームはお一人につき1回のみ回答できます。",
+    "submitFailed": "フォームの送信に失敗しました。もう一度お試しください。"
+  }
+}

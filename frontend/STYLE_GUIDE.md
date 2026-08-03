@@ -438,6 +438,7 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - Shadow tebal (`shadow-2xl`) di komponen biasa.
 - Border radius yang tidak konsisten dengan skala (jangan tiba-tiba `rounded-3xl` di satu card sedang yang lain `rounded-xl`).
 - Menambahkan `hover:scale-*` / `group-hover:scale-*` pada image atau card di kode baru. Untuk motion yang sudah ada di repo, lihat §13 - itu bukan temuan audit.
+- Menempel `bg-*`, `border-*`, `h-*`, `rounded-*`, `px-*`, `shadow-*` di call site elemen input-like (input, textarea, select trigger, combobox, chips, dropzone). Semua itu milik rule `cn-*` di `assets/css/styles/style-<name>.css`. Meng-hardcode-nya memaku field ke satu tampilan sehingga ia tidak ikut berganti saat user memilih Style lain - dan `dark:bg-background` khususnya membuat field lebur ke latar dialog di dark mode. Kalau butuh nilai yang belum ada, tambahkan rule `cn-*`-nya (ingat: 9 file style x 3 repo), jangan hardcode. Guard: `bash frontend/scripts/check-input-hardcode.sh`.
 
 ---
 
@@ -454,12 +455,13 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - Empty state pakai component `<Empty>`.
 - Skeleton loading pakai component `<Skeleton>`.
 - Tidak ada `font-bold`, `uppercase`, `tracking-wider`.
+- `bash frontend/scripts/check-theming-sync.sh` hijau (ia sekaligus menjalankan check-input-hardcode.sh).
 
 ---
 
 ## File Reference
 
-- `frontend/app/assets/css/main.css` - definisi semua CSS variable, utility (`page-title`, `page-description`, `container`, `container-wider`, `squircle`, `min-h-screen-offset`, dll), dan class custom (`.frame`, `.input-base`).
+- `frontend/app/assets/css/main.css` - definisi semua CSS variable, utility (`page-title`, `page-description`, `container`, `container-wider`, `squircle`, `min-h-screen-offset`, dll), dan class custom (`.frame`).
 - `frontend/app/components/ui/` - semua component shadcn-vue.
 - `frontend/app/components/ui/button/index.ts` - definisi variant button.
 - `frontend/app/components/FormUser.vue`, `FormProject.vue`, `FormEvent.vue` - referensi pattern form lengkap.

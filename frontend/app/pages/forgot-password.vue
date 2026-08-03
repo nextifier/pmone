@@ -14,7 +14,7 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="email">{{ $t('auth.email') }}</Label>
               <Input
                 v-model="form.email"

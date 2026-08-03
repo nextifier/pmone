@@ -13,6 +13,7 @@ import { DARK_ITEM as darkItem, DARK_MENU as darkMenu } from "@/lib/appearance/c
 import {
   BASE_COLOR_OPTIONS,
   CHART_COLOR_OPTIONS,
+  DEFAULT_APPEARANCE,
   RADII,
   RADIUS_LOCKED_STYLES,
   THEME_OPTIONS,
@@ -57,9 +58,9 @@ const headingOptions = FONT_HEADING_OPTIONS.map(f => ({
 }));
 
 // ---- Current values (fall back to defaults when not customized) -------------
-const baseColor = computed(() => appearance.value?.baseColor ?? "neutral");
-const theme = computed(() => appearance.value?.theme ?? "neutral");
-const chartColor = computed(() => appearance.value?.chartColor ?? "neutral");
+const baseColor = computed(() => appearance.value?.baseColor ?? DEFAULT_APPEARANCE.baseColor);
+const theme = computed(() => appearance.value?.theme ?? DEFAULT_APPEARANCE.theme);
+const chartColor = computed(() => appearance.value?.chartColor ?? DEFAULT_APPEARANCE.chartColor);
 const font = computed(() => appearance.value?.font ?? "default");
 const fontHeading = computed(() => appearance.value?.fontHeading ?? "inherit");
 

@@ -30,7 +30,7 @@ class FormController extends Controller
         $user = $request->user();
 
         $query = Form::query()
-            ->with(['creator', 'project.media', 'media', 'tags'])
+            ->with(['creator', 'project.media', 'project.links', 'media', 'tags'])
             ->withCount('responses');
 
         if (! $user->hasRole(['master', 'admin'])) {
@@ -87,7 +87,7 @@ class FormController extends Controller
 
         return response()->json([
             'message' => 'Form created successfully',
-            'data' => new FormResource($form->load(['creator', 'project', 'media', 'tags'])),
+            'data' => new FormResource($form->load(['creator', 'project.links', 'media', 'tags'])),
         ], 201);
     }
 
@@ -95,7 +95,7 @@ class FormController extends Controller
     {
         $this->authorize('view', $form);
 
-        $form->load(['fields', 'creator', 'updater', 'project.media', 'media', 'tags']);
+        $form->load(['fields', 'creator', 'updater', 'project.media', 'project.links', 'media', 'tags']);
         $form->loadCount('responses');
 
         return response()->json([
@@ -129,7 +129,7 @@ class FormController extends Controller
 
         return response()->json([
             'message' => 'Form updated successfully',
-            'data' => new FormResource($form->load(['fields', 'creator', 'updater', 'project', 'media', 'tags'])),
+            'data' => new FormResource($form->load(['fields', 'creator', 'updater', 'project.links', 'media', 'tags'])),
         ]);
     }
 
@@ -167,7 +167,7 @@ class FormController extends Controller
 
         return response()->json([
             'message' => 'Form duplicated successfully',
-            'data' => new FormResource($copy->load(['fields', 'creator', 'project', 'media', 'tags'])),
+            'data' => new FormResource($copy->load(['fields', 'creator', 'project.links', 'media', 'tags'])),
         ], 201);
     }
 
@@ -213,7 +213,7 @@ class FormController extends Controller
         $this->authorize('viewAny', Form::class);
 
         $query = Form::onlyTrashed()
-            ->with(['creator', 'project.media', 'media', 'tags'])
+            ->with(['creator', 'project.media', 'project.links', 'media', 'tags'])
             ->withCount('responses');
 
         $user = $request->user();
@@ -250,7 +250,7 @@ class FormController extends Controller
 
         return response()->json([
             'message' => 'Form restored successfully',
-            'data' => new FormResource($form->load(['creator', 'project'])),
+            'data' => new FormResource($form->load(['creator', 'project.links'])),
         ]);
     }
 

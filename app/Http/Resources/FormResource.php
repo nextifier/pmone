@@ -44,6 +44,10 @@ class FormResource extends JsonResource
                 'profile_image' => $this->project->hasMedia('profile_image')
                     ? $this->project->getMediaUrls('profile_image')
                     : null,
+                // Lets the dashboard offer the event-website copy of the form
+                // ({website}/f/{slug}) next to the pmone.id one. Null when the
+                // project has no "Website" link configured.
+                'website_url' => $this->project->websiteUrl(),
             ]),
             'creator' => $this->whenLoaded('creator', fn () => new UserMinimalResource($this->creator)),
             'updater' => $this->whenLoaded('updater', fn () => new UserMinimalResource($this->updater)),

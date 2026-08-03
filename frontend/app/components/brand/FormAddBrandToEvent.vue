@@ -14,58 +14,53 @@
               <AutocompleteInput
                 placeholder="Type to search brands"
                 autocomplete="off"
-                class="placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-background border-border focus-visible:border-ring focus-visible:ring-ring flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-sm tracking-tight shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[1px]"
+                class="cn-input w-full min-w-0 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
                 auto-focus
               />
             </AutocompleteAnchor>
-            <AutocompletePortal>
-              <AutocompleteContent
-                position="popper"
-                :side-offset="4"
-                hide-when-empty
-                class="bg-popover text-popover-foreground z-[100] w-[var(--reka-combobox-trigger-width)] overflow-hidden rounded-md border shadow-md"
-              >
-                <AutocompleteViewport class="max-h-48 p-1">
-                  <AutocompleteItem
-                    v-for="brand in brandResults"
-                    :key="brand.id"
-                    :value="brand.name"
-                    class="data-[highlighted]:bg-muted flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left outline-none select-none"
-                    @select="selectedBrand = brand"
+            <!-- Autocomplete's Content/Viewport/Item/Empty are literal aliases of the
+                 Combobox ones in reka-ui, so the ui wrappers (and their cn-* rules)
+                 drop straight in here. ComboboxList also aliases --available-height,
+                 which cn-combobox-list depends on. -->
+            <ComboboxList hide-when-empty>
+              <ComboboxViewport>
+                <ComboboxItem
+                  v-for="brand in brandResults"
+                  :key="brand.id"
+                  :value="brand.name"
+                  class="gap-2"
+                  @select="selectedBrand = brand"
+                >
+                  <img
+                    v-if="brand.profile_image?.sm"
+                    :src="brand.profile_image.sm"
+                    class="size-6 rounded object-cover"
+                    alt=""
+                  />
+                  <div
+                    v-else
+                    class="text-muted-foreground flex size-6 items-center justify-center rounded text-xs font-medium"
                   >
-                    <img
-                      v-if="brand.profile_image?.sm"
-                      :src="brand.profile_image.sm"
-                      class="size-6 rounded object-cover"
-                      alt=""
-                    />
-                    <div
-                      v-else
-                      class="text-muted-foreground flex size-6 items-center justify-center rounded text-xs font-medium"
-                    >
-                      {{ brand.name.charAt(0).toUpperCase() }}
-                    </div>
-                    <div class="flex flex-col">
-                      <span class="text-sm">{{ brand.name }}</span>
-                      <span v-if="brand.company_name" class="text-muted-foreground text-xs">{{
-                        brand.company_name
-                      }}</span>
-                    </div>
-                    <Icon
-                      v-if="selectedBrand?.id === brand.id"
-                      name="lucide:check"
-                      class="ml-auto size-4"
-                    />
-                  </AutocompleteItem>
-                  <AutocompleteEmpty
-                    v-if="searchTerm.trim() && !searching"
-                    class="text-muted-foreground px-2 py-4 text-center text-sm"
+                    {{ brand.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="flex flex-col">
+                    <span>{{ brand.name }}</span>
+                    <span v-if="brand.company_name" class="text-muted-foreground text-xs">{{
+                      brand.company_name
+                    }}</span>
+                  </div>
+                  <span
+                    v-if="selectedBrand?.id === brand.id"
+                    class="cn-combobox-item-indicator"
                   >
-                    No brands found
-                  </AutocompleteEmpty>
-                </AutocompleteViewport>
-              </AutocompleteContent>
-            </AutocompletePortal>
+                    <Icon name="lucide:check" class="size-4" />
+                  </span>
+                </ComboboxItem>
+                <ComboboxEmpty v-if="searchTerm.trim() && !searching">
+                  No brands found
+                </ComboboxEmpty>
+              </ComboboxViewport>
+            </ComboboxList>
           </AutocompleteRoot>
           <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
         </div>
@@ -97,32 +92,32 @@
 
         <div class="space-y-2">
           <Label>Sales</Label>
-          <Combobox v-model="form.sales_id" :ignore-filter="true" :open-on-focus="true">
-            <ComboboxAnchor as-child class="w-full">
-              <div
-                class="border-border relative flex h-9 w-full items-center rounded-md border shadow-xs"
-              >
-                <ComboboxInputPrimitive
-                  v-model="salesSearch"
-                  :display-value="() => selectedSales?.name || ''"
-                  placeholder="Select sales person"
-                  class="placeholder:text-muted-foreground h-full w-full rounded-md bg-transparent px-3 text-sm tracking-tight outline-none"
-                  autocomplete="off"
-                />
-                <button
-                  v-if="form.sales_id"
-                  type="button"
-                  class="text-muted-foreground hover:text-foreground absolute right-2 shrink-0"
-                  @click="
-                    form.sales_id = null;
-                    salesSearch = '';
-                  "
-                >
-                  <Icon name="lucide:x" class="size-3.5" />
-                </button>
-              </div>
+          <!-- `reset-model-value-on-clear` is what makes ComboboxClear actually null the
+               model (reka defaults it to false); the update handler clears the search
+               term too, since ComboboxCancel writes the input's value straight to the
+               DOM without firing an event. -->
+          <Combobox
+            v-model="form.sales_id"
+            :ignore-filter="true"
+            :open-on-focus="true"
+            reset-model-value-on-clear
+            @update:model-value="
+              (v) => {
+                if (v == null) salesSearch = '';
+              }
+            "
+          >
+            <ComboboxAnchor class="w-full">
+              <ComboboxInput
+                v-model="salesSearch"
+                :display-value="() => selectedSales?.name || ''"
+                placeholder="Select sales person"
+                autocomplete="off"
+                :show-clear="!!form.sales_id"
+                class="w-full"
+              />
             </ComboboxAnchor>
-            <ComboboxList class="w-[var(--reka-combobox-trigger-width)]">
+            <ComboboxList>
               <ComboboxViewport>
                 <ComboboxEmpty>No results found.</ComboboxEmpty>
                 <ComboboxItem :value="null">
@@ -203,17 +198,7 @@
 </template>
 
 <script setup>
-import {
-  AutocompleteAnchor,
-  AutocompleteContent,
-  AutocompleteEmpty,
-  AutocompleteInput,
-  AutocompleteItem,
-  AutocompletePortal,
-  AutocompleteRoot,
-  AutocompleteViewport,
-  ComboboxInput as ComboboxInputPrimitive,
-} from "reka-ui";
+import { AutocompleteAnchor, AutocompleteInput, AutocompleteRoot } from "reka-ui";
 import { toast } from "vue-sonner";
 import { LocationCombobox } from "@/components/ui/location-combobox";
 import countries from "@/data/countries.json";

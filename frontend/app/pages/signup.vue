@@ -20,19 +20,19 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="name">{{ $t('auth.name') }}</Label>
               <Input v-model="form.name" type="text" name="name" id="name" required autofocus />
               <FieldError v-if="errors?.name" :errors="errors.name" />
             </div>
 
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="email">{{ $t('auth.email') }}</Label>
               <Input v-model="form.email" type="email" name="email" id="email" required />
               <FieldError v-if="errors?.email" :errors="errors.email" />
             </div>
 
-            <div class="input-group">
+            <div class="grid gap-2.5">
               <Label for="password">{{ $t('auth.password') }}</Label>
 
               <InputPassword
@@ -46,7 +46,7 @@
               <FieldError v-if="errors?.password" :errors="errors.password" />
             </div>
 
-            <div v-if="enablePasswordConfirmation" class="input-group">
+            <div v-if="enablePasswordConfirmation" class="grid gap-2.5">
               <Label for="password_confirmation">{{ $t('auth.confirmPassword') }}</Label>
 
               <InputPassword

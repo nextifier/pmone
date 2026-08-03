@@ -438,5 +438,22 @@
     "posted": "发布于",
     "readingTime": "{n} 分钟阅读",
     "shareThisPost": "分享这篇文章"
+  },
+  "forms": {
+    "submit": "提交",
+    "submitting": "提交中...",
+    "uploadingFiles": "正在上传文件...",
+    "emailLabel": "邮箱",
+    "notFoundTitle": "未找到表单",
+    "notFoundMessage": "该表单不存在或已不可用。",
+    "closedTitle": "表单不可用",
+    "closedMessage": "该表单目前不接受回复。",
+    "errorTitle": "出现问题",
+    "errorMessage": "无法加载该表单，请稍后再试。",
+    "successTitle": "谢谢",
+    "successMessage": "您的回复已记录。",
+    "alreadyTitle": "您已完成",
+    "alreadyMessage": "我们已收到您的回复。此表单每人仅可提交一次。",
+    "submitFailed": "提交表单失败，请重试。"
   }
 }

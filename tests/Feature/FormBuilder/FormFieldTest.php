@@ -87,6 +87,66 @@ it('updates a field', function () {
         ->and($field->validation['required'])->toBeTrue();
 });
 
+it('stores a label in every locale the builder sent', function () {
+    $this->postJson("/api/forms/{$this->form->slug}/fields", [
+        'type' => 'text',
+        'label' => [
+            'en' => 'Job title',
+            'id' => 'Jabatan',
+            'ja' => '役職',
+            'ko' => '',
+            'zh' => '',
+        ],
+        'placeholder' => ['en' => 'e.g. Engineer', 'id' => 'mis. Insinyur'],
+    ])->assertSuccessful();
+
+    $field = $this->form->fields()->latest('id')->first();
+
+    expect($field->getTranslations('label'))
+        ->toMatchArray(['en' => 'Job title', 'id' => 'Jabatan', 'ja' => '役職'])
+        ->and($field->getTranslation('placeholder', 'id'))->toBe('mis. Insinyur');
+});
+
+it('leaves the other locales alone when one is edited', function () {
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field->setTranslations('label', ['en' => 'Job title', 'id' => 'Jabatan'])->save();
+
+    $this->putJson("/api/forms/{$this->form->slug}/fields/{$field->ulid}", [
+        'label' => ['en' => 'Role', 'id' => 'Jabatan'],
+    ])->assertSuccessful();
+
+    expect($field->refresh()->getTranslations('label'))
+        ->toMatchArray(['en' => 'Role', 'id' => 'Jabatan']);
+});
+
+it('clears a translation when the builder sends it back empty', function () {
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field->setTranslations('label', ['en' => 'Job title', 'id' => 'Jabatan'])->save();
+
+    $this->putJson("/api/forms/{$this->form->slug}/fields/{$field->ulid}", [
+        'label' => ['en' => 'Job title', 'id' => ''],
+    ])->assertSuccessful();
+
+    expect($field->refresh()->getTranslations('label'))->not->toHaveKey('id');
+});
+
+it('rejects a label with no English translation', function () {
+    $this->postJson("/api/forms/{$this->form->slug}/fields", [
+        'type' => 'text',
+        'label' => ['id' => 'Jabatan'],
+    ])->assertUnprocessable()->assertJsonValidationErrors('label.en');
+});
+
+it('exposes label translations on the public payload so the page can switch language', function () {
+    $this->form->update(['status' => Form::STATUS_PUBLISHED, 'is_active' => true]);
+    $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
+    $field->setTranslations('label', ['en' => 'Job title', 'id' => 'Jabatan'])->save();
+
+    $this->getJson("/api/public/forms/{$this->form->slug}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.fields.0.label_translations.id', 'Jabatan');
+});
+
 it('deletes a field', function () {
     $field = CustomField::factory()->type('text')->create(['form_id' => $this->form->id]);
 

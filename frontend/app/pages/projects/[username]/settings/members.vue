@@ -8,18 +8,12 @@
     </div>
 
     <!-- Search -->
-    <div class="relative">
-      <Icon
-        name="lucide:search"
-        class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-      />
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Search by name or email"
-        class="border-border bg-background placeholder:text-muted-foreground focus:ring-ring h-9 w-full rounded-md border pr-3 pl-9 text-sm tracking-tight outline-none focus:ring-1"
-      />
-    </div>
+    <InputGroup>
+      <InputGroupAddon>
+        <Icon name="lucide:search" />
+      </InputGroupAddon>
+      <InputGroupInput v-model="search" type="text" placeholder="Search by name or email" />
+    </InputGroup>
 
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-12">

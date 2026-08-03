@@ -175,53 +175,15 @@ it('logs a warning and does not throw when a seed username has no matching proje
     expect(Project::query()->count())->toBe(0);
 });
 
-it('is wired into the run_website_config_seed migration so it executes on deploy via `migrate`', function () {
+it('seeds the analytics + nav a project should end up with', function () {
     $project = Project::factory()->create(['username' => 'megabuild']);
 
-    $migration = require base_path('database/migrations/2026_07_12_180942_run_website_config_seed.php');
-    $migration->up();
+    $this->seed(WebsiteConfigSeeder::class);
 
     $siteConfig = data_get($project->refresh()->settings, 'website_settings.site_config');
 
     expect($siteConfig['analytics']['ga4'])->toBe('G-2PJCW7S32V');
     expect($siteConfig['nav']['header'])->toBeArray()->not->toBeEmpty();
-});
-
-it('nulls a previously mis-seeded shared cbe GA4 via the corrective migration', function () {
-    $project = Project::factory()->create([
-        'username' => 'cbe',
-        'settings' => [
-            'website_settings' => [
-                'site_config' => [
-                    'analytics' => ['ga4' => 'G-9KLJTWG6QF', 'tiktok_pixel' => null],
-                ],
-            ],
-        ],
-    ]);
-
-    $migration = require base_path('database/migrations/2026_07_12_194909_fix_shared_cbe_project_ga4.php');
-    $migration->up();
-
-    expect(data_get($project->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBeNull();
-});
-
-it('leaves a deliberately-edited shared cbe GA4 untouched by the corrective migration', function () {
-    $project = Project::factory()->create([
-        'username' => 'cbe',
-        'settings' => [
-            'website_settings' => [
-                'site_config' => [
-                    'analytics' => ['ga4' => 'G-DELIBERATE1', 'tiktok_pixel' => null],
-                ],
-            ],
-        ],
-    ]);
-
-    $migration = require base_path('database/migrations/2026_07_12_194909_fix_shared_cbe_project_ga4.php');
-    $migration->up();
-
-    // Only the exact mis-seeded id is reverted; an operator's later choice stays.
-    expect(data_get($project->refresh()->settings, 'website_settings.site_config.analytics.ga4'))->toBe('G-DELIBERATE1');
 });
 
 it('backfills per-site GA4 for the cbe/cei/icf family via the per-site migration', function () {

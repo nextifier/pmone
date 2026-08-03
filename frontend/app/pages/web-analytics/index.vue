@@ -197,7 +197,7 @@
               v-model="propertySearch"
               type="text"
               placeholder="Search property.."
-              class="peer placeholder:text-muted-foreground h-full w-full rounded-md border bg-transparent px-9 py-1.5 text-sm tracking-tight focus:outline-hidden"
+              class="cn-input peer w-full px-9 outline-none placeholder:text-muted-foreground"
             />
             <button
               v-if="propertySearch"

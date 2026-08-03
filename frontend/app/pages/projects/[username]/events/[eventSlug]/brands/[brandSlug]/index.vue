@@ -48,32 +48,32 @@
             <div class="grid grid-cols-2 gap-x-2 gap-y-4">
               <div class="space-y-2">
                 <Label>Sales</Label>
-                <Combobox v-model="boothForm.sales_id" :ignore-filter="true" :open-on-focus="true">
-                  <ComboboxAnchor as-child class="w-full">
-                    <div
-                      class="border-border relative flex h-9 w-full items-center rounded-md border shadow-xs"
-                    >
-                      <ComboboxInputPrimitive
-                        v-model="salesSearch"
-                        :display-value="() => selectedSales?.name || ''"
-                        placeholder="Select sales person"
-                        class="placeholder:text-muted-foreground h-full w-full rounded-md bg-transparent px-3 text-sm tracking-tight outline-none"
-                        autocomplete="off"
-                      />
-                      <button
-                        v-if="boothForm.sales_id"
-                        type="button"
-                        class="text-muted-foreground hover:text-foreground absolute right-2 shrink-0"
-                        @click="
-                          boothForm.sales_id = null;
-                          salesSearch = '';
-                        "
-                      >
-                        <Icon name="lucide:x" class="size-3.5" />
-                      </button>
-                    </div>
+                <!-- `reset-model-value-on-clear` is what makes ComboboxClear actually
+                     null the model (reka defaults it to false); the update handler
+                     clears the search term too, since ComboboxCancel writes the input's
+                     value straight to the DOM without firing an event. -->
+                <Combobox
+                  v-model="boothForm.sales_id"
+                  :ignore-filter="true"
+                  :open-on-focus="true"
+                  reset-model-value-on-clear
+                  @update:model-value="
+                    (v) => {
+                      if (v == null) salesSearch = '';
+                    }
+                  "
+                >
+                  <ComboboxAnchor class="w-full">
+                    <ComboboxInput
+                      v-model="salesSearch"
+                      :display-value="() => selectedSales?.name || ''"
+                      placeholder="Select sales person"
+                      autocomplete="off"
+                      :show-clear="!!boothForm.sales_id"
+                      class="w-full"
+                    />
                   </ComboboxAnchor>
-                  <ComboboxList class="w-[var(--reka-combobox-trigger-width)]">
+                  <ComboboxList>
                     <ComboboxViewport>
                       <ComboboxEmpty>No results found.</ComboboxEmpty>
                       <ComboboxItem :value="null">
@@ -679,7 +679,7 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { ComboboxInput as ComboboxInputPrimitive, useFilter } from "reka-ui";
+import { useFilter } from "reka-ui";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

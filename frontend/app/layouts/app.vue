@@ -42,10 +42,20 @@ const isDefaultUser = computed(
 const { locale, setLocale } = useI18n();
 const isExhibitor = computed(() => hasRole("exhibitor") && !isStaffOrAbove.value);
 
+/**
+ * Locales whose dashboard strings are actually translated. `ja` and `ko` are
+ * registered for the public form pages only - they carry the `forms` block and
+ * nothing else - so browser detection landing on one of them would otherwise
+ * leave an exhibitor staring at a fully English dashboard under a Japanese flag.
+ */
+const DASHBOARD_LOCALES = ["en", "id", "zh"];
+
 watch(
-  isExhibitor,
-  (exhibitor) => {
-    if (!exhibitor && locale.value !== "en") {
+  [isExhibitor, locale],
+  ([exhibitor, current]) => {
+    if (!exhibitor && current !== "en") {
+      setLocale("en");
+    } else if (exhibitor && !DASHBOARD_LOCALES.includes(current)) {
       setLocale("en");
     }
   },

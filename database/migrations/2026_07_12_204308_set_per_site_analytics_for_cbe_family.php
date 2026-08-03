@@ -16,7 +16,9 @@ return new class extends Migration
      * pmone-events website-settings.get.ts). So each project holds its own GA4:
      * cbe = cafeexpo's G-896FDXSRSL, cei = cokelatexpo's G-9KLJTWG6QF, icf =
      * icf's G-YFZVWEFRHF - the ids baked in each app's nuxt.config. This
-     * supersedes migration 2026_07_12_194909 (which nulled cbe's shared id).
+     * supersedes an earlier corrective migration that nulled cbe's shared id;
+     * that one was deleted once it had run everywhere, so this file is now the
+     * only record of how the family's analytics ended up split per site.
      *
      * Only fills an empty analytics.ga4 so a value an operator deliberately set
      * in the dashboard is never clobbered. Idempotent.

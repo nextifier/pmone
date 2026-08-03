@@ -7,7 +7,7 @@
 
     <form @submit.prevent="handleSubmit" class="mt-8 grid gap-6">
       <!-- Current Password (only if user has existing password) -->
-      <div v-if="userHasPassword" class="input-group">
+      <div v-if="userHasPassword" class="grid gap-2.5">
         <label for="current_password">{{ $t('settings.currentPassword') }}</label>
         <InputPassword
           id="current_password"
@@ -19,7 +19,7 @@
       </div>
 
       <!-- New Password -->
-      <div class="input-group">
+      <div class="grid gap-2.5">
         <label for="password">{{ $t('settings.newPassword') }}</label>
         <InputPassword
           id="password"
@@ -31,7 +31,7 @@
       </div>
 
       <!-- Confirm New Password -->
-      <div class="input-group">
+      <div class="grid gap-2.5">
         <label for="password_confirmation">{{ $t('settings.confirmNewPassword') }}</label>
         <InputPassword
           id="password_confirmation"

@@ -1139,7 +1139,7 @@
   }
 
   .cn-bubble-reactions {
-    @apply rounded-none ring-3 ring-card bg-muted shrink-0 gap-1 px-2 py-0.5 has-[button]:p-0 text-sm;
+    @apply rounded-none ring-2 ring-card bg-muted shrink-0 gap-1 px-2 py-0.5 has-[button]:p-0 text-sm;
   }
 
   .cn-bubble-reactions-side-top {

@@ -38,25 +38,20 @@ const xhrUpload = (url, formData, onProgress, headers = {}) =>
   });
 
 /**
- * Handlers for public Form Builder file fields (pmone.id /f/{slug}).
- * `apiUrl` is the API origin; `formSlug` scopes the tmp upload.
+ * Handlers for public Form Builder file fields, shared by pmone.id/f/{slug} and
+ * every event website's /f/{slug}. The caller passes the fully-built endpoint
+ * because the two hosts reach the same backend differently: pmone talks to the
+ * API origin directly, the event sites go through their same-origin BFF proxy.
  */
-export const createPublicFormUploadHandlers = (apiUrl, formSlug) => ({
+export const createPublicFormUploadHandlers = (uploadUrl) => ({
   uploadHandler: async (file, onProgress) => {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await xhrUpload(
-      `${apiUrl}/api/public/forms/${formSlug}/upload`,
-      formData,
-      onProgress
-    );
+    const response = await xhrUpload(uploadUrl, formData, onProgress);
     return { folder: response.folder, name: file.name, size: file.size };
   },
   revertHandler: async (folder) => {
-    await $fetch(`${apiUrl}/api/public/forms/${formSlug}/upload`, {
-      method: "DELETE",
-      body: folder,
-    });
+    await $fetch(uploadUrl, { method: "DELETE", body: folder });
   },
 });
 

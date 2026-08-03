@@ -450,5 +450,22 @@
     "posted": "Posted",
     "readingTime": "{n} min read | {n} mins read",
     "shareThisPost": "Share this post"
+  },
+  "forms": {
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "uploadingFiles": "Uploading files...",
+    "emailLabel": "Email",
+    "notFoundTitle": "Form not found",
+    "notFoundMessage": "This form does not exist or is no longer available.",
+    "closedTitle": "Form unavailable",
+    "closedMessage": "This form is not accepting responses right now.",
+    "errorTitle": "Something went wrong",
+    "errorMessage": "We couldn't load this form. Please try again later.",
+    "successTitle": "Thank you",
+    "successMessage": "Your response has been recorded.",
+    "alreadyTitle": "You're all set",
+    "alreadyMessage": "We've received your response. This form only accepts one submission per person.",
+    "submitFailed": "Failed to submit the form. Please try again."
   }
 }

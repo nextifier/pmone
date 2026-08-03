@@ -645,7 +645,7 @@ class ProjectController extends Controller
      */
     private function appearanceBaseColors(): array
     {
-        return ['neutral', 'stone', 'zinc', 'mauve', 'olive', 'mist', 'taupe'];
+        return ['native', 'neutral', 'stone', 'zinc', 'mauve', 'olive', 'mist', 'taupe'];
     }
 
     /**
