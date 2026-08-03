@@ -14,7 +14,7 @@ const props = defineProps<{
     aria-label="Close"
     :class="
       cn(
-        'group hover:bg-white/15 focus-visible:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40 flex size-10 items-center justify-center rounded-full text-white transition-colors focus:outline-hidden disabled:pointer-events-none',
+        'group hover:bg-white/15 focus-visible:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40 flex size-10 items-center justify-center rounded-full text-white transition-colors focus:outline-hidden',
         props.class,
       )
     "

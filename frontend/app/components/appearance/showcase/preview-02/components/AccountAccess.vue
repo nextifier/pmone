@@ -55,7 +55,8 @@ import {
           <Input
             id="current-password"
             type="password"
-            default-value="password123"
+            autocomplete="new-password"
+            default-value="demo-preview-value"
           />
         </Field>
       </FieldGroup>

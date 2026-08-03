@@ -13,10 +13,7 @@ const props = defineProps<{
     data-result-reveal
     style="--result-i: 5"
     :class="
-      cn(
-        'flex w-full flex-col items-center justify-center gap-2 sm:w-auto sm:flex-row',
-        props.class,
-      )
+      cn('flex w-full flex-wrap items-center justify-center gap-2', props.class)
     "
   >
     <slot />

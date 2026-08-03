@@ -16,7 +16,13 @@ const delegatedProps = computed(() => {
   <DialogOverlay
     data-slot="dialog-overlay"
     v-bind="delegatedProps"
-    :class="cn('cn-dialog-overlay fixed inset-0 isolate z-50', props.class)"
+    :class="
+      cn(
+        'cn-dialog-overlay fixed inset-0 isolate z-50',
+        'ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none!',
+        props.class,
+      )
+    "
   >
     <slot />
   </DialogOverlay>

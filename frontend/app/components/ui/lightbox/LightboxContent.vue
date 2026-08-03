@@ -74,7 +74,7 @@ function onOpenAutoFocus(event: Event) {
       data-slot="lightbox-overlay"
       :class="
         cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/95 backdrop-blur-sm',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! fixed inset-0 z-50 bg-black/95 backdrop-blur-sm',
           props.overlayClass,
         )
       "
@@ -83,7 +83,7 @@ function onOpenAutoFocus(event: Event) {
       data-slot="lightbox-content"
       :class="
         cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 flex flex-col overflow-hidden text-white outline-hidden duration-200',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! fixed inset-0 z-50 flex flex-col overflow-hidden text-white outline-hidden',
           props.class,
         )
       "

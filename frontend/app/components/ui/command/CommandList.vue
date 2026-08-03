@@ -4,12 +4,9 @@ import type { ComboboxContentEmits, ComboboxContentProps } from "reka-ui";
 import { ComboboxContent, useForwardPropsEmits } from "reka-ui";
 import { computed, type HTMLAttributes } from "vue";
 
-const props = withDefaults(
-  defineProps<ComboboxContentProps & { class?: HTMLAttributes["class"] }>(),
-  {
-    dismissable: false,
-  }
-);
+const props = defineProps<
+  ComboboxContentProps & { class?: HTMLAttributes["class"] }
+>();
 const emits = defineEmits<ComboboxContentEmits>();
 
 const delegatedProps = computed(() => {
@@ -24,6 +21,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <ComboboxContent
     v-bind="forwarded"
+    data-slot="command-list"
     :class="cn('cn-command-list overflow-x-hidden overflow-y-auto', props.class)"
   >
     <div role="presentation">

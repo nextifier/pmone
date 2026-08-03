@@ -298,8 +298,9 @@ Hindari:
 - Hover text destructive: `hover:text-destructive`.
 - Transition: `transition` atau `transition-colors` untuk perubahan warna. `transition-all` hanya kalau memang banyak property berubah.
 - Active state: `active:scale-98` untuk tombol yang ditekan (sudah jadi pattern di app).
-- **DILARANG efek scale/zoom saat hover, terutama pada image.** Jangan pakai `hover:scale-*` atau `group-hover:scale-*` pada `<img>` (thumbnail card, galeri, foto hotel/guest/brand) atau pada card. Foto dan card tetap statis saat hover. Efek `transition-transform` + `scale` untuk "zoom halus" hanya membuat UI terasa templated dan tidak menambah kejelasan apa pun. Affordance untuk card yang bisa diklik cukup dari perubahan warna/border yang halus, bukan transform. Catatan: `active:scale-98` pada tombol yang ditekan tetap boleh - itu feedback klik, bukan dekorasi hover.
-- **Hindari transition dekoratif.** Transition hanya untuk perubahan yang fungsional (warna, border, background, opacity). Jangan menganimasikan `transform`/`scale` cuma supaya UI terasa "hidup".
+- **Jangan menambahkan hover-zoom pada image atau card.** Ini aturan untuk kode yang sedang kamu tulis, bukan untuk mengaudit kode yang sudah ada. Menempelkan `hover:scale-105` / `group-hover:scale-105` plus `transition-transform` ke setiap thumbnail, foto, dan tile adalah refleks yang membuat UI terasa templated, dan itu yang aturan ini cegah. Affordance untuk card yang bisa diklik cukup dari perubahan warna atau border. Kalau kamu menambahkannya karena "biar tidak flat", hapus. Catatan: `active:scale-98` pada tombol yang ditekan tetap boleh - itu feedback klik, bukan dekorasi hover.
+- **Motion yang sudah ada di repo bukan temuan.** Kalau sebuah komponen sudah memakai hover-zoom, tilt, atau transform lain, anggap itu keputusan desain yang diambil sadar. Jangan melaporkannya sebagai pelanggaran, jangan "membereskannya" sambil lalu, dan jangan memasukkannya ke daftar audit. Ubah hanya kalau memang diminta. Kalau kamu ragu apakah sesuatu disengaja, tanyakan alih-alih menghapusnya.
+- **Transition untuk perubahan yang berarti, bukan untuk hiasan.** Perubahan state (buka/tutup, terpilih, valid/invalid, memuat/selesai) layak dianimasikan. Menganimasikan `transform` semata-mata supaya UI terasa "hidup" tidak. Bedanya ada pada apakah gerakannya menjelaskan sesuatu yang berubah, bukan pada properti CSS mana yang dipakai.
 - Focus ring: sudah otomatis via base layer (`focus-visible:ring-ring`). Jangan override kecuali memang perlu.
 
 ---
@@ -436,7 +437,7 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - Banyak library icon di satu page.
 - Shadow tebal (`shadow-2xl`) di komponen biasa.
 - Border radius yang tidak konsisten dengan skala (jangan tiba-tiba `rounded-3xl` di satu card sedang yang lain `rounded-xl`).
-- Efek `hover:scale-*` / `group-hover:scale-*` pada image atau card (zoom/scale-up on hover). Image tetap statis.
+- Menambahkan `hover:scale-*` / `group-hover:scale-*` pada image atau card di kode baru. Untuk motion yang sudah ada di repo, lihat §13 - itu bukan temuan audit.
 
 ---
 

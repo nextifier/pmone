@@ -28,15 +28,15 @@ const colorVariants = [
 
 <template>
   <Card>
-    <CardContent class="flex flex-col gap-6 style-lyra:gap-4 style-mira:gap-4">
+    <CardContent class="flex flex-col gap-6">
       <div class="flex flex-col gap-1">
-        <div class="cn-font-heading text-2xl font-medium style-lyra:text-lg style-mira:text-lg">
+        <div class="cn-font-heading text-2xl font-medium">
           {{ currentStyleTitle }} -
           {{ currentFontHeadingName && currentFontHeadingName !== currentFontName
             ? currentFontHeadingName
             : currentFontName }}
         </div>
-        <div class="line-clamp-2 text-base text-muted-foreground style-lyra:text-sm style-mira:text-sm">
+        <div class="line-clamp-2 text-base text-muted-foreground">
           Designers love packing quirky glyphs into test phrases. This is a
           preview of the typography styles.
         </div>
@@ -51,7 +51,7 @@ const colorVariants = [
             class="relative aspect-square w-full rounded-lg bg-(--color) after:absolute after:inset-0 after:rounded-lg after:border after:border-border after:mix-blend-darken dark:after:mix-blend-lighten"
             :style="{ '--color': `var(${variant})` }"
           />
-          <div class="hidden max-w-14 truncate font-mono text-[0.60rem] md:block style-lyra:max-w-10 style-mira:max-w-10">
+          <div class="hidden max-w-14 truncate font-mono text-[0.60rem] md:block">
             {{ variant }}
           </div>
         </div>

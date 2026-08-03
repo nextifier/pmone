@@ -85,7 +85,7 @@ const isRounded = computed(() => !["lyra", "sera"].includes(params.style.value))
             <ItemDescription class="text-xs font-medium tracking-wider text-muted-foreground uppercase">
               Upcoming
             </ItemDescription>
-            <span class="cn-font-heading text-lg font-semibold">
+            <span class="cn-font-heading text-lg font-semibold tracking-tighter">
               May 25, 2024
             </span>
             <span class="text-sm text-muted-foreground">
@@ -98,7 +98,7 @@ const isRounded = computed(() => !["lyra", "sera"].includes(params.style.value))
             <ItemDescription class="text-xs font-medium tracking-wider text-muted-foreground uppercase">
               Auto-Save Plan
             </ItemDescription>
-            <span class="cn-font-heading text-lg font-semibold">
+            <span class="cn-font-heading text-lg font-semibold tracking-tighter">
               Accelerated
             </span>
             <span class="text-sm text-muted-foreground">

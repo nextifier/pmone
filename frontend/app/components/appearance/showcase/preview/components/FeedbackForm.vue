@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 <template>
   <Card>
     <CardContent>
-      <form id="feedback-form">
+      <form id="feedback-form" @submit.prevent>
         <FieldGroup>
           <Field>
             <FieldLabel for="topic">

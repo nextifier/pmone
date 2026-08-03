@@ -944,22 +944,29 @@ Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
         ->name('public.forms.check');
 });
 
-// Google Sheets integration (token-based auth)
-Route::get('/sheets/orders', [SheetsController::class, 'orders'])
-    ->middleware('throttle:60,1')
-    ->name('sheets.orders');
-Route::get('/sheets/contacts', [SheetsController::class, 'contacts'])
-    ->middleware('throttle:60,1')
-    ->name('sheets.contacts');
-Route::get('/sheets/brands', [SheetsController::class, 'brands'])
-    ->middleware('throttle:60,1')
-    ->name('sheets.brands');
-Route::get('/sheets/brand-events', [SheetsController::class, 'brandEvents'])
-    ->middleware('throttle:60,1')
-    ->name('sheets.brand-events');
-Route::get('/sheets/operational-documents', [SheetsController::class, 'operationalDocuments'])
-    ->middleware('throttle:60,1')
-    ->name('sheets.operational-documents');
+// Google Sheets integration (token-based auth). Each event gets its own set of
+// scoped feeds so a spreadsheet does not have to pull every event at once.
+Route::middleware(['throttle:120,1', 'sheets.token'])
+    ->prefix('sheets')
+    ->name('sheets.')
+    ->group(function () {
+        Route::get('/events', [SheetsController::class, 'events'])->name('events');
+        Route::get('/orders', [SheetsController::class, 'orders'])->name('orders');
+        Route::get('/contacts', [SheetsController::class, 'contacts'])->name('contacts');
+        Route::get('/brands', [SheetsController::class, 'brands'])->name('brands');
+        Route::get('/brand-events', [SheetsController::class, 'brandEvents'])->name('brand-events');
+        Route::get('/operational-documents', [SheetsController::class, 'operationalDocuments'])->name('operational-documents');
+
+        // whereNumber keeps a non-numeric segment from reaching the implicit
+        // binding, where Postgres would reject it against a bigint id with a
+        // 500 instead of a clean 404.
+        Route::prefix('events/{event}')->whereNumber('event')->name('event.')->group(function () {
+            Route::get('/orders', [SheetsController::class, 'eventOrders'])->name('orders');
+            Route::get('/brands', [SheetsController::class, 'eventBrands'])->name('brands');
+            Route::get('/brand-events', [SheetsController::class, 'eventBrandEvents'])->name('brand-events');
+            Route::get('/operational-documents', [SheetsController::class, 'eventOperationalDocuments'])->name('operational-documents');
+        });
+    });
 
 // Contact form submission (per-IP throttle first to reject floods cheaply, then API key for CORS)
 Route::post('/contact-forms/submit', [ContactFormController::class, 'submit'])

@@ -8,8 +8,16 @@ export { default as Button } from "./Button.vue";
 // untouched) and remaps the VALUES to cn-* classes: the extra `outline-destructive`
 // composes outline + `text-destructive`; `iconSm`/`iconXs` map to the registry's
 // `icon-sm`/`icon-xs`.
+//
+// No `` on purpose. It and `disabled:cursor-not-allowed`
+// cancel each other: an element with `pointer-events: none` is never the hit-test
+// target, so its `cursor` is never applied and the pointer stays a plain arrow.
+// `<button disabled>` already blocks click, focus and submit natively, so dropping it
+// costs nothing there — and it lets a Tooltip wrapped around a disabled button work,
+// which is usually the only way to explain WHY it is disabled. Trade-off: hover rules
+// from `.cn-button-variant-*` now fire while disabled (most visible on `ghost`).
 export const buttonVariants = cva(
-  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -26,6 +34,9 @@ export const buttonVariants = cva(
         xs: "cn-button-size-xs",
         sm: "cn-button-size-sm",
         lg: "cn-button-size-lg",
+        // Not in the shadcn registry: one step above `lg` (+8px) in every style,
+        // for hero / landing CTAs that would otherwise be hand-rolled.
+        xl: "cn-button-size-xl",
         icon: "cn-button-size-icon",
         iconSm: "cn-button-size-icon-sm",
         iconXs: "cn-button-size-icon-xs",

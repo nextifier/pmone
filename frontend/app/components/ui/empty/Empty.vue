@@ -12,7 +12,10 @@ const props = defineProps<{
     data-slot="empty"
     :class="
       cn(
-        'cn-empty flex w-full min-w-0 flex-1 flex-col items-center justify-center text-center text-balance',
+        // Texts reveal (transitions-dev 18). The empty state is mounted by a
+        // v-if when there is nothing to show, so mounting is the trigger — the
+        // stack rises once, media first, and never replays while it is on screen.
+        'cn-empty t-stagger flex w-full min-w-0 flex-1 flex-col items-center justify-center text-center text-balance',
         props.class
       )
     "

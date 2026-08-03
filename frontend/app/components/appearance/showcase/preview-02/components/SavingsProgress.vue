@@ -65,17 +65,17 @@ const chartConfig = {
         <span class="text-sm text-muted-foreground">
           Projected Finish
         </span>
-        <span class="text-sm font-semibold">October 2024</span>
+        <span class="text-sm font-semibold tracking-tighter">October 2024</span>
       </div>
       <Separator />
       <div class="flex w-full items-center justify-between py-3">
         <span class="text-sm text-muted-foreground">Monthly Average</span>
-        <span class="text-sm font-semibold tabular-nums">$1,250</span>
+        <span class="text-sm font-semibold tracking-tighter tabular-nums">$1,250</span>
       </div>
       <Separator />
       <div class="flex w-full items-center justify-between py-3">
         <span class="text-sm text-muted-foreground">Top Contributor</span>
-        <span class="text-sm font-semibold">Auto-Transfer</span>
+        <span class="text-sm font-semibold tracking-tighter">Auto-Transfer</span>
       </div>
     </CardFooter>
   </Card>

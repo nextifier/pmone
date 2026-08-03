@@ -39,6 +39,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       :class="
         cn(
           'cn-popover-content cn-popover-content-logical z-50 w-72 origin-(--reka-popover-content-transform-origin) outline-hidden',
+          'ease-(--dropdown-ease) data-open:duration-(--dropdown-open-dur) data-open:zoom-in-97 data-closed:duration-(--dropdown-close-dur) data-closed:zoom-out-99 motion-reduce:animate-none!',
           props.class,
         )
       "

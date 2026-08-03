@@ -31,6 +31,13 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="REDIS_CLIENT" value="predis"/>
+        <!-- Without these, the .env values leak into the suite and every model
+             save fires real Cloudflare purge calls against the live zones: the
+             tests crawl (~35s to create one Event) and, worse, running them
+             locally wipes the production edge cache. -->
+        <env name="CLOUDFLARE_EDGE_PURGE_TOKEN" value=""/>
+        <env name="CLOUDFLARE_PURGE_TOKEN" value=""/>
+        <env name="CLOUDFLARE_ZONE_ID" value=""/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

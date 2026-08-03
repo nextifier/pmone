@@ -72,11 +72,11 @@ const chartConfig = {
           <span class="text-sm text-muted-foreground">
             Currently Using
           </span>
-          <span class="text-lg font-semibold tabular-nums">3.4 kW</span>
+          <span class="text-lg font-semibold tracking-tighter tabular-nums">3.4 kW</span>
         </div>
         <div class="flex flex-col gap-0.5">
           <span class="text-sm text-muted-foreground">Solar Gen</span>
-          <span class="text-lg font-semibold text-chart-1 tabular-nums">
+          <span class="text-lg font-semibold tracking-tighter text-chart-1 tabular-nums">
             +1.2 kW
           </span>
         </div>

@@ -130,10 +130,10 @@ function handleSelect(): void {
           aria-hidden="true"
           :class="
             cn(
-              '[grid-area:1/1] size-full transition-[opacity,filter,transform] duration-200 ease-in-out motion-reduce:transition-none',
+              '[grid-area:1/1] size-full transition-[opacity,filter,transform] duration-(--icon-swap-dur) ease-(--icon-swap-ease) motion-reduce:transition-none',
               activeIcon
                 ? isActive
-                  ? 'scale-[0.25] opacity-0 blur-[2px]'
+                  ? 'scale-[0.25] opacity-0 blur-(--icon-swap-blur)'
                   : 'scale-100 opacity-100 blur-0'
                 : 'scale-100 opacity-100 blur-0',
             )
@@ -145,10 +145,10 @@ function handleSelect(): void {
           aria-hidden="true"
           :class="
             cn(
-              '[grid-area:1/1] size-full transition-[opacity,filter,transform] duration-200 ease-in-out motion-reduce:transition-none',
+              '[grid-area:1/1] size-full transition-[opacity,filter,transform] duration-(--icon-swap-dur) ease-(--icon-swap-ease) motion-reduce:transition-none',
               isActive
                 ? 'scale-100 opacity-100 blur-0'
-                : 'scale-[0.25] opacity-0 blur-[2px]',
+                : 'scale-[0.25] opacity-0 blur-(--icon-swap-blur)',
             )
           "
         />
@@ -156,10 +156,10 @@ function handleSelect(): void {
 
       <Transition
         enter-from-class="scale-0 opacity-0"
-        enter-active-class="transition duration-300 ease-[cubic-bezier(0.34,1.36,0.64,1)] motion-reduce:transition-none"
+        enter-active-class="transition duration-300 ease-(--badge-pop-ease) motion-reduce:transition-none"
         enter-to-class="scale-100 opacity-100"
         leave-from-class="scale-100 opacity-100"
-        leave-active-class="transition duration-[180ms] ease-in motion-reduce:transition-none"
+        leave-active-class="transition duration-(--badge-pop-close-dur) ease-in motion-reduce:transition-none"
         leave-to-class="scale-0 opacity-0"
       >
         <span

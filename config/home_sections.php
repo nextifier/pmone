@@ -176,6 +176,18 @@ return [
             'default' => true,
             'force_param' => 'show-past-exhibitors',
         ],
+        'exhibitor_categories' => [
+            'label' => 'Exhibitor Categories',
+            'description' => 'The categories of brands exhibiting at the show.',
+            'default' => true,
+            'force_param' => 'show-exhibitor-categories',
+        ],
+        'gallery_preview' => [
+            'label' => 'Gallery Preview',
+            'description' => 'A few photos from the gallery, linking to the full page.',
+            'default' => true,
+            'force_param' => 'show-gallery-preview',
+        ],
 
         // --- iicc-specific sections (default true) ---
         'about' => [
@@ -280,8 +292,9 @@ return [
         ],
         'ioe' => [
             'hero', 'brand_preview', 'past_exhibitors', 'rundown', 'hotels',
-            'about_event', 'partnerships', 'media_coverages_slider', 'partners',
-            'blog_post_slider', 'faq',
+            'about_event', 'theme_concept', 'who_visits', 'exhibitor_categories',
+            'event_stats', 'gallery_preview', 'why_exhibit', 'partnerships',
+            'media_coverages_slider', 'partners', 'blog_post_slider', 'faq',
         ],
         'globalaiexpo' => [
             'hero', 'speakers', 'brand_preview', 'rundown', 'hotels', 'about_event',

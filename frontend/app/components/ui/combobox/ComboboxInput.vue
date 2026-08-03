@@ -44,7 +44,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
   <InputGroup :class="cn('cn-combobox-input w-auto', props.class)">
     <ComboboxInput
       data-slot="input-group-control"
-      class="cn-input cn-input-group-input w-full min-w-0 flex-1 outline-none placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+      class="cn-input cn-input-group-input w-full min-w-0 flex-1 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
       v-bind="{ ...forwarded, ...$attrs }"
     />
     <InputGroupAddon align="inline-end">

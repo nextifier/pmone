@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureTicketsEnabled;
 use App\Http\Middleware\LogPaymentWebhook;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Http\Middleware\ValidateApiKey;
+use App\Http\Middleware\ValidateSheetsToken;
 use App\Jobs\FetchExchangeRates;
 use App\Jobs\SyncTodayAnalyticsJob;
 use App\Jobs\WarmAggregateCacheJob;
@@ -51,6 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'hotel-reservation-enabled' => EnsureHotelReservationEnabled::class,
             'tickets-enabled' => EnsureTicketsEnabled::class,
             'log-payment-webhook' => LogPaymentWebhook::class,
+            'sheets.token' => ValidateSheetsToken::class,
         ]);
 
         // Exclude tracking endpoints from request forgery protection (for anonymous tracking)

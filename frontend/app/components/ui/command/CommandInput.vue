@@ -29,15 +29,11 @@ const forwardedProps = useForwardProps(delegatedProps);
 </script>
 
 <template>
-  <div class="cn-command-input-wrapper" cmdk-input-wrapper data-slot="command-input-wrapper">
+  <div class="cn-command-input-wrapper" data-slot="command-input-wrapper">
     <InputGroup class="cn-command-input-group">
-      <InputGroupAddon>
-        <Search class="cn-command-input-icon" />
-      </InputGroupAddon>
       <ComboboxInput
         v-bind="{ ...forwardedProps, ...$attrs }"
         data-slot="command-input"
-        auto-focus
         :class="
           cn(
             'cn-command-input outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
@@ -45,6 +41,9 @@ const forwardedProps = useForwardProps(delegatedProps);
           )
         "
       />
+      <InputGroupAddon>
+        <Search class="cn-command-input-icon" />
+      </InputGroupAddon>
     </InputGroup>
   </div>
 </template>

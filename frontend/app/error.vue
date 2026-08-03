@@ -3,7 +3,7 @@
     class="bg-background text-foreground grid min-h-dvh place-items-center overflow-hidden px-6 py-12"
   >
     <div class="t-stagger flex w-full max-w-md flex-col items-center text-center">
-      <div class="t-stagger-line mb-2" style="--err-i: 0">
+      <div class="mb-2">
         <Stack aria-hidden="true">
           <template #layer-1>
             <Icon :name="state.icons[0]" class="text-foreground size-7 shrink-0" />
@@ -18,29 +18,23 @@
       </div>
 
       <span
-        v-if="statusCode"
-        class="t-stagger-line text-muted-foreground mb-2 text-xs font-medium tracking-tight tabular-nums sm:text-sm"
-        style="--err-i: 1"
+        v-if="statusCode" class="text-muted-foreground mb-2 text-xs font-medium tracking-tight tabular-nums sm:text-sm"
       >
         Error {{ statusCode }}
       </span>
 
-      <h1
-        class="t-stagger-line text-foreground text-3xl font-semibold tracking-tighter text-balance wrap-break-word sm:text-4xl"
-        style="--err-i: 2"
+      <h1 class="text-foreground text-3xl font-semibold tracking-tighter text-balance wrap-break-word sm:text-4xl"
       >
         {{ state.title }}
       </h1>
 
       <p
-        v-if="state.description"
-        class="t-stagger-line text-muted-foreground mt-3 max-w-md text-sm tracking-tight text-balance wrap-break-word sm:text-base"
-        style="--err-i: 3"
+        v-if="state.description" class="text-muted-foreground mt-3 max-w-md text-sm tracking-tight text-balance wrap-break-word sm:text-base"
       >
         {{ state.description }}
       </p>
 
-      <div class="t-stagger-line mt-8" style="--err-i: 4">
+      <div class="mt-8">
         <Button @click="handleError">
           <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" aria-hidden="true" />
           <span>Back to home</span>
@@ -152,44 +146,5 @@ const handleError = () => clearError({ redirect: "/" });
 main {
   min-height: 100vh;
   min-height: 100dvh;
-}
-
-/* Texts-reveal (transitions.dev 18): staggered blurred rise on first paint.
-   Implemented as an auto-playing keyframe (not a JS .is-shown toggle) so the
-   content stays visible without JS and during SSR. Motion values match the
-   skill's tokens; --err-ease reuses the global --panel-ease. */
-.t-stagger {
-  --err-dur: 500ms;
-  --err-distance: 12px;
-  --err-stagger: 40ms;
-  --err-blur: 3px;
-  --err-ease: var(--panel-ease, cubic-bezier(0.22, 1, 0.36, 1));
-}
-
-.t-stagger-line {
-  opacity: 0;
-  animation: err-reveal var(--err-dur) var(--err-ease) both;
-  animation-delay: calc(var(--err-stagger) * var(--err-i, 0));
-  will-change: transform, opacity, filter;
-}
-
-@keyframes err-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(var(--err-distance));
-    filter: blur(var(--err-blur));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .t-stagger-line {
-    animation: none;
-    opacity: 1;
-  }
 }
 </style>

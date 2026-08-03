@@ -131,7 +131,7 @@ const isRounded = computed(() => !["lyra", "sera"].includes(params.style.value))
               />
             </VisXYContainer>
           </ChartContainer>
-          <span class="hidden text-sm font-semibold tabular-nums md:block">
+          <span class="hidden text-sm font-semibold tracking-tighter tabular-nums md:block">
             {{ holding.amount }}
           </span>
         </Item>

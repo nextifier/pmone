@@ -93,7 +93,7 @@ const HOLDINGS = [
           variant="muted"
         >
           <ItemMedia>
-            <div class="flex size-12 items-center justify-center rounded-lg border text-sm font-semibold">
+            <div class="flex size-12 items-center justify-center rounded-lg border text-sm font-semibold tracking-tighter">
               {{ holding.ticker }}
             </div>
           </ItemMedia>

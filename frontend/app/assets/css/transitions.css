@@ -1,0 +1,439 @@
+/* =============================================================================
+   transitions.css — satu-satunya sumber motion untuk shared UI library.
+
+   File ini IDENTIK di levenium, pmone, dan pmone-events. Kalau kamu mengubahnya,
+   ubah di ketiganya - komponen di components/ui membaca token dari sini, jadi
+   repo yang ketinggalan akan kehilangan seluruh timing-nya tanpa error apa pun.
+
+   Di-@import oleh main.css tiap app konsumen, dan import-nya harus UNLAYERED
+   (di luar `layer(base)` tempat style-*.css berada) supaya aturan di sini selalu
+   menang atas motion default shadcn di style per tema.
+
+   Isinya diturunkan dari skill transitions-dev. Nomor di komentar merujuk ke
+   file reference skill (mis. "07" = 07-panel-reveal.md).
+
+   Skala motion-token generik skill (--duration-*, --ease-*, --blur-*, --scale-*)
+   sengaja TIDAK diekspor: nama-nama itu bertabrakan dengan theme namespace
+   Tailwind v4, dan tidak ada aturan di file ini yang membacanya. Semua timing
+   lewat token per-transisi yang namanya spesifik, dan itu juga yang dibaca
+   komponen lewat `duration-(--panel-open-dur)` / `ease-(--panel-ease)`.
+   ============================================================================= */
+
+:root {
+  /* Card resize (01) */
+  --resize-dur: 300ms;
+  --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Number pop-in (02) */
+  --digit-dur: 500ms;
+  --digit-distance: 8px;
+  --digit-blur: 2px;
+  --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
+
+  /* Notification badge (03) — hanya bagian pop-nya yang terpakai di sini. */
+  --badge-pop-close-dur: 180ms;
+  --badge-pop-ease: cubic-bezier(0.34, 1.36, 0.64, 1);
+
+  /* Text states swap (04) */
+  --text-swap-dur: 150ms;
+  --text-swap-translate-y: 4px;
+  --text-swap-blur: 2px;
+  --text-swap-ease: ease-in-out;
+
+  /* Menu dropdown (05) */
+  --dropdown-open-dur: 250ms;
+  --dropdown-close-dur: 150ms;
+  --dropdown-pre-scale: 0.97;
+  --dropdown-closing-scale: 0.99;
+  --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Modal open / close (06) */
+  --modal-open-dur: 250ms;
+  --modal-close-dur: 150ms;
+  --modal-scale: 0.96;
+  --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Panel reveal (07) */
+  --panel-open-dur: 400ms;
+  --panel-close-dur: 350ms;
+  --panel-translate-y: 100px;
+  --panel-blur: 2px;
+  --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Avatar group hover (11) — dipakai stack/Stack.vue lewat token, bukan lewat
+     class .t-avatar dari skill. */
+  --avatar-lift: -4px;
+  --avatar-dur: 320ms;
+  --avatar-scale: 1.05;
+  --avatar-falloff: 0.45;
+  --avatar-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
+  --avatar-ease-out: cubic-bezier(0.34, 3.85, 0.64, 1);
+
+  /* Icon swap (09) */
+  --icon-swap-dur: 250ms;
+  --icon-swap-blur: 2px;
+  --icon-swap-start-scale: 0.25;
+  --icon-swap-ease: ease-in-out;
+
+  /* Tooltip open/close (17) — keluarnya sengaja jauh lebih cepat dari masuknya,
+     dan delay hanya berlaku saat muncul. */
+  --tt-in-dur: 150ms;
+  --tt-out-dur: 50ms;
+  --tt-scale: 0.98;
+  --tt-delay: 80ms;
+  --tt-in-ease: ease-out;
+  --tt-out-ease: ease-out;
+
+  /* Skeleton loader and reveal (14) — cross-fade dari placeholder ke konten
+     yang sudah dimuat. Pulse-nya sendiri sudah ada di --animate-skeleton. */
+  --reveal-dur: 400ms;
+  --reveal-blur: 2px;
+  --reveal-ease: ease-in-out;
+
+  /* Toast open / close (22) — naik dari bawah dengan fade, masuk lebih lambat
+     daripada keluar. Dipakai juga oleh surface lain yang muncul dari tepi
+     bawah, karena bentuk geraknya sama persis. */
+  --toast-open: 350ms;
+  --toast-close: 250ms;
+  --toast-distance: 16px;
+  --toast-blur: 2px;
+  --toast-scale: 0.97;
+  --toast-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Texts reveal (18) */
+  --stagger-dur: 500ms;
+  --stagger-distance: 12px;
+  --stagger-stagger: 40ms;
+  --stagger-blur: 3px;
+  --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Tabs sliding (16) */
+  --tabs-dur: 250ms;
+  --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Accordion expand (21) */
+  --acc-expand: 250ms;
+  --acc-collapse: 250ms;
+  --acc-chevron: 250ms;
+  --acc-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Checkbox check (25) */
+  --check-box: 150ms;
+  --check-draw: 350ms;
+  --check-delay: 0ms;
+  --check-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Panjang path centang di Checkbox.vue ("M4 12l5 5L20 6" di viewBox 24):
+     √50 + √242 = 22.63, dibulatkan ke atas. Ini konstanta, bukan hasil
+     getTotalLength() seperti yang skill sarankan, karena path-nya milik
+     Checkbox.vue sendiri dan tetap - mengukurnya per instance akan memaksa satu
+     layout read untuk tiap checkbox di halaman (tabel bulk-select bisa puluhan).
+     Nilainya HARUS ikut berubah kalau path di Checkbox.vue diganti: kalau
+     kekecilan centangnya sudah tergambar sebagian sejak awal, kalau kebesaran
+     ia tidak pernah selesai. */
+  --check-len: 23;
+
+  /* Toggle (27) */
+  --toggle-dur: 350ms;
+  --toggle-ease: cubic-bezier(0.34, 1.35, 0.64, 1);
+}
+
+/* -----------------------------------------------------------------------------
+   Panel reveal (07) — verbatim.
+   Dipakai: lightbox/LightboxBody.vue
+   -------------------------------------------------------------------------- */
+.t-panel-slide {
+  transform: translateY(var(--panel-translate-y));
+  opacity: 0;
+  filter: blur(var(--panel-blur));
+  pointer-events: none;
+  transition:
+    transform var(--panel-close-dur) var(--panel-ease),
+    opacity var(--panel-close-dur) var(--panel-ease),
+    filter var(--panel-close-dur) var(--panel-ease);
+  will-change: transform, opacity, filter;
+}
+.t-panel-slide[data-open="true"] {
+  transform: translateY(0);
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+  transition:
+    transform var(--panel-open-dur) var(--panel-ease),
+    opacity var(--panel-open-dur) var(--panel-ease),
+    filter var(--panel-open-dur) var(--panel-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-panel-slide {
+    transition: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Card resize (01) diadaptasi ke tinggi auto lewat teknik grid-rows 1fr/0fr,
+   supaya region in-flow yang mengempis menganimasikan tingginya (dan membiarkan
+   sibling flex tumbuh) tanpa tinggi piksel yang diukur JS.
+   Dipakai: lightbox/LightboxBody.vue
+   -------------------------------------------------------------------------- */
+.t-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--resize-dur) var(--resize-ease);
+  will-change: grid-template-rows;
+}
+.t-collapse[data-open="false"] {
+  grid-template-rows: 0fr;
+}
+.t-collapse > * {
+  min-height: 0;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-collapse {
+    transition: none !important;
+  }
+}
+
+/* Menganimasikan inset atas viewport gambar (8px saat kontrol tampil, 0 saat
+   disembunyikan) seirama dengan .t-collapse, memakai token yang sama. */
+.t-pt {
+  transition: padding-top var(--resize-dur) var(--resize-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-pt {
+    transition: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Card resize (01) untuk lebar — men-tween lebar pill saat isi aksinya berubah
+   (mis. label tombol berganti panjang). Lebar intrinsik (auto) tidak bisa
+   di-transition CSS saja, jadi ResizeObserver di TableData.vue mem-FLIP lebar
+   antar nilai px eksplisit; aturan ini cuma menyediakan timing-nya.
+   Dipakai: table-data/TableData.vue
+   -------------------------------------------------------------------------- */
+.t-resize {
+  transition:
+    width var(--resize-dur) var(--resize-ease),
+    height var(--resize-dur) var(--resize-ease);
+  will-change: width, height;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-resize {
+    transition: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Text states swap (04) — Vue <Transition name="t-tswap" mode="out-in">.
+   Teks lama keluar ke atas dengan blur; teks baru masuk dari bawah.
+   Dipakai: table-data/TableBulkAction.vue
+   -------------------------------------------------------------------------- */
+.t-tswap-enter-active,
+.t-tswap-leave-active {
+  transition:
+    transform var(--text-swap-dur) var(--text-swap-ease),
+    filter var(--text-swap-dur) var(--text-swap-ease),
+    opacity var(--text-swap-dur) var(--text-swap-ease);
+  will-change: transform, filter, opacity;
+}
+.t-tswap-enter-from {
+  transform: translateY(var(--text-swap-translate-y));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+}
+.t-tswap-leave-to {
+  transform: translateY(calc(var(--text-swap-translate-y) * -1));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-tswap-enter-active,
+  .t-tswap-leave-active {
+    transition: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Icon swap (09) — Vue <Transition name="t-iswap" mode="out-in">.
+   Cross-fade dua icon di slot yang sama dengan blur + scale.
+   Dipakai: table-data/TableBulkAction.vue
+   -------------------------------------------------------------------------- */
+.t-iswap-enter-active,
+.t-iswap-leave-active {
+  transition:
+    opacity var(--icon-swap-dur) var(--icon-swap-ease),
+    filter var(--icon-swap-dur) var(--icon-swap-ease),
+    transform var(--icon-swap-dur) var(--icon-swap-ease);
+  will-change: opacity, filter, transform;
+}
+.t-iswap-enter-from,
+.t-iswap-leave-to {
+  opacity: 0;
+  filter: blur(var(--icon-swap-blur));
+  transform: scale(var(--icon-swap-start-scale));
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-iswap-enter-active,
+  .t-iswap-leave-active {
+    transition: none !important;
+  }
+}
+
+/* Slot penumpuk untuk icon swap: menaruh icon lama dan baru di sel grid yang
+   sama, supaya pergantian tidak menggeser sibling di sebelahnya. Markup-nya
+   sudah membawa `grid`; aturan ini yang menumpuk anaknya. */
+.t-icon-swap-slot > * {
+  grid-area: 1 / 1;
+}
+
+/* -----------------------------------------------------------------------------
+   Checkbox check (25) — kotaknya terisi lewat transition-colors di cn-checkbox,
+   lalu centangnya menggambar dirinya sendiri.
+
+   Skill memakai `transition` pada stroke-dashoffset, tapi di sini tidak bisa:
+   CheckboxIndicator reka dibungkus Presence, jadi elemennya baru mount saat
+   state jadi checked - tidak ada nilai lama untuk di-transition, dan saat
+   uncheck ia langsung dilepas. Draw-nya harus @keyframes, sama seperti overlay.
+   Dipakai: checkbox/Checkbox.vue
+   -------------------------------------------------------------------------- */
+.t-check-draw path {
+  stroke-dasharray: var(--check-len);
+  animation: t-check-draw var(--check-draw) var(--check-ease) var(--check-delay)
+    both;
+}
+@keyframes t-check-draw {
+  from {
+    stroke-dashoffset: var(--check-len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-check-draw path {
+    animation: none !important;
+    stroke-dasharray: none;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Texts reveal (18) — anak langsung dari .t-stagger naik dengan blur, satu per
+   satu. Dipakai empty/Empty.vue.
+
+   Keyframe yang jalan sendiri, bukan class .is-shown yang di-toggle JS: empty
+   state di-mount lewat v-if saat datanya kosong, jadi mount-nya sendiri sudah
+   jadi pemicu — dan kontennya tetap terlihat tanpa JS maupun saat SSR.
+
+   Indeks stagger diambil dari nth-child, bukan dari style inline, supaya
+   pemakainya cukup memasang satu class di container dan tidak perlu menomori
+   anaknya sendiri. Enam sudah lebih dari cukup untuk sebuah empty state; anak
+   ke-7 dan seterusnya ikut jadwal anak ke-6.
+   -------------------------------------------------------------------------- */
+.t-stagger > * {
+  animation: t-stagger-reveal var(--stagger-dur) var(--stagger-ease) both;
+  animation-delay: calc(var(--stagger-stagger) * var(--stagger-i, 5));
+  will-change: transform, opacity, filter;
+}
+.t-stagger > *:nth-child(1) { --stagger-i: 0; }
+.t-stagger > *:nth-child(2) { --stagger-i: 1; }
+.t-stagger > *:nth-child(3) { --stagger-i: 2; }
+.t-stagger > *:nth-child(4) { --stagger-i: 3; }
+.t-stagger > *:nth-child(5) { --stagger-i: 4; }
+.t-stagger > *:nth-child(6) { --stagger-i: 5; }
+
+@keyframes t-stagger-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--stagger-distance));
+    filter: blur(var(--stagger-blur));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-stagger > * {
+    animation: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Number pop-in (02) — satu digit masuk dengan blurred slide.
+
+   Tanpa stagger, tidak seperti snippet aslinya: di OTP tiap digit diketik
+   sendiri-sendiri, jadi stagger antar digit tidak punya makna, dan saat kode
+   di-paste stagger justru membuat enam digit berbaris masuk seperti antrean.
+   Dipakai input-otp/InputOTPSlot.vue.
+   -------------------------------------------------------------------------- */
+.t-digit {
+  display: inline-block;
+  animation: t-digit-pop var(--digit-dur) var(--digit-ease) both;
+  will-change: transform, opacity, filter;
+}
+@keyframes t-digit-pop {
+  from {
+    opacity: 0;
+    transform: translateY(var(--digit-distance));
+    filter: blur(var(--digit-blur));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-digit {
+    animation: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Accordion expand (21) — animasi tinggi grid-rows 0fr↔1fr dengan cross-blur,
+   digerakkan Vue <Transition name="t-acc"> di sekitar baris yang bisa dibuka.
+   Class transisinya mendarat di <tr>; yang dianimasikan adalah wrapper grid
+   keturunannya, jadi tidak perlu mengukur tinggi lewat JS.
+   Dipakai: table-data/TableData.vue
+   -------------------------------------------------------------------------- */
+.t-acc-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.t-acc-inner {
+  overflow: hidden;
+}
+.t-acc-enter-active .t-acc-wrap {
+  transition: grid-template-rows var(--acc-expand) var(--acc-ease);
+}
+.t-acc-leave-active .t-acc-wrap {
+  transition: grid-template-rows var(--acc-collapse) var(--acc-ease);
+}
+.t-acc-enter-from .t-acc-wrap,
+.t-acc-leave-to .t-acc-wrap {
+  grid-template-rows: 0fr;
+}
+.t-acc-enter-active .t-acc-inner {
+  transition:
+    opacity var(--acc-expand) var(--acc-ease),
+    filter var(--acc-expand) var(--acc-ease);
+}
+.t-acc-leave-active .t-acc-inner {
+  transition:
+    opacity var(--acc-collapse) var(--acc-ease),
+    filter var(--acc-collapse) var(--acc-ease);
+}
+.t-acc-enter-from .t-acc-inner,
+.t-acc-leave-to .t-acc-inner {
+  opacity: 0;
+  filter: blur(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-acc-enter-active .t-acc-wrap,
+  .t-acc-leave-active .t-acc-wrap,
+  .t-acc-enter-active .t-acc-inner,
+  .t-acc-leave-active .t-acc-inner {
+    transition: none !important;
+  }
+}

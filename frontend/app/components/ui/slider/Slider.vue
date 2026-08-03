@@ -20,7 +20,7 @@ const delegatedProps = reactiveOmit(props, "class", "showTooltip", "tooltipConte
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 const thumbClass =
-  "cn-slider-thumb block shrink-0 select-none disabled:pointer-events-none disabled:opacity-50";
+  "cn-slider-thumb block shrink-0 select-none disabled:opacity-50";
 </script>
 
 <template>

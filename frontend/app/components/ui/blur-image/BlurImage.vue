@@ -12,7 +12,7 @@
       :src="lqip"
       alt=""
       aria-hidden="true"
-      class="absolute inset-0 size-full scale-110 object-cover blur-lg transition-opacity duration-300 ease-in-out"
+      class="absolute inset-0 size-full scale-110 object-cover blur-lg transition-opacity duration-(--reveal-dur) ease-(--reveal-ease) motion-reduce:transition-none"
       :class="isLoaded ? 'opacity-0' : 'opacity-100'"
       @load="onLqipLoad"
     />
@@ -29,7 +29,7 @@
       :width="width"
       :height="height"
       :loading="loading"
-      class="relative size-full transition-opacity duration-300 ease-in-out"
+      class="relative size-full transition-opacity duration-(--reveal-dur) ease-(--reveal-ease) motion-reduce:transition-none"
       :class="[imageClass, isLoaded ? 'opacity-100' : 'opacity-0']"
       :style="imageStyle"
       v-bind="$attrs"

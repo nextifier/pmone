@@ -10,5 +10,5 @@ export { default as NavigationMenuIndicator } from "./NavigationMenuIndicator.vu
 export { default as NavigationMenuViewport } from "./NavigationMenuViewport.vue";
 
 export const navigationMenuTriggerStyle = cva(
-  "cn-navigation-menu-trigger group/navigation-menu-trigger inline-flex h-9 w-max cursor-pointer items-center justify-center outline-none disabled:pointer-events-none",
+  "cn-navigation-menu-trigger group/navigation-menu-trigger inline-flex h-9 w-max cursor-pointer items-center justify-center outline-none",
 );

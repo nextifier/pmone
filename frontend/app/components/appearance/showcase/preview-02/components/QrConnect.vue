@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import QRCode from "qrcode"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -9,28 +8,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
-const svgData = ref("")
-
-onMounted(async () => {
-  svgData.value = await QRCode.toString("https://shadcn-vue.com", {
-    type: "svg",
-    margin: 0,
-  })
-})
+import { QRCode } from "@/components/ui/qr-code"
 </script>
 
 <template>
   <Card>
     <CardContent class="flex justify-center pt-6">
-      <div class="rounded-xl border bg-white p-4 dark:bg-black dark:invert">
-        <div
-          v-if="svgData"
-          class="size-40 [&_svg]:size-full"
-          v-html="svgData"
-        />
-        <div v-else class="size-40 animate-pulse rounded-sm bg-muted" />
-      </div>
+      <!-- No wrapper: QRCode is aspect-square w-full, so the width cap goes on the
+           component itself. The default `margin` (2 modules) stays so the quiet zone
+           lives inside the SVG now that there is no padding around it. Colours come
+           from var(--foreground) on a transparent ground, and omitting `variant` is
+           what keeps click-to-cycle enabled. -->
+      <QRCode url="https://shadcn-vue.com" class="w-48" />
     </CardContent>
     <CardHeader class="text-center">
       <CardTitle>Scan to connect your mobile device</CardTitle>

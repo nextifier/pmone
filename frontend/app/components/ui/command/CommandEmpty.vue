@@ -18,6 +18,7 @@ const delegatedProps = computed(() => {
 <template>
   <ComboboxEmpty
     v-bind="delegatedProps"
+    data-slot="command-empty"
     :class="cn('cn-command-empty', props.class)"
   >
     <slot />

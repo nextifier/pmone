@@ -131,7 +131,7 @@ const TO_ACCOUNTS = [
             <Separator />
             <div class="flex items-center justify-between">
               <span class="text-sm font-medium">Total amount</span>
-              <span class="text-sm font-semibold tabular-nums">
+              <span class="text-sm font-semibold tracking-tighter tabular-nums">
                 $1,200.00
               </span>
             </div>

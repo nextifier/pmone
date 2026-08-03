@@ -7,29 +7,57 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\CustomField;
+use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventDocumentSubmission;
 use App\Models\Order;
 use App\Models\Project;
 use App\Support\Sheets\SheetFormatting;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
+/**
+ * Feeds for the Google Sheets Apps Script integration. Every endpoint returns
+ * the same `title` / `headings` / `rows` / `updated_at` shape, so one script
+ * serves them all.
+ *
+ * Each sheet comes in two flavours: a global feed covering every event, and an
+ * `/events/{event}/...` feed scoped to a single event. The scoped feeds exist
+ * because the global ones grow in both rows and columns as events are added -
+ * dynamic columns are derived from the data (one per brand link label, one per
+ * brand custom field across every project).
+ */
 class SheetsController extends Controller
 {
-    public function orders(Request $request): JsonResponse
+    public function orders(): JsonResponse
     {
-        if ($request->query('token') !== config('services.sheets.api_token')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        return response()->json($this->ordersPayload());
+    }
 
+    public function eventOrders(Event $event): JsonResponse
+    {
+        return response()->json($this->ordersPayload($event));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function ordersPayload(?Event $event = null): array
+    {
         $brandEventTable = (new BrandEvent)->getTable();
 
         $orders = Order::query()
             ->with(['brandEvent.brand', 'brandEvent.event:id,title', 'brandEvent.sales', 'items.productCategory', 'adjustments', 'creator'])
-            ->orderBy(BrandEvent::select('event_id')->whereColumn("{$brandEventTable}.id", 'orders.brand_event_id'))
+            ->when(
+                $event,
+                fn ($query) => $query->whereRelation('brandEvent', "{$brandEventTable}.event_id", $event->id),
+                // Unscoped: group the rows by event through a correlated subquery.
+                // Pointless once every row belongs to the same event.
+                fn ($query) => $query->orderBy(
+                    BrandEvent::select('event_id')->whereColumn("{$brandEventTable}.id", 'orders.brand_event_id')
+                ),
+            )
             ->orderByDesc('submitted_at')
             ->get();
 
@@ -53,14 +81,14 @@ class SheetsController extends Controller
         foreach ($orders as $order) {
             $brand = $order->brandEvent?->brand;
             $brandEvent = $order->brandEvent;
-            $event = $brandEvent?->event;
+            $orderEvent = $brandEvent?->event;
             $items = $order->items;
 
             $orderIdentity = [
                 $order->id,
                 $order->order_number,
-                $event?->id ?? '-',
-                $event?->title ?? '-',
+                $orderEvent?->id ?? '-',
+                $orderEvent?->title ?? '-',
                 $brand?->name ?? '-',
                 $brand?->company_name ?? '-',
                 data_get($brand?->address, 'country') ?? '-',
@@ -118,20 +146,11 @@ class SheetsController extends Controller
             }
         }
 
-        return response()->json([
-            'title' => 'Orders',
-            'headings' => $headings,
-            'rows' => $rows,
-            'updated_at' => now()->toIso8601String(),
-        ]);
+        return $this->payload('Orders', $event, $headings, $rows);
     }
 
-    public function contacts(Request $request): JsonResponse
+    public function contacts(): JsonResponse
     {
-        if ($request->query('token') !== config('services.sheets.api_token')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
         $contacts = Contact::query()
             ->with(['tags', 'projects'])
             ->orderBy('name')
@@ -192,34 +211,60 @@ class SheetsController extends Controller
             ];
         })->toArray();
 
-        return response()->json([
-            'title' => 'Contacts',
-            'headings' => $headings,
-            'rows' => $rows,
-            'updated_at' => now()->toIso8601String(),
-        ]);
+        return response()->json($this->payload('Contacts', null, $headings, $rows));
     }
 
-    public function brands(Request $request): JsonResponse
+    public function brands(): JsonResponse
     {
-        if ($request->query('token') !== config('services.sheets.api_token')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        return response()->json($this->brandsPayload());
+    }
+
+    public function eventBrands(Event $event): JsonResponse
+    {
+        return response()->json($this->brandsPayload($event));
+    }
+
+    /**
+     * Scoped to an event, this lists only the brands taking part in it, and the
+     * brand-event aggregates (booth numbers, sales PICs, visits, promotion
+     * posts) count that event alone. Link and click columns stay brand-level
+     * because links themselves are not tied to an event.
+     *
+     * @return array<string, mixed>
+     */
+    private function brandsPayload(?Event $event = null): array
+    {
+        $eventId = $event?->id;
+        $brandEventTable = (new BrandEvent)->getTable();
 
         $brands = Brand::query()
+            ->when($eventId, fn ($query) => $query->whereRelation('brandEvents', "{$brandEventTable}.event_id", $eventId))
             ->with([
                 'media',
                 'creator:id,name',
                 'updater:id,name',
                 'tags',
-                'events:id,title',
+                // "Events List". A BelongsToMany needs table-qualified columns
+                // here, which is what the 'events:id,title' shorthand does for
+                // us when there is no constraint to add.
+                'events' => fn ($q) => $q
+                    ->select('events.id', 'events.title')
+                    ->when($eventId, fn ($sub) => $sub->where('events.id', $eventId)),
+                // Booth Numbers, Sales PICs, Total Visits and Total Promotion
+                // Posts are all read off this collection, so constraining it
+                // here scopes those four columns for free.
                 'brandEvents' => fn ($q) => $q
+                    ->when($eventId, fn ($sub) => $sub->where("{$brandEventTable}.event_id", $eventId))
                     ->with(['event:id,title', 'sales:id,name'])
                     ->withCount(['visits', 'promotionPosts']),
                 'users:id,name',
                 'links' => fn ($q) => $q->withCount('clicks'),
             ])
-            ->withCount(['brandEvents', 'users', 'links'])
+            ->withCount([
+                'brandEvents' => fn ($q) => $q->when($eventId, fn ($sub) => $sub->where("{$brandEventTable}.event_id", $eventId)),
+                'users',
+                'links',
+            ])
             ->orderBy('created_at')
             ->get();
 
@@ -235,7 +280,7 @@ class SheetsController extends Controller
 
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
-        $brandFieldDefs = $this->brandCustomFieldDefinitions();
+        $brandFieldDefs = $this->brandCustomFieldDefinitions($event);
 
         $headings = [
             'ID', 'ULID', 'Name', 'Slug',
@@ -340,21 +385,26 @@ class SheetsController extends Controller
             ];
         })->toArray();
 
-        return response()->json([
-            'title' => 'Brands',
-            'headings' => $headings,
-            'rows' => $rows,
-            'updated_at' => now()->toIso8601String(),
-        ]);
+        return $this->payload('Brands', $event, $headings, $rows);
     }
 
-    public function brandEvents(Request $request): JsonResponse
+    public function brandEvents(): JsonResponse
     {
-        if ($request->query('token') !== config('services.sheets.api_token')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        return response()->json($this->brandEventsPayload());
+    }
 
+    public function eventBrandEvents(Event $event): JsonResponse
+    {
+        return response()->json($this->brandEventsPayload($event));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function brandEventsPayload(?Event $event = null): array
+    {
         $brandEvents = BrandEvent::query()
+            ->when($event, fn ($query) => $query->where('event_id', $event->id))
             ->with([
                 'brand' => fn ($q) => $q
                     ->with([
@@ -391,7 +441,7 @@ class SheetsController extends Controller
         // Dynamic custom-field columns, appended last. Brand fields are typed
         // (formatted via the field catalog); BrandEvent fields have no catalog
         // so they are rendered from their raw jsonb keys.
-        $brandFieldDefs = $this->brandCustomFieldDefinitions();
+        $brandFieldDefs = $this->brandCustomFieldDefinitions($event);
         $brandFieldLabels = $brandFieldDefs->map(fn (array $col) => $col['label'])->all();
 
         $brandEventFieldKeys = $brandEvents
@@ -534,28 +584,28 @@ class SheetsController extends Controller
             ];
         })->toArray();
 
-        return response()->json([
-            'title' => 'Brand Events',
-            'headings' => $headings,
-            'rows' => $rows,
-            'updated_at' => now()->toIso8601String(),
-        ]);
+        return $this->payload('Brand Events', $event, $headings, $rows);
     }
 
     /**
-     * Brand-context custom-field columns across every project, mapped to one
-     * column per field label (case-insensitive, English label). Fields sharing a
-     * label across projects collapse into a single column whose value is read
-     * from whichever of the underlying keys holds it. These drive the dynamic
-     * Brand / BrandEvent custom-field columns.
+     * Brand-context custom-field columns, mapped to one column per field label
+     * (case-insensitive, English label). Fields sharing a label across projects
+     * collapse into a single column whose value is read from whichever of the
+     * underlying keys holds it. These drive the dynamic Brand / BrandEvent
+     * custom-field columns.
+     *
+     * Passing an event narrows the catalog to that event's project, which is
+     * where most of the column savings on the scoped sheets come from. Without
+     * one, every project's brand fields are included.
      *
      * @return Collection<int, array{label: string, type: string, options: array, keys: array<int, string>}>
      */
-    private function brandCustomFieldDefinitions(): Collection
+    private function brandCustomFieldDefinitions(?Event $event = null): Collection
     {
         return CustomField::query()
             ->context(CustomField::CONTEXT_BRAND)
             ->where('fieldable_type', Project::class)
+            ->when($event, fn ($query) => $query->where('fieldable_id', $event->project_id))
             ->ordered()
             ->get()
             ->groupBy(fn (CustomField $field) => mb_strtolower(trim((string) $field->getTranslation('label', 'en'))))
@@ -581,19 +631,34 @@ class SheetsController extends Controller
      * history column is the audit trail (from media version metadata), not the
      * 30-day activity log.
      */
-    public function operationalDocuments(Request $request): JsonResponse
+    public function operationalDocuments(): JsonResponse
     {
-        if ($request->query('token') !== config('services.sheets.api_token')) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        return response()->json($this->operationalDocumentsPayload());
+    }
 
+    public function eventOperationalDocuments(Event $event): JsonResponse
+    {
+        return response()->json($this->operationalDocumentsPayload($event));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function operationalDocumentsPayload(?Event $event = null): array
+    {
         $brandEvents = BrandEvent::query()
+            ->when($event, fn ($query) => $query->where('event_id', $event->id))
             ->with(['brand:id,name,company_name', 'event:id,title'])
             ->orderBy('event_id')
             ->orderBy('created_at')
             ->get();
 
-        $eventIds = $brandEvents->pluck('event_id')->filter()->unique()->values()->all();
+        // Scoped, take the event id from the scope rather than from the brand
+        // events: an event with documents but no booths yet must still emit its
+        // mini-form answer columns, only with no rows underneath them.
+        $eventIds = $event
+            ? [$event->id]
+            : $brandEvents->pluck('event_id')->filter()->unique()->values()->all();
 
         $documentsByEvent = EventDocument::query()
             ->whereIn('event_id', $eventIds)
@@ -694,12 +759,77 @@ class SheetsController extends Controller
             }
         }
 
-        return response()->json([
-            'title' => 'Operational Documents',
+        return $this->payload('Operational Documents', $event, $headings, $rows);
+    }
+
+    /**
+     * Directory of events so a spreadsheet owner can look up the event id their
+     * scoped feed needs. The trailing URL columns are ready to paste straight
+     * into the Apps Script CONFIG.
+     */
+    public function events(): JsonResponse
+    {
+        $events = Event::query()
+            ->with('project:id,name,username')
+            ->withCount(['brandEvents', 'orders'])
+            // Postgres sorts NULLs first on DESC, which would float undated
+            // events above the upcoming ones.
+            ->orderByRaw('start_date DESC NULLS LAST')
+            ->orderByDesc('id')
+            ->get();
+
+        $headings = [
+            'ID', 'ULID', 'Event Title', 'Edition', 'Slug',
+            'Project ID', 'Project Name', 'Project Username',
+            'Status', 'Visibility', 'Active',
+            'Start Date', 'End Date', 'Location', 'Hall',
+            'Brand Events Count', 'Orders Count',
+            'Brands Sheet URL', 'Brand Events Sheet URL', 'Orders Sheet URL', 'Operational Documents Sheet URL',
+        ];
+
+        $rows = $events->map(fn (Event $event) => [
+            $event->id,
+            $event->ulid,
+            $event->title,
+            $event->edition_number,
+            $event->slug,
+            $event->project_id,
+            $event->project?->name ?? '-',
+            $event->project?->username ?? '-',
+            Str::title(str_replace('_', ' ', $event->status ?? '-')),
+            Str::title(str_replace('_', ' ', $event->visibility ?? '-')),
+            $event->is_active ? 'Yes' : 'No',
+            SheetFormatting::dateTime($event->start_date),
+            SheetFormatting::dateTime($event->end_date),
+            $event->location ?? '-',
+            $event->hall ?? '-',
+            (int) $event->brand_events_count,
+            (int) $event->orders_count,
+            route('sheets.event.brands', $event),
+            route('sheets.event.brand-events', $event),
+            route('sheets.event.orders', $event),
+            route('sheets.event.operational-documents', $event),
+        ])->toArray();
+
+        return response()->json($this->payload('Events', null, $headings, $rows));
+    }
+
+    /**
+     * Uniform feed envelope. Scoped feeds carry the event name in the title so
+     * a spreadsheet shows which event it is pulling.
+     *
+     * @param  array<int, string>  $headings
+     * @param  array<int, array<int, mixed>>  $rows
+     * @return array<string, mixed>
+     */
+    private function payload(string $title, ?Event $event, array $headings, array $rows): array
+    {
+        return [
+            'title' => $event ? "{$title} - {$event->title}" : $title,
             'headings' => $headings,
             'rows' => $rows,
             'updated_at' => now()->toIso8601String(),
-        ]);
+        ];
     }
 
     /**

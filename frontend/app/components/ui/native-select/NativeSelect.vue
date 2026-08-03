@@ -40,7 +40,7 @@ const delegatedProps = reactiveOmit(props, "class", "size");
       :data-size="props.size ?? 'default'"
       :class="
         cn(
-          'cn-native-select outline-none disabled:pointer-events-none disabled:cursor-not-allowed',
+          'cn-native-select outline-none disabled:cursor-not-allowed',
           props.class
         )
       "

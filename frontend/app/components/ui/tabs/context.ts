@@ -26,11 +26,11 @@ export const tabsListClasses: Record<TabsVariant, string> = {
 };
 
 export const tabsIndicatorClasses: Record<TabsVariant, string> = {
-  pill: "absolute left-0 inset-y-0.5 rounded-full bg-background shadow-sm transition-[transform,width] duration-300 ease-out dark:border dark:bg-border/70 dark:border-white/10",
+  pill: "absolute left-0 inset-y-0.5 rounded-full bg-background shadow-sm transition-[transform,width] duration-(--tabs-dur) ease-(--tabs-ease) dark:border dark:bg-border/70 dark:border-white/10",
   segmented:
-    "absolute inset-y-0.5 left-0 z-0 rounded-lg bg-background shadow-sm ring-1 ring-border/40 transition-[transform,width] duration-300 ease-out dark:border dark:bg-muted dark:border-white/15",
+    "absolute inset-y-0.5 left-0 z-0 rounded-lg bg-background shadow-sm ring-1 ring-border/40 transition-[transform,width] duration-(--tabs-dur) ease-(--tabs-ease) dark:border dark:bg-muted dark:border-white/15",
   underline:
-    "absolute bottom-0 left-0 z-0 h-px bg-primary transition-[transform,width] duration-200 ease-out",
+    "absolute bottom-0 left-0 z-0 h-px bg-primary transition-[transform,width] duration-(--tabs-dur) ease-(--tabs-ease)",
 };
 
 export const tabsTriggerClasses: Record<TabsVariant, string> = {

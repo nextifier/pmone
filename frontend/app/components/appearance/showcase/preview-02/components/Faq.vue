@@ -14,6 +14,7 @@ import {
 import {
   Tabs,
   TabsContent,
+  TabsIndicator,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
@@ -69,6 +70,10 @@ const GOALS_QUESTIONS = [
     <CardContent>
       <Tabs default-value="general">
         <TabsList class="w-full">
+          <!-- The active-tab pill IS this element (absolutely positioned, slides on
+               change). Without it the trigger only changes text colour, which reads
+               as "no indicator". Every docs example puts it first inside TabsList. -->
+          <TabsIndicator />
           <TabsTrigger value="general" class="flex-1">
             General
           </TabsTrigger>

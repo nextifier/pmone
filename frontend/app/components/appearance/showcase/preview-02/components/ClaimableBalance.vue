@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Badge } from "@/components/appearance/showcase/_ui/badge"
+import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -19,8 +19,9 @@ import { Separator } from "@/components/ui/separator"
       <CardTitle class="text-5xl tabular-nums">
         $0.00
       </CardTitle>
-      <Badge variant="outline">
-        <span class="size-2 rounded-full bg-yellow-500" />
+      <!-- `warning` renders its own dot via badgeDotVariants, so the hand-rolled
+           bg-yellow-500 span is no longer needed and the colour now follows the theme. -->
+      <Badge variant="warning">
         Pending Setup
       </Badge>
     </CardHeader>
@@ -44,7 +45,7 @@ import { Separator } from "@/components/ui/separator"
             <span class="text-sm text-muted-foreground">
               Total Ready to Claim
             </span>
-            <span class="text-sm font-semibold tabular-nums">
+            <span class="text-sm font-semibold tracking-tighter tabular-nums">
               $0.00 USD
             </span>
           </div>

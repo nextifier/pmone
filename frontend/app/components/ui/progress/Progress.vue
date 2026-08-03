@@ -30,7 +30,9 @@ const delegatedProps = reactiveOmit(props, "class", "indicatorClass");
       data-slot="progress-indicator"
       :class="
         cn(
-          'cn-progress-indicator size-full flex-1 transition-all',
+          // transform is the only thing that moves here (the inline style below),
+          // so enumerate it instead of letting transition-all sweep everything up.
+          'cn-progress-indicator size-full flex-1 transition-transform',
           props.indicatorClass
         )
       "

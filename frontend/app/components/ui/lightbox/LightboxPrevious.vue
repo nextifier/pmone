@@ -18,7 +18,7 @@ const state = useLightbox();
     :disabled="!state.props.loop && !state.canPrev.value"
     :class="
       cn(
-        'group flex size-10 items-center justify-center rounded-full bg-white/5 text-white backdrop-blur-sm transition-colors hover:bg-white/15 focus:outline-hidden focus-visible:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40 active:scale-98 disabled:pointer-events-none disabled:opacity-30 sm:size-12',
+        'group flex size-10 items-center justify-center rounded-full bg-white/5 text-white backdrop-blur-sm transition-colors hover:bg-white/15 focus:outline-hidden focus-visible:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/40 active:scale-98 disabled:opacity-30 sm:size-12',
         props.class,
       )
     "

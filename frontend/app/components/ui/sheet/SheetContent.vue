@@ -40,7 +40,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <DialogContent
       data-slot="sheet-content"
       :data-side="side"
-      :class="cn('cn-sheet-content ease-(--panel-ease) data-open:animate-in data-open:duration-(--panel-open-dur) data-[side=bottom]:data-open:slide-in-from-bottom data-[side=left]:data-open:slide-in-from-left data-[side=right]:data-open:slide-in-from-right data-[side=top]:data-open:slide-in-from-top data-closed:animate-out data-closed:duration-(--panel-close-dur) data-[side=bottom]:data-closed:slide-out-to-bottom data-[side=left]:data-closed:slide-out-to-left data-[side=right]:data-closed:slide-out-to-right data-[side=top]:data-closed:slide-out-to-top motion-reduce:animate-none', props.class)"
+      :class="cn('cn-sheet-content ease-(--panel-ease) data-open:animate-in data-open:duration-(--panel-open-dur) data-[side=bottom]:data-open:slide-in-from-bottom data-[side=left]:data-open:slide-in-from-left data-[side=right]:data-open:slide-in-from-right data-[side=top]:data-open:slide-in-from-top data-closed:animate-out data-closed:duration-(--panel-close-dur) data-[side=bottom]:data-closed:slide-out-to-bottom data-[side=left]:data-closed:slide-out-to-left data-[side=right]:data-closed:slide-out-to-right data-[side=top]:data-closed:slide-out-to-top motion-reduce:animate-none!', props.class)"
       v-bind="{ ...forwarded, ...$attrs }"
     >
       <slot />
@@ -48,7 +48,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       <DialogClose
         v-if="showCloseButton"
         data-slot="sheet-close"
-        class="cn-sheet-close ring-offset-background focus:ring-ring data-[state=open]:bg-secondary cursor-pointer rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
+        class="cn-sheet-close ring-offset-background focus:ring-ring data-[state=open]:bg-secondary cursor-pointer rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
       >
         <X class="size-4" />
         <span class="sr-only">Close</span>

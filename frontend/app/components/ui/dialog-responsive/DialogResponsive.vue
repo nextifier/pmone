@@ -7,10 +7,10 @@
         <DialogPortal>
           <DialogOverlay
             v-if="!hideOverlay"
-            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! fixed inset-0 z-50 bg-black/80"
           />
           <DialogContent
-            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 border-border fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl shadow-lg outline-hidden duration-200 dark:border"
+            class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-96 data-[state=open]:zoom-in-96 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! border-border fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl shadow-lg outline-hidden dark:border"
             :style="{ maxWidth: dialogMaxWidth, maxHeight: dialogMaxHeight }"
             @interact-outside="onInteractOutside"
             @escape-key-down="onEscapeKeyDown"
@@ -38,7 +38,7 @@
               @click="onCloseButtonClick"
               :class="
                 cn(
-                  'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none',
+                  'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden',
                   props.closeButtonClass,
                 )
               "
@@ -50,7 +50,7 @@
               v-else
               :class="
                 cn(
-                  'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none',
+                  'data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden',
                   props.closeButtonClass,
                 )
               "
@@ -104,7 +104,7 @@
             <button
               v-if="preventClose"
               @click="onCloseButtonClick"
-              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden"
             >
               <Icon
                 name="hugeicons:cancel-01"
@@ -114,7 +114,7 @@
             </button>
             <DrawerClose
               v-else-if="drawerCloseButton || isDesktop"
-              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden disabled:pointer-events-none"
+              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden"
             >
               <Icon
                 name="hugeicons:cancel-01"

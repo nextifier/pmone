@@ -264,7 +264,7 @@ const indicatorVisualClass = computed(() =>
       :class="
         cn(
           indicatorVisualClass,
-          'transition-[left,top,width,height] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[left,top,width,height] motion-reduce:transition-none',
+          'transition-[left,top,width,height] duration-(--tabs-dur) ease-(--tabs-ease) will-change-[left,top,width,height] motion-reduce:transition-none',
         )
       "
       :style="indicatorStyle"

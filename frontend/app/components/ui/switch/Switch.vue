@@ -39,7 +39,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
   >
     <SwitchThumb
       data-slot="switch-thumb"
-      class="cn-switch-thumb pointer-events-none block ring-0 transition-transform"
+      class="cn-switch-thumb pointer-events-none block ring-0 transition-transform duration-(--toggle-dur) ease-(--toggle-ease)"
     >
       <slot name="thumb" v-bind="slotProps" />
     </SwitchThumb>

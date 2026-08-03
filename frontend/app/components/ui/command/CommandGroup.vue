@@ -21,6 +21,7 @@ const delegatedProps = computed(() => {
 <template>
   <ComboboxGroup
     v-bind="delegatedProps"
+    data-slot="command-group"
     :class="
       cn(
         'cn-command-group',

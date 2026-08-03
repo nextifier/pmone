@@ -23,16 +23,18 @@ const isProduction = process.env.NODE_ENV === "production";
 // screenshot reference is omitted so the build never points at missing files.
 const brandIcons = brand.assetsReady
   ? {
+      // Absolute hrefs: relative ones resolve against the manifest's location,
+      // which happens to be correct at the root but breaks under any other scope.
       screenshots: [
         {
-          src: `brands/${brand.id}/screenshots/desktop-1.png`,
+          src: `/brands/${brand.id}/screenshots/desktop-1.png`,
           sizes: "1280x833",
           type: "image/png",
           form_factor: "wide" as const,
           label: `Desktop view of ${brand.name}`,
         },
         {
-          src: `brands/${brand.id}/screenshots/mobile-1.png`,
+          src: `/brands/${brand.id}/screenshots/mobile-1.png`,
           sizes: "400x842",
           type: "image/png",
           form_factor: "narrow" as const,
@@ -41,20 +43,25 @@ const brandIcons = brand.assetsReady
       ],
       icons: [
         {
-          src: `brands/${brand.id}/icons/icon-192x192.png`,
+          src: `/brands/${brand.id}/icons/icon-192x192.png`,
           sizes: "192x192",
           type: "image/png",
         },
         {
-          src: `brands/${brand.id}/icons/icon-512x512.png`,
+          src: `/brands/${brand.id}/icons/icon-512x512.png`,
           sizes: "512x512",
           type: "image/png",
         },
+        // Full-bleed variant (opaque corners) for Android adaptive icons.
+        // Generated from icon-512x512.png; the mark's furthest point sits at
+        // r≈0.29 of the canvas, well inside the 0.40 safe-zone radius, so it
+        // needed no rescaling. Without this entry Android letterboxes the icon
+        // or crops the transparent corners into the mask.
         {
-          src: `brands/${brand.id}/icons/icon-512x512.png`,
+          src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
           sizes: "512x512",
           type: "image/png",
-          purpose: "any" as const,
+          purpose: "maskable" as const,
         },
       ],
     }
@@ -137,6 +144,14 @@ export default defineNuxtConfig({
           name: "viewport",
           content: "width=device-width, initial-scale=1, interactive-widget=resizes-content",
         },
+        // iOS ignores the manifest's `display`, so without these an
+        // Add-to-Home-Screen launch opens a plain Safari tab instead of a
+        // standalone window. "black" (not "black-translucent") keeps the status
+        // bar out of the layout, so no safe-area padding is needed.
+        { name: "mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "black" },
+        { name: "apple-mobile-web-app-title", content: brand.shortName },
       ],
       htmlAttrs: {
         lang: "en",
@@ -147,6 +162,28 @@ export default defineNuxtConfig({
   },
 
   css: ["~/assets/css/main.css"],
+
+  // Production-only: cssnano menjalankan postcss-calc, yang grammar-nya lahir
+  // sebelum CSS relative color syntax ada. Semua style-*.css menskalakan chroma
+  // dengan `oklch(from var(--primary) 0.93 calc(c * 0.4) h)` dan main.css
+  // memakai `calc(alpha * 0.2)` / `calc(l + 0.4)`. postcss-calc tidak bisa
+  // nge-lex keyword channel telanjang sebagai operand, throw, menangkap
+  // throw-nya sendiri, lalu warn — 22 "Lexical error on line 1" tiap build,
+  // tanpa mengubah output sama sekali. Pass-nya juga tidak berguna di sini:
+  // sisa calc() yang Tailwind keluarkan menunjuk ke CSS variable, yang memang
+  // tidak bisa dilipat saat build. Ongkos mematikannya diukur di repo
+  // pmone-events: 246 B gzip pada stylesheet ~70 KiB.
+  //
+  // Pakai $production, bukan cek process.env.NODE_ENV: @nuxt/cli men-default
+  // envName ke production untuk `nuxt build` MAUPUN `nuxt generate`, sementara
+  // script build/generate di sini tidak menyetel NODE_ENV.
+  $production: {
+    postcss: {
+      plugins: {
+        cssnano: { preset: ["default", { calc: false }] },
+      },
+    },
+  },
 
   vite: {
     plugins: [tailwindcss()],
@@ -435,6 +472,10 @@ export default defineNuxtConfig({
     registerType: "autoUpdate",
     registerWebManifestInRouteRules: true,
     manifest: {
+      // Explicit id, so the app identity survives a future start_url change —
+      // without it Chrome derives identity from start_url and would treat an
+      // updated one as an entirely new app.
+      id: "/",
       name: brand.name,
       short_name: brand.shortName,
       start_url: "/",
@@ -449,21 +490,27 @@ export default defineNuxtConfig({
       skipWaiting: true,
       clientsClaim: true,
       navigateFallback: null,
-      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
+      // NEVER precache html: every route is SSR, so its chunk references stay
+      // current only when the HTML comes fresh from the network. A precached
+      // page would keep pointing at chunks a later deploy already removed (404).
+      // The build emits no .html today, so this is a guard against a future
+      // prerender quietly slipping into the precache.
+      globPatterns: ["**/*.{js,css,png,svg,ico}"],
       // Raise Workbox's default 2 MiB precache cap so large JS chunks precache
       // cleanly (the default failed the Cloudflare build: "Assets exceeding the
       // limit ... won't be precached").
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     },
-    injectManifest: {
-      globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
-      // Raise Workbox's default 2 MiB precache cap so large JS chunks precache
-      // cleanly (the default failed the Cloudflare build: "Assets exceeding the
-      // limit ... won't be precached").
-      maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-    },
+    // No injectManifest block: `strategies` is unset, so vite-plugin-pwa runs
+    // generateSW and reads `workbox` above — an injectManifest block would never
+    // be read.
     client: {
-      installPrompt: true,
+      // The plugin calls preventDefault() on beforeinstallprompt whenever this
+      // is true, which suppresses the browser's own install affordance. Flip it
+      // back to true ONLY together with a component that consumes
+      // $pwa.showInstallPrompt / $pwa.install(); until then, `false` leaves the
+      // mini-infobar (Android) and address-bar install icon (desktop) in place.
+      installPrompt: false,
     },
     devOptions: {
       enabled: false,

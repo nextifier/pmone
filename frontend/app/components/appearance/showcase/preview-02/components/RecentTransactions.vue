@@ -31,7 +31,7 @@ const transactions = [
     category: "Food & Drink",
     date: "Today, 10:24 AM",
     amount: "-$6.50",
-    amountClass: "text-sm font-semibold tabular-nums",
+    amountClass: "text-sm font-semibold tracking-tighter tabular-nums",
   },
   {
     id: "groceries",
@@ -40,7 +40,7 @@ const transactions = [
     category: "Groceries",
     date: "Yesterday",
     amount: "-$142.30",
-    amountClass: "text-sm font-semibold tabular-nums",
+    amountClass: "text-sm font-semibold tracking-tighter tabular-nums",
   },
   {
     id: "stripe",
@@ -49,7 +49,7 @@ const transactions = [
     category: "Income",
     date: "Oct 12",
     amount: "+$4,200.00",
-    amountClass: "text-sm font-semibold text-emerald-500 tabular-nums",
+    amountClass: "text-sm font-semibold tracking-tighter text-emerald-500 tabular-nums",
   },
   {
     id: "uber",
@@ -58,7 +58,7 @@ const transactions = [
     category: "Transport",
     date: "Oct 11",
     amount: "-$24.10",
-    amountClass: "text-sm font-semibold tabular-nums",
+    amountClass: "text-sm font-semibold tracking-tighter tabular-nums",
   },
   {
     id: "netflix",
@@ -67,7 +67,7 @@ const transactions = [
     category: "Entertainment",
     date: "Oct 10",
     amount: "-$19.99",
-    amountClass: "text-sm font-semibold tabular-nums",
+    amountClass: "text-sm font-semibold tracking-tighter tabular-nums",
   },
 ]
 </script>

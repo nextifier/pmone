@@ -183,10 +183,10 @@
       <ClientOnly>
         <Teleport to="body">
           <Transition
-            enter-active-class="transition-[translate,opacity,filter] duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-            enter-from-class="translate-y-4 opacity-0 blur-[2px]"
-            leave-active-class="transition-[translate,opacity,filter] duration-[350ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-            leave-to-class="translate-y-4 opacity-0 blur-[2px]"
+            enter-active-class="transition-[translate,opacity,filter] duration-(--panel-open-dur) ease-(--panel-ease) motion-reduce:transition-none"
+            enter-from-class="translate-y-4 opacity-0 blur-(--panel-blur)"
+            leave-active-class="transition-[translate,opacity,filter] duration-(--panel-close-dur) ease-(--panel-ease) motion-reduce:transition-none"
+            leave-to-class="translate-y-4 opacity-0 blur-(--panel-blur)"
           >
             <div
               v-if="floatingActions && selectedRowsCount > 0 && $slots.actions"

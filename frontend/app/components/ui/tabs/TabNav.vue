@@ -18,7 +18,7 @@
 
     <span
       v-if="indicatorStyle"
-      class="bg-foreground absolute bottom-0 h-0.5 rounded-full transition-[left,width] duration-300 ease-in-out"
+      class="bg-foreground absolute bottom-0 h-0.5 rounded-full transition-[left,width] duration-(--tabs-dur) ease-(--tabs-ease)"
       :style="indicatorStyle"
     />
   </nav>

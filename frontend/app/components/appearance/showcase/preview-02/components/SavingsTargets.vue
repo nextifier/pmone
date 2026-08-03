@@ -57,7 +57,7 @@ import { Progress } from "@/components/ui/progress"
               <ItemDescription class="cn-font-heading text-xs font-medium tracking-wider text-muted-foreground uppercase">
                 Retirement
               </ItemDescription>
-              <span class="text-3xl font-semibold tabular-nums">
+              <span class="text-3xl font-semibold tracking-tighter tabular-nums">
                 $420,000
               </span>
               <Progress :model-value="65" />
@@ -76,7 +76,7 @@ import { Progress } from "@/components/ui/progress"
               <ItemDescription class="cn-font-heading text-xs font-medium tracking-wider text-muted-foreground uppercase">
                 Real Estate
               </ItemDescription>
-              <span class="text-3xl font-semibold tabular-nums">
+              <span class="text-3xl font-semibold tracking-tighter tabular-nums">
                 $85,000
               </span>
               <Progress :model-value="32" />
@@ -144,13 +144,13 @@ import { Progress } from "@/components/ui/progress"
               <span class="text-sm text-muted-foreground">
                 Estimated Shares
               </span>
-              <span class="text-sm font-semibold tabular-nums">1.95</span>
+              <span class="text-sm font-semibold tracking-tighter tabular-nums">1.95</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-sm text-muted-foreground">
                 Buying Power
               </span>
-              <span class="text-sm font-semibold tabular-nums">
+              <span class="text-sm font-semibold tracking-tighter tabular-nums">
                 $12,450.00
               </span>
             </div>

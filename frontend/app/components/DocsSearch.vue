@@ -1,8 +1,10 @@
 <template>
   <div>
-    <!-- Search trigger button -->
+    <!-- Search trigger button. `hover:bg-border` rather than upstream's
+         `dark:bg-card` pair: on this palette `--card` sits only 0.03 above
+         `--background`, so the button would vanish into the header. -->
     <button
-      class="border-border bg-card hover:bg-muted text-muted-foreground flex h-8 w-full max-w-xs items-center gap-x-2 justify-self-end rounded-lg border px-2.5 text-sm tracking-tight transition"
+      class="bg-muted hover:bg-border text-muted-foreground flex h-8 w-full max-w-xs items-center gap-x-2 justify-self-end rounded-lg border-none px-2.5 text-sm tracking-tight transition-colors"
       @click="open = true"
     >
       <Icon name="hugeicons:search-01" class="size-4 shrink-0" />
@@ -14,22 +16,24 @@
 
     <!-- Command dialog -->
     <CommandDialog v-model:open="open">
-      <CommandInput placeholder="Search documentation" />
-      <CommandList class="h-[50vh]! max-h-[50vh]">
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup v-for="group in groupedDocs" :key="group.label" :heading="group.label">
-          <CommandItem
-            v-for="doc in group.docs"
-            :key="doc.slug"
-            :value="doc.title"
-            class="tracking-tight"
-            @select="navigateToDoc(doc.slug)"
-          >
-            <Icon name="hugeicons:arrow-right-02" class="mr-2 size-4" />
-            <span>{{ doc.title }}</span>
-          </CommandItem>
-        </CommandGroup>
-      </CommandList>
+      <Command>
+        <CommandInput placeholder="Search documentation" />
+        <CommandList class="h-[50vh]! max-h-[50vh]">
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup v-for="group in groupedDocs" :key="group.label" :heading="group.label">
+            <CommandItem
+              v-for="doc in group.docs"
+              :key="doc.slug"
+              :value="doc.title"
+              class="tracking-tight"
+              @select="navigateToDoc(doc.slug)"
+            >
+              <Icon name="hugeicons:arrow-right-02" class="mr-2 size-4" />
+              <span>{{ doc.title }}</span>
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </Command>
     </CommandDialog>
   </div>
 </template>
@@ -96,8 +100,11 @@ async function navigateToDoc(slug) {
 }
 
 // Keyboard shortcut: Cmd+K / Ctrl+K
+// `usingInput: true` because the palette focuses its input as soon as it opens;
+// without it the shortcut is suppressed and ⌘K could only ever open the dialog.
 defineShortcuts({
   meta_k: {
+    usingInput: true,
     handler: () => {
       open.value = !open.value;
     },
