@@ -219,6 +219,7 @@ defineExpose({ validateAll });
           :model-value="guest.nationality"
           :options="countries"
           :pinned="['Indonesia']"
+          show-flag
           placeholder="Select country"
           @update:model-value="(v) => update('nationality', v)"
         />

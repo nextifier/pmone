@@ -82,6 +82,7 @@
               v-model="form.country"
               :options="countries"
               :pinned="['Indonesia']"
+              show-flag
               placeholder="Select country"
             />
             <p v-if="errors.country" class="text-destructive text-xs">{{ errors.country }}</p>

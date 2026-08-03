@@ -17,13 +17,14 @@ export const ratingVariants = cva("inline-flex items-center outline-none", {
   },
 });
 
-// Ukuran ikon bintang per ukuran.
+// Ukuran ikon bintang per ukuran. `default` sengaja 32px supaya rating sebagai
+// form field setinggi input/select di sebelahnya.
 export const starVariants = cva("shrink-0", {
   variants: {
     size: {
       sm: "size-5",
-      default: "size-7",
-      lg: "size-8",
+      default: "size-8",
+      lg: "size-9",
     },
   },
   defaultVariants: {

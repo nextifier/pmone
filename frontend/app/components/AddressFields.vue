@@ -84,6 +84,7 @@ watch(
         v-model="model.country"
         :options="countries"
         :pinned="['Indonesia']"
+        show-flag
         placeholder="Select country"
       />
       <FieldError :errors="errorList('address.country')" />

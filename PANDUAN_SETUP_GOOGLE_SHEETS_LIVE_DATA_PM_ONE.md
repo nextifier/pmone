@@ -6,79 +6,92 @@ Setiap jenis data punya dua versi: **semua event** (satu spreadsheet untuk selur
 
 Spreadsheet PM One:
 
-1. PM One - Contacts:
+1. PM One - Events (buka sheet ini untuk cari Event ID di kolom pertama):
+https://docs.google.com/spreadsheets/d/1ZWl1KX6vLOc4z4EZYeuSebCKWJdLbVBu0fvLipcUXeY
+
+2. PM One - Contacts:
 https://docs.google.com/spreadsheets/d/1-r7dOOcM5ByBbUoJrTfgI-q0LXJh8Cl5P18jvU74Gh4
 
-2. PM One - Brands:
+3. PM One - Brands:
 https://docs.google.com/spreadsheets/d/1Gq3MjLiqwA6L5M4d1lJgiCxSxL1UJVLMFJid_KO7v0M
 
-3. PM One - Brands - [Nama Event]:
-_(dibuat sendiri, satu spreadsheet per event)_
+4. PM One - Brands - [Nama Event]:
+   - Global AI Expo 2026:
+https://docs.google.com/spreadsheets/d/1N2DtPRN_xU63KSwNztxMrTAO1g1_mU7QvqUfS4OwqyM
 
-4. PM One - Brand Events:
+5. PM One - Brand Events:
 https://docs.google.com/spreadsheets/d/1G2qr5BwGJUW6EC72hzeqpRT3D99Hz_ZBx2EICyEGriE
 
-5. PM One - Brand Events - [Nama Event]:
-_(dibuat sendiri, satu spreadsheet per event)_
+6. PM One - Brand Events - [Nama Event]:
+   - Global AI Expo 2026:
+https://docs.google.com/spreadsheets/d/1AipHf_f6c7GsIC5vO8WHhIe8MAveM81uBELOK-l9FSc
 
-6. PM One - Orders:
+7. PM One - Orders:
 https://docs.google.com/spreadsheets/d/1qdz_nLY8-d8doUMGyrSKjRTfJKyi_Z__T60KN59eY6M
 
-7. PM One - Orders - [Nama Event]:
-_(dibuat sendiri, satu spreadsheet per event)_
+8. PM One - Orders - [Nama Event]:
+   - Global AI Expo 2026:
+https://docs.google.com/spreadsheets/d/15vwqOckPfYJ3uAz5JsMUydT236TiWYpTNWX6qYuZdUY
 
-8. PM One - Operational Documents:
+9. PM One - Operational Documents:
 https://docs.google.com/spreadsheets/d/1Wsgv39nxma0LfYmQcaHJlYOGHxllgar6aHI6MAPhvvg
 
-9. PM One - Operational Documents - [Nama Event]:
-_(dibuat sendiri, satu spreadsheet per event)_
+10. PM One - Operational Documents - [Nama Event]:
+    - Global AI Expo 2026:
+https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsKUzA
 
 
 ## Pilih data yang mau ditampilkan
 
-**1. Contacts (semua)**
+**1. Events**
+- URL API: `https://api.pmone.id/api/sheets/events`
+- Sheet name: `Events`
+- Berisi: daftar semua event beserta Event ID di kolom pertama, project, tanggal, jumlah booth, jumlah order, plus empat kolom URL siap pakai untuk sheet per event
+- Ini sheet acuan: buka dulu sheet ini kalau butuh Event ID
+
+**2. Contacts (semua)**
 - URL API: `https://api.pmone.id/api/sheets/contacts`
 - Sheet name: `Contacts`
 - Berisi: seluruh kontak beserta tag, kategori bisnis, dan project terkait
 - Tidak ada versi per event (kontak tidak terikat event)
 
-**2. Brands (semua)**
+**3. Brands (semua)**
 - URL API: `https://api.pmone.id/api/sheets/brands`
 - Sheet name: `Brands`
 - Berisi: profil brand, kategori bisnis, links + jumlah klik per link, total visits, custom fields
 
-**3. Brands - [Nama Event]**
+**4. Brands - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/brands`
 - Sheet name: `Brands`
 - Berisi: hanya brand yang ikut event tersebut
 - Kolom `Events Count`, `Events List`, `Booth Numbers`, `Sales PICs`, `Total Visits`, dan `Total Promotion Posts` dihitung **hanya untuk event ini**. Kolom link dan click tetap total brand di semua event, karena link memang tidak terikat event
 
-**4. Brand Events (semua)**
+**5. Brand Events (semua)**
 - URL API: `https://api.pmone.id/api/sheets/brand-events`
 - Sheet name: `Brand Events`
 - Berisi: satu baris per keikutsertaan brand di sebuah event (booth, sales PIC, status partisipasi, dsb)
 
-**5. Brand Events - [Nama Event]**
+**6. Brand Events - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/brand-events`
 - Sheet name: `Brand Events`
 - Berisi: hanya booth di event tersebut
 
-**6. Orders (semua)**
+**7. Orders (semua)**
 - URL API: `https://api.pmone.id/api/sheets/orders`
 - Sheet name: `Orders`
 - Berisi: satu baris per item order dari SEMUA event. Ada kolom `Event ID` dan `Event Title` untuk memfilter/mengelompokkan per event (baris sudah dikelompokkan per event, order terbaru di atas)
 
-**7. Orders - [Nama Event]**
+**8. Orders - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/orders`
 - Sheet name: `Orders`
 - Berisi: hanya order di event tersebut. Kolomnya sama persis dengan versi semua event
 
-**8. Operational Documents (semua)**
+**9. Operational Documents (semua)**
 - URL API: `https://api.pmone.id/api/sheets/operational-documents`
 - Sheet name: `Operational Documents`
 - Berisi: satu baris per (brand event × dokumen), status pengumpulan dokumen operasional & event rules, riwayat file
 
-**9. Operational Documents - [Nama Event]**
+**10. Operational Documents - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/operational-documents`
 - Sheet name: `Operational Documents`
 - Berisi: hanya dokumen di event tersebut
@@ -86,22 +99,21 @@ _(dibuat sendiri, satu spreadsheet per event)_
 
 ## Cara cari Event ID
 
-URL per event butuh angka `[EVENT_ID]`. Ada dua cara mendapatkannya.
+URL per event butuh angka `[EVENT_ID]`. Buka spreadsheet **PM One - Events**:
 
-**Cara cepat:** buka URL ini di browser, ganti `TOKEN_KAMU` dengan API token di bawah:
+https://docs.google.com/spreadsheets/d/1ZWl1KX6vLOc4z4EZYeuSebCKWJdLbVBu0fvLipcUXeY
+
+Kolom pertama (`ID`) itulah Event ID-nya. Cari baris event yang kamu mau, lalu ambil angkanya.
+
+Sheet ini juga punya empat kolom URL siap pakai di bagian kanan:
+`Brands Sheet URL`, `Brand Events Sheet URL`, `Orders Sheet URL`, `Operational Documents Sheet URL`.
+Tinggal copy URL dari kolom tersebut ke `API_URL` di script, tidak perlu merangkai URL manual.
+
+Kalau mau cek cepat tanpa buka spreadsheet, URL ini bisa dibuka langsung di browser (ganti `TOKEN_KAMU` dengan API token di bawah):
 
 ```
 https://api.pmone.id/api/sheets/events?token=TOKEN_KAMU
 ```
-
-**Cara rapi:** buat spreadsheet `PM One - Events` dengan script yang sama seperti spreadsheet lain, pakai:
-- `API_URL`: `'https://api.pmone.id/api/sheets/events'`
-- `SHEET_NAME`: `'Events'`
-
-Sheet ini berisi semua event beserta ID, project, tanggal, jumlah booth, jumlah order, plus empat kolom URL siap pakai:
-`Brands Sheet URL`, `Brand Events Sheet URL`, `Orders Sheet URL`, `Operational Documents Sheet URL`.
-
-Tinggal copy URL dari kolom tersebut ke `API_URL` di script, tidak perlu merangkai URL manual.
 
 
 ## Langkah 1: Buat Google Spreadsheet baru
@@ -109,6 +121,7 @@ Tinggal copy URL dari kolom tersebut ke `API_URL` di script, tidak perlu merangk
 1. Buka https://sheets.google.com
 2. Klik tombol "+" (Blank spreadsheet)
 3. Ganti judul, contoh:
+   - `PM One - Events`
    - `PM One - Contacts`
    - `PM One - Brands`
    - `PM One - Brands - Global AI Expo 2026`
@@ -139,8 +152,10 @@ Tinggal copy URL dari kolom tersebut ke `API_URL` di script, tidak perlu merangk
 var CONFIG = {
   // Pilih salah satu API_URL sesuai jenis data.
   // Untuk yang per event, ganti [EVENT_ID] dengan angka ID event
-  // (cari lewat https://api.pmone.id/api/sheets/events?token=...).
+  // (ada di kolom pertama spreadsheet PM One - Events).
   //
+  // Events (daftar event + Event ID):
+  //   'https://api.pmone.id/api/sheets/events'
   // Contacts:
   //   'https://api.pmone.id/api/sheets/contacts'
   // Brands:
@@ -159,8 +174,6 @@ var CONFIG = {
   //   'https://api.pmone.id/api/sheets/operational-documents'
   // Operational Documents per event:
   //   'https://api.pmone.id/api/sheets/events/[EVENT_ID]/operational-documents'
-  // Daftar event (buat cari EVENT_ID):
-  //   'https://api.pmone.id/api/sheets/events'
   //
   API_URL: 'https://api.pmone.id/api/sheets/orders',
 
@@ -168,8 +181,8 @@ var CONFIG = {
 
   // Ganti sesuai jenis data. Versi per event pakai sheet name yang sama
   // dengan versi semua event:
-  // 'Contacts' / 'Brands' / 'Brand Events' / 'Orders' /
-  // 'Operational Documents' / 'Events'
+  // 'Events' / 'Contacts' / 'Brands' / 'Brand Events' / 'Orders' /
+  // 'Operational Documents'
   SHEET_NAME: 'Orders'
 };
 // ========================================
@@ -291,6 +304,10 @@ function removeAutoRefresh() {
 ```
 
 3. Sesuaikan bagian CONFIG di atas:
+
+   **Untuk Events:**
+   - `API_URL`: `'https://api.pmone.id/api/sheets/events'`
+   - `SHEET_NAME`: `'Events'`
 
    **Untuk Contacts:**
    - `API_URL`: `'https://api.pmone.id/api/sheets/contacts'`

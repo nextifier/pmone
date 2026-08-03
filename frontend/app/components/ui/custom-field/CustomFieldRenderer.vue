@@ -339,6 +339,7 @@
         :options="countryOptions"
         :pinned="pinnedCountries"
         :disabled="disabled"
+        show-flag
         :placeholder="normalized.placeholder || 'Select country'"
         @update:model-value="$emit('update:modelValue', $event)"
       />

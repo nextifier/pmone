@@ -108,6 +108,7 @@
                   v-model="form.country"
                   :options="countries"
                   :pinned="['Indonesia']"
+                  show-flag
                   placeholder="Select country"
                 />
                 <FieldError :errors="errors.country" />

@@ -1,13 +1,18 @@
 <template>
-  <div class="bg-muted/30 dark:bg-background min-h-dvh">
+  <div class="relative min-h-dvh" :class="isEmbed ? 'py-4' : 'pt-6 pb-12 sm:pt-8 sm:pb-16'">
     <div
-      class="mx-auto w-full max-w-2xl px-4"
-      :class="isEmbed ? 'py-4' : 'pt-6 pb-12 sm:pt-8 sm:pb-16'"
+      v-if="!isEmbed"
+      class="border-border bg-background/95 supports-backdrop-filter:bg-background/90 absolute top-4 right-3 z-10 flex items-center gap-x-1 rounded-full border p-1 backdrop-blur-sm sm:fixed"
     >
+      <AppearancePickerButton />
+      <ColorModeToggle />
+    </div>
+
+    <div class="container sm:max-w-xl">
       <!-- Skeleton loading -->
       <template v-if="isLoading">
-        <div class="bg-card overflow-hidden rounded-2xl border shadow-sm">
-          <div class="space-y-8 p-6 sm:p-8">
+        <div class="">
+          <div class="space-y-8">
             <div class="space-y-2.5">
               <Skeleton class="h-8 w-3/5" />
               <Skeleton class="h-4 w-4/5" />
@@ -28,7 +33,7 @@
       <Result
         v-else-if="statusCard"
         size="sm"
-        class="bg-card rounded-2xl border p-8 shadow-sm sm:p-12"
+        class=""
         :status="statusCard.status"
         :variant="statusCard.variant"
         :icon="statusCard.icon"
@@ -38,18 +43,14 @@
 
       <!-- Form -->
       <template v-else-if="form">
-        <div class="bg-card relative overflow-hidden rounded-2xl border shadow-sm">
-          <div v-if="!isEmbed" class="absolute top-2.5 right-2.5 z-10 flex items-center gap-x-1">
-            <AppearancePickerButton />
-            <ColorModeToggle />
-          </div>
+        <div class="relative">
           <img
             v-if="form.cover_image?.xl && !isEmbed"
             :src="form.cover_image.xl"
             :alt="form.title"
             class="aspect-[3/1] w-full object-cover"
           />
-          <div class="p-6 sm:p-8">
+          <div class="">
             <!-- Header -->
             <div class="space-y-2">
               <h1 class="text-2xl font-semibold tracking-tighter text-balance sm:text-3xl">
@@ -152,9 +153,14 @@
 </template>
 
 <script setup>
-import { CustomFieldRenderer, defaultValueFor, prefillValueFor as coercePrefill, supportsPrefill } from "@/components/ui/custom-field";
 import { Button } from "@/components/ui/button";
 import { ColorModeToggle } from "@/components/ui/color-mode-toggle";
+import {
+  prefillValueFor as coercePrefill,
+  CustomFieldRenderer,
+  defaultValueFor,
+  supportsPrefill,
+} from "@/components/ui/custom-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Result } from "@/components/ui/result";
@@ -191,7 +197,8 @@ const form = computed(() => formResponse.value?.data || null);
 if (fetchError.value && !isEmbed.value) {
   throw createError({
     statusCode: fetchError.value.statusCode || fetchError.value.data?.statusCode || 404,
-    statusMessage: fetchError.value.data?.message || fetchError.value.statusMessage || "Form not found",
+    statusMessage:
+      fetchError.value.data?.message || fetchError.value.statusMessage || "Form not found",
     fatal: true,
   });
 }
