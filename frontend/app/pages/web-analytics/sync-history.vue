@@ -123,7 +123,9 @@
         >
           <template #filters="{ table }">
             <Popover>
-              <TableFilterButton />
+              <TableFilterButton
+                :count="table.getColumn('status')?.getFilterValue()?.length || 0"
+              />
               <PopoverContent class="w-auto min-w-48 p-3" align="start">
                 <div class="space-y-2">
                   <div class="text-muted-foreground text-xs font-medium">Filter by Status</div>
