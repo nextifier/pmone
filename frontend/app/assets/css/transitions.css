@@ -437,3 +437,84 @@
     transition: none !important;
   }
 }
+
+/* -----------------------------------------------------------------------------
+   Sheet swipe-to-dismiss (07 turunan).
+   Dipakai: ui/sheet/SheetContent.vue + SheetOverlay.vue lewat useSwipeDismiss.ts
+
+   Gerakannya ditulis JS sebagai CSS variable saja, transform-nya disusun di sini.
+   Dua alasan: (1) Vue bisa menghapus atribut `style` kalau binding `:style` sebuah
+   konsumen berubah jadi undefined di tengah drag, dan itu akan membawa transform
+   inline ikut hilang; (2) keyframe `exit` milik tw-animate-css hanya mendeklarasikan
+   `to`, jadi sisi `from`-nya diambil dari nilai transform yang berlaku di sini —
+   animasi keluar otomatis berangkat dari posisi terakhir jari, bukan dari nol.
+
+   Selectornya kelas, bukan `[data-slot="sheet-content"]`: konsumen seperti
+   ui/sidebar/Sidebar.vue mengoper `data-slot`-nya sendiri lewat $attrs dan itu
+   menimpa milik SheetContent. Kelas `cn-*` selalu ada karena digabung `cn()` di
+   dalam komponen dan tidak ikut dibuang tailwind-merge.
+
+   Snap-back tidak perlu transition sendiri: `.cn-sheet-content` dan
+   `.cn-sheet-overlay` sudah mentransisikan transform/opacity dengan durasi dan
+   easing panel, jadi menimpanya di sini malah mematikan transisi warna tema.
+   -------------------------------------------------------------------------- */
+.cn-sheet-content {
+  transform: translate3d(
+    var(--sheet-swipe-movement-x, 0px),
+    var(--sheet-swipe-movement-y, 0px),
+    0
+  );
+  overscroll-behavior: contain;
+}
+.cn-sheet-content[data-swiping] {
+  transition: none;
+  will-change: transform;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Strip di luar tepi panel supaya rubber-band ke arah berlawanan tidak menyingkap
+   celah. Base UI melakukannya dengan menambah lebar panel + margin negatif; lewat
+   pseudo-element lebar dan layout konsumen tidak berubah sama sekali.
+   `background-color` (longhand) supaya tema yang memakai gradient tidak menggambar
+   ulang gradient-nya di strip ini dan memperlihatkan jahitan. */
+.cn-sheet-content::before {
+  content: "";
+  position: absolute;
+  background-color: inherit;
+  pointer-events: none;
+}
+.cn-sheet-content[data-side="left"]::before {
+  inset-block: 0;
+  right: 100%;
+  width: var(--sheet-bleed, 3rem);
+}
+.cn-sheet-content[data-side="right"]::before {
+  inset-block: 0;
+  left: 100%;
+  width: var(--sheet-bleed, 3rem);
+}
+.cn-sheet-content[data-side="top"]::before {
+  inset-inline: 0;
+  bottom: 100%;
+  height: var(--sheet-bleed, 3rem);
+}
+.cn-sheet-content[data-side="bottom"]::before {
+  inset-inline: 0;
+  top: 100%;
+  height: var(--sheet-bleed, 3rem);
+}
+
+.cn-sheet-overlay {
+  opacity: calc(1 - var(--sheet-swipe-progress, 0));
+}
+.cn-sheet-overlay[data-swiping] {
+  transition-duration: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cn-sheet-content[data-swiping],
+  .cn-sheet-overlay[data-swiping] {
+    transition: none !important;
+  }
+}

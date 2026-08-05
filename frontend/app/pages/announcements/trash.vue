@@ -7,13 +7,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <NuxtLink
-          to="/announcements"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/announcements">
           <Icon name="hugeicons:notification-02" class="size-4 shrink-0" />
           <span>All Announcements</span>
-        </NuxtLink>
+        </Button>
       </div>
     </div>
 
@@ -127,6 +124,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogResponsive } from "@/components/ui/dialog-responsive";

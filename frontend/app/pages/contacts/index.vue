@@ -11,51 +11,33 @@
       <div class="ml-auto flex flex-wrap gap-x-1.5 gap-y-2.5">
         <ContactImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
-            <button
-              @click="open()"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-            >
+            <Button variant="outline" size="sm" @click="open()">
               <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
               <span>Import</span>
-            </button>
+            </Button>
           </template>
         </ContactImportDialog>
 
-        <button
-          @click="handleExport"
-          :disabled="exportJob.processing.value"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button variant="outline" size="sm" @click="handleExport" :disabled="exportJob.processing.value">
           <Spinner v-if="exportJob.processing.value" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>{{ totalActiveFilters > 0 ? "Export Filtered" : "Export All" }}</span>
-        </button>
+        </Button>
 
-        <NuxtLink
-          to="/contacts/business-categories"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/contacts/business-categories">
           <Icon name="hugeicons:tag-01" class="size-4 shrink-0" />
           <span>Business Categories</span>
-        </NuxtLink>
+        </Button>
 
-        <button
-          v-if="canDelete"
-          @click="openDedupeDialog"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" @click="openDedupeDialog">
           <Icon name="hugeicons:filter-remove" class="size-4 shrink-0" />
           <span>Remove Duplicates</span>
-        </button>
+        </Button>
 
-        <button
-          v-if="canDelete"
-          @click="openUnusedTagsDialog"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" @click="openUnusedTagsDialog">
           <Icon name="hugeicons:bookmark-remove-02" class="size-4 shrink-0" />
           <span>Remove Unused Tags</span>
-        </button>
+        </Button>
 
         <button
           v-if="isAdminOrMaster && meta.total > 0"
@@ -66,14 +48,10 @@
           <span>Delete All</span>
         </button>
 
-        <NuxtLink
-          v-if="canDelete"
-          to="/contacts/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" to="/contacts/trash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </NuxtLink>
+        </Button>
       </div>
     </div>
 
@@ -119,20 +97,7 @@
 
       <template #filters="{ table }">
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </button>
-          </PopoverTrigger>
+          <TableFilterButton :count="totalActiveFilters" />
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="max-h-[70vh] space-y-4 overflow-y-auto">
               <FilterSection
@@ -759,11 +724,12 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import ContactImportDialog from "@/components/contact/ContactImportDialog.vue";
 import ContactTableItem from "@/components/contact/ContactTableItem.vue";
 import FormContact from "@/components/contact/FormContact.vue";
 import ContactStatusDropdown from "@/components/contact/StatusDropdown.vue";
-import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { TableData, TableBulkAction, TableFilterButton } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -772,7 +738,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
 import { useDebounceFn } from "@vueuse/core";
 import { defineComponent, resolveComponent, resolveDirective, withDirectives } from "vue";

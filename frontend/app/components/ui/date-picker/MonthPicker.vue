@@ -78,7 +78,7 @@ function onSelect(value: DateValue | DateValue[] | undefined): void {
 }
 
 const cellClass = cn(
-  buttonVariants({ variant: "ghost" }),
+  buttonVariants({ variant: "ghost", size: "sm" }),
   "h-9 w-full rounded-md font-normal select-none",
   "data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground data-[selected]:focus:bg-primary data-[selected]:focus:text-primary-foreground",
   "[&[data-today]:not([data-selected])]:bg-muted [&[data-today]:not([data-selected])]:text-foreground",
@@ -133,7 +133,7 @@ const cellClass = cn(
           <MonthPickerPrev
             :class="
               cn(
-                buttonVariants({ variant: 'ghost' }),
+                buttonVariants({ variant: 'ghost', size: 'sm' }),
                 'absolute left-1 size-7 p-0 select-none aria-disabled:opacity-50',
               )
             "
@@ -144,7 +144,7 @@ const cellClass = cn(
           <MonthPickerNext
             :class="
               cn(
-                buttonVariants({ variant: 'ghost' }),
+                buttonVariants({ variant: 'ghost', size: 'sm' }),
                 'absolute right-1 size-7 p-0 select-none aria-disabled:opacity-50',
               )
             "

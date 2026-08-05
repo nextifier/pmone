@@ -7,13 +7,10 @@
       </div>
 
       <div v-if="canDelete" class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          to="/api-consumers/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/api-consumers/trash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </nuxt-link>
+        </Button>
       </div>
     </div>
 
@@ -173,20 +170,7 @@
       <template #filters="{ table }">
         <ClientOnly>
           <Popover>
-            <PopoverTrigger asChild>
-              <button
-                class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-              >
-                <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-                <span class="hidden sm:flex">Filter</span>
-                <span
-                  v-if="totalActiveFilters > 0"
-                  class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-                >
-                  {{ totalActiveFilters }}
-                </span>
-              </button>
-            </PopoverTrigger>
+            <TableFilterButton :count="totalActiveFilters" />
             <PopoverContent class="w-auto min-w-48 p-3" align="start">
               <div class="space-y-4">
                 <FilterSection
@@ -202,13 +186,16 @@
             </PopoverContent>
           </Popover>
           <template #fallback>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Filter"
+              class="h-(--cn-input-h) shrink-0 max-sm:aspect-square max-sm:px-0"
               disabled
             >
               <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
               <span class="hidden sm:flex">Filter</span>
-            </button>
+            </Button>
           </template>
         </ClientOnly>
       </template>
@@ -256,7 +243,8 @@
 </template>
 
 <script setup>
-import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { Button } from "@/components/ui/button";
+import { TableData, TableBulkAction, TableFilterButton } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";

@@ -16,15 +16,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          v-if="canDelete"
-          type="button"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98"
-          @click="openTrash"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" type="button" @click="openTrash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span class="hidden sm:inline">Trash</span>
-        </button>
+        </Button>
         <Button v-if="canCreate" size="sm" @click="openCreate">
           <Icon name="hugeicons:add-01" class="size-4 shrink-0" />
           <span>Add Guest</span>
@@ -405,15 +400,10 @@
         Showing {{ pageRangeFrom }}–{{ pageRangeTo }} of {{ totalCount }}
       </div>
       <div class="flex items-center gap-2">
-        <button
-          type="button"
-          :disabled="page === 1"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight transition disabled:opacity-50"
-          @click="page = Math.max(1, page - 1)"
-        >
+        <Button variant="outline" size="sm" type="button" :disabled="page === 1" @click="page = Math.max(1, page - 1)">
           <Icon name="hugeicons:arrow-left-02" class="size-4 shrink-0" />
           <span>Previous</span>
-        </button>
+        </Button>
         <span class="text-sm tracking-tight tabular-nums">{{ page }} / {{ totalPages }}</span>
         <button
           type="button"
@@ -645,6 +635,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import ActivityLogPanel from "@/components/guest/ActivityLogPanel.vue";
 import FormGuest from "@/components/guest/FormGuest.vue";
 import MoveToEventDialog from "@/components/guest/MoveToEventDialog.vue";

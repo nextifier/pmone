@@ -9,27 +9,18 @@
       </div>
 
       <div class="flex flex-wrap items-center justify-end gap-1 sm:ml-auto sm:gap-2">
-        <button
-          :disabled="syncPending"
-          title="Fetch the latest emails and statuses from Resend"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-          @click="handleSync"
-        >
+        <Button variant="outline" size="sm" :disabled="syncPending" title="Fetch the latest emails and statuses from Resend" @click="handleSync">
           <Spinner v-if="syncPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:refresh" class="size-4 shrink-0" />
           <span class="hidden sm:inline">Sync from Resend</span>
           <span class="sm:hidden">Sync</span>
-        </button>
+        </Button>
 
-        <button
-          :disabled="exportPending"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-          @click="handleExport"
-        >
+        <Button variant="outline" size="sm" :disabled="exportPending" @click="handleExport">
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export</span>
-        </button>
+        </Button>
 
         <DialogResponsive dialog-max-width="640px">
           <template #trigger="{ open }">
@@ -273,20 +264,7 @@
           <template #filters>
             <ClientOnly>
               <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight sm:aspect-auto sm:px-2.5"
-                  >
-                    <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-                    <span class="hidden sm:flex">Filter</span>
-                    <span
-                      v-if="activeStatusFilters.length > 0"
-                      class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-                    >
-                      {{ activeStatusFilters.length }}
-                    </span>
-                  </button>
-                </PopoverTrigger>
+                <TableFilterButton :count="activeStatusFilters.length" />
                 <PopoverContent class="w-auto min-w-52 space-y-4 p-3" align="start">
                   <div class="space-y-2">
                     <div class="text-muted-foreground text-xs font-medium">Status</div>
@@ -346,20 +324,7 @@
           <template #filters>
             <ClientOnly>
               <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight sm:aspect-auto sm:px-2.5"
-                  >
-                    <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-                    <span class="hidden sm:flex">Filter</span>
-                    <span
-                      v-if="activeReasonFilters.length > 0"
-                      class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-                    >
-                      {{ activeReasonFilters.length }}
-                    </span>
-                  </button>
-                </PopoverTrigger>
+                <TableFilterButton :count="activeReasonFilters.length" />
                 <PopoverContent class="w-auto min-w-52 space-y-4 p-3" align="start">
                   <div class="space-y-2">
                     <div class="text-muted-foreground text-xs font-medium">Reason</div>
@@ -428,10 +393,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableFilterButton } from "@/components/ui/table-data";
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { h } from "vue";
 import { toast } from "vue-sonner";

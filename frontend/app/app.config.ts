@@ -17,6 +17,11 @@ const settings = {
   },
   ogImage: {
     isDarkMode: true,
+    // Multi-brand: each brand serves its own icon. levenium and pmone-events
+    // are single-brand and leave this unset, which falls back to
+    // /icons/icon-192x192.png inside OgImage/Page.takumi.vue — that fallback is
+    // what keeps the component byte-identical across the three repos.
+    icon: `/brands/${brand.id}/icons/icon-192x192.png`,
   },
   terms: {
     lastUpdate: "August 21, 2025",

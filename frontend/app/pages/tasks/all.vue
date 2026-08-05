@@ -3,13 +3,10 @@
     <!-- Header -->
     <TasksHeader title="All Tasks" icon="hugeicons:user-group">
       <template #actions>
-        <NuxtLink
-          to="/tasks"
-          class="border-border hover:bg-muted flex items-center gap-x-1.5 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/tasks">
           <Icon name="hugeicons:task-daily-01" class="size-4 shrink-0" />
           <span>My Tasks</span>
-        </NuxtLink>
+        </Button>
       </template>
     </TasksHeader>
 

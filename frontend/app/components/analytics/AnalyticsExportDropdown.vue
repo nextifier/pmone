@@ -1,15 +1,12 @@
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
-      <button
-        :disabled="isExporting || disabled"
-        class="border-border hover:bg-muted flex h-8 items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-      >
+      <Button variant="outline" size="sm" :disabled="isExporting || disabled">
         <Spinner v-if="isExporting" class="size-4 shrink-0" />
         <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
         <span>{{ isExporting ? "Exporting..." : "Export" }}</span>
         <Icon name="hugeicons:arrow-down-01" class="size-4 shrink-0" />
-      </button>
+      </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
       <DropdownMenuItem v-if="enableExcel" @click="handleExportToExcel">

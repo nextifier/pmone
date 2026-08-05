@@ -303,12 +303,9 @@
       </section>
 
       <div class="flex flex-wrap gap-2 justify-end">
-        <NuxtLink
-          :to="`${eventBase}/reservations`"
-          class="border-border hover:bg-muted inline-flex items-center rounded-md border px-3 py-1.5 text-sm tracking-tight"
-        >
+        <Button variant="outline" size="sm" :to="`${eventBase}/reservations`">
           Cancel
-        </NuxtLink>
+        </Button>
         <Button type="submit" :disabled="saving || !form.hotel_id || !form.items.length || gatewayBlocked">
           <Spinner v-if="saving" />
           {{ saving ? "Creating..." : "Create Reservation" }}

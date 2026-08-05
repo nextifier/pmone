@@ -195,9 +195,7 @@
 
       <Popover v-model:open="baseOpen">
         <PopoverTrigger as-child>
-          <button
-            class="border-border hover:bg-muted flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-sm tracking-tight active:scale-98"
-          >
+          <Button variant="outline" size="sm">
             <span class="text-muted-foreground text-sm">Base:</span>
             <Flag
               v-if="getCurrencyCountry(baseCurrency)"
@@ -205,7 +203,7 @@
             />
             <span class="font-medium">{{ baseCurrency }}</span>
             <Icon name="hugeicons:unfold-more" class="text-muted-foreground size-3.5" />
-          </button>
+          </Button>
         </PopoverTrigger>
         <PopoverContent class="w-[280px] p-0" align="end">
           <Command>

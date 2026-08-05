@@ -18,7 +18,7 @@ const props = withDefaults(
     <DialogClose
       v-if="props.showCloseButton"
       data-slot="dialog-close"
-      :class="buttonVariants({ variant: 'outline' })"
+      :class="buttonVariants({ variant: 'outline', size: 'default' })"
     >
       Close
     </DialogClose>

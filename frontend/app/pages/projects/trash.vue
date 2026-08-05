@@ -2,13 +2,10 @@
   <div class="mx-auto max-w-xl space-y-6 pt-4 pb-16">
     <ProjectsHeader title="Project Trash" icon="hugeicons:delete-01">
       <template #actions>
-        <nuxt-link
-          to="/projects"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/projects">
           <Icon name="hugeicons:layers-01" class="size-4 shrink-0" />
           <span>All projects</span>
-        </nuxt-link>
+        </Button>
       </template>
     </ProjectsHeader>
 
@@ -156,6 +153,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import ProjectsFilters from "@/components/project/ProjectsFilters.vue";
 import ProjectsHeader from "@/components/project/ProjectsHeader.vue";
 import ProjectsList from "@/components/project/ProjectsList.vue";

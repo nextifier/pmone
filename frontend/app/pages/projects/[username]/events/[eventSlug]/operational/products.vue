@@ -11,24 +11,17 @@
 
       <div class="ml-auto flex flex-wrap gap-2">
         <!-- Categories -->
-        <NuxtLink
-          :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/product-categories`"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" :to="`/projects/${route.params.username}/events/${route.params.eventSlug}/product-categories`">
           <Icon name="hugeicons:layers-01" class="size-4 shrink-0" />
           <span>Categories</span>
-        </NuxtLink>
+        </Button>
 
         <!-- Export -->
-        <button
-          @click="handleExport"
-          :disabled="exportPending"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button variant="outline" size="sm" @click="handleExport" :disabled="exportPending">
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export {{ activeSearch || selectedCategory !== "all" ? "selected" : "all" }}</span>
-        </button>
+        </Button>
 
         <template v-if="event?.can_edit">
           <EventProductImportDialog

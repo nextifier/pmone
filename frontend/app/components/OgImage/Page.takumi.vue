@@ -1,9 +1,32 @@
 <script setup>
-const props = defineProps({
-  headline: {
-    type: String,
-    default: "",
-  },
+// The one OG card template. Keep this file byte-identical across levenium,
+// pmone, and pmone-events — only its LOCATION differs, because the three repos
+// are laid out differently:
+//
+//   levenium      layers/ui/app/components/OgImage/     (layers/ui is the only
+//                                                        common ancestor: it is
+//                                                        extended by layers/base
+//                                                        AND directly by apps/ui,
+//                                                        which skips base)
+//   pmone-events  layers/base/app/components/OgImage/   (no layers/ui exists here;
+//                                                        every app extends base)
+//   pmone         app/components/OgImage/               (single app, no layers)
+//
+// Keep it the ONLY OgImage/Page.takumi.vue in its repo. A second copy in a
+// nearer layer shadows this one by component name and silently forks the card —
+// that is exactly how pmone-events/apps/campx ended up rendering a stale design.
+//
+// The `.takumi` suffix picks the renderer. `ogImage.defaults.renderer` was
+// removed in nuxt-og-image v6; the filename is the only way to choose.
+//
+// Tailwind classes are safe here even when the build-time CSS transform fails:
+// takumi resolves `class` itself via its own Tailwind implementation, and the
+// transform is only an augmentation layer that additionally resolves project
+// tokens. So stick to literal colors and arbitrary values — avoid token-based
+// utilities (`bg-input`, `border-border`, …), which takumi cannot resolve alone.
+defineOptions({ inheritAttrs: false });
+
+defineProps({
   pageTitle: {
     type: String,
     default: "",
@@ -12,17 +35,16 @@ const props = defineProps({
     type: String,
     default: "",
   },
-  brandName: {
-    type: String,
-    default: "",
-  },
-  website: {
-    type: String,
-    default: "",
-  },
 });
 
-const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
+const appConfig = useAppConfig();
+const isDarkMode = ref(appConfig.settings.ogImage.isDarkMode);
+
+// Configurable so this file stays identical in pmone, which is multi-brand and
+// serves each brand's icon from /brands/<brandId>/icons/. Single-brand apps
+// leave it unset and get the app-level icon.
+const iconSrc =
+  appConfig.settings.ogImage.icon || "/icons/icon-192x192.png";
 </script>
 
 <template>
@@ -66,12 +88,15 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
         {{ pageDescription }}
       </p>
 
-      <div class="mt-auto flex flex-row items-center" style="transform: translateY(50%)">
+      <div
+        class="mt-auto flex flex-row items-center"
+        style="transform: translateY(50%)"
+      >
         <div
           class="outline-inside flex size-20 items-center justify-center overflow-hidden rounded-2xl"
         >
           <img
-            :src="`/brands/${useAppConfig().app.brandId}/icons/icon-192x192.png`"
+            :src="iconSrc"
             class="size-20 object-contain"
             alt=""
             width="80"
@@ -80,11 +105,13 @@ const isDarkMode = ref(useAppConfig().settings.ogImage.isDarkMode);
         </div>
 
         <div class="ml-4 flex flex-col items-start gap-y-2">
-          <span v-if="useAppConfig().app.name" class="text-3xl font-normal tracking-tighter">{{
-            useAppConfig().app.name
-          }}</span>
-          <span v-if="useAppConfig().app.url" class="text-2xl font-normal tracking-tight">{{
-            useAppConfig().app.url
+          <span
+            v-if="appConfig.app.name"
+            class="text-3xl font-normal tracking-tighter"
+            >{{ appConfig.app.name }}</span
+          >
+          <span v-if="appConfig.app.url" class="text-2xl tracking-tight">{{
+            appConfig.app.url
           }}</span>
         </div>
       </div>

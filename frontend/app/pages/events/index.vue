@@ -8,14 +8,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <NuxtLink
-          v-if="canDelete"
-          to="/events/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" to="/events/trash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </NuxtLink>
+        </Button>
       </div>
     </div>
 
@@ -53,20 +49,7 @@
 
       <template #filters="{ table }">
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </button>
-          </PopoverTrigger>
+          <TableFilterButton :count="totalActiveFilters" />
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="space-y-4">
               <FilterSection
@@ -96,11 +79,12 @@
 </template>
 
 <script setup>
-import { TableData } from "@/components/ui/table-data";
+import { Button } from "@/components/ui/button";
+import { TableData, TableFilterButton } from "@/components/ui/table-data";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";
 import { resolveDirective, withDirectives } from "vue";
 

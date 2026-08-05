@@ -14,10 +14,7 @@
         <!-- Export (all or selected) -->
         <Popover>
           <PopoverTrigger asChild>
-            <button
-              :disabled="exportPending || (!data.length && !selectedRowIds.length)"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-            >
+            <Button variant="outline" size="sm" :disabled="exportPending || (!data.length && !selectedRowIds.length)">
               <Spinner v-if="exportPending" class="size-4 shrink-0" />
               <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
               <span>Export</span>
@@ -27,7 +24,7 @@
               >
                 {{ selectedRowIds.length }}
               </span>
-            </button>
+            </Button>
           </PopoverTrigger>
           <PopoverContent align="end" class="w-44 p-1">
             <div class="flex flex-col">
@@ -48,9 +45,7 @@
           <!-- Bulk status update -->
           <Popover>
             <PopoverTrigger asChild>
-              <button
-                class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-              >
+              <Button variant="outline" size="sm">
                 <Icon name="lucide:tag" class="size-4 shrink-0" />
                 <span>Status</span>
                 <span
@@ -58,7 +53,7 @@
                 >
                   {{ selectedRowIds.length }}
                 </span>
-              </button>
+              </Button>
             </PopoverTrigger>
             <PopoverContent align="end" class="w-40 p-1">
               <div class="flex flex-col">
@@ -101,13 +96,10 @@
             </template>
           </ConfirmDialog>
 
-          <button
-            @click="clearSelection"
-            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-          >
+          <Button variant="outline" size="sm" @click="clearSelection">
             <Icon name="lucide:x" class="size-4 shrink-0" />
             <span>Clear</span>
-          </button>
+          </Button>
         </template>
       </div>
     </div>
@@ -135,20 +127,7 @@
     >
       <template #filters>
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="selectedStatusFilters.length > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4.5 translate-x-1/2 -translate-y-1/2 items-center justify-center text-xs font-medium tracking-tight tabular-nums"
-              >
-                {{ selectedStatusFilters.length }}
-              </span>
-            </button>
-          </PopoverTrigger>
+          <TableFilterButton :count="selectedStatusFilters.length" />
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="space-y-4">
               <TableFilterSection
@@ -173,11 +152,12 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import TableFilterSection from "@/components/TableFilterSection.vue";
 import ResponseDetailDialog from "@/components/form-builder/ResponseDetailDialog.vue";
 import ResponseRowActions from "@/components/form-builder/ResponseRowActions.vue";
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableFilterButton } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RESPONSE_STATUS_OPTIONS, responseStatusDisplay } from "@/lib/formBuilderStatus";

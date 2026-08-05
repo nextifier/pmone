@@ -124,14 +124,10 @@
               <Icon name="hugeicons:settings-02" class="size-4" />
               Event settings
             </Button>
-            <NuxtLink
-              :to="`/hotels-master/${hotelSlug}`"
-              target="_blank"
-              class="border-border hover:bg-muted inline-flex items-center gap-x-1 rounded-md border px-3 py-1.5 text-sm tracking-tight active:scale-98"
-            >
+            <Button variant="outline" size="sm" :to="`/hotels-master/${hotelSlug}`" target="_blank">
               <Icon name="hugeicons:link-square-02" class="size-4" />
               Open in master
-            </NuxtLink>
+            </Button>
           </div>
         </div>
 

@@ -88,14 +88,10 @@
         </div>
 
         <div class="flex flex-wrap justify-between gap-2">
-          <NuxtLink
-            to="/hotels-master/create"
-            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-3 py-2 text-sm tracking-tight active:scale-98"
-            @click="isOpen = false"
-          >
+          <Button variant="outline" size="sm" to="/hotels-master/create" @click="isOpen = false">
             <Icon name="lucide:plus" class="size-4 shrink-0" />
             Create new hotel
-          </NuxtLink>
+          </Button>
 
           <div class="flex gap-2">
             <Button variant="outline" type="button" @click="isOpen = false">Cancel</Button>

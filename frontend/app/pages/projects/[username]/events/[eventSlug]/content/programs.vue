@@ -16,14 +16,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <button
-          type="button"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98"
-          @click="openTrash"
-        >
+        <Button variant="outline" size="sm" type="button" @click="openTrash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span class="hidden sm:inline">Trash</span>
-        </button>
+        </Button>
         <button
           type="button"
           class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
@@ -270,6 +266,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import FormProgram from "@/components/FormProgram.vue";
 import { Spinner } from "@/components/ui/spinner";
 import { useSortableList } from "@/composables/useSortableList";

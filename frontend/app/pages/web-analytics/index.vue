@@ -308,20 +308,14 @@
 
       <div class="flex flex-col items-center justify-center gap-y-6 pb-6">
         <div class="flex flex-wrap items-center justify-center gap-2">
-          <NuxtLink
-            to="/web-analytics/docs"
-            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-          >
+          <Button variant="outline" size="sm" to="/web-analytics/docs">
             <Icon name="hugeicons:book-02" class="size-4 shrink-0" />
             <span>Documentation</span>
-          </NuxtLink>
-          <NuxtLink
-            to="/web-analytics/sync-history"
-            class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-          >
+          </Button>
+          <Button variant="outline" size="sm" to="/web-analytics/sync-history">
             <Icon name="hugeicons:clock-03" class="size-4 shrink-0" />
             <span>Sync History</span>
-          </NuxtLink>
+          </Button>
 
           <DialogViewRaw :data="aggregateData" />
         </div>

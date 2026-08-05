@@ -21,6 +21,27 @@ Aturan ini wajib diikuti. Kalau ada kasus yang belum tercakup di sini, cek sibli
 - Hindari `text-xs`, `text-[11px]`, `text-[10px]` berdiri sendiri di layar besar. Kalau butuh kecil, pakai `text-xs sm:text-sm` supaya tetap nyaman dibaca di desktop.
 - Hindari `text-[9px]` kecuali untuk indikator badge yang memang sangat compact (step number, key indicator).
 
+#### Skala button (dimiliki style, jangan di-override di call site)
+
+Semua `style-*.css` memakai skala yang sama. Yang berbeda antar style cuma tinggi, padding, radius, dan ukuran ikon.
+
+| size | font-size |
+| --- | --- |
+| `xs` | `text-xs sm:text-sm` |
+| `sm` | `text-sm` |
+| `default`, `lg` | `text-sm sm:text-base` (diwarisi dari `.cn-button`) |
+| `xl` | `text-base sm:text-lg` |
+
+Pengecualian: `style-mira.css` memakai `text-xs` flat di size `xs`, karena `h-5` tidak muat menampung line-box 20px.
+
+Konsekuensi yang perlu diingat: tombol `size="sm"` tetap 14px di desktop, sementara field di sebelahnya 16px. Itu memang bentuk yang diinginkan untuk toolbar, bukan bug.
+
+#### Field selalu `text-base`
+
+`.cn-input`, `.cn-textarea`, `.cn-native-select`, dan `.cn-input-otp-slot` memakai `text-base` di semua breakpoint. Jangan menambahkan `md:text-sm` kembali: 16px adalah ambang di mana iOS Safari berhenti melakukan zoom-on-focus.
+
+`.cn-select-trigger` mengikuti skala button (`text-sm sm:text-base`), dengan `data-[size=sm]:text-sm` supaya varian kompaknya sejajar dengan `<Button size="sm">`.
+
 ### Hierarchy
 
 - Page title: pakai utility `page-title` (sudah didefinisikan di `main.css:811`, output: `text-primary text-xl font-medium tracking-tighter text-balance`). Jangan bikin styling page title manual.
@@ -34,8 +55,9 @@ Aturan ini wajib diikuti. Kalau ada kasus yang belum tercakup di sini, cek sibli
 ### Font weight
 
 - Default body: regular (400).
-- Highlight ringan (label, link kecil, button label): `font-medium`.
-- Emphasis kuat (section title, card title, button utama): `font-semibold`.
+- Highlight ringan (label, link kecil): `font-medium`.
+- Emphasis kuat (section title, card title): `font-semibold`.
+- Button: semua variant `font-medium`, sudah dari style aktif. Jangan menaikkan ke `font-semibold` di call site.
 - Jangan pakai `font-bold` atau `font-extrabold`. Kalau merasa perlu kontras lebih, naikkan ukuran atau warna, bukan ketebalan.
 
 ### Warna teks
@@ -117,7 +139,7 @@ Shadow di app ini minimal. Depth dibangun dari border + spacing, bukan shadow te
 
 ### Padding
 
-- Button default sudah `px-4 py-2` dari component.
+- Padding button dimiliki style aktif lewat `.cn-button-size-*`, dan berbeda per style (`px-2.5` di mono, `px-3` di rhea, `px-6` di sera). Jangan hardcode `px-*` / `py-*` di call site button.
 - Card / panel: `p-4 sm:p-5` untuk compact, `p-6` standar.
 - Empty state: `p-6 md:p-12`.
 - Container halaman: pakai utility `container` (sudah `mx-auto px-4`). Untuk halaman lebar pakai `container-wider`.
@@ -220,7 +242,7 @@ Class `frame`, `frame-header`, `frame-title`, `frame-description`, `frame-panel`
 
 - `default` (primary, hitam): CTA utama. Save, Submit, Continue.
 - `secondary` (abu muda): aksi pendukung.
-- `outline` (border tipis, font-normal): aksi sekunder yang tetap visible. Cancel di dialog.
+- `outline` (border tipis): aksi sekunder yang tetap visible. Tombol toolbar, Cancel di dialog.
 - `outline-destructive`: cancel di konteks delete.
 - `ghost`: aksi yang tidak boleh menarik perhatian. Toggle sidebar, dropdown trigger di toolbar.
 - `destructive`: tombol delete / hapus permanen.
@@ -228,16 +250,45 @@ Class `frame`, `frame-header`, `frame-title`, `frame-description`, `frame-panel`
 
 ### Size
 
-- `default` (h-9): standar.
-- `sm` (h-8): di toolbar, di dalam row table, di header section.
-- `lg` (h-10): CTA besar di hero atau form besar.
-- `icon` (size-9) / `iconSm` (size-8): tombol icon-only. Wajib pakai `<Tippy>` atau `aria-label` untuk aksesibilitas.
+Tinggi setiap size dimiliki style aktif, jadi jangan menghafal angkanya. Di style default (`mono`) urutannya `xs` 24px, `sm` 28px, `default` 32px, `lg` 36px, `xl` 44px, tapi di `sera` semuanya lebih besar dan di `mira` lebih kecil. Pilih berdasarkan peran, bukan piksel.
+
+- `xs`: badge-like action di dalam baris padat.
+- `sm`: default untuk toolbar, header halaman, dan aksi di dalam row table. Ini yang paling sering dipakai.
+- `default`: form dan panel.
+- `lg` / `xl`: CTA besar di hero atau form panjang.
+- `icon` / `iconSm` / `iconXs` / `iconLg`: tombol icon-only. Wajib `<Tippy>` atau `aria-label`.
+
+Kalau tombol harus sejajar dengan field di baris yang sama (misal di samping search input), pakai `size="sm"` plus `class="h-(--cn-input-h)"`. Variabel itu dideklarasikan tiap style dan bernilai sama dengan tinggi `.cn-input`, jadi barisnya rata di semua style tanpa hardcode `h-8`.
 
 ### Icon + text
 
-- Gap antara icon dan label otomatis `gap-2` dari component.
+- Gap antara icon dan label dimiliki style (`gap-1` di size kecil, `gap-1.5` di size normal).
 - Icon size auto `size-4` kalau tidak ditentukan.
 - Pattern: `<Button><Icon name="hugeicons:add-01" /> Add</Button>`.
+
+### Tombol toolbar
+
+Jangan menulis ulang tombol toolbar sebagai `<button>` dengan class border sendiri. Yang benar:
+
+```vue
+<Button variant="outline" size="sm" to="/posts/trash">
+  <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+  <span>Trash</span>
+</Button>
+```
+
+`<Button>` menerima `to` dan otomatis merender `NuxtLink` (plus `target`/`rel` kalau URL-nya eksternal), jadi tidak perlu `<nuxt-link>` terpisah.
+
+Untuk tombol filter di `<TableData>`, pakai `<TableFilterButton>` — komponennya sudah membawa `PopoverTrigger`, badge counter, dan versi kotak untuk mobile:
+
+```vue
+<template #filters>
+  <Popover>
+    <TableFilterButton :count="totalActiveFilters" />
+    <PopoverContent align="end">…</PopoverContent>
+  </Popover>
+</template>
+```
 
 ---
 
@@ -429,7 +480,8 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - `font-bold`, `font-extrabold`. Maksimum `font-semibold`.
 - `uppercase`, `tracking-wider`, `tracking-widest`.
 - `bg-green-*`, `bg-red-*`, `bg-yellow-*`, `bg-blue-*` literal.
-- Native element `<button>`, `<input>`, `<select>`, `<textarea>`.
+- Native element `<button>`, `<input>`, `<select>`, `<textarea>`. Tombol toolbar dengan class border sendiri (`border-border hover:bg-muted ... rounded-md border px-2 py-1 text-sm`) termasuk di sini - pakai `<Button variant="outline" size="sm">`, dan `<TableFilterButton>` untuk tombol filter.
+- Memanggil `buttonVariants()` tanpa argumen `size`. Diam-diam jatuh ke `size-default`, sehingga tombol jadi lebih besar dari tetangganya. Selalu sebutkan size-nya.
 - `confirm()` browser. Selalu pakai `<DialogResponsive>`.
 - Pattern card / form dari nol kalau sudah ada `.frame` atau `<Card>`.
 - Em-dash (—) di teks UI. Pakai dash biasa (-) atau koma.
@@ -463,7 +515,7 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 
 - `frontend/app/assets/css/main.css` - definisi semua CSS variable, utility (`page-title`, `page-description`, `container`, `container-wider`, `squircle`, `min-h-screen-offset`, dll), dan class custom (`.frame`).
 - `frontend/app/components/ui/` - semua component shadcn-vue.
-- `frontend/app/components/ui/button/index.ts` - definisi variant button.
+- `frontend/app/components/ui/button/index.ts` - daftar nama variant/size button. Nilai visualnya (font-size, tinggi, padding, radius) ada di `assets/css/styles/style-*.css` pada rule `.cn-button*`, bukan di sini.
 - `frontend/app/components/FormUser.vue`, `FormProject.vue`, `FormEvent.vue` - referensi pattern form lengkap.
 - `frontend/app/components/header/HeaderBreadcrumb.vue` - referensi breadcrumb.
 

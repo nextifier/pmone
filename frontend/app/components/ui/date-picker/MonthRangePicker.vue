@@ -88,7 +88,7 @@ function onSelect(value: DateRange): void {
 }
 
 const cellClass = cn(
-  buttonVariants({ variant: "ghost" }),
+  buttonVariants({ variant: "ghost", size: "sm" }),
   "h-9 w-full rounded-md font-normal select-none",
   // Endpoints are solid primary; in-between (highlighted/selected middle) fills muted.
   "data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground data-[selection-start]:hover:bg-primary data-[selection-start]:hover:text-primary-foreground",
@@ -150,7 +150,7 @@ const cellClass = cn(
           <MonthRangePickerPrev
             :class="
               cn(
-                buttonVariants({ variant: 'ghost' }),
+                buttonVariants({ variant: 'ghost', size: 'sm' }),
                 'absolute left-1 size-7 p-0 select-none aria-disabled:opacity-50',
               )
             "
@@ -161,7 +161,7 @@ const cellClass = cn(
           <MonthRangePickerNext
             :class="
               cn(
-                buttonVariants({ variant: 'ghost' }),
+                buttonVariants({ variant: 'ghost', size: 'sm' }),
                 'absolute right-1 size-7 p-0 select-none aria-disabled:opacity-50',
               )
             "

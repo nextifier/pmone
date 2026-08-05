@@ -10,15 +10,12 @@
         <!-- Export Dropdown Menu -->
         <Popover>
           <PopoverTrigger asChild>
-            <button
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-              :disabled="exportPending || exportImagesPending"
-            >
+            <Button variant="outline" size="sm" :disabled="exportPending || exportImagesPending">
               <Spinner v-if="exportPending || exportImagesPending" class="size-4 shrink-0" />
               <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
               <span>Export</span>
               <Icon name="lucide:chevron-down" class="size-3.5 shrink-0 opacity-60" />
-            </button>
+            </Button>
           </PopoverTrigger>
           <PopoverContent align="end" class="w-56 p-1">
             <div class="flex flex-col">
@@ -58,15 +55,11 @@
         <!-- Regenerate OG images (master only) -->
         <DialogResponsive v-if="isMaster" v-model:open="regenerateOgDialogOpen">
           <template #trigger="{ open }">
-            <button
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-              :disabled="regenerateOgPending"
-              @click="open()"
-            >
+            <Button variant="outline" size="sm" :disabled="regenerateOgPending" @click="open()">
               <Spinner v-if="regenerateOgPending" class="size-4 shrink-0" />
               <Icon v-else name="hugeicons:image-02" class="size-4 shrink-0" />
               <span>Regenerate OG</span>
-            </button>
+            </Button>
           </template>
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -97,30 +90,20 @@
           </div>
         </DialogResponsive>
 
-        <nuxt-link
-          to="/posts/analytics"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/posts/analytics">
           <Icon name="hugeicons:analytics-01" class="size-4 shrink-0" />
           <span>Analytics</span>
-        </nuxt-link>
+        </Button>
 
-        <nuxt-link
-          to="/tags"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/tags">
           <Icon name="hugeicons:tag-01" class="size-4 shrink-0" />
           <span>Tags</span>
-        </nuxt-link>
+        </Button>
 
-        <nuxt-link
-          v-if="canDelete"
-          to="/posts/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" to="/posts/trash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </nuxt-link>
+        </Button>
       </div>
     </div>
 
@@ -159,20 +142,7 @@
 
       <template #filters="{ table }">
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </button>
-          </PopoverTrigger>
+          <TableFilterButton :count="totalActiveFilters" />
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="space-y-4">
               <FilterSection
@@ -241,8 +211,9 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import PostTableItem from "@/components/post/TableItem.vue";
-import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { TableData, TableBulkAction, TableFilterButton } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

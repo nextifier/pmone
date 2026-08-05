@@ -123,20 +123,7 @@
         >
           <template #filters="{ table }">
             <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-                >
-                  <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-                  <span class="hidden sm:flex">Filter</span>
-                  <span
-                    v-if="table.getColumn('status')?.getFilterValue()?.length"
-                    class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-                  >
-                    {{ table.getColumn("status")?.getFilterValue()?.length }}
-                  </span>
-                </button>
-              </PopoverTrigger>
+              <TableFilterButton />
               <PopoverContent class="w-auto min-w-48 p-3" align="start">
                 <div class="space-y-2">
                   <div class="text-muted-foreground text-xs font-medium">Filter by Status</div>
@@ -192,7 +179,7 @@
 </template>
 
 <script setup>
-import { TableData } from "@/components/ui/table-data";
+import { TableData, TableFilterButton } from "@/components/ui/table-data";
 import { Button } from "@/components/ui/button";
 import {
   Select,

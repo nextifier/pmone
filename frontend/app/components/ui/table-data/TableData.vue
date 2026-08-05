@@ -29,7 +29,7 @@
         <!-- Search and Filters -->
         <div
           v-if="searchable || columnToggle || $slots.filters"
-          class="flex h-8 w-full gap-x-1 sm:gap-x-2"
+          class="flex h-(--cn-input-h) w-full gap-x-1 sm:gap-x-2"
         >
           <!-- Search Input -->
           <div v-if="searchable" class="relative flex h-full grow items-center">
@@ -71,8 +71,8 @@
               <PopoverTrigger asChild>
                 <button
                   :class="[
-                    buttonVariants({ variant: 'outline' }),
-                    'aspect-square h-full shrink-0 gap-x-1.5 active:scale-98 sm:aspect-auto sm:px-2.5',
+                    buttonVariants({ variant: 'outline', size: 'sm' }),
+                    'h-(--cn-input-h) shrink-0 active:scale-98 max-sm:aspect-square max-sm:px-0',
                   ]"
                 >
                   <Icon name="hugeicons:layout-3-column" class="size-4 shrink-0" />
@@ -109,8 +109,8 @@
             <template #fallback>
               <button
                 :class="[
-                  buttonVariants({ variant: 'outline' }),
-                  'aspect-square h-full shrink-0 gap-x-1.5 active:scale-98 sm:aspect-auto sm:px-2.5',
+                  buttonVariants({ variant: 'outline', size: 'sm' }),
+                  'h-(--cn-input-h) shrink-0 active:scale-98 max-sm:aspect-square max-sm:px-0',
                 ]"
                 disabled
               >
@@ -130,7 +130,7 @@
             $slots['add-button'] ||
             $slots['toolbar-actions']
           "
-          class="flex h-8 w-full items-center justify-between gap-1 sm:gap-x-2"
+          class="flex h-(--cn-input-h) w-full items-center justify-between gap-1 sm:gap-x-2"
         >
           <div class="ml-auto flex h-full gap-x-1 sm:gap-x-2">
             <!-- Clear Filters Button -->

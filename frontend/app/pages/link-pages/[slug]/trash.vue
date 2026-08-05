@@ -16,13 +16,10 @@
       </div>
 
       <div class="ml-auto flex items-center gap-1 sm:gap-2">
-        <nuxt-link
-          :to="`/link-pages/${slug}`"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" :to="`/link-pages/${slug}`">
           <Icon name="hugeicons:link-01" class="size-4 shrink-0" />
           <span>All Items</span>
-        </nuxt-link>
+        </Button>
       </div>
     </div>
 
@@ -122,6 +119,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { toast } from "vue-sonner";
 
 definePageMeta({

@@ -7,13 +7,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          to="/forms"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/forms">
           <Icon name="hugeicons:resize-field-rectangle" class="size-4 shrink-0" />
           <span>All forms</span>
-        </nuxt-link>
+        </Button>
       </div>
     </div>
 
@@ -42,6 +39,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import TrashRowActions from "@/components/form-builder/TrashRowActions.vue";
 import { Badge } from "@/components/ui/badge";
 import { TableData } from "@/components/ui/table-data";

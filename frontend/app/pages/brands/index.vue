@@ -11,36 +11,25 @@
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <BrandImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
-            <button
-              @click="open()"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-            >
+            <Button variant="outline" size="sm" @click="open()">
               <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
               <span>{{ $t("common.import") }}</span>
-            </button>
+            </Button>
           </template>
         </BrandImportDialog>
 
-        <button
-          @click="handleExport"
-          :disabled="exportPending"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button variant="outline" size="sm" @click="handleExport" :disabled="exportPending">
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>{{
             totalActiveFilters > 0 ? $t("brands.exportSelected") : $t("brands.exportAll")
           }}</span>
-        </button>
+        </Button>
 
-        <NuxtLink
-          v-if="canDelete"
-          to="/brands/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" to="/brands/trash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </NuxtLink>
+        </Button>
       </div>
     </div>
 
@@ -72,20 +61,7 @@
     >
       <template #filters="{ table }">
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">{{ $t("common.filter") }}</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </button>
-          </PopoverTrigger>
+          <TableFilterButton :count="totalActiveFilters" :label="$t('common.filter')" />
           <PopoverContent class="w-auto min-w-48 p-3 pb-4.5" align="end">
             <div class="space-y-4">
               <FilterSection
@@ -189,9 +165,10 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import BrandImportDialog from "@/components/brand/BrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
-import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { TableData, TableBulkAction, TableFilterButton } from "@/components/ui/table-data";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";

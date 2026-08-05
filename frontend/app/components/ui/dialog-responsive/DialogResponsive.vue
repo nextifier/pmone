@@ -7,7 +7,7 @@
         <DialogPortal>
           <DialogOverlay
             v-if="!hideOverlay"
-            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! fixed inset-0 z-50 bg-black/80"
+            class="cn-dialog-overlay data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! fixed inset-0 z-50"
           />
           <DialogContent
             class="bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-96 data-[state=open]:zoom-in-96 ease-(--modal-ease) data-open:duration-(--modal-open-dur) data-closed:duration-(--modal-close-dur) motion-reduce:animate-none! border-border fixed top-1/2 left-1/2 z-50 flex w-full -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl shadow-lg outline-hidden dark:border"
@@ -68,7 +68,7 @@
         <DrawerPortal>
           <DrawerOverlay
             v-if="!hideOverlay"
-            class="fixed inset-0 z-50 bg-black/80"
+            class="cn-drawer-overlay fixed inset-0 z-50"
           />
           <DrawerContent
             :class="

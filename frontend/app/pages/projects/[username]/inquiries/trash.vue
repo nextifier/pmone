@@ -4,13 +4,10 @@
       <h2 class="text-lg font-semibold tracking-tight">Inquiries Trash</h2>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <nuxt-link
-          :to="`/projects/${props.project?.username}/inquiries`"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" :to="`/projects/${props.project?.username}/inquiries`">
           <Icon name="hugeicons:mail-open-love" class="size-4 shrink-0" />
           <span>All Inquiries</span>
-        </nuxt-link>
+        </Button>
       </div>
     </div>
 
@@ -37,20 +34,7 @@
     >
       <template #filters="{ table }">
         <Popover>
-          <PopoverTrigger asChild>
-            <button
-              class="hover:bg-muted relative flex aspect-square h-full shrink-0 items-center justify-center gap-x-1.5 rounded-md border text-sm tracking-tight active:scale-98 sm:aspect-auto sm:px-2.5"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-[11px] font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </button>
-          </PopoverTrigger>
+          <TableFilterButton :count="totalActiveFilters" />
           <PopoverContent class="w-auto min-w-48 p-3" align="start">
             <div class="space-y-4">
               <InboxFilterSection
@@ -159,10 +143,11 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import InboxDetailDialog from "@/components/inbox/DetailDialog.vue";
 import InboxFilterSection from "@/components/inbox/FilterSection.vue";
 import InboxTableItem from "@/components/inbox/InboxTableItem.vue";
-import { TableData, TableBulkAction } from "@/components/ui/table-data";
+import { TableData, TableBulkAction, TableFilterButton } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { PopoverClose } from "reka-ui";

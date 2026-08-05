@@ -82,23 +82,7 @@
       </template>
       <template #filters>
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="default"
-              class="relative shrink-0 rounded-lg active:scale-98 max-sm:w-9 max-sm:px-0"
-              aria-label="Filter"
-            >
-              <Icon name="hugeicons:filter-horizontal" class="size-4 shrink-0" />
-              <span class="hidden sm:flex">Filter</span>
-              <span
-                v-if="totalActiveFilters > 0"
-                class="bg-primary text-primary-foreground squircle absolute top-0 right-0 inline-flex size-4 translate-x-1/2 -translate-y-1/2 items-center justify-center text-xs font-medium tracking-tight"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </Button>
-          </PopoverTrigger>
+          <TableFilterButton :count="totalActiveFilters" />
           <PopoverContent class="w-auto min-w-60 p-3" align="end">
             <div class="space-y-4">
               <!-- User filter -->
@@ -260,7 +244,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { TableFilterButton } from "@/components/ui/table-data";
 import {
   Select,
   SelectContent,

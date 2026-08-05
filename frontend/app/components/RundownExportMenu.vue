@@ -1,16 +1,12 @@
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <button
-        type="button"
-        class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2.5 py-1.5 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        :disabled="exporting"
-      >
+      <Button variant="outline" size="sm" type="button" :disabled="exporting">
         <Spinner v-if="exporting" class="size-4 shrink-0" />
         <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
         <span class="hidden sm:inline">Export</span>
         <Icon name="lucide:chevron-down" class="size-3 shrink-0 opacity-60" />
-      </button>
+      </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-44">
       <DropdownMenuItem :disabled="exporting" class="gap-x-2" @click="handleExport('xlsx')">
@@ -32,6 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

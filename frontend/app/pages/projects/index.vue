@@ -4,34 +4,23 @@
       <template #actions>
         <ImportDialog v-if="canCreate" @imported="refresh">
           <template #trigger="{ open }">
-            <button
-              @click="open()"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-            >
+            <Button variant="outline" size="sm" @click="open()">
               <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
               <span>Import</span>
-            </button>
+            </Button>
           </template>
         </ImportDialog>
 
-        <button
-          @click="handleExport"
-          :disabled="exportPending"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button variant="outline" size="sm" @click="handleExport" :disabled="exportPending">
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export {{ hasActiveFilters ? "selected" : "all" }}</span>
-        </button>
+        </Button>
 
-        <nuxt-link
-          v-if="canDelete"
-          to="/projects/trash"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="canDelete" variant="outline" size="sm" to="/projects/trash">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </nuxt-link>
+        </Button>
       </template>
     </ProjectsHeader>
 
@@ -142,6 +131,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import ImportDialog from "@/components/project/ImportDialog.vue";
 import ProjectsFilters from "@/components/project/ProjectsFilters.vue";
 import ProjectsHeader from "@/components/project/ProjectsHeader.vue";

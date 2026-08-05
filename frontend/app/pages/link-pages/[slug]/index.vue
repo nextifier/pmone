@@ -20,31 +20,18 @@
       </div>
 
       <div class="ml-auto flex items-center gap-1 sm:gap-2">
-        <a
-          v-if="linkPage"
-          :href="publicUrl"
-          target="_blank"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button v-if="linkPage" variant="outline" size="sm" :to="publicUrl" target="_blank">
           <Icon name="lucide:external-link" class="size-4 shrink-0" />
           <span>Preview</span>
-        </a>
-        <nuxt-link
-          v-if="linkPage"
-          :to="`/link-pages/${linkPage.slug}/analytics`"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        </Button>
+        <Button v-if="linkPage" variant="outline" size="sm" :to="`/link-pages/${linkPage.slug}/analytics`">
           <Icon name="lucide:chart-no-axes-combined" class="size-4 shrink-0" />
           <span>Analytics</span>
-        </nuxt-link>
-        <nuxt-link
-          v-if="linkPage"
-          :to="`/link-pages/${linkPage.slug}/trash`"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        </Button>
+        <Button v-if="linkPage" variant="outline" size="sm" :to="`/link-pages/${linkPage.slug}/trash`">
           <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
           <span>Trash</span>
-        </nuxt-link>
+        </Button>
         <Button size="sm" @click="openItemForm()">
           <Icon name="hugeicons:add-01" class="size-4" />
           New Item
@@ -182,6 +169,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import LinkPageItemCard from "@/components/link-page/LinkPageItemCard.vue";
 import FormLinkPageItem from "@/components/link-page/FormLinkPageItem.vue";
 import FormLinkPageBanner from "@/components/link-page/FormLinkPageBanner.vue";

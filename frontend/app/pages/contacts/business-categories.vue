@@ -15,24 +15,17 @@
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
         <ContactBusinessCategoriesImportDialog @imported="fetchCategories">
           <template #trigger="{ open }">
-            <button
-              @click="open()"
-              class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-            >
+            <Button variant="outline" size="sm" @click="open()">
               <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
               <span>Import</span>
-            </button>
+            </Button>
           </template>
         </ContactBusinessCategoriesImportDialog>
-        <button
-          @click="handleExport"
-          :disabled="exportPending || !categories.length"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button variant="outline" size="sm" @click="handleExport" :disabled="exportPending || !categories.length">
           <Spinner v-if="exportPending" class="size-4 shrink-0" />
           <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export</span>
-        </button>
+        </Button>
       </div>
     </div>
 
@@ -187,6 +180,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { resolveComponent } from "vue";

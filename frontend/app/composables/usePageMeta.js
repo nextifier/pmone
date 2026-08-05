@@ -20,13 +20,31 @@ export const usePageMeta = (pageKey, overrides = {}) => {
     twitterDescription: description,
   });
 
-  // A static OG image can still be set per page via `meta.ogImage`. We do NOT
-  // call `defineOgImage` (nuxt-og-image) because build-time OG generation
-  // requires prerendering, which is disabled — the whole app is SSR so the
-  // auth-aware header renders correctly per request.
+  // Same shape as levenium and pmone-events: a static per-page image wins,
+  // otherwise the generated Takumi card.
+  //
+  // `ogImage.enabled` is currently false in nuxt.config, so `defineOgImage`
+  // below resolves to the module's no-op mock (it registers mocks for exactly
+  // this case) — the call is free and keeps this file aligned with the other
+  // two repos. Flipping `enabled: true` is all it takes to turn cards on; the
+  // OgImage/Page.takumi.vue component is already in place.
+  //
+  // The old note here claimed OG generation needs prerendering and would break
+  // the auth-aware SSR header. That only applies to `zeroRuntime: true`, which
+  // is NOT the default: v6 renders on demand at /_og/d/ from the running
+  // server. levenium and pmone-events are both fully SSR with no prerendering
+  // and generate cards fine.
   if (meta?.ogImage) {
     useSeoMeta({
       ogImage: meta.ogImage,
+    });
+  } else {
+    if (import.meta.dev) {
+      useState(`og-image:ssr-exists:${route.path}`, () => false).value = true;
+    }
+    defineOgImage("Page", {
+      pageTitle: title,
+      pageDescription: description,
     });
   }
 

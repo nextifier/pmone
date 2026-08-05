@@ -3,13 +3,10 @@
     <!-- Export Dialog -->
     <DialogResponsive v-model:open="exportOpen" dialog-max-width="32rem">
       <template #trigger="{ open }">
-        <button
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-          @click="handleExportOpen(open)"
-        >
+        <Button variant="outline" size="sm" @click="handleExportOpen(open)">
           <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
           <span>Export</span>
-        </button>
+        </Button>
       </template>
 
       <template #default>
@@ -44,13 +41,10 @@
     <!-- Import Dialog -->
     <DialogResponsive v-model:open="importOpen" dialog-max-width="32rem">
       <template #trigger="{ open }">
-        <button
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-          @click="open()"
-        >
+        <Button variant="outline" size="sm" @click="open()">
           <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
           <span>Import</span>
-        </button>
+        </Button>
       </template>
 
       <template #default>

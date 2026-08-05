@@ -28,7 +28,7 @@ const isRange = computed(() => mode.value === "range")
     :is="isRange ? RangeCalendarNext : CalendarNext"
     data-slot="calendar-next-button"
     :class="cn(
-      buttonVariants({ variant: props.variant ?? 'ghost' }),
+      buttonVariants({ variant: props.variant ?? 'ghost', size: 'iconSm' }),
       'size-(--cell-size) p-0 select-none aria-disabled:opacity-50',
       props.class,
     )"

@@ -33,7 +33,7 @@ const isRange = computed(() => mode.value === "range");
     type="button"
     :class="
       cn(
-        buttonVariants({ variant: 'ghost' }),
+        buttonVariants({ variant: 'ghost', size: 'sm' }),
         // background-color joins the transition so a day's fill and its label
         // move together — `cn-button` animates colour only, which made a freshly
         // selected day flash its old text colour over the new primary fill.

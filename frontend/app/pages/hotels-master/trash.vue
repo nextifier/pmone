@@ -7,13 +7,10 @@
       </div>
 
       <div v-if="selectedIds.length === 0" class="flex shrink-0 gap-1 sm:gap-2">
-        <NuxtLink
-          to="/hotels-master"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/hotels-master">
           <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
           <span>Back to all hotels</span>
-        </NuxtLink>
+        </Button>
       </div>
 
       <div v-else class="flex shrink-0 flex-wrap items-center gap-1 sm:gap-2">

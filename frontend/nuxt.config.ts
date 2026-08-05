@@ -457,13 +457,19 @@ export default defineNuxtConfig({
   },
 
   ogImage: {
-    // Disabled. Build-time OG generation (zeroRuntime) REQUIRES prerendering the
-    // public pages, which turns them into static HTML and breaks per-request SSR
-    // auth — the header reads the session cookie server-side to show Dashboard vs
-    // Log in, so a static prerendered page always renders "Log in". The whole app
-    // must stay SSR, so build-time OG is off. (If OG images are wanted later, use
-    // a static `ogImage` meta per public page, or runtime satori — neither needs
-    // prerendering.)
+    // Off for now — not because it cannot work here. Only `zeroRuntime: true`
+    // needs prerendering (which would turn public pages static and break the
+    // auth-aware header that reads the session cookie per request). That is NOT
+    // the default: v6 renders on demand at /_og/d/ from the running server, so
+    // a fully-SSR app generates cards fine — levenium and pmone-events both do.
+    //
+    // To turn it on: flip this to `true` and add a signing secret, same as
+    // pmone-events (`security.secret`, otherwise the module generates a random
+    // one per build and every card scraped from an earlier deploy starts
+    // 403ing). `@takumi-rs/wasm` must be a dependency here, and the renderer is
+    // picked by the `.takumi` filename suffix of app/components/OgImage/. The
+    // defineOgImage call in usePageMeta is already wired and currently resolves
+    // to the module's no-op mock.
     enabled: false,
   },
 

@@ -18,14 +18,6 @@ const props = withDefaults(defineProps<SidebarProps>(), {
 });
 
 const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
-
-const sidebarContentBody = ref(null);
-const { isSwiping, direction } = useSwipe(sidebarContentBody);
-watch(isSwiping, () => {
-  if (direction.value === props.side) {
-    setOpenMobile(false);
-  }
-});
 </script>
 
 <template>
@@ -53,7 +45,7 @@ watch(isSwiping, () => {
         <SheetTitle>Sidebar</SheetTitle>
         <SheetDescription>Displays the mobile sidebar.</SheetDescription>
       </SheetHeader>
-      <div class="flex h-full w-full flex-col" ref="sidebarContentBody">
+      <div class="flex h-full w-full flex-col">
         <slot />
       </div>
     </SheetContent>

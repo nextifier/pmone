@@ -1,13 +1,10 @@
 <template>
   <DialogResponsive dialog-max-width="60%" :overflow-content="true">
     <template #trigger="{ open }">
-      <button
-        class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        @click="open()"
-      >
+      <Button variant="outline" size="sm" @click="open()">
         <Icon name="hugeicons:raw-01" class="size-4 shrink-0" />
         <span>View Raw</span>
-      </button>
+      </Button>
     </template>
 
     <template #default>

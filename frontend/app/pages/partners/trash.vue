@@ -7,13 +7,10 @@
       </div>
 
       <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <NuxtLink
-          to="/partners"
-          class="border-border hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
-        >
+        <Button variant="outline" size="sm" to="/partners">
           <Icon name="hugeicons:dim-sum-02" class="size-4 shrink-0" />
           <span>All Partners</span>
-        </NuxtLink>
+        </Button>
       </div>
     </div>
 
@@ -122,6 +119,7 @@
 </template>
 
 <script setup>
+import { Button } from "@/components/ui/button";
 import PartnerTrashRowActions from "@/components/partner/TrashRowActions.vue";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
