@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="openModel" dialog-max-width="32rem" :overflow-content="true">
+  <ResponsiveDialog v-model:open="openModel" dialog-max-width="32rem" :overflow-content="true">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
@@ -55,12 +55,12 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>
 import { Button } from "@/components/ui/button";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";

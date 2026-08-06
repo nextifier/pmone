@@ -74,7 +74,7 @@
       </template>
 
       <template #actions="{ selectedRows }">
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="restoreDialogOpen"
           class="h-full"
@@ -110,9 +110,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -154,7 +154,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
   </div>
@@ -477,7 +477,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: restoreOpen.value,
             "onUpdate:open": (value) => (restoreOpen.value = value),
@@ -531,7 +531,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: deleteOpen.value,
             "onUpdate:open": (value) => (deleteOpen.value = value),

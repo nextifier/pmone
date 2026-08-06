@@ -90,7 +90,7 @@
   </div>
 
   <!-- Add Conjunction Dialog -->
-  <DialogResponsive v-model:open="addDialogOpen">
+  <ResponsiveDialog v-model:open="addDialogOpen">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <h3 class="text-lg font-semibold tracking-tighter">Add conjunction event</h3>
@@ -137,7 +137,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

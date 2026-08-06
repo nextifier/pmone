@@ -144,7 +144,7 @@
     </Popover>
 
     <!-- Verify Dialog -->
-    <DialogResponsive v-model:open="verifyDialogOpen">
+    <ResponsiveDialog v-model:open="verifyDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Verify user?</div>
@@ -168,10 +168,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Unverify Dialog -->
-    <DialogResponsive v-model:open="unverifyDialogOpen">
+    <ResponsiveDialog v-model:open="unverifyDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Unverify user?</div>
@@ -195,10 +195,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete Dialog -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
@@ -224,7 +224,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

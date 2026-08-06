@@ -157,7 +157,7 @@
           </DropdownMenu>
 
           <!-- Remove from event -->
-          <DialogResponsive v-model:open="removeDialogOpen">
+          <ResponsiveDialog v-model:open="removeDialogOpen">
             <template #trigger="{ open }">
               <TableBulkAction icon="hugeicons:unlink-02" label="Remove from event" @click="open()" />
             </template>
@@ -188,10 +188,10 @@
                 </div>
               </div>
             </template>
-          </DialogResponsive>
+          </ResponsiveDialog>
 
           <!-- Delete permanently -->
-          <DialogResponsive v-if="canDeletePermanently" v-model:open="permanentDeleteDialogOpen">
+          <ResponsiveDialog v-if="canDeletePermanently" v-model:open="permanentDeleteDialogOpen">
             <template #trigger="{ open }">
               <TableBulkAction
                 icon="hugeicons:delete-01"
@@ -249,7 +249,7 @@
                 </div>
               </div>
             </template>
-          </DialogResponsive>
+          </ResponsiveDialog>
         </template>
       </template>
     </TableData>
@@ -907,7 +907,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

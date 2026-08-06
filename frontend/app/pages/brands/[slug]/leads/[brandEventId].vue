@@ -176,7 +176,7 @@
     </div>
 
     <!-- Scanner dialog -->
-    <DialogResponsive v-model:open="scannerOpen" dialog-max-width="30rem">
+    <ResponsiveDialog v-model:open="scannerOpen" dialog-max-width="30rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">Scan badge</h3>
@@ -245,14 +245,14 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
 <script setup>
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import {
   Empty,
   EmptyContent,

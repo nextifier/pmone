@@ -205,7 +205,7 @@
     </div>
 
     <!-- Create / Edit dialog -->
-    <DialogResponsive v-model:open="formDialogOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="formDialogOpen" dialog-max-width="32rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="page-title">
@@ -428,10 +428,10 @@
           </div>
         </form>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Toggle active confirmation -->
-    <DialogResponsive v-model:open="toggleDialogOpen">
+    <ResponsiveDialog v-model:open="toggleDialogOpen">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="page-title">
@@ -477,10 +477,10 @@
           </Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete confirmation -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="page-title">Delete this gateway?</h3>
@@ -511,7 +511,7 @@
           </Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Transactions -->
     <ProjectPaymentGatewayTransactionsDialog

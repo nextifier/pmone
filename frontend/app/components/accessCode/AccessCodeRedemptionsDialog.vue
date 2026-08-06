@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="openModel" dialog-max-width="520px">
+  <ResponsiveDialog v-model:open="openModel" dialog-max-width="520px">
     <template #default>
       <div class="space-y-4 px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
@@ -31,12 +31,12 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>
 import { Badge } from "@/components/ui/badge";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Spinner } from "@/components/ui/spinner";
 import { computed, ref, watch } from "vue";
 

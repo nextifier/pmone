@@ -86,7 +86,7 @@
     </div>
 
     <!-- Overwrite confirmation for "Load default template" -->
-    <DialogResponsive v-model:open="templateDialogOpen" class="h-full">
+    <ResponsiveDialog v-model:open="templateDialogOpen" class="h-full">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">
@@ -102,7 +102,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -111,7 +111,7 @@ import SettingsLocaleTabs from "@/components/project/SettingsLocaleTabs.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
-import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";

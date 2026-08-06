@@ -52,7 +52,7 @@
     </div>
 
     <!-- Add/Edit Field Dialog -->
-    <DialogResponsive v-model:open="fieldDialogOpen" dialog-max-width="760px" :overflow-content="true">
+    <ResponsiveDialog v-model:open="fieldDialogOpen" dialog-max-width="760px" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">
@@ -70,7 +70,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete Confirmation Dialog -->
     <ConfirmDialog

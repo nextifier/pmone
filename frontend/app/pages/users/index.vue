@@ -125,7 +125,7 @@
       </template>
 
       <template #actions="{ selectedRows }">
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="verifyDialogOpen"
           class="h-full"
@@ -159,9 +159,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="unverifyDialogOpen"
           class="h-full"
@@ -195,9 +195,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="canManageSessions && selectedRows.length > 0"
           v-model:open="forceLogoutDialogOpen"
           class="h-full"
@@ -231,9 +231,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="canSendEmails && selectedRows.length > 0"
           v-model:open="sendResetDialogOpen"
           class="h-full"
@@ -267,9 +267,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -303,7 +303,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
   </div>

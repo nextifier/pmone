@@ -124,7 +124,7 @@
         </DropdownMenu>
 
         <!-- Bulk Delete -->
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0 && event?.can_edit"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -159,7 +159,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
 
       <!-- Inline expanded order items -->
@@ -234,7 +234,7 @@
     </TableData>
 
     <!-- Cancellation Reason Dialog -->
-    <DialogResponsive v-model:open="cancelDialogOpen">
+    <ResponsiveDialog v-model:open="cancelDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Cancel Order</div>
@@ -266,7 +266,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

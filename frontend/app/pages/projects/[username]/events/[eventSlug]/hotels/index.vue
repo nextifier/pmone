@@ -114,7 +114,7 @@
       </template>
     </TableData>
 
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -135,7 +135,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <HotelPicker
       v-if="event?.id"
@@ -151,7 +151,7 @@ import HotelPicker from "@/components/hotel/HotelPicker.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";

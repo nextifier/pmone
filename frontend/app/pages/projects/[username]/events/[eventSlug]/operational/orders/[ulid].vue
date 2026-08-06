@@ -278,7 +278,7 @@
     <!-- ===== Dialogs ===== -->
 
     <!-- Adjustments Dialog -->
-    <DialogResponsive v-model:open="adjustmentsDialogOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="adjustmentsDialogOpen" dialog-max-width="32rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Adjustments</h3>
@@ -339,10 +339,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Documents Dialog -->
-    <DialogResponsive v-model:open="documentsDialogOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="documentsDialogOpen" dialog-max-width="32rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Documents</h3>
@@ -392,10 +392,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Details Dialog -->
-    <DialogResponsive v-model:open="detailsDialogOpen" dialog-max-width="28rem">
+    <ResponsiveDialog v-model:open="detailsDialogOpen" dialog-max-width="28rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Order Details</h3>
@@ -457,10 +457,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Cancellation Reason Dialog -->
-    <DialogResponsive v-model:open="cancelDialogOpen">
+    <ResponsiveDialog v-model:open="cancelDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Cancel Order</div>
@@ -488,7 +488,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Manual Adjustment Dialog (order-level) -->
     <ManualAdjustmentDialog
@@ -511,7 +511,7 @@
     />
 
     <!-- Void Adjustment Confirm -->
-    <DialogResponsive v-model:open="voidDialogOpen" dialog-max-width="26rem">
+    <ResponsiveDialog v-model:open="voidDialogOpen" dialog-max-width="26rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
@@ -527,7 +527,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

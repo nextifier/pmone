@@ -303,8 +303,8 @@ Untuk tombol filter di `<TableData>`, pakai `<TableFilterButton>` — komponenny
 
 ## 10. Dialog / Modal
 
-- Wajib pakai `<DialogResponsive>` (`components/ui/dialog-responsive/`). Component ini render Dialog di desktop dan Drawer di mobile.
-- Jangan pakai `confirm()` native browser. Untuk konfirmasi delete, pakai `<DialogResponsive>` dengan footer dua tombol:
+- Wajib pakai `<ResponsiveDialog>` (`components/ui/responsive-dialog/`). Component ini render Dialog di desktop dan Drawer di mobile.
+- Jangan pakai `confirm()` native browser. Untuk konfirmasi delete, pakai `<ResponsiveDialog>` dengan footer dua tombol:
   - Cancel: `variant="outline"`.
   - Delete: `variant="destructive"`.
 - Title dialog: `text-lg font-semibold tracking-tighter`.
@@ -318,7 +318,7 @@ Untuk tombol filter di `<TableData>`, pakai `<TableFilterButton>` — komponenny
 - Pakai `<TableData>` (`components/ui/table-data/`) untuk list page yang butuh search + filter + sort + pagination. Jangan rakit table dari nol kalau use case-nya cocok.
 - Untuk table statis sederhana: `<Table>` + `<TableHeader>` + `<TableRow>` + `<TableCell>`.
 - Row action: pakai `<DropdownMenu>` dengan trigger `<Button variant="ghost" size="iconSm">`.
-- Delete action di dropdown wajib buka `<DialogResponsive>` konfirmasi, tidak langsung delete.
+- Delete action di dropdown wajib buka `<ResponsiveDialog>` konfirmasi, tidak langsung delete.
 
 ---
 
@@ -482,7 +482,7 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - `bg-green-*`, `bg-red-*`, `bg-yellow-*`, `bg-blue-*` literal.
 - Native element `<button>`, `<input>`, `<select>`, `<textarea>`. Tombol toolbar dengan class border sendiri (`border-border hover:bg-muted ... rounded-md border px-2 py-1 text-sm`) termasuk di sini - pakai `<Button variant="outline" size="sm">`, dan `<TableFilterButton>` untuk tombol filter.
 - Memanggil `buttonVariants()` tanpa argumen `size`. Diam-diam jatuh ke `size-default`, sehingga tombol jadi lebih besar dari tetangganya. Selalu sebutkan size-nya.
-- `confirm()` browser. Selalu pakai `<DialogResponsive>`.
+- `confirm()` browser. Selalu pakai `<ResponsiveDialog>`.
 - Pattern card / form dari nol kalau sudah ada `.frame` atau `<Card>`.
 - Em-dash (—) di teks UI. Pakai dash biasa (-) atau koma.
 - Gap form yang lebih besar dari `gap-x-2` saat grid dua kolom.
@@ -503,7 +503,7 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - Grid form gap-nya `gap-x-2`.
 - Form pakai struktur `Label + Input + helper + InputErrorMessage` dalam `space-y-2` wrapper.
 - Section form dibungkus `.frame`.
-- Tombol delete buka `<DialogResponsive>` konfirmasi.
+- Tombol delete buka `<ResponsiveDialog>` konfirmasi.
 - Empty state pakai component `<Empty>`.
 - Skeleton loading pakai component `<Skeleton>`.
 - Tidak ada `font-bold`, `uppercase`, `tracking-wider`.

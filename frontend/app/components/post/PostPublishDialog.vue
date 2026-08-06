@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="400px">
+  <ResponsiveDialog v-model:open="isOpen" dialog-max-width="400px">
     <div class="p-4 md:p-6">
       <div class="space-y-1">
         <h3 class="text-foreground text-lg font-semibold">Publish Post</h3>
@@ -97,7 +97,7 @@
         <Button type="button" variant="ghost" @click="isOpen = false">Cancel</Button>
       </div>
     </div>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup lang="ts">

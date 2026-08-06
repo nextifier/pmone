@@ -164,7 +164,7 @@
     </template>
 
     <!-- Unsaved-changes guard when switching pages -->
-    <DialogResponsive v-model:open="switchDialogOpen" class="h-full">
+    <ResponsiveDialog v-model:open="switchDialogOpen" class="h-full">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">
@@ -179,7 +179,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -187,7 +187,7 @@
 import OgPageCard from "@/components/og/OgPageCard.vue";
 import SettingsLocaleTabs from "@/components/project/SettingsLocaleTabs.vue";
 import { Button } from "@/components/ui/button";
-import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

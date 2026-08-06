@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="440px">
+  <ResponsiveDialog v-model:open="isOpen" dialog-max-width="440px">
     <template #default>
       <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
         <div class="space-y-1">
@@ -65,7 +65,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

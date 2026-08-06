@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="dialogOpen" dialog-max-width="32rem">
+  <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="32rem">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5 space-y-4">
         <div>
@@ -127,11 +127,11 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";

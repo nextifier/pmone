@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive
+  <ResponsiveDialog
     :open="open"
     dialogMaxWidth="380px"
     @update:open="(v) => emit('update:open', v)"
@@ -90,7 +90,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

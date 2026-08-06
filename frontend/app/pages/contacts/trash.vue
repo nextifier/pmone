@@ -76,7 +76,7 @@
       </template>
 
       <template #actions="{ selectedRows }">
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="restoreDialogOpen"
           class="h-full"
@@ -110,9 +110,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -164,12 +164,12 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
 
     <!-- Delete All Dialog -->
-    <DialogResponsive v-model:open="deleteAllDialogOpen">
+    <ResponsiveDialog v-model:open="deleteAllDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -209,7 +209,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

@@ -1,50 +1,46 @@
 <script lang="ts" setup>
-import type { DrawerRootEmits, DrawerRootProps } from "vaul-vue";
-import { DrawerRoot } from "vaul-vue";
-import { useForwardPropsEmits } from "reka-ui";
-import { useVModel } from "@vueuse/core";
-import { onBeforeUnmount, ref, watch } from "vue";
+import type { DrawerRootEmits, DrawerRootProps } from "reka-ui";
+import { DrawerRoot, useForwardPropsEmits } from "reka-ui";
+import { reactiveOmit, useVModel } from "@vueuse/core";
+import { computed } from "vue";
+import { useDrawerHistory } from "./useDrawerHistory";
 
-const props = withDefaults(defineProps<DrawerRootProps>(), {
-  shouldScaleBackground: true,
-});
+export type DrawerSide = "top" | "right" | "bottom" | "left";
+
+const SIDE_TO_SWIPE_DIRECTION = {
+  top: "up",
+  bottom: "down",
+  left: "left",
+  right: "right",
+} as const;
+
+const props = withDefaults(
+  defineProps<Omit<DrawerRootProps, "swipeDirection"> & { side?: DrawerSide }>(),
+  { side: "bottom" }
+);
 
 const emits = defineEmits<DrawerRootEmits>();
 
-const forwarded = useForwardPropsEmits(props, emits);
+const delegatedProps = reactiveOmit(props, "side", "open");
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const swipeDirection = computed(() => SIDE_TO_SWIPE_DIRECTION[props.side]);
 
 const isOpen = useVModel(props, "open", emits, {
   passive: true,
   defaultValue: props.defaultOpen,
 });
 
-// Back button/gesture closes drawer instead of navigating away
-const pushedHistoryState = ref(false);
-
-const onPopState = () => {
-  pushedHistoryState.value = false;
-  isOpen.value = false;
-};
-
-watch(isOpen, (newVal, oldVal) => {
-  if (newVal && !oldVal) {
-    window.history.pushState({ drawerOpen: true }, "");
-    pushedHistoryState.value = true;
-    window.addEventListener("popstate", onPopState, { once: true });
-  } else if (!newVal && oldVal && pushedHistoryState.value) {
-    pushedHistoryState.value = false;
-    window.removeEventListener("popstate", onPopState);
-    window.history.back();
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("popstate", onPopState);
-});
+useDrawerHistory(isOpen);
 </script>
 
 <template>
-  <DrawerRoot data-slot="drawer" v-bind="forwarded" v-model:open="isOpen">
+  <!-- No `data-slot` here: DrawerRoot renders a fragment, so Vue cannot inherit it. -->
+  <DrawerRoot
+    v-bind="forwarded"
+    v-model:open="isOpen"
+    :swipe-direction="swipeDirection"
+  >
     <slot />
   </DrawerRoot>
 </template>

@@ -1,6 +1,6 @@
 <template>
   <!-- Create Task Dialog -->
-  <DialogResponsive
+  <ResponsiveDialog
     v-if="withCreate"
     v-model:open="createDialogOpen"
     dialog-max-width="600px"
@@ -27,10 +27,10 @@
         />
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 
   <!-- Edit Task Dialog -->
-  <DialogResponsive
+  <ResponsiveDialog
     v-model:open="editDialogOpen"
     dialog-max-width="600px"
     :overflow-content="true"
@@ -58,10 +58,10 @@
         />
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 
   <!-- Unsaved Changes Dialog -->
-  <DialogResponsive v-model:open="unsavedDialogOpen" :hide-overlay="true">
+  <ResponsiveDialog v-model:open="unsavedDialogOpen" :hide-overlay="true">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-6">
         <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
@@ -74,10 +74,10 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 
   <!-- Detail Task Dialog -->
-  <DialogResponsive
+  <ResponsiveDialog
     v-model:open="detailDialogOpen"
     dialog-max-width="600px"
     :overflow-content="true"
@@ -91,10 +91,10 @@
         @edit="handleEditFromDetail"
       />
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 
   <!-- Delete Dialog -->
-  <DialogResponsive v-model:open="deleteDialogOpen">
+  <ResponsiveDialog v-model:open="deleteDialogOpen">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-6">
         <template v-if="deleteMode === 'clear-completed'">
@@ -127,7 +127,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

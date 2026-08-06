@@ -27,7 +27,7 @@
   </TabsRoot>
 
   <!-- Restore Draft Dialog -->
-  <DialogResponsive v-model:open="showRestoreDialog">
+  <ResponsiveDialog v-model:open="showRestoreDialog">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-6">
         <div class="text-foreground text-lg font-semibold tracking-tight">Restore Draft?</div>
@@ -41,10 +41,10 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 
   <!-- Delete Confirmation Dialog -->
-  <DialogResponsive v-model:open="showDeleteDialog" dialog-max-width="450px">
+  <ResponsiveDialog v-model:open="showDeleteDialog" dialog-max-width="450px">
     <div class="px-4 pb-8 md:pt-8">
       <div class="flex items-start gap-x-3">
         <div class="bg-destructive/15 flex size-10 shrink-0 items-center justify-center rounded-xl">
@@ -78,7 +78,7 @@
         </button>
       </div>
     </div>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup lang="ts">

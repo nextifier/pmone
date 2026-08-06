@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="28rem" :overflow-content="true">
+  <ResponsiveDialog v-model:open="isOpen" dialog-max-width="28rem" :overflow-content="true">
     <div class="px-4 pb-10 md:px-6 md:py-5">
       <div class="space-y-1">
         <h3 class="page-title">Attach hotel to event</h3>
@@ -103,11 +103,11 @@
         </div>
       </form>
     </div>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";

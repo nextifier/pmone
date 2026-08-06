@@ -76,7 +76,7 @@
 
       <template #actions="{ selectedRows }">
         <!-- Bulk Delete -->
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0 && event?.can_edit"
           v-model:open="bulkDeleteDialogOpen"
           class="h-full"
@@ -111,12 +111,12 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
 
     <!-- Add/Edit Dialog -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="showFormDialog"
       dialog-max-width="500px"
       :overflow-content="true"
@@ -146,10 +146,10 @@
           />
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete Confirmation Dialog -->
-    <DialogResponsive v-model:open="showDeleteDialog" :overflow-content="true">
+    <ResponsiveDialog v-model:open="showDeleteDialog" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete Product</div>
@@ -179,7 +179,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

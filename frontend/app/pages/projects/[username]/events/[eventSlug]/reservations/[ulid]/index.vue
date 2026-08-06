@@ -28,7 +28,7 @@
         v-if="['paid', 'voucher_sent'].includes(reservation.status)"
         class="flex flex-wrap gap-2"
       >
-        <DialogResponsive
+        <ResponsiveDialog
           v-model:open="voucherDialogOpen"
           :overflow-content="true"
           dialog-max-width="28rem"
@@ -71,7 +71,7 @@
               </form>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
         <Button
           v-if="reservation.can_send_voucher"
@@ -461,7 +461,7 @@
       />
 
       <!-- Void Adjustment Confirm Dialog -->
-      <DialogResponsive v-model:open="voidDialogOpen" dialog-max-width="26rem">
+      <ResponsiveDialog v-model:open="voidDialogOpen" dialog-max-width="26rem">
         <template #default>
           <div class="px-4 pb-10 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
@@ -478,7 +478,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
 
       <div class="frame">
         <div class="frame-header">
@@ -587,7 +587,7 @@
         </div>
       </div>
 
-      <DialogResponsive
+      <ResponsiveDialog
         v-model:open="cancelDialogOpen"
         :overflow-content="true"
         dialog-max-width="28rem"
@@ -659,9 +659,9 @@
             </form>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
 
-      <DialogResponsive
+      <ResponsiveDialog
         v-model:open="manualRefundDialogOpen"
         :overflow-content="true"
         dialog-max-width="28rem"
@@ -700,9 +700,9 @@
             </form>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
 
-      <DialogResponsive
+      <ResponsiveDialog
         v-model:open="markPaidDialogOpen"
         :overflow-content="true"
         dialog-max-width="28rem"
@@ -745,7 +745,7 @@
             </form>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </div>
   </div>
 </template>
@@ -756,7 +756,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import Flag from "@/components/ui/flag/Flag.vue";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

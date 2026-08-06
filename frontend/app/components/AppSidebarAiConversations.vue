@@ -86,7 +86,7 @@
   </SidebarGroup>
 
   <!-- Delete Confirmation Dialog -->
-  <DialogResponsive v-model:open="deleteDialogOpen">
+  <ResponsiveDialog v-model:open="deleteDialogOpen">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-6">
         <div class="text-foreground text-lg font-semibold tracking-tight">Delete Conversation?</div>
@@ -104,7 +104,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup lang="ts">

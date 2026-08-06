@@ -34,7 +34,7 @@
     </Popover>
 
     <!-- Restore Dialog -->
-    <DialogResponsive v-model:open="restoreDialogOpen">
+    <ResponsiveDialog v-model:open="restoreDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Restore user?</div>
@@ -58,10 +58,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete Permanently Dialog -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -89,7 +89,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

@@ -420,7 +420,7 @@
     </div>
 
     <!-- Add/Edit Document Dialog -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="showDocFormDialog"
       dialog-max-width="500px"
       :overflow-content="true"
@@ -451,10 +451,10 @@
           />
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete Document Confirmation Dialog -->
-    <DialogResponsive v-model:open="showDocDeleteDialog" :overflow-content="true">
+    <ResponsiveDialog v-model:open="showDocDeleteDialog" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete Document</div>
@@ -484,7 +484,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

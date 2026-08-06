@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="openModel" dialog-max-width="560px">
+  <ResponsiveDialog v-model:open="openModel" dialog-max-width="560px">
     <template #default>
       <div class="space-y-5 px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
@@ -98,12 +98,12 @@
         </form>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>
 import { Button } from "@/components/ui/button";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";
 import { InputPhone } from "@/components/ui/input-phone";

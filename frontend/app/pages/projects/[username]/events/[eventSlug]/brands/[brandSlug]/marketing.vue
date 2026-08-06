@@ -360,7 +360,7 @@
     </div>
 
     <!-- Add Post dialog -->
-    <DialogResponsive v-model:open="showAdd" dialog-max-width="500px">
+    <ResponsiveDialog v-model:open="showAdd" dialog-max-width="500px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-medium tracking-tight">Add Post</div>
@@ -401,10 +401,10 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Settings dialog -->
-    <DialogResponsive v-model:open="showSettings" dialog-max-width="400px">
+    <ResponsiveDialog v-model:open="showSettings" dialog-max-width="400px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-medium tracking-tight">Settings</div>
@@ -437,10 +437,10 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete confirmation dialog -->
-    <DialogResponsive v-model:open="showDeleteDialog">
+    <ResponsiveDialog v-model:open="showDeleteDialog">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-medium tracking-tight">
@@ -458,7 +458,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

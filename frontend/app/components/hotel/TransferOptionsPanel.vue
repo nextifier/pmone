@@ -23,7 +23,7 @@
       @refresh="refresh"
     />
 
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="dialogOpen"
       dialog-max-width="28rem"
       :overflow-content="true"
@@ -97,9 +97,9 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -119,12 +119,12 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";

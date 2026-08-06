@@ -37,8 +37,8 @@ function submit() {
 </script>
 
 <template>
-  <!-- DialogResponsive: modal on desktop, drawer on mobile (STYLE_GUIDE §10). -->
-  <DialogResponsive :open="open" dialog-max-width="420px" @update:open="setOpen">
+  <!-- ResponsiveDialog: modal on desktop, drawer on mobile (STYLE_GUIDE §10). -->
+  <ResponsiveDialog :open="open" dialog-max-width="420px" @update:open="setOpen">
     <template #default>
       <form class="flex flex-col gap-4 px-4 pb-10 md:px-6 md:py-5" @submit.prevent="submit">
         <div>
@@ -64,5 +64,5 @@ function submit() {
         </div>
       </form>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>

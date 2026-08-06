@@ -42,7 +42,7 @@
           <Icon name="lucide:pencil-line" class="size-4" />
         </button>
 
-        <DialogResponsive v-model:open="deleteDialogOpen">
+        <ResponsiveDialog v-model:open="deleteDialogOpen">
           <template #trigger="{ open }">
             <button @click="open()" class="hover:bg-destructive/10 rounded-md p-1.5">
               <Icon name="lucide:trash" class="text-destructive size-4" />
@@ -70,7 +70,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </div>
     </div>
   </div>

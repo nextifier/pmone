@@ -202,7 +202,7 @@
     </div>
 
     <!-- Delete Dialog -->
-    <DialogResponsive v-model:open="deleteDialogOpen" dialog-max-width="28rem">
+    <ResponsiveDialog v-model:open="deleteDialogOpen" dialog-max-width="28rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">Delete Promotion Rule</h3>
@@ -218,10 +218,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Bulk Generate Dialog -->
-    <DialogResponsive v-model:open="bulkDialogOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="bulkDialogOpen" dialog-max-width="32rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5 space-y-4">
           <h3 class="text-lg font-semibold tracking-tighter">Bulk Generate Promo Codes</h3>
@@ -263,12 +263,12 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

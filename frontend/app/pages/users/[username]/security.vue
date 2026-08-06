@@ -14,7 +14,7 @@
           </p>
         </div>
       </div>
-      <DialogResponsive v-if="canReset2fa && user.two_factor_confirmed" v-model:open="reset2faOpen">
+      <ResponsiveDialog v-if="canReset2fa && user.two_factor_confirmed" v-model:open="reset2faOpen">
         <template #trigger="{ open }">
           <Button variant="outline-destructive" size="sm" class="shrink-0" @click="open()">
             <Icon name="hugeicons:shield-energy" class="size-4 shrink-0" />
@@ -36,7 +36,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </div>
 
     <!-- Account emails -->
@@ -87,7 +87,7 @@
           <span>Reactivate account</span>
         </Button>
 
-        <DialogResponsive v-else v-model:open="suspendOpen">
+        <ResponsiveDialog v-else v-model:open="suspendOpen">
           <template #trigger="{ open }">
             <Button variant="destructive" size="sm" @click="open()">
               <Icon name="hugeicons:user-block-01" class="size-4 shrink-0" />
@@ -115,14 +115,14 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "vue-sonner";

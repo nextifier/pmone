@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" :overflow-content="true">
+  <ResponsiveDialog v-model:open="isOpen" :overflow-content="true">
     <template v-if="$slots.trigger" #trigger="{ open }">
       <slot name="trigger" :open="open" />
     </template>
@@ -61,7 +61,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

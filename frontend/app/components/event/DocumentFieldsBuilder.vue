@@ -72,7 +72,7 @@
     </div>
 
     <!-- Create / Edit dialog -->
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="760px" :overflow-content="true">
+    <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="760px" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
@@ -196,10 +196,10 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete confirmation -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete field?</div>
@@ -216,7 +216,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -225,7 +225,7 @@ import FieldPreviewFrame from "@/components/custom-field-editor/FieldPreviewFram
 import FieldTypeSettings from "@/components/custom-field-editor/FieldTypeSettings.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
 import { FieldError } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";

@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive>
+  <ResponsiveDialog>
     <template #trigger="{ open }">
       <button
         type="button"
@@ -19,7 +19,7 @@
         <SharePage :title="data.title || ''" :url="fullUrl" class="mt-4" />
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

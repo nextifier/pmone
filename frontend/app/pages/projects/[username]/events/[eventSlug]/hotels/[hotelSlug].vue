@@ -149,7 +149,7 @@
         <NuxtPage :event="event" :project="project" :hotel="hotel" @refresh="refresh" />
       </div>
 
-      <DialogResponsive v-model:open="pivotDialogOpen" dialog-max-width="28rem">
+      <ResponsiveDialog v-model:open="pivotDialogOpen" dialog-max-width="28rem">
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="space-y-1">
             <h3 class="page-title">Event settings</h3>
@@ -188,13 +188,13 @@
             </div>
           </form>
         </div>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </template>
   </div>
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { TabNav } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";

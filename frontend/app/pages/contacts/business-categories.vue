@@ -61,7 +61,7 @@
         </template>
 
         <template #actions="{ selectedRows }">
-          <DialogResponsive
+          <ResponsiveDialog
             v-if="selectedRows.length > 0"
             v-model:open="bulkDeleteDialogOpen"
             class="h-full"
@@ -96,13 +96,13 @@
                 </div>
               </div>
             </template>
-          </DialogResponsive>
+          </ResponsiveDialog>
         </template>
       </TableData>
     </div>
 
     <!-- Create/Edit Dialog -->
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="400px">
+    <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="400px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="space-y-6">
@@ -145,10 +145,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Single Delete Confirmation Dialog -->
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Are you absolutely sure?</div>
@@ -175,7 +175,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

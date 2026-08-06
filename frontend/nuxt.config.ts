@@ -280,7 +280,6 @@ export default defineNuxtConfig({
         "shiki/wasm",
         "tailwind-merge",
         "v-wave",
-        "vaul-vue",
         "vue-filepond",
         "vue-json-pretty",
         "vue-scrollto", // CJS

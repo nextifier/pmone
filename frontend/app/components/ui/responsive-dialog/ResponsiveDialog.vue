@@ -15,8 +15,8 @@
             @interact-outside="onInteractOutside"
             @escape-key-down="onEscapeKeyDown"
           >
-            <DialogTitle class="hidden" />
-            <DialogDescription class="hidden" />
+            <DialogTitle class="sr-only">{{ title }}</DialogTitle>
+            <DialogDescription class="sr-only">{{ description }}</DialogDescription>
             <slot name="sticky-header" />
             <ScrollArea
               v-if="!flushContent"
@@ -64,67 +64,56 @@
     </template>
 
     <template v-else>
-      <DrawerRoot v-model:open="isOpen">
-        <DrawerPortal>
-          <DrawerOverlay
-            v-if="!hideOverlay"
-            class="cn-drawer-overlay fixed inset-0 z-50"
-          />
-          <DrawerContent
-            :class="
-              cn(
-                'border-border bg-background fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[85vh] flex-col rounded-t-2xl outline-hidden lg:max-h-[calc(100lvh-var(--navbar-height-desktop))] dark:border-t',
-                flushContent && 'overflow-hidden',
-              )
-            "
+      <Drawer v-model:open="isOpen" side="bottom">
+        <DrawerPopup
+          :show-bar="!flushContent"
+          :class="
+            cn(
+              'max-h-[85vh] lg:max-h-[calc(100lvh-var(--navbar-height-desktop))]',
+              flushContent && 'overflow-hidden',
+            )
+          "
+          :overlay-class="hideOverlay && 'pointer-events-none opacity-0'"
+        >
+          <DrawerTitle class="sr-only">{{ title }}</DrawerTitle>
+          <DrawerDescription class="sr-only">{{ description }}</DrawerDescription>
+          <slot name="sticky-header" />
+          <!--
+            No `touch-action` juggling here any more: `useDrawerSwipeArbiter`
+            decides per gesture whether the drag belongs to the panel or to this
+            scroller, so the content scrolls while the panel stays draggable.
+          -->
+          <DrawerPanel
+            class="overflow-x-hidden p-0 wrap-break-word"
+            :scrollable="props.overflowContent"
+            :scroll-fade="false"
           >
-            <div
-              v-if="!flushContent"
-              class="bg-foreground/20 mx-auto mt-2 mb-7 h-1 w-[100px] shrink-0 rounded-full"
+            <slot :data="dialogData" />
+          </DrawerPanel>
+          <slot name="sticky-footer" />
+          <button
+            v-if="preventClose"
+            @click="onCloseButtonClick"
+            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden"
+          >
+            <Icon
+              name="hugeicons:cancel-01"
+              class="size-4 opacity-60 transition-opacity group-hover:opacity-100"
             />
-            <div
-              v-else
-              class="absolute top-2 left-1/2 z-30 h-1 w-[100px] -translate-x-1/2 rounded-full bg-white/20"
+            <span class="sr-only">Close</span>
+          </button>
+          <DrawerClose
+            v-else-if="drawerCloseButton || isDesktop"
+            class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden"
+          >
+            <Icon
+              name="hugeicons:cancel-01"
+              class="size-4 opacity-60 transition-opacity group-hover:opacity-100"
             />
-            <DrawerTitle class="hidden" />
-            <DrawerDescription class="hidden" />
-            <slot name="sticky-header" />
-            <div
-              ref="drawerContentBody"
-              class="pointer-events-auto overflow-x-hidden wrap-break-word"
-              :class="{
-                'touch-pan-down': drawerContentBodyIsAtTop,
-                'overflow-y-auto': props.overflowContent,
-              }"
-              @scroll="handleDrawerContentBodyScroll"
-            >
-              <slot :data="dialogData" />
-            </div>
-            <slot name="sticky-footer" />
-            <button
-              v-if="preventClose"
-              @click="onCloseButtonClick"
-              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden"
-            >
-              <Icon
-                name="hugeicons:cancel-01"
-                class="size-4 opacity-60 transition-opacity group-hover:opacity-100"
-              />
-              <span class="sr-only">Close</span>
-            </button>
-            <DrawerClose
-              v-else-if="drawerCloseButton || isDesktop"
-              class="group data-[state=open]:bg-muted data-[state=open]:text-muted-foreground hover:bg-muted absolute top-1.5 right-3 z-20 flex size-8 items-center justify-center rounded-full focus:outline-hidden"
-            >
-              <Icon
-                name="hugeicons:cancel-01"
-                class="size-4 opacity-60 transition-opacity group-hover:opacity-100"
-              />
-              <span class="sr-only">Close</span>
-            </DrawerClose>
-          </DrawerContent>
-        </DrawerPortal>
-      </DrawerRoot>
+            <span class="sr-only">Close</span>
+          </DrawerClose>
+        </DrawerPopup>
+      </Drawer>
     </template>
   </div>
 </template>
@@ -143,16 +132,25 @@ import {
   DialogTitle,
 } from "reka-ui";
 import {
+  Drawer,
   DrawerClose,
-  DrawerContent,
   DrawerDescription,
-  DrawerOverlay,
-  DrawerPortal,
-  DrawerRoot,
+  DrawerPanel,
+  DrawerPopup,
   DrawerTitle,
-} from "vaul-vue";
+} from "@/components/ui/drawer";
 
 const props = defineProps({
+  /** Accessible name. Rendered visually hidden, so pass it even when the design has no heading. */
+  title: {
+    type: String,
+    default: "",
+  },
+  /** Accessible description, also visually hidden. */
+  description: {
+    type: String,
+    default: "",
+  },
   open: {
     type: Boolean,
     default: undefined,
@@ -288,38 +286,8 @@ watch(isOpen, (newValue, oldValue) => {
   }
 });
 
-// Back button/gesture closes drawer instead of navigating away
-const pushedHistoryState = ref(false);
+// The history guard (back button closes instead of navigating) lives in
+// <Drawer>, so this component no longer keeps its own copy.
 
-const onPopState = () => {
-  pushedHistoryState.value = false;
-  isOpen.value = false;
-};
 
-watch(isOpen, (newVal, oldVal) => {
-  if (newVal && !oldVal) {
-    window.history.pushState({ drawerOpen: true }, "");
-    pushedHistoryState.value = true;
-    window.addEventListener("popstate", onPopState, { once: true });
-  } else if (!newVal && oldVal && pushedHistoryState.value) {
-    pushedHistoryState.value = false;
-    window.removeEventListener("popstate", onPopState);
-    window.history.back();
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("popstate", onPopState);
-});
-
-const drawerContentBody = ref(null);
-const drawerContentBodyYPosition = ref(0);
-const drawerContentBodyIsAtTop = ref(true);
-
-const handleDrawerContentBodyScroll = () => {
-  if (drawerContentBody.value) {
-    drawerContentBodyYPosition.value = drawerContentBody.value.scrollTop;
-    drawerContentBodyIsAtTop.value = drawerContentBodyYPosition.value === 0;
-  }
-};
 </script>

@@ -205,7 +205,7 @@
     </ActivityFeed>
 
     <!-- Clear Logs Confirmation Dialog -->
-    <DialogResponsive v-model:open="clearDialogOpen">
+    <ResponsiveDialog v-model:open="clearDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -235,7 +235,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

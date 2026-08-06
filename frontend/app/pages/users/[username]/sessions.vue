@@ -9,7 +9,7 @@
             Devices currently signed in to this account.
           </p>
         </div>
-        <DialogResponsive v-model:open="clearAllOpen">
+        <ResponsiveDialog v-model:open="clearAllOpen">
           <template #trigger="{ open }">
             <Button v-if="sessions.length" variant="outline-destructive" size="sm" @click="open()">
               <Icon name="hugeicons:logout-03" class="size-4 shrink-0" />
@@ -41,7 +41,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </div>
 
       <div v-if="loading" class="text-muted-foreground text-sm tracking-tight">Loading sessions...</div>
@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";

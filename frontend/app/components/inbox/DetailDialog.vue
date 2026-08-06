@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="open" dialogMaxWidth="600px" :overflow-content="true">
+  <ResponsiveDialog v-model:open="open" dialogMaxWidth="600px" :overflow-content="true">
     <template #default>
       <div v-if="submission" class="px-4 pb-10 md:px-6 md:py-6">
         <!-- Header with Status -->
@@ -89,7 +89,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

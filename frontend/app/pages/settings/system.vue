@@ -24,7 +24,7 @@
         </p>
       </div>
 
-      <DialogResponsive v-model:open="dialogOpen" dialog-max-width="28rem">
+      <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="28rem">
         <template #trigger="{ open }">
           <Button @click="open()">
             <Icon name="hugeicons:reload" />
@@ -54,7 +54,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </div>
 
     <div class="bg-card mt-4 space-y-4 rounded-xl border p-4 sm:p-5">
@@ -71,7 +71,7 @@
         </p>
       </div>
 
-      <DialogResponsive v-model:open="syncDialogOpen" dialog-max-width="28rem">
+      <ResponsiveDialog v-model:open="syncDialogOpen" dialog-max-width="28rem">
         <template #trigger="{ open }">
           <Button @click="open()">
             <Icon name="hugeicons:reload" />
@@ -98,7 +98,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </div>
   </div>
 </template>

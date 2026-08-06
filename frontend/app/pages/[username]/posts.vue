@@ -497,7 +497,7 @@ const RowActions = defineComponent({
           },
         ),
         h(
-          resolveComponent("DialogResponsive"),
+          resolveComponent("ResponsiveDialog"),
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

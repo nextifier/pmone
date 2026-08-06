@@ -10,7 +10,7 @@
 
       <ButtonCopy :text="publicUrl" />
 
-      <DialogResponsive v-model:open="qrDialogOpen" dialogMaxWidth="360px">
+      <ResponsiveDialog v-model:open="qrDialogOpen" dialogMaxWidth="360px">
         <template #trigger="{ open }">
           <button
             @click="open()"
@@ -59,7 +59,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </div>
 
     <NuxtLink

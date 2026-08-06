@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="open" dialog-max-width="56rem">
+  <ResponsiveDialog v-model:open="open" dialog-max-width="56rem">
     <div class="px-4 pb-10 md:px-6 md:py-5">
       <div class="space-y-1">
         <h3 class="page-title">Reconciliation</h3>
@@ -138,7 +138,7 @@
         </div>
       </div>
     </div>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

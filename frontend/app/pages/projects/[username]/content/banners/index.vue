@@ -80,7 +80,7 @@
     />
 
     <!-- Delete confirmation -->
-    <DialogResponsive v-model:open="deleteOpen" dialog-max-width="22rem">
+    <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete this banner?</h3>
@@ -98,10 +98,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Analytics dialog -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="analyticsOpen"
       dialog-max-width="32rem"
       :overflow-content="true"
@@ -181,7 +181,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

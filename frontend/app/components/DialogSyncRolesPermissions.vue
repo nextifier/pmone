@@ -1,7 +1,7 @@
 <template>
   <div class="flex gap-1 sm:gap-2">
     <!-- Export Dialog -->
-    <DialogResponsive v-model:open="exportOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="exportOpen" dialog-max-width="32rem">
       <template #trigger="{ open }">
         <Button variant="outline" size="sm" @click="handleExportOpen(open)">
           <Icon name="hugeicons:file-export" class="size-4 shrink-0" />
@@ -36,10 +36,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Import Dialog -->
-    <DialogResponsive v-model:open="importOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="importOpen" dialog-max-width="32rem">
       <template #trigger="{ open }">
         <Button variant="outline" size="sm" @click="open()">
           <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
@@ -160,7 +160,7 @@
           </template>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

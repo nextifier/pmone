@@ -145,7 +145,7 @@
           @click="bulkCheckIn(selectedRows)"
         />
 
-        <DialogResponsive v-if="canUpdate" v-model:open="bulkResendDialogOpen">
+        <ResponsiveDialog v-if="canUpdate" v-model:open="bulkResendDialogOpen">
           <template #trigger="{ open }">
             <TableBulkAction icon="hugeicons:mail-02" label="Resend e-ticket" @click="open()" />
           </template>
@@ -175,9 +175,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive v-if="canDelete" v-model:open="deleteDialogOpen">
+        <ResponsiveDialog v-if="canDelete" v-model:open="deleteDialogOpen">
           <template #trigger="{ open }">
             <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
@@ -207,7 +207,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
 
@@ -1011,7 +1011,7 @@ const RowActions = defineComponent({
           attendee: p.attendee,
         }),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

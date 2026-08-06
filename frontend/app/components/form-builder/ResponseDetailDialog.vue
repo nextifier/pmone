@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="600px" :overflow-content="true">
+  <ResponsiveDialog v-model:open="isOpen" dialog-max-width="600px" :overflow-content="true">
     <template #default>
       <div v-if="response" class="px-4 pb-10 md:px-6 md:py-5">
         <!-- Header: title + meta on the left, status away from the close button -->
@@ -140,7 +140,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

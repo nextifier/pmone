@@ -37,7 +37,7 @@
       @refresh="refresh"
     >
       <template #actions="{ selectedRows }">
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="restoreDialogOpen"
           class="h-full"
@@ -73,9 +73,9 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -117,7 +117,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
   </div>
@@ -127,7 +127,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { PopoverClose } from "reka-ui";
@@ -552,7 +552,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: restoreDialogOpen.value,
             "onUpdate:open": (value) => (restoreDialogOpen.value = value),
@@ -606,7 +606,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: deleteDialogOpen.value,
             "onUpdate:open": (value) => (deleteDialogOpen.value = value),

@@ -231,7 +231,7 @@
     </div>
 
     <!-- Add Category Dialog -->
-    <DialogResponsive v-model:open="addCategoryDialogOpen" dialog-max-width="24rem">
+    <ResponsiveDialog v-model:open="addCategoryDialogOpen" dialog-max-width="24rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
@@ -267,10 +267,10 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Add Partner to Category Dialog -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="addPartnerDialogOpen"
       dialog-max-width="28rem"
       :overflow-content="true"
@@ -470,10 +470,10 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Copy from Event Dialog -->
-    <DialogResponsive v-model:open="copyDialogOpen" dialog-max-width="28rem">
+    <ResponsiveDialog v-model:open="copyDialogOpen" dialog-max-width="28rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Copy Partners from Event</h3>
@@ -521,10 +521,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete Category Confirm Dialog -->
-    <DialogResponsive v-model:open="deleteCategoryDialogOpen" dialog-max-width="24rem">
+    <ResponsiveDialog v-model:open="deleteCategoryDialogOpen" dialog-max-width="24rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-lg font-semibold tracking-tight">Delete category?</div>
@@ -548,10 +548,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Remove Partner Confirm Dialog -->
-    <DialogResponsive v-model:open="removePartnerDialogOpen" dialog-max-width="24rem">
+    <ResponsiveDialog v-model:open="removePartnerDialogOpen" dialog-max-width="24rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-lg font-semibold tracking-tight">Remove partner?</div>
@@ -576,7 +576,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

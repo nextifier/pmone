@@ -211,7 +211,7 @@
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -255,12 +255,12 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
 
     <!-- Deduplicate Dialog -->
-    <DialogResponsive v-model:open="dedupeDialogOpen" dialog-max-width="560px">
+    <ResponsiveDialog v-model:open="dedupeDialogOpen" dialog-max-width="560px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">Remove Duplicates</div>
@@ -400,10 +400,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Unused Tags Dialog -->
-    <DialogResponsive v-model:open="unusedTagsDialogOpen" dialog-max-width="560px">
+    <ResponsiveDialog v-model:open="unusedTagsDialogOpen" dialog-max-width="560px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">Remove Unused Tags</div>
@@ -513,10 +513,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Export Progress Dialog -->
-    <DialogResponsive v-model:open="exportDialogOpen" dialog-max-width="400px">
+    <ResponsiveDialog v-model:open="exportDialogOpen" dialog-max-width="400px">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Exporting Contacts</div>
@@ -529,10 +529,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete All Dialog -->
-    <DialogResponsive v-model:open="deleteAllDialogOpen">
+    <ResponsiveDialog v-model:open="deleteAllDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
@@ -572,10 +572,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Create/Edit Dialog -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="formDialogOpen"
       dialog-max-width="600px"
       :prevent-close="formDirty"
@@ -689,10 +689,10 @@
           />
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Unsaved Changes Warning -->
-    <DialogResponsive v-model:open="showUnsavedWarning">
+    <ResponsiveDialog v-model:open="showUnsavedWarning">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved changes</div>
@@ -719,7 +719,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -1784,7 +1784,7 @@ const RowActions = defineComponent({
             ]
           : []),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

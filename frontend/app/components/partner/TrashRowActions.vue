@@ -10,7 +10,7 @@
       <Icon v-else name="hugeicons:undo-02" class="size-4" />
     </button>
 
-    <DialogResponsive v-model:open="deleteOpen">
+    <ResponsiveDialog v-model:open="deleteOpen">
       <template #trigger="{ open }">
         <button
           class="hover:bg-muted inline-flex size-8 items-center justify-center rounded-md"
@@ -45,7 +45,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

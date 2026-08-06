@@ -82,7 +82,7 @@
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -116,7 +116,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
 
@@ -598,7 +598,7 @@ const RowActions = defineComponent({
             ]
           : []),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

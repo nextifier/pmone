@@ -175,7 +175,7 @@
 
     <span class="sr-only" role="status" aria-live="polite">{{ announcement }}</span>
 
-    <DialogResponsive :open="deleteDialogOpen" @update:open="onDeleteDialogOpenChange">
+    <ResponsiveDialog :open="deleteDialogOpen" @update:open="onDeleteDialogOpenChange">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">Delete images?</div>
@@ -225,7 +225,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -241,7 +241,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Lightbox } from "@/components/ui/lightbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { useGalleryReorder } from "@/composables/useGalleryReorder";
 
 const items = defineModel("items", { type: Array, default: () => [] });

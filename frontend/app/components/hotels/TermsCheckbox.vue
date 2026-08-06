@@ -18,7 +18,7 @@
       </span>
     </label>
 
-    <DialogResponsive v-model:open="termsOpen" :overflow-content="true" dialog-max-width="36rem">
+    <ResponsiveDialog v-model:open="termsOpen" :overflow-content="true" dialog-max-width="36rem">
       <template #default>
         <div class="px-4 pb-8 md:px-6 md:py-5 space-y-3 text-sm tracking-tight">
           <h3 class="text-lg font-semibold">Terms &amp; Conditions</h3>
@@ -36,9 +36,9 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
-    <DialogResponsive v-model:open="privacyOpen" :overflow-content="true" dialog-max-width="36rem">
+    <ResponsiveDialog v-model:open="privacyOpen" :overflow-content="true" dialog-max-width="36rem">
       <template #default>
         <div class="px-4 pb-8 md:px-6 md:py-5 space-y-3 text-sm tracking-tight">
           <h3 class="text-lg font-semibold">Privacy Policy</h3>
@@ -54,14 +54,14 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
 <script setup>
 import { Button } from '../ui/button'
 import { Checkbox } from '../ui/checkbox'
-import DialogResponsive from '../ui/dialog-responsive/DialogResponsive.vue'
+import ResponsiveDialog from '../ui/responsive-dialog/ResponsiveDialog.vue'
 import { ref } from 'vue'
 
 defineProps({

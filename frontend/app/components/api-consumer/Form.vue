@@ -134,7 +134,7 @@
           <div class="space-y-2">
             <div class="flex items-center justify-between gap-4">
               <Label>{{ revealedKey ? "New API Key" : "API Key" }}</Label>
-              <DialogResponsive v-model:open="regenerateDialogOpen">
+              <ResponsiveDialog v-model:open="regenerateDialogOpen">
                 <template #trigger="{ open }">
                   <button
                     type="button"
@@ -177,7 +177,7 @@
                     </div>
                   </div>
                 </template>
-              </DialogResponsive>
+              </ResponsiveDialog>
             </div>
             <template v-if="revealedKey">
               <div class="bg-muted flex items-center gap-2 rounded-md p-3">

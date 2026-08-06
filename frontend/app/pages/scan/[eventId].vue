@@ -141,7 +141,7 @@
 
       <!-- Printer diagnostic log: capture exactly what each scan's auto-print did
            (decision, reconnect, write) so failures can be pinpointed. -->
-      <DialogResponsive v-model:open="diagnosticOpen" dialog-max-width="640px">
+      <ResponsiveDialog v-model:open="diagnosticOpen" dialog-max-width="640px">
         <template #default>
           <div class="flex flex-col gap-4 px-5 pt-5 pb-6 md:px-6">
             <!-- Header (right side kept clear of the dialog's close button) -->
@@ -208,7 +208,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </template>
   </div>
 </template>
@@ -226,7 +226,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BottomNav, BottomNavItem, BottomNavAction } from "@/components/ui/bottom-nav";
-import { DialogResponsive } from "@/components/ui/dialog-responsive";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { toast } from "vue-sonner";
 import ScanPanel from "@/components/scan/ScanPanel.vue";
 import FindPanel from "@/components/scan/FindPanel.vue";

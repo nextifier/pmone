@@ -53,7 +53,7 @@
         </Popover>
 
         <!-- Regenerate OG images (master only) -->
-        <DialogResponsive v-if="isMaster" v-model:open="regenerateOgDialogOpen">
+        <ResponsiveDialog v-if="isMaster" v-model:open="regenerateOgDialogOpen">
           <template #trigger="{ open }">
             <Button variant="outline" size="sm" :disabled="regenerateOgPending" @click="open()">
               <Spinner v-if="regenerateOgPending" class="size-4 shrink-0" />
@@ -88,7 +88,7 @@
               </button>
             </div>
           </div>
-        </DialogResponsive>
+        </ResponsiveDialog>
 
         <Button variant="outline" size="sm" to="/posts/analytics">
           <Icon name="hugeicons:analytics-01" class="size-4 shrink-0" />
@@ -169,7 +169,7 @@
       </template>
 
       <template #actions="{ selectedRows }">
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -204,7 +204,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
   </div>
@@ -915,7 +915,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

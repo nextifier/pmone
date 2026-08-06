@@ -396,7 +396,7 @@
     </Teleport>
 
     <!-- Confirmation Dialog -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="showConfirmDialog"
       dialog-max-width="450px"
       :overflow-content="true"
@@ -497,7 +497,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

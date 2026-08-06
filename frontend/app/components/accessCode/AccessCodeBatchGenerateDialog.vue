@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="openModel" dialog-max-width="640px">
+  <ResponsiveDialog v-model:open="openModel" dialog-max-width="640px">
     <template #default>
       <div class="space-y-5 px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
@@ -209,7 +209,7 @@
         </form>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>
@@ -217,7 +217,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { FieldError } from "@/components/ui/field";

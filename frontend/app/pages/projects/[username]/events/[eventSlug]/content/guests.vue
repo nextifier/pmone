@@ -428,7 +428,7 @@
     </div>
 
     <!-- Create/Edit dialog -->
-    <DialogResponsive v-model:open="formOpen" dialog-max-width="40rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="formOpen" dialog-max-width="40rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="flex items-start justify-between gap-3">
@@ -458,10 +458,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Activity log dialog -->
-    <DialogResponsive v-model:open="activityOpen" dialog-max-width="32rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="activityOpen" dialog-max-width="32rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Activity log</h3>
@@ -477,10 +477,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Move to event dialog -->
-    <DialogResponsive v-model:open="moveOpen" dialog-max-width="26rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="moveOpen" dialog-max-width="26rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <MoveToEventDialog
@@ -494,10 +494,10 @@
           />
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete confirmation -->
-    <DialogResponsive v-model:open="deleteOpen" dialog-max-width="22rem">
+    <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete this guest?</h3>
@@ -513,10 +513,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Bulk delete confirmation -->
-    <DialogResponsive
+    <ResponsiveDialog
       v-model:open="bulkDeleteOpen"
       dialog-max-width="24rem"
       :prevent-close="bulkDeleteJob.processing.value"
@@ -566,10 +566,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Trash dialog -->
-    <DialogResponsive v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Trash</h3>
@@ -630,7 +630,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

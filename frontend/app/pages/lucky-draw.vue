@@ -254,7 +254,7 @@
     </main>
 
     <!-- Entries dialog -->
-    <DialogResponsive v-model:open="entriesOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="entriesOpen" dialog-max-width="32rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">Entries</h3>
@@ -297,10 +297,10 @@
           <Button variant="outline" @click="entriesOpen = false">Done</Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Settings dialog -->
-    <DialogResponsive v-model:open="settingsOpen" dialog-max-width="32rem">
+    <ResponsiveDialog v-model:open="settingsOpen" dialog-max-width="32rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">Settings</h3>
@@ -375,10 +375,10 @@
           <Button variant="outline" @click="settingsOpen = false">Done</Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Clear confirm -->
-    <DialogResponsive v-model:open="clearConfirmOpen">
+    <ResponsiveDialog v-model:open="clearConfirmOpen">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tighter">Clear entries & prize?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
@@ -389,10 +389,10 @@
           <Button variant="destructive" @click="clearEntries">Clear</Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Force winner (secret: type f then w) -->
-    <DialogResponsive v-model:open="forceWinnerOpen" dialog-max-width="28rem">
+    <ResponsiveDialog v-model:open="forceWinnerOpen" dialog-max-width="28rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">Force winner</h3>
@@ -436,10 +436,10 @@
           </div>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Winner history -->
-    <DialogResponsive v-model:open="historyOpen" dialog-max-width="28rem">
+    <ResponsiveDialog v-model:open="historyOpen" dialog-max-width="28rem">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="flex items-start justify-between gap-2">
           <div class="space-y-1">
@@ -469,10 +469,10 @@
           <Button variant="outline" @click="historyOpen = false">Done</Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Clear all confirm -->
-    <DialogResponsive v-model:open="clearAllConfirmOpen">
+    <ResponsiveDialog v-model:open="clearAllConfirmOpen">
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tighter">Clear all settings and data?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
@@ -484,7 +484,7 @@
           <Button variant="destructive" @click="clearAll">Clear everything</Button>
         </div>
       </div>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -716,7 +716,7 @@ onBeforeUnmount(() => {
 // ---- clear / entry tools ----
 function requestClear() {
   // Close the entries dialog first, then open the confirm once it has finished
-  // animating out (stacked DialogResponsive instances fight over the body scroll lock).
+  // animating out (stacked ResponsiveDialog instances fight over the body scroll lock).
   entriesOpen.value = false;
   setTimeout(() => {
     clearConfirmOpen.value = true;

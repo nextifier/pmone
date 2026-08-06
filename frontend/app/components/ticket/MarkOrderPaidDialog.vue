@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive :open="open" @update:open="(v) => emit('update:open', v)">
+  <ResponsiveDialog :open="open" @update:open="(v) => emit('update:open', v)">
     <template #default>
       <div class="px-4 pb-10 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tight">Mark order as paid?</div>
@@ -61,7 +61,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

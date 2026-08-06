@@ -1,22 +1,22 @@
 <script lang="ts" setup>
-import type { DrawerDescriptionProps } from "vaul-vue";
-import { DrawerDescription } from "vaul-vue";
-import { type HtmlHTMLAttributes, computed } from "vue";
+import type { DrawerDescriptionProps } from "reka-ui";
+import type { HTMLAttributes } from "vue";
+import { reactiveOmit } from "@vueuse/core";
+import { DrawerDescription } from "reka-ui";
 import { cn } from "@/lib/utils";
 
-const props = defineProps<
-  DrawerDescriptionProps & { class?: HtmlHTMLAttributes["class"] }
->();
+const props = defineProps<DrawerDescriptionProps & { class?: HTMLAttributes["class"] }>();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, "class");
 </script>
 
 <template>
-  <DrawerDescription data-slot="drawer-description" v-bind="delegatedProps" :class="cn('cn-drawer-description', props.class)">
+  <!-- Classes copied verbatim from coss drawer.tsx (DrawerDescription). -->
+  <DrawerDescription
+    data-slot="drawer-description"
+    v-bind="delegatedProps"
+    :class="cn('text-muted-foreground text-sm', props.class)"
+  >
     <slot />
   </DrawerDescription>
 </template>

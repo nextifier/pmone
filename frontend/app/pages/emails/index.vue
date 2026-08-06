@@ -22,7 +22,7 @@
           <span>Export</span>
         </Button>
 
-        <DialogResponsive dialog-max-width="640px">
+        <ResponsiveDialog dialog-max-width="640px">
           <template #trigger="{ open }">
             <Button variant="outline" size="sm" @click="open()">
               <Icon name="hugeicons:information-circle" class="size-4 shrink-0" />
@@ -141,7 +141,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </div>
     </div>
 
@@ -359,7 +359,7 @@
       </TabsContent>
     </Tabs>
 
-    <DialogResponsive v-model:open="removeOpen">
+    <ResponsiveDialog v-model:open="removeOpen">
       <template #default>
         <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
           <div class="space-y-1">
@@ -383,7 +383,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

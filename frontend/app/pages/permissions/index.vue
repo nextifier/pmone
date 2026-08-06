@@ -7,7 +7,7 @@
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-        <DialogResponsive v-if="canSync" v-model:open="syncDialogOpen" dialog-max-width="28rem">
+        <ResponsiveDialog v-if="canSync" v-model:open="syncDialogOpen" dialog-max-width="28rem">
           <template #trigger="{ open }">
             <Button variant="outline" size="sm" @click="open()">
               <Icon name="hugeicons:reload" class="size-4" />
@@ -34,7 +34,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </div>
     </div>
 
@@ -71,7 +71,7 @@
       </template>
 
       <template #actions="{ selectedRows }">
-        <DialogResponsive
+        <ResponsiveDialog
           v-if="canDelete && selectedRows.length > 0"
           v-model:open="deleteDialogOpen"
           class="h-full"
@@ -106,7 +106,7 @@
               </div>
             </div>
           </template>
-        </DialogResponsive>
+        </ResponsiveDialog>
       </template>
     </TableData>
 
@@ -482,7 +482,7 @@ const RowActions = defineComponent({
           }
         ),
         h(
-          DialogResponsive,
+          ResponsiveDialog,
           {
             open: dialogOpen.value,
             "onUpdate:open": (value) => (dialogOpen.value = value),

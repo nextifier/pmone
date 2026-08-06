@@ -149,7 +149,7 @@
       </div>
     </div>
 
-    <DialogResponsive v-model:open="dialogOpen" dialog-max-width="32rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="32rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">{{ editingRoom ? "Edit Room Type" : "Add Room Type" }}</h3>
@@ -362,9 +362,9 @@
           </form>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
-    <DialogResponsive v-model:open="deleteDialogOpen">
+    <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete room type?</div>
@@ -380,12 +380,12 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 
 <script setup>
-import DialogResponsive from "@/components/ui/dialog-responsive/DialogResponsive.vue";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Lightbox } from "@/components/ui/lightbox";
 import InputFile from "@/components/InputFile.vue";
 import GalleryManager from "@/components/GalleryManager.vue";

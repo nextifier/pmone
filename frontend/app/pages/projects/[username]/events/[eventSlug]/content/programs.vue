@@ -158,7 +158,7 @@
     </div>
 
     <!-- Create / Edit dialog -->
-    <DialogResponsive v-model:open="formOpen" dialog-max-width="36rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="formOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pt-5 pb-8 md:px-6">
           <h3 class="text-lg font-semibold tracking-tight">
@@ -176,10 +176,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Delete confirmation -->
-    <DialogResponsive v-model:open="deleteOpen" dialog-max-width="22rem">
+    <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
         <div class="px-4 pt-5 pb-6 md:px-6">
           <h3 class="text-lg font-semibold tracking-tight">Delete this program?</h3>
@@ -207,10 +207,10 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
 
     <!-- Trash dialog -->
-    <DialogResponsive v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
+    <ResponsiveDialog v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
         <div class="px-4 pt-5 pb-6 md:px-6">
           <h3 class="text-lg font-semibold tracking-tight">Trashed Programs</h3>
@@ -261,7 +261,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

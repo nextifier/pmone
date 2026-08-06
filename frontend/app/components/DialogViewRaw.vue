@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive dialog-max-width="60%" :overflow-content="true">
+  <ResponsiveDialog dialog-max-width="60%" :overflow-content="true">
     <template #trigger="{ open }">
       <Button variant="outline" size="sm" @click="open()">
         <Icon name="hugeicons:raw-01" class="size-4 shrink-0" />
@@ -19,7 +19,7 @@
         />
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

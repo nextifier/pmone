@@ -321,7 +321,7 @@
     </template>
 
     <!-- Delete Confirmation Dialog -->
-    <DialogResponsive v-model:open="showDeleteDialog" :overflow-content="true">
+    <ResponsiveDialog v-model:open="showDeleteDialog" :overflow-content="true">
       <template #default>
         <div class="px-4 pb-10 md:px-6 md:py-6">
           <div class="text-foreground text-lg font-medium tracking-tight">
@@ -346,7 +346,7 @@
           </div>
         </div>
       </template>
-    </DialogResponsive>
+    </ResponsiveDialog>
   </div>
 </template>
 

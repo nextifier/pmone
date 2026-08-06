@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="shortcutsDialogOpen" dialogMaxWidth="500px">
+  <ResponsiveDialog v-model:open="shortcutsDialogOpen" dialogMaxWidth="500px">
     <template #trigger>
       <Tippy>
         <button
@@ -151,7 +151,7 @@
         </div>
       </div>
     </template>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

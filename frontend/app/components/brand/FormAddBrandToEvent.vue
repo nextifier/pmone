@@ -1,5 +1,5 @@
 <template>
-  <DialogResponsive v-model:open="isOpen" dialog-max-width="28rem" :overflow-content="true">
+  <ResponsiveDialog v-model:open="isOpen" dialog-max-width="28rem" :overflow-content="true">
     <div class="px-4 pb-10 md:px-6 md:py-5">
       <div class="space-y-1">
         <h3 class="page-title">Add Brand to Event</h3>
@@ -194,7 +194,7 @@
         </div>
       </form>
     </div>
-  </DialogResponsive>
+  </ResponsiveDialog>
 </template>
 
 <script setup>

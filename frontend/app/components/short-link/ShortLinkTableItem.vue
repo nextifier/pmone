@@ -13,7 +13,7 @@
 
       <ButtonCopy :text="shortLinkUrl" />
 
-      <DialogResponsive v-model:open="qrDialogOpen" dialogMaxWidth="360px">
+      <ResponsiveDialog v-model:open="qrDialogOpen" dialogMaxWidth="360px">
         <template #trigger="{ open }">
           <button
             @click="open()"
@@ -62,7 +62,7 @@
             </div>
           </div>
         </template>
-      </DialogResponsive>
+      </ResponsiveDialog>
     </div>
 
     <div class="text-muted-foreground line-clamp-1 inline-flex items-center gap-x-0.5">
