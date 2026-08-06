@@ -107,8 +107,10 @@ const HSL_CHANNELS = ["hue", "saturation", "lightness"] as const;
 const thumbClass =
   "block size-4 cursor-pointer rounded-full border-2 border-white bg-white shadow-md ring-1 ring-black/20 transition-transform outline-none hover:scale-110 focus-visible:ring-2 focus-visible:ring-black/40";
 
+// One step below the `.cn-input` default because the three channel fields share
+// a narrow row; the height and the touch/mouse split stay with the style sheet.
 const fieldClass =
-  "cn-input h-8 w-full min-w-0 px-2 text-center text-xs tracking-tight outline-none sm:text-sm";
+  "cn-input w-full min-w-0 px-2 text-center text-sm tracking-tight outline-none pointer-fine:text-xs";
 </script>
 
 <template>
@@ -120,7 +122,7 @@ const fieldClass =
         :disabled="disabled"
         :class="
           cn(
-            'cn-input hover:bg-muted/50 data-[state=open]:bg-muted/50 inline-flex min-w-36 cursor-pointer items-center gap-x-2 text-sm tracking-tight disabled:cursor-not-allowed disabled:opacity-50',
+            'cn-input hover:bg-muted/50 data-[state=open]:bg-muted/50 inline-flex min-w-36 cursor-pointer items-center gap-x-2 tracking-tight disabled:cursor-not-allowed disabled:opacity-50',
             props.class
           )
         "

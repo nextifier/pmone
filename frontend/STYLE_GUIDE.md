@@ -17,9 +17,15 @@ Aturan ini wajib diikuti. Kalau ada kasus yang belum tercakup di sini, cek sibli
 
 ### Ukuran teks
 
+Ada dua tangga yang arahnya berlawanan. Memilih yang salah akan langsung kelihatan.
+
+**Teks statis** (paragraf, deskripsi, judul, isi tabel, tooltip, kbd, shortcut) ukurannya tetap, atau membesar di layar besar.
+
 - Default body: `text-sm` atau `text-base`.
 - Hindari `text-xs`, `text-[11px]`, `text-[10px]` berdiri sendiri di layar besar. Kalau butuh kecil, pakai `text-xs sm:text-sm` supaya tetap nyaman dibaca di desktop.
 - Hindari `text-[9px]` kecuali untuk indikator badge yang memang sangat compact (step number, key indicator).
+
+**Kontrol interaktif** (button, field, select, tab, toggle, item menu, label) memakai tangga sebaliknya: `text-base sm:text-sm`. 16px di telepon supaya nyaman disentuh dan dibaca sambil berjalan, 14px di desktop supaya toolbar tidak terlihat berat. Skala ini diambil dari coss.com/ui. Jangan mengembalikan `sm:text-base` ke rule `cn-*` mana pun.
 
 #### Skala button (dimiliki style, jangan di-override di call site)
 
@@ -27,30 +33,43 @@ Semua `style-*.css` memakai skala yang sama. Yang berbeda antar style cuma tingg
 
 | size | font-size |
 | --- | --- |
-| `xs` | `text-xs sm:text-sm` |
-| `sm` | `text-sm` |
-| `default`, `lg` | `text-sm sm:text-base` (diwarisi dari `.cn-button`) |
-| `xl` | `text-base sm:text-lg` |
+| `xs` | `text-sm sm:text-xs` |
+| `sm` | mewarisi `.cn-button`, tidak punya override sendiri |
+| `default`, `lg` | `text-base sm:text-sm` (diwarisi dari `.cn-button`) |
+| `xl` | `text-lg sm:text-base` |
 
-Pengecualian: `style-mira.css` memakai `text-xs` flat di size `xs`, karena `h-5` tidak muat menampung line-box 20px.
+#### Field: 16px saat disentuh, 14px saat pakai mouse
 
-Konsekuensi yang perlu diingat: tombol `size="sm"` tetap 14px di desktop, sementara field di sebelahnya 16px. Itu memang bentuk yang diinginkan untuk toolbar, bukan bug.
+`.cn-input`, `.cn-textarea`, `.cn-native-select`, `.cn-input-otp-slot`, `.cn-command-input`, dan `.cn-combobox-chips` memakai `text-base pointer-fine:text-sm`.
 
-#### Field selalu `text-base`
+Kenapa `pointer-fine:` dan bukan `sm:`: iOS Safari melakukan zoom-on-focus setiap kali font field di bawah 16px, dan itu tetap terjadi di iPad maupun iPhone landscape yang lebarnya sudah lewat breakpoint `sm` (640px). `pointer-fine` cuma menyala di perangkat bermouse, jadi 16px bertahan di semua perangkat sentuh. Jangan menggantinya dengan `sm:text-sm`.
 
-`.cn-input`, `.cn-textarea`, `.cn-native-select`, dan `.cn-input-otp-slot` memakai `text-base` di semua breakpoint. Jangan menambahkan `md:text-sm` kembali: 16px adalah ambang di mana iOS Safari berhenti melakukan zoom-on-focus.
+`.cn-select-trigger` bukan field ketik, jadi ia ikut tangga kontrol biasa (`text-base sm:text-sm`). Varian `data-[size=sm]` sengaja tidak lagi meng-override font: selectornya (0,3,0) mengalahkan `sm:` (0,2,0), jadi kalau dipasang lagi, select kompak akan terkunci 14px di mobile.
 
-`.cn-select-trigger` mengikuti skala button (`text-sm sm:text-base`), dengan `data-[size=sm]:text-sm` supaya varian kompaknya sejajar dengan `<Button size="sm">`.
+#### Tangga tinggi dan ikon
+
+Tiap kontrol punya dua tinggi: mobile satu step (4px) di atas desktop. Nilai desktop milik style dan tidak berubah, jadi layout desktop tidak pernah bergeser.
+
+| style | default (mobile / desktop) |
+| --- | --- |
+| `mono`, `nova`, `lyra`, `rhea` | 36px / 32px |
+| `vega`, `maia`, `luma` | 40px / 36px |
+| `mira` | 32px / 28px |
+| `sera` | 44px / 40px |
+
+`--cn-input-h` mengikuti tangga yang sama lewat `@media (width >= 40rem)` di dalam blok `.style-X`, jadi `h-(--cn-input-h)` di call site ikut otomatis tanpa perubahan apa pun.
+
+Ikon di dalam kontrol naik setengah step (2px) di mobile: `[&_svg:not([class*=size-])]:size-4.5 sm:[…]:size-4`. Checkbox, radio, dan slider thumb juga setengah step. Badge naik satu step penuh berikut fontnya (`h-6 sm:h-5`, `text-sm sm:text-xs`).
 
 ### Hierarchy
 
-- Page title: pakai utility `page-title` (sudah didefinisikan di `main.css:811`, output: `text-primary text-xl font-medium tracking-tighter text-balance`). Jangan bikin styling page title manual.
+- Page title: pakai utility `page-title` (sudah didefinisikan di `main.css:1346`, output: `text-primary text-xl font-medium tracking-tighter text-balance`). Jangan bikin styling page title manual.
 - Page description: pakai utility `page-description` (`text-muted-foreground text-sm tracking-tight`).
 - Section title di dalam frame: `text-sm font-semibold tracking-tighter text-muted-foreground` (sudah otomatis dari class `.frame-title`).
 - Card title biasa: `text-lg font-medium tracking-tighter`.
 - Body teks panjang: `text-sm tracking-tight` atau `text-base tracking-tight`.
 - Helper text di bawah input: `text-muted-foreground text-xs`.
-- Label form: pakai component `<Label>`. Stylingnya sudah `text-sm leading-none font-medium tracking-tight` dari base layer (`main.css:526`).
+- Label form: pakai component `<Label>`. Stylingnya sudah `text-sm leading-none font-medium tracking-tight` dari base layer (`main.css:585`).
 
 ### Font weight
 
@@ -250,7 +269,7 @@ Class `frame`, `frame-header`, `frame-title`, `frame-description`, `frame-panel`
 
 ### Size
 
-Tinggi setiap size dimiliki style aktif, jadi jangan menghafal angkanya. Di style default (`mono`) urutannya `xs` 24px, `sm` 28px, `default` 32px, `lg` 36px, `xl` 44px, tapi di `sera` semuanya lebih besar dan di `mira` lebih kecil. Pilih berdasarkan peran, bukan piksel.
+Tinggi setiap size dimiliki style aktif, jadi jangan menghafal angkanya. Di style default (`mono`) urutan desktopnya `xs` 24px, `sm` 28px, `default` 32px, `lg` 36px, `xl` 44px, dan tiap size 4px lebih tinggi di mobile. Di `sera` semuanya lebih besar, di `mira` lebih kecil. Pilih berdasarkan peran, bukan piksel.
 
 - `xs`: badge-like action di dalam baris padat.
 - `sm`: default untuk toolbar, header halaman, dan aksi di dalam row table. Ini yang paling sering dipakai.
@@ -258,7 +277,7 @@ Tinggi setiap size dimiliki style aktif, jadi jangan menghafal angkanya. Di styl
 - `lg` / `xl`: CTA besar di hero atau form panjang.
 - `icon` / `iconSm` / `iconXs` / `iconLg`: tombol icon-only. Wajib `<Tippy>` atau `aria-label`.
 
-Kalau tombol harus sejajar dengan field di baris yang sama (misal di samping search input), pakai `size="sm"` plus `class="h-(--cn-input-h)"`. Variabel itu dideklarasikan tiap style dan bernilai sama dengan tinggi `.cn-input`, jadi barisnya rata di semua style tanpa hardcode `h-8`.
+Kalau tombol harus sejajar dengan field di baris yang sama (misal di samping search input), pakai `size="sm"` plus `class="h-(--cn-input-h)"`. Variabel itu dideklarasikan tiap style dan bernilai sama dengan tinggi `.cn-input`, jadi barisnya rata di semua style tanpa hardcode `h-8`. Ia sendiri sudah responsif (mobile satu step di atas desktop), jadi jangan menambahkan `sm:h-*` di sebelahnya.
 
 ### Icon + text
 
@@ -476,7 +495,9 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 
 ## 22. Hal yang Wajib Dihindari
 
-- `text-xs` standalone di layar besar. Pakai `text-xs sm:text-sm`.
+- `text-xs` standalone di layar besar **pada teks statis**. Pakai `text-xs sm:text-sm`. Aturan ini tidak berlaku untuk kontrol interaktif: di sana tangganya justru mengecil di desktop (§1), jadi `text-sm sm:text-xs` di `.cn-button-size-xs` memang benar.
+- `sm:text-base` di rule `cn-*` mana pun. Tangga kontrol sekarang `text-base sm:text-sm`.
+- `sm:text-sm` pada field yang menerima ketikan. Pakai `pointer-fine:text-sm` supaya iOS tidak zoom-on-focus di tablet (§1).
 - `font-bold`, `font-extrabold`. Maksimum `font-semibold`.
 - `uppercase`, `tracking-wider`, `tracking-widest`.
 - `bg-green-*`, `bg-red-*`, `bg-yellow-*`, `bg-blue-*` literal.
@@ -497,7 +518,7 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 ## 23. Checklist Sebelum Commit UI
 
 - Semua input pakai component shadcn-vue, bukan native.
-- Tidak ada `text-xs` standalone di larger screen.
+- Tidak ada `text-xs` standalone di larger screen pada teks statis (kontrol interaktif punya tangganya sendiri, §1).
 - Semua teks pakai `tracking-tight` atau `tracking-tighter`.
 - Warna pakai CSS variable, bukan literal Tailwind color.
 - Grid form gap-nya `gap-x-2`.

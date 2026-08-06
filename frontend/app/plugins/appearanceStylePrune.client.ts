@@ -46,7 +46,10 @@ export default defineNuxtPlugin((nuxtApp) => {
    */
   const harvest = (): boolean => {
     const pass = new Map<string, string[]>();
-    const walk = (group: CSSStyleSheet | CSSGroupingRule): void => {
+    const walk = (
+      group: CSSStyleSheet | CSSGroupingRule,
+      prefix: string[] = [],
+    ): void => {
       let rules: CSSRuleList;
       try {
         rules = group.cssRules;
@@ -61,10 +64,31 @@ export default defineNuxtPlugin((nuxtApp) => {
           if (!pass.has(name)) {
             pass.set(name, []);
           }
-          pass.get(name)!.unshift(rule.cssText);
+          // Re-wrap in the at-rules we descended through. Lightning CSS hoists
+          // `@media`/`@supports` ABOVE the `.style-X` selector, so harvesting the
+          // bare cssText would drop the condition and make every `sm:`, `hover:hover`
+          // and `forced-colors` declaration apply unconditionally after hydration.
+          pass
+            .get(name)!
+            .unshift(
+              prefix.length
+                ? prefix.map((p) => `${p}{`).join("") +
+                    rule.cssText +
+                    "}".repeat(prefix.length)
+                : rule.cssText,
+            );
           group.deleteRule(i);
         } else if ((rule as CSSGroupingRule).cssRules) {
-          walk(rule as CSSGroupingRule);
+          // `@layer` is deliberately not carried: render() already wraps the whole
+          // stash in `@layer base`, and nesting it again would move the cascade
+          // position to `base.base`.
+          const head = rule.cssText.slice(0, rule.cssText.indexOf("{")).trim();
+          walk(
+            rule as CSSGroupingRule,
+            /^@(media|supports|container)\b/.test(head)
+              ? [...prefix, head]
+              : prefix,
+          );
         }
       }
     };

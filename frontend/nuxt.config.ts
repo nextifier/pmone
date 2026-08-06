@@ -1,4 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
+import { createRequire } from "node:module";
+import { cpus } from "node:os";
 import { fileURLToPath } from "node:url";
 import { brands } from "./brands";
 
@@ -575,6 +577,44 @@ export default defineNuxtConfig({
       // during the transition, rename this + the Worker to e.g. "pmone-app".
       wrangler: {
         name: "pmone",
+      },
+    },
+    hooks: {
+      /**
+       * Bound the terser worker pool that minifies the worker bundle.
+       *
+       * Nitro minifies with `@rollup/plugin-terser`, whose pool defaults to
+       * `os.cpus().length`. Inside a build container that reads /proc/cpuinfo
+       * and reports the HOST's core count, not the cgroup quota — Cloudflare's
+       * builder is 4 vCPU / 8 GB, so the default can spawn dozens of terser
+       * threads (each its own V8 isolate holding a chunk's AST) that fight over
+       * 4 cores and push the process past the memory ceiling. That is the only
+       * step that varies between identical builds: minifying the ~490 server
+       * chunks took 3m44s on the last green build and >28m on the two after it,
+       * which Cloudflare kills at the 30-minute timeout.
+       *
+       * Nitro hardcodes its terser options with no passthrough, so swap the
+       * plugin for the same one with a bounded pool. Options mirror
+       * nitropack/dist/rollup/index.mjs — keep them in sync on a nitro bump.
+       */
+      "rollup:before"(_nitro, rollupConfig) {
+        const plugins = rollupConfig.plugins as { name?: string }[];
+        const index = plugins.findIndex((plugin) => plugin?.name === "terser");
+
+        if (index === -1) {
+          return;
+        }
+
+        const terser = createRequire(import.meta.url)("@rollup/plugin-terser");
+        const maxWorkers = Math.min(4, cpus().length);
+
+        console.info(`[nitro] terser pool capped at ${maxWorkers} (os.cpus: ${cpus().length})`);
+
+        plugins[index] = (terser.default || terser)({
+          maxWorkers,
+          mangle: { keep_fnames: true, keep_classnames: true },
+          format: { comments: false },
+        });
       },
     },
   },
