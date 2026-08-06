@@ -63,10 +63,12 @@ export const buttonVariants = cva(
         "black-ghost": ghost("text-black", "bg-gray-100", "bg-gray-200"),
       },
       size: {
-        xs: "h-7 gap-1 px-2.5 text-xs sm:h-6",
-        sm: "h-8 gap-1.5 px-3 text-sm sm:h-7",
-        default: "h-9 gap-1.5 px-4 text-sm sm:text-base sm:h-10",
-        lg: "h-10 gap-2 px-5 text-base sm:h-9",
+        // Same ladder as `.cn-button`. `default` used to say `sm:h-10`, which made it
+        // taller than `lg` (`sm:h-9`) on desktop — the sizes were out of order.
+        xs: "h-7 gap-1 px-2.5 text-sm sm:h-6 sm:text-xs",
+        sm: "h-8 gap-1.5 px-3 text-base sm:h-7 sm:text-sm",
+        default: "h-9 gap-1.5 px-4 text-base sm:h-8 sm:text-sm",
+        lg: "h-10 gap-2 px-5 text-base sm:h-9 sm:text-sm",
         xl: "h-11 gap-2.5 px-6 text-lg sm:h-10 sm:text-base",
         icon: "size-9 sm:size-8",
         "icon-xs": "size-7 sm:size-6",

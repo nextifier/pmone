@@ -81,7 +81,7 @@
           </div>
 
           <div v-if="form.settings?.require_email" class="space-y-2">
-            <Label for="respondent_email" class="text-sm sm:text-base">
+            <Label for="respondent_email">
               {{ t("forms.emailLabel") }}
               <span class="text-destructive">*</span>
             </Label>

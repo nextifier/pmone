@@ -1,6 +1,5 @@
 import tailwindcss from "@tailwindcss/vite";
 import { createRequire } from "node:module";
-import { cpus } from "node:os";
 import { fileURLToPath } from "node:url";
 import { brands } from "./brands";
 
@@ -581,21 +580,20 @@ export default defineNuxtConfig({
     },
     hooks: {
       /**
-       * Bound the terser worker pool that minifies the worker bundle.
+       * Minify the worker bundle with esbuild instead of terser.
        *
-       * Nitro minifies with `@rollup/plugin-terser`, whose pool defaults to
-       * `os.cpus().length`. Inside a build container that reads /proc/cpuinfo
-       * and reports the HOST's core count, not the cgroup quota — Cloudflare's
-       * builder is 4 vCPU / 8 GB, so the default can spawn dozens of terser
-       * threads (each its own V8 isolate holding a chunk's AST) that fight over
-       * 4 cores and push the process past the memory ceiling. That is the only
-       * step that varies between identical builds: minifying the ~490 server
-       * chunks took 3m44s on the last green build and >28m on the two after it,
-       * which Cloudflare kills at the 30-minute timeout.
+       * Terser is the single slowest, least predictable part of the build.
+       * Nitro runs it over the ~490 server chunks (11 MB) as the last step, and
+       * that step is the only one that varies between otherwise identical
+       * builds: it took 3m44s on 2026-08-06's green build and over 28 minutes on
+       * the two after it, both of which Cloudflare killed at its 30-minute
+       * timeout. esbuild does the same job in seconds, which puts the whole
+       * build far away from that ceiling. Vite already minifies this app's
+       * client bundle with esbuild, so this only aligns the server half.
        *
-       * Nitro hardcodes its terser options with no passthrough, so swap the
-       * plugin for the same one with a bounded pool. Options mirror
-       * nitropack/dist/rollup/index.mjs — keep them in sync on a nitro bump.
+       * `keepNames` matches the `mangle.keep_fnames` / `mangle.keep_classnames`
+       * that nitro passes to terser, and es2019 is the target its esbuild
+       * transform pass already uses (nitropack/dist/rollup/index.mjs).
        */
       "rollup:before"(_nitro, rollupConfig) {
         const plugins = rollupConfig.plugins as { name?: string }[];
@@ -605,16 +603,28 @@ export default defineNuxtConfig({
           return;
         }
 
-        const terser = createRequire(import.meta.url)("@rollup/plugin-terser");
-        const maxWorkers = Math.min(4, cpus().length);
+        const { transform } = createRequire(import.meta.url)("esbuild");
 
-        console.info(`[nitro] terser pool capped at ${maxWorkers} (os.cpus: ${cpus().length})`);
+        const minifier = {
+          name: "esbuild-minify",
+          async renderChunk(
+            code: string,
+            _chunk: unknown,
+            outputOptions: { sourcemap?: boolean | string }
+          ) {
+            const result = await transform(code, {
+              loader: "js",
+              target: "es2019",
+              minify: true,
+              keepNames: true,
+              sourcemap: Boolean(outputOptions.sourcemap),
+            });
 
-        plugins[index] = (terser.default || terser)({
-          maxWorkers,
-          mangle: { keep_fnames: true, keep_classnames: true },
-          format: { comments: false },
-        });
+            return { code: result.code, map: result.map || null };
+          },
+        };
+
+        plugins[index] = minifier;
       },
     },
   },

@@ -41,8 +41,12 @@ export const tabsTriggerClasses: Record<TabsVariant, string> = {
     "relative z-10 data-[state=active]:text-foreground hover:text-muted-foreground",
 };
 
+// Same ladder as `.cn-button`: one step taller on phones, settling to the desktop
+// height at `sm`, with the label moving the opposite way. These classes land in the
+// utilities layer and would otherwise win over `.cn-tabs-trigger` and pin the trigger
+// to a single size.
 export const tabsTriggerSizeClasses: Record<TabsSize, string> = {
-  sm: "h-7 px-2.5 text-xs tracking-tight",
-  md: "h-8 px-3 py-1.5 text-sm tracking-tight",
-  lg: "h-10 px-4 py-2 text-base tracking-tight",
+  sm: "h-8 px-2.5 text-sm tracking-tight sm:h-7 sm:text-xs",
+  md: "h-9 px-3 py-1.5 text-base tracking-tight sm:h-8 sm:text-sm",
+  lg: "h-11 px-4 py-2 text-lg tracking-tight sm:h-10 sm:text-base",
 };

@@ -14,7 +14,7 @@
   </div>
 
   <div v-else class="space-y-2">
-    <Label :for="fieldId" class="text-sm sm:text-base">
+    <Label :for="fieldId">
       {{ normalized.label }}
       <span v-if="isRequired" class="text-destructive">*</span>
     </Label>
