@@ -265,10 +265,18 @@ class Event extends Model implements HasMedia, Sortable
         // title/edition/slug into the cached JSON (fallbackEventWithItems /
         // fallbackMeta in PublicProjectController). The public hotels listing
         // also filters on events.is_active.
+        //
+        // 'tickets' (added 6 Aug 2026): PublicTicketController reads
+        // $event->settings['tickets']['terms'], tickets_enabled,
+        // business_matching_enabled and the allowed payment channels straight
+        // off this model, and /tickets SSRs the event poster. Only
+        // EventTicketSettingsController used to clear that tag by hand, so
+        // editing the same fields through any other path left the ticket
+        // payload stale.
         return [
             'events', 'faqs', 'brands', 'gallery',
             'partners', 'programs', 'guests', 'media-coverages', 'rundown', 'hotels',
-            'promotion-posts',
+            'promotion-posts', 'tickets',
         ];
     }
 

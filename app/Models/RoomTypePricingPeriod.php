@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\ClearsResponseCache;
 use Database\Factories\RoomTypePricingPeriodFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -70,6 +71,8 @@ use Spatie\EloquentSortable\SortableTrait;
  */
 class RoomTypePricingPeriod extends Model implements Sortable
 {
+    use ClearsResponseCache;
+
     /** @use HasFactory<RoomTypePricingPeriodFactory> */
     use HasFactory;
 
@@ -91,6 +94,17 @@ class RoomTypePricingPeriod extends Model implements Sortable
         'order_column_name' => 'order_column',
         'sort_when_creating' => true,
     ];
+
+    /**
+     * Rates and date windows here are rendered into the public hotel payload
+     * (PublicRoomTypeResource, eager-loaded by PublicHotelController), which is
+     * response-cached. Without this the only thing bounding a stale rate was
+     * that route's TTL.
+     */
+    protected static function responseCacheTags(): array
+    {
+        return ['hotels'];
+    }
 
     protected function casts(): array
     {

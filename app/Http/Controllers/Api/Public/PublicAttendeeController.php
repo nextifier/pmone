@@ -96,9 +96,14 @@ class PublicAttendeeController extends Controller
             fn (): string => AttendeeQrImage::png($attendee->qr_token),
         );
 
+        // `private`, and short. This route needs no auth — the ULID is the only
+        // secret — so `public, max-age=86400` let Cloudflare and every proxy in
+        // between hold an attendee's gate pass for a day, with no way to drop it
+        // if the order is refunded or the QR reissued. The Cache::remember above
+        // still absorbs the render cost.
         return response($png, 200, [
             'Content-Type' => 'image/png',
-            'Cache-Control' => 'public, max-age=86400',
+            'Cache-Control' => 'private, max-age=300',
         ]);
     }
 

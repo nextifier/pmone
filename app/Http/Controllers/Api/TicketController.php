@@ -229,10 +229,22 @@ class TicketController extends Controller
         ]);
     }
 
+    /**
+     * Write the poster, then bust `tickets` — in that order.
+     *
+     * The ClearsResponseCache clear fired by $ticket->update() in update() runs
+     * BEFORE this method, so it captures the state without the new media. Until
+     * 6 Aug 2026 nothing cleared afterwards, so a replaced poster stayed live on
+     * the event websites until the TTL lapsed. Every other media-writing
+     * controller in this app already does this (see
+     * EventController::handleTemporaryUpload, ProjectBannerController,
+     * ProgramController, GuestController) — this one was the outlier.
+     */
     private function handlePosterUpload(?string $tmpValue, bool $shouldDelete, Ticket $ticket): void
     {
         if ($shouldDelete) {
             $ticket->clearMediaCollection('poster');
+            ResponseCache::clear(['tickets']);
 
             return;
         }
@@ -258,5 +270,7 @@ class TicketController extends Controller
         $ticket->addMedia(Storage::disk('local')->path($filePath))->toMediaCollection('poster');
 
         Storage::disk('local')->deleteDirectory("tmp/uploads/{$tmpValue}");
+
+        ResponseCache::clear(['tickets']);
     }
 }

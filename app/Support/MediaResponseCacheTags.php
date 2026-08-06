@@ -3,7 +3,9 @@
 namespace App\Support;
 
 use App\Models\Brand;
+use App\Models\BrandEvent;
 use App\Models\Event;
+use App\Models\Form;
 use App\Models\Guest;
 use App\Models\Hotel;
 use App\Models\HotelTransferOption;
@@ -12,10 +14,13 @@ use App\Models\LinkPageBanner;
 use App\Models\LinkPageItem;
 use App\Models\Partner;
 use App\Models\Post;
+use App\Models\Program;
 use App\Models\Project;
+use App\Models\ProjectBanner;
 use App\Models\PromotionPost;
 use App\Models\RoomType;
 use App\Models\RundownItem;
+use App\Models\Ticket;
 use App\Models\User;
 
 /**
@@ -39,6 +44,9 @@ class MediaResponseCacheTags
             RoomType::class,
             HotelTransferOption::class => ['hotels'],
             Brand::class => ['brands'],
+            // BrandEvent carries the per-edition media (dynamic collections from
+            // the event's custom fields) that the public brand payloads render.
+            BrandEvent::class,
             PromotionPost::class => ['brands', 'promotion-posts'],
             Partner::class => ['partners'],
             Guest::class => ['guests'],
@@ -64,6 +72,17 @@ class MediaResponseCacheTags
             LinkPage::class,
             LinkPageItem::class,
             LinkPageBanner::class => ['short-links'],
+            // Added 6 Aug 2026. Every one of these owns media that a cached
+            // public payload renders, and every one was silently returning []:
+            // a poster replaced through the generic /media/* endpoints, or a
+            // queued conversion finishing after the controller's own clear,
+            // invalidated NOTHING. Ticket is how a replaced ticket poster
+            // survived for hours. Keep this list in step with
+            // tests/Feature/MediaResponseCacheTagsCoverageTest.php.
+            Ticket::class => ['tickets'],
+            Program::class => ['programs'],
+            ProjectBanner::class => ['banners'],
+            Form::class => ['forms-public'],
             default => [],
         };
     }

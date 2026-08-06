@@ -104,8 +104,18 @@ return [
             'api' => ['/api/event/guests'],
             'html' => ['/guests'],
         ],
+        // The `api` list was EMPTY until 6 Aug 2026. RULE: any tag that purges a
+        // page's HTML must also purge every endpoint that page renders FROM, or
+        // the next visitor re-renders from stale JSON and the wrong result is
+        // stored as fresh. /tickets renders the event payload (poster, dates,
+        // ticket settings) from /api/event/active, which carries a 6-hour edge
+        // TTL — that is the layer a replaced poster was hiding behind.
+        //
+        // The ticket listing itself (/api/tickets/{eventSlug}) is deliberately
+        // absent: it is not in the events repo's cf-cache-rules tables, so it is
+        // never edge-cached and there is nothing to purge.
         'tickets' => [
-            'api' => [],
+            'api' => ['/api/event/active'],
             'html' => ['/tickets'],
         ],
         'faqs' => [
@@ -127,8 +137,8 @@ return [
         // '/' on the html lists below: the post slider, hero/visitor-cta
         // banners, media-coverage slider and rundown/active-event sections are
         // SSR-rendered on the homepage (verified in its __NUXT_DATA__), so
-        // these tags must drop the home variants too or the home stays stale
-        // for its full 7-day TTL. EdgeCache expands '/' via homeVariantUrls().
+        // these tags must drop the home URLs too or the home stays stale for its
+        // full TTL. EdgeCache expands '/' across the site's locale prefixes.
         'blog-posts' => [
             'api' => ['/api/blog/posts'],
             'html' => ['/news', '/'],
@@ -145,9 +155,13 @@ return [
             'api' => [],
             'html' => [],
         ],
+        // '/tickets' belongs here: the event poster, dates and ticket settings
+        // all come from the Event model, and /tickets SSRs them. Leaving it out
+        // is what let a replaced poster survive on /id/tickets for hours in
+        // Aug 2026 while every other page had already updated.
         'events' => [
             'api' => ['/api/event/active', '/api/editions', '/api/event/rundown'],
-            'html' => ['/rundown', '/gallery', '/programs', '/'],
+            'html' => ['/rundown', '/gallery', '/programs', '/tickets', '/'],
         ],
         // SINGULAR. The models emit 'rundown', not 'rundowns' — an earlier
         // version of this file spelled it plural, so every rundown edit purged
@@ -162,8 +176,8 @@ return [
             'html' => ['/gallery'],
         ],
         // Banners are SSR'd on the homepage (banner-hero / visitor-cta in the
-        // payload), and '/' became purgeable when the worker collapsed its key
-        // space (phase 2) — EdgeCache::homeVariantUrls() enumerates it.
+        // payload). Note bare "/" is not edge-cached (it negotiates locale), so
+        // this entry really only reaches the locale homepages "/id", "/zh", …
         'banners' => [
             'api' => ['/api/banners'],
             'html' => ['/'],

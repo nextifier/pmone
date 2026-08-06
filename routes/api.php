@@ -1575,51 +1575,59 @@ Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
 });
 
 // Public Project & Event API endpoints (API key authentication)
+//
+// TTL is 1 hour, not 24. These were 86400 until 6 Aug 2026, which is only safe
+// if invalidation is perfect — and an audit that day found seven paths where a
+// content change busted nothing (media written through the generic /media/*
+// endpoints, queued conversions finishing after the controller's clear, hotel
+// pricing periods, ticket settings on the Event model). Those holes are fixed,
+// but the TTL is the net that catches the next one, and a day-long net is not a
+// net. Freshness still comes from the tag clear; this only bounds the damage.
 Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
     Route::get('/{username}', [PublicProjectController::class, 'show'])
-        ->middleware(TenantCacheResponse::for(86400, 'projects'));
+        ->middleware(TenantCacheResponse::for(3600, 'projects'));
     Route::get('/{username}/events', [PublicProjectController::class, 'events'])
-        ->middleware(TenantCacheResponse::for(86400, 'events'));
+        ->middleware(TenantCacheResponse::for(3600, 'events'));
     Route::get('/{username}/events/active', [PublicProjectController::class, 'activeEvent'])
-        ->middleware(TenantCacheResponse::for(86400, 'events'));
+        ->middleware(TenantCacheResponse::for(3600, 'events'));
     Route::get('/{username}/events/{eventSlug}', [PublicProjectController::class, 'event'])
-        ->middleware(TenantCacheResponse::for(86400, 'events'));
+        ->middleware(TenantCacheResponse::for(3600, 'events'));
     Route::get('/{username}/editions', [PublicProjectController::class, 'publishedEditions'])
-        ->middleware(TenantCacheResponse::for(86400, 'events'));
+        ->middleware(TenantCacheResponse::for(3600, 'events'));
     Route::get('/{username}/editions/{editionNumber}/brands', [PublicProjectController::class, 'brandsByEdition'])
         ->where('editionNumber', '[0-9]+')
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/editions/{editionNumber}/brands/{brandSlug}', [PublicProjectController::class, 'brandByEdition'])
         ->where('editionNumber', '[0-9]+')
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/brands-with-conjunctions', [PublicProjectController::class, 'activeBrandsWithConjunctions'])
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/brands', [PublicProjectController::class, 'activeBrands'])
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/brands/{brandSlug}', [PublicProjectController::class, 'activeBrand'])
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/events/{eventSlug}/partners', [PublicProjectController::class, 'partners'])
-        ->middleware(TenantCacheResponse::for(86400, 'partners'));
+        ->middleware(TenantCacheResponse::for(3600, 'partners'));
     Route::get('/{username}/editions/{editionNumber}/partners', [PublicProjectController::class, 'partnersByEdition'])
         ->where('editionNumber', '[0-9]+')
-        ->middleware(TenantCacheResponse::for(86400, 'partners'));
+        ->middleware(TenantCacheResponse::for(3600, 'partners'));
     Route::get('/{username}/events/{eventSlug}/brands', [PublicProjectController::class, 'brands'])
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}', [PublicProjectController::class, 'brand'])
-        ->middleware(TenantCacheResponse::for(86400, 'brands'));
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/events/{eventSlug}/brands/{brandSlug}/promotion-posts', [PublicProjectController::class, 'promotionPosts'])
         ->middleware(TenantCacheResponse::for(3600, 'promotion-posts'));
     Route::get('/{username}/events/{eventSlug}/rundown', [PublicProjectController::class, 'rundown'])
-        ->middleware(TenantCacheResponse::for(86400, 'rundown'));
+        ->middleware(TenantCacheResponse::for(3600, 'rundown'));
     Route::get('/{username}/editions/{editionNumber}/rundown', [PublicProjectController::class, 'rundownByEdition'])
         ->where('editionNumber', '[0-9]+')
-        ->middleware(TenantCacheResponse::for(86400, 'rundown'));
+        ->middleware(TenantCacheResponse::for(3600, 'rundown'));
     Route::get('/{username}/events/{eventSlug}/programs', [PublicProjectController::class, 'programs'])
-        ->middleware(TenantCacheResponse::for(86400, 'programs'));
+        ->middleware(TenantCacheResponse::for(3600, 'programs'));
     Route::get('/{username}/events/{eventSlug}/faqs', [PublicProjectController::class, 'faqs'])
-        ->middleware(TenantCacheResponse::for(86400, 'faqs'));
+        ->middleware(TenantCacheResponse::for(3600, 'faqs'));
     Route::get('/{username}/events/{eventSlug}/media-coverages', [PublicProjectController::class, 'mediaCoverages'])
-        ->middleware(TenantCacheResponse::for(86400, 'media-coverages'));
+        ->middleware(TenantCacheResponse::for(3600, 'media-coverages'));
 
     // ── Form Builder embeds (event websites) ─────────────────────────────
     // Project-scoped: a site can only render forms owned by its own project.
@@ -1636,15 +1644,15 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
     Route::get('/{username}/forms/{slug}/check', [PublicProjectFormController::class, 'checkDuplicate'])
         ->middleware('throttle:form-upload');
     Route::get('/{username}/events/{eventSlug}/gallery', [PublicProjectController::class, 'gallery'])
-        ->middleware(TenantCacheResponse::for(86400, 'gallery'));
+        ->middleware(TenantCacheResponse::for(3600, 'gallery'));
     Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
-        ->middleware(TenantCacheResponse::for(86400, 'website-settings'));
+        ->middleware(TenantCacheResponse::for(3600, 'website-settings'));
     Route::get('/{username}/website-pages', [PublicProjectController::class, 'websitePages'])
-        ->middleware(TenantCacheResponse::for(86400, 'website-pages'));
+        ->middleware(TenantCacheResponse::for(3600, 'website-pages'));
     Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])
-        ->middleware(TenantCacheResponse::for(86400, 'guests'));
+        ->middleware(TenantCacheResponse::for(3600, 'guests'));
     Route::get('/{username}/events/{eventSlug}/guests/{slug}', [PublicProjectController::class, 'guest'])
-        ->middleware(TenantCacheResponse::for(86400, 'guests'));
+        ->middleware(TenantCacheResponse::for(3600, 'guests'));
 });
 
 // Public Exchange Rate API endpoints (no authentication required, public proxy)
@@ -1652,7 +1660,7 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
     Route::get('/', [ExchangeRateController::class, 'index'])
         ->middleware(CacheResponse::for(3600, 'exchange-rates'));
     Route::get('/currencies', [ExchangeRateController::class, 'currencies'])
-        ->middleware(CacheResponse::for(86400, 'exchange-rates'));
+        ->middleware(CacheResponse::for(3600, 'exchange-rates'));
     Route::get('/popular', [ExchangeRateController::class, 'popular'])
         ->middleware(CacheResponse::for(3600, 'exchange-rates'));
     Route::get('/convert', [ExchangeRateController::class, 'convert'])

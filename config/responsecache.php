@@ -1,5 +1,10 @@
 <?php
 
+use Spatie\ResponseCache\CacheProfiles\CacheAllSuccessfulGetRequests;
+use Spatie\ResponseCache\Hasher\DefaultHasher;
+use Spatie\ResponseCache\Replacers\CsrfTokenReplacer;
+use Spatie\ResponseCache\Serializers\JsonSerializer;
+
 return [
     /*
      * Determine if the response cache middleware should be enabled.
@@ -25,7 +30,22 @@ return [
          * name here. All responses will be tagged. When clearing
          * the responsecache only items with that tag flushed.
          *
-         * You may use a string or an array here.
+         * MUST STAY EMPTY. Setting a global tag was tried on 6 Aug 2026 and
+         * reverted the same day: ResponseCacheRepository::tags() MERGES the
+         * global tag into every per-call tag list, and Laravel flushes a tagged
+         * cache by the UNION of its tags — so `clear(['events:flei'])` would
+         * flush everything tagged `responsecache`, i.e. every other tenant's
+         * cached responses too. That silently undoes the whole point of
+         * TenantCacheResponse.
+         *
+         * The thing a global tag was meant to protect against is not a problem
+         * here: an untagged clear() flushes the cache STORE, which is Redis
+         * database 1 (config/database.php `redis.cache`). Sessions use the
+         * `database` driver and queue locks live on Redis db 0, so neither is
+         * touched. Losing the analytics warm-up and the cached zone list is
+         * what an admin pressing "flush cache" is asking for.
+         *
+         * Locked by the tenant-isolation case in ResponseCacheInvalidationTest.
          */
         'tag' => env('RESPONSE_CACHE_TAG', ''),
     ],
@@ -96,18 +116,18 @@ return [
      * By default all successful GET-requests will be cached.
      * You can provide your own by using the CacheProfile.
      */
-    'cache_profile' => Spatie\ResponseCache\CacheProfiles\CacheAllSuccessfulGetRequests::class,
+    'cache_profile' => CacheAllSuccessfulGetRequests::class,
 
     /*
      * This class is responsible for generating a hash for
      * a request. Used for looking up cached responses.
      */
-    'hasher' => \Spatie\ResponseCache\Hasher\DefaultHasher::class,
+    'hasher' => DefaultHasher::class,
 
     /*
      * This class is responsible for serializing responses.
      */
-    'serializer' => \Spatie\ResponseCache\Serializers\JsonSerializer::class,
+    'serializer' => JsonSerializer::class,
 
     /*
      * Here you may define the replacers that will replace
@@ -115,6 +135,6 @@ return [
      * must always implement the Replacer interface.
      */
     'replacers' => [
-        \Spatie\ResponseCache\Replacers\CsrfTokenReplacer::class,
+        CsrfTokenReplacer::class,
     ],
 ];

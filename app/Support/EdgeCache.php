@@ -103,7 +103,7 @@ class EdgeCache
                     continue;
                 }
 
-                // The worker caches API responses under their REAL query string
+                // Cloudflare caches API responses under their REAL query string
                 // (?locale=en …), and purge-by-URL matches exactly — a bare-path
                 // purge hits nothing the frontend actually requests. Locale is
                 // the one enumerable dimension; unenumerable ones (?page,
@@ -115,23 +115,14 @@ class EdgeCache
                     }
                 }
 
-                // HTML entries are keyed with the ?__cm colour-mode variant the
-                // worker adds (see buildEdgeCacheKey in the events repo). Purging
-                // the bare URL alone matches NOTHING — this exact mistake made
-                // every dashboard purge a silent no-op on 23 Jul 2026. Keep the
-                // suffixes in lockstep with the worker's key scheme.
+                // Plain URLs. Between 23 Jul and 6 Aug 2026 the events worker
+                // kept its own Cloudflare Cache API copy keyed on synthetic
+                // ?__cm / ?__lc / ?__al params, and this method hand-mirrored
+                // that key scheme. The worker cache is gone; the only cache left
+                // is the zone Cache Rule, which keys on the real URL.
                 foreach (array_merge($paths['html'] ?? [], $extraPaths) as $path) {
-                    if ($path === '/') {
-                        // The homepage is negotiated (locale cookie +
-                        // Accept-Language), so its key space is bigger — but
-                        // deliberately finite. See homeVariantUrls().
-                        array_push($urls, ...static::homeVariantUrls($base, $locales));
-
-                        continue;
-                    }
                     foreach (static::localeVariants($path, $locales) as $variant) {
-                        $urls[] = $base.$variant.'?__cm=dark';
-                        $urls[] = $base.$variant.'?__cm=light';
+                        $urls[] = $base.$variant;
                     }
                 }
             }
@@ -141,50 +132,18 @@ class EdgeCache
     }
 
     /**
-     * Every cache-key variant the worker can store for a site's bare "/".
-     *
-     * The worker keys "/" on its locale-negotiation inputs, deliberately
-     * collapsed to stay enumerable (see buildEdgeCacheKey in the events repo —
-     * KEEP IN LOCKSTEP):
-     *   __lc = locale cookie clamped to the site's locales, else "none"
-     *   __al = first Accept-Language match; "-" when a cookie exists
-     *          (i18n gives the cookie precedence); "none"/"other" otherwise
-     *   __cm = dark|light
-     * Locale-prefixed homepages ("/id" …) go through the normal path variants;
-     * this list is only for the negotiated bare "/".
-     *
-     * @return string[]
-     */
-    public static function homeVariantUrls(string $base, array $locales): array
-    {
-        $urls = [];
-
-        $alWithoutCookie = array_values(array_unique(['none', 'other', ...$locales]));
-
-        foreach (['dark', 'light'] as $cm) {
-            // Bot requests skip the negotiation inputs entirely (they collapse
-            // onto the default variant), so their key is just ?__cm=….
-            $urls[] = $base.'/?__cm='.$cm;
-
-            foreach ($alWithoutCookie as $al) {
-                $urls[] = $base.'/?__cm='.$cm.'&__lc=none&__al='.$al;
-            }
-            foreach ($locales as $lc) {
-                $urls[] = $base.'/?__cm='.$cm.'&__lc='.$lc.'&__al=-';
-            }
-        }
-
-        return $urls;
-    }
-
-    /**
      * Expand an HTML path across a site's locales. Under i18n's
      * `prefix_except_default` the default locale carries no prefix, so "/news"
      * has to be purged as both "/news" and "/id/news", "/zh/news", ...
      *
+     * 'en' is skipped on purpose: it IS the default locale on all 16 sites, so
+     * "/en/news" is not a route the sites serve — it 404s. If a site ever moves
+     * to `prefix` (every locale prefixed), this skip has to go with it.
+     * Locked by tests/Unit/EdgeCacheLocaleVariantsTest.php.
+     *
      * @return string[]
      */
-    protected static function localeVariants(string $path, array $locales): array
+    public static function localeVariants(string $path, array $locales): array
     {
         $variants = [$path];
 
