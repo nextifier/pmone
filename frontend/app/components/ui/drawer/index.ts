@@ -29,4 +29,5 @@ export { default as DrawerBackdrop } from "./DrawerOverlay.vue"
 export { default as DrawerPopup } from "./DrawerContent.vue"
 
 export { useDrawerSwipeArbiter } from "./useDrawerSwipeArbiter"
+export { readKeyboardInset, useDrawerVirtualKeyboard } from "./useDrawerVirtualKeyboard"
 export { useTransitionStatus } from "./useTransitionStatus"

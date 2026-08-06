@@ -66,6 +66,7 @@
     <template v-else>
       <Drawer v-model:open="isOpen" side="bottom">
         <DrawerPopup
+          :virtual-keyboard="virtualKeyboard"
           :show-bar="!flushContent"
           :class="
             cn(
@@ -190,6 +191,11 @@ const props = defineProps({
   flushContent: {
     type: Boolean,
     default: false,
+  },
+  /** Lift the drawer clear of the software keyboard. Mobile branch only. */
+  virtualKeyboard: {
+    type: Boolean,
+    default: true,
   },
 });
 

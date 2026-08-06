@@ -12,6 +12,7 @@ import {
 import {
   computed,
   inject,
+  nextTick,
   onMounted,
   onScopeDispose,
   onUpdated,
@@ -28,6 +29,7 @@ import DrawerBar from "./DrawerBar.vue";
 import DrawerClose from "./DrawerClose.vue";
 import DrawerOverlay from "./DrawerOverlay.vue";
 import { useDrawerSwipeArbiter } from "./useDrawerSwipeArbiter";
+import { useDrawerVirtualKeyboard } from "./useDrawerVirtualKeyboard";
 import { useTransitionStatus } from "./useTransitionStatus";
 
 type DrawerPosition = "top" | "right" | "bottom" | "left";
@@ -51,6 +53,8 @@ const props = withDefaults(
       overlayClass?: HTMLAttributes["class"];
       /** Arbitrate drag against cross-axis scrolling. Turn off only to debug. */
       swipeArbitration?: boolean;
+      /** Lift the drawer clear of the software keyboard. */
+      virtualKeyboard?: boolean;
     }
   >(),
   {
@@ -59,6 +63,7 @@ const props = withDefaults(
     showCloseButton: false,
     showOverlay: true,
     swipeArbitration: true,
+    virtualKeyboard: true,
   }
 );
 
@@ -76,7 +81,8 @@ const delegatedProps = reactiveOmit(
   "showCloseButton",
   "showOverlay",
   "overlayClass",
-  "swipeArbitration"
+  "swipeArbitration",
+  "virtualKeyboard"
 );
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
@@ -85,8 +91,6 @@ const position = computed<DrawerPosition>(
   () => SWIPE_DIRECTION_TO_POSITION[rootContext.swipeDirection.value]
 );
 const open = computed(() => unref(rootContext.open));
-/** With snap points the backdrop tracks the active stop, not just the live drag. */
-const hasSnapPoints = computed(() => (unref(rootContext.snapPoints)?.length ?? 0) > 1);
 
 /**
  * A drawer behind another one scales against `--drawer-frontmost-height`, the
@@ -103,9 +107,25 @@ const ancestorRoots = inject(DRAWER_ANCESTORS, [] as DrawerRootLike[]);
 provide(DRAWER_ANCESTORS, [...ancestorRoots, rootContext]);
 
 function reportFrontmostHeight(height: number) {
+  // Own context included, so the drawer in front carries the variable too. coss
+  // shows `--drawer-frontmost-height` on every popup, not only the ones behind,
+  // and a third level reads it through `--height` when it in turn gains a child.
+  rootContext.onNestedFrontmostHeightChange?.(height);
   for (const ancestor of ancestorRoots) {
     ancestor.onNestedFrontmostHeightChange?.(height);
   }
+}
+
+/**
+ * Frontmost means nothing in front of it, so a drawer that has gained a child
+ * must stop announcing its own height — otherwise it overwrites the child's, and
+ * every drawer in the stack sizes itself to the wrong one.
+ */
+function reportOwnHeight(height: number) {
+  if (height <= 0 || unref(rootContext.hasNestedDrawer)) {
+    return;
+  }
+  reportFrontmostHeight(height);
 }
 
 /**
@@ -171,22 +191,58 @@ useDrawerSwipeArbiter({
   side: position,
 });
 
-useResizeObserver(contentElement, ([entry]) => {
-  if (!entry || !ancestorRoots.length) {
-    return;
-  }
-  const height = entry.borderBoxSize?.[0]?.blockSize ?? (entry.target as HTMLElement).offsetHeight;
-  if (height > 0) {
-    reportFrontmostHeight(height);
-  }
+const { keyboardInset, keyboardVisible } = useDrawerVirtualKeyboard({
+  enabled: computed(() => props.virtualKeyboard),
+  active: mounted,
+  element: contentElement,
 });
 
-// Presence follows `mounted` so the stack stays put while this drawer animates out.
+useResizeObserver(contentElement, ([entry]) => {
+  if (!entry) {
+    return;
+  }
+  reportOwnHeight(
+    entry.borderBoxSize?.[0]?.blockSize ?? (entry.target as HTMLElement).offsetHeight
+  );
+});
+
+/**
+ * A ResizeObserver only reports after the browser has laid the element out, so
+ * the drawer behind would learn this one's height a frame late and start its own
+ * height transition a frame after the entrance had already begun — visibly out
+ * of step with the reference. Base UI measures in a layout effect instead
+ * (`DrawerPopup.tsx` -> `onNestedFrontmostHeightChange`), before the frame is
+ * painted. A post-flush watcher is the same moment in Vue. The observer above
+ * stays for everything afterwards: content growing, the keyboard, rotation.
+ */
 watch(
-  mounted,
-  (isMounted) => {
+  [contentElement, open, mounted],
+  ([el, isOpen]) => {
+    if (!el || !isOpen) {
+      return;
+    }
+    reportOwnHeight(el.offsetHeight);
+  },
+  { flush: "post" }
+);
+// Deliberately not keyed on `hasNestedDrawer`: when the child leaves, the box is
+// still mid-transition at the child's height, so measuring here would publish
+// that number as this drawer's own. The observer above reports every step of the
+// way back and lands on the settled value.
+
+/**
+ * Follows `open`, not `mounted`. coss drops `data-nested-drawer-open` from the
+ * drawer behind in the same tick the front one starts leaving, so the two move
+ * as one; waiting for the exit to finish splits it into a slide followed by a
+ * separate un-scale. Measured on coss: child `data-ending-style` and parent
+ * `data-nested-drawer-open` off at t=19ms together. The direct parent is reka's
+ * to notify — see the patch note for `DrawerContentImpl`.
+ */
+watch(
+  open,
+  (isOpen) => {
     for (const ancestor of olderAncestors) {
-      ancestor.onNestedDrawerPresenceChange?.(isMounted);
+      ancestor.onNestedDrawerPresenceChange?.(isOpen);
     }
   },
   { flush: "post" }
@@ -239,17 +295,35 @@ watch(
 );
 
 /**
- * reka registers `--drawer-swipe-progress` with `inherits: false` and writes it
- * once on the backdrop at mount, so the backdrop cannot see the live value on its
- * own. It also resets the store to 0 the moment a swipe ends — mirroring that
- * blindly snaps the backdrop to full opacity for a frame before the closing fade,
- * a dark flash right as the drawer leaves. So follow the store only while the
- * finger is down; on a snap-back ease it home, on a dismiss freeze the last value
- * and let the closing fade carry it to zero.
+ * The backdrop reads `--drawer-backdrop-progress` / `--drawer-backdrop-strength`
+ * rather than reka's own variables, because reka rewrites those on the backdrop
+ * on every render — see the comment in `DrawerOverlay.vue`. These two are ours
+ * alone, so the value below is the only one the backdrop ever sees.
  */
 const progressStore = rootContext.nestedSwipeProgressStore;
-const writeProgress = (value: number) => {
-  resolveOverlay()?.style.setProperty("--drawer-swipe-progress", `${value}`);
+/**
+ * Base UI keeps two separate numbers: `swipeProgress`, which drives this
+ * drawer's own backdrop and is zeroed while the drawer has a child
+ * (`isActive = open && !nested`), and `nestedSwipeProgress`, which travels up
+ * the chain either way (`DrawerViewport.tsx:194-196`). reka collapses both into
+ * one store, so without this a parent's backdrop fades out as its child is
+ * swiped away.
+ */
+const backdropProgress = (value: number) => (unref(rootContext.hasNestedDrawer) ? 0 : value);
+const writeProgress = (value: number): boolean => {
+  const el = resolveOverlay();
+  el?.style.setProperty("--drawer-backdrop-progress", `${value}`);
+  return Boolean(el);
+};
+/**
+ * reka scales the closing animation by `--drawer-swipe-strength` but only ever
+ * writes it to the popup (`DrawerContentImpl.js` onRelease), so the backdrop's
+ * exit always took the full 400ms no matter how fast the drawer was flicked.
+ * Base UI writes it to both (`DrawerViewport.tsx:217-225`); mirror it here.
+ */
+const syncBackdropStrength = () => {
+  const strength = contentElement.value?.style.getPropertyValue("--drawer-swipe-strength");
+  resolveOverlay()?.style.setProperty("--drawer-backdrop-strength", strength || "1");
 };
 /**
  * The popup keeps its own copy, written by reka, and feeds `--stack-progress`,
@@ -271,14 +345,72 @@ const broadcastProgress = (value: number) => {
     ancestor.nestedSwipeProgressStore.set(value);
   }
 };
-onScopeDispose(
-  progressStore.subscribe(() => {
-    if (unref(rootContext.isSwiping) || hasSnapPoints.value) {
-      const progress = progressStore.getSnapshot();
-      writeProgress(progress);
-      broadcastProgress(progress);
+/**
+ * Follow the store the whole time the drawer is on screen, not just while the
+ * finger is down: with snap points the resting value differs per stop, and the
+ * patched `snapPointProgress` watcher pushes it here. The one moment to stop
+ * following is the exit — reka zeroes the store as the drawer leaves, which
+ * would snap the backdrop to full opacity for a frame right before it fades.
+ * Base UI has the same reset and gets away with it because `data-ending-style`
+ * pins the backdrop to `opacity: 0`; ours does too, but only once the ending
+ * class has landed, so hold the last value until then.
+ */
+const flushProgress = () => {
+  if (transitionStatus.value === "ending") {
+    return;
+  }
+  return writeProgress(backdropProgress(progressStore.getSnapshot()));
+};
+const syncProgress = () => {
+  broadcastProgress(progressStore.getSnapshot());
+  // The portal teleports on a post-flush job of its own, so on the frame the
+  // drawer opens the backdrop may not be in the document yet. Without a retry a
+  // drawer reopening onto the snap point it already had would never get a value
+  // at all, because the store never changes and so never notifies. The retry
+  // re-reads the store rather than replaying the value from this call: the store
+  // does move on in between, and writing the old number back is what made the
+  // backdrop turn up dark on the second open.
+  if (flushProgress() === false) {
+    nextTick(flushProgress);
+  }
+};
+onScopeDispose(progressStore.subscribe(syncProgress));
+/** `subscribe` only fires on change, so hand the drawer its first value here. */
+watch([mounted, open, () => unref(rootContext.hasNestedDrawer)], syncProgress, {
+  flush: "post",
+});
+/**
+ * Base UI reports 0 up the chain the instant a drawer closes rather than when it
+ * has finished leaving (`DrawerViewport.tsx:194-196`: `nestedSwipeProgress` is
+ * `open && ... ? progress : 0`), so the drawer behind eases back to full size
+ * while this one is still sliding away. Here it has to be explicit: reka clears
+ * this drawer's own store on dismiss, but nothing ever clears the copy we pushed
+ * into its ancestors', and they would sit at the last swiped value — held back
+ * at that scale, with a backdrop stuck part-way faded — for good.
+ */
+watch(open, (isOpen) => {
+  if (!isOpen) {
+    broadcastProgress(0);
+  }
+});
+/**
+ * And the same thing from the other end, which is the half that actually holds:
+ * the store is doing double duty, carrying this drawer's own swipe progress and
+ * the progress of whichever drawer sits in front of it. Once the child is gone
+ * the second meaning no longer applies, so the value it left behind has to go —
+ * otherwise the drawer stays shrunk and its backdrop half faded. Base UI keeps
+ * the two apart and calls `finishNestedSwipe()` for this
+ * (`DrawerViewport.tsx:201-203`). Guarded on the transition so a drawer that
+ * never had a child cannot clobber its own snap point value.
+ */
+watch(
+  () => Boolean(unref(rootContext.hasNestedDrawer)),
+  (hasChild, hadChild) => {
+    if (hadChild && !hasChild) {
+      progressStore.set(0);
     }
-  })
+  },
+  { flush: "post" }
 );
 watch([() => unref(rootContext.isSwiping), mounted], ([swiping]) => {
   // Same off-by-one as the presence count: reka hands the swipe flag to the
@@ -293,17 +425,18 @@ watch([() => unref(rootContext.isSwiping), mounted], ([swiping]) => {
   }
   if (swiping) {
     el.setAttribute("data-swiping", "");
-    writeProgress(progressStore.getSnapshot());
+    syncProgress();
     return;
   }
   el.removeAttribute("data-swiping");
+  syncBackdropStrength();
   if (open.value) {
-    // A drawer resting on a snap point keeps the backdrop at that stop's value;
-    // snapping it back to 1 here is what made it flash bright on release.
-    const settled = hasSnapPoints.value ? progressStore.getSnapshot() : 0;
-    writeProgress(settled);
+    // reka snaps to the nearest stop synchronously here but only pushes the new
+    // progress from its own watcher, which runs later in this same flush; this
+    // write uses the value we already have and the subscription corrects it
+    // before the frame is painted.
+    syncProgress();
     clearPopupProgress();
-    broadcastProgress(settled);
     // reka zeroes the movement variables on a snap-back, so the arbiter's
     // baseline has to go in the same recalc or the panel would settle a slop
     // distance past where it started. On a dismiss both are left alone so the
@@ -332,10 +465,17 @@ defineExpose({ contentElement, overlayElement });
     />
     <DrawerViewport
       data-slot="drawer-viewport"
+      :data-side="position"
+      :data-keyboard-visible="keyboardVisible ? '' : undefined"
+      :style="{ '--drawer-keyboard-inset': `${keyboardInset}px` }"
       :class="
         cn(
-          'fixed inset-0 z-50 [--bleed:--spacing(12)] [--inset:0px]',
+          'fixed inset-x-0 top-0 z-50 [--bleed:--spacing(12)] [--inset:0px] [--drawer-keyboard-inset:0px]',
           'touch-none',
+          // Shortening the box from the bottom lifts the panel clear of the
+          // keyboard and lowers its `max-h-full` ceiling in the same move. A
+          // `top` drawer is anchored to the opposite edge, so it stays put.
+          position === 'top' ? 'bottom-0' : 'bottom-(--drawer-keyboard-inset)',
           position === 'bottom' && 'grid grid-rows-[1fr_auto] pt-12',
           position === 'top' && 'grid grid-rows-[auto_1fr] pb-12',
           position === 'left' && 'flex justify-start',
@@ -351,6 +491,7 @@ defineExpose({ contentElement, overlayElement });
         force-mount
         data-slot="drawer-popup"
         :data-side="position"
+        :data-keyboard-visible="keyboardVisible ? '' : undefined"
         :data-starting-style="startingStyle"
         :data-ending-style="endingStyle"
         :class="
@@ -393,6 +534,14 @@ defineExpose({ contentElement, overlayElement });
               'data-nested-drawer-open:transform-[translateX(calc(var(--drawer-swipe-movement-x)+var(--stack-peek-offset)))_scale(var(--scale))] origin-right',
             position === 'right' &&
               'data-nested-drawer-open:transform-[translateX(calc(var(--drawer-swipe-movement-x)-var(--stack-peek-offset)))_scale(var(--scale))] origin-left',
+            // Consumers usually cap the height in `vh` (`ResponsiveDialog` uses
+            // `max-h-[85vh]`), which does not shrink when the keyboard appears,
+            // so long content would still run underneath it. The variant wins on
+            // specificity, and tailwind-merge keeps both because a different
+            // variant is a different group. It also guarantees the popup always
+            // has *some* ceiling, which is what keeps `--drawer-snap-point-offset`
+            // -> `padding-bottom` -> measured border box from feeding itself.
+            position !== 'top' && 'data-keyboard-visible:max-h-full',
             props.class
           )
         "

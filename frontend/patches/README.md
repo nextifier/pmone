@@ -27,9 +27,19 @@ upstream fix landed before re-applying.
 | Touch drags may start on buttons, links and fields | `DrawerViewport.tsx: ignoreSelectorWhenTouch: false` |
 | `data-*-swipe-ignore` opt-out honoured on both touch and mouse | `DrawerViewport.tsx: isSwipeIgnoredTarget` |
 | `data-expanded`, `data-nested-drawer-swiping`, `data-swipe-dismiss` exposed | `DrawerPopupDataAttributes.ts` |
+| The parent is told a nested drawer has gone when the child *closes*, not when it unmounts | `DrawerViewport.tsx: nested open state` |
 
 Everything reka gets right is left alone, and the patch only touches `dist/` —
 `src/` is shipped but never resolved through the package's exports map.
+
+The last row deserves a note, because it is the one hunk whose effect is easy to
+see. reka announces a nested drawer to its parent from `onMounted`/`onUnmounted`,
+and the popup stays mounted for the whole 450ms exit, so the parent kept
+`data-nested-drawer-open` until the child had finished leaving and only then
+un-scaled — two sequential animations instead of one. Measured on coss, the child
+gaining `data-ending-style` and the parent losing `data-nested-drawer-open` land
+in the same tick. The hunk drives the notification from `rootContext.open` and
+keeps a flag so the unmount path cannot decrement the count twice.
 
 The remaining differences live outside the patch, in `components/ui/drawer`:
 nested presence/height/progress/swiping are relayed to every ancestor because

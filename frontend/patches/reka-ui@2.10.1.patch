@@ -1,5 +1,5 @@
 diff --git a/dist/Drawer/DrawerContentImpl.cjs b/dist/Drawer/DrawerContentImpl.cjs
-index 67acbe8a35ad60cd74ba4e92a025d06b44920d6e..af5254b31d58d45493b370c4e5bc3d063268065e 100644
+index 67acbe8a35ad60cd74ba4e92a025d06b44920d6e..7473ededfeeebc1abef3f342040f92bf886377fe 100644
 --- a/dist/Drawer/DrawerContentImpl.cjs
 +++ b/dist/Drawer/DrawerContentImpl.cjs
 @@ -54,7 +54,7 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
@@ -101,7 +101,7 @@ index 67acbe8a35ad60cd74ba4e92a025d06b44920d6e..af5254b31d58d45493b370c4e5bc3d06
  			}
  		});
  		let pendingDismissReason;
-@@ -217,6 +272,8 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
+@@ -217,15 +272,25 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
  			};
  			if (isSwiping.value) attrs["data-swiping"] = "";
  			if (rootContext.hasNestedDrawer.value) attrs["data-nested-drawer-open"] = "";
@@ -110,8 +110,35 @@ index 67acbe8a35ad60cd74ba4e92a025d06b44920d6e..af5254b31d58d45493b370c4e5bc3d06
  			return attrs;
  		});
  		(0, vue.watch)(() => rootContext.nestedOpenDrawerCount.value, (n) => {
+ 			currentElement.value?.style.setProperty(require_Drawer_utils.DRAWER_CSS_VARS.nestedDrawers, `${n}`);
+ 		});
+ 		let unsubscribeNestedProgress;
++		let notifiedParentNested = false;
++		const setParentNested = (next) => {
++			if (next === notifiedParentNested) return;
++			notifiedParentNested = next;
++			rootContext.notifyParentHasNestedDrawer?.(next);
++		};
++		(0, vue.watch)(() => rootContext.open.value, (isOpen) => {
++			setParentNested(Boolean(isOpen));
++		}, { immediate: true });
+ 		(0, vue.onMounted)(() => {
+ 			rootContext.contentElement.value = currentElement.value;
+-			rootContext.notifyParentHasNestedDrawer?.(true);
+ 			currentElement.value?.style.setProperty(require_Drawer_utils.DRAWER_CSS_VARS.nestedDrawers, `${rootContext.nestedOpenDrawerCount.value}`);
+ 			writeSnapPointOffset();
+ 			unsubscribeNestedProgress = rootContext.nestedSwipeProgressStore.subscribe(() => {
+@@ -234,7 +299,7 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
+ 			});
+ 		});
+ 		(0, vue.onUnmounted)(() => {
+-			rootContext.notifyParentHasNestedDrawer?.(false);
++			setParentNested(false);
+ 			unsubscribeNestedProgress?.();
+ 			clearOpenCompleteListener();
+ 		});
 diff --git a/dist/Drawer/DrawerContentImpl.js b/dist/Drawer/DrawerContentImpl.js
-index 99b7e735737335445ced7746ad8f118da912e8bc..d3d1955f97e39db9dcc12c5e2363d7e4e0c00826 100644
+index 99b7e735737335445ced7746ad8f118da912e8bc..e069d9709edbb186e18a7558e4f7ae588ed6a00a 100644
 --- a/dist/Drawer/DrawerContentImpl.js
 +++ b/dist/Drawer/DrawerContentImpl.js
 @@ -53,7 +53,7 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
@@ -213,7 +240,7 @@ index 99b7e735737335445ced7746ad8f118da912e8bc..d3d1955f97e39db9dcc12c5e2363d7e4
  			}
  		});
  		let pendingDismissReason;
-@@ -216,6 +271,8 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
+@@ -216,15 +271,25 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
  			};
  			if (isSwiping.value) attrs["data-swiping"] = "";
  			if (rootContext.hasNestedDrawer.value) attrs["data-nested-drawer-open"] = "";
@@ -222,6 +249,33 @@ index 99b7e735737335445ced7746ad8f118da912e8bc..d3d1955f97e39db9dcc12c5e2363d7e4
  			return attrs;
  		});
  		watch(() => rootContext.nestedOpenDrawerCount.value, (n) => {
+ 			currentElement.value?.style.setProperty(DRAWER_CSS_VARS.nestedDrawers, `${n}`);
+ 		});
+ 		let unsubscribeNestedProgress;
++		let notifiedParentNested = false;
++		const setParentNested = (next) => {
++			if (next === notifiedParentNested) return;
++			notifiedParentNested = next;
++			rootContext.notifyParentHasNestedDrawer?.(next);
++		};
++		watch(() => rootContext.open.value, (isOpen) => {
++			setParentNested(Boolean(isOpen));
++		}, { immediate: true });
+ 		onMounted(() => {
+ 			rootContext.contentElement.value = currentElement.value;
+-			rootContext.notifyParentHasNestedDrawer?.(true);
+ 			currentElement.value?.style.setProperty(DRAWER_CSS_VARS.nestedDrawers, `${rootContext.nestedOpenDrawerCount.value}`);
+ 			writeSnapPointOffset();
+ 			unsubscribeNestedProgress = rootContext.nestedSwipeProgressStore.subscribe(() => {
+@@ -233,7 +298,7 @@ var DrawerContentImpl_vue_vue_type_script_setup_true_lang_default = /* @__PURE__
+ 			});
+ 		});
+ 		onUnmounted(() => {
+-			rootContext.notifyParentHasNestedDrawer?.(false);
++			setParentNested(false);
+ 			unsubscribeNestedProgress?.();
+ 			clearOpenCompleteListener();
+ 		});
 diff --git a/dist/composables/useDrawerSnapPoints.cjs b/dist/composables/useDrawerSnapPoints.cjs
 index a09ba2ade9ab36a22bd2a9376dcae9ed0b692dc0..632669032ba0ad75feff17bf000a4678aa1b21cd 100644
 --- a/dist/composables/useDrawerSnapPoints.cjs
@@ -606,3 +660,50 @@ index 2cb684a5c7bad185c05cb83bd4b4238c8a125488..a11180ad6ca5e70d3fc1bab92aa30c87
  		const el = elementRef.value;
  		if (!el) return;
  		if (!options.ignoreScrollableAncestors) {
+diff --git a/src/Drawer/DrawerContentImpl.vue b/src/Drawer/DrawerContentImpl.vue
+index b4146beced727eb60f35d19c828defe413d7b422..8996ba1c0179287653810e5c0654c16e1e5e114f 100644
+--- a/src/Drawer/DrawerContentImpl.vue
++++ b/src/Drawer/DrawerContentImpl.vue
+@@ -97,7 +97,9 @@ useResizeObserver(currentElement, ([entry]) => {
+     return
+   if (rootContext.hasNestedDrawer.value && rootContext.popupHeight.value > 0)
+     return
+-  const h = entry.contentRect.height
++  // border-box: `--drawer-height` is consumed as `height` under box-sizing:border-box,
++  // so measuring the content box feeds back and shrinks the popup every cycle.
++  const h = entry.borderBoxSize?.[0]?.blockSize ?? (entry.target as HTMLElement).offsetHeight
+   rootContext.onPopupHeightChange(h)
+   currentElement.value?.style.setProperty(DRAWER_CSS_VARS.height, `${h}px`)
+ })
+@@ -128,6 +130,8 @@ const { isSwiping, dragOffset } = useSwipeDismiss({
+   enabled: computed(() => rootContext.open.value),
+   elementRef: currentElement,
+   directions: swipeDirections,
++  // Base UI parity: dismiss past half the panel, not a flat 40px.
++  swipeThreshold: ({ element, direction }) => Math.max((direction === 'left' || direction === 'right' ? element.offsetWidth : element.offsetHeight) * 0.5, 10),
+   movementCssVars: {
+     x: DRAWER_CSS_VARS.swipeMovementX,
+     y: DRAWER_CSS_VARS.swipeMovementY,
+diff --git a/src/Drawer/composables/useSwipeDismiss.ts b/src/Drawer/composables/useSwipeDismiss.ts
+index 6898e91e48ab2c00684c5b8894cf15d39011bd8f..ab88d2a9ef1103e96df84a4cdbf8262ea5a6d485 100644
+--- a/src/Drawer/composables/useSwipeDismiss.ts
++++ b/src/Drawer/composables/useSwipeDismiss.ts
+@@ -321,8 +321,7 @@ export function useSwipeDismiss(options: UseSwipeDismissOptions) {
+       const dim = (currentDir === 'up' || currentDir === 'down')
+         ? elementSize.height || currentEl.offsetHeight
+         : elementSize.width || currentEl.offsetWidth
+-      const threshold = getThreshold(currentEl, currentDir)
+-      const p = Math.min(1, Math.max(0, displacement / (dim + threshold)))
++      const p = Math.min(1, Math.max(0, displacement / dim))
+       if (p !== swipeProgress) {
+         swipeProgress = p
+         onProgress?.(p, { deltaX: damped.x, deltaY: damped.y, direction: currentDir })
+@@ -360,7 +359,7 @@ export function useSwipeDismiss(options: UseSwipeDismissOptions) {
+         velocity.y,
+       )
+       const shouldDismiss = !cancelledSwipe
+-        && (displacement >= threshold || velInDirection > 0.3)
++        && (displacement >= threshold || velInDirection > 0.5)
+ 
+       if (shouldDismiss) {
+         // BaseUI parity: on dismiss, keep the drag transform in place so the
