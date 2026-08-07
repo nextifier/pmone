@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { DialogRoot, type DialogRootEmits, type DialogRootProps, useForwardProps } from 'reka-ui'
 import { useVModel } from '@vueuse/core'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { usePanelHistory } from '@/components/ui/panel-history'
 
 const props = defineProps<DialogRootProps>()
 const emits = defineEmits<DialogRootEmits>()
@@ -13,35 +13,14 @@ const isOpen = useVModel(props, 'open', emits, {
   defaultValue: props.defaultOpen,
 })
 
-// Back button/gesture closes dialog instead of navigating away
-const pushedHistoryState = ref(false)
-
-const onPopState = () => {
-  pushedHistoryState.value = false
-  isOpen.value = false
-}
-
-watch(isOpen, (newVal, oldVal) => {
-  if (newVal && !oldVal) {
-    window.history.pushState({ dialogOpen: true }, '')
-    pushedHistoryState.value = true
-    window.addEventListener('popstate', onPopState, { once: true })
-  } else if (!newVal && oldVal && pushedHistoryState.value) {
-    pushedHistoryState.value = false
-    window.removeEventListener('popstate', onPopState)
-    // Only rewind the entry we pushed on open if we're still sitting on it
-    // (a normal dismiss). If a navigation has since moved past it - e.g.
-    // selecting a command-palette item - calling back() would undo that
-    // navigation and bounce the user back to where they started.
-    if (window.history.state?.dialogOpen) {
-      window.history.back()
-    }
-  }
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('popstate', onPopState)
-})
+// Back button/gesture closes the dialog instead of navigating away.
+//
+// This used to be a private copy of the same idea: its own `popstate` listener
+// and its own `history.back()`. Two independent listeners meant a dialog opened
+// from inside a drawer took the drawer down with it on close — the drawer heard
+// the rewind the dialog had asked for and read it as a back gesture. One shared
+// stack keeps each press closing exactly one panel.
+usePanelHistory(isOpen)
 </script>
 
 <template>

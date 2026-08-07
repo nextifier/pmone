@@ -383,6 +383,10 @@ export function useSwipeDismiss(options: UseSwipeDismissOptions): void {
     if (!shouldDismiss) {
       setSwiping(false)
       writeOffset(0, 0, 0)
+      // The strength of the *previous* gesture is still on the element, and the
+      // next close would animate at that speed instead of its own.
+      setVar(element.value, "--sheet-swipe-strength", null)
+      setVar(overlay.value, "--sheet-swipe-strength", null)
       return
     }
 
@@ -652,6 +656,8 @@ export function useSwipeDismiss(options: UseSwipeDismissOptions): void {
       el.addEventListener("pointerup", onPointerEnd)
       el.addEventListener("pointercancel", onPointerEnd)
 
+      const overlayEl = overlay?.value ?? null
+
       onCleanup(() => {
         el.removeEventListener("touchstart", onTouchStart)
         el.removeEventListener("touchend", onTouchEnd)
@@ -662,7 +668,19 @@ export function useSwipeDismiss(options: UseSwipeDismissOptions): void {
         el.removeEventListener("pointercancel", onPointerEnd)
         gesture = null
         stopDocumentListening()
-        clearOffset()
+        // Not `clearOffset()`: it reads `element.value`, which this watcher has
+        // already advanced past by the time cleanup runs, so every `setVar` bails
+        // out and the variables survive. Harmless while the node is destroyed
+        // with the sheet, but a reused node would open mid-swipe.
+        for (const name of [
+          "--sheet-swipe-movement-x",
+          "--sheet-swipe-movement-y",
+          "--sheet-swipe-strength",
+        ]) {
+          el.style.removeProperty(name)
+        }
+        overlayEl?.style.removeProperty("--sheet-swipe-progress")
+        overlayEl?.style.removeProperty("--sheet-swipe-strength")
       })
     },
     { immediate: true }

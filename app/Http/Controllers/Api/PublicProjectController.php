@@ -205,6 +205,7 @@ class PublicProjectController extends Controller
             && $event->project->shouldFallbackToPreviousEventData('brands')
             && ! $event->brandEvents()->where('status', 'active')->exists()) {
             $event = $this->fallbackEventWithItems(
+                $request,
                 $event,
                 'brandEvents',
                 fn ($q) => $q->where('status', 'active'),
@@ -301,7 +302,7 @@ class PublicProjectController extends Controller
      * Get single brand detail from the active event for a project.
      * Falls back to conjunction events if brand is not found in the primary event.
      */
-    public function activeBrand(string $username, string $brandSlug): JsonResponse
+    public function activeBrand(Request $request, string $username, string $brandSlug): JsonResponse
     {
         $event = $this->findActiveEvent($username);
 
@@ -333,8 +334,9 @@ class PublicProjectController extends Controller
         // Fallback: search previous editions of the same project (most recent
         // first) so links from the home-page BrandPreview teaser still resolve
         // when the active event borrows a previous edition's brands. Skipped
-        // when the project disables previous-edition brand fallback.
-        if (! $brandEvent && $event->project->shouldFallbackToPreviousEventData('brands')) {
+        // when the caller sends `?fallback=0` or the project disables
+        // previous-edition brand fallback.
+        if (! $brandEvent && $this->fallbackAllowed($request, $event, 'brands')) {
             $brandEvent = BrandEvent::query()
                 ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
                 ->where('status', 'active')
@@ -527,7 +529,7 @@ class PublicProjectController extends Controller
 
         $source = $event->programs()->where('is_active', true)->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'programs', null, 'programs') ?? $event);
+            : ($this->fallbackEventWithItems($request, $event, 'programs', null, 'programs') ?? $event);
 
         $programs = $source->programs()
             ->with('media')
@@ -546,7 +548,7 @@ class PublicProjectController extends Controller
 
         $source = $event->mediaCoverages()->where('is_active', true)->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'mediaCoverages', null, 'media_coverages') ?? $event);
+            : ($this->fallbackEventWithItems($request, $event, 'mediaCoverages', null, 'media_coverages') ?? $event);
 
         $items = $source->mediaCoverages()
             ->where('is_active', true)
@@ -576,7 +578,7 @@ class PublicProjectController extends Controller
 
         $source = $event->faqs()->where('is_active', true)->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'faqs', null, 'faqs') ?? $event);
+            : ($this->fallbackEventWithItems($request, $event, 'faqs', null, 'faqs') ?? $event);
 
         $faqs = $source->faqs()
             ->where('is_active', true)
@@ -604,6 +606,7 @@ class PublicProjectController extends Controller
         $source = $event->hasMedia('gallery')
             ? $event
             : ($this->fallbackEventWithItems(
+                $request,
                 $event,
                 'media',
                 fn ($q) => $q->where('collection_name', 'gallery'),
@@ -629,9 +632,9 @@ class PublicProjectController extends Controller
      * the given section ($settingKey), so callers keep the active event's own
      * (possibly empty) data.
      */
-    private function fallbackEventWithItems(Event $event, string $relation, ?\Closure $constraint, string $settingKey): ?Event
+    private function fallbackEventWithItems(Request $request, Event $event, string $relation, ?\Closure $constraint, string $settingKey): ?Event
     {
-        if (! $event->project->shouldFallbackToPreviousEventData($settingKey)) {
+        if (! $this->fallbackAllowed($request, $event, $settingKey)) {
             return null;
         }
 
@@ -642,6 +645,20 @@ class PublicProjectController extends Controller
             ->reorder()
             ->orderByDesc('start_date')
             ->first();
+    }
+
+    /**
+     * Whether this request may borrow a previous edition's data for a section.
+     *
+     * Event websites send `?fallback=0|1` per endpoint, sourced from their own
+     * `app.config.ts`, so the decision lives in the site's code rather than in
+     * the dashboard. The project's `website_settings.data_fallback` toggle is
+     * ANDed in for callers that omit the flag, and is itself default-true.
+     */
+    private function fallbackAllowed(Request $request, Event $event, string $section): bool
+    {
+        return $request->boolean('fallback', true)
+            && $event->project->shouldFallbackToPreviousEventData($section);
     }
 
     /**
@@ -940,7 +957,7 @@ class PublicProjectController extends Controller
 
         $source = $event->guests()->active()->where('visibility', 'public')->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'guests', $hasPublicGuests, 'guests') ?? $event);
+            : ($this->fallbackEventWithItems($request, $event, 'guests', $hasPublicGuests, 'guests') ?? $event);
 
         $query = $source->guests()
             ->active()
@@ -986,6 +1003,7 @@ class PublicProjectController extends Controller
         // first) so links from a fallback-rendered guest list still resolve.
         if (! $guest) {
             $sourceEvent = $this->fallbackEventWithItems(
+                $request,
                 $event,
                 'guests',
                 fn ($q) => $q->active()->where('visibility', 'public')->where('slug', $slug),
@@ -1016,7 +1034,7 @@ class PublicProjectController extends Controller
      * recent other event in the same project that does — mirrors programs/faqs
      * so a freshly-created event still shows the Credits section.
      */
-    public function partners(string $username, string $eventSlug): JsonResponse
+    public function partners(Request $request, string $username, string $eventSlug): JsonResponse
     {
         $event = $this->findEvent($username, $eventSlug);
 
@@ -1024,7 +1042,7 @@ class PublicProjectController extends Controller
 
         $source = $event->partnerCategories()->whereHas('partners', fn ($p) => $p->active()->publiclyVisible())->exists()
             ? $event
-            : ($this->fallbackEventWithItems($event, 'partnerCategories', $hasActivePartners, 'partners') ?? $event);
+            : ($this->fallbackEventWithItems($request, $event, 'partnerCategories', $hasActivePartners, 'partners') ?? $event);
 
         $categories = $source->partnerCategories()
             ->with(['partners' => fn ($q) => $q->active()->publiclyVisible()->with('media')])

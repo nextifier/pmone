@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import type { DrawerSwipeAreaProps } from "reka-ui";
+import type { DrawerSwipeAreaProps } from "./core";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
 // Aliased: Nuxt auto-registers this file as a global `DrawerSwipeArea`, which
 // would otherwise shadow the primitive and make the template render itself.
-import { DrawerSwipeArea as SwipeAreaPrimitive } from "reka-ui";
+import { DrawerSwipeArea as SwipeAreaPrimitive } from "./core";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<DrawerSwipeAreaProps & { class?: HTMLAttributes["class"] }>();

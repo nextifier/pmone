@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DrawerCloseProps } from "reka-ui";
+import type { DrawerCloseProps } from "./core";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
-import { DrawerClose } from "reka-ui";
+import { DrawerClose } from "./core";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<DrawerCloseProps & { class?: HTMLAttributes["class"] }>();

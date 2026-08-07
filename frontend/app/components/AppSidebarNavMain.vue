@@ -447,6 +447,15 @@ const navMainGroups = computed(() => {
     });
   }
 
+  // Event Websites - Cloudflare build status + rebuilds
+  if (hasPermission("websites.view")) {
+    adminItems.push({
+      label: "Event Websites",
+      path: "/websites",
+      iconName: "hugeicons:globe-02",
+    });
+  }
+
   // API Consumers - requires api_consumers.read permission
   if (hasPermission("api_consumers.read")) {
     adminItems.push({

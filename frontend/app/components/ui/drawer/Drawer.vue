@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import type { DrawerRootEmits, DrawerRootProps } from "reka-ui";
-import { DrawerRoot, useForwardPropsEmits } from "reka-ui";
+import type { DrawerRootEmits, DrawerRootProps } from "./core";
+import { DrawerRoot } from "./core";
+import { useForwardPropsEmits } from "reka-ui";
 import { reactiveOmit, useVModel } from "@vueuse/core";
 import { computed } from "vue";
-import { useDrawerHistory } from "./useDrawerHistory";
+import { usePanelHistory } from "@/components/ui/panel-history";
 
 export type DrawerSide = "top" | "right" | "bottom" | "left";
 
@@ -31,7 +32,7 @@ const isOpen = useVModel(props, "open", emits, {
   defaultValue: props.defaultOpen,
 });
 
-useDrawerHistory(isOpen);
+usePanelHistory(isOpen);
 </script>
 
 <template>

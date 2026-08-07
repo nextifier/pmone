@@ -38,6 +38,22 @@ return [
     'token' => env('CLOUDFLARE_EDGE_PURGE_TOKEN'),
 
     /*
+    | Cloudflare Workers Builds — used by the Event Websites page to show build
+    | status and trigger rebuilds. A SEPARATE token from the purge one above:
+    | that is scoped Zone -> Cache Purge and cannot read Workers.
+    |
+    | Create it at dash.cloudflare.com/profile/api-tokens (a USER token — the
+    | Builds API rejects account-scoped tokens with "Invalid token") with
+    | Account -> Workers Builds Configuration: Edit, and
+    | Account -> Workers Scripts: Read.
+    |
+    | `builds_branch` is the branch a manual rebuild builds from. Each row's
+    | `app` key below doubles as the Cloudflare Worker name.
+    */
+    'builds_token' => env('CLOUDFLARE_WORKERS_BUILDS_TOKEN'),
+    'builds_branch' => env('CLOUDFLARE_WORKERS_BUILDS_BRANCH', 'main'),
+
+    /*
     | How long to remember the hostname -> zone id lookup. Zones change rarely;
     | this only exists to keep purges from making an extra API round trip.
     */

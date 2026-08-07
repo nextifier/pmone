@@ -357,6 +357,14 @@ return [
                 'emails.manage_suppressions' => 'Remove an address from the suppression list',
             ],
         ],
+        'event_websites' => [
+            'label' => 'Event Websites',
+            'description' => 'Cloudflare build status and rebuilds for the event websites',
+            'permissions' => [
+                'websites.view' => 'View the build status of every event website',
+                'websites.rebuild' => 'Trigger a rebuild of an event website',
+            ],
+        ],
         'analytics' => [
             'label' => 'Analytics',
             'description' => 'View and manage analytics data',

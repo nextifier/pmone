@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DrawerTitleProps } from "reka-ui";
+import type { DrawerTitleProps } from "./core";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
-import { DrawerTitle } from "reka-ui";
+import { DrawerTitle } from "./core";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<DrawerTitleProps & { class?: HTMLAttributes["class"] }>();

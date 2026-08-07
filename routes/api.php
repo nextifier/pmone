@@ -114,6 +114,7 @@ use App\Http\Controllers\Api\UserSecurityController;
 use App\Http\Controllers\Api\Webhook\MidtransWebhookController;
 use App\Http\Controllers\Api\Webhook\ResendWebhookController;
 use App\Http\Controllers\Api\Webhook\XenditWebhookController;
+use App\Http\Controllers\Api\WebsiteBuildController;
 use App\Http\Controllers\Api\WebsiteCopyController;
 use App\Http\Controllers\Api\WebsitePageController;
 use App\Http\Controllers\Api\WhatsAppTestController;
@@ -814,6 +815,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/suppressions/{emailSuppression}', [EmailController::class, 'destroySuppression'])
             ->middleware('can:emails.manage_suppressions')
             ->name('emails.suppressions.destroy');
+    });
+
+    // Event websites: Cloudflare Workers build status + manual rebuilds. Almost
+    // every page on those sites is prerendered, so content edited in this
+    // dashboard only reaches visitors on the next build.
+    Route::prefix('websites')->middleware('can:websites.view')->group(function () {
+        Route::get('/', [WebsiteBuildController::class, 'index'])->name('websites.index');
+        Route::post('/rebuild', [WebsiteBuildController::class, 'rebuild'])
+            ->middleware(['can:websites.rebuild', 'throttle:20,1'])
+            ->name('websites.rebuild');
     });
 
     // Short link management endpoints

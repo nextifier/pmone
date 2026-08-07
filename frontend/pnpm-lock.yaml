@@ -10,15 +10,13 @@ overrides:
   esm-env: npm:esm-env-runtime@^0.1.1
   vite: ^8.1.5
 
-patchedDependencies:
-  reka-ui@2.10.1:
-    hash: e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4
-    path: patches/reka-ui@2.10.1.patch
-
 importers:
 
   .:
     dependencies:
+      aria-hidden:
+        specifier: ^1.2.4
+        version: 1.2.6
       markstream-vue:
         specifier: 1.0.5-beta.1
         version: 1.0.5-beta.1(katex@0.16.47)(vue-i18n@11.4.6(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
@@ -214,7 +212,7 @@ importers:
         version: 1.5.4
       reka-ui:
         specifier: ^2.10.1
-        version: 2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3))
+        version: 2.10.1(vue@3.5.40(typescript@5.9.3))
       shadcn-nuxt:
         specifier: ^2.7.4
         version: 2.7.4(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(magicast@0.5.3)
@@ -11761,7 +11759,7 @@ snapshots:
       motion-v: 2.3.0(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
       ohash: 2.0.11
       pathe: 2.0.3
-      reka-ui: 2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3))
+      reka-ui: 2.10.1(vue@3.5.40(typescript@5.9.3))
       scule: 1.3.0
       tailwind-merge: 3.6.0
       tailwind-variants: 3.2.2(tailwind-merge@3.6.0)(tailwindcss@4.3.1)
@@ -11772,7 +11770,7 @@ snapshots:
       unplugin: 3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.62.2)(vite@8.1.5)
       unplugin-auto-import: 21.0.0(@nuxt/kit@4.5.1(magic-string@0.30.21)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.62.2)(vite@8.1.5)))(@vueuse/core@14.3.0(vue@3.5.40(typescript@5.9.3)))
       unplugin-vue-components: 32.1.0(@nuxt/kit@4.5.1(magic-string@0.30.21)(magicast@0.5.3)(oxc-parser@0.140.0)(rolldown@1.2.0)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.62.2)(vite@8.1.5)))(esbuild@0.28.1)(rolldown@1.2.0)(rollup@4.62.2)(vite@8.1.5)(vue@3.5.40(typescript@5.9.3))
-      vaul-vue: 0.4.1(reka-ui@2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
+      vaul-vue: 0.4.1(reka-ui@2.10.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3))
       vue-component-type-helpers: 3.3.9
     optionalDependencies:
       '@internationalized/date': 3.12.2
@@ -18621,7 +18619,7 @@ snapshots:
     dependencies:
       jsesc: 3.1.0
 
-  reka-ui@2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3)):
+  reka-ui@2.10.1(vue@3.5.40(typescript@5.9.3)):
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@floating-ui/vue': 1.1.11(vue@3.5.40(typescript@5.9.3))
@@ -19730,10 +19728,10 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  vaul-vue@0.4.1(reka-ui@2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3)):
+  vaul-vue@0.4.1(reka-ui@2.10.1(vue@3.5.40(typescript@5.9.3)))(vue@3.5.40(typescript@5.9.3)):
     dependencies:
       '@vueuse/core': 10.11.1(vue@3.5.40(typescript@5.9.3))
-      reka-ui: 2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3))
+      reka-ui: 2.10.1(vue@3.5.40(typescript@5.9.3))
       vue: 3.5.40(typescript@5.9.3)
     transitivePeerDependencies:
       - '@vue/composition-api'
@@ -19917,7 +19915,7 @@ snapshots:
   vue-input-otp@0.3.2(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3)):
     dependencies:
       '@vueuse/core': 12.8.2(typescript@5.9.3)
-      reka-ui: 2.10.1(patch_hash=e59b94d32c9632f98e175b17a09e9cdf3cb00b708cfb83fb0d60774b1fe665c4)(vue@3.5.40(typescript@5.9.3))
+      reka-ui: 2.10.1(vue@3.5.40(typescript@5.9.3))
       vue: 3.5.40(typescript@5.9.3)
     transitivePeerDependencies:
       - '@vue/composition-api'

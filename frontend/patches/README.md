@@ -1,52 +1,42 @@
 # patches/
 
-Applied automatically by pnpm via `pnpm.patchedDependencies` in the root
-`package.json`. Each patch is pinned to an exact version — bumping that
+Patches are applied automatically by pnpm via `pnpm.patchedDependencies` in the
+root `package.json`, and each one is pinned to an exact version — bumping that
 dependency makes `pnpm install` fail with "patch not applied", which is the
 intended signal to re-check whether the patch is still needed.
 
+That mechanism is the reason this directory is empty of patches today: a patch
+that grows past a few hunks stops being a patch and becomes an unreviewable fork
+of somebody's build output. Past that point, vendor the source instead.
+
 ## Active
 
-### `reka-ui@2.10.1.patch` — Drawer, dist only
-
-reka ships a port of Base UI's Drawer, but the port drifts from the original in
-ways that show up as soon as you swipe. The patch closes those gaps; each hunk
-mirrors a specific piece of Base UI, so when reka is bumped, check whether the
-upstream fix landed before re-applying.
-
-| What | Base UI reference |
-| --- | --- |
-| `swipeThreshold` forwarded as `max(size * 0.5, 10)`, release velocity `0.5` | `DrawerViewport.tsx: getBaseSwipeThreshold`, `FAST_SWIPE_VELOCITY` |
-| Progress is `displacement / size`, not `displacement / (size + threshold)` | `useSwipeDismiss.ts: updateSwipeProgress` |
-| Popup height measured border-box, not content-box | `DrawerPopup.tsx: measureHeight` |
-| `--drawer-height` only written while nested or closing; `auto` otherwise | `DrawerPopup.tsx: shouldUseAutoHeight` |
-| Snap drags past the top stop are sqrt-damped | `useDrawerSnapPoints.ts: getSnapPointSwipeMovement` |
-| `snapToNearest` rewritten: velocity ignored in sequential mode, close check after the sequential branch, `shouldForceAdjacent`, reversal correction | `DrawerViewport.tsx: onRelease` |
-| Backdrop progress mapped to the snap-point range instead of raw drag | `DrawerViewport.tsx: snapPointRange` |
-| Dragging against the dismiss direction rubber-bands (`data-rubber-band`) | `useSwipeDismiss.ts: applyDirectionalDamping` |
-| Touch drags may start on buttons, links and fields | `DrawerViewport.tsx: ignoreSelectorWhenTouch: false` |
-| `data-*-swipe-ignore` opt-out honoured on both touch and mouse | `DrawerViewport.tsx: isSwipeIgnoredTarget` |
-| `data-expanded`, `data-nested-drawer-swiping`, `data-swipe-dismiss` exposed | `DrawerPopupDataAttributes.ts` |
-| The parent is told a nested drawer has gone when the child *closes*, not when it unmounts | `DrawerViewport.tsx: nested open state` |
-
-Everything reka gets right is left alone, and the patch only touches `dist/` —
-`src/` is shipped but never resolved through the package's exports map.
-
-The last row deserves a note, because it is the one hunk whose effect is easy to
-see. reka announces a nested drawer to its parent from `onMounted`/`onUnmounted`,
-and the popup stays mounted for the whole 450ms exit, so the parent kept
-`data-nested-drawer-open` until the child had finished leaving and only then
-un-scaled — two sequential animations instead of one. Measured on coss, the child
-gaining `data-ending-style` and the parent losing `data-nested-drawer-open` land
-in the same tick. The hunk drives the notification from `rootContext.open` and
-keeps a flag so the unmount path cannot decrement the count twice.
-
-The remaining differences live outside the patch, in `components/ui/drawer`:
-nested presence/height/progress/swiping are relayed to every ancestor because
-reka forwards them to the grandparent's notifier, and `allowSelection` is
-implemented with `useDrawerSelectionArea` since reka has no `Drawer.Content`.
+None. Every patch this project carried has either landed upstream or been
+replaced by owned source — see below.
 
 ## Dropped
+
+### `reka-ui@2.10.1.patch` — replaced by a vendored Drawer
+
+reka ships a port of Base UI's Drawer, and the port drifts from the original in
+ways that show up the moment you swipe. Closing those gaps grew to 36 hunks
+across 8 files, six of which were the same three modules duplicated as ESM and
+CJS. All of it targeted `dist/`, so none of it was readable in review, and any
+version bump would have made `pnpm install` fail with nothing to fall back on.
+
+The Drawer now lives in `app/components/ui/drawer/core/`, vendored from reka's
+own `src/` (it ships TypeScript, so the port started from real source rather
+than build output) together with the three modules reka does not export:
+`DismissableLayer`, `Teleport`, and `useHideOthers`. Everything else it needs —
+`Primitive`, `Presence`, `FocusScope`, `useBodyScrollLock`, `createContext`,
+`useId`, `useForwardExpose` — is public API and is still imported from `reka-ui`,
+so there is exactly one copy of each of those in the bundle.
+
+`aria-hidden` became a direct dependency in the same move: `useHideOthers` needs
+it, and it was previously reachable only as a transitive dependency of reka.
+
+reka remains the dependency for every other component in the app. Only its
+Drawer is no longer used.
 
 ### `nuxt@4.5.0.patch` — removed on the 4.5.1 upgrade
 

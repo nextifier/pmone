@@ -1,4 +1,4 @@
-export { DrawerPortal, DrawerProvider, DrawerIndent, DrawerIndentBackground, DrawerViewport, injectDrawerRootContext } from "reka-ui"
+export { DrawerPortal, DrawerProvider, DrawerIndent, DrawerIndentBackground, DrawerViewport, injectDrawerRootContext } from "./core";
 
 export { default as Drawer, type DrawerSide } from "./Drawer.vue"
 export { default as DrawerBar } from "./DrawerBar.vue"

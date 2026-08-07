@@ -1,22 +1,15 @@
 <script lang="ts" setup>
-import type { DrawerContentEmits, DrawerContentProps } from "reka-ui";
-import type { ComponentPublicInstance, HTMLAttributes, InjectionKey, Ref } from "vue";
-import { reactiveOmit, useResizeObserver } from "@vueuse/core";
-import {
-  DrawerContent,
-  DrawerPortal,
-  DrawerViewport,
-  injectDrawerRootContext,
-  useForwardPropsEmits,
-} from "reka-ui";
+import type { DrawerContentEmits, DrawerContentProps } from "./core";
+import type { ComponentPublicInstance, HTMLAttributes, Ref } from "vue";
+import { reactiveOmit } from "@vueuse/core";
+import { DrawerContent, DrawerPortal, DrawerViewport, injectDrawerRootContext } from "./core";
+import { useForwardPropsEmits } from "reka-ui";
 import {
   computed,
-  inject,
   nextTick,
   onMounted,
   onScopeDispose,
   onUpdated,
-  provide,
   ref,
   shallowRef,
   useId,
@@ -51,6 +44,12 @@ const props = withDefaults(
       showOverlay?: boolean;
       /** Classes for the backdrop, e.g. to keep it mounted but invisible. */
       overlayClass?: HTMLAttributes["class"];
+      /**
+       * Classes for the viewport — the fixed box the panel is laid out in.
+       * Reach for it when the drawer must not start at the edge of the screen,
+       * e.g. a menu that hangs below a sticky header.
+       */
+      viewportClass?: HTMLAttributes["class"];
       /** Arbitrate drag against cross-axis scrolling. Turn off only to debug. */
       swipeArbitration?: boolean;
       /** Lift the drawer clear of the software keyboard. */
@@ -81,6 +80,7 @@ const delegatedProps = reactiveOmit(
   "showCloseButton",
   "showOverlay",
   "overlayClass",
+  "viewportClass",
   "swipeArbitration",
   "virtualKeyboard"
 );
@@ -91,52 +91,6 @@ const position = computed<DrawerPosition>(
   () => SWIPE_DIRECTION_TO_POSITION[rootContext.swipeDirection.value]
 );
 const open = computed(() => unref(rootContext.open));
-
-/**
- * A drawer behind another one scales against `--drawer-frontmost-height`, the
- * height of the drawer in front of it. reka puts `notifyParentFrontmostHeight`
- * in its root context and then never calls it, so that variable is never written
- * and the stack falls back to each drawer's own height — the moment the two
- * differ the drawer behind sits in the wrong place. Base UI walks the height up
- * the whole chain (`DrawerRoot.tsx: onNestedFrontmostHeightChange`), so keep the
- * ancestor list ourselves and do the same.
- */
-type DrawerRootLike = ReturnType<typeof injectDrawerRootContext>;
-const DRAWER_ANCESTORS = Symbol.for("ui.drawer.ancestors") as InjectionKey<DrawerRootLike[]>;
-const ancestorRoots = inject(DRAWER_ANCESTORS, [] as DrawerRootLike[]);
-provide(DRAWER_ANCESTORS, [...ancestorRoots, rootContext]);
-
-function reportFrontmostHeight(height: number) {
-  // Own context included, so the drawer in front carries the variable too. coss
-  // shows `--drawer-frontmost-height` on every popup, not only the ones behind,
-  // and a third level reads it through `--height` when it in turn gains a child.
-  rootContext.onNestedFrontmostHeightChange?.(height);
-  for (const ancestor of ancestorRoots) {
-    ancestor.onNestedFrontmostHeightChange?.(height);
-  }
-}
-
-/**
- * Frontmost means nothing in front of it, so a drawer that has gained a child
- * must stop announcing its own height — otherwise it overwrites the child's, and
- * every drawer in the stack sizes itself to the wrong one.
- */
-function reportOwnHeight(height: number) {
-  if (height <= 0 || unref(rootContext.hasNestedDrawer)) {
-    return;
-  }
-  reportFrontmostHeight(height);
-}
-
-/**
- * `--nested-drawers` is how far back a drawer sits in the stack, and each step
- * costs it a scale step and a peek offset. reka counts it, but forwards the
- * presence to `parentContext.notifyParentHasNestedDrawer` — the *grandparent's*
- * notifier rather than the parent's handler — so the count never travels past
- * the direct parent and two drawers behind end up stacked in exactly the same
- * spot. The direct parent is already covered by reka, so top up the rest.
- */
-const olderAncestors = ancestorRoots.slice(0, -1);
 
 /**
  * reka-ui exposes `$el` as a plain getter, so it is not reactive, and the
@@ -196,75 +150,6 @@ const { keyboardInset, keyboardVisible } = useDrawerVirtualKeyboard({
   active: mounted,
   element: contentElement,
 });
-
-useResizeObserver(contentElement, ([entry]) => {
-  if (!entry) {
-    return;
-  }
-  reportOwnHeight(
-    entry.borderBoxSize?.[0]?.blockSize ?? (entry.target as HTMLElement).offsetHeight
-  );
-});
-
-/**
- * A ResizeObserver only reports after the browser has laid the element out, so
- * the drawer behind would learn this one's height a frame late and start its own
- * height transition a frame after the entrance had already begun — visibly out
- * of step with the reference. Base UI measures in a layout effect instead
- * (`DrawerPopup.tsx` -> `onNestedFrontmostHeightChange`), before the frame is
- * painted. A post-flush watcher is the same moment in Vue. The observer above
- * stays for everything afterwards: content growing, the keyboard, rotation.
- */
-watch(
-  [contentElement, open, mounted],
-  ([el, isOpen]) => {
-    if (!el || !isOpen) {
-      return;
-    }
-    reportOwnHeight(el.offsetHeight);
-  },
-  { flush: "post" }
-);
-// Deliberately not keyed on `hasNestedDrawer`: when the child leaves, the box is
-// still mid-transition at the child's height, so measuring here would publish
-// that number as this drawer's own. The observer above reports every step of the
-// way back and lands on the settled value.
-
-/**
- * Follows `open`, not `mounted`. coss drops `data-nested-drawer-open` from the
- * drawer behind in the same tick the front one starts leaving, so the two move
- * as one; waiting for the exit to finish splits it into a slide followed by a
- * separate un-scale. Measured on coss: child `data-ending-style` and parent
- * `data-nested-drawer-open` off at t=19ms together. The direct parent is reka's
- * to notify — see the patch note for `DrawerContentImpl`.
- */
-watch(
-  open,
-  (isOpen) => {
-    for (const ancestor of olderAncestors) {
-      ancestor.onNestedDrawerPresenceChange?.(isOpen);
-    }
-  },
-  { flush: "post" }
-);
-
-/**
- * The height, though, has to be handed back the moment this drawer starts to
- * close. Waiting for the exit animation leaves every ancestor stretched to a
- * drawer that is already sliding away, so the one behind sits lifted off the
- * edge with a strip of backdrop under it.
- */
-watch(
-  open,
-  (isOpen) => {
-    if (isOpen || !ancestorRoots.length) {
-      return;
-    }
-    const nearest = ancestorRoots[ancestorRoots.length - 1];
-    reportFrontmostHeight(nearest ? unref(nearest.popupHeight) : 0);
-  },
-  { flush: "post" }
-);
 
 /**
  * A swipe-dismiss deliberately leaves the movement variables where the finger
@@ -334,18 +219,6 @@ const clearPopupProgress = () => {
   contentElement.value?.style.setProperty("--drawer-swipe-progress", "0");
 };
 /**
- * Every drawer behind this one recovers its scale as this one is swiped away, so
- * they all need the live progress. reka forwards it with the same off-by-one as
- * the presence count, landing on the grandparent and skipping the parent, so
- * feed the whole chain here instead. `set` is idempotent, so the value reka
- * already delivered is simply written again.
- */
-const broadcastProgress = (value: number) => {
-  for (const ancestor of ancestorRoots) {
-    ancestor.nestedSwipeProgressStore.set(value);
-  }
-};
-/**
  * Follow the store the whole time the drawer is on screen, not just while the
  * finger is down: with snap points the resting value differs per stop, and the
  * patched `snapPointProgress` watcher pushes it here. The one moment to stop
@@ -362,7 +235,6 @@ const flushProgress = () => {
   return writeProgress(backdropProgress(progressStore.getSnapshot()));
 };
 const syncProgress = () => {
-  broadcastProgress(progressStore.getSnapshot());
   // The portal teleports on a post-flush job of its own, so on the frame the
   // drawer opens the backdrop may not be in the document yet. Without a retry a
   // drawer reopening onto the snap point it already had would never get a value
@@ -380,17 +252,22 @@ watch([mounted, open, () => unref(rootContext.hasNestedDrawer)], syncProgress, {
   flush: "post",
 });
 /**
- * Base UI reports 0 up the chain the instant a drawer closes rather than when it
- * has finished leaving (`DrawerViewport.tsx:194-196`: `nestedSwipeProgress` is
- * `open && ... ? progress : 0`), so the drawer behind eases back to full size
- * while this one is still sliding away. Here it has to be explicit: reka clears
- * this drawer's own store on dismiss, but nothing ever clears the copy we pushed
- * into its ancestors', and they would sit at the last swiped value — held back
- * at that scale, with a backdrop stuck part-way faded — for good.
+ * reka leaves its own store holding whatever the finger last produced: `reset()`
+ * zeroes the internal number without ever emitting it, and `finishSwipe()` does
+ * not emit either. So a drawer that has been snapped back — or simply reopened
+ * after an earlier swipe — starts life claiming to be part-way dismissed, and
+ * every drawer behind it sits shrunk with its peek eaten. A settled drawer is at
+ * its snap point's progress, or at 0 when it has no snap points; the first case
+ * is already reka's watcher to own, so only the second needs saying.
  */
-watch(open, (isOpen) => {
-  if (!isOpen) {
-    broadcastProgress(0);
+const settleProgress = () => {
+  if ((unref(rootContext.snapPoints)?.length ?? 0) < 2) {
+    progressStore.set(0);
+  }
+};
+watch([open, () => unref(rootContext.isSwiping)], ([isOpen, swiping]) => {
+  if (isOpen && !swiping) {
+    settleProgress();
   }
 });
 /**
@@ -413,12 +290,6 @@ watch(
   { flush: "post" }
 );
 watch([() => unref(rootContext.isSwiping), mounted], ([swiping]) => {
-  // Same off-by-one as the presence count: reka hands the swipe flag to the
-  // grandparent's notifier, so the drawer directly behind never learns that the
-  // one in front of it is being dragged.
-  for (const ancestor of ancestorRoots) {
-    ancestor.onNestedSwipingChange?.(Boolean(swiping));
-  }
   const el = resolveOverlay();
   if (!el) {
     return;
@@ -482,7 +353,8 @@ defineExpose({ contentElement, overlayElement });
           position === 'right' && 'flex justify-end',
           variant === 'inset' && 'px-(--inset) sm:[--inset:--spacing(4)]',
           variant === 'inset' && position !== 'bottom' && 'pt-(--inset)',
-          variant === 'inset' && position !== 'top' && 'pb-(--inset)'
+          variant === 'inset' && position !== 'top' && 'pb-(--inset)',
+          viewportClass
         )
       "
     >
@@ -496,7 +368,7 @@ defineExpose({ contentElement, overlayElement });
         :data-ending-style="endingStyle"
         :class="
           cn(
-            'bg-popover text-popover-foreground relative flex max-h-full min-h-0 w-full min-w-0 flex-col not-dark:bg-clip-padding shadow-lg/5 outline-none transition-[transform,box-shadow,height,background-color] duration-450 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform [--peek:calc(--spacing(6)-1px)] [--scale-base:calc(max(0,1-(var(--nested-drawers)*var(--stack-step))))] [--scale:clamp(0,calc(var(--scale-base)+(var(--stack-step)*var(--stack-progress))),1)] [--shrink:calc(1-var(--scale))] [--stack-peek-offset:max(0px,calc((var(--nested-drawers)-var(--stack-progress))*var(--peek)))] [--stack-progress:clamp(0,var(--drawer-swipe-progress),1)] [--stack-step:0.05] before:pointer-events-none before:absolute before:inset-0 before:shadow-[0_1px_--theme(--color-black/4%)] after:pointer-events-none after:absolute after:bg-popover data-swiping:transition-none! data-rubber-band:transition-none! data-swiping:select-none data-nested-drawer-open:overflow-hidden data-nested-drawer-open:bg-[color-mix(in_srgb,var(--popover),var(--color-black)_calc(2%*(var(--nested-drawers)-var(--stack-progress))))] data-ending-style:shadow-transparent data-starting-style:shadow-transparent data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] dark:data-nested-drawer-open:bg-[color-mix(in_srgb,var(--popover),var(--color-black)_calc(6%*(var(--nested-drawers)-var(--stack-progress))))] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]',
+            'bg-popover text-popover-foreground relative flex max-h-full min-h-0 w-full min-w-0 flex-col not-dark:bg-clip-padding shadow-lg/5 outline-none transition-[transform,box-shadow,height,background-color] duration-450 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform [--peek:calc(--spacing(6)-1px)] [--scale-base:calc(max(0,1-(var(--nested-drawers)*var(--stack-step))))] [--scale:clamp(0,calc(var(--scale-base)+(var(--stack-step)*var(--stack-progress))),1)] [--shrink:calc(1-var(--scale))] [--stack-peek-offset:max(0px,calc((var(--nested-drawers)-var(--stack-progress))*var(--peek)))] [--stack-progress:clamp(0,var(--drawer-swipe-progress),1)] [--stack-step:0.05] before:pointer-events-none before:absolute before:inset-0 before:shadow-[0_1px_--theme(--color-black/4%)] after:pointer-events-none after:absolute after:bg-popover data-swiping:transition-none! data-rubber-band:transition-none! data-swiping:select-none motion-reduce:transition-none! data-nested-drawer-open:overflow-hidden data-nested-drawer-open:bg-[color-mix(in_srgb,var(--popover),var(--color-black)_calc(2%*(var(--nested-drawers)-var(--stack-progress))))] data-ending-style:shadow-transparent data-starting-style:shadow-transparent data-ending-style:duration-[calc(var(--drawer-swipe-strength)*400ms)] dark:data-nested-drawer-open:bg-[color-mix(in_srgb,var(--popover),var(--color-black)_calc(6%*(var(--nested-drawers)-var(--stack-progress))))] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]',
             'touch-none',
             position === 'bottom' &&
               'transform-[translateY(calc(var(--drawer-snap-point-offset)+var(--drawer-swipe-movement-y)-var(--drawer-swipe-baseline-y,0px)))] data-ending-style:transform-[translateY(calc(100%+env(safe-area-inset-bottom,0px)+var(--inset)))] data-starting-style:transform-[translateY(calc(100%+env(safe-area-inset-bottom,0px)+var(--inset)))] row-start-2 -mb-[max(0px,calc(var(--drawer-snap-point-offset,0px)+clamp(0,1,var(--drawer-snap-point-offset,0px)/1px)*var(--drawer-swipe-movement-y,0px)))] border-t pb-[max(0px,calc(env(safe-area-inset-bottom,0px)+var(--drawer-snap-point-offset,0px)+clamp(0,1,var(--drawer-snap-point-offset,0px)/1px)*var(--drawer-swipe-movement-y,0px)))] not-data-starting-style:not-data-ending-style:transition-[transform,box-shadow,height,background-color,margin,padding] after:inset-x-0 after:top-full after:h-(--bleed) data-nested-drawer-open:shadow-[0_var(--bleed)_0_0_var(--popover)] has-data-[slot=drawer-bar]:pt-2 data-ending-style:mb-0 data-starting-style:mb-0 data-ending-style:pb-0 data-starting-style:pb-0',

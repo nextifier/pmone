@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { DialogRoot } from "reka-ui";
-import { onBeforeUnmount, ref, watch } from "vue";
 import type { LightboxEmits, LightboxProps } from "./interface";
 import { useProvideLightbox } from "./useLightbox";
+import { usePanelHistory } from "@/components/ui/panel-history";
 
 const props = withDefaults(defineProps<LightboxProps>(), {
   loop: true,
@@ -37,29 +37,14 @@ function open() {
   isOpen.value = true;
 }
 
-// Back button/gesture closes lightbox instead of navigating away
-const pushedHistoryState = ref(false);
-
-const onPopState = () => {
-  pushedHistoryState.value = false;
-  isOpen.value = false;
-};
-
-watch(isOpen, (newVal, oldVal) => {
-  if (newVal && !oldVal) {
-    window.history.pushState({ lightboxOpen: true }, "");
-    pushedHistoryState.value = true;
-    window.addEventListener("popstate", onPopState, { once: true });
-  } else if (!newVal && oldVal && pushedHistoryState.value) {
-    pushedHistoryState.value = false;
-    window.removeEventListener("popstate", onPopState);
-    window.history.back();
-  }
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener("popstate", onPopState);
-});
+// Back button/gesture closes the lightbox instead of navigating away.
+//
+// Shared with Drawer and Dialog rather than kept private: a lightbox opened from
+// inside either of those used to fire its own `history.back()` on close, which
+// the other one heard as a back gesture and closed on too. It also rewound
+// unconditionally, so closing a lightbox after following a link inside it undid
+// that navigation.
+usePanelHistory(isOpen);
 
 defineExpose({
   open: isOpen,

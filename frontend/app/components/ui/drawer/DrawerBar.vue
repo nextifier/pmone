@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from "vue";
 import { computed } from "vue";
-import { injectDrawerRootContext } from "reka-ui";
+import { injectDrawerRootContext } from "./core";
 import { cn } from "@/lib/utils";
 
 type DrawerPosition = "top" | "right" | "bottom" | "left";

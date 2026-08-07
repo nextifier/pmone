@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DrawerOverlayProps } from "reka-ui";
+import type { DrawerOverlayProps } from "./core";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
-import { DrawerOverlay } from "reka-ui";
+import { DrawerOverlay } from "./core";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<DrawerOverlayProps & { class?: HTMLAttributes["class"] }>();
@@ -23,13 +23,18 @@ const delegatedProps = reactiveOmit(props, "class");
     which value survives comes down to component id ordering in the scheduler.
     Reading variables only `DrawerContent` writes takes the race away entirely —
     reka is free to keep resetting its own copy, nothing here looks at it.
+
+    `motion-reduce:transition-none!` matches what Sheet already does in
+    `transitions.css`. With no transition running, `useTransitionStatus` finds
+    nothing in `getAnimations()` and unmounts straight away, which is the
+    behaviour someone asking for reduced motion is asking for.
   -->
   <DrawerOverlay
     data-slot="drawer-backdrop"
     v-bind="delegatedProps"
     :class="
       cn(
-        'fixed inset-0 z-50 bg-black/80 opacity-[calc(1-var(--drawer-backdrop-progress,0))] transition-opacity duration-450 ease-[cubic-bezier(0.32,0.72,0,1)] data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-backdrop-strength,1)*400ms)] data-swiping:duration-0 supports-[-webkit-touch-callout:none]:absolute',
+        'fixed inset-0 z-50 bg-black/80 opacity-[calc(1-var(--drawer-backdrop-progress,0))] transition-opacity duration-450 ease-[cubic-bezier(0.32,0.72,0,1)] data-ending-style:opacity-0 data-starting-style:opacity-0 data-ending-style:duration-[calc(var(--drawer-backdrop-strength,1)*400ms)] data-swiping:duration-0 motion-reduce:transition-none! supports-[-webkit-touch-callout:none]:absolute',
         props.class
       )
     "

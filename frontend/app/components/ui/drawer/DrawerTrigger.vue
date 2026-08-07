@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DrawerTriggerProps } from "reka-ui";
+import type { DrawerTriggerProps } from "./core";
 import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
-import { DrawerTrigger } from "reka-ui";
+import { DrawerTrigger } from "./core";
 import { cn } from "@/lib/utils";
 
 const props = defineProps<DrawerTriggerProps & { class?: HTMLAttributes["class"] }>();
