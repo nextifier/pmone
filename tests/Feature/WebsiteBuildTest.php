@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\PurgeEdgeAfterBuild;
 use App\Jobs\TriggerWorkerBuild;
 use App\Models\Project;
 use App\Models\User;
@@ -411,4 +412,58 @@ it('compares a local content timestamp against Cloudflare UTC correctly', functi
     $this->getJson('/api/websites')
         ->assertSuccessful()
         ->assertJsonPath('data.0.needs_rebuild', false);
+});
+
+// ---------------------------------------------------------------------------
+// Edge purge after a build — a rebuild nobody can see is not a rebuild
+// ---------------------------------------------------------------------------
+
+it('schedules an edge purge after a trigger succeeds', function () {
+    Queue::fake();
+    fakeCloudflare();
+
+    (new TriggerWorkerBuild('megabuild'))->handle();
+
+    Queue::assertPushed(PurgeEdgeAfterBuild::class,
+        fn ($job) => $job->worker === 'megabuild');
+});
+
+it('does not schedule a purge when the trigger fails', function () {
+    Queue::fake();
+    Http::fake(fn () => Http::response(['success' => false], 500));
+
+    (new TriggerWorkerBuild('megabuild'))->handle();
+
+    Queue::assertNotPushed(PurgeEdgeAfterBuild::class);
+});
+
+it('re-checks instead of purging while the build is still running', function () {
+    Queue::fake();
+    fakeCloudflare(['tag-mb' => ['build_uuid' => 'b1', 'status' => 'running']]);
+
+    (new PurgeEdgeAfterBuild('megabuild'))->handle();
+
+    Queue::assertPushed(PurgeEdgeAfterBuild::class, fn ($job) => $job->check === 1);
+});
+
+it('does not purge after a failed build', function () {
+    Queue::fake();
+    fakeCloudflare([
+        'tag-mb' => ['build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'fail'],
+    ]);
+
+    (new PurgeEdgeAfterBuild('megabuild'))->handle();
+
+    // Nothing rescheduled, and no purge call went out.
+    Queue::assertNotPushed(PurgeEdgeAfterBuild::class);
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), 'purge_cache'));
+});
+
+it('gives up after the maximum number of checks', function () {
+    Queue::fake();
+    fakeCloudflare(['tag-mb' => ['build_uuid' => 'b1', 'status' => 'running']]);
+
+    (new PurgeEdgeAfterBuild('megabuild', 40))->handle();
+
+    Queue::assertNotPushed(PurgeEdgeAfterBuild::class);
 });

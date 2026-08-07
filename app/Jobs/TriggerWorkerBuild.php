@@ -39,6 +39,13 @@ class TriggerWorkerBuild implements ShouldBeUnique, ShouldQueue
 
     public function handle(): void
     {
-        WorkersBuilds::trigger($this->worker);
+        if (! WorkersBuilds::trigger($this->worker)) {
+            return;
+        }
+
+        // Deploying new static assets does not invalidate the zone's cached
+        // HTML, so without this the rebuild is invisible: the operator watches
+        // it go green and the site keeps serving the previous build.
+        PurgeEdgeAfterBuild::dispatch($this->worker)->delay(now()->addMinute());
     }
 }
