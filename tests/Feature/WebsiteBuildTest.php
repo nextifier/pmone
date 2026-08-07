@@ -467,3 +467,86 @@ it('gives up after the maximum number of checks', function () {
 
     Queue::assertNotPushed(PurgeEdgeAfterBuild::class);
 });
+
+/*
+|--------------------------------------------------------------------------
+| Sites that render no PM One content
+|--------------------------------------------------------------------------
+|
+| The dashboard itself, Levenium and Monara are built and monitored here but
+| own no project. `project` is deliberately null so nothing can ever match them
+| in a content-driven purge — see the note in config/edge-sites.php.
+|
+*/
+
+function configureProjectlessSite(): void
+{
+    config(['edge-sites.sites' => array_merge(config('edge-sites.sites'), [
+        [
+            'app' => 'pmone',
+            'project' => null,
+            'name' => 'PM One',
+            'data_source' => null,
+            'url' => 'https://pmone.id',
+            'locales' => ['en'],
+        ],
+    ])]);
+
+    Http::fake([
+        CF.'/accounts/acct123/workers/scripts*' => Http::response([
+            'success' => true,
+            'result' => [
+                ['id' => 'megabuild', 'tag' => 'tag-mb'],
+                ['id' => 'icc', 'tag' => 'tag-icc'],
+                ['id' => 'pmone', 'tag' => 'tag-pmone'],
+            ],
+        ]),
+        CF.'/accounts/acct123/builds/workers/*/triggers*' => Http::response([
+            'success' => true,
+            'result' => [['trigger_uuid' => 'trig-1']],
+        ]),
+        CF.'/accounts/acct123/builds/builds/latest*' => Http::response([
+            'success' => true,
+            'result' => ['builds' => []],
+        ]),
+        CF.'/accounts/acct123/builds/triggers/*/builds' => Http::response([
+            'success' => true,
+            'result' => ['build_uuid' => 'build-1', 'status' => 'queued'],
+        ]),
+    ]);
+}
+
+it('lists a site that owns no project, using its configured name', function () {
+    configureProjectlessSite();
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonCount(3, 'data')
+        ->assertJsonPath('data.2.worker', 'pmone')
+        ->assertJsonPath('data.2.project', null)
+        ->assertJsonPath('data.2.project_name', 'PM One');
+});
+
+it('never marks a projectless site as outdated', function () {
+    configureProjectlessSite();
+
+    // A project edited right now must not make the dashboard look stale: there
+    // is no PM One content behind it that a rebuild would pick up.
+    Project::factory()->create(['username' => 'megabuild', 'name' => 'Megabuild Indonesia']);
+    DB::table('projects')->where('username', 'megabuild')->update(['updated_at' => now()]);
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.2.needs_rebuild', false)
+        ->assertJsonPath('data.2.content_changed_at', null);
+});
+
+it('rebuilds a projectless site like any other', function () {
+    configureProjectlessSite();
+    Queue::fake();
+
+    $this->postJson('/api/websites/rebuild', ['workers' => ['pmone']])
+        ->assertSuccessful();
+
+    Queue::assertPushed(TriggerWorkerBuild::class, fn ($job) => $job->worker === 'pmone');
+});

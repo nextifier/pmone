@@ -10,6 +10,7 @@ use App\Support\WorkersBuilds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Build status and manual rebuilds for the event websites.
@@ -32,23 +33,26 @@ class WebsiteBuildController extends Controller
         $builds = WorkersBuilds::latestBuilds();
 
         $projectNames = Project::query()
-            ->whereIn('username', array_column($sites, 'project'))
+            ->whereIn('username', array_filter(array_column($sites, 'project')))
             ->pluck('name', 'username');
 
         // Co-located sites (cokelatexpo, icf) render another project's content,
         // so staleness has to be measured against the project they READ from.
+        // Sites with no project at all (the dashboard, Levenium, Monara) are
+        // filtered out: there is no PM One content behind them to go stale.
         $changedAt = ProjectContentActivity::lastChangedAt(array_values(array_unique(
-            array_map(fn ($site) => $site['data_source'] ?: $site['project'], $sites),
+            array_filter(array_map(fn ($site) => $this->contentProject($site), $sites)),
         )));
 
         $data = array_map(function (array $site) use ($builds, $projectNames, $changedAt): array {
             $build = $this->presentBuild($builds[$site['app']] ?? null);
-            $contentChangedAt = $changedAt[$site['data_source'] ?: $site['project']] ?? null;
+            $source = $this->contentProject($site);
+            $contentChangedAt = $source ? ($changedAt[$source] ?? null) : null;
 
             return [
                 'worker' => $site['app'],
                 'project' => $site['project'],
-                'project_name' => $projectNames[$site['project']] ?? $site['project'],
+                'project_name' => $this->displayName($site, $projectNames),
                 'data_source' => $site['data_source'],
                 'url' => $site['url'],
                 'build' => $build,
@@ -64,6 +68,33 @@ class WebsiteBuildController extends Controller
                 'limits' => WorkersBuilds::accountLimits(),
             ],
         ]);
+    }
+
+    /**
+     * The PM One project whose content this site renders, or null when it
+     * renders none (the dashboard, Levenium, Monara).
+     *
+     * @param  array<string, mixed>  $site
+     */
+    protected function contentProject(array $site): ?string
+    {
+        return $site['data_source'] ?: $site['project'];
+    }
+
+    /**
+     * What to call this site in the UI.
+     *
+     * Event sites are named after the project that owns them, so the name stays
+     * correct when a project is renamed. Sites with no project carry their own
+     * `name`, and the worker name is the last resort.
+     *
+     * @param  array<string, mixed>  $site
+     * @param  Collection<string, string>  $projectNames
+     */
+    protected function displayName(array $site, $projectNames): string
+    {
+        return $site['name']
+            ?? ($site['project'] ? $projectNames[$site['project']] ?? $site['project'] : $site['app']);
     }
 
     /** One site, with its recent build history. */
@@ -145,7 +176,7 @@ class WebsiteBuildController extends Controller
     }
 
     /**
-     * @return array{app: string, project: string, data_source: string|null, url: string, locales?: array}
+     * @return array{app: string, project: string|null, name?: string, data_source: string|null, url: string, locales?: array}
      */
     protected function findSite(string $worker): array
     {

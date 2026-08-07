@@ -1,48 +1,51 @@
 <template>
   <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:globe-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">Event Websites</h1>
+    <div class="space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+        <div class="flex shrink-0 items-center gap-x-2.5">
+          <Icon name="hugeicons:globe-02" class="size-5 sm:size-6" />
+          <h1 class="page-title">Websites</h1>
+        </div>
+
+        <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+          <Badge v-if="building" variant="info" with-icon plain>
+            {{ buildingLabel }}
+          </Badge>
+          <Button
+            v-if="canRebuild && staleCount > 0"
+            size="sm"
+            :disabled="rebuilding || !configured"
+            @click="requestRebuild(staleWorkers)"
+          >
+            <Icon
+              :name="rebuilding ? 'svg-spinners:180-ring' : 'hugeicons:reload'"
+              class="-ml-1 size-4 shrink-0"
+            />
+            Rebuild {{ staleCount }} outdated
+          </Button>
+          <Button
+            v-else-if="canRebuild"
+            variant="outline"
+            size="sm"
+            :disabled="rebuilding || !configured"
+            @click="requestRebuild(data.map((row) => row.worker))"
+          >
+            <Icon
+              :name="rebuilding ? 'svg-spinners:180-ring' : 'hugeicons:reload'"
+              class="-ml-1 size-4 shrink-0"
+            />
+            Rebuild all
+          </Button>
+        </div>
       </div>
 
-      <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-        <Badge v-if="building" variant="info" with-icon plain>
-          {{ buildingLabel }}
-        </Badge>
-        <Button
-          v-if="canRebuild && staleCount > 0"
-          size="sm"
-          :disabled="rebuilding || !configured"
-          @click="rebuildStale"
-        >
-          <Icon
-            :name="rebuilding ? 'svg-spinners:180-ring' : 'hugeicons:reload'"
-            class="-ml-1 size-4 shrink-0"
-          />
-          Rebuild {{ staleCount }} outdated
-        </Button>
-        <Button
-          v-else-if="canRebuild"
-          variant="outline"
-          size="sm"
-          :disabled="rebuilding || !configured"
-          @click="rebuildAll"
-        >
-          <Icon
-            :name="rebuilding ? 'svg-spinners:180-ring' : 'hugeicons:reload'"
-            class="-ml-1 size-4 shrink-0"
-          />
-          Rebuild all
-        </Button>
-      </div>
+      <p class="text-body max-w-2xl tracking-tight">
+        Pages are pre-built, so content you publish here reaches visitors on the
+        site's next build. Event sites with newer content than their last
+        successful build are marked
+        <span class="text-warning-foreground">Outdated</span>.
+      </p>
     </div>
-
-    <p class="text-body max-w-2xl text-sm tracking-tight">
-      Event website pages are pre-built, so content you publish here reaches
-      visitors on the site's next build. Sites with newer content than their last
-      successful build are marked <span class="text-warning-foreground">Outdated</span>.
-    </p>
 
     <Alert v-if="!configured" variant="destructive">
       <Icon name="lucide:triangle-alert" class="size-4 shrink-0" />
@@ -72,11 +75,11 @@
       :error="error"
       model="websites"
       label="Website"
-      search-column="worker"
+      search-column="website"
       search-placeholder="Search websites"
       error-title="Error loading websites"
-      :initial-pagination="{ pageIndex: 0, pageSize: 20 }"
-      :initial-sorting="[]"
+      :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
+      :initial-sorting="[{ id: 'website', desc: false }]"
       :show-add-button="false"
       @refresh="refresh"
     >
@@ -87,10 +90,51 @@
           :label="selectedRows.length === 1 ? 'Rebuild' : `Rebuild ${selectedRows.length}`"
           :loading="rebuilding"
           :disabled="!configured"
-          @click="rebuildWorkers(selectedRows.map((r) => r.original.worker))"
+          @click="requestRebuild(selectedRows.map((r) => r.original.worker))"
         />
       </template>
     </TableData>
+
+    <!-- One dialog for all three entry points (row, selection, header button).
+         A rebuild spends real build minutes and can queue twenty jobs at once,
+         so it is worth a beat of confirmation — and the copy is the only place
+         an operator learns Cloudflare runs six at a time. -->
+    <ResponsiveDialog v-model:open="confirmOpen" title="Rebuild websites">
+      <template #default>
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
+          <div class="text-foreground text-lg font-semibold tracking-tight">
+            {{ confirmTitle }}
+          </div>
+
+          <p class="text-body mt-1.5 text-sm tracking-tight">
+            Each site is rebuilt from the latest commit on
+            <span class="font-medium">main</span> and republished when it finishes.
+            Cloudflare runs six builds at a time and queues the rest.
+          </p>
+
+          <ul
+            v-if="confirmNames.length > 1"
+            class="text-body mt-3 max-h-40 overflow-y-auto text-sm tracking-tight"
+          >
+            <li v-for="name in confirmNames" :key="name" class="py-0.5">{{ name }}</li>
+          </ul>
+
+          <div class="mt-4 flex justify-end gap-2">
+            <Button variant="outline" size="sm" :disabled="rebuilding" @click="confirmOpen = false">
+              Cancel
+            </Button>
+            <Button size="sm" :disabled="rebuilding" @click="confirmRebuild">
+              <Icon
+                v-if="rebuilding"
+                name="svg-spinners:180-ring"
+                class="-ml-1 size-4 shrink-0"
+              />
+              Rebuild
+            </Button>
+          </div>
+        </div>
+      </template>
+    </ResponsiveDialog>
   </div>
 </template>
 
@@ -100,6 +144,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
 import { toast } from "vue-sonner";
 
@@ -109,7 +154,7 @@ definePageMeta({
   layout: "app",
 });
 
-usePageMeta(null, { title: "Event Websites" });
+usePageMeta(null, { title: "Websites" });
 
 defineOptions({ name: "websites" });
 
@@ -188,6 +233,10 @@ const relativeTime = (value) => {
   return `${Math.round(hours / 24)}d ago`;
 };
 
+// Every other relativeTime value starts with a digit ("4m ago"), so only the
+// word form needs this — and it must stay lowercase inside "Edited just now".
+const sentenceCase = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
 const formatDate = (value) =>
   new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(new Date(value));
 
@@ -214,7 +263,11 @@ const columns = [
   },
   {
     header: "Website",
-    accessorKey: "worker",
+    id: "website",
+    // Sort on the name the row actually shows. This used to key off `worker`,
+    // so the table came out ordered by a column nobody can see — ASKINDO landed
+    // mid-list because its Worker is called `iicc`.
+    accessorFn: (row) => row.project_name,
     cell: ({ row }) =>
       h("div", { class: "flex flex-col gap-y-0.5" }, [
         h(
@@ -243,8 +296,17 @@ const columns = [
   {
     header: "Content",
     id: "needs_rebuild",
-    accessorFn: (row) => (row.needs_rebuild ? "Outdated" : "Up to date"),
+    accessorFn: (row) => {
+      if (!row.project) return "—";
+      return row.needs_rebuild ? "Outdated" : "Up to date";
+    },
     cell: ({ row }) => {
+      // The dashboard, Levenium and Monara render no PM One content, so there is
+      // nothing here that could go stale — "Up to date" would be a claim about
+      // something that does not exist.
+      if (!row.original.project) {
+        return h("span", { class: "text-muted-foreground text-sm" }, "—");
+      }
       if (!row.original.needs_rebuild) {
         return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "Up to date");
       }
@@ -266,7 +328,7 @@ const columns = [
       return h(
         "span",
         { class: "text-sm tracking-tight tabular-nums" },
-        relativeTime(build.finished_at || build.started_at || build.created_at),
+        sentenceCase(relativeTime(build.finished_at || build.started_at || build.created_at)),
       );
     },
     size: 105,
@@ -295,7 +357,11 @@ const columns = [
     cell: ({ row }) =>
       h(resolveComponent("ClientOnly"), {}, {
         default: () =>
-          h(WebsiteRowActions, { site: row.original, onChanged: () => refresh() }),
+          h(WebsiteRowActions, {
+            site: row.original,
+            onChanged: () => refresh(),
+            onRebuild: (worker) => requestRebuild([worker]),
+          }),
       }),
     size: 110,
     enableHiding: false,
@@ -321,8 +387,43 @@ async function rebuildWorkers(workers) {
   }
 }
 
-const rebuildStale = () =>
-  rebuildWorkers(data.value.filter((row) => row.needs_rebuild).map((row) => row.worker));
+const staleWorkers = computed(() =>
+  data.value.filter((row) => row.needs_rebuild).map((row) => row.worker),
+);
 
-const rebuildAll = () => rebuildWorkers(data.value.map((row) => row.worker));
+// Rebuilds are confirmed before they run. `pendingWorkers` is both the queue and
+// the open state: null means no dialog, an array means one is waiting on an
+// answer. Every entry point (row action, selection, header button) funnels here
+// so there is exactly one confirmation to keep correct.
+const pendingWorkers = ref(null);
+
+const confirmOpen = computed({
+  get: () => pendingWorkers.value !== null,
+  set: (open) => {
+    if (!open) pendingWorkers.value = null;
+  },
+});
+
+const confirmNames = computed(() => {
+  const wanted = new Set(pendingWorkers.value || []);
+  return data.value.filter((row) => wanted.has(row.worker)).map((row) => row.project_name);
+});
+
+const confirmTitle = computed(() => {
+  const count = pendingWorkers.value?.length || 0;
+  if (count === 1) return `Rebuild ${confirmNames.value[0] || "this website"}?`;
+  return `Rebuild ${count} websites?`;
+});
+
+function requestRebuild(workers) {
+  const unique = [...new Set(workers || [])];
+  if (!unique.length) return;
+  pendingWorkers.value = unique;
+}
+
+async function confirmRebuild() {
+  const workers = pendingWorkers.value || [];
+  await rebuildWorkers(workers);
+  pendingWorkers.value = null;
+}
 </script>

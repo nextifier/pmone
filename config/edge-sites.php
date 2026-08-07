@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| Event websites behind the Cloudflare edge cache
+| Cloudflare Workers this dashboard purges and rebuilds
 |--------------------------------------------------------------------------
 |
 | Each pmone-events app renders its pages inside a Cloudflare Worker and stores
@@ -21,8 +21,18 @@
 | cokelatexpo and icf both render content belonging to `cbe`, so a change to cbe
 | has to invalidate three sites, not one. A change is matched against BOTH keys.
 |
-| Adding a site: append a row. Zone IDs are resolved from the hostname at
-| runtime, so there is nothing else to keep in sync.
+| `project` is NULL for the sites that render no PM One content at all — the
+| dashboard itself, Levenium, Levenium UI, Monara. They are listed so /websites
+| can build and monitor them, and the null is exactly what keeps them out of
+| every content-driven purge: nothing can match it. Do NOT invent a username to
+| fill the gap — a real project could later claim that name and start purging
+| the wrong zone. Those rows carry `name` instead, because there is no project
+| row to read a display name from.
+|
+| Adding a site: append a row, and make sure `app` matches the Cloudflare Worker
+| name exactly (that is the key both the builds API and the rebuild button use).
+| Zone IDs are resolved from the hostname at runtime, so there is nothing else to
+| keep in sync.
 |
 */
 
@@ -73,22 +83,150 @@ return [
     | Check the logs for "unmapped"/"zone" warnings after adding a domain.
     */
     'sites' => [
-        ['app' => 'cafeexpo',        'project' => 'cbe',          'data_source' => null,  'url' => 'https://cafebrasserieexpo.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'campx',           'project' => 'campx',        'data_source' => null,  'url' => 'https://campx.id',              'locales' => ['en']],
-        ['app' => 'cokelatexpo',     'project' => 'cei',          'data_source' => 'cbe', 'url' => 'https://cokelatexpo.id',        'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'flei',            'project' => 'flei',         'data_source' => null,  'url' => 'https://franchise-expo.co.id',  'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'global-ai-expo',  'project' => 'globalaiexpo',  'data_source' => null,  'url' => 'https://ai.pmone.id', 'locales' => ['en', 'id']],
-        ['app' => 'icc',             'project' => 'icc',          'data_source' => null,  'url' => 'https://indonesiacomiccon.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'icf',             'project' => 'icf',          'data_source' => 'cbe', 'url' => 'https://indocoffeefestival.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'iicc',            'project' => 'askindo',      'data_source' => null,  'url' => 'https://iicc.askindo.id',       'locales' => ['en', 'id']],
-        ['app' => 'inacon',          'project' => 'inacon',       'data_source' => null,  'url' => 'https://indonesiaanimecon.com', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'keramika',        'project' => 'keramika',     'data_source' => null,  'url' => 'https://keramika.co.id',        'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'megabuild',       'project' => 'megabuild',    'data_source' => null,  'url' => 'https://megabuild.co.id',       'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'morefood',        'project' => 'morefood',     'data_source' => null,  'url' => 'https://morefoodexpo.com',      'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'outingexpo',      'project' => 'ioe',          'data_source' => null,  'url' => 'https://indooutingexpo.co.id',  'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
-        ['app' => 'panorama-events', 'project' => 'pe',           'data_source' => null,  'url' => 'https://panoramaevents.id',     'locales' => ['en']],
-        ['app' => 'panorama-media',  'project' => 'pm',           'data_source' => null,  'url' => 'https://panoramamedia.co.id',   'locales' => ['en']],
-        ['app' => 'renex',           'project' => 'renex',        'data_source' => null,  'url' => 'https://renex.megabuild.co.id', 'locales' => ['en', 'id', 'zh', 'ja', 'ko']],
+        [
+            'app' => 'cafeexpo',
+            'project' => 'cbe',
+            'data_source' => null,
+            'url' => 'https://cafebrasserieexpo.com',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'campx',
+            'project' => 'campx',
+            'data_source' => null,
+            'url' => 'https://campx.id',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'cokelatexpo',
+            'project' => 'cei',
+            'data_source' => 'cbe',
+            'url' => 'https://cokelatexpo.id',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'flei',
+            'project' => 'flei',
+            'data_source' => null,
+            'url' => 'https://franchise-expo.co.id',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'global-ai-expo',
+            'project' => 'globalaiexpo',
+            'data_source' => null,
+            'url' => 'https://ai.pmone.id',
+            'locales' => ['en', 'id'],
+        ],
+        [
+            'app' => 'icc',
+            'project' => 'icc',
+            'data_source' => null,
+            'url' => 'https://indonesiacomiccon.com',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'icf',
+            'project' => 'icf',
+            'data_source' => 'cbe',
+            'url' => 'https://indocoffeefestival.com',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'iicc',
+            'project' => 'askindo',
+            'data_source' => null,
+            'url' => 'https://iicc.askindo.id',
+            'locales' => ['en', 'id'],
+        ],
+        [
+            'app' => 'inacon',
+            'project' => 'inacon',
+            'data_source' => null,
+            'url' => 'https://indonesiaanimecon.com',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'keramika',
+            'project' => 'keramika',
+            'data_source' => null,
+            'url' => 'https://keramika.co.id',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'levenium',
+            'project' => null,
+            'name' => 'Levenium',
+            'data_source' => null,
+            'url' => 'https://levenium.com',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'levenium-ui',
+            'project' => null,
+            'name' => 'Levenium UI',
+            'data_source' => null,
+            'url' => 'https://ui.levenium.com',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'megabuild',
+            'project' => 'megabuild',
+            'data_source' => null,
+            'url' => 'https://megabuild.co.id',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'monara',
+            'project' => null,
+            'name' => 'Monara',
+            'data_source' => null,
+            'url' => 'https://monara.id',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'morefood',
+            'project' => 'morefood',
+            'data_source' => null,
+            'url' => 'https://morefoodexpo.com',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'outingexpo',
+            'project' => 'ioe',
+            'data_source' => null,
+            'url' => 'https://indooutingexpo.co.id',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
+        [
+            'app' => 'panorama-events',
+            'project' => 'pe',
+            'data_source' => null,
+            'url' => 'https://panoramaevents.id',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'panorama-media',
+            'project' => 'pm',
+            'data_source' => null,
+            'url' => 'https://panoramamedia.co.id',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'pmone',
+            'project' => null,
+            'name' => 'PM One',
+            'data_source' => null,
+            'url' => 'https://pmone.id',
+            'locales' => ['en'],
+        ],
+        [
+            'app' => 'renex',
+            'project' => 'renex',
+            'data_source' => null,
+            'url' => 'https://renex.megabuild.co.id',
+            'locales' => ['en', 'id', 'zh', 'ja', 'ko'],
+        ],
     ],
 
     /*

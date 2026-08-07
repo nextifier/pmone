@@ -447,10 +447,10 @@ const navMainGroups = computed(() => {
     });
   }
 
-  // Event Websites - Cloudflare build status + rebuilds
+  // Websites - Cloudflare build status + rebuilds
   if (hasPermission("websites.view")) {
     adminItems.push({
-      label: "Event Websites",
+      label: "Websites",
       path: "/websites",
       iconName: "hugeicons:globe-02",
     });

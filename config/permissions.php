@@ -358,7 +358,7 @@ return [
             ],
         ],
         'event_websites' => [
-            'label' => 'Event Websites',
+            'label' => 'Websites',
             'description' => 'Cloudflare build status and rebuilds for the event websites',
             'permissions' => [
                 'websites.view' => 'View the build status of every event website',

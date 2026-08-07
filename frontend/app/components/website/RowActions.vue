@@ -82,7 +82,9 @@
             </a>
           </PopoverClose>
 
-          <PopoverClose as-child>
+          <!-- The dashboard, Levenium and Monara own no PM One project, so
+               there is nothing to open. -->
+          <PopoverClose v-if="site.project" as-child>
             <NuxtLink
               :to="`/projects/${site.project}`"
               class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
@@ -106,7 +108,11 @@ const props = defineProps({
   site: { type: Object, required: true },
 });
 
-const emit = defineEmits(["changed"]);
+// `rebuild` is a request, not the deed: the index page owns the confirmation
+// dialog so all three entry points (row, selection, header button) share one.
+// Cancel stays here — it stops something already running rather than starting
+// anything, and the row is the only place it appears.
+const emit = defineEmits(["changed", "rebuild"]);
 
 const client = useSanctumClient();
 const { hasPermission } = usePermission();
@@ -119,21 +125,8 @@ const isRunning = computed(
   () => Boolean(props.site.build) && props.site.build.status !== "stopped",
 );
 
-async function rebuild() {
-  busy.value = true;
-  try {
-    const result = await client("/api/websites/rebuild", {
-      method: "POST",
-      body: { workers: [props.site.worker] },
-    });
-    toast.success(result.message);
-    // Cloudflare needs a moment before the new build appears in its API.
-    setTimeout(() => emit("changed"), 3000);
-  } catch (e) {
-    toast.error(e?.data?.message || "Could not queue the rebuild.");
-  } finally {
-    busy.value = false;
-  }
+function rebuild() {
+  emit("rebuild", props.site.worker);
 }
 
 async function cancel() {
