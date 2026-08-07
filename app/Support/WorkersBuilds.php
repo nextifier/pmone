@@ -132,6 +132,87 @@ class WorkersBuilds
     }
 
     /**
+     * Recent builds for one Worker, newest first.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function history(string $worker, int $perPage = 10): array
+    {
+        $tag = static::scriptTags()[$worker] ?? null;
+
+        if (! $tag) {
+            return [];
+        }
+
+        $response = static::request()->get(
+            static::url("/builds/workers/{$tag}/builds"),
+            ['per_page' => $perPage],
+        );
+
+        return static::ok($response, 'build history') ? (array) $response->json('result', []) : [];
+    }
+
+    /**
+     * Log lines for one build.
+     *
+     * Cloudflare returns `[unixTimestamp, message]` tuples; only the message is
+     * useful here, and `truncated` says whether the tail was cut off.
+     *
+     * @return array{lines: string[], truncated: bool}
+     */
+    public static function logs(string $buildUuid): array
+    {
+        $response = static::request()->timeout(20)
+            ->get(static::url("/builds/builds/{$buildUuid}/logs"));
+
+        if (! static::ok($response, 'build logs')) {
+            return ['lines' => [], 'truncated' => false];
+        }
+
+        return [
+            'lines' => array_map(
+                fn ($line) => (string) ($line[1] ?? ''),
+                (array) $response->json('result.lines', []),
+            ),
+            'truncated' => (bool) $response->json('result.truncated', false),
+        ];
+    }
+
+    /** Stop a build that is still queued or running. */
+    public static function cancel(string $buildUuid): bool
+    {
+        $response = static::request()->put(static::url("/builds/builds/{$buildUuid}/cancel"));
+
+        return static::ok($response, 'cancel build');
+    }
+
+    /**
+     * Account build-minute limits, so the page can warn before the bill does.
+     *
+     * @return array{reached: bool, refresh_on: string|null}|null
+     */
+    public static function accountLimits(): ?array
+    {
+        if (! static::isConfigured()) {
+            return null;
+        }
+
+        // Cheap and rarely changing; polled alongside the build list.
+        return Cache::remember('workers-builds:limits', 300, function (): ?array {
+            $response = static::request()->get(static::url('/builds/account/limits'));
+
+            if (! static::ok($response, 'account limits')) {
+                return null;
+            }
+
+            return [
+                'reached' => (bool) $response->json('result.has_reached_build_minutes_limit', false),
+                'refresh_on' => $response->json('result.build_minutes_refresh_on'),
+            ];
+        });
+    }
+
+    /**
      * Worker name -> immutable script tag.
      *
      * The builds API keys everything by tag, never by name, so this lookup is
@@ -159,7 +240,20 @@ class WorkersBuilds
         });
     }
 
-    /** Production build trigger for a Worker, or null when it has none connected. */
+    /**
+     * The build trigger that deploys our branch, or null when none matches.
+     *
+     * A Worker has TWO triggers and picking the wrong one silently breaks the
+     * deploy. Cloudflare's defaults are "Deploy default branch"
+     * (branch_includes ["main"], deploy command `wrangler --cwd <app>/.output
+     * deploy`) and "Deploy non-production branches" (branch_includes ["*"],
+     * branch_excludes ["main"], deploy command `wrangler versions upload`).
+     * The preview one uploads a version without releasing it, and without the
+     * --cwd it cannot even find the bundle: the build succeeds and the deploy
+     * fails with "Missing entry-point to Worker script". This method used to
+     * take result.0 — the preview trigger — so every rebuild from the dashboard
+     * failed that way.
+     */
     protected static function triggerUuid(string $worker): ?string
     {
         $tag = static::scriptTags()[$worker] ?? null;
@@ -171,14 +265,46 @@ class WorkersBuilds
         return Cache::remember(
             "workers-builds:trigger:{$worker}",
             static::LOOKUP_TTL,
-            function () use ($tag): ?string {
+            function () use ($tag, $worker): ?string {
                 $response = static::request()->get(static::url("/builds/workers/{$tag}/triggers"));
 
                 if (! static::ok($response, 'list triggers')) {
                     return null;
                 }
 
-                return $response->json('result.0.trigger_uuid');
+                $branch = config('edge-sites.builds_branch', 'main');
+                $triggers = (array) $response->json('result', []);
+
+                // Exact branch match first, then a wildcard trigger that does
+                // not exclude our branch. Never one that excludes it.
+                foreach ([false, true] as $allowWildcard) {
+                    foreach ($triggers as $trigger) {
+                        $includes = (array) ($trigger['branch_includes'] ?? []);
+                        $excludes = (array) ($trigger['branch_excludes'] ?? []);
+
+                        if (in_array($branch, $excludes, true)) {
+                            continue;
+                        }
+                        if (in_array($branch, $includes, true)
+                            || ($allowWildcard && in_array('*', $includes, true))) {
+                            return $trigger['trigger_uuid'] ?? null;
+                        }
+                    }
+                }
+
+                // Degenerate case: a single trigger that names no branches at
+                // all. There is nothing to pick wrongly, so use it.
+                if (count($triggers) === 1
+                    && ! in_array($branch, (array) ($triggers[0]['branch_excludes'] ?? []), true)) {
+                    return $triggers[0]['trigger_uuid'] ?? null;
+                }
+
+                Log::warning('Workers Builds: no trigger deploys this branch', [
+                    'worker' => $worker,
+                    'branch' => $branch,
+                ]);
+
+                return null;
             },
         );
     }

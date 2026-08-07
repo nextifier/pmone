@@ -825,6 +825,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/rebuild', [WebsiteBuildController::class, 'rebuild'])
             ->middleware(['can:websites.rebuild', 'throttle:20,1'])
             ->name('websites.rebuild');
+        Route::get('/{worker}', [WebsiteBuildController::class, 'show'])->name('websites.show');
+        Route::get('/{worker}/builds/{buildUuid}/logs', [WebsiteBuildController::class, 'logs'])
+            ->name('websites.logs');
+        Route::post('/{worker}/builds/{buildUuid}/cancel', [WebsiteBuildController::class, 'cancel'])
+            ->middleware(['can:websites.rebuild', 'throttle:20,1'])
+            ->name('websites.cancel');
     });
 
     // Short link management endpoints

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Support\WorkersBuilds;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Spatie\Permission\Models\Permission;
@@ -190,4 +191,224 @@ it('hides both endpoints from a user without the permissions', function () {
 
     $this->getJson('/api/websites')->assertForbidden();
     $this->postJson('/api/websites/rebuild', ['workers' => ['icc']])->assertForbidden();
+});
+
+// ---------------------------------------------------------------------------
+// Trigger selection — a Worker has two, and the wrong one breaks the deploy
+// ---------------------------------------------------------------------------
+
+/** Cloudflare's default pair: preview first in the list, production second. */
+function fakeTwoTriggers(): void
+{
+    Http::fake([
+        CF.'/accounts/acct123/workers/scripts*' => Http::response([
+            'success' => true,
+            'result' => [['id' => 'megabuild', 'tag' => 'tag-mb']],
+        ]),
+        CF.'/accounts/acct123/builds/workers/*/triggers*' => Http::response([
+            'success' => true,
+            'result' => [
+                [
+                    'trigger_uuid' => 'trig-preview',
+                    'trigger_name' => 'Deploy non-production branches',
+                    'branch_includes' => ['*'],
+                    'branch_excludes' => ['main'],
+                    'deploy_command' => 'npx wrangler versions upload',
+                ],
+                [
+                    'trigger_uuid' => 'trig-production',
+                    'trigger_name' => 'Deploy default branch',
+                    'branch_includes' => ['main'],
+                    'branch_excludes' => [],
+                    'deploy_command' => 'npx wrangler --cwd apps/megabuild/.output deploy',
+                ],
+            ],
+        ]),
+        CF.'/accounts/acct123/builds/triggers/*/builds' => Http::response([
+            'success' => true,
+            'result' => ['build_uuid' => 'b9', 'status' => 'queued'],
+        ]),
+    ]);
+}
+
+it('triggers the production trigger, not the preview one listed first', function () {
+    fakeTwoTriggers();
+
+    expect(WorkersBuilds::trigger('megabuild'))->toBeTrue();
+
+    Http::assertSent(fn ($r) => str_contains($r->url(), '/builds/triggers/trig-production/builds'));
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), '/builds/triggers/trig-preview/builds'));
+});
+
+it('falls back to a wildcard trigger when no exact branch match exists', function () {
+    config(['edge-sites.builds_branch' => 'staging']);
+    fakeTwoTriggers();
+
+    // 'staging' is not excluded by the preview trigger and matches its '*'.
+    expect(WorkersBuilds::trigger('megabuild'))->toBeTrue();
+    Http::assertSent(fn ($r) => str_contains($r->url(), '/builds/triggers/trig-preview/builds'));
+});
+
+it('refuses to trigger when every trigger excludes the branch', function () {
+    config(['edge-sites.builds_branch' => 'main']);
+    Http::fake([
+        CF.'/accounts/acct123/workers/scripts*' => Http::response([
+            'success' => true,
+            'result' => [['id' => 'megabuild', 'tag' => 'tag-mb']],
+        ]),
+        CF.'/accounts/acct123/builds/workers/*/triggers*' => Http::response([
+            'success' => true,
+            'result' => [[
+                'trigger_uuid' => 'trig-preview',
+                'branch_includes' => ['*'],
+                'branch_excludes' => ['main'],
+            ]],
+        ]),
+    ]);
+
+    expect(WorkersBuilds::trigger('megabuild'))->toBeFalse();
+    Http::assertNotSent(fn ($r) => str_contains($r->url(), '/builds/triggers/'));
+});
+
+// ---------------------------------------------------------------------------
+// Staleness: does this site need rebuilding?
+// ---------------------------------------------------------------------------
+
+/** Set a project's updated_at without Eloquent refreshing it back to now(). */
+function touchProject(string $username, string $at): void
+{
+    DB::table('projects')
+        ->where('username', $username)
+        ->update(['updated_at' => $at]);
+}
+
+it('flags a site whose content changed after its last successful build', function () {
+    Project::factory()->create(['username' => 'megabuild', 'name' => 'Megabuild']);
+    Project::factory()->create(['username' => 'icc', 'name' => 'ICC']);
+    // Straight to the table: saveQuietly() still refreshes `updated_at`.
+    // Local time (app.timezone = Asia/Jakarta); Cloudflare reports UTC. Values
+    // are picked far enough apart that the offset cannot flip the comparison.
+    touchProject('megabuild', '2026-08-07 12:00:00');   // 05:00Z, AFTER the build
+    touchProject('icc', '2026-08-07 08:00:00');         // 01:00Z, BEFORE the build
+
+    fakeCloudflare([
+        // megabuild shipped BEFORE the content edit -> stale
+        'tag-mb' => [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'created_on' => '2026-08-07T03:00:00Z', 'stopped_on' => '2026-08-07T03:05:00Z',   // 10:05 Jakarta
+        ],
+        // icc shipped AFTER its content edit -> current
+        'tag-icc' => [
+            'build_uuid' => 'b2', 'status' => 'stopped', 'build_outcome' => 'success',
+            'created_on' => '2026-08-07T04:00:00Z', 'stopped_on' => '2026-08-07T04:05:00Z',   // 11:05 Jakarta
+        ],
+    ]);
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.needs_rebuild', true)
+        ->assertJsonPath('data.1.needs_rebuild', false);
+});
+
+it('treats a failed build as never having shipped', function () {
+    Project::factory()->create(['username' => 'megabuild']);
+    touchProject('megabuild', '2026-08-07 01:00:00');   // 2026-08-06 18:00Z
+
+    fakeCloudflare([
+        'tag-mb' => [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'fail',
+            'stopped_on' => '2026-08-07T09:00:00Z',
+        ],
+    ]);
+
+    // The build finished AFTER the edit, but it failed, so nothing shipped.
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.needs_rebuild', true);
+});
+
+// ---------------------------------------------------------------------------
+// Detail, logs, cancel
+// ---------------------------------------------------------------------------
+
+it('returns build history for one site', function () {
+    Http::fake([
+        CF.'/accounts/acct123/workers/scripts*' => Http::response([
+            'success' => true, 'result' => [['id' => 'megabuild', 'tag' => 'tag-mb']],
+        ]),
+        CF.'/accounts/acct123/builds/workers/*/builds*' => Http::response([
+            'success' => true,
+            'result' => [
+                ['build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success'],
+                ['build_uuid' => 'b0', 'status' => 'stopped', 'build_outcome' => 'fail'],
+            ],
+        ]),
+    ]);
+
+    $this->getJson('/api/websites/megabuild')
+        ->assertSuccessful()
+        ->assertJsonPath('data.worker', 'megabuild')
+        ->assertJsonCount(2, 'data.history')
+        ->assertJsonPath('data.history.0.outcome', 'success');
+});
+
+it('404s for an unknown website', function () {
+    $this->getJson('/api/websites/not-a-site')->assertNotFound();
+});
+
+it('returns build log lines as plain strings', function () {
+    Http::fake([
+        CF.'/accounts/acct123/builds/builds/*/logs*' => Http::response([
+            'success' => true,
+            'result' => ['lines' => [[1, 'installing'], [2, 'done']], 'truncated' => false],
+        ]),
+    ]);
+
+    $this->getJson('/api/websites/megabuild/builds/b1/logs')
+        ->assertSuccessful()
+        ->assertJsonPath('data.lines', ['installing', 'done'])
+        ->assertJsonPath('data.truncated', false);
+});
+
+it('cancels a build', function () {
+    Http::fake([CF.'/accounts/acct123/builds/builds/*/cancel' => Http::response(['success' => true])]);
+
+    $this->postJson('/api/websites/megabuild/builds/b1/cancel')
+        ->assertSuccessful()
+        ->assertJsonPath('message', 'Build cancelled.');
+});
+
+it('surfaces a Cloudflare refusal to cancel', function () {
+    Http::fake([CF.'/accounts/acct123/builds/builds/*/cancel' => Http::response(['success' => false], 400)]);
+
+    $this->postJson('/api/websites/megabuild/builds/b1/cancel')->assertStatus(502);
+});
+
+it('requires the rebuild permission to cancel', function () {
+    $other = User::factory()->create(['email_verified_at' => now()]);
+    Role::firstOrCreate(['name' => 'viewer', 'guard_name' => 'web'])
+        ->syncPermissions([Permission::findByName('websites.view')]);
+    $other->assignRole('viewer');
+    $this->actingAs($other);
+
+    $this->getJson('/api/websites/megabuild')->assertSuccessful();
+    $this->postJson('/api/websites/megabuild/builds/b1/cancel')->assertForbidden();
+});
+
+it('compares a local content timestamp against Cloudflare UTC correctly', function () {
+    Project::factory()->create(['username' => 'megabuild']);
+    // 2026-08-07 06:00 Jakarta == 2026-08-06 23:00Z. A naive string comparison
+    // would call this newer than the build below; it is not.
+    touchProject('megabuild', '2026-08-07 06:00:00');
+
+    fakeCloudflare([
+        'tag-mb' => [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'stopped_on' => '2026-08-07T00:00:00Z',
+        ],
+    ]);
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.needs_rebuild', false);
 });

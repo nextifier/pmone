@@ -5,21 +5,23 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\TriggerWorkerBuild;
 use App\Models\Project;
+use App\Support\ProjectContentActivity;
 use App\Support\WorkersBuilds;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 /**
  * Build status and manual rebuilds for the event websites.
  *
  * Every public page on those sites is prerendered, so content edited here only
  * reaches visitors on the next Cloudflare Workers build. This is where an
- * operator sees whether that has happened and starts it when it has not.
+ * operator sees which sites are behind and starts the builds that catch them up.
  */
 class WebsiteBuildController extends Controller
 {
     /**
-     * Every configured site with its latest build.
+     * Every configured site with its latest build and whether it is stale.
      *
      * One batched Cloudflare call covers all sites, so this is cheap enough to
      * poll while a build is running.
@@ -33,9 +35,15 @@ class WebsiteBuildController extends Controller
             ->whereIn('username', array_column($sites, 'project'))
             ->pluck('name', 'username');
 
-        $data = array_map(function (array $site) use ($builds, $projectNames): array {
-            $build = $builds[$site['app']] ?? null;
-            $meta = $build['build_trigger_metadata'] ?? [];
+        // Co-located sites (cokelatexpo, icf) render another project's content,
+        // so staleness has to be measured against the project they READ from.
+        $changedAt = ProjectContentActivity::lastChangedAt(array_values(array_unique(
+            array_map(fn ($site) => $site['data_source'] ?: $site['project'], $sites),
+        )));
+
+        $data = array_map(function (array $site) use ($builds, $projectNames, $changedAt): array {
+            $build = $this->presentBuild($builds[$site['app']] ?? null);
+            $contentChangedAt = $changedAt[$site['data_source'] ?: $site['project']] ?? null;
 
             return [
                 'worker' => $site['app'],
@@ -43,30 +51,59 @@ class WebsiteBuildController extends Controller
                 'project_name' => $projectNames[$site['project']] ?? $site['project'],
                 'data_source' => $site['data_source'],
                 'url' => $site['url'],
-                'build' => $build ? [
-                    'uuid' => $build['build_uuid'] ?? null,
-                    // Cloudflare splits this across two fields: `status` is the
-                    // lifecycle (queued/initializing/running/stopped) and only a
-                    // stopped build has an outcome. Note the outcome for a
-                    // failure is "fail", not "failed".
-                    'status' => $build['status'] ?? null,
-                    'outcome' => $build['build_outcome'] ?? null,
-                    'created_at' => $build['created_on'] ?? null,
-                    'started_at' => $build['running_on'] ?? null,
-                    'finished_at' => $build['stopped_on'] ?? null,
-                    'branch' => $meta['branch'] ?? null,
-                    'commit_hash' => $meta['commit_hash'] ?? null,
-                    'commit_message' => $meta['commit_message'] ?? null,
-                    'author' => $meta['author'] ?? null,
-                    'trigger_source' => $meta['build_trigger_source'] ?? null,
-                ] : null,
+                'build' => $build,
+                'content_changed_at' => $contentChangedAt?->toIso8601String(),
+                'needs_rebuild' => $this->needsRebuild($build, $contentChangedAt),
             ];
         }, $sites);
 
         return response()->json([
             'data' => $data,
-            'meta' => ['configured' => WorkersBuilds::isConfigured()],
+            'meta' => [
+                'configured' => WorkersBuilds::isConfigured(),
+                'limits' => WorkersBuilds::accountLimits(),
+            ],
         ]);
+    }
+
+    /** One site, with its recent build history. */
+    public function show(string $worker): JsonResponse
+    {
+        $site = $this->findSite($worker);
+
+        return response()->json([
+            'data' => [
+                'worker' => $site['app'],
+                'project' => $site['project'],
+                'data_source' => $site['data_source'],
+                'url' => $site['url'],
+                'locales' => $site['locales'] ?? [],
+                'history' => array_map(
+                    fn (array $build) => $this->presentBuild($build),
+                    WorkersBuilds::history($worker),
+                ),
+            ],
+        ]);
+    }
+
+    /** Log lines for one build of one site. */
+    public function logs(string $worker, string $buildUuid): JsonResponse
+    {
+        $this->findSite($worker);
+
+        return response()->json(['data' => WorkersBuilds::logs($buildUuid)]);
+    }
+
+    /** Stop a build that is still queued or running. */
+    public function cancel(string $worker, string $buildUuid): JsonResponse
+    {
+        $this->findSite($worker);
+
+        if (! WorkersBuilds::cancel($buildUuid)) {
+            return response()->json(['message' => 'Could not cancel that build.'], 502);
+        }
+
+        return response()->json(['message' => 'Build cancelled.']);
     }
 
     /**
@@ -105,5 +142,68 @@ class WebsiteBuildController extends Controller
                 : count($workers).' rebuilds queued.',
             'data' => ['workers' => $workers],
         ]);
+    }
+
+    /**
+     * @return array{app: string, project: string, data_source: string|null, url: string, locales?: array}
+     */
+    protected function findSite(string $worker): array
+    {
+        $site = collect(WorkersBuilds::sites())->firstWhere('app', $worker);
+
+        abort_if($site === null, 404, 'Unknown website.');
+
+        return $site;
+    }
+
+    /**
+     * Flatten Cloudflare's build shape into what the table renders.
+     *
+     * Cloudflare splits build state across two fields: `status` is the lifecycle
+     * and only a stopped build carries an outcome — and a failure reads "fail",
+     * not "failed".
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function presentBuild(?array $build): ?array
+    {
+        if (! $build) {
+            return null;
+        }
+
+        $meta = $build['build_trigger_metadata'] ?? [];
+
+        return [
+            'uuid' => $build['build_uuid'] ?? null,
+            'status' => $build['status'] ?? null,
+            'outcome' => $build['build_outcome'] ?? null,
+            'created_at' => $build['created_on'] ?? null,
+            'started_at' => $build['running_on'] ?? null,
+            'finished_at' => $build['stopped_on'] ?? null,
+            'branch' => $meta['branch'] ?? null,
+            'commit_hash' => $meta['commit_hash'] ?? null,
+            'commit_message' => $meta['commit_message'] ?? null,
+            'author' => $meta['author'] ?? null,
+            'trigger_source' => $meta['build_trigger_source'] ?? null,
+        ];
+    }
+
+    /**
+     * Whether prerendered content has changed since the last SUCCESSFUL build.
+     *
+     * A failed or in-flight build never counts as having shipped anything, so a
+     * site whose build failed stays flagged until one succeeds.
+     */
+    protected function needsRebuild(?array $build, ?Carbon $contentChangedAt): bool
+    {
+        if (! $contentChangedAt) {
+            return false;
+        }
+
+        $shippedAt = ($build && $build['status'] === 'stopped' && $build['outcome'] === 'success')
+            ? $build['finished_at']
+            : null;
+
+        return $shippedAt === null || $contentChangedAt->gt(Carbon::parse($shippedAt));
     }
 }
