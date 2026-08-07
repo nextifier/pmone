@@ -16,6 +16,7 @@
  */
 import type { Ref } from "vue"
 import { onScopeDispose, watch } from "vue"
+import { useRouter } from "vue-router"
 
 interface PanelHistoryEntry {
   close: () => void
@@ -36,6 +37,14 @@ const stack: PanelHistoryEntry[] = []
 let selfPops: number[] = []
 let listening = false
 
+/**
+ * Bounds the skip loop in `onPopState`. Every skip consumes a history entry so
+ * it terminates on its own; this is only here so a browser that answers
+ * `history.back()` with a `popstate` that does not move can never spin.
+ */
+const MAX_CONSECUTIVE_SKIPS = 10
+let consecutiveSkips = 0
+
 function claimSelfPop(): boolean {
   const now = Date.now()
   selfPops = selfPops.filter((deadline) => deadline > now)
@@ -46,21 +55,50 @@ function claimSelfPop(): boolean {
   return true
 }
 
-function stopListeningWhenEmpty() {
-  if (stack.length || !listening) {
+/**
+ * Installed when the first panel opens and never removed. An entry we pushed can
+ * outlive every panel — see the skip in `onPopState` — and there is no point at
+ * which we can prove none is left, so one passive listener for the life of the
+ * app is cheaper than the bookkeeping it would take to be sure.
+ */
+function startListening() {
+  if (listening) {
     return
   }
-  window.removeEventListener("popstate", onPopState)
-  listening = false
-  selfPops = []
+  window.addEventListener("popstate", onPopState)
+  listening = true
+}
+
+function goBackSilently() {
+  selfPops.push(Date.now() + SELF_POP_TTL_MS)
+  window.history.back()
 }
 
 function onPopState() {
-  if (claimSelfPop()) {
+  const wasOurOwnRewind = claimSelfPop()
+  if (!wasOurOwnRewind && stack.length) {
+    // Only ever the panel on top: a nested stack comes down one level per press,
+    // the same way Escape brings it down.
+    consecutiveSkips = 0
+    stack.pop()?.close()
     return
   }
-  stack.pop()?.close()
-  stopListeningWhenEmpty()
+  // Nothing of ours is open, so an entry of ours under the cursor is dead. A
+  // click that both closes a panel and navigates leaves one behind per panel —
+  // three nested drawers leave three — because by the time the panels tear down
+  // the router has already pushed and there is no longer anything of ours to
+  // rewind. Each carries the URL of the page below it, so left in place they read
+  // as back presses that do nothing.
+  //
+  // The empty-stack test is what makes this safe: it is also what a nested child
+  // rewinding onto its live parent's entry looks like, and that entry must not be
+  // touched.
+  if (!stack.length && sittingOnOwnEntry() && consecutiveSkips < MAX_CONSECUTIVE_SKIPS) {
+    consecutiveSkips += 1
+    goBackSilently()
+    return
+  }
+  consecutiveSkips = 0
 }
 
 /**
@@ -72,12 +110,76 @@ function sittingOnOwnEntry(): boolean {
   return Boolean(window.history.state?.panelOpen)
 }
 
+/**
+ * A link inside a panel closes it *and* navigates, both out of the same click.
+ * Rewinding on close would then land on the entry the router is about to build
+ * on and cancel the navigation: the panel shuts and the page never changes.
+ *
+ * Two signals, because neither covers the other. `linkActivatedAt` is set while
+ * the click is still being dispatched, which is the only thing early enough —
+ * measured on the mobile sidebar the router's own `beforeEach` arrives ~30ms
+ * after the panel closes, long after a deferred rewind would have fired. The
+ * counter catches the rest: a button that calls `navigateTo()` itself never
+ * touches a link.
+ */
+const LINK_ACTIVATION_WINDOW_MS = 500
+let linkActivatedAt = 0
+let clickHooked = false
+let navigating = 0
+let routerHooked = false
+
+function trackLinkActivations() {
+  // Runs from `setup`, so unlike everything else here it is reached on the
+  // server too, where there is no `window` to listen on.
+  if (clickHooked || typeof window === "undefined") {
+    return
+  }
+  clickHooked = true
+  // Bubble phase on purpose: `defaultPrevented` only means anything once the
+  // link's own handler has run, and that is what separates a router link from
+  // an ordinary one — RouterLink cancels the click before pushing.
+  window.addEventListener("click", (event) => {
+    if (!event.defaultPrevented) {
+      return
+    }
+    if ((event.target as Element | null)?.closest?.("a[href]")) {
+      linkActivatedAt = Date.now()
+    }
+  })
+}
+
+function trackRouterNavigations(router: ReturnType<typeof useRouter> | null) {
+  if (routerHooked || !router) {
+    return
+  }
+  routerHooked = true
+  const done = () => { navigating = Math.max(0, navigating - 1) }
+  router.beforeEach(() => { navigating += 1 })
+  router.afterEach(done)
+  router.onError(done)
+}
+
+function navigationIsStarting(): boolean {
+  return navigating > 0 || Date.now() - linkActivatedAt < LINK_ACTIVATION_WINDOW_MS
+}
+
 function rewind() {
-  selfPops.push(Date.now() + SELF_POP_TTL_MS)
-  window.history.back()
+  // Deferred, and both conditions re-checked at the end: the click that closed
+  // the panel may still be turning into a navigation. Undoing that navigation
+  // costs the user the page they asked for, so we stand down and leave the entry
+  // where it is — `onPopState` skips it on the way back.
+  setTimeout(() => {
+    if (!sittingOnOwnEntry() || navigationIsStarting()) {
+      return
+    }
+    goBackSilently()
+  }, 0)
 }
 
 export function usePanelHistory(isOpen: Ref<boolean>): void {
+  trackLinkActivations()
+  trackRouterNavigations(useRouter?.() ?? null)
+
   const entry: PanelHistoryEntry = {
     close: () => {
       isOpen.value = false
@@ -90,10 +192,7 @@ export function usePanelHistory(isOpen: Ref<boolean>): void {
     // own bookkeeping there (`back`, `current`, `forward`, `position`, `scroll`)
     // and an entry stripped of it loses scroll restoration.
     window.history.pushState({ ...window.history.state, panelOpen: true }, "")
-    if (!listening) {
-      window.addEventListener("popstate", onPopState)
-      listening = true
-    }
+    startListening()
   }
 
   function pop() {
@@ -107,7 +206,6 @@ export function usePanelHistory(isOpen: Ref<boolean>): void {
     if (sittingOnOwnEntry()) {
       rewind()
     }
-    stopListeningWhenEmpty()
   }
 
   watch(isOpen, (open, wasOpen) => {
@@ -123,7 +221,6 @@ export function usePanelHistory(isOpen: Ref<boolean>): void {
   onScopeDispose(() => {
     const index = stack.indexOf(entry)
     if (index === -1) {
-      stopListeningWhenEmpty()
       return
     }
     stack.splice(index, 1)
@@ -134,6 +231,5 @@ export function usePanelHistory(isOpen: Ref<boolean>): void {
     if (sittingOnOwnEntry()) {
       rewind()
     }
-    stopListeningWhenEmpty()
   })
 }
