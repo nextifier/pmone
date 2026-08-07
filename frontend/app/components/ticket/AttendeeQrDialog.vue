@@ -5,7 +5,7 @@
     @update:open="(v) => emit('update:open', v)"
   >
     <template #default>
-      <div class="flex flex-col items-center gap-4 px-6 pb-10 md:py-7">
+      <div class="flex flex-col items-center gap-4 px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-center">
           <div class="page-title">QR Code</div>
           <p class="text-muted-foreground mt-0.5 text-sm tracking-tight">Scan at check-in</p>

@@ -54,7 +54,7 @@
     <!-- Add/Edit Field Dialog -->
     <ResponsiveDialog v-model:open="fieldDialogOpen" dialog-max-width="760px" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">
             {{ editingField ? "Edit field" : "Add field" }}
           </h3>

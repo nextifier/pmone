@@ -10,13 +10,13 @@
   >
     <template #sticky-header>
       <div
-        class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        class="border-border sticky top-0 z-10 border-b px-4 pt-5 pb-2 text-center md:px-6 md:py-3.5 md:text-left"
       >
         <div class="text-lg font-semibold tracking-tighter">Create New Task</div>
       </div>
     </template>
     <template #default>
-      <div class="px-4 py-4 md:px-6">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <FormTask
           ref="createFormRef"
           :loading="createLoading"
@@ -39,13 +39,13 @@
   >
     <template #sticky-header>
       <div
-        class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+        class="border-border sticky top-0 z-10 border-b px-4 pt-5 pb-2 text-center md:px-6 md:py-3.5 md:text-left"
       >
         <div class="text-lg font-semibold tracking-tighter">Edit Task</div>
       </div>
     </template>
     <template #default>
-      <div class="px-4 py-4 md:px-6">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <FormTask
           v-if="taskToEdit"
           ref="editFormRef"
@@ -63,7 +63,7 @@
   <!-- Unsaved Changes Dialog -->
   <ResponsiveDialog v-model:open="unsavedDialogOpen" :hide-overlay="true">
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-6">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved Changes</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           You have unsaved changes. Would you like to save them before closing?
@@ -96,7 +96,7 @@
   <!-- Delete Dialog -->
   <ResponsiveDialog v-model:open="deleteDialogOpen">
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-6">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <template v-if="deleteMode === 'clear-completed'">
           <div class="text-foreground text-lg font-semibold tracking-tight">
             Clear Completed Tasks?

@@ -430,7 +430,7 @@
     <!-- Create/Edit dialog -->
     <ResponsiveDialog v-model:open="formOpen" dialog-max-width="40rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="flex items-start justify-between gap-3">
             <h3 class="text-lg font-semibold tracking-tight">
               {{ editingGuest ? "Edit Guest" : "Add Guest" }}
@@ -463,7 +463,7 @@
     <!-- Activity log dialog -->
     <ResponsiveDialog v-model:open="activityOpen" dialog-max-width="32rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Activity log</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             {{ editingGuest?.name }}
@@ -482,7 +482,7 @@
     <!-- Move to event dialog -->
     <ResponsiveDialog v-model:open="moveOpen" dialog-max-width="26rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <MoveToEventDialog
             v-if="moveOpen"
             :username="username"
@@ -499,7 +499,7 @@
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete this guest?</h3>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             {{ deletingGuest?.name }} will be moved to trash.
@@ -522,7 +522,7 @@
       :prevent-close="bulkDeleteJob.processing.value"
     >
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete selected guests?</h3>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             {{ selectedCount }} guest(s) will be moved to trash.
@@ -571,7 +571,7 @@
     <!-- Trash dialog -->
     <ResponsiveDialog v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Trash</h3>
           <div class="mt-4 space-y-3">
             <div v-if="trashLoading" class="flex justify-center py-8">

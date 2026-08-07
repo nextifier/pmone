@@ -40,7 +40,7 @@ function submit() {
   <!-- ResponsiveDialog: modal on desktop, drawer on mobile (STYLE_GUIDE §10). -->
   <ResponsiveDialog :open="open" dialog-max-width="420px" @update:open="setOpen">
     <template #default>
-      <form class="flex flex-col gap-4 px-4 pb-10 md:px-6 md:py-5" @submit.prevent="submit">
+      <form class="flex flex-col gap-4 px-4 pt-5 pb-8 md:px-6 md:py-5" @submit.prevent="submit">
         <div>
           <div class="text-foreground text-lg font-semibold tracking-tighter text-balance">
             Open Preset

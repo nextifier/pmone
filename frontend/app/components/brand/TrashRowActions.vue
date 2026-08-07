@@ -36,7 +36,7 @@
     <!-- Restore Dialog -->
     <ResponsiveDialog v-model:open="restoreDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="page-title">Restore brand?</div>
           <p class="page-description mt-1.5">This will restore this brand.</p>
           <div class="mt-3 flex justify-end gap-2">
@@ -63,7 +63,7 @@
     <!-- Delete Permanently Dialog -->
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="page-title">Are you absolutely sure?</div>
           <p class="page-description mt-1.5">
             This action can't be undone. This will permanently delete this brand.

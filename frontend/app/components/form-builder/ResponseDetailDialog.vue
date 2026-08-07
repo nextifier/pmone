@@ -1,7 +1,7 @@
 <template>
   <ResponsiveDialog v-model:open="isOpen" dialog-max-width="600px" :overflow-content="true">
     <template #default>
-      <div v-if="response" class="px-4 pb-10 md:px-6 md:py-5">
+      <div v-if="response" class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <!-- Header: title + meta on the left, status away from the close button -->
         <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 md:pe-9">
           <div class="min-w-0">

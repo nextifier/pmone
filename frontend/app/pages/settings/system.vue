@@ -33,7 +33,7 @@
         </template>
 
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <div class="text-foreground text-lg font-semibold tracking-tight">
               Clear response cache?
             </div>
@@ -80,7 +80,7 @@
         </template>
 
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <div class="text-foreground text-lg font-semibold tracking-tight">Sync permissions?</div>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">
               This creates any new permissions defined in the code and re-grants them to the master

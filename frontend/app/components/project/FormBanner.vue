@@ -1,6 +1,6 @@
 <template>
   <ResponsiveDialog v-model:open="isOpen" dialog-max-width="32rem" :overflow-content="true">
-    <div class="px-4 pb-10 md:px-6 md:py-5">
+    <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
       <div class="space-y-1">
         <h3 class="page-title">{{ banner ? "Edit Banner" : "Add Banner" }}</h3>
         <p class="page-description">

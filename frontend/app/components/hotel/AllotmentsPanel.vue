@@ -25,7 +25,7 @@
 
     <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="30rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
             {{ editing ? "Edit Allotment" : "Add Allotment" }}
           </h3>
@@ -184,7 +184,7 @@
 
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete allotment?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             This allotment block will be moved to trash.

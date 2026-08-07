@@ -204,7 +204,7 @@
     <!-- Delete Dialog -->
     <ResponsiveDialog v-model:open="deleteDialogOpen" dialog-max-width="28rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">Delete Promotion Rule</h3>
           <p class="text-muted-foreground text-sm tracking-tight mt-2">
             Soft delete this rule. Existing codes will become unusable. You can restore from Trash.
@@ -223,7 +223,7 @@
     <!-- Bulk Generate Dialog -->
     <ResponsiveDialog v-model:open="bulkDialogOpen" dialog-max-width="32rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5 space-y-4">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5 space-y-4">
           <h3 class="text-lg font-semibold tracking-tighter">Bulk Generate Promo Codes</h3>
           <p class="text-muted-foreground text-sm tracking-tight">
             Generates random codes attached to this rule.

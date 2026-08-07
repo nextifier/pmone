@@ -22,7 +22,7 @@
           </Button>
         </template>
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <div class="text-foreground text-lg font-semibold tracking-tight">Reset two-factor?</div>
             <p class="text-body mt-1.5 text-sm tracking-tight">
               This disables 2FA for {{ user.name }}. They will need to set it up again. This action is logged.
@@ -95,7 +95,7 @@
             </Button>
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Suspend {{ user.name }}?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 They will be signed out everywhere and blocked from signing in until reactivated.

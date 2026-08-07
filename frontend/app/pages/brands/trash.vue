@@ -45,7 +45,7 @@
             <TableBulkAction icon="hugeicons:undo-02" label="Restore" @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="page-title">Restore brands?</div>
               <p class="page-description mt-1.5">
                 This will restore {{ selectedRows.length }} selected
@@ -86,7 +86,7 @@
             />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="page-title">Are you absolutely sure?</div>
               <p class="page-description mt-1.5">
                 This action can't be undone. This will permanently delete

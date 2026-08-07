@@ -134,7 +134,7 @@
             <TableBulkAction icon="material-symbols:verified" label="Verify" @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Verify users?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will verify {{ selectedRows.length }} selected
@@ -170,7 +170,7 @@
             <TableBulkAction icon="material-symbols:verified" label="Unverify" @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Unverify users?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will unverify {{ selectedRows.length }} selected
@@ -206,7 +206,7 @@
             <TableBulkAction icon="hugeicons:logout-03" label="Force logout" @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Force logout?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This signs out {{ selectedRows.length }} selected
@@ -242,7 +242,7 @@
             <TableBulkAction icon="hugeicons:key-01" label="Send reset" @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Send password reset?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This emails a password reset link to {{ selectedRows.length }} selected
@@ -278,7 +278,7 @@
             <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete

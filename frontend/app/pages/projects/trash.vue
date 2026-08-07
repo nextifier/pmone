@@ -63,7 +63,7 @@
     <!-- Restore Dialog -->
     <ResponsiveDialog v-model:open="restoreDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Restore Project?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             Are you sure you want to restore <strong>{{ projectToRestore?.name }}</strong
@@ -92,7 +92,7 @@
     <!-- Delete Dialog -->
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
             Delete Project Permanently?
           </div>
@@ -123,7 +123,7 @@
     <!-- Empty Trash Dialog -->
     <ResponsiveDialog v-model:open="emptyTrashDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Empty Trash?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             Are you sure you want to permanently delete all

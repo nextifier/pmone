@@ -280,7 +280,7 @@
     <!-- Adjustments Dialog -->
     <ResponsiveDialog v-model:open="adjustmentsDialogOpen" dialog-max-width="32rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Adjustments</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Discounts & penalties applied to this order or its items.
@@ -344,7 +344,7 @@
     <!-- Documents Dialog -->
     <ResponsiveDialog v-model:open="documentsDialogOpen" dialog-max-width="32rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Documents</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Upload and send the invoice and receipt.
@@ -397,7 +397,7 @@
     <!-- Details Dialog -->
     <ResponsiveDialog v-model:open="detailsDialogOpen" dialog-max-width="28rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Order Details</h3>
 
           <div class="mt-4 space-y-4">
@@ -462,7 +462,7 @@
     <!-- Cancellation Reason Dialog -->
     <ResponsiveDialog v-model:open="cancelDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Cancel Order</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Provide a reason for cancelling this order.
@@ -513,7 +513,7 @@
     <!-- Void Adjustment Confirm -->
     <ResponsiveDialog v-model:open="voidDialogOpen" dialog-max-width="26rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
           <p class="text-muted-foreground mt-2 text-sm tracking-tight">
             Void "{{ voidTarget?.label }}"? Recalculates totals.

@@ -31,7 +31,7 @@
           </template>
 
           <template #default>
-            <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
+            <div class="space-y-6 px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="space-y-2">
                 <h2 class="text-lg font-semibold tracking-tighter">Apa itu suppression list</h2>
                 <p class="text-muted-foreground text-sm tracking-tight">
@@ -361,7 +361,7 @@
 
     <ResponsiveDialog v-model:open="removeOpen">
       <template #default>
-        <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
+        <div class="space-y-6 px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="space-y-1">
             <h2 class="text-lg font-semibold tracking-tighter">Remove from suppression list?</h2>
             <p class="text-muted-foreground text-sm tracking-tight">

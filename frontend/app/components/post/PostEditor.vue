@@ -29,7 +29,7 @@
   <!-- Restore Draft Dialog -->
   <ResponsiveDialog v-model:open="showRestoreDialog">
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-6">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tight">Restore Draft?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           You have unsaved changes from a previous session. Would you like to restore them or start
@@ -45,7 +45,7 @@
 
   <!-- Delete Confirmation Dialog -->
   <ResponsiveDialog v-model:open="showDeleteDialog" dialog-max-width="450px">
-    <div class="px-4 pb-8 md:pt-8">
+    <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
       <div class="flex items-start gap-x-3">
         <div class="bg-destructive/15 flex size-10 shrink-0 items-center justify-center rounded-xl">
           <Icon name="hugeicons:delete-01" class="text-destructive-foreground size-5" />

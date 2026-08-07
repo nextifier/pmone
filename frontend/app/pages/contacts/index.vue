@@ -220,7 +220,7 @@
             <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will delete {{ selectedRows.length }}
@@ -262,7 +262,7 @@
     <!-- Deduplicate Dialog -->
     <ResponsiveDialog v-model:open="dedupeDialogOpen" dialog-max-width="560px">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">Remove Duplicates</div>
 
           <!-- Step 1: Explanation -->
@@ -405,7 +405,7 @@
     <!-- Unused Tags Dialog -->
     <ResponsiveDialog v-model:open="unusedTagsDialogOpen" dialog-max-width="560px">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">Remove Unused Tags</div>
 
           <!-- Step 1: Explanation -->
@@ -518,7 +518,7 @@
     <!-- Export Progress Dialog -->
     <ResponsiveDialog v-model:open="exportDialogOpen" dialog-max-width="400px">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Exporting Contacts</div>
           <div class="mt-4 space-y-2">
             <div class="flex items-center justify-between text-sm tracking-tight">
@@ -534,7 +534,7 @@
     <!-- Delete All Dialog -->
     <ResponsiveDialog v-model:open="deleteAllDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
             Delete all contacts?
           </div>
@@ -584,7 +584,7 @@
     >
       <template #sticky-header>
         <div
-          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+          class="border-border sticky top-0 z-10 border-b px-4 pt-5 pb-2 text-center md:px-6 md:py-3.5 md:text-left"
         >
           <div class="text-lg font-semibold tracking-tighter">
             {{ editingContact || editLoading ? "Edit Contact" : "New Contact" }}
@@ -592,7 +592,7 @@
         </div>
       </template>
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:pb-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div v-if="editLoading" class="mt-4 space-y-4">
             <!-- Person Name -->
             <div class="space-y-2">
@@ -694,7 +694,7 @@
     <!-- Unsaved Changes Warning -->
     <ResponsiveDialog v-model:open="showUnsavedWarning">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Unsaved changes</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             You have unsaved changes. Are you sure you want to close?
@@ -1791,7 +1791,7 @@ const RowActions = defineComponent({
           },
           {
             default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+              h("div", { class: "px-4 pt-5 pb-8 md:px-6 md:py-5" }, [
                 h(
                   "div",
                   { class: "text-foreground text-lg font-semibold tracking-tight" },

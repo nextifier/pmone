@@ -146,7 +146,7 @@
     <!-- Verify Dialog -->
     <ResponsiveDialog v-model:open="verifyDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Verify user?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">This will verify this user.</p>
           <div class="mt-3 flex justify-end gap-2">
@@ -173,7 +173,7 @@
     <!-- Unverify Dialog -->
     <ResponsiveDialog v-model:open="unverifyDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Unverify user?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">This will unverify this user.</p>
           <div class="mt-3 flex justify-end gap-2">
@@ -200,7 +200,7 @@
     <!-- Delete Dialog -->
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             This action can't be undone. This will permanently delete this user.

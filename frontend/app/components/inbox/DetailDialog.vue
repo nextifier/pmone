@@ -1,7 +1,7 @@
 <template>
   <ResponsiveDialog v-model:open="open" dialogMaxWidth="600px" :overflow-content="true">
     <template #default>
-      <div v-if="submission" class="px-4 pb-10 md:px-6 md:py-6">
+      <div v-if="submission" class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <!-- Header with Status -->
         <div class="flex items-start justify-between gap-x-2 sm:items-end">
           <div class="space-y-1">

@@ -206,7 +206,7 @@
 
     <!-- Create / Edit dialog -->
     <ResponsiveDialog v-model:open="formDialogOpen" dialog-max-width="32rem">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="page-title">
             {{ editing ? "Edit Payment Gateway" : "Add Payment Gateway" }}
@@ -432,7 +432,7 @@
 
     <!-- Toggle active confirmation -->
     <ResponsiveDialog v-model:open="toggleDialogOpen">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="page-title">
             {{ pendingToggle?.value ? "Activate this gateway?" : "Deactivate this gateway?" }}
@@ -481,7 +481,7 @@
 
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteDialogOpen">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="page-title">Delete this gateway?</h3>
           <p class="page-description">

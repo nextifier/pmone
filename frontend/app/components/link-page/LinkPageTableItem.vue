@@ -22,7 +22,7 @@
           </button>
         </template>
         <template #default>
-          <div class="flex flex-col items-center gap-5 px-6 pb-12 md:py-8">
+          <div class="flex flex-col items-center gap-5 px-4 pt-5 pb-8 md:px-6 md:py-5">
             <div class="text-center">
               <div class="page-title">QR Code</div>
               <div class="mt-0.5 flex items-center gap-x-1">

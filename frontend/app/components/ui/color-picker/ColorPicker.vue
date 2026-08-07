@@ -107,10 +107,11 @@ const HSL_CHANNELS = ["hue", "saturation", "lightness"] as const;
 const thumbClass =
   "block size-4 cursor-pointer rounded-full border-2 border-white bg-white shadow-md ring-1 ring-black/20 transition-transform outline-none hover:scale-110 focus-visible:ring-2 focus-visible:ring-black/40";
 
-// One step below the `.cn-input` default because the three channel fields share
-// a narrow row; the height and the touch/mouse split stay with the style sheet.
+// One step below the `.cn-input` default on a mouse, because the three channel
+// fields share a narrow row. The touch value stays at 16px: anything smaller makes
+// iOS Safari zoom the page on focus, and it never zooms back out on its own.
 const fieldClass =
-  "cn-input w-full min-w-0 px-2 text-center text-sm tracking-tight outline-none pointer-fine:text-xs";
+  "cn-input w-full min-w-0 px-2 text-center text-base tracking-tight outline-none pointer-fine:text-xs";
 </script>
 
 <template>

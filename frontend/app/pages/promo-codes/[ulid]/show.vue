@@ -131,7 +131,7 @@
 
     <ResponsiveDialog v-model:open="deleteDialogOpen" dialog-max-width="28rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">Delete Promo Code</h3>
           <p class="text-muted-foreground text-sm tracking-tight mt-2">
             Soft-delete this code. Existing usages remain in history.

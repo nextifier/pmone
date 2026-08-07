@@ -1,7 +1,7 @@
 <template>
   <ResponsiveDialog v-model:open="isOpen" dialog-max-width="440px">
     <template #default>
-      <div class="space-y-6 px-4 pt-2 pb-8 md:px-6 md:py-4">
+      <div class="space-y-6 px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h2 class="text-lg font-semibold tracking-tighter">Personalize Ticket</h2>
           <p class="text-muted-foreground text-sm tracking-tight">

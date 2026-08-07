@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 pb-10 md:px-6 md:py-5">
+  <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
     <!-- Status Badge + Overdue -->
     <div class="flex items-center gap-x-2">
       <div

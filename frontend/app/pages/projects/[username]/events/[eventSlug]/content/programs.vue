@@ -160,7 +160,7 @@
     <!-- Create / Edit dialog -->
     <ResponsiveDialog v-model:open="formOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pt-5 pb-8 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
             {{ editingItem ? "Edit Program" : "Add Program" }}
           </h3>
@@ -181,7 +181,7 @@
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
-        <div class="px-4 pt-5 pb-6 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete this program?</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             "{{ resolve(deletingItem?.title) || "Untitled" }}" will be moved to trash. You can
@@ -212,7 +212,7 @@
     <!-- Trash dialog -->
     <ResponsiveDialog v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pt-5 pb-6 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Trashed Programs</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Restore deleted programs, or permanently remove them.

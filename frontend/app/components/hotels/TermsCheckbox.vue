@@ -20,7 +20,7 @@
 
     <ResponsiveDialog v-model:open="termsOpen" :overflow-content="true" dialog-max-width="36rem">
       <template #default>
-        <div class="px-4 pb-8 md:px-6 md:py-5 space-y-3 text-sm tracking-tight">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5 space-y-3 text-sm tracking-tight">
           <h3 class="text-lg font-semibold">Terms &amp; Conditions</h3>
           <ul class="text-muted-foreground list-disc list-inside space-y-2">
             <li>All reservations are subject to availability and confirmation by the partner hotel.</li>
@@ -40,7 +40,7 @@
 
     <ResponsiveDialog v-model:open="privacyOpen" :overflow-content="true" dialog-max-width="36rem">
       <template #default>
-        <div class="px-4 pb-8 md:px-6 md:py-5 space-y-3 text-sm tracking-tight">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5 space-y-3 text-sm tracking-tight">
           <h3 class="text-lg font-semibold">Privacy Policy</h3>
           <ul class="text-muted-foreground list-disc list-inside space-y-2">
             <li>We collect personal data (name, email, phone, ID) solely to process your reservation and communicate with the partner hotel.</li>

@@ -26,7 +26,7 @@ defineExpose({ resetToDefault });
 
 <template>
   <div class="flex items-center gap-2">
-    <Label class="text-muted-foreground text-sm sm:text-xs">{{ label }}</Label>
+    <Label class="text-muted-foreground text-xs">{{ label }}</Label>
     <Slider
       class="grow [&_[data-slot=slider-thumb]]:rounded-sm"
       :model-value="sliderValues"

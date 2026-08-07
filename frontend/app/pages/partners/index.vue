@@ -92,7 +92,7 @@
             <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will move {{ selectedRows.length }} partner(s) to trash.
@@ -145,7 +145,7 @@
       :overflow-content="true"
     >
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Create new partner</h3>
 
           <form @submit.prevent="handleCreate" class="mt-4 space-y-4">
@@ -678,7 +678,7 @@ const RowActions = defineComponent({
           },
           {
             default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+              h("div", { class: "px-4 pt-5 pb-8 md:px-6 md:py-5" }, [
                 h(
                   "div",
                   { class: "text-foreground text-lg font-semibold tracking-tight" },

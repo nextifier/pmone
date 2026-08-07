@@ -403,7 +403,7 @@
     >
       <template #sticky-header>
         <div
-          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+          class="border-border sticky top-0 z-10 border-b px-4 pt-5 pb-2 text-center md:px-6 md:py-3.5 md:text-left"
         >
           <div class="text-lg font-semibold tracking-tighter">
             {{ $t("orderForm.confirmOrder") }}
@@ -414,7 +414,7 @@
         </div>
       </template>
       <template #default>
-        <div class="px-4 py-4 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="space-y-3">
             <!-- Order summary -->
             <div class="divide-border divide-y">

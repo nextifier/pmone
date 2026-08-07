@@ -143,7 +143,7 @@
            (decision, reconnect, write) so failures can be pinpointed. -->
       <ResponsiveDialog v-model:open="diagnosticOpen" dialog-max-width="640px">
         <template #default>
-          <div class="flex flex-col gap-4 px-5 pt-5 pb-6 md:px-6">
+          <div class="flex flex-col gap-4 px-4 pt-5 pb-8 md:px-6 md:py-5">
             <!-- Header (right side kept clear of the dialog's close button) -->
             <div class="space-y-1 pr-10">
               <h3 class="text-base font-semibold tracking-tighter">Printer diagnostic log</h3>

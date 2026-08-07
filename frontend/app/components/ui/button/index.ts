@@ -6,25 +6,31 @@ export { default as Button } from "./Button.vue";
 // shadcn-vue v4 cn-* button. Shape/colour come from the active `.style-X .cn-button*`
 // rules (app/assets/css/styles). pmone keeps its cva KEYS (so call sites are
 // untouched) and remaps the VALUES to cn-* classes: the extra `outline-destructive`
-// composes outline + `text-destructive`; `iconSm`/`iconXs` map to the registry's
-// `icon-sm`/`icon-xs`.
+// stacks `cn-button-variant-outline-destructive` on top of outline, so a style that
+// does not define it still renders a plain outline button; `iconSm`/`iconXs` map to
+// the registry's `icon-sm`/`icon-xs`.
 //
-// No `` on purpose. It and `disabled:cursor-not-allowed`
+// No `disabled:pointer-events-none` on purpose. It and `disabled:cursor-not-allowed`
 // cancel each other: an element with `pointer-events: none` is never the hit-test
 // target, so its `cursor` is never applied and the pointer stays a plain arrow.
 // `<button disabled>` already blocks click, focus and submit natively, so dropping it
 // costs nothing there — and it lets a Tooltip wrapped around a disabled button work,
 // which is usually the only way to explain WHY it is disabled. Trade-off: hover rules
 // from `.cn-button-variant-*` now fire while disabled (most visible on `ghost`).
+// `relative` anchors two absolutely positioned pseudo-elements: the inner hairline
+// `.cn-button::before` a style may paint, and the coarse-pointer hit area below.
+// `disabled:opacity-*` lives in the style sheets, not here — a utilities-layer value
+// would win over `.cn-button` and lock every style to the same number.
 export const buttonVariants = cva(
-  "cn-button group/button inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "cn-button group/button relative inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:cursor-not-allowed pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default: "cn-button-variant-default",
         destructive: "cn-button-variant-destructive",
         outline: "cn-button-variant-outline",
-        "outline-destructive": "cn-button-variant-outline text-destructive-foreground",
+        "outline-destructive":
+          "cn-button-variant-outline cn-button-variant-outline-destructive text-destructive-foreground",
         secondary: "cn-button-variant-secondary",
         ghost: "cn-button-variant-ghost",
         link: "cn-button-variant-link",

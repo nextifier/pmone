@@ -82,7 +82,7 @@
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete this banner?</h3>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             "{{ deletingBanner?.title || "Untitled banner" }}" will be removed from the website.
@@ -107,7 +107,7 @@
       :overflow-content="true"
     >
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Banner analytics</h3>
           <p class="text-muted-foreground mt-1 truncate text-sm tracking-tight">
             {{ analyticsBanner?.title || "Untitled banner" }} · last 14 days

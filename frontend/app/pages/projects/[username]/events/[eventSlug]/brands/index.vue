@@ -162,7 +162,7 @@
               <TableBulkAction icon="hugeicons:unlink-02" label="Remove from event" @click="open()" />
             </template>
             <template #default>
-              <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
                 <div class="page-title">Remove brands from this event?</div>
                 <p class="page-description mt-1.5">
                   This will remove {{ selectedRows.length }} selected
@@ -201,7 +201,7 @@
               />
             </template>
             <template #default>
-              <div class="px-4 pb-10 md:px-6 md:py-5">
+              <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
                 <div class="page-title">Delete brands permanently?</div>
                 <p class="page-description mt-1.5">
                   This action can't be undone. This will permanently delete
@@ -914,7 +914,7 @@ const RowActions = defineComponent({
           },
           {
             default: () =>
-              h("div", { class: "px-4 pb-10 md:px-6 md:py-5" }, [
+              h("div", { class: "px-4 pt-5 pb-8 md:px-6 md:py-5" }, [
                 h("div", { class: "page-title" }, "Are you sure?"),
                 h(
                   "p",

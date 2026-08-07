@@ -151,7 +151,7 @@
 
     <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="32rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">{{ editingRoom ? "Edit Room Type" : "Add Room Type" }}</h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
@@ -366,7 +366,7 @@
 
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete room type?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingRoom?.name }}" will be moved to trash.

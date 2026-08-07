@@ -85,7 +85,7 @@
             <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Are you sure?</div>
               <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
                 This action can't be undone. This will permanently delete
@@ -123,7 +123,7 @@
     >
       <template #sticky-header>
         <div
-          class="border-border sticky top-0 z-10 -mt-4 border-b px-4 pb-2 text-center md:mt-0 md:px-6 md:py-3.5 md:text-left"
+          class="border-border sticky top-0 z-10 border-b px-4 pt-5 pb-2 text-center md:px-6 md:py-3.5 md:text-left"
         >
           <div class="text-lg font-semibold tracking-tighter">
             {{ editingProduct ? "Edit Product" : "Add Product" }}
@@ -138,7 +138,7 @@
         </div>
       </template>
       <template #default>
-        <div class="px-4 py-4 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <EventFormEventProduct
             :product="editingProduct"
             :api-base="apiBase"
@@ -151,7 +151,7 @@
     <!-- Delete Confirmation Dialog -->
     <ResponsiveDialog v-model:open="showDeleteDialog" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete Product</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Are you sure you want to delete

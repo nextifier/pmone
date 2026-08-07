@@ -4,7 +4,7 @@
       <slot name="trigger" :open="open" />
     </template>
     <template #default>
-      <div class="space-y-6 px-4 pb-10 md:px-6 md:py-5">
+      <div class="space-y-6 px-4 pt-5 pb-8 md:px-6 md:py-5">
         <h3 class="text-foreground text-lg font-semibold tracking-tighter">Share form</h3>
 
         <!-- Links -->

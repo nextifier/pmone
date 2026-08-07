@@ -4,7 +4,7 @@
       <slot name="trigger" :open="open" />
     </template>
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tighter text-balance">
           {{ title }}
         </div>

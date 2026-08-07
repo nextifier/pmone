@@ -1,7 +1,7 @@
 <template>
   <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="32rem">
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-5 space-y-4">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5 space-y-4">
         <div>
           <h3 class="text-lg font-semibold tracking-tight">Add Adjustment</h3>
           <p class="text-muted-foreground text-sm tracking-tight mt-1">

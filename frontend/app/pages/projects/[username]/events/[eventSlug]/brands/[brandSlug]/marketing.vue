@@ -362,7 +362,7 @@
     <!-- Add Post dialog -->
     <ResponsiveDialog v-model:open="showAdd" dialog-max-width="500px">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-medium tracking-tight">Add Post</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Upload images and add a caption for this promotion post.
@@ -406,7 +406,7 @@
     <!-- Settings dialog -->
     <ResponsiveDialog v-model:open="showSettings" dialog-max-width="400px">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-medium tracking-tight">Settings</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             Configure promotion post settings for this brand.
@@ -442,7 +442,7 @@
     <!-- Delete confirmation dialog -->
     <ResponsiveDialog v-model:open="showDeleteDialog">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-medium tracking-tight">
             {{ deleteDialogTitle }}
           </div>

@@ -1,6 +1,6 @@
 <template>
   <ResponsiveDialog v-model:open="isOpen" dialog-max-width="400px">
-    <div class="p-4 md:p-6">
+    <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
       <div class="space-y-1">
         <h3 class="text-foreground text-lg font-semibold">Publish Post</h3>
         <p class="text-muted-foreground text-sm">Choose when to publish your post.</p>

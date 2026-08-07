@@ -85,7 +85,7 @@
             <TableBulkAction icon="hugeicons:undo-02" label="Restore" @click="open()" />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Restore contacts?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This will restore {{ selectedRows.length }} selected
@@ -126,7 +126,7 @@
             />
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">
                 Are you absolutely sure?
               </div>
@@ -171,7 +171,7 @@
     <!-- Delete All Dialog -->
     <ResponsiveDialog v-model:open="deleteAllDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">
             Delete all trashed contacts?
           </div>

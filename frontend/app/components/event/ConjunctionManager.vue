@@ -92,7 +92,7 @@
   <!-- Add Conjunction Dialog -->
   <ResponsiveDialog v-model:open="addDialogOpen">
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <h3 class="text-lg font-semibold tracking-tighter">Add conjunction event</h3>
         <p class="text-muted-foreground mt-1 text-sm tracking-tight">
           Select an event that runs at the same time and venue. It will be linked in both directions.

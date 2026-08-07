@@ -88,7 +88,7 @@
   <!-- Delete Confirmation Dialog -->
   <ResponsiveDialog v-model:open="deleteDialogOpen">
     <template #default>
-      <div class="px-4 pb-10 md:px-6 md:py-6">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tight">Delete Conversation?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           Are you sure you want to delete

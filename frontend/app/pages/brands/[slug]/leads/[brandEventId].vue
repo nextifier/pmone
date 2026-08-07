@@ -178,7 +178,7 @@
     <!-- Scanner dialog -->
     <ResponsiveDialog v-model:open="scannerOpen" dialog-max-width="30rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">Scan badge</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Point the camera at an attendee badge QR code to capture the lead.

@@ -255,7 +255,7 @@
 
     <!-- Entries dialog -->
     <ResponsiveDialog v-model:open="entriesOpen" dialog-max-width="32rem">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">Entries</h3>
           <p class="page-description">Set the prize and the names or items to draw from.</p>
@@ -301,7 +301,7 @@
 
     <!-- Settings dialog -->
     <ResponsiveDialog v-model:open="settingsOpen" dialog-max-width="32rem">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">Settings</h3>
           <p class="page-description">Customize how the draw looks and behaves.</p>
@@ -379,7 +379,7 @@
 
     <!-- Clear confirm -->
     <ResponsiveDialog v-model:open="clearConfirmOpen">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tighter">Clear entries & prize?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           This removes all entries and the prize from this browser. This can't be undone.
@@ -393,7 +393,7 @@
 
     <!-- Force winner (secret: type f then w) -->
     <ResponsiveDialog v-model:open="forceWinnerOpen" dialog-max-width="28rem">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="space-y-1">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">Force winner</h3>
           <p class="page-description">Pick who wins the next spin. The result still animates normally.</p>
@@ -440,7 +440,7 @@
 
     <!-- Winner history -->
     <ResponsiveDialog v-model:open="historyOpen" dialog-max-width="28rem">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="flex items-start justify-between gap-2">
           <div class="space-y-1">
             <h3 class="text-foreground text-lg font-semibold tracking-tighter">Winners</h3>
@@ -473,7 +473,7 @@
 
     <!-- Clear all confirm -->
     <ResponsiveDialog v-model:open="clearAllConfirmOpen">
-      <div class="px-4 pb-10 md:px-6 md:py-5">
+      <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
         <div class="text-foreground text-lg font-semibold tracking-tighter">Clear all settings and data?</div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
           This removes the entries, prize, winner history, and all settings from this browser and resets everything to

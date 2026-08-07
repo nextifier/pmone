@@ -233,7 +233,7 @@
     <!-- Add Category Dialog -->
     <ResponsiveDialog v-model:open="addCategoryDialogOpen" dialog-max-width="24rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
             {{ editingCategory ? "Edit Category" : "Add Category" }}
           </h3>
@@ -276,7 +276,7 @@
       :overflow-content="true"
     >
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Add Partner</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             {{
@@ -475,7 +475,7 @@
     <!-- Copy from Event Dialog -->
     <ResponsiveDialog v-model:open="copyDialogOpen" dialog-max-width="28rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Copy Partners from Event</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Copy all partner categories and their partners from another event.
@@ -526,7 +526,7 @@
     <!-- Delete Category Confirm Dialog -->
     <ResponsiveDialog v-model:open="deleteCategoryDialogOpen" dialog-max-width="24rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-lg font-semibold tracking-tight">Delete category?</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             This will delete "{{ deletingCategory?.name }}" and remove all partner associations in
@@ -553,7 +553,7 @@
     <!-- Remove Partner Confirm Dialog -->
     <ResponsiveDialog v-model:open="removePartnerDialogOpen" dialog-max-width="24rem">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-lg font-semibold tracking-tight">Remove partner?</div>
           <p class="text-muted-foreground mt-1.5 text-sm tracking-tight">
             This removes "{{ removingPartner?.partner?.name }}" from "{{

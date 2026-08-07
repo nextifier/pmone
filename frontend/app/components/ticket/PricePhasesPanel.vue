@@ -79,7 +79,7 @@
     <!-- Create / Edit dialog -->
     <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="30rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tighter">
             {{ editing ? "Edit Price Phase" : "Add Price Phase" }}
           </h3>
@@ -160,7 +160,7 @@
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tighter">Delete price phase?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingItem?.label || "This phase" }}" will be removed.

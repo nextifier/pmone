@@ -74,7 +74,7 @@
     <!-- Create / Edit dialog -->
     <ResponsiveDialog v-model:open="dialogOpen" dialog-max-width="760px" :overflow-content="true">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
             {{ editing ? "Edit field" : "Add field" }}
           </h3>
@@ -201,7 +201,7 @@
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteDialogOpen">
       <template #default>
-        <div class="px-4 pb-10 md:px-6 md:py-5">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <div class="text-foreground text-lg font-semibold tracking-tight">Delete field?</div>
           <p class="text-body mt-1.5 text-sm tracking-tight">
             "{{ deletingItem ? fieldLabel(deletingItem) : "This field" }}" will be removed from this

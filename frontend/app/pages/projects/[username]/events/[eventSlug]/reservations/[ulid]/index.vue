@@ -45,7 +45,7 @@
             </Button>
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <h3 class="text-lg font-semibold tracking-tight">Upload Voucher</h3>
               <p class="text-muted-foreground mt-1 text-sm tracking-tight">
                 PDF, JPG, or PNG. Max 20MB.
@@ -463,7 +463,7 @@
       <!-- Void Adjustment Confirm Dialog -->
       <ResponsiveDialog v-model:open="voidDialogOpen" dialog-max-width="26rem">
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Void Adjustment</h3>
             <p class="text-muted-foreground mt-2 text-sm tracking-tight">
               Void "{{ voidTarget?.label }}"? This will revert promo usage counter (if applicable)
@@ -593,7 +593,7 @@
         dialog-max-width="28rem"
       >
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Cancel & Refund</h3>
             <form @submit.prevent="handleCancel" class="mt-4 space-y-3">
               <Alert v-if="cancelChannelUnrefundable" class="[&>svg]:text-destructive">
@@ -667,7 +667,7 @@
         dialog-max-width="28rem"
       >
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Mark Manual Refund Completed</h3>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">
               Konfirmasi bahwa Rp{{ formatRupiah(reservation.refund?.amount) }} sudah ditransfer
@@ -708,7 +708,7 @@
         dialog-max-width="28rem"
       >
         <template #default>
-          <div class="px-4 pb-10 md:px-6 md:py-5">
+          <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Mark as Paid</h3>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">
               Manually confirm payment for this reservation. Use this when payment landed outside

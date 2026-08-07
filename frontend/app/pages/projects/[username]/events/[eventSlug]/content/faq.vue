@@ -153,7 +153,7 @@
     <!-- Create / Edit dialog -->
     <ResponsiveDialog v-model:open="formOpen" dialog-max-width="42rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pt-5 pb-8 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">
             {{ editingItem ? "Edit FAQ" : "Add FAQ" }}
           </h3>
@@ -174,7 +174,7 @@
     <!-- Delete confirmation -->
     <ResponsiveDialog v-model:open="deleteOpen" dialog-max-width="22rem">
       <template #default>
-        <div class="px-4 pt-5 pb-6 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Delete this FAQ?</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             "{{ resolve(deletingItem?.question) || "Untitled" }}" will be moved to trash. You can
@@ -205,7 +205,7 @@
     <!-- Copy from Event dialog -->
     <ResponsiveDialog v-model:open="copyOpen" dialog-max-width="28rem">
       <template #default>
-        <div class="px-4 pt-5 pb-8 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Copy FAQ from Event</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Copy all FAQ from another event in this project into the current event.
@@ -261,7 +261,7 @@
     <!-- Trash dialog -->
     <ResponsiveDialog v-model:open="trashOpen" dialog-max-width="36rem" :overflow-content="true">
       <template #default>
-        <div class="px-4 pt-5 pb-6 md:px-6">
+        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-lg font-semibold tracking-tight">Trashed FAQ</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">
             Restore deleted FAQ, or permanently remove them.

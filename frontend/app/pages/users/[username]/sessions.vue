@@ -17,7 +17,7 @@
             </Button>
           </template>
           <template #default>
-            <div class="px-4 pb-10 md:px-6 md:py-5">
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
               <div class="text-foreground text-lg font-semibold tracking-tight">Sign out everywhere?</div>
               <p class="text-body mt-1.5 text-sm tracking-tight">
                 This revokes every session and API token for this user. They will need to sign in again.
