@@ -14,6 +14,8 @@
     "successMessage": "응답이 접수되었습니다.",
     "alreadyTitle": "이미 완료되었습니다",
     "alreadyMessage": "응답을 접수했습니다. 이 양식은 한 사람당 한 번만 제출할 수 있습니다.",
+    "showMore": "더 보기",
+    "showLess": "접기",
     "submitFailed": "양식 제출에 실패했습니다. 다시 시도해 주세요."
   }
 }

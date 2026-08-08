@@ -454,6 +454,8 @@
     "successMessage": "您的回复已记录。",
     "alreadyTitle": "您已完成",
     "alreadyMessage": "我们已收到您的回复。此表单每人仅可提交一次。",
+    "showMore": "查看更多",
+    "showLess": "收起",
     "submitFailed": "提交表单失败，请重试。"
   }
 }

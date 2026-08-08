@@ -109,7 +109,7 @@
       </template>
     </FieldTypeSettings>
 
-    <FieldPreviewFrame :field="previewField" :locale="activeLocale" />
+    <FieldPreviewFrame :field="previewField" :locale="activeLocale" label-size="lg" />
 
     <div class="flex justify-end gap-2">
       <Button type="button" variant="outline" :disabled="saving" @click="$emit('cancel')">

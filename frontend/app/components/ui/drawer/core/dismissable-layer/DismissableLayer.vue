@@ -61,6 +61,20 @@ export const context = reactive({
   originalBodyPointerEvents: undefined as string | undefined,
   branches: new Set<HTMLElement>(),
 })
+
+/**
+ * Marks the body while THIS layer stack holds the pointer lock.
+ *
+ * This file is a vendored copy, so its `context` is a different module instance
+ * from reka-ui's. reka's own layers decide whether to re-enable their pointer
+ * events by reading reka's `context`, which stays empty while a drawer is open —
+ * so every popup portalled to the body (Combobox, Select, DropdownMenu, Popover)
+ * silently inherited `pointer-events: none` and swallowed its own clicks. The
+ * attribute lets the stylesheet at the bottom of this file hand those layers back
+ * the pointer events reka would have given them. reka still wins wherever it sets
+ * `pointer-events` inline, which is exactly when a layer really must stay inert.
+ */
+const POINTER_LOCK_ATTRIBUTE = "data-drawer-pointer-lock"
 </script>
 
 <script setup lang="ts">
@@ -172,6 +186,7 @@ watch(
       if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
         context.originalBodyPointerEvents = ownerDocument.value.body.style.pointerEvents
         ownerDocument.value.body.style.pointerEvents = 'none'
+        ownerDocument.value.body.setAttribute(POINTER_LOCK_ATTRIBUTE, '')
       }
       context.layersWithOutsidePointerEventsDisabled.add(element)
 
@@ -189,6 +204,7 @@ watch(
           && !isNullish(context.originalBodyPointerEvents)
         ) {
           ownerDocument.value.body.style.pointerEvents = context.originalBodyPointerEvents
+          ownerDocument.value.body.removeAttribute(POINTER_LOCK_ATTRIBUTE)
         }
       })
     }
@@ -244,3 +260,11 @@ watchEffect((cleanupFn) => {
     <slot />
   </Primitive>
 </template>
+
+<!-- Global on purpose: the layers this rule rescues are portalled to the body, so a
+     `scoped` attribute would never reach them. See POINTER_LOCK_ATTRIBUTE above. -->
+<style>
+body[data-drawer-pointer-lock] [data-dismissable-layer] {
+  pointer-events: auto;
+}
+</style>

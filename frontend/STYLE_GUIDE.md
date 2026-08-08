@@ -1,8 +1,10 @@
-# Style Guide PM One Frontend
+# Style Guide
 
-Style guide ini disusun berdasarkan pattern desain yang sudah berjalan di `/frontend/` (Nuxt 4 + Tailwind v4 + shadcn-vue). Tujuannya: setiap kali Claude membuat atau mengubah UI, hasilnya konsisten dengan konvensi yang sudah ada. Bukan menciptakan pattern baru tanpa alasan kuat.
+Style guide ini disusun berdasarkan pattern desain yang sudah berjalan di pmone, pmone-events, dan levenium (Nuxt 4 + Tailwind v4 + shadcn-vue). Tujuannya: setiap kali Claude membuat atau mengubah UI, hasilnya konsisten dengan konvensi yang sudah ada. Bukan menciptakan pattern baru tanpa alasan kuat.
 
 Aturan ini wajib diikuti. Kalau ada kasus yang belum tercakup di sini, cek sibling component dulu sebelum bikin pattern baru.
+
+Section 1-23 di file ini identik di ketiga repo, sama seperti `components/ui`. Yang berbeda hanya bagian File Reference di akhir, karena path tiap repo memang beda.
 
 ---
 
@@ -44,7 +46,7 @@ Semua `style-*.css` memakai skala yang sama. Yang berbeda antar style cuma tingg
 
 Kenapa `pointer-fine:` dan bukan `sm:`: iOS Safari melakukan zoom-on-focus setiap kali font field di bawah 16px, dan itu tetap terjadi di iPad maupun iPhone landscape yang lebarnya sudah lewat breakpoint `sm` (640px). `pointer-fine` cuma menyala di perangkat bermouse, jadi 16px bertahan di semua perangkat sentuh. Jangan menggantinya dengan `sm:text-sm`.
 
-`.cn-select-trigger` bukan field ketik, jadi ia ikut kontrol biasa: `text-sm` rata. Varian `data-[size=sm]` sengaja tidak meng-override font.
+`.cn-select-trigger` ikut aturan yang sama persis, walaupun ia bukan field ketik. Bukan karena zoom (ia tombol, tidak pernah memicu zoom), tapi karena ia berdiri sebaris dengan `.cn-input` di form yang sama: kalau nilai Select 14px sementara nilai di sebelahnya 16px, barisnya kelihatan timpang di telepon. Varian `data-[size=sm]` sengaja tidak meng-override font.
 
 #### Tangga tinggi dan ikon
 
@@ -59,17 +61,23 @@ Tiap kontrol punya dua tinggi: mobile satu step (4px) di atas desktop. Nilai des
 
 `--cn-input-h` mengikuti tangga yang sama lewat `@media (width >= 40rem)` di dalam blok `.style-X`, jadi `h-(--cn-input-h)` di call site ikut otomatis tanpa perubahan apa pun.
 
-Ikon di dalam kontrol naik setengah step (2px) di mobile: `[&_svg:not([class*=size-])]:size-4.5 sm:[…]:size-4`. Checkbox, radio, dan slider thumb juga setengah step. Badge naik satu step penuh (`h-6 sm:h-5`), tapi fontnya tidak ikut — `text-xs` rata seperti kontrol lain.
+Ikon di dalam kontrol naik setengah step (2px) di mobile: `[&_svg:not([class*=size-])]:size-4.5 sm:[…]:size-4`. Checkbox, radio, dan slider thumb juga setengah step. Badge naik satu step penuh (`h-6 sm:h-5`), tapi fontnya tidak ikut, `text-xs` rata seperti kontrol lain.
 
 ### Hierarchy
 
-- Page title: pakai utility `page-title` (sudah didefinisikan di `main.css:1346`, output: `text-primary text-xl font-medium tracking-tighter text-balance`). Jangan bikin styling page title manual.
-- Page description: pakai utility `page-description` (`text-muted-foreground text-sm tracking-tight`).
-- Section title di dalam frame: `text-sm font-semibold tracking-tighter text-muted-foreground` (sudah otomatis dari class `.frame-title`).
+Judul halaman punya dua tingkat. Pilih berdasarkan jenis halamannya, jangan dicampur dalam satu bagian aplikasi:
+
+- **Halaman kerja** (form, detail, panel, dashboard): utility `page-title` + `page-description`. Jangan bikin styling manual, dan jangan menyalin nilai `@apply`-nya ke dalam class - nilainya sedikit berbeda antar repo, jadi yang mengikat adalah nama utility-nya. Nilai persis di repo ini ada di File Reference.
+- **Halaman hero** (landing, marketing, dokumentasi, showcase): judul `text-4xl font-medium tracking-tighter sm:text-5xl` dengan deskripsi `text-muted-foreground max-w-3xl text-base tracking-tight text-pretty sm:text-lg`. Ukuran ini yang membuat halaman publik terasa lapang; memakai `page-title` di sini akan terlihat kekecilan dibanding halaman sebelahnya.
+
+Sisanya:
+
+- Section title di dalam frame: otomatis dari class `.frame-title`. Jangan di-override; nilainya berbeda antar repo.
 - Card title biasa: `text-lg font-medium tracking-tighter`.
+- Judul section di dalam panel: `text-base font-medium tracking-tight`. Jangan `text-sm`, karena jadi sama besar dengan body di sekitarnya dan hierarkinya hilang.
 - Body teks panjang: `text-sm tracking-tight` atau `text-base tracking-tight`.
 - Helper text di bawah input: `text-muted-foreground text-xs`.
-- Label form: pakai component `<Label>`. Stylingnya sudah `text-sm leading-none font-medium tracking-tight` dari base layer (`main.css:585`).
+- Label form: pakai component `<Label>`. Stylingnya sudah `text-sm leading-none font-medium tracking-tight` dari base layer.
 
 ### Font weight
 
@@ -84,7 +92,7 @@ Ikon di dalam kontrol naik setengah step (2px) di mobile: `[&_svg:not([class*=si
 - Default: `text-foreground`.
 - Teks sekunder, helper, caption, label di samping value: `text-muted-foreground`.
 - Link / emphasis: `text-primary`.
-- Error / delete: `text-destructive` atau `text-destructive-foreground` (untuk error message di bawah input pakai `text-destructive-foreground` mengikuti pattern `InputErrorMessage`).
+- Error / delete: `text-destructive`. Untuk pesan error di bawah input jangan menulis warnanya sendiri - `<FieldError>` sudah membawa `text-destructive` lewat rule `cn-field-error` milik style.
 
 ---
 
@@ -123,7 +131,7 @@ Kalau menyalin kelas dari coss.com/ui, **jangan bawa `accent` apa adanya**. Di c
 - `rounded-xl` untuk card, panel, frame.
 - `rounded-2xl` untuk container besar / hero.
 - `rounded-full` untuk avatar bulat, indikator, chip kecil.
-- `squircle` (utility custom di `main.css:771`) untuk logo, app icon. Pakai ini, jangan bikin shape manual.
+- `squircle` (utility custom di `main.css`) untuk logo, app icon. Pakai ini, jangan bikin shape manual.
 
 Jangan pakai `rounded-sm` kecuali untuk avatar mini atau elemen yang memang harus tegas.
 
@@ -190,20 +198,19 @@ Semua input harus pakai component dari `frontend/app/components/ui/`. Jangan pak
 - `<Checkbox>` bukan `<input type="checkbox">`.
 - `<RadioGroup>` + `<RadioGroupItem>` bukan `<input type="radio">`.
 - `<Switch>` bukan toggle manual.
-- `<Combobox>` untuk select dengan search.
-- `<MultiSelect>` untuk pilih banyak.
+- `<Combobox>` untuk select dengan search. Untuk pilih banyak, pakai `<Combobox multiple>` dengan chips - `MultiSelect` sudah dihapus.
 
 ### Custom input wajib
 
 - Phone: pakai `<InputPhone>` (`components/ui/input-phone/`). Sudah ada country selector built-in.
 - Link / URL / social media: pakai `<InputLink>` (`components/ui/input-link/`). Auto prefix Instagram, Facebook, LinkedIn, dll.
 - Password: pakai `<InputPassword>` (`components/ui/input-password/`).
-- OTP / PIN: pakai `<InputOtp>` atau `<PinInput>`.
+- OTP / PIN: pakai `<InputOtp>`.
 - Date: pakai `<DatePicker>` (single/range, opsional `with-time`, presets). Semua picker keluarga tanggal ada di `components/ui/date-picker/`.
 - Time: pakai `<TimePicker>` atau `<TimeRangePicker>`.
 - Bulan / Tahun: pakai `<MonthPicker>`, `<MonthRangePicker>`, `<YearPicker>`, atau `<YearRangePicker>`.
 - File: pakai `<InputFile>` atau `<InputFileImage>` (untuk gambar dengan preview + delete + undo).
-- Tags / labels: pakai pattern yang sudah dipakai untuk Spatie Tags di project / event.
+- Tags / labels: pakai `<TagsInput>`, ikut pattern tag yang sudah ada di repo masing-masing.
 - Rich text: pakai `<TipTapEditor>`.
 
 ### Struktur field standar
@@ -213,13 +220,13 @@ Semua input harus pakai component dari `frontend/app/components/ui/`. Jangan pak
   <Label for="name">Field Label</Label>
   <Input id="name" v-model="form.name" required />
   <p class="text-muted-foreground text-xs">Helper text opsional.</p>
-  <InputErrorMessage :errors="errors.name" />
+  <FieldError :errors="errors.name" />
 </div>
 ```
 
 - Label wajib pakai `for` yang match dengan `id` input.
-- Required field: cukup pasang attribute `required`. Asterisk merah otomatis muncul via CSS selector di `main.css:984-991` (di dalam `#layout-app`).
-- Error message: pakai `<InputErrorMessage :errors="errors.field" />`. Jangan render manual.
+- Required field: cukup pasang attribute `required`. Asterisk merah otomatis muncul via CSS selector `label:has(+ input:required)::after` di `main.css`. Jangan pernah menambah `<span class="text-destructive">*</span>` manual.
+- Error message: pakai `<FieldError :errors="errors.field" />` (`components/ui/field/`). Jangan render manual, dan jangan pakai `<p>` biasa - `FieldError` sudah membawa `role="alert"`.
 - Helper text pakai `text-muted-foreground text-xs`, posisi di bawah input sebelum error message.
 
 ### Form section
@@ -241,7 +248,7 @@ Untuk form besar, bungkus tiap section dalam `.frame`:
 </div>
 ```
 
-Class `frame`, `frame-header`, `frame-title`, `frame-description`, `frame-panel`, `frame-footer` sudah ada di `main.css:960-982`. Jangan bikin styling card alternatif untuk section form.
+Class `frame`, `frame-header`, `frame-title`, `frame-description`, `frame-panel`, `frame-footer` sudah ada di `main.css`. Jangan bikin styling card alternatif untuk section form.
 
 ### Submit button
 
@@ -295,7 +302,7 @@ Pakai prop `loading`, jangan menaruh `<Spinner>` sendiri sebagai anak tombol:
 <Button type="submit" :loading="saving">Save</Button>
 ```
 
-Tombolnya otomatis disabled, labelnya disembunyikan tanpa mengubah lebar, dan spinner muncul di tengah dengan warna yang mengikuti variant. Prop `loading` tidak bekerja bersama `as-child` — mode itu menyerahkan satu-satunya anak slot ke `Primitive`, jadi pembungkusnya akan jadi tombol itu sendiri.
+Tombolnya otomatis disabled, labelnya disembunyikan tanpa mengubah lebar, dan spinner muncul di tengah dengan warna yang mengikuti variant. Prop `loading` tidak bekerja bersama `as-child` - mode itu menyerahkan satu-satunya anak slot ke `Primitive`, jadi pembungkusnya akan jadi tombol itu sendiri.
 
 ### Tombol toolbar
 
@@ -310,7 +317,7 @@ Jangan menulis ulang tombol toolbar sebagai `<button>` dengan class border sendi
 
 `<Button>` menerima `to` dan otomatis merender `NuxtLink` (plus `target`/`rel` kalau URL-nya eksternal), jadi tidak perlu `<nuxt-link>` terpisah.
 
-Untuk tombol filter di `<TableData>`, pakai `<TableFilterButton>` — komponennya sudah membawa `PopoverTrigger`, badge counter, dan versi kotak untuk mobile:
+Untuk tombol filter di `<TableData>`, pakai `<TableFilterButton>` - komponennya sudah membawa `PopoverTrigger`, badge counter, dan versi kotak untuk mobile:
 
 ```vue
 <template #filters>
@@ -320,6 +327,8 @@ Untuk tombol filter di `<TableData>`, pakai `<TableFilterButton>` — komponenny
   </Popover>
 </template>
 ```
+
+`TableFilterButton` untuk sekarang baru ada di pmone. Repo lain memakai `PopoverTrigger` biasa sampai komponennya ikut disinkronkan.
 
 ---
 
@@ -370,6 +379,8 @@ border-border sticky top-0 z-10 border-b px-4 pt-5 pb-2 text-center md:px-6 md:p
 
 Jangan pakai `-mt-4` untuk "membetulkan" jarak atas di drawer. Itu justru mendorong header menembus
 area grabber.
+
+Jangan pula membungkus isi dialog dalam `<form>` yang men-submit halaman di belakangnya.
 
 ---
 
@@ -437,7 +448,7 @@ Padding default `p-6 md:p-12`. Container icon `bg-muted size-12 rounded-full`. B
 
 ## 15. Avatar
 
-- Pakai `<Avatar>` untuk semua representasi user, brand, project, event.
+- Pakai `<Avatar>` untuk semua representasi entitas (user, brand, project, event, organisasi).
 - Fallback otomatis: inisial dari nama + mesh gradient.
 - Ukuran umum: `size-7` (breadcrumb), `size-8` (sidebar collapsed), `size-10` (sidebar normal), `size-12` (card header), `size-20` (profile page).
 - Bentuk: `rounded-full` default untuk user, `squircle` untuk brand / project / app icon, `rounded-lg` untuk thumbnail kotak.
@@ -521,7 +532,8 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 
 - Pakai sonner via `useSonner` / `toast()`. Jangan bikin notifikasi custom di pojok layar.
 - Variant: `toast.success()`, `toast.error()`, `toast.warning()`, `toast.info()`.
-- Title pendek, description optional. Pesan dalam Bahasa Indonesia kalau di Staff Dashboard, sesuai konvensi.
+- Title pendek, description optional dan faktual.
+- Bahasa: ikuti bahasa UI repo tempat kamu bekerja. pmone Staff Dashboard dan levenium memakai literal English; pmone-events, Dashboard Exhibitor, dan `components/ui` memakai i18n. Jangan mencampur dua bahasa dalam satu layar.
 
 ---
 
@@ -538,7 +550,11 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 
 - `text-xs` standalone di layar besar **pada teks statis**. Pakai `text-xs sm:text-sm`. Aturan ini tidak berlaku untuk kontrol interaktif: ukurannya sama di semua lebar (§1), jadi `text-xs` di `.cn-button-size-xs` memang benar.
 - `sm:text-*` apa pun di rule `cn-*`. Kontrol tidak lagi punya step ukuran mobile; satu-satunya yang masih responsif adalah field ketik, lewat `pointer-fine:`.
-- `sm:text-sm` pada field yang menerima ketikan. Pakai `pointer-fine:text-sm` supaya iOS tidak zoom-on-focus di tablet (§1).
+- Ukuran di bawah `text-xs` pada breakpoint dasar. Kalau perlu kecil, kecilkan di breakpoint besar.
+- `text-xs` untuk konten primer (nilai, hasil, isi tabel, pesan error, blok kode).
+- Input / textarea di bawah 16px pada perangkat sentuh - memicu auto-zoom iOS. Pakai `text-base pointer-fine:text-sm`, bukan `sm:text-sm`.
+- Gradient text dan nested card.
+- `border-left: 3px solid` sebagai accent stripe.
 - `font-bold`, `font-extrabold`. Maksimum `font-semibold`.
 - `uppercase`, `tracking-wider`, `tracking-widest`.
 - `bg-green-*`, `bg-red-*`, `bg-yellow-*`, `bg-blue-*` literal.
@@ -552,37 +568,78 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - Shadow tebal (`shadow-2xl`) di komponen biasa.
 - Border radius yang tidak konsisten dengan skala (jangan tiba-tiba `rounded-3xl` di satu card sedang yang lain `rounded-xl`).
 - Menambahkan `hover:scale-*` / `group-hover:scale-*` pada image atau card di kode baru. Untuk motion yang sudah ada di repo, lihat §13 - itu bukan temuan audit.
-- Menempel `bg-*`, `border-*`, `h-*`, `rounded-*`, `px-*`, `shadow-*` di call site elemen input-like (input, textarea, select trigger, combobox, chips, dropzone). Semua itu milik rule `cn-*` di `assets/css/styles/style-<name>.css`. Meng-hardcode-nya memaku field ke satu tampilan sehingga ia tidak ikut berganti saat user memilih Style lain - dan `dark:bg-background` khususnya membuat field lebur ke latar dialog di dark mode. Kalau butuh nilai yang belum ada, tambahkan rule `cn-*`-nya (ingat: 9 file style x 3 repo), jangan hardcode. Guard: `bash frontend/scripts/check-input-hardcode.sh`.
+- Menempel `bg-*`, `border-*`, `h-*`, `rounded-*`, `px-*`, `shadow-*` di call site elemen input-like (input, textarea, select trigger, combobox, chips, dropzone). Semua itu milik rule `cn-*` di `assets/css/styles/style-<name>.css`. Meng-hardcode-nya memaku field ke satu tampilan sehingga ia tidak ikut berganti saat user memilih Style lain - dan `dark:bg-background` khususnya membuat field lebur ke latar dialog di dark mode. Kalau butuh nilai yang belum ada, tambahkan rule `cn-*`-nya (ingat: 9 file style x 3 repo), jangan hardcode. Guard di pmone: `bash frontend/scripts/check-input-hardcode.sh`.
+
+### Pengecualian yang diizinkan
+
+Empat kasus di bawah ini melanggar daftar di atas dan tetap boleh, karena aturannya memang tidak dirancang untuk bentuk ini. Di luar keempatnya, tidak ada pengecualian. Tandai di kode dengan komentar `style-guide: <nama kategori>` supaya audit bisa membedakannya dari kelalaian.
+
+1. **Painted surface control** - kontrol yang seluruh permukaannya adalah datanya sendiri: swatch warna, tile preview tema. Boleh `<button type="button">` native, karena `<Button>` membawa background, padding, dan geometri yang justru harus dibuang seluruhnya. Syarat: `type="button"`, `aria-label` yang menyebut seluruh informasi visual di dalamnya, ring `focus-visible` yang terlihat, dan target sentuh minimal 44px. Preseden di dalam design system sendiri: `components/ui/color-picker/ColorPicker.vue`.
+2. **Compact data tile** - sel di grid dengan jumlah kolom tetap. Boleh turun di bawah `text-xs`, tapi hanya di belakang prefix breakpoint dan hanya di breakpoint tempat sel itu benar-benar menyempit.
+3. **Teks di atas warna arbitrer user** - token semantik tidak berlaku di atas warna yang tidak kita kendalikan. Boleh `text-white/85` atau `text-black/80`, dengan syarat pilihannya dihitung dari rasio kontras, bukan ditebak.
+4. **Contoh docs yang di-port dari upstream** - berkas di bawah `ui-docs/examples/` mencerminkan sumber aslinya apa adanya. Jangan "diperbaiki" mengikuti guide ini; itu memutus paritas yang justru jadi tujuan halaman docs.
 
 ---
 
 ## 23. Checklist Sebelum Commit UI
 
 - Semua input pakai component shadcn-vue, bukan native.
-- Tidak ada `text-xs` standalone di larger screen pada teks statis (kontrol interaktif punya tangganya sendiri, §1).
+- Tidak ada `text-xs` standalone di larger screen, dan tidak ada ukuran di bawah `text-xs` di mobile.
+- Semua input / textarea minimal 16px di mobile.
 - Semua teks pakai `tracking-tight` atau `tracking-tighter`.
 - Warna pakai CSS variable, bukan literal Tailwind color.
 - Grid form gap-nya `gap-x-2`.
-- Form pakai struktur `Label + Input + helper + InputErrorMessage` dalam `space-y-2` wrapper.
+- Form pakai struktur `Label + Input + helper + FieldError` dalam `space-y-2` wrapper.
 - Section form dibungkus `.frame`.
 - Tombol delete buka `<ResponsiveDialog>` konfirmasi.
 - Empty state pakai component `<Empty>`.
 - Skeleton loading pakai component `<Skeleton>`.
 - Tidak ada `font-bold`, `uppercase`, `tracking-wider`.
-- `bash frontend/scripts/check-theming-sync.sh` hijau (ia sekaligus menjalankan check-input-hardcode.sh).
+- Tidak ada `bg-*` / `h-*` / `rounded-*` / `px-*` yang di-hardcode di elemen input-like. Di pmone, `bash frontend/scripts/check-theming-sync.sh` harus hijau (ia sekaligus menjalankan `check-input-hardcode.sh`).
 
 ---
 
 ## File Reference
 
-- `frontend/app/assets/css/main.css` - definisi semua CSS variable, utility (`page-title`, `page-description`, `container`, `container-wider`, `squircle`, `min-h-screen-offset`, dll), dan class custom (`.frame`).
-- `frontend/app/components/ui/` - semua component shadcn-vue.
-- `frontend/app/components/ui/button/index.ts` - daftar nama variant/size button. Nilai visualnya (font-size, tinggi, padding, radius) ada di `assets/css/styles/style-*.css` pada rule `.cn-button*`, bukan di sini.
+pmone adalah aplikasi Nuxt tunggal di `frontend/`, satu repo dengan backend Laravel-nya.
+
+- `frontend/app/components/ui/` - semua component shadcn-vue. Wajib identik dengan pmone-events dan levenium; jangan ubah sepihak.
+- `frontend/app/components/ui/button/index.ts` - daftar nama variant/size button. Nilai visualnya (font-size, tinggi, padding, radius) ada di `app/assets/css/styles/style-*.css` pada rule `.cn-button*`, bukan di sini.
+- `frontend/app/assets/css/main.css` - CSS variable, utility (`page-title`, `page-description`, `container`, `container-wider`, `squircle`, `min-h-screen-offset`), dan class custom (`.frame`).
+- `frontend/app/assets/css/styles/` - satu file per style (`style-mono.css` yang jadi default, `style-nova.css`, dan seterusnya) plus `_base.css` yang di-generate.
+- `frontend/app/assets/css/transitions.css` - satu-satunya sumber motion; identik di ketiga repo.
+- `frontend/scripts/check-theming-sync.sh` - guard sebelum commit; ia sekaligus menjalankan `check-input-hardcode.sh`.
 - `frontend/app/components/FormUser.vue`, `FormProject.vue`, `FormEvent.vue` - referensi pattern form lengkap.
 - `frontend/app/components/header/HeaderBreadcrumb.vue` - referensi breadcrumb.
+
+### Nilai utility di repo ini
+
+Disalin dari `main.css`. Kalau salah satunya berubah, perbarui juga di sini - inilah satu-satunya tempat nilai konkret boleh ditulis.
+
+```css
+@utility page-title {
+  @apply text-foreground text-xl !leading-[1.2] font-medium tracking-tighter text-balance sm:text-xl;
+}
+
+@utility page-description {
+  @apply text-muted-foreground text-sm tracking-tight;
+}
+```
+
+Tangga heading untuk halaman publik di luar app chrome (docs, link page, halaman form publik), sesuai yang sudah dipakai:
+
+| Tier | Untuk | Class |
+|---|---|---|
+| Hero | landing sebuah area | `text-4xl font-medium tracking-tighter sm:text-5xl` |
+| Docs | dokumen di dalam area | `text-3xl font-semibold tracking-tighter sm:text-4xl` |
+| Tool | halaman satu alat atau satu item | `text-2xl font-semibold tracking-tighter sm:text-3xl` |
+
+Deskripsi di bawah H1 tier mana pun: `text-muted-foreground max-w-3xl text-base tracking-tight text-pretty sm:text-lg`.
 
 ---
 
 ## Catatan
 
 Style guide ini belum final. User akan menambah atau mengubah secara manual seiring waktu. Kalau ketemu pattern baru yang konsisten dipakai di banyak tempat, dokumentasikan ke sini juga.
+
+Section 1-23 dijaga identik di pmone, pmone-events, dan levenium. Kalau kamu mengubah salah satu, ubah ketiganya - sama seperti aturan sinkronisasi `components/ui`.

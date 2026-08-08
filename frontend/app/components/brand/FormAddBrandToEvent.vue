@@ -8,7 +8,7 @@
 
       <form @submit.prevent="submit" class="mt-4 space-y-4">
         <div class="space-y-2">
-          <Label>Brand Name <span class="text-destructive">*</span></Label>
+          <Label required>Brand Name</Label>
           <AutocompleteRoot v-model="searchTerm" :ignore-filter="true">
             <AutocompleteAnchor as-child>
               <AutocompleteInput
@@ -72,7 +72,7 @@
           </div>
 
           <div class="space-y-2">
-            <Label>Country <span class="text-destructive">*</span></Label>
+            <Label required>Country</Label>
             <LocationCombobox
               v-model="form.country"
               :options="countries"

@@ -680,7 +680,7 @@
                 <Input v-model="manualRefundForm.bank_reference" placeholder="e.g. TRX-2026-0001" />
               </div>
               <div class="space-y-2">
-                <Label>Note <span class="text-destructive">*</span></Label>
+                <Label required>Note</Label>
                 <Textarea
                   v-model="manualRefundForm.note"
                   rows="3"

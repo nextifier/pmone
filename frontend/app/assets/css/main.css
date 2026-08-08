@@ -1516,11 +1516,17 @@ img.pswp__img {
   }
 }
 
-label:has(+ input:required)::after,
-label:has(+ select:required)::after,
-label:has(+ textarea:required)::after,
-label:has(+ .base-phone-input input:required)::after {
-  @apply text-destructive ml-0 content-['*'];
+/* Automatic required marker for labels that only carry the native `required`
+   attribute on their control. `:not(:has([data-slot=label-required]))` stands
+   down whenever `<Label required>` already drew one - otherwise a label that
+   sits directly above a required control gets two asterisks. */
+label:not(:has([data-slot="label-required"])) {
+  &:has(+ input:required)::after,
+  &:has(+ select:required)::after,
+  &:has(+ textarea:required)::after,
+  &:has(+ .base-phone-input input:required)::after {
+    @apply text-destructive ml-0 content-['*'];
+  }
 }
 
 /* LQIP shimmer overlay */

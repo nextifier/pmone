@@ -46,3 +46,16 @@ frankenphp-worker.php
 
 # Playwright CLI
 .playwright-cli/
+
+# Impeccable design skill. Tracked on purpose: .impeccable/design.json and every
+# .impeccable/live/config.json. Everything else under live/ is per-session runtime
+# state (sessions, annotations, locks, server and root manifests), plus the dev-only
+# plugin live mode injects while a session is running.
+**/.impeccable/live/*
+!**/.impeccable/live/config.json
+**/.impeccable/hook.cache.json
+**/.impeccable/hook.pending.json
+**/.impeccable/config.local.json
+**/.impeccable-live.json
+**/.impeccable-live/
+**/plugins/impeccable-live.client.ts

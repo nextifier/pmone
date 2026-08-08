@@ -5,18 +5,32 @@
         {{ group.label }}
       </h4>
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <!--
+          The selected card cannot be told apart by its border alone: `border-primary`
+          and the global `focus-visible:ring-ring` (main.css) both paint a 1px line in
+          the same place, and `--primary` and `--ring` are both white in dark mode. So
+          selection carries a filled check badge and a heavier tint, and focus keeps the
+          thin ring to itself. `aria-pressed` states it for screen readers too.
+        -->
         <button
           v-for="type in group.types"
           :key="type.value"
           type="button"
+          :aria-pressed="selected === type.value"
           @click="$emit('select', type.value)"
-          class="flex flex-col gap-y-2 rounded-xl border p-2 text-center transition-colors"
+          class="relative flex flex-col gap-y-2 rounded-xl border p-2 text-center transition-colors"
           :class="
             selected === type.value
-              ? 'border-primary bg-primary/5'
+              ? 'border-primary bg-primary/10'
               : 'border-border hover:bg-muted/60'
           "
         >
+          <span
+            v-if="selected === type.value"
+            class="bg-primary text-primary-foreground absolute top-2 right-2 z-10 grid size-5 place-items-center rounded-full"
+          >
+            <Icon name="lucide:check" class="size-3 shrink-0" />
+          </span>
           <div
             class="flex h-20 items-center justify-center overflow-hidden rounded-lg border p-3"
             :class="

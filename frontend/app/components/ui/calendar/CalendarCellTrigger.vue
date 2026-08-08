@@ -41,7 +41,12 @@ const isRange = computed(() => mode.value === "range");
         // data-[selected]:hover rules below and, being emitted later by Tailwind,
         // would win — leaving a selected day's label unreadable while hovered.
         // The ghost variant already sets the hover colour in both schemes.
-        'cn-calendar-day-button group relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) cursor-pointer flex-col gap-1 rounded-(--cell-radius) border-0 p-0 leading-none font-normal transition-[color,background-color,box-shadow,transform] duration-100 select-none',
+        // `--cn-touch-target: 0px` switches off `.cn-button`'s coarse-pointer hit area.
+        // The day owns `::after` for its today-dot below, and the pad's `min-height`
+        // would compose with the dot's `height` rather than lose to it — a 3px dot
+        // rendered as a 44px filled circle. A 44px pad would also overlap the
+        // neighbouring days in this 7-column grid and steal their taps.
+        'cn-calendar-day-button group relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) cursor-pointer flex-col gap-1 rounded-(--cell-radius) border-0 p-0 leading-none font-normal transition-[color,background-color,box-shadow,transform] duration-100 select-none [--cn-touch-target:0px]',
         '[&>span]:text-xs [&>span]:opacity-70',
         '[&[data-today]:not([data-selected])]:bg-muted [&[data-today]:not([data-selected])]:text-foreground',
         isRange

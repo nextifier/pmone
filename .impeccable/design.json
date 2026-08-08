@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-08T00:00:00Z",
+  "title": "Design System: PM One",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#000000",
+        "note": "Primary and ring in light mode; the role inverts to Paper in dark mode, so primary always means maximum contrast.",
+        "tonalRamp": [
+          "oklch(0.141 0.005 285.823)",
+          "oklch(0.21 0.006 285.885)",
+          "oklch(0.274 0.006 286.033)",
+          "oklch(0.37 0.013 285.805)",
+          "oklch(0.442 0.017 285.786)",
+          "oklch(0.552 0.016 285.938)",
+          "oklch(0.705 0.015 286.067)",
+          "oklch(0.871 0.006 286.286)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "note": "Page, card, and popover surface in light mode.",
+        "tonalRamp": [
+          "oklch(0.21 0.006 285.885)",
+          "oklch(0.274 0.006 286.033)",
+          "oklch(0.37 0.013 285.805)",
+          "oklch(0.552 0.016 285.938)",
+          "oklch(0.705 0.015 286.067)",
+          "oklch(0.871 0.006 286.286)",
+          "oklch(0.967 0.001 286.375)",
+          "#ffffff"
+        ]
+      },
+      "graphite": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "oklch(0.141 0.005 285.823)",
+        "note": "Foreground text in light mode; page background in dark mode. Zinc ramp, stop 950."
+      },
+      "slate-body": {
+        "role": "neutral",
+        "displayName": "Slate Body",
+        "canonical": "oklch(0.37 0.013 285.805)",
+        "note": "Body copy and card content. Zinc ramp, stop 700."
+      },
+      "slate-quiet": {
+        "role": "neutral",
+        "displayName": "Slate Quiet",
+        "canonical": "oklch(0.442 0.017 285.786)",
+        "note": "Secondary text, helper text, captions. Zinc ramp, stop 600."
+      },
+      "surface-quiet": {
+        "role": "neutral",
+        "displayName": "Surface Quiet",
+        "canonical": "oklch(0.967 0.001 286.375)",
+        "note": "Secondary surfaces, hover backgrounds, icon containers. Zinc ramp, stop 100."
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.92 0.004 286.32)",
+        "note": "Every border and input stroke in light mode. Zinc ramp, stop 200."
+      },
+      "night-card": {
+        "role": "neutral",
+        "displayName": "Night Card",
+        "canonical": "oklch(0.1744 0.0061 285.74)",
+        "note": "The only literal value on the dark ramp; sits between zinc 950 and 900 so cards lift without a shadow. Does not follow a ramp swap."
+      },
+      "night-hairline": {
+        "role": "neutral",
+        "displayName": "Night Hairline",
+        "canonical": "oklch(0.274 0.006 286.033)",
+        "note": "Borders and input strokes in dark mode. Zinc ramp, stop 800."
+      },
+      "signal-info": {
+        "role": "tertiary",
+        "displayName": "Signal Info",
+        "canonical": "oklch(54.6% 0.245 262.881)",
+        "tonalRamp": [
+          "oklch(37.9% 0.146 265.522)",
+          "oklch(42.4% 0.199 265.638)",
+          "oklch(48.8% 0.243 264.376)",
+          "oklch(54.6% 0.245 262.881)",
+          "oklch(62.3% 0.214 259.815)",
+          "oklch(80.9% 0.105 251.813)",
+          "oklch(88.2% 0.059 254.128)",
+          "oklch(93.2% 0.032 255.585)"
+        ]
+      },
+      "signal-success": {
+        "role": "tertiary",
+        "displayName": "Signal Success",
+        "canonical": "oklch(62.7% 0.194 149.214)",
+        "tonalRamp": [
+          "oklch(39.3% 0.095 152.535)",
+          "oklch(44.8% 0.119 151.328)",
+          "oklch(52.7% 0.154 150.069)",
+          "oklch(62.7% 0.194 149.214)",
+          "oklch(72.3% 0.219 149.579)",
+          "oklch(87.1% 0.15 154.449)",
+          "oklch(92.5% 0.084 155.995)",
+          "oklch(96.2% 0.044 156.743)"
+        ]
+      },
+      "signal-warning": {
+        "role": "tertiary",
+        "displayName": "Signal Warning",
+        "canonical": "oklch(68.1% 0.162 75.834)",
+        "tonalRamp": [
+          "oklch(42.1% 0.095 57.708)",
+          "oklch(47.6% 0.114 61.907)",
+          "oklch(55.4% 0.135 66.442)",
+          "oklch(68.1% 0.162 75.834)",
+          "oklch(79.5% 0.184 86.047)",
+          "oklch(90.5% 0.182 98.111)",
+          "oklch(94.5% 0.129 101.54)",
+          "oklch(97.3% 0.071 103.193)"
+        ]
+      },
+      "signal-destructive": {
+        "role": "tertiary",
+        "displayName": "Signal Destructive",
+        "canonical": "oklch(57.7% 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(39.6% 0.141 25.723)",
+          "oklch(44.4% 0.177 26.899)",
+          "oklch(50.5% 0.213 27.518)",
+          "oklch(57.7% 0.245 27.325)",
+          "oklch(63.7% 0.237 25.331)",
+          "oklch(80.8% 0.114 19.571)",
+          "oklch(88.5% 0.062 18.334)",
+          "oklch(93.6% 0.032 17.717)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles only, through the `page-title` utility. Never hand-styled."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card titles and frame section titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Table cells, descriptions, paragraph copy. `text-base` for long reading passages."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels via `<Label>`; required markers are generated from the `required` attribute."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Buttons, tabs, menu items, selects. One fixed size at every viewport width."
+      },
+      "field": {
+        "displayName": "Field",
+        "purpose": "Typed inputs, textareas, native selects, OTP slots, command inputs, and the select trigger beside them. 16px on touch, 14px on mouse devices via `pointer-fine:`, never `sm:`."
+      }
+    },
+    "shadows": [
+      {
+        "name": "resting-lift",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Default buttons and focused inputs. Reads as a printed edge, not a float."
+      },
+      {
+        "name": "card",
+        "value": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        "purpose": "Small standalone cards separating from the page background."
+      },
+      {
+        "name": "floating-layer",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "Tooltips, popovers, dialog content. The only shadow allowed to be noticed."
+      },
+      {
+        "name": "frame-inner",
+        "value": "0 1px 2px 1px rgb(0 0 0 / 0.04)",
+        "purpose": "The inner edge of the `.frame` primitive, drawn on a pseudo-element inside the border."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-swift",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Drawer, sheet, and panel movement. The system's signature easing."
+      },
+      {
+        "name": "accordion",
+        "value": "0.2s ease-out",
+        "purpose": "Accordion and collapsible height transitions, in both directions."
+      },
+      {
+        "name": "skeleton",
+        "value": "2s -1s infinite linear",
+        "purpose": "Loading placeholder sweep on `<Skeleton>`."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Button press feedback. Physical, immediate, and the only transform allowed as decoration-adjacent feedback."
+      }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "540px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1500px" },
+      { "name": "3xl", "value": "1600px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-default",
+      "description": "The main call to action: save, submit, continue. One per view.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Save changes</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--radius-lg, 10px); font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); font-size: 0.875rem; font-weight: 500; letter-spacing: -0.025em; cursor: pointer; transition: background-color 0.15s, color 0.15s, box-shadow 0.15s; } .ds-btn-primary { background: var(--primary, #000); color: var(--primary-foreground, #fff); border-color: var(--primary, #000); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); } .ds-btn-primary:hover { background: color-mix(in oklab, var(--primary, #000) 90%, transparent); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--background, #fff), 0 0 0 3px color-mix(in oklab, var(--ring, #000) 50%, transparent); } .ds-btn-primary:active { transform: translateY(1px); box-shadow: none; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "The toolbar and secondary-action default; also the cancel side of a dialog footer.",
+      "html": "<button class=\"ds-btn ds-btn-outline\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14\"/></svg><span>Trash</span></button>",
+      "css": ".ds-btn-outline { background: var(--popover, #fff); color: var(--foreground, oklch(0.141 0.005 285.823)); border-color: var(--input, oklch(0.92 0.004 286.32)); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04); } .ds-btn-outline:hover { background: var(--muted, oklch(0.967 0.001 286.375)); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--background, #fff), 0 0 0 3px color-mix(in oklab, var(--ring, #000) 50%, transparent); } .ds-btn-outline:active { transform: translateY(1px); box-shadow: none; } .ds-btn-outline svg { opacity: 0.8; flex: none; }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Permanent deletion, always behind a ResponsiveDialog confirmation.",
+      "html": "<button class=\"ds-btn ds-btn-destructive\">Delete</button>",
+      "css": ".ds-btn-destructive { background: var(--destructive, oklch(57.7% 0.245 27.325)); color: #fff; border-color: var(--destructive, oklch(57.7% 0.245 27.325)); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); } .ds-btn-destructive:hover { background: color-mix(in oklab, var(--destructive, oklch(57.7% 0.245 27.325)) 90%, transparent); } .ds-btn-destructive:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--background, #fff), 0 0 0 3px color-mix(in oklab, var(--destructive, oklch(57.7% 0.245 27.325)) 40%, transparent); } .ds-btn-destructive:active { transform: translateY(1px); box-shadow: none; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "The standard input, always paired with a Label above and optional helper text below.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"ds-field-name\">Event name</label><input class=\"ds-input\" id=\"ds-field-name\" type=\"text\" placeholder=\"Megabuild Indonesia\" /><p class=\"ds-help\">Shown on the public event website.</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; max-width: 320px; font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); } .ds-label { font-size: 0.875rem; font-weight: 500; line-height: 1; letter-spacing: -0.025em; color: var(--foreground, oklch(0.141 0.005 285.823)); } .ds-input { height: 32px; padding: 4px 10px; border: 1px solid var(--input, oklch(0.92 0.004 286.32)); border-radius: var(--radius-lg, 10px); background: var(--background, #fff); color: var(--foreground, oklch(0.141 0.005 285.823)); font-family: inherit; font-size: 1rem; letter-spacing: -0.025em; transition: border-color 0.15s, box-shadow 0.15s; } @media (pointer: fine) { .ds-input { font-size: 0.875rem; } } .ds-input::placeholder { color: var(--muted-foreground, oklch(0.442 0.017 285.786)); } .ds-input:focus-visible { outline: none; border-color: var(--ring, #000); box-shadow: 0 0 0 2px color-mix(in oklab, var(--ring, #000) 30%, transparent); } .ds-help { margin: 0; font-size: 0.75rem; letter-spacing: -0.025em; color: var(--muted-foreground, oklch(0.442 0.017 285.786)); }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge-pill",
+      "description": "Every status, tag, and count chip in the product. Hand-rolled pills are a defect.",
+      "html": "<span class=\"ds-badge\"><span class=\"ds-badge-dot ds-badge-dot-success\"></span>Checked in</span>",
+      "css": ".ds-badge { display: inline-flex; width: fit-content; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid color-mix(in oklab, var(--foreground, oklch(0.141 0.005 285.823)) 17%, transparent); border-radius: 9999px; font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); font-size: 0.875rem; font-weight: 400; letter-spacing: -0.025em; white-space: nowrap; color: var(--foreground, oklch(0.141 0.005 285.823)); } .ds-badge-dot { width: 8px; height: 8px; flex: none; border-radius: 9999px; } .ds-badge-dot-success { background: var(--success, oklch(62.7% 0.194 149.214)); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "General content container. Softer than a frame: a 10% ring instead of a hard border.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-header\"><div class=\"ds-card-title\">Hotel allotment</div><div class=\"ds-card-description\">Rooms held for this edition.</div></div><div class=\"ds-card-content\">42 of 120 rooms booked.</div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 16px; padding: 16px 0; border-radius: var(--radius-xl, 14px); background: var(--card, #fff); color: var(--card-foreground, oklch(0.37 0.013 285.805)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--foreground, oklch(0.141 0.005 285.823)) 10%, transparent); font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); font-size: 0.875rem; letter-spacing: -0.025em; overflow: hidden; } .ds-card-header { display: flex; flex-direction: column; gap: 4px; padding: 0 16px; } .ds-card-title { font-size: 1rem; font-weight: 500; line-height: 1.375; letter-spacing: -0.05em; color: var(--foreground, oklch(0.141 0.005 285.823)); } .ds-card-description { color: var(--muted-foreground, oklch(0.442 0.017 285.786)); } .ds-card-content { padding: 0 16px; }"
+    },
+    {
+      "name": "Frame",
+      "kind": "custom",
+      "refersTo": "frame-panel",
+      "description": "The signature form-section container: muted half-tone shell, hairline ruling, and a paper-white panel inset by one pixel that holds the fields.",
+      "html": "<div class=\"ds-frame\"><div class=\"ds-frame-header\"><div class=\"ds-frame-title\">General</div><div class=\"ds-frame-description\">Basic details for this event.</div></div><div class=\"ds-frame-panel\">Fields go here.</div></div>",
+      "css": ".ds-frame { position: relative; isolation: isolate; display: flex; width: 100%; min-width: 0; flex-direction: column; border: 1px solid var(--border, oklch(0.92 0.004 286.32)); border-radius: var(--radius-xl, 14px); background: color-mix(in oklab, var(--muted, oklch(0.967 0.001 286.375)) 50%, transparent); font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); letter-spacing: -0.025em; } .ds-frame::after { content: \"\"; position: absolute; inset: -5px; z-index: -1; border: 1px solid color-mix(in oklab, var(--border, oklch(0.92 0.004 286.32)) 60%, transparent); border-radius: calc(var(--radius-xl, 14px) + 4px); pointer-events: none; } .ds-frame-header { display: flex; flex-direction: column; gap: 2px; padding: 12px; } .ds-frame-title { font-size: 1rem; font-weight: 500; letter-spacing: -0.05em; color: var(--foreground, oklch(0.141 0.005 285.823)); } .ds-frame-description { font-size: 0.875rem; color: var(--muted-foreground, oklch(0.442 0.017 285.786)); } .ds-frame-panel { margin: -1px; display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 4px; padding: 24px 12px; border: 1px solid var(--border, oklch(0.92 0.004 286.32)); border-radius: var(--radius-xl, 14px); background: var(--background, #fff); color: var(--card-foreground, oklch(0.37 0.013 285.805)); font-size: 0.875rem; box-shadow: 0 1px 2px 1px rgb(0 0 0 / 0.04); }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The standard zero-data surface: dashed border, round muted media circle, headline, one line of copy, at most one action.",
+      "html": "<div class=\"ds-empty\"><div class=\"ds-empty-media\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 13h4l2 3h6l2-3h4\"/><path d=\"M5 6h14l2 7v5H3v-5z\"/></svg></div><div class=\"ds-empty-title\">No exhibitors yet</div><div class=\"ds-empty-body\">Add the first exhibitor to start building this edition.</div><button class=\"ds-btn ds-btn-primary\">Add exhibitor</button></div>",
+      "css": ".ds-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 24px; border: 1px dashed var(--border, oklch(0.92 0.004 286.32)); border-radius: var(--radius-xl, 14px); text-align: center; font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); letter-spacing: -0.025em; } .ds-empty-media { display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; border-radius: 9999px; background: var(--muted, oklch(0.967 0.001 286.375)); color: var(--muted-foreground, oklch(0.442 0.017 285.786)); } .ds-empty-title { font-size: 1rem; font-weight: 500; letter-spacing: -0.05em; color: var(--foreground, oklch(0.141 0.005 285.823)); } .ds-empty-body { margin-bottom: 8px; font-size: 0.875rem; color: var(--muted-foreground, oklch(0.442 0.017 285.786)); }"
+    },
+    {
+      "name": "Page Header",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "The standard page opening: icon plus title on the left, actions pushed right. The submit button of a form lives here, not under the fields.",
+      "html": "<div class=\"ds-pagehead\"><div class=\"ds-pagehead-lead\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"3\"/><path d=\"M8 2v4M16 2v4M3 10h18\"/></svg><h1 class=\"ds-pagehead-title\">Events</h1></div><div class=\"ds-pagehead-actions\"><button class=\"ds-btn ds-btn-outline\">Export</button><button class=\"ds-btn ds-btn-primary\">New event</button></div></div>",
+      "css": ".ds-pagehead { display: flex; flex-direction: column; gap: 16px; font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif); } @media (min-width: 640px) { .ds-pagehead { flex-direction: row; align-items: center; justify-content: space-between; } } .ds-pagehead-lead { display: flex; align-items: center; gap: 10px; color: var(--foreground, oklch(0.141 0.005 285.823)); } .ds-pagehead-title { margin: 0; font-size: 1.25rem; font-weight: 500; line-height: 1.2; letter-spacing: -0.05em; text-wrap: balance; } .ds-pagehead-actions { display: flex; gap: 8px; margin-left: auto; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Ink and Paper Ledger",
+    "overview": "PM One looks like a well-kept ledger: black ink on white paper, ruled by hairlines, with nothing on the page that isn't a record or a way to change one. Structure comes from type size, weight, and thin rules, never from colored panels or decorative blocks. A page can hold a great deal of information and still feel calm, because every element sits on the same flat plane and earns its space by carrying data.\n\nThe system is restrained and exact. Surfaces are flat, borders are one pixel, motion happens only when state actually changes. Color is a signal reserved for status, not a way to decorate chrome; the primary action is simply the darkest thing on the page. That restraint is what lets 244 screens feel like one product and lets an untrained exhibitor and a staff member who opens the same screen fifty times a day both read it quickly. Light mode is the default and dark mode is fully supported; neither is a stylistic afterthought.\n\nThe reference points are Linear and the Vercel dashboard, not Notion or Stripe marketing. This is a tool, and the interface earns trust by being predictable and out of the way, never by being charming.\n\nEverything visual is expressed through tokens, never literal values. The application ships nine runtime style packs (mono is the default) plus user-selectable palette, radius, and font, so any hardcoded height, hex, or padding silently opts a component out of the system. The tokens and rules are normative; the concrete values recorded here are mono + the native palette, the defaults everything is measured against.",
+    "keyCharacteristics": [
+      "Monochrome chrome, colored signals only",
+      "Hairline borders and flat surfaces instead of shadows",
+      "Tight tracking that tightens further as type grows",
+      "Semibold ceiling; contrast comes from size and color, not weight",
+      "Fixed control sizing on every screen width, with one deliberate exception for typed fields",
+      "Token contract over literal values, because the visual layer is swappable at runtime"
+    ],
+    "rules": [
+      {
+        "name": "The Token Contract Rule",
+        "body": "Write bg-muted, text-muted-foreground, border-border. Never a literal palette class (bg-green-500, border-gray-200), never bg-white / bg-black, never a raw hex. Literals survive a palette swap and a style swap; the product does not.",
+        "section": "colors"
+      },
+      {
+        "name": "The Signal Scarcity Rule",
+        "body": "Hue means status. Nothing structural (headers, cards, nav, tabs, empty states) is ever colored. If a screen shows color, a record is telling you something about its state.",
+        "section": "colors"
+      },
+      {
+        "name": "The Accent Trap Rule",
+        "body": "--accent in this project is the primary ink, not a tint. Class lists copied from external shadcn sources must translate bg-accent to bg-muted, or the element turns solid black. Do not fix the token itself: the mira, sera, and lyra styles use that black highlight block deliberately.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tighter-As-It-Grows Rule",
+        "body": "Everything is tracking-tight. At text-xl and above, or at font-semibold, it becomes tracking-tighter. Bigger or heavier means tighter, always. tracking-wider, tracking-widest, and uppercase are not part of this system.",
+        "section": "typography"
+      },
+      {
+        "name": "The Semibold Ceiling Rule",
+        "body": "font-semibold is the maximum weight in the product. If something needs more presence, raise its size or its color, never its weight. font-bold and font-extrabold do not exist here.",
+        "section": "typography"
+      },
+      {
+        "name": "The 16px Touch Rule",
+        "body": "Typed fields are text-base pointer-fine:text-sm, not sm:text-sm. iOS Safari zooms on focus below 16px, and it does so on iPads and landscape phones that are already past the sm breakpoint. pointer-fine is the only correct guard. Every other control keeps one fixed size at all widths.",
+        "section": "typography"
+      },
+      {
+        "name": "The Static-Small Rule",
+        "body": "Standalone text-xs on static text is a defect on large screens; write text-xs sm:text-sm. This does not apply to interactive controls, where text-xs on an extra-small button is correct by design.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two-Case Rule",
+        "body": "Page titles, section titles, and card titles are Title Case. Everything else — helper text, descriptions, empty-state copy, toast bodies — is sentence case. Two cases, no third.",
+        "section": "typography"
+      },
+      {
+        "name": "The gap-x-2 Rule",
+        "body": "Two-column form grids use gap-x-2 and gap-y-6. Anything wider reads as two unrelated forms.",
+        "section": "layout"
+      },
+      {
+        "name": "The Mobile Step Rule",
+        "body": "Every control is one 4px step taller on touch than on desktop, and the desktop value is the one the style owns. Call sites write h-(--cn-input-h) when a button must align with a field; they never write h-8 or add a sm:h-* of their own.",
+        "section": "layout"
+      },
+      {
+        "name": "The Border-Before-Shadow Rule",
+        "body": "When something needs separation, add a border or change the surface one step on the ramp. Reach for a shadow only when the element genuinely floats above the page. shadow-2xl on ordinary components is a defect.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Nested Cards Rule",
+        "body": "A card inside a card inside a panel is how flat systems turn to mush. Sections inside a form use .frame; content inside a frame is plain.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Primitive-First Rule",
+        "body": "If a primitive exists, using anything else is a defect: <Button> not <button>, <Badge> not a hand-rolled pill, <Empty> not a centered div, <Skeleton> not a gray block, <TabNav> not a hand-built tab strip, <TableData> not an assembled list, <ResponsiveDialog> not confirm() / alert() / prompt(). The most frequent violation by far is the manual pill (rounded-full + px-2 py-0.5 + bg-* + text-xs); it is always a <Badge>.",
+        "section": "components"
+      },
+      {
+        "name": "The Optimistic Response Rule",
+        "body": "Toggles, quick-add, delete, and inline title edits update the interface immediately and reconcile with the server afterwards, rolling back with an error toast if it fails. A switch that waits for a round trip before moving reads as broken, and on a show floor it reads as a dead app.",
+        "section": "components"
+      },
+      {
+        "name": "The Style-Owns-The-Box Rule",
+        "body": "Never attach bg-*, border-*, h-*, rounded-*, px-*, or shadow-* to an input-like element at the call site. Those belong to the cn-* rules in assets/css/styles/style-<name>.css. Hardcoding pins a field to one style pack and, in the case of dark:bg-background, dissolves it into the dialog behind it. Add the missing cn-* rule instead (9 style files across 3 repos), and run bash frontend/scripts/check-input-hardcode.sh.",
+        "section": "components"
+      },
+      {
+        "name": "The Sized-Variant Rule",
+        "body": "Calling buttonVariants() without a size argument silently falls back to size-default, producing a button taller than its neighbors. Always pass the size.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use semantic tokens for every color: bg-muted, text-muted-foreground, border-border, bg-destructive.",
+      "Do set tracking-tight everywhere and tracking-tighter from text-xl or font-semibold up.",
+      "Do use text-xs sm:text-sm for fine print, and leave interactive controls at one fixed size.",
+      "Do use pointer-fine:text-sm on typed fields so iOS never zooms on focus.",
+      "Do wrap form sections in .frame and fields in space-y-2, with gap-x-2 in two-column grids.",
+      "Do put the submit button in the page header, beside the title or back button, with the loading prop driving its state.",
+      "Do reach for h-(--cn-input-h) when a button must line up with a field.",
+      "Do animate state changes: open/close, selected, valid/invalid, loading/loaded.",
+      "Do hide fields that don't matter to the current task; density earns its keep by carrying signal, not options."
+    ],
+    "donts": [
+      "Don't use font-bold, font-extrabold, uppercase, tracking-wider, or tracking-widest.",
+      "Don't use literal palette colors (bg-green-*, bg-red-*, bg-blue-*, bg-yellow-*), bg-white, bg-black, or raw hex.",
+      "Don't use native <button>, <input>, <select>, <textarea>, or browser confirm().",
+      "Don't hand-build pills, cards, empty states, skeletons, or toolbar buttons that a primitive already covers.",
+      "Don't add hover:scale-* or group-hover:scale-* to images and cards in new code. Hover affordance is a color or border change. (active:scale-98 on a pressed button is click feedback and stays.)",
+      "Don't treat existing motion in the repo as a finding. It was decided deliberately; change it only when asked.",
+      "Don't nest cards, add accent stripes (border-left: 3px solid), gradient text, glassmorphism, or decorative sparklines.",
+      "Don't use em dashes in interface copy, and don't hand-write required-field asterisks.",
+      "Don't mix icon families on one page, and don't reach for shadow-2xl on ordinary components.",
+      "Don't ship a placeholder illustration where a neutral muted gradient will do (from-muted to-muted/40 bg-gradient-to-br)."
+    ]
+  }
+}

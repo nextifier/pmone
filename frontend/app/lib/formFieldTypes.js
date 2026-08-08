@@ -66,7 +66,9 @@ export const FIELD_TYPES = {
     hasPlaceholder: true,
   },
   select: {
-    label: "Dropdown",
+    // "Select", not "Dropdown": it renders a `<Select>`, and it sits next to
+    // "Select Multiple" in the picker — the pair reads as one family.
+    label: "Select",
     icon: "lucide:chevrons-up-down",
     group: "choice",
     hasOptions: true,

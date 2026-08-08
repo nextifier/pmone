@@ -289,9 +289,8 @@
             <!-- Custom Fields -->
             <template v-if="customFieldDefinitions?.length">
               <div v-for="field in customFieldDefinitions" :key="field.id" class="space-y-2">
-                <Label :for="`cf_${field.key}`">
+                <Label :for="`cf_${field.key}`" :required="field.is_required">
                   {{ field.label }}
-                  <span v-if="field.is_required" class="text-destructive">*</span>
                 </Label>
 
                 <Input

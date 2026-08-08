@@ -466,6 +466,8 @@
     "successMessage": "Your response has been recorded.",
     "alreadyTitle": "You're all set",
     "alreadyMessage": "We've received your response. This form only accepts one submission per person.",
+    "showMore": "Show more",
+    "showLess": "Show less",
     "submitFailed": "Failed to submit the form. Please try again."
   }
 }

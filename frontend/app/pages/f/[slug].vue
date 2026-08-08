@@ -7,9 +7,11 @@
     :locale="locale"
     :embed="isEmbed"
   >
+    <!-- No appearance picker here: the visitor is filling in someone else's
+         form, not configuring their own dashboard. Language and light/dark are
+         reading aids and stay. -->
     <template #chrome="{ locales }">
       <LanguageSwitcher :codes="locales" />
-      <AppearancePickerButton />
       <ColorModeToggle />
     </template>
   </PublicFormView>

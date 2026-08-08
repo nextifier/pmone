@@ -21,8 +21,14 @@ export { default as Button } from "./Button.vue";
 // `.cn-button::before` a style may paint, and the coarse-pointer hit area below.
 // `disabled:opacity-*` lives in the style sheets, not here — a utilities-layer value
 // would win over `.cn-button` and lock every style to the same number.
+//
+// The hit area reads `--cn-touch-target` so a caller can switch it off with
+// `[--cn-touch-target:0px]`. Two reasons to: the button owns `::after` for its own
+// decoration (a `min-height` from here composes with the caller's `height` instead of
+// losing to it on specificity, which blew the calendar's 3px today-dot up to 44px), or
+// it sits in a dense grid where a 44px pad would steal its neighbours' taps.
 export const buttonVariants = cva(
-  "cn-button group/button relative inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:cursor-not-allowed pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "cn-button group/button relative inline-flex shrink-0 cursor-pointer items-center justify-center whitespace-nowrap tracking-tight transition-[color,box-shadow,transform] outline-none select-none disabled:cursor-not-allowed pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-[var(--cn-touch-target,2.75rem)] pointer-coarse:after:min-w-[var(--cn-touch-target,2.75rem)] [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {

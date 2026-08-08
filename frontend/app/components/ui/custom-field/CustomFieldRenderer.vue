@@ -13,10 +13,9 @@
     />
   </div>
 
-  <div v-else class="space-y-2">
-    <Label :for="fieldId">
+  <div v-else :class="isLargeLabel ? 'space-y-2.5' : 'space-y-2'">
+    <Label :for="fieldId" :required="isRequired" :class="labelClass">
       {{ normalized.label }}
-      <span v-if="isRequired" class="text-destructive">*</span>
     </Label>
 
     <!-- Control wrapper: one shared error indicator for every field type -->
@@ -272,7 +271,7 @@
           :disabled="disabled"
           @update:model-value="$emit('update:modelValue', !!$event)"
         />
-        <Label :for="fieldId" class="font-normal">
+        <Label :for="fieldId" :class="['font-normal', labelClass]">
           {{ normalized.placeholder || normalized.label }}
         </Label>
       </div>
@@ -285,7 +284,7 @@
           :disabled="disabled"
           @update:model-value="$emit('update:modelValue', !!$event)"
         />
-        <Label :for="fieldId" class="font-normal">
+        <Label :for="fieldId" :class="['font-normal', labelClass]">
           {{ normalized.placeholder || normalized.label }}
         </Label>
       </div>
@@ -299,7 +298,9 @@
             :disabled="disabled"
             @update:model-value="handleMultiCheck($event, opt.value)"
           />
-          <Label :for="`${fieldId}-${opt.value}`" class="font-normal">{{ opt.label }}</Label>
+          <Label :for="`${fieldId}-${opt.value}`" :class="['font-normal', labelClass]">
+            {{ opt.label }}
+          </Label>
         </div>
       </div>
 
@@ -312,7 +313,9 @@
       >
         <div v-for="opt in normalized.options" :key="opt.value" class="flex items-center gap-x-2">
           <RadioGroupItem :value="opt.value" :id="`${fieldId}-${opt.value}`" />
-          <Label :for="`${fieldId}-${opt.value}`" class="font-normal">{{ opt.label }}</Label>
+          <Label :for="`${fieldId}-${opt.value}`" :class="['font-normal', labelClass]">
+            {{ opt.label }}
+          </Label>
         </div>
       </RadioGroup>
 
@@ -466,7 +469,11 @@
     </div>
 
     <!-- Help text -->
-    <p v-if="normalized.help_text" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+    <p
+      v-if="normalized.help_text"
+      class="text-muted-foreground tracking-tight"
+      :class="isLargeLabel ? 'text-sm' : 'text-xs sm:text-sm'"
+    >
       {{ normalized.help_text }}
     </p>
 
@@ -547,6 +554,9 @@ const props = defineProps({
   preview: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
   locale: { type: String, default: "en" },
+  // "lg" on standalone public surfaces (the /f/{slug} form), where a field label
+  // is a question the visitor reads rather than a dashboard control caption.
+  labelSize: { type: String, default: "default" },
   countries: { type: Array, default: null },
   pinnedCountries: { type: Array, default: () => ["Indonesia"] },
   uploadHandler: { type: Function, default: null },
@@ -562,6 +572,16 @@ const normalized = computed(() => normalizeField(props.field, props.locale));
 const fieldId = computed(() => `field-${normalized.value.key}`);
 
 const isRequired = computed(() => !!normalized.value.validation?.required);
+
+/**
+ * One step up from `.cn-label`, and `leading-snug` in place of its `leading-none`
+ * so a question that wraps to two lines does not have its descenders sitting on
+ * the next line's caps. Kept opt-in: STYLE_GUIDE fixes dashboard labels at
+ * `text-sm`, and most call sites here are dashboard forms.
+ */
+const isLargeLabel = computed(() => props.labelSize === "lg");
+
+const labelClass = computed(() => (isLargeLabel.value ? "text-base leading-snug" : undefined));
 
 const countryOptions = computed(() => props.countries ?? defaultCountries);
 

@@ -10,6 +10,7 @@
         :field="field"
         :locale="locale"
         :disabled="disabled"
+        :label-size="labelSize"
         preview
         is-first
       />
@@ -28,6 +29,10 @@ const props = defineProps({
   locale: { type: String, default: "en" },
   title: { type: String, default: "Preview" },
   disabled: { type: Boolean, default: false },
+  // Which surface is being previewed. The form builder previews /f/{slug}, which
+  // runs larger labels; project / ticket / document fields render inside
+  // dashboard forms and keep the default.
+  labelSize: { type: String, default: "default" },
 });
 
 const previewValue = ref(null);
