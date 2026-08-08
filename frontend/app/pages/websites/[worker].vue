@@ -141,7 +141,7 @@ definePageMeta({
 const route = useRoute();
 const worker = route.params.worker;
 
-usePageMeta(null, { title: `${worker}${worker} · Websites` });
+usePageMeta(null, { title: `${worker} · Websites` });
 
 defineOptions({ name: "website-detail" });
 
