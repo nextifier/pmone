@@ -4,9 +4,24 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class UpdatePostRequest extends FormRequest
 {
+    /**
+     * Mirrors StorePostRequest: a hand-typed slug is the only path a space or a
+     * capital has into the column, and both have already reached production.
+     * See the note there for what that cost.
+     */
+    protected function normaliseSlug(): void
+    {
+        $slug = $this->input('slug');
+
+        if (is_string($slug) && trim($slug) !== '') {
+            $this->merge(['slug' => Str::slug($slug)]);
+        }
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -32,6 +47,8 @@ class UpdatePostRequest extends FormRequest
         if ($merge !== []) {
             $this->merge($merge);
         }
+
+        $this->normaliseSlug();
     }
 
     /**
@@ -75,7 +92,7 @@ class UpdatePostRequest extends FormRequest
         return [
             'title' => ['sometimes', 'array'],
             'title.*' => ['nullable', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:posts,slug,'.$postId],
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:posts,slug,'.$postId],
             'excerpt' => ['nullable', 'array'],
             'excerpt.*' => ['nullable', 'string', 'max:500'],
             'content' => ['sometimes', 'array'],

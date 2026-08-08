@@ -4,9 +4,31 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class StorePostRequest extends FormRequest
 {
+    /**
+     * A hand-typed slug is the only way a space or a capital reaches the column:
+     * Sluggable only generates one when the field is left empty, and nothing
+     * validated the shape. Two posts got in that way — `Warna-cat-rumah-yang-
+     * bagus-dan-elegan`, reachable only with the capital, and `ide-bisnis-
+     * kreatif-yang-jarang -ada`, whose space made the sitemap publish a
+     * double-encoded %2520 URL that 404s in all five locales while Google
+     * crawled the truncated form and got a 404 too.
+     *
+     * Normalise rather than reject: an editor pasting a title-cased slug should
+     * get a working URL, not an error. The rule below is the backstop.
+     */
+    protected function normaliseSlug(): void
+    {
+        $slug = $this->input('slug');
+
+        if (is_string($slug) && trim($slug) !== '') {
+            $this->merge(['slug' => Str::slug($slug)]);
+        }
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -32,6 +54,8 @@ class StorePostRequest extends FormRequest
         if ($merge !== []) {
             $this->merge($merge);
         }
+
+        $this->normaliseSlug();
     }
 
     /**
@@ -73,7 +97,7 @@ class StorePostRequest extends FormRequest
         return [
             'title' => ['required', 'array'],
             'title.*' => ['nullable', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:posts,slug'],
+            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:posts,slug'],
             'excerpt' => ['nullable', 'array'],
             'excerpt.*' => ['nullable', 'string', 'max:500'],
             'content' => ['required', 'array'],

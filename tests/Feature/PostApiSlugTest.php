@@ -123,3 +123,52 @@ it('updates post without changing slug when title remains same', function () {
     expect($post->slug)->toBe($originalSlug)
         ->and($post->content)->toBe('Updated content');
 });
+
+it('normalises a hand-typed slug that contains a space', function () {
+    $this->postJson('/api/posts', [
+        'title' => 'Ide Bisnis Kreatif',
+        'content' => 'Body',
+        'status' => 'draft',
+        'content_format' => 'html',
+        'visibility' => 'public',
+        'slug' => 'ide-bisnis-kreatif-yang-jarang -ada',
+    ])->assertCreated();
+
+    expect(Post::latest('id')->first()->slug)->toBe('ide-bisnis-kreatif-yang-jarang-ada');
+});
+
+it('lowercases a hand-typed slug', function () {
+    $this->postJson('/api/posts', [
+        'title' => 'Warna Cat Rumah',
+        'content' => 'Body',
+        'status' => 'draft',
+        'content_format' => 'html',
+        'visibility' => 'public',
+        'slug' => 'Warna-Cat-Rumah-Yang-Bagus',
+    ])->assertCreated();
+
+    expect(Post::latest('id')->first()->slug)->toBe('warna-cat-rumah-yang-bagus');
+});
+
+it('falls back to generating from the title when the slug normalises to nothing', function () {
+    $this->postJson('/api/posts', [
+        'title' => 'Slug From Title',
+        'content' => 'Body',
+        'status' => 'draft',
+        'content_format' => 'html',
+        'visibility' => 'public',
+        'slug' => '###',
+    ])->assertCreated();
+
+    expect(Post::latest('id')->first()->slug)->toBe('slug-from-title');
+});
+
+it('normalises a hand-typed slug on update too', function () {
+    $post = Post::factory()->create(['slug' => 'original-slug']);
+
+    $this->putJson("/api/posts/{$post->slug}", [
+        'slug' => 'Renamed Slug With Spaces',
+    ])->assertSuccessful();
+
+    expect($post->fresh()->slug)->toBe('renamed-slug-with-spaces');
+});
