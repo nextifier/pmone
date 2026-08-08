@@ -25,36 +25,29 @@ beforeEach(function () {
     $this->project = Project::factory()->create([
         'settings' => [
             'contact_form' => ['enabled' => true],
-            'website_settings' => [
-                'rundown' => [
-                    'show_search_bar' => true,
-                    'show_all_rundown_details' => false,
-                ],
-            ],
+            // Not a real setting: a marker written straight to the model so the
+            // "untouched website_settings survives" assertions have something to
+            // point at without colliding with the default-value tests below.
+            'website_settings' => ['seed_marker' => true],
         ],
     ]);
 
     $this->endpoint = "/api/projects/{$this->project->username}/website-settings";
 });
 
-it('updates website rundown settings and merges into existing settings', function () {
+it('merges a patched slice into existing settings without touching siblings', function () {
     $this->actingAs($this->user);
 
     $response = $this->patchJson($this->endpoint, [
-        'rundown' => [
-            'show_search_bar' => false,
-            'show_all_rundown_details' => true,
-        ],
+        'terms' => ['last_update' => '2026-02-02'],
     ]);
 
     $response->assertSuccessful()
-        ->assertJsonPath('data.website_settings.rundown.show_search_bar', false)
-        ->assertJsonPath('data.website_settings.rundown.show_all_rundown_details', true);
+        ->assertJsonPath('data.website_settings.terms.last_update', '2026-02-02');
 
     $this->project->refresh();
 
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeFalse();
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_all_rundown_details'))->toBeTrue();
+    expect(data_get($this->project->settings, 'website_settings.terms.last_update'))->toBe('2026-02-02');
     // Confirm unrelated settings remain intact
     expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeTrue();
 });
@@ -76,8 +69,7 @@ it('preserves website_settings when the general project update sends only contac
     // contact_form was replaced with the submitted block...
     expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeFalse();
     // ...while the untouched website_settings block survives (no data loss).
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_all_rundown_details'))->toBeFalse();
+    expect(data_get($this->project->settings, 'website_settings.seed_marker'))->toBeTrue();
 });
 
 it('persists show_rundown_on_home_page flag', function () {
@@ -134,21 +126,20 @@ it('partially merges only the provided fields', function () {
     $this->actingAs($this->user);
 
     $response = $this->patchJson($this->endpoint, [
-        'rundown' => [
-            'show_search_bar' => false,
-        ],
+        'blog' => ['show_post_card_author' => true],
     ]);
 
     $response->assertSuccessful();
 
     $this->project->refresh();
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeFalse();
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_all_rundown_details'))->toBeFalse();
+    expect(data_get($this->project->settings, 'website_settings.blog.show_post_card_author'))->toBeTrue();
+    // Everything the payload did not mention survives the merge.
+    expect(data_get($this->project->settings, 'website_settings.seed_marker'))->toBeTrue();
 });
 
 it('rejects unauthenticated requests', function () {
     $response = $this->patchJson($this->endpoint, [
-        'rundown' => ['show_search_bar' => false],
+        'rundown' => ['show_rundown_on_home_page' => true],
     ]);
 
     $response->assertUnauthorized();
@@ -159,7 +150,7 @@ it('blocks non-member users from updating website settings', function () {
     $this->actingAs($outsider);
 
     $response = $this->patchJson($this->endpoint, [
-        'rundown' => ['show_search_bar' => false],
+        'rundown' => ['show_rundown_on_home_page' => true],
     ]);
 
     $response->assertForbidden();
@@ -188,18 +179,18 @@ it('clears public rundown cache when settings change', function () {
     // Warm cache
     $this->withHeaders(['X-API-Key' => 'pk_test_settings'])
         ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.show_search_bar', true);
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', false);
 
     // Patch settings as member
     $this->actingAs($this->user);
     $this->patchJson($this->endpoint, [
-        'rundown' => ['show_search_bar' => false],
+        'rundown' => ['show_rundown_on_home_page' => true],
     ])->assertSuccessful();
 
     // Public response reflects the new value (cache must have been cleared)
     $this->withHeaders(['X-API-Key' => 'pk_test_settings'])
         ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.show_search_bar', false);
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', true);
 });
 
 it('persists show_partners_on_home_page flag', function () {
@@ -217,30 +208,7 @@ it('persists show_partners_on_home_page flag', function () {
     $this->project->refresh();
     expect(data_get($this->project->settings, 'website_settings.partners.show_partners_on_home_page'))->toBeFalse();
     // Confirm unrelated settings remain intact
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
-});
-
-it('exposes show_partners_on_home_page (default true) in public website-settings response', function () {
-    ApiConsumer::factory()->create([
-        'api_key' => 'pk_test_partners_flag',
-        'is_active' => true,
-    ]);
-
-    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
-
-    // Unconfigured project keeps the historical always-show behaviour.
-    $this->withHeaders(['X-API-Key' => 'pk_test_partners_flag'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.partners.show_partners_on_home_page', true);
-
-    $this->actingAs($this->user);
-    $this->patchJson($this->endpoint, [
-        'partners' => ['show_partners_on_home_page' => false],
-    ])->assertSuccessful();
-
-    $this->withHeaders(['X-API-Key' => 'pk_test_partners_flag'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.partners.show_partners_on_home_page', false);
+    expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeTrue();
 });
 
 it('persists show_hotel_section_on_home_page flag', function () {
@@ -258,29 +226,7 @@ it('persists show_hotel_section_on_home_page flag', function () {
     $this->project->refresh();
     expect(data_get($this->project->settings, 'website_settings.hotels.show_hotel_section_on_home_page'))->toBeTrue();
     // Confirm unrelated settings remain intact
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
-});
-
-it('exposes show_hotel_section_on_home_page in public website-settings response', function () {
-    ApiConsumer::factory()->create([
-        'api_key' => 'pk_test_hotel_flag',
-        'is_active' => true,
-    ]);
-
-    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
-
-    $this->withHeaders(['X-API-Key' => 'pk_test_hotel_flag'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.hotels.show_hotel_section_on_home_page', false);
-
-    $this->actingAs($this->user);
-    $this->patchJson($this->endpoint, [
-        'hotels' => ['show_hotel_section_on_home_page' => true],
-    ])->assertSuccessful();
-
-    $this->withHeaders(['X-API-Key' => 'pk_test_hotel_flag'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.hotels.show_hotel_section_on_home_page', true);
+    expect(data_get($this->project->settings, 'contact_form.enabled'))->toBeTrue();
 });
 
 it('persists hotel notification email config', function () {
@@ -414,62 +360,7 @@ it('persists website display settings (blog, ticket tabs, book space form, terms
     expect(data_get($ws, 'book_space_form.show_job_title'))->toBeTrue();
     expect(data_get($ws, 'terms.last_update'))->toBe('2026-04-30');
     // Existing rundown block is untouched.
-    expect(data_get($ws, 'rundown.show_search_bar'))->toBeTrue();
-});
-
-it('persists per-section data_fallback flags', function () {
-    $this->actingAs($this->user);
-
-    $response = $this->patchJson($this->endpoint, [
-        'data_fallback' => [
-            'brands' => false,
-            'guests' => false,
-        ],
-    ]);
-
-    $response->assertSuccessful()
-        ->assertJsonPath('data.website_settings.data_fallback.brands', false)
-        ->assertJsonPath('data.website_settings.data_fallback.guests', false);
-
-    $this->project->refresh();
-    expect(data_get($this->project->settings, 'website_settings.data_fallback.brands'))->toBeFalse();
-    expect(data_get($this->project->settings, 'website_settings.data_fallback.guests'))->toBeFalse();
-    // Unrelated settings remain intact.
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
-});
-
-it('rejects a non-boolean data_fallback value', function () {
-    $this->actingAs($this->user);
-
-    $this->patchJson($this->endpoint, [
-        'data_fallback' => ['brands' => 'maybe'],
-    ])->assertUnprocessable();
-});
-
-it('exposes data_fallback flags (default true) in public website-settings response', function () {
-    ApiConsumer::factory()->create([
-        'api_key' => 'pk_test_fallback_flag',
-        'is_active' => true,
-    ]);
-
-    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
-
-    // Unconfigured project keeps the historical always-fallback behaviour.
-    $this->withHeaders(['X-API-Key' => 'pk_test_fallback_flag'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.data_fallback.brands', true)
-        ->assertJsonPath('data.settings.data_fallback.guests', true)
-        ->assertJsonPath('data.settings.data_fallback.media_coverages', true);
-
-    $this->actingAs($this->user);
-    $this->patchJson($this->endpoint, [
-        'data_fallback' => ['brands' => false],
-    ])->assertSuccessful();
-
-    $this->withHeaders(['X-API-Key' => 'pk_test_fallback_flag'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.data_fallback.brands', false)
-        ->assertJsonPath('data.settings.data_fallback.guests', true);
+    expect(data_get($this->project->fresh()->settings, 'contact_form.enabled'))->toBeTrue();
 });
 
 it('exposes website display settings with base defaults in the public response', function () {
@@ -502,194 +393,16 @@ it('exposes website display settings with base defaults in the public response',
         ->assertJsonPath('data.settings.terms.last_update', '2025-12-30');
 });
 
-it('persists the home_sections visibility map and preserves other settings', function () {
-    $this->actingAs($this->user);
-
-    $response = $this->patchJson($this->endpoint, [
-        'home_sections' => [
-            'rundown' => true,
-            'about_event' => false,
-        ],
-    ]);
-
-    $response->assertSuccessful()
-        ->assertJsonPath('data.website_settings.home_sections.rundown', true)
-        ->assertJsonPath('data.website_settings.home_sections.about_event', false);
-
-    $this->project->refresh();
-    expect(data_get($this->project->settings, 'website_settings.home_sections.rundown'))->toBeTrue();
-    expect(data_get($this->project->settings, 'website_settings.home_sections.about_event'))->toBeFalse();
-    // Unrelated settings remain intact.
-    expect(data_get($this->project->settings, 'website_settings.rundown.show_search_bar'))->toBeTrue();
-});
-
-it('rejects a non-boolean home_sections value', function () {
-    $this->actingAs($this->user);
-
-    $this->patchJson($this->endpoint, [
-        'home_sections' => ['rundown' => 'maybe'],
-    ])->assertUnprocessable();
-});
-
-it('rejects an unknown home_sections key', function () {
-    $this->actingAs($this->user);
-
-    $this->patchJson($this->endpoint, [
-        'home_sections' => ['not_a_real_section' => true],
-    ])->assertUnprocessable();
-});
-
-it('exposes the home_sections map with catalog defaults in the public response', function () {
-    ApiConsumer::factory()->create([
-        'api_key' => 'pk_test_home_sections',
-        'is_active' => true,
-    ]);
-
-    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
-
-    // Unconfigured project reflects the catalog defaults: the four original
-    // toggles keep their historical defaults, new sections default to visible.
-    $this->withHeaders(['X-API-Key' => 'pk_test_home_sections'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.home_sections.rundown', false)
-        ->assertJsonPath('data.settings.home_sections.brand_preview', false)
-        ->assertJsonPath('data.settings.home_sections.hotels', false)
-        ->assertJsonPath('data.settings.home_sections.partners', true)
-        ->assertJsonPath('data.settings.home_sections.hero', true)
-        ->assertJsonPath('data.settings.home_sections.about_event', true);
-});
-
-it('derives the legacy nested visibility keys from home_sections', function () {
-    ApiConsumer::factory()->create([
-        'api_key' => 'pk_test_home_derive',
-        'is_active' => true,
-    ]);
-
-    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
-
-    $this->actingAs($this->user);
-    $this->patchJson($this->endpoint, [
-        'home_sections' => [
-            'rundown' => true,
-            'brand_preview' => true,
-            'partners' => false,
-            'hotels' => true,
-        ],
-    ])->assertSuccessful();
-
-    // Deployed event sites read the nested shape; it must agree with the map.
-    $this->withHeaders(['X-API-Key' => 'pk_test_home_derive'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.home_sections.rundown', true)
-        ->assertJsonPath('data.settings.rundown.show_rundown_on_home_page', true)
-        ->assertJsonPath('data.settings.brands.show_brand_preview_on_home_page', true)
-        ->assertJsonPath('data.settings.partners.show_partners_on_home_page', false)
-        ->assertJsonPath('data.settings.hotels.show_hotel_section_on_home_page', true);
-});
-
-it('falls back to a legacy stored visibility flag when home_sections is absent', function () {
-    ApiConsumer::factory()->create([
-        'api_key' => 'pk_test_home_legacy',
-        'is_active' => true,
-    ]);
-
-    // Simulate a project configured through the old UI: value stored at the
-    // legacy nested path, with no home_sections map yet.
-    $settings = $this->project->settings;
-    data_set($settings, 'website_settings.rundown.show_rundown_on_home_page', true);
-    $this->project->update(['settings' => $settings]);
-
-    $publicEndpoint = "/api/public/projects/{$this->project->username}/website-settings";
-
-    $this->withHeaders(['X-API-Key' => 'pk_test_home_legacy'])
-        ->getJson($publicEndpoint)
-        ->assertJsonPath('data.settings.home_sections.rundown', true)
-        ->assertJsonPath('data.settings.rundown.show_rundown_on_home_page', true);
-});
-
-it('exposes the home sections catalog and resolved values to the admin', function () {
-    $this->actingAs($this->user);
-
-    $this->patchJson($this->endpoint, [
-        'home_sections' => ['about_event' => false],
-    ])->assertSuccessful();
-
-    $response = $this->getJson("/api/projects/{$this->project->username}");
-
-    $response->assertSuccessful()
-        ->assertJsonPath('data.home_sections.about_event', false)
-        ->assertJsonPath('data.home_sections.partners', true);
-
-    $catalog = $response->json('data.home_sections_catalog');
-    expect($catalog)->toBeArray()->not->toBeEmpty();
-    expect($catalog[0])->toHaveKeys(['key', 'label', 'default']);
-});
-
-/*
-|--------------------------------------------------------------------------
-| Split-form partial PATCH safety (plan 035)
-|--------------------------------------------------------------------------
-| The Website Settings tab is split into "Website Settings" (display toggles)
-| and "Site Config" (nav/analytics/appearance/identity); the SEO date leaves
-| for Legal Pages. Each page now PATCHes only its own slice, so a slice-only
-| save must never clobber the sibling slices it omits.
-*/
-
 function seedFullWebsiteSettings(Project $project): void
 {
     $project->update(['settings' => ['website_settings' => [
-        'home_sections' => ['about_event' => false, 'partners' => true],
         'terms' => ['last_update' => '2025-08-21'],
         'og_pages' => ['home' => ['title' => 'Home OG', 'description' => 'Home OG desc']],
-        'site_config' => [
-            'nav' => ['header' => [['label' => 'Home', 'path' => '/']], 'dialog' => [], 'footer' => []],
-            'analytics' => ['ga4' => ['G-ABC123'], 'tiktok_pixel' => null, 'meta_pixel' => null, 'gtm' => null],
-            'appearance' => ['enabled' => true, 'baseColor' => 'blue', 'theme' => 'blue', 'chartColor' => 'blue', 'radius' => 'medium'],
-            'identity' => ['company_name' => 'Acme Ltd', 'company_address' => 'Jakarta'],
-        ],
+        'hotels' => ['notification_email' => ['to' => ['ops@example.com'], 'cc' => [], 'bcc' => []]],
     ]]]);
 }
 
-it('patching only the site_config slice preserves home_sections, og_pages, and terms', function () {
-    $this->actingAs($this->user);
-    seedFullWebsiteSettings($this->project);
-
-    $this->patchJson($this->endpoint, [
-        'site_config' => [
-            'identity' => ['company_name' => 'New Name', 'company_address' => 'Bandung'],
-        ],
-    ])->assertSuccessful();
-
-    $ws = data_get($this->project->fresh()->settings, 'website_settings');
-
-    expect(data_get($ws, 'site_config.identity.company_name'))->toBe('New Name');
-    // Untouched siblings survive.
-    expect(data_get($ws, 'home_sections.about_event'))->toBeFalse();
-    expect(data_get($ws, 'og_pages.home.title'))->toBe('Home OG');
-    expect(data_get($ws, 'terms.last_update'))->toBe('2025-08-21');
-    expect(data_get($ws, 'site_config.nav.header.0.label'))->toBe('Home');
-    expect(data_get($ws, 'site_config.analytics.ga4'))->toBe(['G-ABC123']);
-});
-
-it('patching only home_sections preserves the whole site_config block', function () {
-    $this->actingAs($this->user);
-    seedFullWebsiteSettings($this->project);
-
-    $this->patchJson($this->endpoint, [
-        'home_sections' => ['about_event' => true],
-    ])->assertSuccessful();
-
-    $ws = data_get($this->project->fresh()->settings, 'website_settings');
-
-    expect(data_get($ws, 'home_sections.about_event'))->toBeTrue();
-    // The wholesale-replace guards must NOT fire when site_config is absent.
-    expect(data_get($ws, 'site_config.nav.header.0.label'))->toBe('Home');
-    expect(data_get($ws, 'site_config.analytics.ga4'))->toBe(['G-ABC123']);
-    expect(data_get($ws, 'site_config.identity.company_name'))->toBe('Acme Ltd');
-    expect(data_get($ws, 'og_pages.home.title'))->toBe('Home OG');
-});
-
-it('patching only the terms slice preserves site_config and home_sections', function () {
+it('patching only the terms slice preserves og_pages and hotels', function () {
     $this->actingAs($this->user);
     seedFullWebsiteSettings($this->project);
 
@@ -700,7 +413,21 @@ it('patching only the terms slice preserves site_config and home_sections', func
     $ws = data_get($this->project->fresh()->settings, 'website_settings');
 
     expect(data_get($ws, 'terms.last_update'))->toBe('2026-01-01');
-    expect(data_get($ws, 'site_config.identity.company_name'))->toBe('Acme Ltd');
-    expect(data_get($ws, 'site_config.nav.header.0.label'))->toBe('Home');
-    expect(data_get($ws, 'home_sections.about_event'))->toBeFalse();
+    expect(data_get($ws, 'og_pages.home.title'))->toBe('Home OG');
+    expect(data_get($ws, 'hotels.notification_email.to'))->toBe(['ops@example.com']);
+});
+
+it('patching only the hotels slice preserves terms and og_pages', function () {
+    $this->actingAs($this->user);
+    seedFullWebsiteSettings($this->project);
+
+    $this->patchJson($this->endpoint, [
+        'hotels' => ['notification_email' => ['to' => ['new@example.com'], 'cc' => [], 'bcc' => []]],
+    ])->assertSuccessful();
+
+    $ws = data_get($this->project->fresh()->settings, 'website_settings');
+
+    expect(data_get($ws, 'hotels.notification_email.to'))->toBe(['new@example.com']);
+    expect(data_get($ws, 'terms.last_update'))->toBe('2025-08-21');
+    expect(data_get($ws, 'og_pages.home.title'))->toBe('Home OG');
 });

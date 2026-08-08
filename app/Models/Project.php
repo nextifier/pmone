@@ -132,7 +132,7 @@ class Project extends Model implements HasMedia, Sortable
 
     /**
      * Public-cache tags backed by the settings JSON column. The website
-     * settings (home sections, data_fallback, rundown/blog display config)
+     * settings (home sections, rundown/blog display config)
      * feed every one of these public endpoints, so any settings write must
      * bust them all.
      *
@@ -743,18 +743,6 @@ class Project extends Model implements HasMedia, Sortable
     public function isContactFormEnabled(): bool
     {
         return data_get($this->settings, 'contact_form.enabled', false);
-    }
-
-    /**
-     * Whether public event-website endpoints may borrow a previous event's data
-     * for the given section when the active event has none. Defaults true to
-     * preserve the historical behaviour; per-section flags live under
-     * `website_settings.data_fallback` (brands, guests, partners, programs,
-     * faqs, gallery, media_coverages).
-     */
-    public function shouldFallbackToPreviousEventData(string $section): bool
-    {
-        return (bool) data_get($this->settings, "website_settings.data_fallback.{$section}", true);
     }
 
     /**

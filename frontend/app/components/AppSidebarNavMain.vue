@@ -66,7 +66,7 @@
 
 <script setup>
 import { useSidebar } from "@/components/ui/sidebar/utils";
-import { ChevronRight } from "lucide-vue-next";
+import { ChevronRight } from "@lucide/vue";
 const { setOpenMobile } = useSidebar();
 const { hasPermission, hasRole, hasAnyRole, isStaffOrAbove } = usePermission();
 const { t } = useI18n();

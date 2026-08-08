@@ -21,10 +21,7 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
-use App\Models\WebsiteCopy;
-use App\Models\WebsitePage;
 use App\Services\Rundown\RundownGrouper;
-use App\Support\HomeSectionCatalog;
 use App\Support\OgPages;
 use App\Support\PaginationClamp;
 use Illuminate\Database\Eloquent\Builder;
@@ -202,10 +199,8 @@ class PublicProjectController extends Controller
 
         // Opt-in fallback (used by the home-page BrandPreview teaser): when the
         // active event has no brands yet, borrow the most recent previous edition
-        // that does, so a freshly-created event still shows brands. Gated by the
-        // project's per-section data-fallback toggle.
+        // that does, so a freshly-created event still shows brands.
         if ($request->boolean('fallback')
-            && $event->project->shouldFallbackToPreviousEventData('brands')
             && ! $event->brandEvents()->where('status', 'active')->exists()) {
             $event = $this->fallbackEventWithItems(
                 $request,
@@ -342,7 +337,7 @@ class PublicProjectController extends Controller
         // The same third step activeBrand() takes: ANY published edition of this
         // project, not the single most recent one activeBrands() borrows from.
         // Narrowing it here would drop brands whose detail page still answers 200.
-        if ($this->fallbackAllowed($request, $event, 'brands')) {
+        if ($this->fallbackAllowed($request)) {
             $sources['previous_edition'] = fn ($q) => $q->whereHas(
                 'event',
                 fn ($e) => $e->where('project_id', $event->project_id)->published(),
@@ -423,7 +418,7 @@ class PublicProjectController extends Controller
         // when the active event borrows a previous edition's brands. Skipped
         // when the caller sends `?fallback=0` or the project disables
         // previous-edition brand fallback.
-        if (! $brandEvent && $this->fallbackAllowed($request, $event, 'brands')) {
+        if (! $brandEvent && $this->fallbackAllowed($request)) {
             $brandEvent = BrandEvent::query()
                 ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
                 ->where('status', 'active')
@@ -553,9 +548,6 @@ class PublicProjectController extends Controller
                     unscheduledLabel: null,
                 ),
                 'settings' => [
-                    'show_search_bar' => (bool) ($rundownSettings['show_search_bar'] ?? true),
-                    'show_location_filter' => (bool) ($rundownSettings['show_location_filter'] ?? true),
-                    'show_all_rundown_details' => (bool) ($rundownSettings['show_all_rundown_details'] ?? false),
                     'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
                 ],
             ],
@@ -590,9 +582,6 @@ class PublicProjectController extends Controller
                     unscheduledLabel: null,
                 ),
                 'settings' => [
-                    'show_search_bar' => (bool) ($rundownSettings['show_search_bar'] ?? true),
-                    'show_location_filter' => (bool) ($rundownSettings['show_location_filter'] ?? true),
-                    'show_all_rundown_details' => (bool) ($rundownSettings['show_all_rundown_details'] ?? false),
                     'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
                 ],
             ],
@@ -721,7 +710,7 @@ class PublicProjectController extends Controller
      */
     private function fallbackEventWithItems(Request $request, Event $event, string $relation, ?\Closure $constraint, string $settingKey): ?Event
     {
-        if (! $this->fallbackAllowed($request, $event, $settingKey)) {
+        if (! $this->fallbackAllowed($request)) {
             return null;
         }
 
@@ -737,15 +726,18 @@ class PublicProjectController extends Controller
     /**
      * Whether this request may borrow a previous edition's data for a section.
      *
-     * Event websites send `?fallback=0|1` per endpoint, sourced from their own
-     * `app.config.ts`, so the decision lives in the site's code rather than in
-     * the dashboard. The project's `website_settings.data_fallback` toggle is
-     * ANDed in for callers that omit the flag, and is itself default-true.
+     * The caller decides. Event websites send `?fallback=0|1` per endpoint from
+     * their own `app.config.ts`, so the rule lives in the site's code, gets
+     * reviewed with it, and is visible to whoever is looking at the page.
+     *
+     * A second, project-level toggle used to be ANDed in here. Its dashboard
+     * editor was removed in Aug 2026 with the rest of the website-settings
+     * screens, which left a switch that changed behaviour and that nobody could
+     * see or reach — the worst kind. One source of truth now.
      */
-    private function fallbackAllowed(Request $request, Event $event, string $section): bool
+    private function fallbackAllowed(Request $request): bool
     {
-        return $request->boolean('fallback', true)
-            && $event->project->shouldFallbackToPreviousEventData($section);
+        return $request->boolean('fallback', true);
     }
 
     /**
@@ -773,19 +765,19 @@ class PublicProjectController extends Controller
     }
 
     /**
-     * Return the project's public website settings (visibility toggles for
-     * sections rendered on the public event website). Project-level, so no
-     * event slug is required.
+     * Per-page Open Graph overrides for the project's event website.
      *
-     * Deliberately NOT locale-parameterized (unlike `websitePages()`): this
-     * payload is fetched once inside pmone-events' `projectSettings` Nuxt
-     * plugin, whose `setup()` runs before any page's own `setup()` - a
-     * locale-aware fetch there would require calling `useI18n()` from a
-     * plugin, which throws ("Must be called at the top of a setup function").
-     * `site_config.copy` (plan 012), the one locale-dependent sub-key, is
-     * instead served for EVERY saved locale in one response - see
-     * `websiteCopyPayload()`. The frontend picks its own locale from that map
-     * inside `usePageMeta`'s own setup(), where `useI18n()` is valid.
+     * The name is historical and now oversized: this used to carry every
+     * dashboard-managed website setting — nav, analytics, appearance, identity,
+     * copy, section visibility. All of it moved back into the pmone-events repo
+     * in Aug 2026 so the sites could be prerendered, and the only survivor is
+     * the OG image map, which the frontend narrows to before use
+     * (layers/base/server/api/event/og-pages.get.ts).
+     *
+     * Not locale-parameterized on purpose: the payload is fetched from a Nuxt
+     * plugin whose setup() runs before any page's, and a locale-aware fetch
+     * there would need useI18n() from a plugin, which throws. Every saved
+     * locale ships in one response and the frontend picks its own.
      */
     public function websiteSettings(string $username): JsonResponse
     {
@@ -797,36 +789,11 @@ class PublicProjectController extends Controller
         $ticketTabs = data_get($settings, 'ticket_tabs', []);
         $bookSpaceForm = data_get($settings, 'book_space_form', []);
         $terms = data_get($settings, 'terms', []);
-        $dataFallback = data_get($settings, 'data_fallback', []);
         $ogPages = $this->ogPagesPayload($project);
-        $siteConfig = data_get($settings, 'site_config', []);
-
-        // Generic home-page section visibility map. The four legacy nested keys
-        // below are derived from this so already-deployed event sites (which read
-        // the nested shape) and newer sites (which read `home_sections`) always
-        // agree. See config/home_sections.php.
-        $homeSections = HomeSectionCatalog::resolveAll($settings);
 
         return response()->json([
             'data' => [
                 'settings' => [
-                    'rundown' => [
-                        'show_search_bar' => (bool) ($rundown['show_search_bar'] ?? true),
-                        'show_location_filter' => (bool) ($rundown['show_location_filter'] ?? true),
-                        'show_all_rundown_details' => (bool) ($rundown['show_all_rundown_details'] ?? false),
-                        'show_rundown_on_home_page' => $homeSections['rundown'],
-                    ],
-                    'brands' => [
-                        'show_brand_preview_on_home_page' => $homeSections['brand_preview'],
-                    ],
-                    'partners' => [
-                        'show_partners_on_home_page' => $homeSections['partners'],
-                    ],
-                    'hotels' => [
-                        'show_hotel_section_on_home_page' => $homeSections['hotels'],
-                    ],
-                    // Full { sectionKey => bool } map for newer event sites.
-                    'home_sections' => $homeSections,
                     // Defaults mirror the base app.config.ts in pmone-events so a
                     // project that has never saved these still renders identically.
                     'blog' => [
@@ -849,85 +816,15 @@ class PublicProjectController extends Controller
                     'terms' => [
                         'last_update' => $terms['last_update'] ?? null,
                     ],
-                    // Defaults true: previous-edition data fallback has always
-                    // been on, so an unconfigured project keeps borrowing data.
-                    'data_fallback' => [
-                        'brands' => (bool) ($dataFallback['brands'] ?? true),
-                        'guests' => (bool) ($dataFallback['guests'] ?? true),
-                        'partners' => (bool) ($dataFallback['partners'] ?? true),
-                        'programs' => (bool) ($dataFallback['programs'] ?? true),
-                        'faqs' => (bool) ($dataFallback['faqs'] ?? true),
-                        'gallery' => (bool) ($dataFallback['gallery'] ?? true),
-                        'media_coverages' => (bool) ($dataFallback['media_coverages'] ?? true),
-                    ],
+                    // The ONLY thing still read from this endpoint. Nav, analytics,
+                    // appearance, identity and copy used to ride along under a
+                    // `site_config` key; all of them moved back into the
+                    // pmone-events repo in Aug 2026 and the frontend narrows this
+                    // response to `settings.og_pages` before anything else sees it.
                     'og_pages' => $ogPages,
-                    // Dashboard-managed site config. Empty by default: every event site keeps
-                    // its baked app.config values via the frontend fail-open getters until a
-                    // project opts in per key. Sub-keys (nav, analytics, appearance, identity,
-                    // copy) are populated by plans 008-012.
-                    'site_config' => [
-                        'version' => 1,
-                        'nav' => data_get($siteConfig, 'nav'),               // null until plan 008
-                        'analytics' => data_get($siteConfig, 'analytics'),   // null until plan 009
-                        'appearance' => data_get($siteConfig, 'appearance'), // null until plan 010
-                        'identity' => data_get($siteConfig, 'identity'),     // null until plan 011
-                        'copy' => $this->websiteCopyPayload($project), // plan 012: SEO meta, all page keys, all locales in one response
-                    ],
                 ],
             ],
         ]);
-    }
-
-    /**
-     * Serve dashboard-managed legal/policy page body overrides for the
-     * requested locale, keyed by page key. Kept out of the small
-     * `website-settings` payload (per the site-config contract's
-     * zero-round-trip note) since bodies are potentially large and only the
-     * six legal pages need them - see plan 011.
-     *
-     * Fail-open: a project with no row for a key, or a row with no saved
-     * translation for the requested locale, returns `body: null` so the
-     * event website falls back to its baked `<p>` copy - never an empty
-     * legal page.
-     *
-     * Each key also carries `last_update` (raw `YYYY-MM-DD`): the page's own
-     * date when set, otherwise the legacy project-level
-     * `website_settings.terms.last_update` value, otherwise null. This lets the
-     * event site show a per-page "Last updated" line without a coordinated
-     * deploy or backfill - already-deployed sites that ignore the field keep
-     * working, and unset pages inherit the old global date.
-     *
-     * Response shape: `{ data: { [key]: { body: string|null, last_update: string|null } } }`.
-     */
-    public function websitePages(Request $request, string $username): JsonResponse
-    {
-        $project = Project::where('username', $username)->firstOrFail();
-
-        $locale = $request->input('locale', config('app.locale', 'en'));
-
-        $legacyLastUpdate = data_get($project->settings, 'website_settings.terms.last_update');
-
-        $pages = WebsitePage::query()
-            ->where('project_id', $project->id)
-            ->get()
-            ->keyBy('key');
-
-        $payload = [];
-        foreach (WebsitePage::KEYS as $key) {
-            $page = $pages->get($key);
-            $body = $page?->getTranslation('body', $locale, false);
-            $lastUpdate = $page?->last_updated_at?->toDateString() ?: $legacyLastUpdate;
-
-            $payload[$key] = [
-                // Fail-open on visually-empty HTML too (e.g. an "<p></p>" the
-                // editor saved): return null so the site renders its baked copy
-                // instead of an empty override - the legal-page-never-empty rule.
-                'body' => $this->hasVisibleText($body) ? $body : null,
-                'last_update' => filled($lastUpdate) ? $lastUpdate : null,
-            ];
-        }
-
-        return response()->json(['data' => $payload]);
     }
 
     /**
@@ -944,54 +841,6 @@ class PublicProjectController extends Controller
         $plain = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5);
 
         return preg_replace('/[\s\x{00A0}]+/u', '', $plain) !== '';
-    }
-
-    /**
-     * Dashboard-managed SEO meta (`<title>`/description) for every page key
-     * the base content store defines - see App\Models\WebsiteCopy and plan
-     * 012. Rides the already-awaited `website-settings` payload instead of a
-     * separate endpoint (unlike `websitePages()`'s bodies) because this data
-     * is tiny and must be present in the server-rendered `<head>` on first
-     * paint - see docs/site-config-contract.md rule 1 (zero-round-trip) in
-     * pmone-events.
-     *
-     * Shape: `{ pages: { [pageKey]: { [locale]: { title?, description? } } } }`.
-     * Every saved locale is included (see `websiteSettings()`'s docblock for
-     * why this cannot be request-locale-scoped); a page key, locale, or field
-     * with no saved value is simply absent - never an empty string. The
-     * frontend's `dashboardCopy?.title` optional-chain falls through the
-     * absence to the baked `content.js` value exactly as if nothing were
-     * configured. Never an empty `<title>`.
-     *
-     * @return array{pages: array<string, array<string, array{title?: string, description?: string}>>}
-     */
-    protected function websiteCopyPayload(Project $project): array
-    {
-        $rows = WebsiteCopy::query()
-            ->where('project_id', $project->id)
-            ->get()
-            ->keyBy('key');
-
-        $payload = [];
-        foreach (WebsiteCopy::PAGE_KEYS as $page) {
-            foreach (WebsiteCopy::FIELDS as $field) {
-                $row = $rows->get(WebsiteCopy::keyFor($page, $field));
-
-                if (! $row) {
-                    continue;
-                }
-
-                foreach ($row->getTranslations('value') as $locale => $value) {
-                    if (! filled($value)) {
-                        continue;
-                    }
-
-                    $payload[$page][$locale][$field] = $value;
-                }
-            }
-        }
-
-        return ['pages' => $payload];
     }
 
     /**

@@ -329,7 +329,7 @@ test('updating website settings busts all settings-backed caches', function () {
     $spy = ResponseCache::spy();
 
     $this->patchJson("/api/projects/{$this->project->username}/website-settings", [
-        'home_sections' => ['hero' => false],
+        'terms' => ['last_update' => '2026-03-03'],
     ])->assertOk();
 
     $spy->shouldHaveReceived('clear')->with($this->project->settingsResponseCacheTags());
@@ -357,13 +357,13 @@ test('writing project settings via the model busts the cached public website-set
     $fetch = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key'])
         ->getJson("/api/public/projects/{$this->project->username}/website-settings");
 
-    expect($fetch()->assertOk()->json('data.settings.home_sections.hero'))->toBeTrue();
+    expect($fetch()->assertOk()->json('data.settings.terms.last_update'))->toBeNull();
 
     $this->project->update([
-        'settings' => ['website_settings' => ['home_sections' => ['hero' => false]]],
+        'settings' => ['website_settings' => ['terms' => ['last_update' => '2026-03-03']]],
     ]);
 
-    expect($fetch()->assertOk()->json('data.settings.home_sections.hero'))->toBeFalse();
+    expect($fetch()->assertOk()->json('data.settings.terms.last_update'))->toBe('2026-03-03');
 });
 
 test('toggling hotel_reservation_enabled via the model busts the cached public event payload', function () {
@@ -405,22 +405,23 @@ test('a settings write on one project leaves another project\'s cached responses
     $fetch = fn (string $username) => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key'])
         ->getJson("/api/public/projects/{$username}/website-settings");
 
-    expect($fetch($this->project->username)->assertOk()->json('data.settings.home_sections.hero'))->toBeTrue();
-    expect($fetch($other->username)->assertOk()->json('data.settings.home_sections.hero'))->toBeTrue();
+    expect($fetch($this->project->username)->assertOk()->json('data.settings.terms.last_update'))->toBeNull();
+    expect($fetch($other->username)->assertOk()->json('data.settings.terms.last_update'))->toBeNull();
 
     // Flip BOTH projects' stored settings, but $other quietly (no events, no
     // clear) - its cached response must keep serving the OLD payload.
     $other->updateQuietly([
-        'settings' => ['website_settings' => ['home_sections' => ['hero' => false]]],
+        'settings' => ['website_settings' => ['terms' => ['last_update' => '2026-03-03']]],
     ]);
     $this->project->update([
-        'settings' => ['website_settings' => ['home_sections' => ['hero' => false]]],
+        'settings' => ['website_settings' => ['terms' => ['last_update' => '2026-03-03']]],
     ]);
 
-    expect($fetch($this->project->username)->assertOk()->json('data.settings.home_sections.hero'))
-        ->toBeFalse();
-    expect($fetch($other->username)->assertOk()->json('data.settings.home_sections.hero'))
-        ->toBeTrue();
+    expect($fetch($this->project->username)->assertOk()->json('data.settings.terms.last_update'))
+        ->toBe('2026-03-03');
+    // $other was updated quietly, so its cached response must still be the old one.
+    expect($fetch($other->username)->assertOk()->json('data.settings.terms.last_update'))
+        ->toBeNull();
 });
 
 // ---------------------------------------------------------------------------

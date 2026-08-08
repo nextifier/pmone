@@ -167,19 +167,3 @@ test('brand detail from a previous edition 404s when fallback=0', function () {
     $this->withHeaders($this->headers)->getJson($url)->assertOk();
     $this->withHeaders($this->headers)->getJson("{$url}?fallback=0")->assertNotFound();
 });
-
-// ---------------------------------------------------------------------------
-// The dashboard toggle still wins while it exists
-// ---------------------------------------------------------------------------
-
-test('project setting OFF beats fallback=1', function () {
-    [$project, $event, $older] = projectWithPreviousEdition();
-    $project->update(['settings' => ['website_settings' => ['data_fallback' => ['guests' => false]]]]);
-    Guest::factory()->create(['event_id' => $older->id, 'name' => 'Legacy Speaker']);
-    ResponseCache::clear();
-
-    $this->withHeaders($this->headers)
-        ->getJson("/api/public/projects/{$project->username}/events/{$event->slug}/guests?fallback=1")
-        ->assertOk()
-        ->assertJsonCount(0, 'data');
-});

@@ -354,8 +354,6 @@ return [
     */
     'global_tags' => [
         'projects',
-        'website-copy',
-        'website-pages',
         // Site settings drive the header, footer, nav, appearance and section
         // toggles on every page — there is no useful URL subset.
         'website-settings',

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-vue-next";
+import { X } from "@lucide/vue";
 import type { AcceptableInputValue } from "reka-ui";
 import { TagsInputItem, TagsInputItemDelete, TagsInputItemText } from "reka-ui";
 import type { HTMLAttributes } from "vue";

@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "@lucide/vue";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { createReusableTemplate, reactiveOmit, useVModel } from "@vueuse/core";
 import type {

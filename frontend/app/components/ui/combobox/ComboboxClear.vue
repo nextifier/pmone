@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
 import { InputGroupButton } from "@/components/ui/input-group";
-import { X } from "lucide-vue-next";
+import { X } from "@lucide/vue";
 import { ComboboxCancel } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 

@@ -175,7 +175,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, useId, watch } from "vue";
 import { useDebounceFn, useResizeObserver } from "@vueuse/core";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "@lucide/vue";
 import {
   availableFormLocales,
   buildCoverSrcset,

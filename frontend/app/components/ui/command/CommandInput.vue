@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { InputGroup, InputGroupAddon } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-vue-next";
+import { Search } from "@lucide/vue";
 import {
   ComboboxInput,
   type ComboboxInputProps,

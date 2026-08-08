@@ -485,7 +485,7 @@
 <script setup>
 import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { CalendarDate, Time } from "@internationalized/date";
-import { Check, X } from "lucide-vue-next";
+import { Check, X } from "@lucide/vue";
 import { useFilter } from "reka-ui";
 import CustomFieldFileUpload from "./CustomFieldFileUpload.vue";
 import { Checkbox } from "../checkbox";

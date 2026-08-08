@@ -26,9 +26,28 @@
    default shadcn yang ada di style-*.css (layer base). */
 @import "./transitions.css";
 
-@plugin "@tailwindcss/typography";
+/* shadcn/typeset — vendored from https://shadcn-vue.com/typeset.css, replaces
+   @tailwindcss/typography. ONE local patch: the container selector is aliased
+   to `:is(.typeset, .format-html)` so the legacy `format-html` call sites keep
+   working untouched. Lands in `@layer components`, i.e. BELOW utilities, so a
+   call-site `max-w-none` / `tracking-tight` / `text-xl` always wins — which is
+   what those call sites already assumed. House preset lives further down. */
+@import "./typeset.css";
 
 @custom-variant dark (&:is(.dark *));
+
+/* Replace the typography plugin's `prose-headings:` / `prose-img:` modifiers.
+   Block form so the commas inside :is() cannot confuse the shorthand parser. */
+@custom-variant headings {
+  & :is(h1, h2, h3, h4, h5, h6) {
+    @slot;
+  }
+}
+@custom-variant images {
+  & :is(img) {
+    @slot;
+  }
+}
 
 /* Reka/shadcn data-state variants the cn-* style rules rely on (from
    shadcn-vue/tailwind.css). pmone already ships the accordion keyframes,
@@ -734,92 +753,185 @@ html.appearance-switching *::after {
   }
 }
 
-@utility format-html {
-  @apply prose dark:prose-invert prose-headings:font-medium! prose-strong:font-semibold prose-headings:tracking-tighter sm:prose-lg prose-figcaption:text-center prose-figcaption:text-sm prose-figcaption:text-muted-foreground prose-img:w-full prose-img:my-0 prose-figure:mt-3 prose-figure:mb-0 prose-headings:not-first:mt-[1.5em] prose-headings:mb-[0.5em] prose-p:not-first:mt-[1em] prose-p:not-last:mb-[1em] prose-ul:my-[1em] prose-p:first:mt-0 prose-p:last:mb-0 text-foreground dark:text-body max-w-2xl tracking-[-0.015em] wrap-break-word;
+/* ===========================================================================
+   format-html / typeset — house preset.
+   `typeset.css` (vendored, selector aliased to `:is(.typeset, .format-html)`)
+   owns the rhythm, lists, tables, code, blockquote, media and print rules.
+   This block holds ONLY what Typeset does not do, plus the house scale.
+   Everything the typography plugin used to do and Typeset already does has
+   been deleted, not ported.
 
-  & :is(:not(:where([class~="not-prose"], [class~="not-prose"] *))) {
-    & *:not(h1, h2, h3, h4, h5, h6, a) {
-      @apply bg-inherit! text-inherit!;
+   `@layer components` on purpose: components < utilities, so every call-site
+   utility (`max-w-none`, `tracking-tight`, `text-xl`, `mt-6`, `space-y-4`)
+   now wins — which is what those call sites already assumed.
+
+   Identical byte-for-byte in pmone, pmone-events and levenium.
+   =========================================================================== */
+@layer components {
+  :is(.typeset, .format-html) {
+    /* Headings keep the app font. Upstream defaults to var(--font-heading),
+       which in pmone-events/levenium is a GENERIC sans stack, not MinusOne —
+       leaving it would silently swap the heading typeface. */
+    --typeset-font-heading: inherit;
+
+    /* House ladder: 16px on phones, 18px from `sm`. Upstream ships the
+       inverse (18px → 16px at 48rem). Static text grows on desktop here,
+       never shrinks. `--typeset-size-lg` is the knob presets flip. */
+    --typeset-size: 1rem;
+    --typeset-size-lg: calc(var(--typeset-size) * 1.125);
+    font-size: var(--typeset-size);
+    letter-spacing: -0.015em;
+
+    /* Long copy follows --body in dark mode. Typeset would use --foreground
+       for everything, which reads harsh over a paragraph. Headings are
+       unaffected: Typeset colours h1–h6 with --color-foreground itself. */
+    @apply text-foreground dark:text-body;
+
+    @media (width >= 40rem) {
+      font-size: var(--typeset-size-lg);
+    }
+  }
+
+  /* Only `format-html` carries a measure. Typeset deliberately sets no
+     max-width; keeping it here (components) means a call-site `max-w-*`
+     always wins — `checkout.vue` (max-w-none) and `Tickets.vue` (max-w-3xl)
+     used to race it inside the same layer. */
+  .format-html {
+    max-width: 42rem;
+  }
+
+  /* Compact preset — replaces `prose-sm`. */
+  .typeset-sm {
+    --typeset-size: 0.875rem;
+    --typeset-flow: 1em;
+  }
+
+  /* Same size at every width — replaces `prose-base` where a pane must not
+     grow on desktop. */
+  .typeset-fixed {
+    --typeset-size-lg: var(--typeset-size);
+  }
+
+  /* Mirrors Typeset's own descendant selector exactly, so specificity ties
+     at (0,1,0) and source order (this block comes later) decides. */
+  :is(.typeset, .format-html)
+    *:not(
+      :where(
+        .not-typeset,
+        [data-not-typeset],
+        .not-typeset *,
+        [data-not-typeset] *
+      )
+    ) {
+    /* House heading scale. Typeset's own ladder (1.75em → 0.8125em) is much
+       smaller than this app's, and its h6 is uppercase with 0.08em tracking —
+       both banned by the style guide. */
+    &:where(h1, h2, h3, h4, h5, h6) {
+      font-weight: var(--typeset-heading-weight, 600);
+      letter-spacing: -0.05em;
+      text-transform: none;
+    }
+    &:where(h1) {
+      @apply text-4xl sm:text-5xl;
+    }
+    &:where(h2) {
+      @apply text-2xl sm:text-3xl;
+    }
+    &:where(h3) {
+      @apply text-xl sm:text-2xl;
+    }
+    &:where(h4) {
+      @apply text-lg sm:text-xl;
+    }
+    &:where(h5) {
+      @apply text-base sm:text-lg;
+      color: inherit;
+    }
+    &:where(h6) {
+      @apply text-sm sm:text-base;
+      color: inherit;
     }
 
-    & table {
-      @apply block! w-full! border-collapse! overflow-x-auto! whitespace-nowrap!;
-    }
-
-    & th,
-    & td {
-      @apply border-border! px-2! py-4!;
-
-      & p,
-      & span {
-        @apply my-0 align-middle! leading-normal! text-nowrap!;
-      }
-    }
-
-    & h1 {
-      @apply text-4xl font-medium! sm:text-5xl;
-    }
-
-    & h2 {
-      @apply text-2xl font-medium! sm:text-3xl;
-    }
-
-    & h3 {
-      @apply text-xl font-medium! sm:text-2xl;
-    }
-
-    & h4 {
-      @apply text-lg font-medium! sm:text-xl;
-    }
-
-    & :is(h1, h2, h3, h4, h5, h6) a {
-      text-decoration: none !important;
-      font-weight: inherit !important;
-      color: inherit !important;
+    /* Heading anchors emitted by the docs/news markdown pipeline are not
+       navigation. Typeset already gives them `font-weight: inherit` and
+       `color: inherit`; only the underline and the cursor need undoing. */
+    &:where(:is(h1, h2, h3, h4, h5, h6) a) {
+      text-decoration-line: none;
       cursor: text;
     }
 
-    & blockquote {
-      @apply mt-6 border-l-2 pl-6 italic;
+    /* Typeset styles blockquotes but never italicises them. */
+    &:where(blockquote) {
+      font-style: italic;
     }
 
-    & pre {
-      @apply bg-muted my-4 overflow-x-auto rounded-lg p-4 font-mono text-sm leading-tight;
-
-      & code {
-        @apply bg-transparent p-0 font-normal;
-      }
-    }
-
-    & pre.shiki {
-      @apply bg-muted!;
-
-      & span[style] {
-        color: var(--shiki-light) !important;
-      }
-    }
-
-    & code {
-      @apply bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+    /* Inline code stays semibold; Typeset leaves it at inherit. */
+    &:where(:not(pre) > code) {
+      font-weight: 600;
     }
   }
-}
 
-/* Shiki dual theme dark mode switch - must be in @layer utilities to override text-inherit! */
-@layer utilities {
-  .dark .format-html pre.shiki span[style] {
+  /* format-html only: editorial images are full-bleed. The live editor and
+     the small `typeset` snippets keep natural width. */
+  .format-html
+    :where(img):not(
+      :where(
+        .not-typeset,
+        [data-not-typeset],
+        .not-typeset *,
+        [data-not-typeset] *
+      )
+    ) {
+    width: 100%;
+  }
+
+  /* CMS tables must scroll, never squash. Upstream expects a `.typeset-scroll`
+     wrapper, but this HTML comes from the DB and has none, so the behaviour is
+     emulated on the table itself. Scoped to `.format-html` so pasted tables in
+     the live editor keep Typeset's native, editable table layout. */
+  .format-html
+    :where(table):not(
+      :where(
+        .not-typeset,
+        [data-not-typeset],
+        .not-typeset *,
+        [data-not-typeset] *
+      )
+    ) {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .format-html :where(:is(td, th) :is(p, span)) {
+    margin-block: 0;
+    line-height: normal;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  /* Shiki dual theme. The colour lives in an inline `style` attribute, so
+     `!important` is the only thing that can beat it. BOTH halves must sit in
+     the SAME layer: for !important declarations the cascade REVERSES layer
+     order, so a components-layer light rule would beat a utilities-layer dark
+     rule and dark mode would render light. */
+  :is(.typeset, .format-html) pre.shiki span[style] {
+    color: var(--shiki-light) !important;
+  }
+  .dark :is(.typeset, .format-html) pre.shiki span[style] {
     color: var(--shiki-dark) !important;
   }
 }
 
 /* Rich text rendered from the editor must never carry baked-in colours (e.g.
    pasted from Word / Google Docs) that break theming. Any rendered node with an
-   inline colour / background — or the legacy color/bgcolor attributes — is forced
+   inline colour / background - or the legacy color/bgcolor attributes - is forced
    back to the theme colour so it always follows light/dark mode. The live editor
    (.ProseMirror) and code / syntax blocks keep their own colours. Pastes are also
-   stripped at source in TipTapEditor; this is the safety net for existing content. */
+   stripped at source in TipTapEditor; this is the safety net for existing content.
+   Stays in `utilities`: it must not outrank the components-layer Shiki rules. */
 @layer utilities {
-  :is(.prose, .format-html):not(.ProseMirror)
+  :is(.typeset, .format-html):not(.ProseMirror)
     :is([style*="color" i], [style*="background" i], font[color], [bgcolor]):not(
       pre,
       pre *,
@@ -1563,19 +1675,6 @@ label:not(:has([data-slot="label-required"])) {
     rgba(255, 255, 255, 0.08) 50%,
     transparent 70%
   );
-}
-
-/* Post content images styling */
-.prose img {
-  @apply my-6 h-auto max-w-full rounded-lg;
-}
-
-.prose figure {
-  @apply my-0;
-}
-
-.prose figcaption {
-  @apply text-muted-foreground mt-2 text-center text-sm;
 }
 
 /* Vue JSON Pretty - Start */

@@ -16,7 +16,6 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Notifications\ProjectMemberAddedNotification;
 use App\Notifications\ProjectMemberRemovedNotification;
-use App\Support\HomeSectionCatalog;
 use App\Support\InputNormalizer;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -358,9 +357,6 @@ class ProjectController extends Controller
 
         $validated = $request->validate([
             'rundown' => ['sometimes', 'array'],
-            'rundown.show_search_bar' => ['sometimes', 'boolean'],
-            'rundown.show_location_filter' => ['sometimes', 'boolean'],
-            'rundown.show_all_rundown_details' => ['sometimes', 'boolean'],
             'rundown.show_rundown_on_home_page' => ['sometimes', 'boolean'],
             'brands' => ['sometimes', 'array'],
             'brands.show_brand_preview_on_home_page' => ['sometimes', 'boolean'],
@@ -407,69 +403,6 @@ class ProjectController extends Controller
             'book_space_form.show_products' => ['sometimes', 'boolean'],
             'terms' => ['sometimes', 'array'],
             'terms.last_update' => ['sometimes', 'nullable', 'string', 'max:60'],
-            // Per-section toggles for borrowing a previous edition's data when
-            // the active event's section is empty (brands/guests/partners/
-            // programs/faqs/gallery/media_coverages).
-            'data_fallback' => ['sometimes', 'array'],
-            'data_fallback.*' => ['sometimes', 'boolean'],
-            // Home-page section visibility. A generic { sectionKey => bool } map
-            // driven by config/home_sections.php; unknown keys are rejected so a
-            // typo never lands in storage.
-            'home_sections' => [
-                'sometimes', 'array',
-                function (string $attribute, mixed $value, callable $fail): void {
-                    $unknown = array_diff(array_keys((array) $value), HomeSectionCatalog::keys());
-
-                    if (! empty($unknown)) {
-                        $fail('Unknown home section keys: '.implode(', ', $unknown));
-                    }
-                },
-            ],
-            'home_sections.*' => ['sometimes', 'boolean'],
-            // Dashboard-managed site config container (nav/analytics/appearance/
-            // identity). Empty scaffold only; per-key rules are added by the plan
-            // that introduces that key (008-012).
-            'site_config' => ['sometimes', 'array'],
-            'site_config.version' => ['sometimes', 'integer'],
-            // Navigation (header / mobile dialog / footer link groups) sourced by
-            // the event website instead of its baked app.config.ts routes. Each
-            // entry is either a leaf `{label, path}` or a group `{label, links}`
-            // of leaves; validated recursively since the shape is polymorphic.
-            'site_config.nav' => ['sometimes', 'array'],
-            'site_config.nav.header' => ['sometimes', 'array', $this->navItemsRule()],
-            'site_config.nav.dialog' => ['sometimes', 'array', $this->navItemsRule()],
-            'site_config.nav.footer' => ['sometimes', 'array', $this->navItemsRule()],
-            // Analytics ids (GA4 measurement id, TikTok pixel id, Meta pixel id,
-            // GTM container id) sourced by the event website instead of its baked
-            // nuxt.config.ts / app.config.ts values. Each field accepts EITHER a
-            // single id string or an array of id strings (multi-property GA4,
-            // multi-pixel Meta/TikTok, multi-container GTM); the array form is
-            // replaced wholesale below so a removed id never resurrects via
-            // array_replace_recursive's index merge.
-            'site_config.analytics' => ['sometimes', 'array'],
-            'site_config.analytics.ga4' => ['sometimes', 'nullable', $this->analyticsIdListRule('/^G-[A-Z0-9]+$/', 32)],
-            'site_config.analytics.tiktok_pixel' => ['sometimes', 'nullable', $this->analyticsIdListRule(null, 64)],
-            'site_config.analytics.meta_pixel' => ['sometimes', 'nullable', $this->analyticsIdListRule('/^[0-9]+$/', 32)],
-            'site_config.analytics.gtm' => ['sometimes', 'nullable', $this->analyticsIdListRule('/^GTM-[A-Z0-9]+$/', 32)],
-            // Curated shadcn design tokens sourced by the event website's
-            // appearance engine (layers/base/app/lib/appearance) instead of its
-            // baked app.config.ts `appearance` block. All scalars, so
-            // array_replace_recursive merges them correctly without a
-            // wholesale-replace special-case. Value sets mirror
-            // BASE_COLOR_NAMES / THEME_NAMES / RADII in that engine.
-            'site_config.appearance' => ['sometimes', 'array'],
-            'site_config.appearance.enabled' => ['sometimes', 'boolean'],
-            'site_config.appearance.baseColor' => ['sometimes', Rule::in($this->appearanceBaseColors())],
-            'site_config.appearance.theme' => ['sometimes', Rule::in($this->appearanceThemeColors())],
-            'site_config.appearance.chartColor' => ['sometimes', Rule::in($this->appearanceThemeColors())],
-            'site_config.appearance.radius' => ['sometimes', Rule::in(['default', 'none', 'small', 'medium', 'large'])],
-            // Company identity sourced by the event website's footer + legal
-            // pages instead of its baked app.config.ts `company` block. Both
-            // scalars, so array_replace_recursive merges them correctly
-            // without a wholesale-replace special-case.
-            'site_config.identity' => ['sometimes', 'array'],
-            'site_config.identity.company_name' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'site_config.identity.company_address' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
         $settings = $project->settings ?? [];
@@ -491,21 +424,6 @@ class ProjectController extends Controller
             data_set($merged, 'hotels.notification_email', $notificationEmail);
         }
 
-        // Same trap for the dashboard-managed nav: replace the whole nav block
-        // wholesale so removing a trailing header/dialog/footer item does not
-        // resurrect a stale entry left over from a longer previous save.
-        if (array_key_exists('nav', $validated['site_config'] ?? [])) {
-            data_set($merged, 'site_config.nav', $validated['site_config']['nav']);
-        }
-
-        // Analytics ids can now be arrays (multi-property GA4, multi-pixel
-        // Meta/TikTok, multi-container GTM). array_replace_recursive would merge
-        // those lists by index and resurrect an id the user just removed, so
-        // replace the whole analytics block wholesale whenever it is present.
-        if (array_key_exists('analytics', $validated['site_config'] ?? [])) {
-            data_set($merged, 'site_config.analytics', $validated['site_config']['analytics']);
-        }
-
         data_set($settings, 'website_settings', $merged);
 
         $project->settings = $settings;
@@ -514,8 +432,7 @@ class ProjectController extends Controller
         // Public rundown / events / website-settings responses cache
         // `website_settings` from the owning project. The Project model only
         // clears the 'projects' tag on save, so explicitly invalidate the
-        // dependent caches here. The data_fallback toggles change the output of
-        // every fallback-backed section, so bust those tags too.
+        // dependent caches here.
         ResponseCache::clear($project->settingsResponseCacheTags());
 
         return response()->json([
@@ -526,110 +443,6 @@ class ProjectController extends Controller
         ]);
     }
 
-    /**
-     * Validation closure for a dashboard-managed analytics id field that accepts
-     * EITHER a single id string or an array of id strings (multi-property GA4 /
-     * multi-pixel Meta/TikTok / multi-container GTM setups). Every element must
-     * be a non-empty string within $maxLength and, when $pattern is given, match
-     * it. The list is capped at 10 ids to bound abuse. `null` elements are
-     * ignored so a nullable field with no value stays valid.
-     */
-    private function analyticsIdListRule(?string $pattern, int $maxLength): \Closure
-    {
-        return function (string $attribute, mixed $value, callable $fail) use ($pattern, $maxLength): void {
-            $ids = is_array($value) ? $value : [$value];
-
-            if (count($ids) > 10) {
-                $fail("The {$attribute} may not contain more than 10 ids.");
-
-                return;
-            }
-
-            foreach ($ids as $id) {
-                if ($id === null) {
-                    continue;
-                }
-
-                if (! is_string($id) || $id === '' || mb_strlen($id) > $maxLength) {
-                    $fail("The {$attribute} contains an invalid id.");
-
-                    return;
-                }
-
-                if ($pattern !== null && ! preg_match($pattern, $id)) {
-                    $fail("The {$attribute} contains an invalid id.");
-
-                    return;
-                }
-            }
-        };
-    }
-
-    /**
-     * Recursive validation closure for a `site_config.nav.{header,dialog,footer}`
-     * list. Each entry is either a leaf `{label, path}` or a group
-     * `{label, links: [{label, path}, ...]}` - a shape too polymorphic for plain
-     * dot-notation array rules, so it is validated by hand. `path` must start
-     * with `/` (internal route), `#` (anchor, e.g. the iicc registration
-     * section), or `http(s)://` (external URL).
-     */
-    private function navItemsRule(): \Closure
-    {
-        return function (string $attribute, mixed $value, callable $fail): void {
-            if (! is_array($value)) {
-                $fail("The {$attribute} must be an array.");
-
-                return;
-            }
-
-            foreach ($value as $index => $item) {
-                if (! is_array($item) || ! $this->isValidNavLabel($item['label'] ?? null)) {
-                    $fail("{$attribute}.{$index} must have a non-empty string label.");
-
-                    return;
-                }
-
-                if (array_key_exists('hidden', $item) && ! is_bool($item['hidden'])) {
-                    $fail("{$attribute}.{$index}.hidden must be a boolean.");
-
-                    return;
-                }
-
-                if (array_key_exists('links', $item)) {
-                    if (! is_array($item['links']) || empty($item['links'])) {
-                        $fail("{$attribute}.{$index}.links must be a non-empty array.");
-
-                        return;
-                    }
-
-                    foreach ($item['links'] as $linkIndex => $link) {
-                        if (! is_array($link)
-                            || ! $this->isValidNavLabel($link['label'] ?? null)
-                            || ! $this->isValidNavPath($link['path'] ?? null)) {
-                            $fail("{$attribute}.{$index}.links.{$linkIndex} must have a label and a valid path.");
-
-                            return;
-                        }
-
-                        if (array_key_exists('hidden', $link) && ! is_bool($link['hidden'])) {
-                            $fail("{$attribute}.{$index}.links.{$linkIndex}.hidden must be a boolean.");
-
-                            return;
-                        }
-                    }
-
-                    continue;
-                }
-
-                if (! $this->isValidNavPath($item['path'] ?? null)) {
-                    $fail("{$attribute}.{$index} must have a valid path, or a links group.");
-
-                    return;
-                }
-            }
-        };
-    }
-
     private function isValidNavLabel(mixed $label): bool
     {
         return is_string($label) && trim($label) !== '';
@@ -638,31 +451,6 @@ class ProjectController extends Controller
     private function isValidNavPath(mixed $path): bool
     {
         return is_string($path) && preg_match('/^(\/|#|https?:\/\/)/', $path) === 1;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function appearanceBaseColors(): array
-    {
-        return ['native', 'neutral', 'stone', 'zinc', 'mauve', 'olive', 'mist', 'taupe'];
-    }
-
-    /**
-     * `theme`/`chartColor` accept any of the 24 curated shadcn themes: the 7
-     * base colors above plus 17 accent colors (mirrors THEME_NAMES in
-     * `layers/base/app/lib/appearance/themes.ts`).
-     *
-     * @return array<int, string>
-     */
-    private function appearanceThemeColors(): array
-    {
-        return [
-            ...$this->appearanceBaseColors(),
-            'amber', 'blue', 'cyan', 'emerald', 'fuchsia', 'green', 'indigo',
-            'lime', 'orange', 'pink', 'purple', 'red', 'rose', 'sky', 'teal',
-            'violet', 'yellow',
-        ];
     }
 
     public function toggleHotelReservation(Request $request, string $username): JsonResponse

@@ -39,21 +39,6 @@ const settingsTabs = computed(() => {
       to: `${settingsBase.value}/brand-fields`,
     },
     {
-      label: "Website Settings",
-      icon: "hugeicons:globe-02",
-      to: `${settingsBase.value}/website-settings`,
-    },
-    {
-      label: "Site Config",
-      icon: "hugeicons:configuration-01",
-      to: `${settingsBase.value}/site-config`,
-    },
-    {
-      label: "Legal Pages",
-      icon: "hugeicons:legal-document-01",
-      to: `${settingsBase.value}/legal-pages`,
-    },
-    {
       label: "SEO",
       icon: "hugeicons:seo",
       to: `${settingsBase.value}/seo`,

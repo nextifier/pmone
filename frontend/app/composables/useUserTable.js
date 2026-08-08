@@ -236,7 +236,7 @@ export async function useUserTable({
           const filterVal = tableRef.value.table.getColumn(columnId)?.getFilterValue();
           if (filterVal) currentFilters[columnId] = filterVal;
         });
-        currentSorting = tableRef.value.table.getState().sorting;
+        currentSorting = tableRef.value.table.atoms.sorting.get();
       } else {
         columnFilters.value.forEach((filter) => {
           currentFilters[filter.id] = filter.value;

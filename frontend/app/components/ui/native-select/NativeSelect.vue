@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { cn } from "@/lib/utils";
 import { reactiveOmit, useVModel } from "@vueuse/core";
-import { ChevronDown } from "lucide-vue-next";
+import { ChevronDown } from "@lucide/vue";
 import type { AcceptableValue } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 

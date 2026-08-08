@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/combobox";
 import { Flag } from "@/components/ui/flag";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import { LucideCheck } from "lucide-vue-next";
+import { LucideCheck } from "@lucide/vue";
 import { ComboboxRoot, ComboboxVirtualizer, useFilter } from "reka-ui";
 import { computed, ref, watch } from "vue";
 

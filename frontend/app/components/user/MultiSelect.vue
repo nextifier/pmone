@@ -6,7 +6,7 @@ import {
   ComboboxItemIndicator,
   ComboboxViewport,
 } from "@/components/ui/combobox";
-import { LucideCheck, LucideX } from "lucide-vue-next";
+import { LucideCheck, LucideX } from "@lucide/vue";
 import {
   ComboboxInput,
   ComboboxRoot,

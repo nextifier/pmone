@@ -457,7 +457,7 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: "prose prose-base focus:outline-none",
+      class: "typeset focus:outline-none",
     },
     transformPastedHTML: (html) => stripPastedColors(html),
     handlePaste: (view, event) => {
@@ -716,10 +716,13 @@ const handleImageUpload = async (event) => {
   @apply p-4;
 }
 
-/* TipTap prose styling */
+/* TipTap typeset styling. The editor carries `typeset` (see editorProps), so
+   rhythm, leading and the heading scale come from typeset.css and match the
+   rendered `format-html` output exactly. Only the bits Typeset leaves at
+   `inherit` are stated here. */
 :deep(.ProseMirror) {
   min-height: var(--editor-min-h);
-  @apply text-foreground leading-relaxed outline-none;
+  @apply text-foreground dark:text-body outline-none;
 }
 
 :deep(.ProseMirror p.is-editor-empty:first-child::before) {
@@ -730,10 +733,6 @@ const handleImageUpload = async (event) => {
   height: 0;
 }
 
-:deep(.ProseMirror p) {
-  @apply my-3;
-}
-
 :deep(.ProseMirror .image-node-view img) {
   @apply my-0;
 }
@@ -742,19 +741,19 @@ const handleImageUpload = async (event) => {
   @apply my-0;
 }
 
-/* Dark mode text colors for all content */
-:deep(.ProseMirror) {
-  @apply prose-headings:text-foreground prose-headings:font-semibold prose-headings:tracking-tighter;
-  @apply prose-p:text-foreground;
-  @apply prose-li:text-foreground;
-  @apply prose-strong:text-foreground prose-strong:font-semibold prose-strong:tracking-tighter;
-  @apply prose-code:text-foreground;
-  @apply prose-blockquote:text-muted-foreground;
+/* Matches the rendered `format-html` output (both are `.typeset`). p / li /
+   code inherit their colour from the container, so only these three need
+   saying: Typeset leaves headings, strong and blockquote at `inherit`. */
+:deep(.ProseMirror :is(h1, h2, h3, h4, h5, h6)) {
+  @apply text-foreground font-semibold tracking-tighter;
 }
 
+:deep(.ProseMirror strong) {
+  @apply text-foreground font-semibold tracking-tighter;
+}
 
-:deep(.ProseMirror :not(pre) > code) {
-  @apply bg-muted rounded px-1.5 py-0.5 font-mono text-sm;
+:deep(.ProseMirror blockquote) {
+  @apply text-muted-foreground;
 }
 
 :deep(.post-content-link) {

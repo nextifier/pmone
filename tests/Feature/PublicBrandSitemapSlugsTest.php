@@ -150,36 +150,6 @@ test('drops previous editions when the caller sends fallback=0', function () {
         ->assertJsonPath('meta.sources.previous_edition', 0);
 });
 
-test('drops previous editions when the project disables brand fallback', function () {
-    $this->project->update([
-        'settings' => ['website_settings' => ['data_fallback' => ['brands' => false]]],
-    ]);
-
-    Event::factory()->published()->create([
-        'project_id' => $this->project->id,
-        'is_active' => true,
-        'edition_number' => 2,
-        'start_date' => now()->addMonths(3),
-    ]);
-
-    $previous = Event::factory()->published()->create([
-        'project_id' => $this->project->id,
-        'is_active' => false,
-        'edition_number' => 1,
-        'start_date' => now()->subYear(),
-    ]);
-    BrandEvent::factory()->create([
-        'brand_id' => Brand::factory(),
-        'event_id' => $previous->id,
-        'status' => 'active',
-    ]);
-
-    sitemapSlugs($this->project, $this->headers)
-        ->assertOk()
-        ->assertJsonPath('data', [])
-        ->assertJsonPath('meta.sources.previous_edition', 0);
-});
-
 test('emits a brand present in two editions only once, counted against the first source', function () {
     $event = Event::factory()->published()->create([
         'project_id' => $this->project->id,

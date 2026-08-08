@@ -229,10 +229,7 @@ test('authenticated authorized admin still gets the fields the admin app relies 
         ->assertOk()
         ->assertJsonPath('data.name', 'Public Expo')
         ->assertJsonPath('data.username', $project->username)
-        ->assertJsonPath('data.links.0.url', 'https://example.test')
-        ->assertJsonStructure([
-            'data' => ['home_sections', 'home_sections_catalog'],
-        ]);
+        ->assertJsonPath('data.links.0.url', 'https://example.test');
 });
 
 test('authenticated but unauthorized caller does not get the settings blob from the project-profile endpoint', function () {

@@ -521,13 +521,22 @@ import {
 } from "@/components/ui/select";
 import { valueUpdater } from "@/components/ui/table/utils";
 import {
+  columnFilteringFeature,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  createExpandedRowModel,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFns,
   FlexRender,
-  getCoreRowModel,
-  getExpandedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useVueTable,
+  rowExpandingFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  sortFns,
+  tableFeatures,
+  useTable,
 } from "@tanstack/vue-table";
 
 const slots = useSlots();
@@ -664,21 +673,40 @@ watch(columnVisibility, (value) => emit("update:columnVisibility", value), { dee
 watch(pagination, (value) => emit("update:pagination", value), { deep: true });
 watch(sorting, (value) => emit("update:sorting", value), { deep: true });
 
+// Feature + row-model registry. TanStack v9 resolves these statically, so every
+// row model is always registered and the client/server split is expressed purely
+// through the manual* flags below (v8 used to swap the factories in and out).
+// `filterFns` / `sortFns` are registered so the string names columns pass to
+// `filterFn` / `sortFn` — including the default "auto" — still resolve.
+const features = tableFeatures({
+  columnFilteringFeature,
+  // `header.getSize()` / `column.getSize()` are used for the sticky column
+  // widths; both only exist once columnSizingFeature is registered.
+  columnSizingFeature,
+  columnVisibilityFeature,
+  rowExpandingFeature,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  expandedRowModel: createExpandedRowModel(),
+  filterFns,
+  sortFns,
+});
+
 // Table instance
-const table = useVueTable({
+const table = useTable({
+  features,
   get data() {
     return props.data || [];
   },
   get columns() {
     return props.columns;
   },
-  getCoreRowModel: getCoreRowModel(),
-  getFilteredRowModel: isClientSideMode.value ? getFilteredRowModel() : undefined,
-  getSortedRowModel: isClientSideMode.value ? getSortedRowModel() : undefined,
-  getPaginationRowModel: isClientSideMode.value ? getPaginationRowModel() : undefined,
   // Row expansion is opt-in: only enabled when the consumer provides an
   // #expanded-row slot, so existing tables are unaffected.
-  getExpandedRowModel: getExpandedRowModel(),
   getRowCanExpand: () => !!slots["expanded-row"],
   manualPagination: !isClientSideMode.value,
   manualSorting: !isClientSideMode.value,
@@ -818,14 +846,14 @@ defineShortcuts({
 const isClientSidePagination = computed(() => isClientSideMode.value);
 const hasRows = computed(() => table.getRowModel().rows?.length > 0);
 const isInitialLoading = computed(() => props.pending && props.data.length === 0);
-const hasActiveFilters = computed(() => table.getState().columnFilters.length > 0);
+const hasActiveFilters = computed(() => table.atoms.columnFilters.get().length > 0);
 const selectedRowsCount = computed(() => table.getSelectedRowModel().rows.length);
 const hasSelectedRows = computed(() => selectedRowsCount.value > 0);
 
 const paginationInfo = computed(() => {
   if (isClientSidePagination.value) {
-    const pageIndex = table.getState().pagination.pageIndex;
-    const pageSize = table.getState().pagination.pageSize;
+    const pageIndex = table.atoms.pagination.get().pageIndex;
+    const pageSize = table.atoms.pagination.get().pageSize;
     const totalRows = table.getFilteredRowModel().rows.length;
 
     return {
@@ -857,11 +885,11 @@ const lastPageIndex = computed(() =>
 );
 
 const currentPage = computed(() =>
-  isClientSidePagination.value ? table.getState().pagination.pageIndex + 1 : props.meta.current_page
+  isClientSidePagination.value ? table.atoms.pagination.get().pageIndex + 1 : props.meta.current_page
 );
 
 const itemsPerPage = computed(() =>
-  isClientSidePagination.value ? table.getState().pagination.pageSize : props.meta.per_page
+  isClientSidePagination.value ? table.atoms.pagination.get().pageSize : props.meta.per_page
 );
 
 const totalItems = computed(() =>

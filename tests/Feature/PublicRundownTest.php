@@ -128,27 +128,6 @@ test('public payload omits type and avatar_url', function () {
     expect($item['speakers'][0])->not->toHaveKey('avatar_url');
 });
 
-test('public response exposes website settings', function () {
-    $this->project->settings = [
-        'website_settings' => [
-            'rundown' => [
-                'show_search_bar' => false,
-                'show_all_rundown_details' => true,
-            ],
-        ],
-    ];
-    $this->project->save();
-
-    ResponseCache::clear();
-
-    $response = $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
-        ->getJson($this->endpoint);
-
-    $response->assertOk()
-        ->assertJsonPath('data.settings.show_search_bar', false)
-        ->assertJsonPath('data.settings.show_all_rundown_details', true);
-});
-
 test('items sort by order_column primary, not start_time', function () {
     // Session header (no start_time) inserted first → order_column=1
     RundownItem::factory()->onDate('2026-07-22')->create([

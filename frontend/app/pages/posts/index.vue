@@ -552,7 +552,7 @@ const buildExportParams = () => {
     if (creatorFilter) currentFilters.creator = creatorFilter;
 
     // Get sorting from table state
-    currentSorting = tableRef.value.table.getState().sorting;
+    currentSorting = tableRef.value.table.atoms.sorting.get();
   } else {
     // Server mode: use refs
     columnFilters.value.forEach((filter) => {

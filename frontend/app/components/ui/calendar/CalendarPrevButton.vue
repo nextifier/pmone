@@ -2,7 +2,7 @@
 import { buttonVariants, type ButtonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { reactiveOmit } from "@vueuse/core"
-import { ChevronLeft } from "lucide-vue-next"
+import { ChevronLeft } from "@lucide/vue"
 import type { CalendarPrevProps } from "reka-ui"
 import { CalendarPrev, RangeCalendarPrev, useForwardProps } from "reka-ui"
 import { computed, type HTMLAttributes } from "vue"

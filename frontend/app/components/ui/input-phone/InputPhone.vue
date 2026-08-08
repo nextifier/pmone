@@ -73,7 +73,7 @@
 <script lang="ts" setup>
 import { useFocus } from "@vueuse/core";
 import PhoneInput from "base-vue-phone-input";
-import { ChevronsUpDown } from "lucide-vue-next";
+import { ChevronsUpDown } from "@lucide/vue";
 import { ComboboxVirtualizer, useFilter } from "reka-ui";
 
 const props = withDefaults(

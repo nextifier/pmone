@@ -65,7 +65,7 @@
 
 <script setup>
 import { useSidebar } from "@/components/ui/sidebar";
-import { ChevronsUpDown } from "lucide-vue-next";
+import { ChevronsUpDown } from "@lucide/vue";
 
 const { isMobile, setOpenMobile } = useSidebar();
 const { user, logout } = useSanctumAuth();

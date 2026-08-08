@@ -247,7 +247,7 @@ export default defineNuxtConfig({
         "gsap",
         "gsap/Draggable",
         "gsap/InertiaPlugin",
-        "lucide-vue-next",
+        "@lucide/vue",
         "nanoid",
         "nuxt > @nuxt/devtools > @vitejs/devtools-kit/client",
         "nuxt > @nuxt/devtools > @vitejs/devtools/client/inject",

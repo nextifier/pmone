@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { reactiveOmit } from "@vueuse/core";
-import { X } from "lucide-vue-next";
+import { X } from "@lucide/vue";
 import type { TagsInputItemDeleteProps } from "reka-ui";
 import { TagsInputItemDelete, useForwardProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";

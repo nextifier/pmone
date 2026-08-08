@@ -572,7 +572,7 @@ const columnFilters = ref([]);
 
 // Watch table column filters to keep local ref in sync
 watch(
-  () => tableRef.value?.table?.getState()?.columnFilters,
+  () => tableRef.value?.table?.atoms?.columnFilters?.get(),
   (val) => {
     if (val) columnFilters.value = val;
   },
@@ -599,7 +599,7 @@ const handleExport = async () => {
     }
 
     // Add sorting
-    const sorting = tableRef.value?.table?.getState()?.sorting;
+    const sorting = tableRef.value?.table?.atoms?.sorting?.get();
     const sortField = sorting?.[0]?.id || "order_column";
     const sortDirection = sorting?.[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
