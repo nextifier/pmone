@@ -1619,6 +1619,10 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/brands-with-conjunctions', [PublicProjectController::class, 'activeBrandsWithConjunctions'])
         ->middleware(TenantCacheResponse::for(3600, 'brands'));
+    // Sibling of brands-with-conjunctions, and named the same way for the same
+    // reason: `/brands/sitemap` would be swallowed by the {brandSlug} route below.
+    Route::get('/{username}/brands-sitemap', [PublicProjectController::class, 'activeBrandSitemapSlugs'])
+        ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/brands', [PublicProjectController::class, 'activeBrands'])
         ->middleware(TenantCacheResponse::for(3600, 'brands'));
     Route::get('/{username}/brands/{brandSlug}', [PublicProjectController::class, 'activeBrand'])

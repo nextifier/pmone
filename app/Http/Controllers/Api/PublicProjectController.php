@@ -17,6 +17,7 @@ use App\Http\Resources\PublicBrandIndexResource;
 use App\Http\Resources\PublicEventResource;
 use App\Http\Resources\PublicProjectResource;
 use App\Http\Resources\RundownItemPublicResource;
+use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
@@ -26,8 +27,10 @@ use App\Services\Rundown\RundownGrouper;
 use App\Support\HomeSectionCatalog;
 use App\Support\OgPages;
 use App\Support\PaginationClamp;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 
 class PublicProjectController extends Controller
@@ -296,6 +299,90 @@ class PublicProjectController extends Controller
             'brands_count' => $brandEvents->count(),
             'brands' => PublicBrandIndexResource::collection($brandEvents)->resolve(),
         ];
+    }
+
+    /**
+     * Every brand slug that `activeBrand()` below can resolve, for the event
+     * website's sitemap.
+     *
+     * WHY IT IS NOT ONE OF THE LISTINGS: the sitemap used to enumerate brands
+     * through `activeBrands()`, which only ever looks at the active event. Brand
+     * DETAIL resolves three sources in order — active event, conjunction events,
+     * then previous editions — so every brand reachable through the last two was
+     * served 200 with no path for Google to discover it. Measured 8 Aug 2026 that
+     * was roughly 1,700 URLs across eight sites, all 359 of franchise-expo.co.id's
+     * among them, and its /brands listing renders client-side so the sitemap was
+     * the only discovery path there was. Mirror the resolver here; a sitemap built
+     * from a listing drifts from it again the moment the resolver gains a step.
+     *
+     * Slug and timestamp only. The listings carry media, tags, links and promotion
+     * posts — 1.35 MB and 5.7s on the wire for morefoodexpo — none of which a
+     * sitemap has any use for.
+     *
+     * `meta.sources` counts what each source contributed after dedup, so a site
+     * that stops publishing brands says which of the three dried up without
+     * anyone having to open the database.
+     */
+    public function activeBrandSitemapSlugs(Request $request, string $username): JsonResponse
+    {
+        $event = $this->findActiveEvent($username);
+        $counts = ['active' => 0, 'conjunction' => 0, 'previous_edition' => 0];
+
+        if (! $event) {
+            return response()->json(['data' => [], 'meta' => ['sources' => $counts]]);
+        }
+
+        $conjunctionEventIds = $event->conjunctionEvents()->pluck('events.id');
+
+        $sources = [
+            'active' => fn ($q) => $q->where('event_id', $event->id),
+            'conjunction' => fn ($q) => $q->whereIn('event_id', $conjunctionEventIds),
+        ];
+
+        // The same third step activeBrand() takes: ANY published edition of this
+        // project, not the single most recent one activeBrands() borrows from.
+        // Narrowing it here would drop brands whose detail page still answers 200.
+        if ($this->fallbackAllowed($request, $event, 'brands')) {
+            $sources['previous_edition'] = fn ($q) => $q->whereHas(
+                'event',
+                fn ($e) => $e->where('project_id', $event->project_id)->published(),
+            );
+        }
+
+        $brands = collect();
+
+        foreach ($sources as $source => $constraint) {
+            $fresh = $this->brandSlugsForSitemap($constraint)->diffKeys($brands);
+
+            $counts[$source] = $fresh->count();
+            $brands = $brands->union($fresh);
+        }
+
+        return response()->json([
+            'data' => $brands->values()->map(fn (Brand $brand) => [
+                'slug' => $brand->slug,
+                'updated_at' => $brand->updated_at?->toIso8601String(),
+            ]),
+            'meta' => ['sources' => $counts],
+        ]);
+    }
+
+    /**
+     * Brands with an active `brand_event` row matching $constraint, keyed by slug.
+     *
+     * @param  \Closure(Builder): Builder  $constraint
+     * @return Collection<string, Brand>
+     */
+    private function brandSlugsForSitemap(\Closure $constraint): Collection
+    {
+        return Brand::query()
+            ->whereHas(
+                'brandEvents',
+                fn ($q) => $constraint($q->reorder()->where('status', 'active')),
+            )
+            ->select('slug', 'updated_at')
+            ->get()
+            ->keyBy('slug');
     }
 
     /**
