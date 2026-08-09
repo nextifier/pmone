@@ -2,10 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Console\Commands\PurgeEdgeCacheAfterBuild;
 use App\Support\EdgeCache;
 use App\Support\WorkersBuilds;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -80,6 +82,14 @@ class PurgeEdgeAfterBuild implements ShouldQueue
         }
 
         EdgeCache::purgeSite($site);
+
+        // Record the build so the scheduled sweep does not purge it a second
+        // time. This job only ever runs for a rebuild started from the
+        // dashboard; PurgeEdgeCacheAfterBuild covers the far more common case
+        // of a build triggered by a git push, and the two share this marker.
+        if ($uuid = $build['build_uuid'] ?? null) {
+            Cache::forever(PurgeEdgeCacheAfterBuild::SEEN_KEY.$this->worker, $uuid);
+        }
 
         Log::info('Edge purged after successful build', [
             'worker' => $this->worker,

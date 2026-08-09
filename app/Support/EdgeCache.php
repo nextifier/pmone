@@ -164,10 +164,11 @@ class EdgeCache
      * variant, plus the bare path.
      *
      * The event-site worker caches its own rendered HTML in the Cloudflare
-     * Cache API (a zone Cache Rule cannot reach a Worker response — the Worker
-     * runs in front of the cache), and keys it on `?__cm=dark|light` because the
-     * colour-mode module stamps the preference onto `<html class>` during SSR,
-     * so the two variants are genuinely different documents.
+     * Cache API and keys it on `?__cm=dark|light`, because the colour-mode
+     * module stamps the preference onto `<html class>` during SSR and the two
+     * variants are genuinely different documents. Cloudflare's CDN stores the
+     * same response independently, under the same URL — verified 9 Aug 2026,
+     * `cf-cache-status: HIT` on every repeat request.
      *
      * Purge-by-URL is an exact string match including the query, so every
      * variant has to be listed. The bare path is kept as well: it costs one URL

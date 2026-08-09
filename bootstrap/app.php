@@ -106,6 +106,16 @@ return Application::configure(basePath: dirname(__DIR__))
         // Cleanup tracking data past its retention window (90 days), daily at 2 AM
         $schedule->command('tracking:cleanup')->dailyAt('02:00')->withoutOverlapping();
 
+        // Drop an event site's edge cache once its Worker has been redeployed.
+        // Cached HTML embeds hashed /_nuxt chunk URLs that a deploy replaces, and
+        // the worker's own x-edge-build guard cannot help once Cloudflare's CDN
+        // starts answering without invoking the worker. Workers Builds has no
+        // webhook, so this polls; a build takes minutes, so five is prompt enough.
+        $schedule->command('edge-cache:purge-after-build')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->environments(['production']);
+
         // Sync Google Analytics properties - fetch 365 days of daily data for all properties
         // The daily aggregation system will then filter this data for any requested period
         // This runs hourly to keep data fresh while minimizing GA API calls
