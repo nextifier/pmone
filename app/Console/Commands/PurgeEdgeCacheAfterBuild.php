@@ -11,25 +11,33 @@ use Illuminate\Support\Facades\Log;
 /**
  * Drop an event site's edge cache once its Worker has been redeployed.
  *
- * WHY THIS IS NECESSARY. The sites cache their rendered HTML at the Cloudflare
- * edge, and that HTML embeds hashed `/_nuxt/*` chunk URLs. A deploy replaces
- * those chunks, so HTML from the previous build points at files that no longer
- * exist — the iicc white-screen incident.
+ * WHY THIS IS NECESSARY. Cached HTML embeds hashed `/_nuxt/*` chunk URLs, and a
+ * deploy replaces those chunks — HTML from the previous build points at files
+ * that no longer exist, which is the iicc white-screen incident.
  *
- * The worker guards against that itself: every stored entry carries an
- * `x-edge-build` header, and a mismatch is treated as a miss
- * (pmone-events/layers/base/server/middleware/00.edge-cache.ts). That guard is
- * enough ONLY while every request reaches the worker. It no longer does.
- * Measured 9 Aug 2026: once the responses stopped carrying `Set-Cookie` and
- * started carrying a public `s-maxage`, Cloudflare's own CDN began storing them
- * and answering repeat requests without invoking the worker at all — 20
- * consecutive requests to one article, all `cf-cache-status: HIT`. A response
- * served by the CDN never runs the build check, and deploying a Worker does not
- * purge the zone. So the stale-chunk window is now bounded by the edge TTL
- * rather than by the guard, and article TTL is 30 days.
+ * The two kinds of page on these sites protect themselves very differently, and
+ * that difference is the whole reason this command exists.
+ *
+ * SSR pages (/news/[slug], /brands/[slug]) are rendered by the worker, which
+ * stamps `x-edge-build` on every entry it stores and treats a mismatch as a miss
+ * (pmone-events/layers/base/server/middleware/00.edge-cache.ts). Verified 9 Aug
+ * 2026 on morefood, cokelatexpo and icf: a URL warmed before their rebuild came
+ * back `x-edge-cache: STALE-BUILD` afterwards, re-rendered, and every chunk it
+ * referenced resolved. That guard works, and this command is not what saves
+ * those pages.
+ *
+ * Prerendered pages are the ones at risk. They are served by the Assets binding
+ * without invoking the worker at all, so no guard of ours can run on them —
+ * there is no code path to put one in. The failure is on record: 8 Aug 2026,
+ * megabuild was redeployed and `/` still answered `cf-cache-status: HIT` with
+ * the previous build's body. That is most of the site.
  *
  * Hence this: watch for a new successful build and purge that site's zone.
  * Cloudflare Workers Builds has no webhook, so it is polled.
+ *
+ * Deploy-time invalidation appears to be inconsistent rather than absent — the
+ * 9 Aug rebuilds did clear what the 8 Aug one did not. Inconsistent is not
+ * something to bet a 30-day article TTL on, so this runs regardless.
  *
  * NOT a duplicate of App\Jobs\PurgeEdgeAfterBuild. That job is dispatched by
  * TriggerWorkerBuild, so it only ever covers a rebuild started from the
