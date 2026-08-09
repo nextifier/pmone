@@ -70,6 +70,7 @@ class TrackingController extends Controller
             $request->validate([
                 'clickable_type' => ['required', 'string', 'in:'.implode(',', self::TRACKABLE_TYPES)],
                 'link_label' => 'nullable|string|max:255',
+                'page_url' => ['nullable', 'string', 'url:http,https', 'max:'.self::MAX_REFERER_LENGTH],
             ]);
 
             // clickable_type is now known to be an allowlisted model class, so
@@ -111,6 +112,7 @@ class TrackingController extends Controller
 
         $request->validate([
             'visitable_type' => ['required', 'string', 'in:'.implode(',', self::TRACKABLE_TYPES)],
+            'page_url' => ['nullable', 'string', 'url:http,https', 'max:'.self::MAX_REFERER_LENGTH],
         ]);
 
         $request->validate([
@@ -147,11 +149,22 @@ class TrackingController extends Controller
     }
 
     /**
-     * Truncate the caller-controlled `referer` header to a sane bound.
+     * The page the event happened on, truncated to a sane bound.
+     *
+     * `page_url` wins over the `Referer` header because the event websites now
+     * send these as cross-origin beacons. Under the browsers' default
+     * `strict-origin-when-cross-origin` policy a cross-origin request carries
+     * only the origin — `https://megabuild.co.id/` — which would flatten every
+     * row to the same value and empty out the referer breakdown in analytics.
+     * The header stays as the fallback for same-origin callers (pmone.id) and
+     * for anything still posting through a server-side proxy.
+     *
+     * Both sources are caller-controlled either way, so neither is trusted
+     * beyond the length bound; `page_url` is validated as a URL by the caller.
      */
     private function boundedReferer(Request $request): ?string
     {
-        $referer = $request->header('referer');
+        $referer = $request->input('page_url') ?? $request->header('referer');
 
         return $referer === null ? null : mb_substr($referer, 0, self::MAX_REFERER_LENGTH);
     }

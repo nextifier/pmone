@@ -22,6 +22,15 @@ beforeEach(function () {
     ]);
 });
 
+/**
+ * A route where the key is still mandatory. The public READ surface moved to
+ * `api.key:optional` in Aug 2026 so event-website visitors can fetch it from
+ * their browsers, so the rejection cases have to be asserted somewhere the key
+ * is genuinely required — the Form Builder writes are the nearest such group.
+ * The middleware answers before the controller, so the form need not exist.
+ */
+const MANDATORY_KEY_ROUTE = '/api/public/projects/nobody/forms/nothing';
+
 it('accepts the api key via the X-API-Key header', function () {
     $response = $this->withHeaders(['X-API-Key' => 'pk_test_middleware_key'])
         ->getJson('/api/public/blog/posts');
@@ -30,21 +39,40 @@ it('accepts the api key via the X-API-Key header', function () {
 });
 
 it('rejects a key sent only via the api_key query string', function () {
-    $response = $this->getJson('/api/public/blog/posts?api_key=pk_test_middleware_key');
+    $response = $this->getJson(MANDATORY_KEY_ROUTE.'?api_key=pk_test_middleware_key');
 
     $response->assertStatus(401);
 });
 
 it('rejects requests with no key at all', function () {
-    $response = $this->getJson('/api/public/blog/posts');
+    $response = $this->getJson(MANDATORY_KEY_ROUTE);
 
     $response->assertStatus(401);
 });
 
 it('still rejects an invalid key sent as a query string even without api.key alias confusion', function () {
-    $response = $this->getJson('/api/public/blog/posts?api_key=totally_invalid');
+    $response = $this->getJson(MANDATORY_KEY_ROUTE.'?api_key=totally_invalid');
 
     $response->assertStatus(401);
+});
+
+it('lets a keyless request through on an optional-key route', function () {
+    $this->getJson('/api/public/blog/posts')->assertSuccessful();
+});
+
+it('still rejects a bad key on an optional-key route', function () {
+    // Degrading a typo'd key to anonymous would let a broken deploy ship green,
+    // and would silently strip a scoped consumer of its scope.
+    $this->withHeaders(['X-API-Key' => 'pk_not_a_real_key'])
+        ->getJson('/api/public/blog/posts')
+        ->assertStatus(401);
+});
+
+it('attributes nothing to a consumer when an optional-key route is called anonymously', function () {
+    $this->getJson('/api/public/blog/posts')->assertSuccessful();
+    $this->app->terminate();
+
+    expect(ApiConsumerRequest::count())->toBe(0);
 });
 
 it('flags the request when the response cache serves a hit', function () {

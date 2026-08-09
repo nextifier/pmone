@@ -18,9 +18,22 @@ class ValidateApiKey
     /**
      * Handle an incoming request.
      *
+     * `$mode` is `optional` on the public READ routes and null everywhere else.
+     *
+     * Optional means: no key, no problem — the request is anonymous browser
+     * traffic and passes straight through to the route's own `throttle:` limit.
+     * The event websites fetch these endpoints directly from the visitor's
+     * browser, and a key in a JS bundle is not a key. Sending one would also
+     * make every call a non-simple CORS request, so each read would cost a
+     * preflight round trip on top of itself.
+     *
+     * A key that IS present is still validated in full, including the 401 for a
+     * bad one. Degrading a typo'd key to anonymous is how a broken deploy ships
+     * green, and it would silently strip a scoped consumer of its scope.
+     *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $mode = null): Response
     {
         // Get API key from header only. The query-string fallback was
         // removed: keys in the query string land in access logs, browser
@@ -30,6 +43,10 @@ class ValidateApiKey
         $apiKey = $request->header('X-API-Key');
 
         if (! $apiKey) {
+            if ($mode === 'optional') {
+                return $next($request);
+            }
+
             return response()->json([
                 'message' => 'API key is required',
                 'error' => 'Missing API key in X-API-Key header',

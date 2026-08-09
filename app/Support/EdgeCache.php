@@ -115,13 +115,15 @@ class EdgeCache
                     }
                 }
 
-                // Plain URLs. Between 23 Jul and 6 Aug 2026 the events worker
-                // kept its own Cloudflare Cache API copy keyed on synthetic
-                // ?__cm / ?__lc / ?__al params, and this method hand-mirrored
-                // that key scheme. The worker cache is gone; the only cache left
-                // is the zone Cache Rule, which keys on the real URL.
+                // HTML. The events worker keeps its own Cloudflare Cache API
+                // copy keyed on a synthetic ?__cm param, so each path has to be
+                // purged in every colour-mode variant as well as every locale.
+                // See htmlVariants() — it and buildEdgeCacheKey() in
+                // pmone-events must stay in lockstep, because purge-by-URL is
+                // an exact match and a variant this side does not emit is a
+                // cache entry that never gets cleared.
                 foreach (array_merge($paths['html'] ?? [], $extraPaths) as $path) {
-                    foreach (static::localeVariants($path, $locales) as $variant) {
+                    foreach (static::htmlVariants($path, $locales) as $variant) {
                         $urls[] = $base.$variant;
                     }
                 }
@@ -139,7 +141,7 @@ class EdgeCache
      * 'en' is skipped on purpose: it IS the default locale on all 16 sites, so
      * "/en/news" is not a route the sites serve — it 404s. If a site ever moves
      * to `prefix` (every locale prefixed), this skip has to go with it.
-     * Locked by tests/Unit/EdgeCacheLocaleVariantsTest.php.
+     * Locked by tests/Feature/EdgeCachePurgeUrlsTest.php.
      *
      * @return string[]
      */
@@ -155,6 +157,40 @@ class EdgeCache
         }
 
         return $variants;
+    }
+
+    /**
+     * Every URL an HTML path can be cached under: each locale, each colour-mode
+     * variant, plus the bare path.
+     *
+     * The event-site worker caches its own rendered HTML in the Cloudflare
+     * Cache API (a zone Cache Rule cannot reach a Worker response — the Worker
+     * runs in front of the cache), and keys it on `?__cm=dark|light` because the
+     * colour-mode module stamps the preference onto `<html class>` during SSR,
+     * so the two variants are genuinely different documents.
+     *
+     * Purge-by-URL is an exact string match including the query, so every
+     * variant has to be listed. The bare path is kept as well: it costs one URL
+     * in an already-chunked request and covers anything cached outside the
+     * worker's key scheme.
+     *
+     * KEEP IN LOCKSTEP with buildEdgeCacheKey() in
+     * pmone-events/layers/base/server/utils/edgeCache.ts.
+     * Locked by tests/Feature/EdgeCachePurgeUrlsTest.php.
+     *
+     * @return string[]
+     */
+    public static function htmlVariants(string $path, array $locales): array
+    {
+        $urls = [];
+
+        foreach (static::localeVariants($path, $locales) as $variant) {
+            $urls[] = $variant;
+            $urls[] = $variant.'?__cm=dark';
+            $urls[] = $variant.'?__cm=light';
+        }
+
+        return $urls;
     }
 
     /**

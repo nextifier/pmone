@@ -30,8 +30,18 @@ beforeEach(function () {
     $this->endpoint = "/api/public/projects/{$this->project->username}/events/{$this->event->slug}/faqs";
 });
 
-test('returns 401 without api key', function () {
-    $this->getJson($this->endpoint)->assertUnauthorized();
+// The public read surface stopped requiring a key in Aug 2026 so the event
+// websites could fetch it straight from the visitor's browser (see
+// ValidateApiKey). A bad key is still rejected — that is the part worth
+// asserting, because degrading it to anonymous would hide a broken deploy.
+test('serves the endpoint without an api key', function () {
+    $this->getJson($this->endpoint)->assertOk();
+});
+
+test('still rejects an invalid api key', function () {
+    $this->withHeaders(['X-API-Key' => 'pk_not_real'])
+        ->getJson($this->endpoint)
+        ->assertUnauthorized();
 });
 
 test('resolves event context tokens in the answer', function () {

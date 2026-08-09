@@ -7,11 +7,16 @@ use Illuminate\Support\Facades\Http;
 /**
  * Locks the shape of the URLs a tag purge sends to Cloudflare.
  *
- * Until 6 Aug 2026 these URLs carried synthetic `?__cm` / `?__lc` / `?__al`
- * params that hand-mirrored a cache-key scheme living in another repo, with no
- * test on either side. That scheme is gone; these tests exist so the next person
- * to touch the purge map finds out immediately if the URLs stop matching what
- * the event websites actually serve.
+ * These URLs hand-mirror a cache-key scheme that lives in another repo
+ * (pmone-events/layers/base/server/utils/edgeCache.ts, buildEdgeCacheKey), and
+ * purge-by-URL is an exact string match — a variant one side emits and the
+ * other does not is a cache entry nothing can ever clear. That went untested on
+ * both sides until 6 Aug 2026. These tests exist so the next person to touch
+ * either side finds out immediately.
+ *
+ * Current scheme: `?__cm=dark|light` on HTML paths. `?__lc` / `?__al` were
+ * dropped when "/" became a prerendered static asset that never reaches the
+ * worker.
  */
 beforeEach(function () {
     config([
@@ -56,14 +61,35 @@ it('keeps the root path free of a trailing slash when it expands', function () {
     expect(EdgeCache::localeVariants('/', ['en', 'id']))->toBe(['/', '/id']);
 });
 
-it('purges plain urls with no synthetic cache-key params', function () {
+it('expands an html path across both colour-mode variants', function () {
+    expect(EdgeCache::htmlVariants('/news', ['en', 'id']))
+        ->toBe([
+            '/news', '/news?__cm=dark', '/news?__cm=light',
+            '/id/news', '/id/news?__cm=dark', '/id/news?__cm=light',
+        ]);
+});
+
+it('purges every colour-mode variant of an html path', function () {
+    // The worker caches its rendered HTML under ?__cm because SSR stamps the
+    // colour mode onto <html class>. Purge-by-URL is an exact match, so a
+    // variant missing here is an entry that never gets cleared.
+    $urls = capturedPurgeUrls(fn () => EdgeCache::purgeTags(['blog-posts'], [], 'ioe'));
+
+    expect($urls)
+        ->toContain('https://indooutingexpo.co.id/news?__cm=dark')
+        ->toContain('https://indooutingexpo.co.id/news?__cm=light')
+        ->toContain('https://indooutingexpo.co.id/id/news?__cm=dark');
+});
+
+it('emits no locale-negotiation params, because "/" is a static asset now', function () {
+    // __lc / __al keyed the old "/" cache entry. "/" is prerendered and never
+    // reaches the worker, so those variants would purge nothing.
     $urls = capturedPurgeUrls(fn () => EdgeCache::purgeTags(['blog-posts'], [], 'ioe'));
 
     expect($urls)->not->toBeEmpty();
 
     foreach ($urls as $url) {
-        expect($url)->not->toContain('__cm')
-            ->and($url)->not->toContain('__lc')
+        expect($url)->not->toContain('__lc')
             ->and($url)->not->toContain('__al');
     }
 });

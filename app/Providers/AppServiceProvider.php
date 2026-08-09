@@ -13,6 +13,7 @@ use App\Observers\LinkPageItemObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\ShortLinkObserver;
 use App\Rules\AllowedEmailDomain;
+use App\Support\TagAwareResponseCache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -47,7 +48,7 @@ class AppServiceProvider extends ServiceProvider
         // constructor dependencies, so the container wires it unchanged.
         $this->app->extend(
             'responsecache',
-            fn ($responseCache, $app) => $app->make(\App\Support\TagAwareResponseCache::class),
+            fn ($responseCache, $app) => $app->make(TagAwareResponseCache::class),
         );
     }
 
@@ -110,6 +111,28 @@ class AppServiceProvider extends ServiceProvider
         // tight per-IP limit makes innocent users hit 429. Allow a higher ceiling here.
         RateLimiter::for('short-link', function (Request $request) {
             return Limit::perMinute(300)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // The public READ surface (`api.key:optional`), fetched by event-website
+        // visitors straight from their browsers.
+        //
+        // Defined here and nowhere else. RouteServiceProvider redefines `api`
+        // and `short-link`, and whichever provider boots last silently wins —
+        // do not add a second definition of this one there.
+        RateLimiter::for('public-read', function (Request $request) {
+            // Keyed callers already have a per-consumer bucket inside
+            // ValidateApiKey. Limiting them twice would make a 16-app parallel
+            // prerender 429 itself, and its own retry ladder would then hammer
+            // the same wall four times per request.
+            if ($request->header('X-API-Key')) {
+                return Limit::none();
+            }
+
+            // Same carrier-grade NAT reasoning as short-link, and a wider
+            // ceiling for the same reason: this counts only what reaches the
+            // origin. Cloudflare's one-hour edge TTL absorbs the rest, so it
+            // bounds origin work, not page views.
+            return Limit::perMinute(300)->by($request->ip());
         });
 
         // Public form submissions are anonymous writes; keep them tight per IP.

@@ -266,7 +266,17 @@ test('carries the brand updated_at so the sitemap can emit lastmod', function ()
         ->assertJsonPath('data.0.updated_at', $brand->fresh()->updated_at->toIso8601String());
 });
 
-test('requires an API key', function () {
+// The public read surface stopped requiring a key in Aug 2026 so the event
+// websites could fetch it straight from the visitor's browser (see
+// ValidateApiKey). A bad key is still rejected — that is the part worth
+// asserting, because degrading it to anonymous would hide a broken deploy.
+test('serves the endpoint without an API key', function () {
     $this->getJson("/api/public/projects/{$this->project->username}/brands-sitemap")
+        ->assertOk();
+});
+
+test('still rejects an invalid API key', function () {
+    $this->withHeaders(['X-API-Key' => 'pk_not_real'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands-sitemap")
         ->assertUnauthorized();
 });

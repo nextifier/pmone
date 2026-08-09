@@ -310,10 +310,22 @@ test('cannot update a banner from another project', function () {
 
 // ─── Public endpoint ────────────────────────────────────────────────
 
-test('public banners endpoint requires api key', function () {
+// The public read surface stopped requiring a key in Aug 2026 so the event
+// websites could fetch it straight from the visitor's browser (see
+// ValidateApiKey). A bad key is still rejected — that is the part worth
+// asserting, because degrading it to anonymous would hide a broken deploy.
+test('public banners endpoint serves without an api key', function () {
     $project = Project::factory()->create();
 
     $this->getJson("/api/public/banners?project_slug={$project->username}")
+        ->assertOk();
+});
+
+test('public banners endpoint still rejects an invalid api key', function () {
+    $project = Project::factory()->create();
+
+    $this->withHeaders(['X-API-Key' => 'pk_not_real'])
+        ->getJson("/api/public/banners?project_slug={$project->username}")
         ->assertStatus(401);
 });
 

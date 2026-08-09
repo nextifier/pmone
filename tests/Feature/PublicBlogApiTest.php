@@ -21,10 +21,12 @@ beforeEach(function () {
 });
 
 // API Key Authentication Tests
-test('public API requires API key', function () {
-    $response = $this->getJson('/api/public/blog/posts');
-
-    $response->assertStatus(401);
+// The public read surface stopped requiring a key in Aug 2026 so the event
+// websites could fetch it straight from the visitor's browser (see
+// ValidateApiKey). A bad key is still rejected — that is the part worth
+// asserting, because degrading it to anonymous would hide a broken deploy.
+test('public API serves posts without an API key', function () {
+    $this->getJson('/api/public/blog/posts')->assertOk();
 });
 
 test('public API accepts valid API key', function () {

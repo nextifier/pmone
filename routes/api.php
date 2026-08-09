@@ -1556,8 +1556,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     });
 });
 
-// Public Blog API endpoints (API key authentication for consumption by multiple websites)
-Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
+// Public Blog API endpoints.
+//
+// The key is optional here (see ValidateApiKey): every route in this group is a
+// read of already-public content, and the event websites fetch them straight
+// from the visitor's browser. Keyed callers are still identified and metered as
+// before; anonymous ones fall through to throttle:public-read.
+Route::middleware(['api.key:optional', 'throttle:public-read'])->prefix('public/blog')->group(function () {
     // Posts endpoints
     Route::get('/posts', [PublicBlogController::class, 'posts'])
         ->middleware(CacheResponse::for(3600, 'blog-posts'));
@@ -1593,7 +1598,11 @@ Route::middleware(['api.key'])->prefix('public/blog')->group(function () {
 // pricing periods, ticket settings on the Event model). Those holes are fixed,
 // but the TTL is the net that catches the next one, and a day-long net is not a
 // net. Freshness still comes from the tag clear; this only bounds the damage.
-Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
+//
+// Reads only, and the key is optional on all of them — the event websites call
+// these from the visitor's browser. The Form Builder writes that used to live
+// in this group moved to their own group below, where the key stays mandatory.
+Route::middleware(['api.key:optional', 'throttle:public-read'])->prefix('public/projects')->group(function () {
     Route::get('/{username}', [PublicProjectController::class, 'show'])
         ->middleware(TenantCacheResponse::for(3600, 'projects'));
     Route::get('/{username}/events', [PublicProjectController::class, 'events'])
@@ -1643,10 +1652,26 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
     Route::get('/{username}/events/{eventSlug}/media-coverages', [PublicProjectController::class, 'mediaCoverages'])
         ->middleware(TenantCacheResponse::for(3600, 'media-coverages'));
 
-    // ── Form Builder embeds (event websites) ─────────────────────────────
-    // Project-scoped: a site can only render forms owned by its own project.
-    // Same pipeline (throttles, honeypot, duplicate prevention, cache tag) as
-    // the global /public/forms surface used by pmone.id /f/{slug}.
+    Route::get('/{username}/events/{eventSlug}/gallery', [PublicProjectController::class, 'gallery'])
+        ->middleware(TenantCacheResponse::for(3600, 'gallery'));
+    Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
+        ->middleware(TenantCacheResponse::for(3600, 'website-settings'));
+    Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])
+        ->middleware(TenantCacheResponse::for(3600, 'guests'));
+    Route::get('/{username}/events/{eventSlug}/guests/{slug}', [PublicProjectController::class, 'guest'])
+        ->middleware(TenantCacheResponse::for(3600, 'guests'));
+});
+
+// ── Form Builder embeds (event websites) ─────────────────────────────────────
+// Project-scoped: a site can only render forms owned by its own project. Same
+// pipeline (throttles, honeypot, duplicate prevention, cache tag) as the global
+// /public/forms surface used by pmone.id /f/{slug}.
+//
+// Separate from the read group above because the key stays MANDATORY here.
+// These are anonymous writes that accept file uploads, and the key is the only
+// thing standing between them and the open internet. The websites reach them
+// through their own Nitro proxy, which holds the key server-side.
+Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
     Route::get('/{username}/forms/{slug}', [PublicProjectFormController::class, 'show'])
         ->middleware(CacheResponse::for(120, 'forms-public'));
     Route::post('/{username}/forms/{slug}/submit', [PublicProjectFormController::class, 'submit'])
@@ -1657,14 +1682,6 @@ Route::middleware(['api.key'])->prefix('public/projects')->group(function () {
         ->middleware('throttle:form-upload');
     Route::get('/{username}/forms/{slug}/check', [PublicProjectFormController::class, 'checkDuplicate'])
         ->middleware('throttle:form-upload');
-    Route::get('/{username}/events/{eventSlug}/gallery', [PublicProjectController::class, 'gallery'])
-        ->middleware(TenantCacheResponse::for(3600, 'gallery'));
-    Route::get('/{username}/website-settings', [PublicProjectController::class, 'websiteSettings'])
-        ->middleware(TenantCacheResponse::for(3600, 'website-settings'));
-    Route::get('/{username}/events/{eventSlug}/guests', [PublicProjectController::class, 'guests'])
-        ->middleware(TenantCacheResponse::for(3600, 'guests'));
-    Route::get('/{username}/events/{eventSlug}/guests/{slug}', [PublicProjectController::class, 'guest'])
-        ->middleware(TenantCacheResponse::for(3600, 'guests'));
 });
 
 // Public Exchange Rate API endpoints (no authentication required, public proxy)
@@ -1681,14 +1698,19 @@ Route::prefix('exchange-rates')->middleware('throttle:api')->group(function () {
         ->middleware(CacheResponse::for(3600, 'exchange-rates'));
 });
 
-// Public Hotel Reservation API endpoints (API key authentication)
-Route::middleware(['api.key'])->prefix('public')->group(function () {
+// Public reads the event websites fetch straight from the visitor's browser:
+// banners, hotel listings and availability, ticket listings and their field
+// definitions. Key optional, same reasoning as the two groups above.
+//
+// The per-route throttles stay and stack with throttle:public-read. They were
+// written when every request arrived from a handful of Worker egress IPs, so
+// one site's traffic could exhaust the bucket for all sixteen. Keyed on real
+// visitor IPs they finally mean what they say.
+Route::middleware(['api.key:optional', 'throttle:public-read'])->prefix('public')->group(function () {
     Route::get('/banners', [PublicBannerController::class, 'index'])
         ->middleware(CacheResponse::for(3600, 'banners'));
     Route::get('/hotels', [PublicHotelController::class, 'index'])
         ->middleware(CacheResponse::for(3600, 'hotels'));
-    Route::post('/hotels/availability', [PublicHotelController::class, 'availability'])
-        ->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
     Route::get('/events/{eventSlug}/hotels/{hotelSlug}', [PublicHotelController::class, 'show'])
         ->middleware(['hotel-reservation-enabled', CacheResponse::for(3600, 'hotels')]);
     Route::get(
@@ -1699,6 +1721,20 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
         '/events/{eventSlug}/hotels/{hotelSlug}/daily-availability-aggregate',
         [PublicHotelController::class, 'dailyAvailabilityAggregate']
     )->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
+    Route::get('/events/{eventSlug}/tickets', [PublicTicketController::class, 'index'])
+        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+    Route::get('/events/{eventSlug}/custom-fields', [PublicTicketController::class, 'customFields'])
+        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+    Route::get('/events/{eventSlug}/registration-fields', [PublicTicketController::class, 'registrationFields'])
+        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+});
+
+// Public Hotel Reservation + ticketing writes and per-visitor reads. The key
+// stays mandatory: these are uncacheable, they mutate state or return one
+// buyer's order, and the websites reach them through their own Nitro proxy.
+Route::middleware(['api.key'])->prefix('public')->group(function () {
+    Route::post('/hotels/availability', [PublicHotelController::class, 'availability'])
+        ->middleware(['throttle:60,1', 'hotel-reservation-enabled']);
     Route::post('/reservations', [PublicReservationController::class, 'store'])
         ->middleware(['throttle:10,1', 'hotel-reservation-enabled']);
     Route::post('/reservations/preview-pricing', [PublicReservationController::class, 'previewPricing'])
@@ -1714,12 +1750,7 @@ Route::middleware(['api.key'])->prefix('public')->group(function () {
         ->middleware('throttle:30,1');
 
     // ── Tickets (event websites) ──────────────────────────────────────────
-    Route::get('/events/{eventSlug}/tickets', [PublicTicketController::class, 'index'])
-        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
-    Route::get('/events/{eventSlug}/custom-fields', [PublicTicketController::class, 'customFields'])
-        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
-    Route::get('/events/{eventSlug}/registration-fields', [PublicTicketController::class, 'registrationFields'])
-        ->middleware(['tickets-enabled', CacheResponse::for(300, 'tickets')]);
+    // The three cacheable ticket reads live in the optional-key group above.
     Route::post('/tickets/preview', [PublicTicketController::class, 'preview'])
         ->middleware(['throttle:60,1', 'tickets-enabled']);
     // Uncached + throttled: the ONLY way a hidden ticket is revealed (anti brute-force).

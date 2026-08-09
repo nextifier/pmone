@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureHotelReservationEnabled;
 use App\Http\Middleware\EnsureTicketsEnabled;
 use App\Http\Middleware\LogPaymentWebhook;
+use App\Http\Middleware\PublicApiCorsScope;
 use App\Http\Middleware\UpdateLastSeen;
 use App\Http\Middleware\ValidateApiKey;
 use App\Http\Middleware\ValidateSheetsToken;
@@ -34,6 +35,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Note: HandleCors is part of Laravel's default global middleware stack and
         // does not need to be re-added here. Calling $middleware->use([...]) would
         // REPLACE the entire global stack (dropping TrustProxies, ValidatePathEncoding, etc).
+
+        // Must run BEFORE HandleCors: it narrows the CORS config to a wildcard
+        // for the public read surface, and HandleCors reads that config inside
+        // its own handle(). See the class docblock for why a wildcard is the
+        // only edge-cache-safe answer there.
+        $middleware->prepend(PublicApiCorsScope::class);
 
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,

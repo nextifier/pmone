@@ -25,6 +25,7 @@ use App\Services\Rundown\RundownGrouper;
 use App\Support\OgPages;
 use App\Support\PaginationClamp;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -1106,9 +1107,25 @@ class PublicProjectController extends Controller
 
     /**
      * Find a published event within a project.
+     *
+     * The literal `active` resolves to whatever findActiveEvent() resolves,
+     * which makes every section endpoint reachable at a stable, edge-cacheable
+     * URL: `/events/active/faqs`, `/events/active/rundown`, and so on. Callers
+     * that only know the project — the event websites, which fetch these from
+     * the visitor's browser — no longer have to resolve the slug first and then
+     * fetch, so a page costs one round trip per section instead of two.
+     *
+     * `active` was already unusable as a real slug: `/events/active` is
+     * registered ahead of `/events/{eventSlug}` in routes/api.php, so an event
+     * actually named that has never been reachable there.
      */
     private function findEvent(string $username, string $eventSlug): Event
     {
+        if ($eventSlug === 'active') {
+            return $this->findActiveEvent($username)
+                ?? throw (new ModelNotFoundException)->setModel(Event::class);
+        }
+
         $project = $this->findProject($username);
 
         return Event::query()
