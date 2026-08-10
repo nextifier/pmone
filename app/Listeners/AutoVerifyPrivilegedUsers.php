@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Models\User;
 use Spatie\Permission\Events\RoleAttached;
+use Spatie\Permission\Models\Role;
 
 class AutoVerifyPrivilegedUsers
 {
@@ -34,7 +35,7 @@ class AutoVerifyPrivilegedUsers
                     $roleNames[] = $roleOrId->name;
                 } elseif (is_string($roleOrId) || is_numeric($roleOrId)) {
                     // Get role by ID or name
-                    $role = \Spatie\Permission\Models\Role::where('id', $roleOrId)
+                    $role = Role::where('id', $roleOrId)
                         ->orWhere('name', $roleOrId)
                         ->first();
                     if ($role) {
@@ -45,7 +46,7 @@ class AutoVerifyPrivilegedUsers
         } elseif (is_object($rolesOrIds) && method_exists($rolesOrIds, 'name')) {
             $roleNames[] = $rolesOrIds->name;
         } elseif (is_string($rolesOrIds) || is_numeric($rolesOrIds)) {
-            $role = \Spatie\Permission\Models\Role::where('id', $rolesOrIds)
+            $role = Role::where('id', $rolesOrIds)
                 ->orWhere('name', $rolesOrIds)
                 ->first();
             if ($role) {

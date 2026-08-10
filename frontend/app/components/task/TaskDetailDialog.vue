@@ -42,7 +42,7 @@
 
     <!-- Description -->
     <div v-if="task.description" class="border-border mt-5 border-t pt-2">
-      <div class="task-description format-html" v-html="task.description"></div>
+      <div class="task-description typeset typeset-cms max-w-2xl" v-html="task.description"></div>
     </div>
 
     <!-- Info Grid -->

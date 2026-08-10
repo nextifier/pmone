@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -153,12 +154,14 @@ class WorkersBuilds
     }
 
     /**
-     * Log lines for one build.
+     * Log lines for one build, each with the moment it was written.
      *
-     * Cloudflare returns `[unixTimestamp, message]` tuples; only the message is
-     * useful here, and `truncated` says whether the tail was cut off.
+     * Cloudflare returns `[unixTimestamp, message]` tuples and `truncated` says
+     * whether the tail was cut off. The timestamps are what make a downloaded
+     * log worth reading — without them there is no way to tell a build that
+     * spent four minutes installing from one that spent four minutes hanging.
      *
-     * @return array{lines: string[], truncated: bool}
+     * @return array{lines: array<int, array{at: string|null, text: string}>, truncated: bool}
      */
     public static function logs(string $buildUuid): array
     {
@@ -171,11 +174,40 @@ class WorkersBuilds
 
         return [
             'lines' => array_map(
-                fn ($line) => (string) ($line[1] ?? ''),
+                fn ($line) => [
+                    'at' => static::logTimestamp($line[0] ?? null),
+                    'text' => (string) ($line[1] ?? ''),
+                ],
                 (array) $response->json('result.lines', []),
             ),
             'truncated' => (bool) $response->json('result.truncated', false),
         ];
+    }
+
+    /**
+     * A log tuple's timestamp as ISO 8601, or null when it is not one.
+     *
+     * The endpoint has been seen returning both seconds and milliseconds, so
+     * the unit is inferred from the magnitude. Anything that cannot be an epoch
+     * yields null and the line still renders, just without a clock.
+     */
+    protected static function logTimestamp(mixed $value): ?string
+    {
+        if (! is_numeric($value)) {
+            return null;
+        }
+
+        $value = (float) $value;
+
+        if ($value > 1e12) {
+            $value /= 1000;
+        }
+
+        if ($value < 1e9) {
+            return null;
+        }
+
+        return Carbon::createFromTimestamp($value)->toIso8601String();
     }
 
     /** Stop a build that is still queued or running. */

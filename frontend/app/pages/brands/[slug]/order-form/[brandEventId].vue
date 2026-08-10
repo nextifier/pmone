@@ -90,7 +90,7 @@
         <h2 class="mb-3 text-sm font-medium tracking-tight">
           {{ $t("orderForm.termsAndConditions") }}
         </h2>
-        <div class="format-html" v-html="info.order_form_content" />
+        <div class="typeset typeset-cms max-w-2xl" v-html="info.order_form_content" />
       </div>
 
       <!-- Shared-booth notice: order form handled under the primary brand -->
@@ -150,7 +150,7 @@
                   <div class="space-y-2">
                     <div
                       v-if="category.description"
-                      class="format-html"
+                      class="typeset typeset-cms max-w-2xl"
                       v-html="category.description"
                     />
 

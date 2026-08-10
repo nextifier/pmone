@@ -31,7 +31,7 @@
       </p>
 
       <!-- Description -->
-      <div v-if="doc.description" class="format-html mt-1.5" v-html="doc.description" />
+      <div v-if="doc.description" class="typeset typeset-cms max-w-2xl mt-1.5" v-html="doc.description" />
     </div>
 
     <!-- File actions: templates + example, all open in a new tab -->

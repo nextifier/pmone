@@ -1,24 +1,10 @@
 /*
- * LOCAL PATCH (the only one): `.typeset` -> `:is(.typeset, .format-html)` at
- * 6 selector sites. `format-html` is the legacy container class on 47 call
- * sites across pmone / pmone-events / levenium and must not be renamed.
- * `:is()` takes the specificity of its most specific argument, so both are
- * (0,1,0) -- identical to the original. `.typeset-scroll` and `.not-typeset`
- * are deliberately untouched.
- *
- * Re-vendor with:
- *   curl -s https://shadcn-vue.com/typeset.css \
- *     | perl -pe 's/^(\s*)\.typeset(?![-\w])/$1:is(.typeset, .format-html)/'
- *
- * This file must stay byte-identical across the three repos.
- */
-/*
  * shadcn/typeset
  * https://ui.shadcn.com/docs/typeset.
  */
 
 @layer components {
-  :is(.typeset, .format-html) {
+  .typeset {
     --typeset-font-body: inherit;
     --typeset-font-heading: var(--font-heading);
     --typeset-font-mono: var(--font-mono);
@@ -29,7 +15,7 @@
 }
 
 @layer components {
-  :is(.typeset, .format-html) {
+  .typeset {
     font-family: var(--typeset-font-body);
     font-size: calc(var(--typeset-size) * 1.125);
     line-height: var(--typeset-leading);
@@ -51,7 +37,7 @@
     );
   }
 
-  :is(.typeset, .format-html)
+  .typeset
     *:not(
       :where(
         .not-typeset,
@@ -463,7 +449,7 @@
   }
 
   /* First child adds no space above. Last so it wins ties. */
-  :is(.typeset, .format-html)
+  .typeset
     > :where(:first-child):not(
       :where(
         .not-typeset,
@@ -472,7 +458,7 @@
         [data-not-typeset] *
       )
     ),
-  :is(.typeset, .format-html)
+  .typeset
     > :where(:first-child)
     > :where(:first-child):not(
       :where(
@@ -482,7 +468,7 @@
         [data-not-typeset] *
       )
     ),
-  :is(.typeset, .format-html)
+  .typeset
     :where(
       li > :first-child,
       blockquote > :first-child,

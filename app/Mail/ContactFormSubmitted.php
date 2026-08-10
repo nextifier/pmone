@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\ContactFormSubmission;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -29,12 +30,12 @@ class ContactFormSubmitted extends Mailable
 
         return new Envelope(
             subject: $emailSubject,
-            from: new \Illuminate\Mail\Mailables\Address(
+            from: new Address(
                 config('mail.from.address'),
                 config('mail.from.name')
             ),
             replyTo: [
-                new \Illuminate\Mail\Mailables\Address(config('mail.from.address')),
+                new Address(config('mail.from.address')),
             ],
             metadata: [
                 'project_id' => $project->id,

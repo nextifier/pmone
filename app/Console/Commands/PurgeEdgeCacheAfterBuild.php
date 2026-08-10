@@ -35,9 +35,16 @@ use Illuminate\Support\Facades\Log;
  * Hence this: watch for a new successful build and purge that site's zone.
  * Cloudflare Workers Builds has no webhook, so it is polled.
  *
- * Deploy-time invalidation appears to be inconsistent rather than absent — the
- * 9 Aug rebuilds did clear what the 8 Aug one did not. Inconsistent is not
- * something to bet a 30-day article TTL on, so this runs regardless.
+ * A NOTE ON WHAT CLEARS WHAT. An earlier version of this docblock claimed
+ * Cloudflare invalidates the zone on deploy "inconsistently", from watching
+ * cached pages disappear after the 10 Aug rebuilds. That reading was wrong:
+ * pushing to main auto-deploys this backend, so this command was already live
+ * and sweeping every five minutes when those pages were observed — it is the
+ * likelier cause. What is still unresolved is that the same rebuilds answered
+ * `x-edge-cache: STALE-BUILD`, meaning the worker's own Cache API entry
+ * SURVIVED while the CDN copy did not, which a zone-wide purge_everything
+ * should not allow if the two are one storage layer. Do not assume either
+ * mechanism covers the other until someone measures it properly.
  *
  * NOT a duplicate of App\Jobs\PurgeEdgeAfterBuild. That job is dispatched by
  * TriggerWorkerBuild, so it only ever covers a rebuild started from the

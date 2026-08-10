@@ -192,7 +192,7 @@
 
         <!-- Content -->
         <div
-          class="format-html images:rounded-xl headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
+          class="typeset typeset-cms max-w-2xl images:rounded-xl headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:2.5rem] lg:mt-8"
         >
           <article v-if="sanitizedContent" v-html="sanitizedContent"></article>
 

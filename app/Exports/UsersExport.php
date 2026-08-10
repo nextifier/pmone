@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class UsersExport extends BaseExport
 {
@@ -106,7 +107,7 @@ class UsersExport extends BaseExport
         // Role filter
         if (isset($this->filters['role'])) {
             $roles = array_map('strtolower', explode(',', $this->filters['role']));
-            $query->whereHas('roles', fn ($q) => $q->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(name)'), $roles));
+            $query->whereHas('roles', fn ($q) => $q->whereIn(DB::raw('LOWER(name)'), $roles));
         }
 
         // Exclude role filter

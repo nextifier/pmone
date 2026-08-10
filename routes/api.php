@@ -819,6 +819,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             ->middleware(['can:websites.rebuild', 'throttle:20,1'])
             ->name('websites.rebuild');
         Route::get('/{worker}', [WebsiteBuildController::class, 'show'])->name('websites.show');
+        Route::get('/{worker}/changes', [WebsiteBuildController::class, 'changes'])->name('websites.changes');
         Route::get('/{worker}/builds/{buildUuid}/logs', [WebsiteBuildController::class, 'logs'])
             ->name('websites.logs');
         Route::post('/{worker}/builds/{buildUuid}/cancel', [WebsiteBuildController::class, 'cancel'])

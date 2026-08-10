@@ -90,7 +90,7 @@
 
                   <div
                     :id="contentId"
-                    class="format-html headings:scroll-mt-[calc(var(--navbar-height-mobile)+2.5rem+4rem)] lg:headings:scroll-mt-[calc(var(--navbar-height-desktop)+2.5rem+2rem)] xl:headings:scroll-mt-[calc(var(--navbar-height-desktop)+2rem)] mx-auto mt-8"
+                    class="typeset max-w-2xl headings:scroll-mt-[calc(var(--navbar-height-mobile)+2.5rem+4rem)] lg:headings:scroll-mt-[calc(var(--navbar-height-desktop)+2.5rem+2rem)] xl:headings:scroll-mt-[calc(var(--navbar-height-desktop)+2rem)] mx-auto mt-8"
                     v-html="doc.content"
                   />
 

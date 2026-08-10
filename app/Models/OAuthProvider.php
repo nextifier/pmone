@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -13,9 +14,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $provider_id
  * @property string|null $provider_email
  * @property array<array-key, mixed>|null $provider_data
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\User|null $user
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User|null $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider forProvider(string $provider)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider newQuery()
@@ -28,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider whereProviderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OAuthProvider whereUserId($value)
+ *
  * @mixin \Eloquent
  */
 class OAuthProvider extends Model

@@ -718,7 +718,7 @@ const handleImageUpload = async (event) => {
 
 /* TipTap typeset styling. The editor carries `typeset` (see editorProps), so
    rhythm, leading and the heading scale come from typeset.css and match the
-   rendered `format-html` output exactly. Only the bits Typeset leaves at
+   rendered output on the public pages exactly. Only the bits Typeset leaves at
    `inherit` are stated here. */
 :deep(.ProseMirror) {
   min-height: var(--editor-min-h);
@@ -741,7 +741,7 @@ const handleImageUpload = async (event) => {
   @apply my-0;
 }
 
-/* Matches the rendered `format-html` output (both are `.typeset`). p / li /
+/* Matches the rendered output on the public pages (both are `.typeset`). p / li /
    code inherit their colour from the container, so only these three need
    saying: Typeset leaves headings, strong and blockquote at `inherit`. */
 :deep(.ProseMirror :is(h1, h2, h3, h4, h5, h6)) {

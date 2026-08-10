@@ -7,6 +7,7 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 abstract class BaseTemplateExport implements FromArray, ShouldAutoSize, WithColumnFormatting, WithHeadings, WithStyles
@@ -68,7 +69,7 @@ abstract class BaseTemplateExport implements FromArray, ShouldAutoSize, WithColu
                     'size' => 14,
                 ],
                 'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'horizontal' => Alignment::HORIZONTAL_LEFT,
                 ],
             ];
         }

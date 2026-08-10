@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class ProjectsExport extends BaseExport
 {
@@ -116,7 +117,7 @@ class ProjectsExport extends BaseExport
         // Visibility filter
         if (isset($this->filters['visibility'])) {
             $visibilities = array_map('strtolower', explode(',', $this->filters['visibility']));
-            $query->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(visibility)'), $visibilities);
+            $query->whereIn(DB::raw('LOWER(visibility)'), $visibilities);
         }
     }
 

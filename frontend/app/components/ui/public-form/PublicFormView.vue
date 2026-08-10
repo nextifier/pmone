@@ -83,7 +83,7 @@
               :class="{ 'is-expanded': descExpanded, 'is-faded': descFaded }"
               :style="descStyle"
             >
-              <div ref="descContent" class="format-html" v-html="form.description" />
+              <div ref="descContent" class="typeset typeset-cms max-w-2xl" v-html="form.description" />
             </div>
 
             <button
@@ -590,9 +590,10 @@ const handleSubmit = async () => {
 }
 
 /* A block formatting context, so the child's own margins stay inside its border
-   box - the measured height has to be the exact max-height target. format-html
-   zeroes the first paragraph's margin but not a leading <ul>'s. */
-.pf-desc > .format-html {
+   box - the measured height has to be the exact max-height target. Typeset
+   zeroes the first block's margin, but the flow-root is still needed so the
+   child's own bottom margin cannot escape the measured box. */
+.pf-desc > .typeset {
   display: flow-root;
 }
 

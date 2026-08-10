@@ -20,6 +20,7 @@ use App\Jobs\RemoveUnusedTags;
 use App\Models\Contact;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -713,9 +714,9 @@ class ContactController extends Controller
     /**
      * Find Contact-related tags that are not used by any model (safe to delete).
      *
-     * @return \Illuminate\Support\Collection<int, Tag>
+     * @return Collection<int, Tag>
      */
-    private function findUnusedTags(): \Illuminate\Support\Collection
+    private function findUnusedTags(): Collection
     {
         // Only scan Contact-specific tag types.
         // Business categories (global & project-scoped) are excluded because they

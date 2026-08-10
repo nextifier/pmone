@@ -2,7 +2,9 @@
 
 namespace App\Services\GoogleAnalytics;
 
+use App\Exceptions\Analytics\QuotaExceededException;
 use App\Models\GaProperty;
+use Carbon\Carbon;
 use Google\Analytics\Data\V1beta\Client\BetaAnalyticsDataClient;
 use Google\Analytics\Data\V1beta\DateRange;
 use Google\Analytics\Data\V1beta\Dimension;
@@ -92,7 +94,7 @@ class AnalyticsDataFetcher
                         $duration = (int) ((microtime(true) - $startTime) * 1000);
                         $this->metrics->recordApiCall($property->property_id, $duration, false, 'runReport', $errorType);
 
-                        throw new \App\Exceptions\Analytics\QuotaExceededException(
+                        throw new QuotaExceededException(
                             "Google Analytics API quota exceeded for property {$property->name}",
                             $retryAfter,
                             $property->property_id
@@ -268,7 +270,7 @@ class AnalyticsDataFetcher
         foreach ($response->getRows() as $row) {
             // Convert GA4 date format (YYYYMMDD) to standard Y-m-d format
             $gaDate = $row->getDimensionValues()[0]->getValue();
-            $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+            $formattedDate = Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
 
             $rowData = [
                 'date' => $formattedDate,
@@ -510,7 +512,7 @@ class AnalyticsDataFetcher
             $pages = [];
             foreach ($response->getRows() as $row) {
                 $gaDate = $row->getDimensionValues()[0]->getValue();
-                $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+                $formattedDate = Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
 
                 $pages[] = [
                     'date' => $formattedDate,
@@ -562,7 +564,7 @@ class AnalyticsDataFetcher
             $sources = [];
             foreach ($response->getRows() as $row) {
                 $gaDate = $row->getDimensionValues()[0]->getValue();
-                $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+                $formattedDate = Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
 
                 $sources[] = [
                     'date' => $formattedDate,
@@ -614,7 +616,7 @@ class AnalyticsDataFetcher
             $devices = [];
             foreach ($response->getRows() as $row) {
                 $gaDate = $row->getDimensionValues()[0]->getValue();
-                $formattedDate = \Carbon\Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
+                $formattedDate = Carbon::createFromFormat('Ymd', $gaDate)->format('Y-m-d');
 
                 $devices[] = [
                     'date' => $formattedDate,

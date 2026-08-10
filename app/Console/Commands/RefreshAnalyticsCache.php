@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\GaProperty;
+use App\Models\User;
+use App\Notifications\AnalyticsSyncFailedNotification;
 use App\Services\GoogleAnalytics\DailyDataAggregator;
 use App\Services\GoogleAnalytics\Period;
 use Illuminate\Console\Command;
@@ -102,9 +104,9 @@ class RefreshAnalyticsCache extends Command
             \Log::warning('Analytics cache refresh completed with failures', $failureDetails);
 
             // Send notification to admin users
-            $adminUsers = \App\Models\User::where('role', 'master')->get();
+            $adminUsers = User::where('role', 'master')->get();
             foreach ($adminUsers as $admin) {
-                $admin->notify(new \App\Notifications\AnalyticsSyncFailedNotification($failureDetails));
+                $admin->notify(new AnalyticsSyncFailedNotification($failureDetails));
             }
         } else {
             \Log::info('Analytics cache refresh completed successfully', [

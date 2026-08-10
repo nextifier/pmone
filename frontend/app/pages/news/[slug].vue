@@ -186,7 +186,7 @@
           </p>
 
           <div
-            class="format-html images:rounded-xl images:cursor-zoom-in headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:5rem] lg:mt-8 lg:[--scroll-offset:2.5rem]"
+            class="typeset typeset-cms max-w-2xl images:rounded-xl images:cursor-zoom-in headings:scroll-mt-[calc(var(--navbar-height-mobile)+var(--scroll-offset,2.5rem))] mx-auto mt-6 overflow-x-hidden [--scroll-offset:5rem] lg:mt-8 lg:[--scroll-offset:2.5rem]"
           >
             <article :id="post.slug" v-html="processedHtml"></article>
 

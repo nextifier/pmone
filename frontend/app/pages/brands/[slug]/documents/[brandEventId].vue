@@ -102,7 +102,7 @@
           <!-- Description -->
           <div
             v-if="item.document.description"
-            class="format-html mt-3"
+            class="typeset typeset-cms max-w-2xl mt-3"
             v-html="item.document.description"
           />
 

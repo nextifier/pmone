@@ -62,7 +62,7 @@
       <AlertDescription>
         This account has used its monthly Cloudflare build minutes. Further builds
         are billed per minute<template v-if="limits.refresh_on">
-          until the quota resets on {{ formatDate(limits.refresh_on) }}</template>.
+          until the quota resets on {{ shortDate(limits.refresh_on) }}</template>.
       </AlertDescription>
     </Alert>
 
@@ -95,58 +95,26 @@
       </template>
     </TableData>
 
-    <!-- One dialog for all three entry points (row, selection, header button).
-         A rebuild spends real build minutes and can queue twenty jobs at once,
-         so it is worth a beat of confirmation — and the copy is the only place
-         an operator learns Cloudflare runs six at a time. -->
-    <ResponsiveDialog v-model:open="confirmOpen" title="Rebuild websites">
-      <template #default>
-        <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
-          <div class="text-foreground text-lg font-semibold tracking-tight">
-            {{ confirmTitle }}
-          </div>
-
-          <p class="text-body mt-1.5 text-sm tracking-tight">
-            Each site is rebuilt from the latest commit on
-            <span class="font-medium">main</span> and republished when it finishes.
-            Cloudflare runs six builds at a time and queues the rest.
-          </p>
-
-          <ul
-            v-if="confirmNames.length > 1"
-            class="text-body mt-3 max-h-40 overflow-y-auto text-sm tracking-tight"
-          >
-            <li v-for="name in confirmNames" :key="name" class="py-0.5">{{ name }}</li>
-          </ul>
-
-          <div class="mt-4 flex justify-end gap-2">
-            <Button variant="outline" size="sm" :disabled="rebuilding" @click="confirmOpen = false">
-              Cancel
-            </Button>
-            <Button size="sm" :disabled="rebuilding" @click="confirmRebuild">
-              <Icon
-                v-if="rebuilding"
-                name="svg-spinners:180-ring"
-                class="-ml-1 size-4 shrink-0"
-              />
-              Rebuild
-            </Button>
-          </div>
-        </div>
-      </template>
-    </ResponsiveDialog>
+    <!-- One dialog for every entry point: row action, selection, header button. -->
+    <WebsiteRebuildDialog
+      v-model:open="confirmOpen"
+      :names="pendingNames"
+      :loading="rebuilding"
+      @confirm="confirmRebuild"
+    />
   </div>
 </template>
 
 <script setup>
+import WebsiteBuildDuration from "@/components/website/BuildDuration.vue";
+import WebsiteContentCell from "@/components/website/ContentCell.vue";
+import WebsiteRebuildDialog from "@/components/website/RebuildDialog.vue";
 import WebsiteRowActions from "@/components/website/RowActions.vue";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ResponsiveDialog } from "@/components/ui/responsive-dialog";
 import { TableData, TableBulkAction } from "@/components/ui/table-data";
-import { toast } from "vue-sonner";
 
 definePageMeta({
   middleware: ["sanctum:auth", "permission"],
@@ -161,9 +129,7 @@ defineOptions({ name: "websites" });
 const { hasPermission } = usePermission();
 const canRebuild = computed(() => hasPermission("websites.rebuild"));
 
-const client = useSanctumClient();
 const tableRef = ref();
-const rebuilding = ref(false);
 
 // The list is a fixed set of ~16 rows from server config, so TableData handles
 // paging, sorting and search client-side and there is no query to build.
@@ -184,14 +150,9 @@ const meta = computed(() => ({
   total: data.value.length,
 }));
 
-// Cloudflare splits build state across two fields: `status` is the lifecycle and
-// only a stopped build carries an outcome — and a failed one reads "fail", not
-// "failed". Anything that is not `stopped` is still in flight.
-const isRunning = (build) => Boolean(build) && build.status !== "stopped";
-
-const building = computed(() => data.value.some((row) => isRunning(row.build)));
+const building = computed(() => data.value.some((row) => isBuildRunning(row.build)));
 const buildingLabel = computed(() => {
-  const n = data.value.filter((row) => isRunning(row.build)).length;
+  const n = data.value.filter((row) => isBuildRunning(row.build)).length;
   return n === 1 ? "1 build running" : `${n} builds running`;
 });
 const staleCount = computed(() => data.value.filter((row) => row.needs_rebuild).length);
@@ -204,41 +165,8 @@ const { start: startPolling, stop: stopPolling } = usePolling(refresh, 10000, {
 });
 watch(building, (on) => (on ? startPolling() : stopPolling()), { immediate: true });
 
-const STATE = {
-  queued: { label: "Queued", variant: "muted" },
-  initializing: { label: "Starting", variant: "info" },
-  running: { label: "Building", variant: "info" },
-  success: { label: "Success", variant: "success" },
-  fail: { label: "Failed", variant: "destructive" },
-  cancelled: { label: "Cancelled", variant: "muted" },
-  skipped: { label: "Skipped", variant: "muted" },
-  terminated: { label: "Timed out", variant: "warning" },
-};
-
-const buildState = (build) => {
-  if (!build) return { label: "No build yet", variant: "muted" };
-  if (build.status !== "stopped") {
-    return STATE[build.status] || { label: build.status, variant: "info" };
-  }
-  return STATE[build.outcome] || { label: build.outcome || "Unknown", variant: "muted" };
-};
-
-const relativeTime = (value) => {
-  if (!value) return "—";
-  const minutes = Math.round((Date.now() - new Date(value).getTime()) / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.round(hours / 24)}d ago`;
-};
-
-// Every other relativeTime value starts with a digit ("4m ago"), so only the
-// word form needs this — and it must stay lowercase inside "Edited just now".
-const sentenceCase = (text) => text.charAt(0).toUpperCase() + text.slice(1);
-
-const formatDate = (value) =>
-  new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(new Date(value));
+// buildState, relativeTime, isBuildRunning and shortDate come from
+// utils/websiteBuilds.js, shared with the detail page.
 
 const columns = [
   {
@@ -281,7 +209,7 @@ const columns = [
           row.original.url.replace(/^https:\/\//, ""),
         ),
       ]),
-    size: 220,
+    size: 210,
   },
   {
     header: "Status",
@@ -291,7 +219,7 @@ const columns = [
       const state = buildState(row.original.build);
       return h(Badge, { variant: state.variant, withIcon: true, plain: true }, () => state.label);
     },
-    size: 120,
+    size: 116,
   },
   {
     header: "Content",
@@ -300,22 +228,9 @@ const columns = [
       if (!row.project) return "—";
       return row.needs_rebuild ? "Outdated" : "Up to date";
     },
-    cell: ({ row }) => {
-      // The dashboard, Levenium and Monara render no PM One content, so there is
-      // nothing here that could go stale — "Up to date" would be a claim about
-      // something that does not exist.
-      if (!row.original.project) {
-        return h("span", { class: "text-muted-foreground text-sm" }, "—");
-      }
-      if (!row.original.needs_rebuild) {
-        return h("span", { class: "text-muted-foreground text-sm tracking-tight" }, "Up to date");
-      }
-      return h(
-        Badge,
-        { variant: "warning", withIcon: true, plain: true },
-        () => `Edited ${relativeTime(row.original.content_changed_at)}`,
-      );
-    },
+    // Its own component rather than an h() tree: the hover card fetches what
+    // actually changed, which needs state a render function cannot hold.
+    cell: ({ row }) => h(WebsiteContentCell, { site: row.original }),
     size: 150,
   },
   {
@@ -328,10 +243,25 @@ const columns = [
       return h(
         "span",
         { class: "text-sm tracking-tight tabular-nums" },
-        sentenceCase(relativeTime(build.finished_at || build.started_at || build.created_at)),
+        relativeTime(build.finished_at || build.started_at || build.created_at, {
+          capitalize: true,
+        }),
       );
     },
-    size: 105,
+    size: 100,
+  },
+  {
+    header: "Duration",
+    id: "last_build_duration",
+    // Sorts on the number the server computed, never on the live elapsed count:
+    // otherwise the table would reorder itself once a second while a build runs.
+    accessorFn: (row) => row.build?.duration_seconds ?? -1,
+    cell: ({ row }) => {
+      const build = row.original.build;
+      if (!build) return h("span", { class: "text-muted-foreground text-sm" }, "—");
+      return h(WebsiteBuildDuration, { build });
+    },
+    size: 92,
   },
   {
     header: "Commit",
@@ -349,7 +279,7 @@ const columns = [
         ),
       ]);
     },
-    size: 220,
+    size: 190,
   },
   {
     id: "actions",
@@ -363,67 +293,25 @@ const columns = [
             onRebuild: (worker) => requestRebuild([worker]),
           }),
       }),
-    size: 110,
+    size: 104,
     enableHiding: false,
   },
 ];
-
-async function rebuildWorkers(workers) {
-  if (!workers.length) return;
-  rebuilding.value = true;
-  try {
-    const result = await client("/api/websites/rebuild", {
-      method: "POST",
-      body: { workers },
-    });
-    toast.success(result.message);
-    tableRef.value?.resetRowSelection();
-    // Cloudflare needs a moment before the new build shows up in its API.
-    setTimeout(refresh, 3000);
-  } catch (e) {
-    toast.error(e?.data?.message || "Could not queue the rebuild.");
-  } finally {
-    rebuilding.value = false;
-  }
-}
 
 const staleWorkers = computed(() =>
   data.value.filter((row) => row.needs_rebuild).map((row) => row.worker),
 );
 
-// Rebuilds are confirmed before they run. `pendingWorkers` is both the queue and
-// the open state: null means no dialog, an array means one is waiting on an
-// answer. Every entry point (row action, selection, header button) funnels here
-// so there is exactly one confirmation to keep correct.
-const pendingWorkers = ref(null);
-
-const confirmOpen = computed({
-  get: () => pendingWorkers.value !== null,
-  set: (open) => {
-    if (!open) pendingWorkers.value = null;
-  },
+const {
+  pendingNames,
+  rebuilding,
+  open: confirmOpen,
+  requestRebuild,
+  confirmRebuild,
+} = useWebsiteRebuild({
+  displayName: (worker) =>
+    data.value.find((row) => row.worker === worker)?.project_name || worker,
+  onQueued: () => refresh(),
+  onSuccess: () => tableRef.value?.resetRowSelection(),
 });
-
-const confirmNames = computed(() => {
-  const wanted = new Set(pendingWorkers.value || []);
-  return data.value.filter((row) => wanted.has(row.worker)).map((row) => row.project_name);
-});
-
-const confirmTitle = computed(() => {
-  const count = pendingWorkers.value?.length || 0;
-  if (count === 1) return `Rebuild ${confirmNames.value[0] || "this website"}?`;
-  return `Rebuild ${count} websites?`;
-});
-
-function requestRebuild(workers) {
-  const unique = [...new Set(workers || [])];
-  if (!unique.length) return;
-  pendingWorkers.value = unique;
-}
-
-async function confirmRebuild() {
-  const workers = pendingWorkers.value || [];
-  await rebuildWorkers(workers);
-  pendingWorkers.value = null;
-}
 </script>

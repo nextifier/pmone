@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -75,7 +76,7 @@ class RoleController extends Controller
         }
 
         // Convert role name to slug format
-        $roleName = \Illuminate\Support\Str::slug($request->name, '_');
+        $roleName = Str::slug($request->name, '_');
 
         $validator = Validator::make(['name' => $roleName, 'permissions' => $request->permissions], [
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
@@ -174,7 +175,7 @@ class RoleController extends Controller
         }
 
         // Convert role name to slug format if provided
-        $roleName = $request->has('name') ? \Illuminate\Support\Str::slug($request->name, '_') : null;
+        $roleName = $request->has('name') ? Str::slug($request->name, '_') : null;
 
         $validationData = array_filter([
             'name' => $roleName,

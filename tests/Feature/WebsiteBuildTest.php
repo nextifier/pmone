@@ -2,6 +2,8 @@
 
 use App\Jobs\PurgeEdgeAfterBuild;
 use App\Jobs\TriggerWorkerBuild;
+use App\Models\Event;
+use App\Models\Faq;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\WorkersBuilds;
@@ -357,18 +359,37 @@ it('404s for an unknown website', function () {
     $this->getJson('/api/websites/not-a-site')->assertNotFound();
 });
 
-it('returns build log lines as plain strings', function () {
+it('returns build log lines with the moment each was written', function () {
     Http::fake([
         CF.'/accounts/acct123/builds/builds/*/logs*' => Http::response([
             'success' => true,
-            'result' => ['lines' => [[1, 'installing'], [2, 'done']], 'truncated' => false],
+            'result' => [
+                'lines' => [
+                    [1786000000, 'installing'],       // seconds
+                    [1786000001500, 'done'],          // milliseconds
+                    [1, 'legacy'],                    // not an epoch at all
+                ],
+                'truncated' => false,
+            ],
         ]),
     ]);
 
-    $this->getJson('/api/websites/megabuild/builds/b1/logs')
+    $response = $this->getJson('/api/websites/megabuild/builds/b1/logs')
         ->assertSuccessful()
-        ->assertJsonPath('data.lines', ['installing', 'done'])
+        ->assertJsonPath('data.lines.0.text', 'installing')
+        ->assertJsonPath('data.lines.1.text', 'done')
+        // A timestamp that cannot be an epoch still leaves the line readable.
+        ->assertJsonPath('data.lines.2.at', null)
+        ->assertJsonPath('data.lines.2.text', 'legacy')
         ->assertJsonPath('data.truncated', false);
+
+    $lines = $response->json('data.lines');
+
+    expect($lines[0]['at'])->not->toBeNull()
+        ->and($lines[1]['at'])->not->toBeNull()
+        // Both timestamps land within two seconds of each other; the second one
+        // was only bigger because Cloudflare sent it in milliseconds.
+        ->and(abs(strtotime($lines[1]['at']) - strtotime($lines[0]['at'])))->toBeLessThan(5);
 });
 
 it('cancels a build', function () {
@@ -549,4 +570,273 @@ it('rebuilds a projectless site like any other', function () {
         ->assertSuccessful();
 
     Queue::assertPushed(TriggerWorkerBuild::class, fn ($job) => $job->worker === 'pmone');
+});
+
+// ---------------------------------------------------------------------------
+// Build duration
+// ---------------------------------------------------------------------------
+
+it('reports how long a build ran and how long it waited', function () {
+    fakeCloudflare([
+        'tag-mb' => [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'created_on' => '2026-08-07T02:00:00Z',
+            'running_on' => '2026-08-07T02:00:30Z',
+            'stopped_on' => '2026-08-07T02:06:00Z',
+        ],
+    ]);
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.build.duration_seconds', 330)
+        ->assertJsonPath('data.0.build.queued_seconds', 30);
+});
+
+it('leaves the duration open while a build is still running', function () {
+    fakeCloudflare([
+        'tag-mb' => [
+            'build_uuid' => 'b2', 'status' => 'running',
+            'created_on' => '2026-08-07T02:00:00Z',
+            'running_on' => '2026-08-07T02:00:30Z',
+        ],
+    ]);
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.build.duration_seconds', null)
+        ->assertJsonPath('data.0.build.queued_seconds', 30);
+});
+
+// ---------------------------------------------------------------------------
+// What a site is waiting to publish
+// ---------------------------------------------------------------------------
+
+/** A project with one event and one FAQ, every timestamp under the test's control. */
+function contentFor(string $username, string $projectAt, ?string $faqAt = null): Event
+{
+    $project = Project::factory()->create(['username' => $username]);
+    $event = Event::factory()->create(['project_id' => $project->id]);
+
+    DB::table('projects')->where('id', $project->id)->update(['updated_at' => $projectAt]);
+    DB::table('events')->where('id', $event->id)->update(['updated_at' => '2020-01-01 00:00:00']);
+
+    if ($faqAt) {
+        $faq = Faq::factory()->create(['event_id' => $event->id]);
+        DB::table('faqs')->where('id', $faq->id)->update(['updated_at' => $faqAt]);
+    }
+
+    return $event;
+}
+
+it('lists only the sources that have not shipped yet', function () {
+    // The FAQ was edited after the build; the project row long before it.
+    contentFor('megabuild', '2026-08-06 09:00:00', '2026-08-07 12:00:00');
+
+    fakeCloudflare([
+        'tag-mb' => [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'stopped_on' => '2026-08-07T02:00:00Z',   // 09:00 Jakarta
+        ],
+    ]);
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'data.0.content_changes')
+        ->assertJsonPath('data.0.content_changes.0.source', 'faqs')
+        ->assertJsonPath('data.0.content_changes.0.label', 'FAQ');
+});
+
+it('keeps needs_rebuild and content_changes in step', function () {
+    contentFor('megabuild', '2026-08-07 12:00:00');
+    contentFor('icc', '2026-08-01 12:00:00');
+
+    fakeCloudflare([
+        'tag-mb' => [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'stopped_on' => '2026-08-07T02:00:00Z',
+        ],
+        'tag-icc' => [
+            'build_uuid' => 'b2', 'status' => 'stopped', 'build_outcome' => 'success',
+            'stopped_on' => '2026-08-07T02:00:00Z',
+        ],
+    ]);
+
+    $rows = $this->getJson('/api/websites')->assertSuccessful()->json('data');
+
+    foreach ($rows as $row) {
+        expect($row['needs_rebuild'])->toBe(count($row['content_changes']) > 0);
+    }
+
+    expect($rows[0]['needs_rebuild'])->toBeTrue()
+        ->and($rows[1]['needs_rebuild'])->toBeFalse();
+});
+
+it('lists every source when no build has ever shipped', function () {
+    contentFor('megabuild', '2026-08-06 09:00:00', '2026-08-07 12:00:00');
+
+    fakeCloudflare();
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.needs_rebuild', true)
+        // project, event and faq: nothing has been published, so nothing is safe.
+        ->assertJsonCount(3, 'data.0.content_changes');
+});
+
+it('reports no pending changes for a projectless site', function () {
+    configureProjectlessSite();
+    contentFor('megabuild', '2026-08-07 12:00:00');
+
+    $this->getJson('/api/websites')
+        ->assertSuccessful()
+        ->assertJsonPath('data.2.content_changes', []);
+});
+
+// ---------------------------------------------------------------------------
+// The changes endpoint behind the hover card
+// ---------------------------------------------------------------------------
+
+it('returns the individual edits behind a site', function () {
+    $event = contentFor('megabuild', '2026-08-06 09:00:00');
+
+    $faq = Faq::factory()->create([
+        'event_id' => $event->id,
+        'question' => ['en' => 'Where is the venue?'],
+    ]);
+    DB::table('faqs')->where('id', $faq->id)->update(['updated_at' => '2026-08-07 12:00:00']);
+
+    $this->getJson('/api/websites/megabuild/changes')
+        ->assertSuccessful()
+        ->assertJsonPath('data.project', 'megabuild')
+        ->assertJsonPath('data.items.0.source', 'faqs')
+        ->assertJsonPath('data.items.0.title', 'Where is the venue?');
+});
+
+it('drops edits older than the given cut-off', function () {
+    $event = contentFor('megabuild', '2026-08-01 09:00:00');
+
+    $faq = Faq::factory()->create(['event_id' => $event->id]);
+    DB::table('faqs')->where('id', $faq->id)->update(['updated_at' => '2026-08-07 12:00:00']);
+
+    $items = $this->getJson('/api/websites/megabuild/changes?since=2026-08-07T03:00:00Z')
+        ->assertSuccessful()
+        ->json('data.items');
+
+    expect(array_column($items, 'source'))->toBe(['faqs']);
+});
+
+it('rejects a cut-off that is not a date', function () {
+    $this->getJson('/api/websites/megabuild/changes?since=whenever')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('since');
+});
+
+it('reads the changes of the project a co-located site renders', function () {
+    config(['edge-sites.sites' => array_merge(config('edge-sites.sites'), [
+        ['app' => 'cokelatexpo', 'project' => 'cei', 'data_source' => 'cbe', 'url' => 'https://cokelatexpo.id', 'locales' => ['en']],
+    ])]);
+
+    // Its own project is quiet; the project it READS from is not.
+    contentFor('cei', '2026-08-01 09:00:00');
+    $cbe = contentFor('cbe', '2026-08-01 09:00:00');
+
+    $faq = Faq::factory()->create(['event_id' => $cbe->id, 'question' => ['en' => 'A cbe question']]);
+    DB::table('faqs')->where('id', $faq->id)->update(['updated_at' => '2026-08-07 12:00:00']);
+
+    $this->getJson('/api/websites/cokelatexpo/changes')
+        ->assertSuccessful()
+        ->assertJsonPath('data.project', 'cbe')
+        ->assertJsonPath('data.items.0.title', 'A cbe question');
+});
+
+it('returns an empty change list for a projectless site', function () {
+    configureProjectlessSite();
+
+    $this->getJson('/api/websites/pmone/changes')
+        ->assertSuccessful()
+        ->assertJsonPath('data.project', null)
+        ->assertJsonPath('data.items', []);
+});
+
+it('404s the changes of an unknown website', function () {
+    $this->getJson('/api/websites/not-a-site/changes')->assertNotFound();
+});
+
+// ---------------------------------------------------------------------------
+// Detail summary
+// ---------------------------------------------------------------------------
+
+/** Cloudflare with a build history for megabuild. */
+function fakeHistory(array $builds): void
+{
+    Http::fake([
+        CF.'/accounts/acct123/workers/scripts*' => Http::response([
+            'success' => true, 'result' => [['id' => 'megabuild', 'tag' => 'tag-mb']],
+        ]),
+        CF.'/accounts/acct123/builds/workers/*/builds*' => Http::response([
+            'success' => true, 'result' => $builds,
+        ]),
+        CF.'/accounts/acct123/builds/account/limits' => Http::response([
+            'success' => true,
+            'result' => ['has_reached_build_minutes_limit' => false, 'build_minutes_refresh_on' => null],
+        ]),
+    ]);
+}
+
+it('summarises the site on the detail endpoint', function () {
+    Project::factory()->create(['username' => 'megabuild', 'name' => 'Megabuild Indonesia']);
+    // A factory stamps updated_at with now(), which is newer than any fixture
+    // build below and would make the site look stale on a technicality.
+    touchProject('megabuild', '2026-08-01 09:00:00');
+
+    fakeHistory([
+        [
+            'build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'created_on' => '2026-08-07T02:00:00Z',
+            'running_on' => '2026-08-07T02:00:30Z',
+            'stopped_on' => '2026-08-07T02:06:00Z',
+        ],
+    ]);
+
+    $this->getJson('/api/websites/megabuild')
+        ->assertSuccessful()
+        ->assertJsonPath('data.project_name', 'Megabuild Indonesia')
+        ->assertJsonPath('data.content_project', 'megabuild')
+        ->assertJsonPath('data.build.uuid', 'b1')
+        ->assertJsonPath('data.build.duration_seconds', 330)
+        ->assertJsonPath('data.needs_rebuild', false)
+        ->assertJsonPath('data.content_changes', [])
+        ->assertJsonPath('meta.configured', true);
+});
+
+it('averages only the builds that succeeded', function () {
+    fakeHistory([
+        // 300s success, 20s failure, 400s success -> 350s average, 67% success.
+        ['build_uuid' => 'b3', 'status' => 'stopped', 'build_outcome' => 'success',
+            'running_on' => '2026-08-07T03:00:00Z', 'stopped_on' => '2026-08-07T03:05:00Z'],
+        ['build_uuid' => 'b2', 'status' => 'stopped', 'build_outcome' => 'fail',
+            'running_on' => '2026-08-07T02:00:00Z', 'stopped_on' => '2026-08-07T02:00:20Z'],
+        ['build_uuid' => 'b1', 'status' => 'stopped', 'build_outcome' => 'success',
+            'running_on' => '2026-08-07T01:00:00Z', 'stopped_on' => '2026-08-07T01:06:40Z'],
+    ]);
+
+    $this->getJson('/api/websites/megabuild')
+        ->assertSuccessful()
+        ->assertJsonPath('data.stats.builds', 3)
+        ->assertJsonPath('data.stats.succeeded', 2)
+        ->assertJsonPath('data.stats.success_rate', 67)
+        ->assertJsonPath('data.stats.avg_duration_seconds', 350)
+        ->assertJsonPath('data.stats.last_success_at', '2026-08-07T03:05:00Z')
+        ->assertJsonPath('data.stats.outcomes', ['success', 'fail', 'success']);
+});
+
+it('reports empty stats when Cloudflare has nothing to say', function () {
+    Http::fake(fn () => Http::response(['success' => false], 500));
+
+    $this->getJson('/api/websites/megabuild')
+        ->assertSuccessful()
+        ->assertJsonPath('data.build', null)
+        ->assertJsonPath('data.stats.builds', 0)
+        ->assertJsonPath('data.stats.success_rate', null)
+        ->assertJsonPath('data.stats.avg_duration_seconds', null);
 });

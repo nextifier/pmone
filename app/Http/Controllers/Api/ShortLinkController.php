@@ -12,10 +12,12 @@ use App\Http\Resources\ShortLinkIndexResource;
 use App\Http\Resources\ShortLinkResource;
 use App\Imports\ShortLinksImport;
 use App\Models\ShortLink;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -303,8 +305,8 @@ class ShortLinkController extends Controller
             $endDate = $dateRange['end'];
             $query->inDateRange($startDate, $endDate);
         } elseif ($request->has('start_date') && $request->has('end_date')) {
-            $startDate = \Carbon\Carbon::parse($request->start_date)->startOfDay();
-            $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
             $query->inDateRange($startDate, $endDate);
         } elseif ($request->has('days')) {
             $startDate = now()->subDays($request->days)->startOfDay();
@@ -449,7 +451,7 @@ class ShortLinkController extends Controller
             $shortLinks = $query->get();
 
             return response()->json([
-                'data' => \App\Http\Resources\ShortLinkIndexResource::collection($shortLinks),
+                'data' => ShortLinkIndexResource::collection($shortLinks),
                 'meta' => [
                     'current_page' => 1,
                     'last_page' => 1,
@@ -462,7 +464,7 @@ class ShortLinkController extends Controller
         $shortLinks = $query->paginate($request->input('per_page', 15));
 
         return response()->json([
-            'data' => \App\Http\Resources\ShortLinkIndexResource::collection($shortLinks->items()),
+            'data' => ShortLinkIndexResource::collection($shortLinks->items()),
             'meta' => [
                 'current_page' => $shortLinks->currentPage(),
                 'last_page' => $shortLinks->lastPage(),
@@ -587,20 +589,20 @@ class ShortLinkController extends Controller
             // Get file path from temporary storage
             $metadataPath = "tmp/uploads/{$tempFolder}/metadata.json";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($metadataPath)) {
+            if (! Storage::disk('local')->exists($metadataPath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
             }
 
             $metadata = json_decode(
-                \Illuminate\Support\Facades\Storage::disk('local')->get($metadataPath),
+                Storage::disk('local')->get($metadataPath),
                 true
             );
 
             $filePath = "tmp/uploads/{$tempFolder}/{$metadata['original_name']}";
 
-            if (! \Illuminate\Support\Facades\Storage::disk('local')->exists($filePath)) {
+            if (! Storage::disk('local')->exists($filePath)) {
                 return response()->json([
                     'message' => 'File not found',
                 ], 404);
@@ -608,7 +610,7 @@ class ShortLinkController extends Controller
 
             // Import short links
             $import = new ShortLinksImport($request->user()->id);
-            Excel::import($import, \Illuminate\Support\Facades\Storage::disk('local')->path($filePath));
+            Excel::import($import, Storage::disk('local')->path($filePath));
 
             // Get import results
             $failures = $import->getFailures();
@@ -648,7 +650,7 @@ class ShortLinkController extends Controller
         } finally {
             // Always clean up temporary files
             if ($tempFolder) {
-                \Illuminate\Support\Facades\Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
+                Storage::disk('local')->deleteDirectory("tmp/uploads/{$tempFolder}");
             }
         }
     }

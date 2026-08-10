@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class PermissionController extends Controller
 {
@@ -209,7 +210,7 @@ class PermissionController extends Controller
             $permission->save();
 
             // Clear permission cache
-            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
             DB::commit();
 
@@ -258,7 +259,7 @@ class PermissionController extends Controller
         $permission->delete();
 
         // Clear permission cache
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         return response()->json([
             'message' => 'Permission deleted successfully',
@@ -305,7 +306,7 @@ class PermissionController extends Controller
         }
 
         // Clear permission cache
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         return response()->json([
             'message' => "{$deletedCount} permission(s) deleted successfully",

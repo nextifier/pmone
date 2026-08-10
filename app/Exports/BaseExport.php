@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
@@ -10,6 +12,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 abstract class BaseExport implements FromCollection, ShouldAutoSize, WithColumnFormatting, WithHeadings, WithMapping, WithStrictNullComparison, WithStyles
@@ -111,7 +114,7 @@ abstract class BaseExport implements FromCollection, ShouldAutoSize, WithColumnF
                     'size' => 14,
                 ],
                 'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'horizontal' => Alignment::HORIZONTAL_LEFT,
                 ],
             ];
         }
@@ -138,7 +141,7 @@ abstract class BaseExport implements FromCollection, ShouldAutoSize, WithColumnF
     protected function applyStatusFilter(Builder $query, string $statusFilter): void
     {
         $statuses = array_map('strtolower', explode(',', $statusFilter));
-        $query->whereIn(\Illuminate\Support\Facades\DB::raw('LOWER(status)'), $statuses);
+        $query->whereIn(DB::raw('LOWER(status)'), $statuses);
     }
 
     /**
@@ -163,6 +166,6 @@ abstract class BaseExport implements FromCollection, ShouldAutoSize, WithColumnF
         }
 
         // Replace underscores with spaces, then apply title case
-        return \Illuminate\Support\Str::title(str_replace('_', ' ', $value));
+        return Str::title(str_replace('_', ' ', $value));
     }
 }

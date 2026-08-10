@@ -4,6 +4,7 @@ use App\Models\ApiConsumer;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Spatie\Tags\Tag;
 
 uses(RefreshDatabase::class);
@@ -430,5 +431,94 @@ test('unlimited rate limit allows many requests', function () {
         $this->withHeaders(['X-API-Key' => 'pk_unlimited_test'])
             ->getJson('/api/public/blog/posts')
             ->assertSuccessful();
+    }
+});
+
+// ── Listing payload weight ───────────────────────────────────────────────────
+//
+// The listing is the heaviest thing the event websites serialize during SSR:
+// 50 posts came to 111 KB, of which featured_image was 39% and authors 33% —
+// the same author object repeated once per post, with a full profile-image
+// conversion set nobody renders. These lock the trimmed shape so it cannot
+// quietly grow back.
+
+test('listing omits the image variants nothing renders', function () {
+    $post = Post::factory()->create([
+        'status' => 'published',
+        'visibility' => 'public',
+        'created_by' => $this->author->id,
+    ]);
+    $post->addMedia(UploadedFile::fake()->image('cover.jpg', 1600, 900))
+        ->preservingOriginal()
+        ->toMediaCollection('featured_image');
+
+    $image = $this->getJson('/api/public/blog/posts')->json('data.0.featured_image');
+
+    expect($image)->not->toBeNull()
+        ->and($image)->not->toHaveKey('lg')
+        ->and($image)->not->toHaveKey('xl')
+        // What PostCard.vue and PostRelated.vue actually read.
+        ->and($image)->toHaveKeys(['url', 'original', 'lqip', 'sm', 'md']);
+});
+
+test('listing keeps the full image variants on the detail endpoint', function () {
+    // Only the LIST branch is trimmed — the article page still gets everything.
+    $post = Post::factory()->create([
+        'status' => 'published',
+        'visibility' => 'public',
+        'slug' => 'still-full',
+        'created_by' => $this->author->id,
+    ]);
+    $post->addMedia(UploadedFile::fake()->image('cover.jpg', 1600, 900))
+        ->preservingOriginal()
+        ->toMediaCollection('featured_image');
+
+    $image = $this->getJson('/api/public/blog/posts/still-full')->json('data.featured_image');
+
+    expect($image)->toHaveKey('lg')->toHaveKey('xl');
+});
+
+test('listing authors carry only what a byline needs', function () {
+    $post = Post::factory()->create([
+        'status' => 'published',
+        'visibility' => 'public',
+        'created_by' => $this->author->id,
+    ]);
+    $post->authors()->attach($this->author->id, ['order' => 0]);
+
+    $author = $this->getJson('/api/public/blog/posts')->json('data.0.authors.0');
+
+    expect(array_keys($author))->toEqualCanonicalizing(['id', 'name', 'username', 'profile_image'])
+        // Never on an unauthenticated endpoint.
+        ->and($author)->not->toHaveKey('email');
+});
+
+test('listing does not carry post content', function () {
+    // The query selects explicit columns so `content` is never even hydrated —
+    // it is a translations blob of the full article HTML, per locale, per row.
+    Post::factory()->create([
+        'status' => 'published',
+        'visibility' => 'public',
+        'created_by' => $this->author->id,
+    ]);
+
+    $post = $this->getJson('/api/public/blog/posts')->json('data.0');
+
+    expect($post)->not->toHaveKey('content');
+});
+
+test('listing still sorts and paginates after the explicit select', function () {
+    // A column left out of LIST_COLUMNS would surface here, not in the shape
+    // assertions above.
+    Post::factory()->count(3)->create([
+        'status' => 'published',
+        'visibility' => 'public',
+        'created_by' => $this->author->id,
+    ]);
+
+    foreach (['-published_at', 'title', 'reading_time', '-created_at', 'view_count'] as $sort) {
+        $this->getJson("/api/public/blog/posts?sort={$sort}&per_page=2")
+            ->assertOk()
+            ->assertJsonPath('meta.per_page', 2);
     }
 });

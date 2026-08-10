@@ -42,15 +42,16 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
- * @property-read \App\Models\User|null $assignee
- * @property-read \App\Models\User|null $creator
- * @property-read \App\Models\User|null $deleter
+ * @property-read User|null $assignee
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
- * @property-read \App\Models\Project|null $project
- * @property-read Collection<int, \App\Models\User> $sharedUsers
+ * @property-read Project|null $project
+ * @property-read Collection<int, User> $sharedUsers
  * @property-read int|null $shared_users_count
- * @property-read \App\Models\User|null $updater
+ * @property-read User|null $updater
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byComplexity(array|string $complexity)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byPriority(array|string $priority)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task byStatus(array|string $status)
@@ -85,6 +86,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task whereVisibility($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withTrashed(bool $withTrashed = true)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Task withoutTrashed()
+ *
  * @mixin \Eloquent
  */
 class Task extends Model implements HasMedia

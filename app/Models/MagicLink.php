@@ -4,18 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
  * @property int $id
  * @property string $email
  * @property string $token
- * @property \Illuminate\Support\Carbon $expires_at
- * @property \Illuminate\Support\Carbon|null $used_at
+ * @property Carbon $expires_at
+ * @property Carbon|null $used_at
  * @property string|null $ip_address
  * @property string|null $user_agent
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink forEmail(string $email)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink newQuery()
@@ -30,6 +32,7 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUsedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|MagicLink whereUserAgent($value)
+ *
  * @mixin \Eloquent
  */
 class MagicLink extends Model

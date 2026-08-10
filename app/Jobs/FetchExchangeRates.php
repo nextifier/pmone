@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\ExchangeRate;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -81,7 +82,7 @@ class FetchExchangeRates implements ShouldBeUnique, ShouldQueue
 
             // Parse the API timestamp
             $apiUpdatedAt = isset($data['time_last_updated'])
-                ? \Carbon\Carbon::createFromTimestamp($data['time_last_updated'])
+                ? Carbon::createFromTimestamp($data['time_last_updated'])
                 : null;
 
             // Create new exchange rate record

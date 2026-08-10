@@ -26,12 +26,12 @@
    default shadcn yang ada di style-*.css (layer base). */
 @import "./transitions.css";
 
-/* shadcn/typeset — vendored from https://shadcn-vue.com/typeset.css, replaces
-   @tailwindcss/typography. ONE local patch: the container selector is aliased
-   to `:is(.typeset, .format-html)` so the legacy `format-html` call sites keep
-   working untouched. Lands in `@layer components`, i.e. BELOW utilities, so a
-   call-site `max-w-none` / `tracking-tight` / `text-xl` always wins — which is
-   what those call sites already assumed. House preset lives further down. */
+/* shadcn/typeset — vendored pristine from https://shadcn-vue.com/typeset.css,
+   replaces @tailwindcss/typography. No local patch: re-vendoring is a straight
+   overwrite. Lands in `@layer components`, i.e. BELOW utilities, so a call-site
+   `max-w-2xl` / `max-w-none` / `tracking-tight` always wins. Upstream leaves the
+   measure to the layout, so pages set it themselves. House preset lives further
+   down, together with the `typeset-sm` / `typeset-fixed` / `typeset-cms` presets. */
 @import "./typeset.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -754,21 +754,21 @@ html.appearance-switching *::after {
 }
 
 /* ===========================================================================
-   format-html / typeset — house preset.
-   `typeset.css` (vendored, selector aliased to `:is(.typeset, .format-html)`)
-   owns the rhythm, lists, tables, code, blockquote, media and print rules.
-   This block holds ONLY what Typeset does not do, plus the house scale.
-   Everything the typography plugin used to do and Typeset already does has
-   been deleted, not ported.
+   typeset — house preset.
+   `typeset.css` (vendored pristine from shadcn-vue) owns the rhythm, lists,
+   tables, code, blockquote, media and print rules. This block holds ONLY what
+   Typeset does not do, plus the house scale.
 
    `@layer components` on purpose: components < utilities, so every call-site
-   utility (`max-w-none`, `tracking-tight`, `text-xl`, `mt-6`, `space-y-4`)
-   now wins — which is what those call sites already assumed.
+   utility (`max-w-2xl`, `max-w-none`, `tracking-tight`, `text-xl`, `mt-6`)
+   wins — which is what those call sites already assumed. Upstream is explicit
+   that the measure belongs to the layout, so call sites carry `max-w-2xl`
+   (42rem) rather than the container class baking one in.
 
    Identical byte-for-byte in pmone, pmone-events and levenium.
    =========================================================================== */
 @layer components {
-  :is(.typeset, .format-html) {
+  .typeset {
     /* Headings keep the app font. Upstream defaults to var(--font-heading),
        which in pmone-events/levenium is a GENERIC sans stack, not MinusOne —
        leaving it would silently swap the heading typeface. */
@@ -792,14 +792,6 @@ html.appearance-switching *::after {
     }
   }
 
-  /* Only `format-html` carries a measure. Typeset deliberately sets no
-     max-width; keeping it here (components) means a call-site `max-w-*`
-     always wins — `checkout.vue` (max-w-none) and `Tickets.vue` (max-w-3xl)
-     used to race it inside the same layer. */
-  .format-html {
-    max-width: 42rem;
-  }
-
   /* Compact preset — replaces `prose-sm`. */
   .typeset-sm {
     --typeset-size: 0.875rem;
@@ -814,7 +806,7 @@ html.appearance-switching *::after {
 
   /* Mirrors Typeset's own descendant selector exactly, so specificity ties
      at (0,1,0) and source order (this block comes later) decides. */
-  :is(.typeset, .format-html)
+  .typeset
     *:not(
       :where(
         .not-typeset,
@@ -871,25 +863,21 @@ html.appearance-switching *::after {
     }
   }
 
-  /* format-html only: editorial images are full-bleed. The live editor and
-     the small `typeset` snippets keep natural width. */
-  .format-html
-    :where(img):not(
-      :where(
-        .not-typeset,
-        [data-not-typeset],
-        .not-typeset *,
-        [data-not-typeset] *
-      )
-    ) {
-    width: 100%;
-  }
+  /* ---------------------------------------------------------------------
+     Wide tables scroll on their own, everywhere.
 
-  /* CMS tables must scroll, never squash. Upstream expects a `.typeset-scroll`
-     wrapper, but this HTML comes from the DB and has none, so the behaviour is
-     emulated on the table itself. Scoped to `.format-html` so pasted tables in
-     the live editor keep Typeset's native, editable table layout. */
-  .format-html
+     Upstream expects a `.typeset-scroll` wrapper around a wide table and
+     leaves a bare one to compress instead. Neither holds up here: HTML out
+     of the database has no wrapper to give it, and a table that cannot
+     compress past its widest cell overflows the whole page on a phone.
+     Making the table its own scroll container needs no markup and kicks in
+     only when the table genuinely does not fit — `max-content` is what a
+     table sizes to anyway, so nothing changes when it does fit.
+
+     The live editor is excluded: TipTap resizes columns through a real
+     table box, and `display: block` takes that box away.
+     --------------------------------------------------------------------- */
+  .typeset:not(.ProseMirror)
     :where(table):not(
       :where(
         .not-typeset,
@@ -903,7 +891,28 @@ html.appearance-switching *::after {
     max-width: 100%;
     overflow-x: auto;
   }
-  .format-html :where(:is(td, th) :is(p, span)) {
+
+  /* ---------------------------------------------------------------------
+     `typeset-cms` — for HTML that comes out of the database.
+
+     Editorial images go full-bleed, and cell text stays on one line so the
+     scroll above has something to scroll instead of a column of stacked
+     words. Opt in only where the content is arbitrary (news, FAQ, custom
+     fields, pasted documents) — hand-written prose pages keep Typeset's
+     native layout.
+     --------------------------------------------------------------------- */
+  .typeset-cms
+    :where(img):not(
+      :where(
+        .not-typeset,
+        [data-not-typeset],
+        .not-typeset *,
+        [data-not-typeset] *
+      )
+    ) {
+    width: 100%;
+  }
+  .typeset-cms :where(:is(td, th) :is(p, span)) {
     margin-block: 0;
     line-height: normal;
     white-space: nowrap;
@@ -915,10 +924,10 @@ html.appearance-switching *::after {
      the SAME layer: for !important declarations the cascade REVERSES layer
      order, so a components-layer light rule would beat a utilities-layer dark
      rule and dark mode would render light. */
-  :is(.typeset, .format-html) pre.shiki span[style] {
+  .typeset pre.shiki span[style] {
     color: var(--shiki-light) !important;
   }
-  .dark :is(.typeset, .format-html) pre.shiki span[style] {
+  .dark .typeset pre.shiki span[style] {
     color: var(--shiki-dark) !important;
   }
 }
@@ -931,7 +940,7 @@ html.appearance-switching *::after {
    stripped at source in TipTapEditor; this is the safety net for existing content.
    Stays in `utilities`: it must not outrank the components-layer Shiki rules. */
 @layer utilities {
-  :is(.typeset, .format-html):not(.ProseMirror)
+  .typeset:not(.ProseMirror)
     :is([style*="color" i], [style*="background" i], font[color], [bgcolor]):not(
       pre,
       pre *,

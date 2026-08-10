@@ -1,7 +1,7 @@
 <template>
   <div id="privacy-page" class="my-8 md:my-12">
     <div class="container">
-      <div class="format-html mx-auto">
+      <div class="typeset max-w-2xl mx-auto">
         <h1>Privacy Policy</h1>
 
         <p>Last updated: {{ lastUpdate }}</p>

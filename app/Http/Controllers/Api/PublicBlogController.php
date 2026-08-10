@@ -16,6 +16,41 @@ use Spatie\Tags\Tag;
 class PublicBlogController extends Controller
 {
     /**
+     * Columns the listing endpoints read. Everything PostResource's list branch
+     * touches, plus the keys its eager loads hang off (`id` for media/tags/
+     * authors, `created_by` for primaryAuthor) and the sortable columns.
+     *
+     * WHY THIS EXISTS. Without it Eloquent issues `select *` and hydrates
+     * `content` — a JSON translations column holding the full article HTML in
+     * every locale, ~11.5 KB per row per locale — for every row, only for
+     * PostResource to discard it. At the default 50 per page that is megabytes
+     * read and held in memory per uncached call, and the pmone-events sitemap
+     * generator calls the same endpoint with per_page=1000.
+     *
+     * `content` is deliberately absent. The single-post endpoint builds its own
+     * query and is untouched.
+     *
+     * @var list<string>
+     */
+    private const LIST_COLUMNS = [
+        'id',
+        'ulid',
+        'title',
+        'slug',
+        'excerpt',
+        'status',
+        'visibility',
+        'published_at',
+        'featured',
+        'reading_time',
+        'created_by',
+        'settings',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    /**
      * Set the application locale from the request so translatable post fields
      * resolve to the requested language. The response cache hashes the full
      * URI including the query string, so each locale is cached separately.
@@ -48,6 +83,7 @@ class PublicBlogController extends Controller
     private function fetchPosts(Request $request): JsonResponse
     {
         $query = Post::query()
+            ->select(self::LIST_COLUMNS)
             ->with([
                 'primaryAuthor.media',
                 'authors.media',
@@ -126,6 +162,7 @@ class PublicBlogController extends Controller
         $category = Tag::where('slug->en', $slug)->where('type', 'category')->firstOrFail();
 
         $query = Post::query()
+            ->select(self::LIST_COLUMNS)
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
@@ -158,6 +195,7 @@ class PublicBlogController extends Controller
         $this->applyLocale($request);
 
         $query = Post::query()
+            ->select(self::LIST_COLUMNS)
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
@@ -189,6 +227,7 @@ class PublicBlogController extends Controller
         $author = User::where('username', $username)->firstOrFail();
 
         $query = Post::query()
+            ->select(self::LIST_COLUMNS)
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
@@ -218,6 +257,7 @@ class PublicBlogController extends Controller
         $this->applyLocale($request);
 
         $query = Post::query()
+            ->select(self::LIST_COLUMNS)
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()
@@ -255,6 +295,7 @@ class PublicBlogController extends Controller
         }
 
         $query = Post::query()
+            ->select(self::LIST_COLUMNS)
             ->with(['primaryAuthor.media', 'authors.media', 'categories', 'tags', 'media'])
             ->published()
             ->public()

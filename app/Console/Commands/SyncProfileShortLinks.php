@@ -55,7 +55,7 @@ class SyncProfileShortLinks extends Command
                 $this->line("    Old: {$shortLink->destination_url}");
                 $this->line("    New: {$expectedUrl}");
 
-                if (!$dryRun) {
+                if (! $dryRun) {
                     $shortLink->update(['destination_url' => $expectedUrl]);
                 }
 
@@ -81,7 +81,7 @@ class SyncProfileShortLinks extends Command
                 $this->line("    Old: {$shortLink->destination_url}");
                 $this->line("    New: {$expectedUrl}");
 
-                if (!$dryRun) {
+                if (! $dryRun) {
                     $shortLink->update(['destination_url' => $expectedUrl]);
                 }
 
