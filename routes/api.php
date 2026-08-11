@@ -973,12 +973,15 @@ Route::middleware(['throttle:120,1', 'sheets.token'])
 
         // Clicked straight out of a spreadsheet cell, so it has to authenticate
         // the same way the feeds do - `sheets.token` reads `?token=`, which a
-        // hyperlink can carry. One image streams as itself, several stream as a
-        // zip. Given a zip can be tens of megabytes, this gets its own, tighter
-        // throttle rather than eating the feeds' 120/min budget.
+        // hyperlink can carry.
+        //
+        // No extra throttle here. A second `throttle` on top of the group's does
+        // not narrow the limit, it doubles the cost: both instances key off
+        // `$request->fingerprint()`, which ignores maxAttempts, so one click
+        // burned two slots and the tighter number won the header. The group's
+        // 120/min is the budget.
         Route::get('/brand-events/{brandEvent}/promotion-images', [SheetsController::class, 'promotionPostImages'])
             ->whereNumber('brandEvent')
-            ->middleware('throttle:30,1')
             ->name('brand-events.promotion-images');
 
         // whereNumber keeps a non-numeric segment from reaching the implicit

@@ -70,7 +70,7 @@ https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsK
 - URL API: `https://api.pmone.id/api/sheets/brand-events`
 - Sheet name: `Brand Events`
 - Berisi: satu baris per keikutsertaan brand di sebuah event (booth, sales PIC, status partisipasi, dsb)
-- Kolom `Promotion Post Image Link` berisi satu link unduhan per booth. Kalau brand itu punya satu gambar promosi, link-nya membuka gambar itu langsung; kalau lebih dari satu, link-nya mengunduh satu file zip berisi semua gambarnya. Booth tanpa gambar isinya `-`. Link-nya sudah membawa token, jadi bisa langsung diklik dari spreadsheet
+- Kolom `Promotion Post Image Link` berisi satu link per booth. Kalau brand itu punya satu gambar promosi, isinya URL gambar aslinya, jadi sekali klik gambarnya langsung terbuka. Kalau gambarnya lebih dari satu, isinya link yang mengunduh satu file zip berisi semua gambar itu. Booth tanpa gambar isinya `-`
 
 **6. Brand Events - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/brand-events`

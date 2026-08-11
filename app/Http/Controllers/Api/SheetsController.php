@@ -516,18 +516,13 @@ class SheetsController extends Controller
                     ->withCount('links'),
                 'event:id,title,slug,start_date,end_date,location,hall,status',
                 'sales:id,name,email,phone',
+                // Needed by promotionImagesLink(): a brand-event with exactly one
+                // image links to that image directly, so the URL has to be at
+                // hand. Eager-loaded, so it stays two queries for the whole feed
+                // rather than one per row.
+                'promotionPosts.media',
             ])
-            ->withCount([
-                'promotionPosts',
-                // Only "does it have any" is needed for the download link, so
-                // count instead of eager-loading media across every brand-event.
-                'promotionPosts as promotion_post_images_count' => fn ($q) => $q->whereHas(
-                    'media',
-                    fn ($m) => $m->where('collection_name', 'post_image'),
-                ),
-                'visits',
-                'clicks',
-            ])
+            ->withCount(['promotionPosts', 'visits', 'clicks'])
             ->orderBy('created_at')
             ->get();
 
@@ -1057,15 +1052,25 @@ class SheetsController extends Controller
     }
 
     /**
-     * Download URL for the brand-event's promotion post images, or '-' when it
-     * has none. The token is embedded so the cell is clickable straight out of
-     * the spreadsheet - which already holds the same token in its feed URLs, so
-     * this exposes nothing new.
+     * What the "Promotion Post Image Link" cell points at.
+     *
+     * A single image links to the image itself - the original upload, not a
+     * resized conversion - so clicking it in the spreadsheet opens the picture
+     * with no round trip through this app and no rate limit in the way. Only a
+     * brand-event with several images needs the endpoint, because only then is
+     * there a zip to build. Empty gives '-', like every other blank cell here.
      */
     private function promotionImagesLink(BrandEvent $brandEvent): string
     {
-        if ((int) ($brandEvent->promotion_post_images_count ?? 0) === 0) {
+        $images = $brandEvent->promotionPosts
+            ->flatMap(fn (PromotionPost $post) => $post->getMedia('post_image'));
+
+        if ($images->isEmpty()) {
             return '-';
+        }
+
+        if ($images->count() === 1) {
+            return $images->first()->getUrl();
         }
 
         return route('sheets.brand-events.promotion-images', [

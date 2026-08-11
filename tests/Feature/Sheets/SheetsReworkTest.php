@@ -409,6 +409,8 @@ it('links the brand-events sheet to a downloadable promotion image bundle', func
     $headings = $response->json('headings');
     $rows = collect($response->json('rows'));
 
+    $withOne->load('promotionPosts.media');
+
     expect($headings)->toContain('Promotion Post Image Link');
 
     $nameCol = array_search('Brand Name', $headings, true);
@@ -416,10 +418,20 @@ it('links the brand-events sheet to a downloadable promotion image bundle', func
     $byBrand = $rows->keyBy(fn ($row) => $row[$nameCol]);
 
     expect($byBrand['No Images'][$linkCol])->toBe('-');
-    expect($byBrand['One Image'][$linkCol])->toContain("/brand-events/{$withOne->id}/promotion-images");
-    expect($byBrand['One Image'][$linkCol])->toContain("token={$this->token}");
 
-    // One image downloads as itself; several arrive zipped.
+    // A lone image points at the original file, not at this app - nothing to zip,
+    // so no reason to make the spreadsheet round-trip through a rate-limited
+    // endpoint. Only the multi-image case needs the download route.
+    $lone = $withOne->promotionPosts->first()->getFirstMedia('post_image');
+    expect($byBrand['One Image'][$linkCol])->toBe($lone->getUrl());
+    expect($byBrand['One Image'][$linkCol])->not->toContain('promotion-images');
+    expect($byBrand['One Image'][$linkCol])->not->toContain('conversions');
+
+    expect($byBrand['Many Images'][$linkCol])->toContain("/brand-events/{$withMany->id}/promotion-images");
+    expect($byBrand['Many Images'][$linkCol])->toContain("token={$this->token}");
+
+    // The endpoint still serves a single image on its own, for anyone who reaches
+    // it directly, and zips the rest.
     $single = $this->get("/api/sheets/brand-events/{$withOne->id}/promotion-images?token={$this->token}")
         ->assertSuccessful();
     expect($single->headers->get('content-type'))->toStartWith('image/');
