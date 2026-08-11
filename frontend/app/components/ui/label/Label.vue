@@ -11,7 +11,7 @@ const props = defineProps<
     /**
      * Renders the required marker inside the label's own inline flow, so a label
      * that wraps keeps the `*` glued to its last word. It replaces the manual
-     * `<span class="text-destructive">*</span>` call sites used to write, which
+     * `<span class="text-destructive-foreground">*</span>` call sites used to write, which
      * was a sibling flex item: the flex row parked it at the far end, vertically
      * centred against two lines of text.
      *
@@ -52,7 +52,7 @@ const delegatedProps = reactiveOmit(props, "class", "required");
            so the line box keeps its height. -->
       <span
         data-slot="label-required"
-        class="text-destructive relative top-[0.15em] ms-1"
+        class="text-destructive-foreground relative top-[0.15em] ms-1"
         aria-hidden="true"
         >*</span
       >

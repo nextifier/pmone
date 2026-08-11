@@ -60,6 +60,12 @@
   --panel-blur: 2px;
   --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
+  /* Page side-by-side (08) */
+  --page-slide-dur: 250ms;
+  --page-slide-distance: 8px;
+  --page-blur: 3px;
+  --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
   /* Avatar group hover (11) — dipakai stack/Stack.vue lewat token, bukan lewat
      class .t-avatar dari skill. */
   --avatar-lift: -4px;
@@ -164,6 +170,60 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .t-panel-slide {
+    transition: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+   Page side-by-side (08) diadaptasi jadi animasi masuk satu leg.
+
+   Snippet aslinya menumpuk dua halaman absolut dan menganimasikan keduanya.
+   Questionnaire tidak bisa begitu: step non-aktif dimatikan dengan atribut
+   `hidden`, jadi display-nya none dan step yang ditinggalkan sudah lenyap dari
+   layout sebelum ada yang sempat dianimasikan. Yang tersisa untuk dianimasikan
+   cuma step yang baru muncul, dan elemen yang baru keluar dari display:none
+   tidak bisa ditransisikan - makanya leg masuknya jadi @keyframes yang dipicu
+   [data-active].
+
+   Arahnya dibaca dari data-direction di root form supaya mundur terasa mundur,
+   menggantikan pasangan data-page-id="1"/"2" milik snippet asli.
+   Dipakai: public-form/PublicFormSteps.vue
+   -------------------------------------------------------------------------- */
+.t-step {
+  --t-step-from-x: var(--page-slide-distance);
+}
+[data-direction="backward"] .t-step {
+  --t-step-from-x: calc(var(--page-slide-distance) * -1);
+}
+.t-step[data-active] {
+  animation: t-step-in var(--page-slide-dur) var(--page-slide-ease) both;
+  will-change: opacity, transform, filter;
+}
+@keyframes t-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--t-step-from-x));
+    filter: blur(var(--page-blur));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+/* Panjang bar progress ikut durasi yang sama, supaya bar dan step bergerak
+   sebagai satu gerakan, bukan dua. */
+.t-step-bar {
+  transition: width var(--page-slide-dur) var(--page-slide-ease);
+  will-change: width;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .t-step[data-active] {
+    animation: none !important;
+  }
+  .t-step-bar {
     transition: none !important;
   }
 }

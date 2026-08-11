@@ -9,7 +9,7 @@
 
     <!-- Error -->
     <div v-else-if="error" class="flex flex-col items-center justify-center py-20">
-      <p class="text-destructive text-sm">Failed to load brand details.</p>
+      <p class="text-destructive-foreground text-sm">Failed to load brand details.</p>
     </div>
 
     <!-- Content -->

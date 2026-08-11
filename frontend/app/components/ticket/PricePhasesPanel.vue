@@ -66,7 +66,7 @@
             v-if="canDelete"
             variant="ghost"
             size="iconSm"
-            class="hover:bg-destructive/10 text-destructive"
+            class="hover:bg-destructive/10 text-destructive-foreground"
             v-tippy="'Delete'"
             @click="confirmDelete(phase)"
           >
@@ -85,16 +85,17 @@
           </h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
-            <div class="space-y-2">
-              <Label for="phase-label">Label</Label>
-              <Input id="phase-label" v-model="form.label" placeholder="Early Bird / Regular / On-site" />
+            <Field :data-invalid="!!errors?.label">
+              <FieldLabel for="phase-label">Label</FieldLabel>
+              <Input id="phase-label" v-model="form.label" placeholder="Early Bird / Regular / On-site" :aria-invalid="!!errors?.label" />
               <FieldError :errors="errors.label" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label>Price</Label>
+            <Field :data-invalid="!!errors?.price">
+              <FieldLabel>Price</FieldLabel>
               <InputGroup>
                 <InputNumber
+                  :aria-invalid="!!errors?.price"
                   v-model="form.price"
                   :min="0"
                   required
@@ -106,11 +107,11 @@
                 </InputGroupAddon>
               </InputGroup>
               <FieldError :errors="errors.price" />
-            </div>
+            </Field>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div class="space-y-2">
-                <Label>Starts at</Label>
+              <Field :data-invalid="!!errors?.starts_at">
+                <FieldLabel>Starts at</FieldLabel>
                 <DatePicker
                   with-time
                   :model-value="form._starts_at_obj"
@@ -118,9 +119,9 @@
                   @update:model-value="(d) => (form._starts_at_obj = d)"
                 />
                 <FieldError :errors="errors.starts_at" />
-              </div>
-              <div class="space-y-2">
-                <Label>Ends at</Label>
+              </Field>
+              <Field :data-invalid="!!errors?.ends_at">
+                <FieldLabel>Ends at</FieldLabel>
                 <DatePicker
                   with-time
                   :model-value="form._ends_at_obj"
@@ -128,17 +129,17 @@
                   @update:model-value="(d) => (form._ends_at_obj = d)"
                 />
                 <FieldError :errors="errors.ends_at" />
-              </div>
+              </Field>
             </div>
 
-            <div class="space-y-2">
-              <Label>Quota</Label>
-              <InputNumber v-model="form.quota" :min="0" placeholder="No quota limit" />
+            <Field :data-invalid="!!errors?.quota">
+              <FieldLabel>Quota</FieldLabel>
+              <InputNumber v-model="form.quota" :min="0" placeholder="No quota limit" :aria-invalid="!!errors?.quota" />
               <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                 Cap the number sold during this phase. Leave empty for no phase quota.
               </p>
               <FieldError :errors="errors.quota" />
-            </div>
+            </Field>
 
             <div class="flex items-center gap-2">
               <Switch id="phase-active" v-model="form.is_active" />
@@ -183,7 +184,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";

@@ -119,7 +119,7 @@
       <!-- Order Closed Banner -->
       <div
         v-if="isBoothPrimary && !canOrder"
-        class="border-destructive/40 bg-destructive/10 text-destructive mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
+        class="border-destructive-foreground/40 bg-destructive/10 text-destructive-foreground mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
         <span>The order form is currently closed. No active order period at this time.</span>
@@ -254,7 +254,7 @@
                 <button
                   v-if="cartItems.length > 0"
                   @click="clearCart"
-                  class="text-muted-foreground hover:text-destructive text-xs sm:text-sm"
+                  class="text-muted-foreground hover:text-destructive-foreground text-xs sm:text-sm"
                 >
                   {{ $t("orderForm.clearAll") }}
                 </button>
@@ -308,7 +308,7 @@
                         </button>
                         <button
                           @click="removeItem(item.event_product_id)"
-                          class="text-muted-foreground hover:text-destructive ml-1"
+                          class="text-muted-foreground hover:text-destructive-foreground ml-1"
                         >
                           <Icon name="hugeicons:delete-02" class="size-4" />
                         </button>

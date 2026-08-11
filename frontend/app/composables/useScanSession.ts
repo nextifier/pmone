@@ -304,8 +304,8 @@ export function useScanSession(eventId: string) {
     invalid: {
       headline: "Invalid ticket",
       icon: "hugeicons:cancel-circle",
-      banner: "bg-destructive/10 border-destructive/20 text-destructive",
-      iconWrap: "bg-destructive/15 text-destructive",
+      banner: "bg-destructive/10 border-destructive-foreground/20 text-destructive-foreground",
+      iconWrap: "bg-destructive/15 text-destructive-foreground",
     },
     queued: {
       headline: "Queued (offline)",
@@ -399,7 +399,7 @@ export function useScanSession(eventId: string) {
       case "queued":
         return "text-muted-foreground";
       default:
-        return "text-destructive";
+        return "text-destructive-foreground";
     }
   };
   const feedFallbackLabel = (entry: any): string =>

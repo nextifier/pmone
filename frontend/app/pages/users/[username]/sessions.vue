@@ -78,7 +78,7 @@
             v-tippy="'Revoke session'"
             variant="ghost"
             size="iconSm"
-            class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+            class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 shrink-0"
             @click="revokeSession(s)"
           >
             <Icon name="lucide:x" class="size-4" />
@@ -125,7 +125,7 @@
             v-tippy="'Revoke token'"
             variant="ghost"
             size="iconSm"
-            class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+            class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 shrink-0"
             @click="revokeToken(t)"
           >
             <Icon name="lucide:x" class="size-4" />

@@ -124,7 +124,7 @@
                 <span>Edit Category</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem class="text-destructive" @click="handleDeleteCategory(category)">
+              <DropdownMenuItem class="text-destructive-foreground" @click="handleDeleteCategory(category)">
                 <Icon name="hugeicons:delete-02" class="size-4" />
                 <span>Delete Category</span>
               </DropdownMenuItem>
@@ -220,7 +220,7 @@
               type="button"
               @click.stop="handleRemovePartner(category, partner)"
               @pointerdown.stop
-              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border border-destructive absolute top-1 right-1 z-30 size-6 rounded-full border opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
+              class="pointer-coarse:bg-background pointer-coarse:text-foreground pointer-coarse:border-border border-destructive-foreground absolute top-1 right-1 z-30 size-6 rounded-full border opacity-0 transition-[opacity,transform] duration-150 ease-out group-hover/logo:opacity-100 active:scale-90 motion-reduce:transition-none pointer-coarse:opacity-100"
               v-tippy="`Remove ${partner.name}`"
             >
               <Icon name="lucide:x" class="size-3.5" />

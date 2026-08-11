@@ -9,8 +9,8 @@
       </div>
 
       <form @submit.prevent="handleSubmit" class="mt-4 space-y-4">
-        <div class="space-y-2">
-          <Label for="title">Title</Label>
+        <Field>
+          <FieldLabel for="title">Title</FieldLabel>
           <Input
             id="title"
             v-model="formData.title"
@@ -18,13 +18,13 @@
             required
             auto-focus
           />
-          <p v-if="errors.title" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.title" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.title[0] }}
           </p>
-        </div>
+        </Field>
 
-        <div class="space-y-2">
-          <Label for="slug">Short Link</Label>
+        <Field :data-invalid="hasUppercase || hasInvalidChars || !!errors.slug || slugAvailable === false">
+          <FieldLabel for="slug">Short Link</FieldLabel>
           <InputGroup>
             <InputGroupAddon>
               <InputGroupText>{{ appDomain }}/</InputGroupText>
@@ -35,7 +35,7 @@
               <Icon
                 v-else-if="hasUppercase || hasInvalidChars || slugAvailable === false"
                 name="lucide:x"
-                class="text-destructive size-4"
+                class="text-destructive-foreground size-4"
               />
               <Icon
                 v-else-if="slugAvailable === true"
@@ -52,7 +52,7 @@
           <FieldError v-else-if="errors.slug" :errors="errors.slug" />
           <p
             v-else-if="slugAvailable === false"
-            class="text-destructive text-xs tracking-tight sm:text-sm"
+            class="text-destructive-foreground text-xs tracking-tight sm:text-sm"
           >
             This short link is already taken.
           </p>
@@ -91,20 +91,20 @@
               </ul>
             </div>
           </div>
-        </div>
+        </Field>
 
-        <div class="space-y-2">
-          <Label for="description">Description</Label>
+        <Field>
+          <FieldLabel for="description">Description</FieldLabel>
           <Textarea
             id="description"
             v-model="formData.description"
             placeholder="Optional description"
             rows="3"
           />
-          <p v-if="errors.description" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.description" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.description[0] }}
           </p>
-        </div>
+        </Field>
 
         <div class="flex justify-end gap-2">
           <Button variant="outline" type="button" @click="isOpen = false">Cancel</Button>

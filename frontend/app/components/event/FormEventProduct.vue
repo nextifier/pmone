@@ -13,7 +13,7 @@
           </SelectItem>
         </SelectContent>
       </Select>
-      <p v-if="errors.category_id" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.category_id" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.category_id) ? errors.category_id[0] : errors.category_id }}
       </p>
     </div>
@@ -22,7 +22,7 @@
     <div class="space-y-2">
       <Label for="name">Name</Label>
       <Input id="name" v-model="form.name" placeholder="Product name" required />
-      <p v-if="errors.name" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.name" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.name) ? errors.name[0] : errors.name }}
       </p>
     </div>
@@ -36,7 +36,7 @@
         placeholder="Optional description"
         rows="3"
       />
-      <p v-if="errors.description" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.description" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.description) ? errors.description[0] : errors.description }}
       </p>
     </div>
@@ -59,7 +59,7 @@
             class="cn-input-group-input flex-1"
           />
         </InputGroup>
-        <p v-if="errors.price" class="text-destructive mt-1 text-xs">
+        <p v-if="errors.price" class="text-destructive-foreground mt-1 text-xs">
           {{ Array.isArray(errors.price) ? errors.price[0] : errors.price }}
         </p>
       </div>
@@ -80,7 +80,7 @@
             class="cn-input-group-input flex-1"
           />
         </InputGroup>
-        <p v-if="errors.price_usd" class="text-destructive mt-1 text-xs">
+        <p v-if="errors.price_usd" class="text-destructive-foreground mt-1 text-xs">
           {{ Array.isArray(errors.price_usd) ? errors.price_usd[0] : errors.price_usd }}
         </p>
       </div>
@@ -100,7 +100,7 @@
             <SelectItem value="kWh">kWh</SelectItem>
           </SelectContent>
         </Select>
-        <p v-if="errors.unit" class="text-destructive mt-1 text-xs">
+        <p v-if="errors.unit" class="text-destructive-foreground mt-1 text-xs">
           {{ Array.isArray(errors.unit) ? errors.unit[0] : errors.unit }}
         </p>
       </div>
@@ -126,7 +126,7 @@
           </Label>
         </div>
       </div>
-      <p v-if="errors.booth_types" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.booth_types" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.booth_types) ? errors.booth_types[0] : errors.booth_types }}
       </p>
     </div>
@@ -141,7 +141,7 @@
         v-model:delete-flag="deleteFlags.product_image"
         container-class="relative isolate aspect-square max-w-48"
       />
-      <p v-if="errors.tmp_product_image" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.tmp_product_image" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.tmp_product_image) ? errors.tmp_product_image[0] : errors.tmp_product_image }}
       </p>
     </div>

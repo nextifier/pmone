@@ -8,7 +8,7 @@
     <!-- Error -->
     <Empty v-else-if="error" class="border">
       <EmptyMedia variant="icon">
-        <Icon name="hugeicons:alert-02" class="text-destructive size-6" />
+        <Icon name="hugeicons:alert-02" class="text-destructive-foreground size-6" />
       </EmptyMedia>
       <EmptyHeader>
         <EmptyTitle>Couldn't load your tickets</EmptyTitle>

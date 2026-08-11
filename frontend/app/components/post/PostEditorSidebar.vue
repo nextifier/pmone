@@ -41,7 +41,7 @@
               </div>
               <div
                 v-else-if="editor.slugAvailable.value === false"
-                class="text-destructive flex items-center gap-1.5 text-xs"
+                class="text-destructive-foreground flex items-center gap-1.5 text-xs"
               >
                 <Icon name="lucide:x-circle" class="size-3" />
                 Slug is taken
@@ -191,7 +191,7 @@
                     <button
                       type="button"
                       @click="editor.removeAuthor(index)"
-                      class="hover:bg-destructive/10 hover:text-destructive rounded p-1 transition"
+                      class="hover:bg-destructive/10 hover:text-destructive-foreground rounded p-1 transition"
                     >
                       <Icon name="lucide:x" class="size-3" />
                     </button>
@@ -283,13 +283,13 @@
           <!-- Delete Section (Edit mode only) -->
           <template v-if="editor.mode.value === 'edit'">
             <div>
-              <SidebarGroupLabel class="text-destructive px-0 text-xs font-medium tracking-tight">
+              <SidebarGroupLabel class="text-destructive-foreground px-0 text-xs font-medium tracking-tight">
                 Danger Zone
               </SidebarGroupLabel>
               <button
                 type="button"
                 @click="editor.deletePost"
-                class="border-destructive text-destructive hover:bg-destructive flex w-full items-center justify-center gap-1 rounded-lg border py-2 text-sm font-medium tracking-tight transition hover:text-white"
+                class="border-destructive-foreground text-destructive-foreground hover:bg-destructive flex w-full items-center justify-center gap-1 rounded-lg border py-2 text-sm font-medium tracking-tight transition hover:text-white"
               >
                 <Icon name="hugeicons:delete-01" class="size-4" />
                 Delete Post

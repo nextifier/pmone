@@ -13,19 +13,19 @@
     </p>
 
     <div class="bg-card mt-6 space-y-4 rounded-xl border p-4 sm:p-5">
-      <div class="space-y-2">
-        <Label for="to">Recipient phone number</Label>
-        <InputPhone id="to" v-model="form.to" required />
+      <Field :data-invalid="!!errors?.to">
+        <FieldLabel for="to">Recipient phone number</FieldLabel>
+        <InputPhone id="to" v-model="form.to" required :aria-invalid="!!errors?.to" />
         <p class="text-muted-foreground text-xs">
           The number is normalized server-side (08xxx becomes 628xxx).
         </p>
         <FieldError :errors="errors.to" />
-      </div>
+      </Field>
 
-      <div class="space-y-2">
-        <Label for="template">Template</Label>
+      <Field :data-invalid="!!errors?.template">
+        <FieldLabel for="template">Template</FieldLabel>
         <Select v-model="form.template">
-          <SelectTrigger id="template">
+          <SelectTrigger id="template" :aria-invalid="!!errors?.template">
             <SelectValue placeholder="Select a template" />
           </SelectTrigger>
           <SelectContent>
@@ -40,16 +40,16 @@
           ID work before your custom template is live.
         </p>
         <FieldError :errors="errors.template" />
-      </div>
+      </Field>
 
       <div v-if="activeTemplate.params.length" class="grid grid-cols-1 gap-y-4">
-        <div v-for="(param, index) in activeTemplate.params" :key="index" class="space-y-2">
-          <Label :for="`param-${index}`">
+        <Field v-for="(param, index) in activeTemplate.params" :key="index">
+          <FieldLabel :for="`param-${index}`">
             {{ param.label }}
             <span class="text-muted-foreground">{{ param.token }}</span>
-          </Label>
+          </FieldLabel>
           <Input :id="`param-${index}`" v-model="form.params[index]" :placeholder="param.placeholder" />
-        </div>
+        </Field>
       </div>
 
       <div>
@@ -74,7 +74,7 @@
 
       <div
         v-if="failure"
-        class="bg-destructive/10 border-destructive/20 text-destructive rounded-lg border p-4"
+        class="bg-destructive/10 border-destructive-foreground/20 text-destructive-foreground rounded-lg border p-4"
       >
         <p class="text-sm font-medium tracking-tight">{{ failure.message }}</p>
         <pre v-if="failure.error" class="mt-2 overflow-x-auto text-xs tracking-tight">{{

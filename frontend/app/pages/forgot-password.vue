@@ -14,9 +14,10 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="grid gap-2.5">
-              <Label for="email">{{ $t('auth.email') }}</Label>
+            <Field :data-invalid="!!errors?.email">
+              <FieldLabel for="email">{{ $t('auth.email') }}</FieldLabel>
               <Input
+                :aria-invalid="!!errors?.email"
                 v-model="form.email"
                 type="email"
                 name="email"
@@ -26,7 +27,7 @@
                 :disabled="resetEmailSent"
               />
               <FieldError v-if="errors?.email" :errors="errors.email" />
-            </div>
+            </Field>
 
             <button
               type="submit"

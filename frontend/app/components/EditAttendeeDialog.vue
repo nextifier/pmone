@@ -19,9 +19,10 @@
         </div>
 
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="attendee-name">Full Name</Label>
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="attendee-name">Full Name</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.name"
               id="attendee-name"
               v-model="form.name"
               type="text"
@@ -30,11 +31,12 @@
               autocomplete="off"
             />
             <FieldError :errors="errors.name" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="attendee-email">Email</Label>
+          <Field :data-invalid="!!errors?.email">
+            <FieldLabel for="attendee-email">Email</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.email"
               id="attendee-email"
               v-model="form.email"
               type="email"
@@ -42,18 +44,18 @@
               autocomplete="off"
             />
             <FieldError :errors="errors.email" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="attendee-phone">Phone</Label>
+          <Field :data-invalid="!!errors?.phone">
+            <FieldLabel for="attendee-phone">Phone</FieldLabel>
             <div
               :aria-disabled="attendee?.is_checked_in || undefined"
               :class="attendee?.is_checked_in ? 'pointer-events-none opacity-50' : ''"
             >
-              <InputPhone id="attendee-phone" v-model="form.phone" />
+              <InputPhone id="attendee-phone" v-model="form.phone" :aria-invalid="!!errors?.phone" />
             </div>
             <FieldError :errors="errors.phone" />
-          </div>
+          </Field>
         </div>
 
         <div class="flex justify-end gap-2">
@@ -69,7 +71,7 @@
 </template>
 
 <script setup>
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { toast } from "vue-sonner";
 
 const props = defineProps({

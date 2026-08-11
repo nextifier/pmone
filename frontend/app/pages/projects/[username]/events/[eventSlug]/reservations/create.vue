@@ -32,7 +32,7 @@
               </SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.hotel_id" class="text-destructive text-xs sm:text-sm">{{ errors.hotel_id[0] }}</p>
+          <p v-if="errors.hotel_id" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.hotel_id[0] }}</p>
         </div>
       </section>
 
@@ -45,17 +45,17 @@
           <div class="space-y-2">
             <Label>Name</Label>
             <Input v-model="form.guest_name" required />
-            <p v-if="errors.guest_name" class="text-destructive text-xs sm:text-sm">{{ errors.guest_name[0] }}</p>
+            <p v-if="errors.guest_name" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.guest_name[0] }}</p>
           </div>
           <div class="space-y-2">
             <Label>Email</Label>
             <Input v-model="form.guest_email" type="email" required />
-            <p v-if="errors.guest_email" class="text-destructive text-xs sm:text-sm">{{ errors.guest_email[0] }}</p>
+            <p v-if="errors.guest_email" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.guest_email[0] }}</p>
           </div>
           <div class="space-y-2">
             <Label>Phone</Label>
             <Input v-model="form.guest_phone" required />
-            <p v-if="errors.guest_phone" class="text-destructive text-xs sm:text-sm">{{ errors.guest_phone[0] }}</p>
+            <p v-if="errors.guest_phone" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.guest_phone[0] }}</p>
           </div>
           <div class="grid grid-cols-3 gap-2">
             <div class="space-y-2 col-span-1">
@@ -71,7 +71,7 @@
             <div class="space-y-2 col-span-2">
               <Label>ID Number</Label>
               <Input v-model="form.guest_identity_number" required />
-              <p v-if="errors.guest_identity_number" class="text-destructive text-xs sm:text-sm">{{ errors.guest_identity_number[0] }}</p>
+              <p v-if="errors.guest_identity_number" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.guest_identity_number[0] }}</p>
             </div>
           </div>
           <div class="space-y-2">
@@ -108,7 +108,7 @@
         <div v-for="(item, idx) in form.items" :key="idx" class="rounded-md border bg-muted/30 p-3 space-y-3">
           <div class="flex items-start justify-between gap-2">
             <div class="text-sm font-medium tracking-tight">Room #{{ idx + 1 }}</div>
-            <button type="button" class="text-destructive hover:bg-destructive/10 inline-flex size-7 items-center justify-center rounded" @click="removeItem(idx)" title="Remove">
+            <button type="button" class="text-destructive-foreground hover:bg-destructive/10 inline-flex size-7 items-center justify-center rounded" @click="removeItem(idx)" title="Remove">
               <Icon name="lucide:trash" class="size-3.5" />
             </button>
           </div>
@@ -126,7 +126,7 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <p v-if="errors[`items.${idx}.room_type_id`]" class="text-destructive text-xs sm:text-sm">{{ errors[`items.${idx}.room_type_id`][0] }}</p>
+              <p v-if="errors[`items.${idx}.room_type_id`]" class="text-destructive-foreground text-xs sm:text-sm">{{ errors[`items.${idx}.room_type_id`][0] }}</p>
             </div>
             <div class="space-y-2">
               <Label>Check-in</Label>
@@ -135,7 +135,7 @@
                 placeholder="Pick check-in date"
                 @update:model-value="(d) => (item.check_in_date = d ? toLocalDateString(d) : '')"
               />
-              <p v-if="errors[`items.${idx}.check_in_date`]" class="text-destructive text-xs sm:text-sm">{{ errors[`items.${idx}.check_in_date`][0] }}</p>
+              <p v-if="errors[`items.${idx}.check_in_date`]" class="text-destructive-foreground text-xs sm:text-sm">{{ errors[`items.${idx}.check_in_date`][0] }}</p>
             </div>
             <div class="space-y-2">
               <Label>Check-out</Label>
@@ -145,7 +145,7 @@
                 :min="parseLocalDateString(item.check_in_date)"
                 @update:model-value="(d) => (item.check_out_date = d ? toLocalDateString(d) : '')"
               />
-              <p v-if="errors[`items.${idx}.check_out_date`]" class="text-destructive text-xs sm:text-sm">{{ errors[`items.${idx}.check_out_date`][0] }}</p>
+              <p v-if="errors[`items.${idx}.check_out_date`]" class="text-destructive-foreground text-xs sm:text-sm">{{ errors[`items.${idx}.check_out_date`][0] }}</p>
             </div>
             <div class="space-y-2">
               <Label>Quantity</Label>
@@ -163,7 +163,7 @@
                 maxlength="1000"
                 placeholder="e.g. extra bed, high floor, late check-in"
               />
-              <p v-if="errors[`items.${idx}.notes`]" class="text-destructive text-xs sm:text-sm">
+              <p v-if="errors[`items.${idx}.notes`]" class="text-destructive-foreground text-xs sm:text-sm">
                 {{ errors[`items.${idx}.notes`][0] }}
               </p>
             </div>
@@ -185,7 +185,7 @@
         <div v-for="(t, idx) in form.transfers" :key="idx" class="rounded-md border bg-muted/30 p-3 space-y-3">
           <div class="flex items-start justify-between gap-2">
             <div class="text-sm font-medium tracking-tight">Transfer #{{ idx + 1 }}</div>
-            <button type="button" class="text-destructive hover:bg-destructive/10 inline-flex size-7 items-center justify-center rounded" @click="removeTransfer(idx)">
+            <button type="button" class="text-destructive-foreground hover:bg-destructive/10 inline-flex size-7 items-center justify-center rounded" @click="removeTransfer(idx)">
               <Icon name="lucide:trash" class="size-3.5" />
             </button>
           </div>
@@ -250,7 +250,7 @@
               />
               <p
                 v-if="errors[`transfers.${idx}.note`]"
-                class="text-destructive text-xs sm:text-sm"
+                class="text-destructive-foreground text-xs sm:text-sm"
               >
                 {{ errors[`transfers.${idx}.note`][0] }}
               </p>

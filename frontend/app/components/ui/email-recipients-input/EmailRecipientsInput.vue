@@ -15,7 +15,7 @@
           variant="ghost"
           size="icon"
           aria-label="Remove email"
-          class="text-destructive hover:text-destructive/80 shrink-0"
+          class="text-destructive-foreground hover:text-destructive-foreground/80 shrink-0"
           @click="remove(index)"
         >
           <Icon name="hugeicons:delete-01" class="size-4" />

@@ -278,7 +278,7 @@ const logColorClass = (level) => {
     case "warn":
       return "text-warning-foreground";
     case "error":
-      return "text-destructive";
+      return "text-destructive-foreground";
     case "data":
       return "text-info-foreground";
     default:

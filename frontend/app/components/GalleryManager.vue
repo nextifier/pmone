@@ -46,7 +46,7 @@
               name="hugeicons:checkmark-circle-02"
               class="text-success-foreground size-4"
             />
-            <Icon v-else name="hugeicons:alert-circle" class="text-destructive size-4" />
+            <Icon v-else name="hugeicons:alert-circle" class="text-destructive-foreground size-4" />
           </span>
           <span>{{ statusLabel }}</span>
         </div>

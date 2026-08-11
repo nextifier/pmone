@@ -219,7 +219,7 @@
                   <button
                     type="button"
                     @click="removeRecipient(form.hotel_notification.to, index)"
-                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                   >
                     <Icon name="hugeicons:delete-01" class="size-4" />
                   </button>
@@ -257,7 +257,7 @@
                   <button
                     type="button"
                     @click="removeRecipient(form.hotel_notification.cc, index)"
-                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                   >
                     <Icon name="hugeicons:delete-01" class="size-4" />
                   </button>
@@ -295,7 +295,7 @@
                   <button
                     type="button"
                     @click="removeRecipient(form.hotel_notification.bcc, index)"
-                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                   >
                     <Icon name="hugeicons:delete-01" class="size-4" />
                   </button>

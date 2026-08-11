@@ -12,8 +12,8 @@
 
       <form @submit.prevent="handleSubmit" class="mt-4 space-y-4">
         <!-- Destination URL -->
-        <div class="space-y-2">
-          <Label for="destination_url">Destination URL</Label>
+        <Field>
+          <FieldLabel for="destination_url">Destination URL</FieldLabel>
           <Input
             id="destination_url"
             v-model="formData.destination_url"
@@ -22,14 +22,14 @@
             required
             auto-focus
           />
-          <p v-if="errors.destination_url" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.destination_url" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.destination_url[0] }}
           </p>
-        </div>
+        </Field>
 
         <!-- Short Link Slug -->
-        <div class="space-y-2">
-          <Label for="slug">Short Link</Label>
+        <Field :data-invalid="hasUppercase || hasInvalidChars || !!errors.slug || slugAvailable === false">
+          <FieldLabel for="slug">Short Link</FieldLabel>
           <InputGroup>
             <InputGroupAddon>
               <InputGroupText>{{ appDomain }}/</InputGroupText>
@@ -41,7 +41,7 @@
               <Icon
                 v-else-if="hasUppercase || hasInvalidChars || slugAvailable === false"
                 name="lucide:x"
-                class="text-destructive size-4"
+                class="text-destructive-foreground size-4"
               />
               <Icon
                 v-else-if="slugAvailable === true"
@@ -58,7 +58,7 @@
           <FieldError v-else-if="errors.slug" :errors="errors.slug" />
           <p
             v-else-if="slugAvailable === false"
-            class="text-destructive text-xs tracking-tight sm:text-sm"
+            class="text-destructive-foreground text-xs tracking-tight sm:text-sm"
           >
             This short link is already taken.
           </p>
@@ -97,7 +97,7 @@
               </ul>
             </div>
           </div>
-        </div>
+        </Field>
 
         <div class="flex justify-end gap-2">
           <Button variant="outline" type="button" @click="isOpen = false">Cancel</Button>

@@ -20,22 +20,23 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="grid gap-2.5">
-              <Label for="name">{{ $t('auth.name') }}</Label>
-              <Input v-model="form.name" type="text" name="name" id="name" required autofocus />
+            <Field :data-invalid="!!errors?.name">
+              <FieldLabel for="name">{{ $t('auth.name') }}</FieldLabel>
+              <Input v-model="form.name" type="text" name="name" id="name" required autofocus :aria-invalid="!!errors?.name" />
               <FieldError v-if="errors?.name" :errors="errors.name" />
-            </div>
+            </Field>
 
-            <div class="grid gap-2.5">
-              <Label for="email">{{ $t('auth.email') }}</Label>
-              <Input v-model="form.email" type="email" name="email" id="email" required />
+            <Field :data-invalid="!!errors?.email">
+              <FieldLabel for="email">{{ $t('auth.email') }}</FieldLabel>
+              <Input v-model="form.email" type="email" name="email" id="email" required :aria-invalid="!!errors?.email" />
               <FieldError v-if="errors?.email" :errors="errors.email" />
-            </div>
+            </Field>
 
-            <div class="grid gap-2.5">
-              <Label for="password">{{ $t('auth.password') }}</Label>
+            <Field :data-invalid="!!errors?.password">
+              <FieldLabel for="password">{{ $t('auth.password') }}</FieldLabel>
 
               <InputPassword
+                :aria-invalid="!!errors?.password"
                 v-model="form.password"
                 name="password"
                 id="password"
@@ -44,10 +45,10 @@
                 :hide-label="$t('auth.hidePassword')"
               />
               <FieldError v-if="errors?.password" :errors="errors.password" />
-            </div>
+            </Field>
 
-            <div v-if="enablePasswordConfirmation" class="grid gap-2.5">
-              <Label for="password_confirmation">{{ $t('auth.confirmPassword') }}</Label>
+            <Field v-if="enablePasswordConfirmation">
+              <FieldLabel for="password_confirmation">{{ $t('auth.confirmPassword') }}</FieldLabel>
 
               <InputPassword
                 v-model="form.password_confirmation"
@@ -57,7 +58,7 @@
                 :show-label="$t('auth.showPassword')"
                 :hide-label="$t('auth.hidePassword')"
               />
-            </div>
+            </Field>
 
             <button
               type="submit"

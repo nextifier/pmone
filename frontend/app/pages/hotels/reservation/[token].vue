@@ -181,7 +181,7 @@
               <Icon v-else name="hugeicons:reload" class="size-4 shrink-0" />
               {{ retrying ? "Generating payment link..." : "Retry payment link" }}
             </Button>
-            <p v-if="retryError" class="text-destructive text-xs tracking-tight sm:text-sm">
+            <p v-if="retryError" class="text-destructive-foreground text-xs tracking-tight sm:text-sm">
               {{ retryError }}
             </p>
           </template>

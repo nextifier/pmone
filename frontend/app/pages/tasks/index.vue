@@ -114,7 +114,7 @@
 
     <!-- Error State -->
     <div v-else-if="error" class="border-border bg-card rounded-lg border p-12 text-center">
-      <Icon name="hugeicons:alert-02" class="text-destructive mx-auto mb-3 size-12" />
+      <Icon name="hugeicons:alert-02" class="text-destructive-foreground mx-auto mb-3 size-12" />
       <p class="text-muted-foreground text-sm">Failed to load tasks. Please try again.</p>
       <Button variant="outline" size="sm" class="mt-4" @click="refresh">
         <Icon name="hugeicons:reload" class="size-4" />

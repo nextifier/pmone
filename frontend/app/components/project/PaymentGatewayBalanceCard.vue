@@ -23,8 +23,8 @@
       <Skeleton v-if="loading && !balance" class="h-7 w-36" />
 
       <div v-else-if="error" class="flex items-start gap-x-1.5">
-        <Icon name="hugeicons:alert-circle" class="text-destructive mt-0.5 size-4 shrink-0" />
-        <p class="text-destructive text-sm tracking-tight">{{ error }}</p>
+        <Icon name="hugeicons:alert-circle" class="text-destructive-foreground mt-0.5 size-4 shrink-0" />
+        <p class="text-destructive-foreground text-sm tracking-tight">{{ error }}</p>
       </div>
 
       <div v-else-if="balance">

@@ -20,18 +20,18 @@
           </div>
 
           <form @submit.prevent="submit" class="grid gap-6">
-            <div class="grid gap-2.5">
-              <Label for="email">{{ $t('auth.email') }}</Label>
-              <Input v-model="form.email" type="email" name="email" id="email" required autofocus />
+            <Field :data-invalid="!!errors?.email">
+              <FieldLabel for="email">{{ $t('auth.email') }}</FieldLabel>
+              <Input v-model="form.email" type="email" name="email" id="email" required autofocus :aria-invalid="!!errors?.email" />
               <FieldError v-if="errors?.email" :errors="errors.email" />
-            </div>
-            <div class="grid gap-2.5">
+            </Field>
+            <Field :data-invalid="!!errors?.password">
               <div class="flex items-center justify-between gap-3">
-                <Label for="password">{{ $t('auth.password') }}</Label>
+                <FieldLabel for="password">{{ $t('auth.password') }}</FieldLabel>
 
                 <NuxtLink
                   to="/forgot-password"
-                  class="text-sm tracking-tight hover:underline"
+                  class="text-foreground text-sm tracking-tight hover:underline"
                   tabindex="-1"
                   >{{ $t('auth.forgotPassword') }}</NuxtLink
                 >
@@ -42,11 +42,12 @@
                 name="password"
                 id="password"
                 required
+                :aria-invalid="!!errors?.password"
                 :show-label="$t('auth.showPassword')"
                 :hide-label="$t('auth.hidePassword')"
               />
               <FieldError v-if="errors?.password" :errors="errors.password" />
-            </div>
+            </Field>
 
             <button
               type="submit"

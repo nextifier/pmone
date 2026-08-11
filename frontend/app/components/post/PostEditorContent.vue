@@ -14,14 +14,15 @@
         </Tabs>
 
         <!-- Title -->
-        <div class="space-y-2">
+        <Field :data-invalid="!!localizedErrors('title')">
           <DevOnly>
             <div v-if="editor.postId.value" class="text-foreground text-sm font-medium">
               ID: {{ editor.postId.value }}
             </div>
           </DevOnly>
-          <Label for="title" class="sr-only">Title</Label>
+          <FieldLabel for="title" class="sr-only">Title</FieldLabel>
           <Textarea
+            :aria-invalid="!!localizedErrors('title')"
             id="title"
             v-model="titleField"
             required
@@ -30,17 +31,17 @@
             class="placeholder:text-muted-foreground/50 leading-tighter w-full resize-none border-0 bg-transparent px-0 text-3xl leading-tight! font-semibold tracking-tighter shadow-none outline-none focus-visible:ring-0 lg:text-4xl"
           />
           <FieldError :errors="localizedErrors('title')" />
-        </div>
+        </Field>
 
         <!-- Featured Image -->
-        <div class="space-y-4">
+        <Field class="gap-4" :data-invalid="!!editor.errors.value.tmp_featured_image">
           <div class="flex items-center justify-between">
-            <Label class="text-muted-foreground text-sm font-medium">Featured Image</Label>
+            <FieldLabel class="text-muted-foreground text-sm font-medium">Featured Image</FieldLabel>
             <button
               v-if="editor.imageFiles.value.featured_image?.length > 0"
               type="button"
               @click="clearFeaturedImage"
-              class="text-muted-foreground hover:text-destructive text-xs transition"
+              class="text-muted-foreground hover:text-destructive-foreground text-xs transition"
             >
               Remove
             </button>
@@ -56,7 +57,7 @@
           <FieldError :errors="editor.errors.value.tmp_featured_image" />
 
           <!-- Featured Image Caption -->
-          <div v-if="showCaptionInput" class="!mt-2">
+          <Field v-if="showCaptionInput" class="!mt-2" :data-invalid="!!editor.errors.value.featured_image_caption">
             <input
               id="featured_image_caption"
               v-model="editor.form.featured_image_caption"
@@ -66,19 +67,19 @@
               class="text-muted-foreground w-full border-none bg-transparent text-center text-sm outline-none placeholder:text-muted-foreground/50 focus:text-foreground"
             />
             <FieldError :errors="editor.errors.value.featured_image_caption" />
-          </div>
-        </div>
+          </Field>
+        </Field>
 
         <!-- Content Body -->
-        <div class="space-y-2">
-          <Label class="sr-only">Content</Label>
+        <Field :data-invalid="!!localizedErrors('content')">
+          <FieldLabel class="sr-only">Content</FieldLabel>
           <TipTapEditor
             v-model="contentField"
             :post-id="editor.postId.value"
             placeholder="Start writing your post content"
           />
           <FieldError :errors="localizedErrors('content')" />
-        </div>
+        </Field>
       </div>
     </TabsContent>
 
@@ -224,7 +225,6 @@
 <script setup lang="ts">
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { usePostEditor, POST_LOCALES } from "@/composables/usePostEditor";

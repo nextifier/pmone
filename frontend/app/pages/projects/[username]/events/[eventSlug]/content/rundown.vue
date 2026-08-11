@@ -433,7 +433,7 @@
                 v-tippy="'Delete forever'"
                 @click="forceDeleteItem(item)"
               >
-                <Icon name="hugeicons:delete-01" class="text-destructive size-3.5" />
+                <Icon name="hugeicons:delete-01" class="text-destructive-foreground size-3.5" />
               </button>
             </div>
           </div>

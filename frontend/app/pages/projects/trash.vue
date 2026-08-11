@@ -22,7 +22,7 @@
           v-if="isAdminOrMaster"
           @click="openEmptyTrashDialog"
           :disabled="filteredProjects.length === 0"
-          class="bg-destructive/10 hover:bg-destructive/20 text-destructive flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
+          class="bg-destructive/10 hover:bg-destructive/20 text-destructive-foreground flex items-center gap-x-1.5 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon name="lucide:trash" class="-ml-1 size-4 shrink-0" />
           <span>Empty Trash</span>
@@ -52,7 +52,7 @@
 
         <button
           @click="openDeleteDialog(project)"
-          class="hover:bg-destructive/10 text-destructive flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
+          class="hover:bg-destructive/10 text-destructive-foreground flex w-full items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
         >
           <Icon name="lucide:trash" class="size-4 shrink-0" />
           <span>Delete Permanently</span>

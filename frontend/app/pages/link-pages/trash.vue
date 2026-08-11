@@ -574,7 +574,7 @@ const RowActions = defineComponent({
                               "button",
                               {
                                 class:
-                                  "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                                  "hover:bg-destructive/10 text-destructive-foreground rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
                                 onClick: () => (deleteDialogOpen.value = true),
                               },
                               [

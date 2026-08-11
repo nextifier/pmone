@@ -39,7 +39,7 @@ onBeforeUnmount(unregisterError);
     :data-invalid="item.invalid.value ? '' : undefined"
     :hidden="!item.invalid.value"
     :role="item.invalid.value ? 'alert' : undefined"
-    :class="cn('text-destructive text-sm', props.class)"
+    :class="cn('text-destructive-foreground text-sm', props.class)"
   >
     <slot :invalid="item.invalid.value">
       {{ fallback }}

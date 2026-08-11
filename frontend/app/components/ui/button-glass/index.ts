@@ -21,7 +21,7 @@ export const buttonVariants = cva(
     // States
     "active:transform-[rotate3d(1,0,0,25deg)] focus-visible:border-ring focus-visible:ring-ring focus-visible:ring-2",
     // Validation
-    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+    "aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground",
     // SVG
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
     // Shadows

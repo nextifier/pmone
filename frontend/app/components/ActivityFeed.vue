@@ -54,7 +54,7 @@
       v-else-if="error"
       class="text-muted-foreground flex flex-col items-center justify-center py-12 text-center text-sm tracking-tight"
     >
-      <Icon name="hugeicons:alert-02" class="text-destructive mb-2 size-8 shrink-0 opacity-70" />
+      <Icon name="hugeicons:alert-02" class="text-destructive-foreground mb-2 size-8 shrink-0 opacity-70" />
       <span>Failed to load activity. Please try again.</span>
       <Button variant="outline" size="sm" class="mt-3 active:scale-98" @click="$emit('retry')">
         <Icon name="hugeicons:reload" class="size-4 shrink-0" />

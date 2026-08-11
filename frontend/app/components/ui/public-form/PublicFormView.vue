@@ -103,70 +103,25 @@
 
         <div class="bg-border my-6 h-px sm:my-8" />
 
-        <form @submit.prevent="handleSubmit" class="space-y-7">
-          <div
-            v-if="formErrors._general"
-            class="bg-destructive/10 text-destructive rounded-lg px-4 py-3 text-sm tracking-tight"
-          >
-            {{ formErrors._general }}
-          </div>
-
-          <!-- Honeypot: invisible to humans, bots tend to fill it -->
-          <div class="absolute top-auto -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
-            <label for="hp_website">Website</label>
-            <input
-              id="hp_website"
-              v-model="honeypotWebsite"
-              type="text"
-              name="website"
-              tabindex="-1"
-              autocomplete="off"
-            />
-          </div>
-
-          <div v-if="form.settings?.require_email" class="space-y-2.5">
-            <Label for="respondent_email" required class="text-base leading-snug">
-              {{ t("forms.emailLabel") }}
-            </Label>
-            <Input
-              id="respondent_email"
-              v-model="respondentEmail"
-              type="email"
-              autocomplete="email"
-              placeholder="your@email.com"
-              :class="{ 'border-destructive': formErrors.respondent_email }"
-            />
-            <FieldError
-              :errors="formErrors.respondent_email ? [formErrors.respondent_email] : []"
-            />
-          </div>
-
-          <CustomFieldRenderer
-            v-for="(field, index) in sortedFields"
-            :key="field.ulid"
-            :data-field-error="formErrors[`responses.${field.ulid}`] ? field.ulid : undefined"
-            :field="field"
-            :is-first="index === 0"
-            :locale="locale"
-            label-size="lg"
-            :model-value="responses[field.ulid]"
-            :error="firstFieldError(formErrors, field.ulid)"
-            :upload-handler="uploadHandlers.uploadHandler"
-            :revert-handler="uploadHandlers.revertHandler"
-            @update:model-value="responses[field.ulid] = $event"
-            @uploading="handleUploading"
-          />
-
-          <Button
-            type="submit"
-            :disabled="submitting || uploadsInProgress > 0"
-            class="w-full"
-            size="lg"
-          >
-            <Spinner v-if="submitting" class="size-4" />
-            <span>{{ submitLabel }}</span>
-          </Button>
-        </form>
+        <!-- Two bodies, swapped at the form element rather than inside it:
+             Questionnaire renders its own <form> and forms cannot nest. -->
+        <component
+          :is="isMultiStep ? PublicFormSteps : PublicFormFields"
+          v-model:respondent-email="respondentEmail"
+          v-model:honeypot="honeypotWebsite"
+          :form="form"
+          :fields="sortedFields"
+          :responses="responses"
+          :form-errors="formErrors"
+          :locale="locale"
+          :upload-handlers="uploadHandlers"
+          :submitting="submitting"
+          :uploads-in-progress="uploadsInProgress"
+          :submit-label="submitLabel"
+          @update:response="setResponse"
+          @uploading="handleUploading"
+          @submit="handleSubmit"
+        />
       </div>
     </div>
   </div>
@@ -180,27 +135,22 @@ import {
   availableFormLocales,
   buildCoverSrcset,
   duplicateModeFor,
-  firstFieldError,
   generateHoneypotToken,
   isClosedError,
   loadVisitorId,
   mapValidationErrors,
   sortFormFields,
 } from "./core";
+import PublicFormFields from "./PublicFormFields.vue";
+import PublicFormSteps from "./PublicFormSteps.vue";
 import { BlurImage } from "../blur-image";
-import { Button } from "../button";
 import {
   prefillValueFor as coercePrefill,
-  CustomFieldRenderer,
   defaultValueFor,
   supportsPrefill,
 } from "../custom-field";
-import { FieldError } from "../field";
-import { Input } from "../input";
-import { Label } from "../label";
 import { Result } from "../result";
 import { Skeleton } from "../skeleton";
-import { Spinner } from "../spinner";
 
 /**
  * The whole public form surface, shared verbatim between pmone.id/f/{slug} and
@@ -240,6 +190,14 @@ const honeypotToken = ref("");
 
 const sortedFields = computed(() => sortFormFields(props.form?.fields));
 const coverSrcset = computed(() => buildCoverSrcset(props.form?.cover_image));
+
+// Absent on forms created before the setting existed, which is exactly the
+// single-page behaviour they already had.
+const isMultiStep = computed(() => props.form?.settings?.layout === "multi_step");
+
+const setResponse = (ulid, value) => {
+  responses.value[ulid] = value;
+};
 
 /* ----- Description clamp ----- */
 /**
@@ -494,8 +452,12 @@ watch(
   { immediate: true }
 );
 
-// Scroll the first invalid field into view after server-side validation
+// Scroll the first invalid field into view after server-side validation. In
+// multi-step the offending field is usually not even on screen, so that body
+// switches to it instead and there is nothing to scroll to.
 const scrollToFirstError = async () => {
+  if (isMultiStep.value) return;
+
   await nextTick();
   const target = document.querySelector("[data-field-error]") || document.querySelector("form");
   target?.scrollIntoView({ behavior: "smooth", block: "center" });

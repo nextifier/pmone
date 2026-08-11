@@ -12,7 +12,7 @@ export { default as AttachmentTitle } from "./AttachmentTitle.vue";
 export { default as AttachmentTrigger } from "./AttachmentTrigger.vue";
 
 export const attachmentVariants = cva(
-  "cn-attachment group/attachment relative flex max-w-full min-w-0 shrink-0 flex-wrap border bg-card text-card-foreground transition-colors has-[>a,>button]:hover:bg-muted/50 data-[state=error]:border-destructive/30 data-[state=idle]:border-dashed",
+  "cn-attachment group/attachment relative flex max-w-full min-w-0 shrink-0 flex-wrap border bg-card text-card-foreground transition-colors has-[>a,>button]:hover:bg-muted/50 data-[state=error]:border-destructive-foreground/30 data-[state=idle]:border-dashed",
   {
     variants: {
       size: {
@@ -31,7 +31,7 @@ export const attachmentVariants = cva(
 export type AttachmentVariants = VariantProps<typeof attachmentVariants>;
 
 export const attachmentMediaVariants = cva(
-  "cn-attachment-media relative flex aspect-square shrink-0 items-center justify-center overflow-hidden group-data-[state=error]/attachment:bg-destructive/10 group-data-[state=error]/attachment:text-destructive [&_svg]:pointer-events-none",
+  "cn-attachment-media relative flex aspect-square shrink-0 items-center justify-center overflow-hidden group-data-[state=error]/attachment:bg-destructive/10 group-data-[state=error]/attachment:text-destructive-foreground [&_svg]:pointer-events-none",
   {
     variants: {
       variant: {

@@ -25,24 +25,24 @@
 
           <!-- Mode: Promo Code -->
           <TabsContent value="promo_code" class="space-y-4 mt-4">
-            <div class="space-y-2">
-              <Label for="promo_code">Promo Code</Label>
-              <Input id="promo_code" v-model="form.promo_code" type="text" class="uppercase font-mono" placeholder="ENTER CODE" />
+            <Field :data-invalid="!!errors?.promo_code">
+              <FieldLabel for="promo_code">Promo Code</FieldLabel>
+              <Input id="promo_code" v-model="form.promo_code" type="text" class="uppercase font-mono" placeholder="ENTER CODE" :aria-invalid="!!errors?.promo_code" />
               <FieldError :errors="errors.promo_code" />
-            </div>
-            <div class="space-y-2">
-              <Label for="promo_email">Customer Email</Label>
-              <Input id="promo_email" v-model="form.email" type="email" :placeholder="targetEmail || 'guest@example.com'" />
+            </Field>
+            <Field :data-invalid="!!errors?.email">
+              <FieldLabel for="promo_email">Customer Email</FieldLabel>
+              <Input id="promo_email" v-model="form.email" type="email" :placeholder="targetEmail || 'guest@example.com'" :aria-invalid="!!errors?.email" />
               <FieldError :errors="errors.email" />
-            </div>
+            </Field>
           </TabsContent>
 
           <!-- Mode: From Rule -->
           <TabsContent value="promotion_rule" class="space-y-4 mt-4">
-            <div class="space-y-2">
-              <Label for="rule_id">Promotion Rule</Label>
+            <Field :data-invalid="!!errors?.promotion_rule_id">
+              <FieldLabel for="rule_id">Promotion Rule</FieldLabel>
               <Select v-model.number="form.promotion_rule_id" :disabled="loadingRules">
-                <SelectTrigger class="w-full"><SelectValue placeholder="Select rule" /></SelectTrigger>
+                <SelectTrigger class="w-full" :aria-invalid="!!errors?.promotion_rule_id"><SelectValue placeholder="Select rule" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="rule in rules" :key="rule.id" :value="rule.id">
                     {{ rule.name }} ({{ rule.kind_label }})
@@ -50,53 +50,54 @@
                 </SelectContent>
               </Select>
               <FieldError :errors="errors.promotion_rule_id" />
-            </div>
-            <div class="space-y-2">
-              <Label for="override_value">Override Value (optional)</Label>
-              <InputNumber id="override_value" v-model="form.override_value" :min="0" decimal placeholder="Use rule's default" />
+            </Field>
+            <Field :data-invalid="!!errors?.override_value">
+              <FieldLabel for="override_value">Override Value (optional)</FieldLabel>
+              <InputNumber id="override_value" v-model="form.override_value" :min="0" decimal placeholder="Use rule's default" :aria-invalid="!!errors?.override_value" />
               <FieldError :errors="errors.override_value" />
-            </div>
-            <div class="space-y-2">
-              <Label for="reason">Reason</Label>
-              <Textarea id="reason" v-model="form.reason" rows="2" maxlength="500" />
+            </Field>
+            <Field :data-invalid="!!errors?.reason">
+              <FieldLabel for="reason">Reason</FieldLabel>
+              <Textarea id="reason" v-model="form.reason" rows="2" maxlength="500" :aria-invalid="!!errors?.reason" />
               <FieldError :errors="errors.reason" />
-            </div>
+            </Field>
           </TabsContent>
 
           <!-- Mode: Manual -->
           <TabsContent value="manual" class="space-y-4 mt-4">
             <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-2">
-                <Label for="kind">Kind</Label>
+              <Field :data-invalid="!!errors?.kind">
+                <FieldLabel for="kind">Kind</FieldLabel>
                 <Select v-model="form.kind">
-                  <SelectTrigger class="w-full"><SelectValue placeholder="Select kind" /></SelectTrigger>
+                  <SelectTrigger class="w-full" :aria-invalid="!!errors?.kind"><SelectValue placeholder="Select kind" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="discount">Discount</SelectItem>
                     <SelectItem value="penalty">Penalty</SelectItem>
                   </SelectContent>
                 </Select>
                 <FieldError :errors="errors.kind" />
-              </div>
-              <div class="space-y-2">
-                <Label for="value_type">Type</Label>
+              </Field>
+              <Field :data-invalid="!!errors?.value_type">
+                <FieldLabel for="value_type">Type</FieldLabel>
                 <Select v-model="form.value_type">
-                  <SelectTrigger class="w-full"><SelectValue placeholder="Select type" /></SelectTrigger>
+                  <SelectTrigger class="w-full" :aria-invalid="!!errors?.value_type"><SelectValue placeholder="Select type" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">Percentage</SelectItem>
                     <SelectItem value="fixed_amount">Fixed Amount</SelectItem>
                   </SelectContent>
                 </Select>
                 <FieldError :errors="errors.value_type" />
-              </div>
+              </Field>
             </div>
-            <div class="space-y-2">
-              <Label for="value">
+            <Field :data-invalid="!!errors?.value">
+              <FieldLabel for="value">
                 Value                <span class="text-muted-foreground text-xs ml-1">
                   ({{ form.value_type === "percentage" ? "%" : currencySymbol }})
                 </span>
-              </Label>
+              </FieldLabel>
               <InputGroup>
                 <InputNumber
+                  :aria-invalid="!!errors?.value"
                   id="value"
                   v-model="form.value"
                   :min="0"
@@ -109,12 +110,12 @@
                 </InputGroupAddon>
               </InputGroup>
               <FieldError :errors="errors.value" />
-            </div>
-            <div class="space-y-2">
-              <Label for="manual_reason">Reason</Label>
-              <Textarea id="manual_reason" v-model="form.reason" rows="2" maxlength="500" placeholder="Why is this adjustment applied?" />
+            </Field>
+            <Field :data-invalid="!!errors?.reason">
+              <FieldLabel for="manual_reason">Reason</FieldLabel>
+              <Textarea id="manual_reason" v-model="form.reason" rows="2" maxlength="500" placeholder="Why is this adjustment applied?" :aria-invalid="!!errors?.reason" />
               <FieldError :errors="errors.reason" />
-            </div>
+            </Field>
           </TabsContent>
         </Tabs>
 
@@ -134,8 +135,7 @@
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import {

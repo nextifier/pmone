@@ -7,9 +7,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="name">Consumer Name</Label>
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="name">Consumer Name</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.name"
               id="name"
               v-model="formData.name"
               type="text"
@@ -18,11 +19,12 @@
             />
             <FieldError :errors="errors.name" />
             <p class="text-muted-foreground text-xs">Friendly name for this API consumer</p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="website_url">Website URL</Label>
+          <Field :data-invalid="!!errors?.website_url">
+            <FieldLabel for="website_url">Website URL</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.website_url"
               id="website_url"
               v-model="formData.website_url"
               type="url"
@@ -31,11 +33,12 @@
             />
             <FieldError :errors="errors.website_url" />
             <p class="text-muted-foreground text-xs">The primary URL of your website</p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="description">Description</Label>
+          <Field :data-invalid="!!errors?.description">
+            <FieldLabel for="description">Description</FieldLabel>
             <Textarea
+              :aria-invalid="!!errors?.description"
               id="description"
               v-model="formData.description"
               placeholder="Brief description of this API consumer"
@@ -43,7 +46,7 @@
             />
             <FieldError :errors="errors.description" />
             <p class="text-muted-foreground text-xs">Optional description for this consumer</p>
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -55,9 +58,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="rate_limit">Rate Limit (requests per minute)</Label>
+          <Field :data-invalid="!!errors?.rate_limit">
+            <FieldLabel for="rate_limit">Rate Limit (requests per minute)</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.rate_limit"
               id="rate_limit"
               v-model="formData.rate_limit"
               type="text"
@@ -69,11 +73,11 @@
               Set to <strong>0</strong> for unlimited access, or <strong>10-10000</strong> to limit
               requests per minute. Default is 60.
             </p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="allowed_origins">Allowed Origins (CORS)</Label>
-            <TagsInput v-model="formData.allowed_origins">
+          <Field :data-invalid="!!errors?.allowed_origins">
+            <FieldLabel for="allowed_origins">Allowed Origins (CORS)</FieldLabel>
+            <TagsInput v-model="formData.allowed_origins" :aria-invalid="!!errors?.allowed_origins">
               <TagsInputItem v-for="item in formData.allowed_origins" :key="item" :value="item">
                 <TagsInputItemText />
                 <TagsInputItemDelete />
@@ -86,7 +90,7 @@
               variants. <strong>Leave empty to allow all origins</strong> (not recommended for
               production).
             </p>
-          </div>
+          </Field>
 
           <div class="flex items-center gap-2">
             <Switch id="is_active" v-model="formData.is_active" />
@@ -105,8 +109,8 @@
         <div class="frame-title">Access Scope</div>
       </div>
       <div class="frame-panel">
-        <div class="space-y-2">
-          <Label>Scoped Projects</Label>
+        <Field :data-invalid="!!errors?.project_ids">
+          <FieldLabel>Scoped Projects</FieldLabel>
           <ProjectMultiSelect
             v-if="projects.length"
             v-model="selectedProjects"
@@ -120,7 +124,7 @@
             <strong>Leave empty to allow this key to read every project</strong> (current behavior).
             Select one or more projects to restrict this key to only those.
           </p>
-        </div>
+        </Field>
       </div>
     </div>
 

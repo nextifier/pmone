@@ -90,7 +90,7 @@
           variant="outline"
           size="sm"
           @click="cancelDialogOpen = true"
-          class="text-destructive"
+          class="text-destructive-foreground"
         >
           <Icon name="lucide:x" class="mr-1 size-4" />
           Cancel & Refund
@@ -114,7 +114,7 @@
            refund amount not yet disbursed to the guest. This is true whether the
            channel can't be auto-refunded OR the auto-refund was skipped, failed,
            or still queued, so the copy must not blame the channel unconditionally. -->
-      <Alert v-if="reservation.refund?.manual_refund_pending" class="[&>svg]:text-destructive">
+      <Alert v-if="reservation.refund?.manual_refund_pending" class="[&>svg]:text-destructive-foreground">
         <Icon name="lucide:triangle-alert" />
         <AlertTitle>Manual refund required</AlertTitle>
         <AlertDescription class="gap-2">
@@ -441,7 +441,7 @@
                   v-if="!adj.is_voided && canVoid"
                   size="sm"
                   variant="ghost"
-                  class="text-destructive h-7 px-2 text-xs"
+                  class="text-destructive-foreground h-7 px-2 text-xs"
                   @click="voidAdjustment(adj)"
                 >
                   Void
@@ -596,7 +596,7 @@
           <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
             <h3 class="text-lg font-semibold tracking-tight">Cancel & Refund</h3>
             <form @submit.prevent="handleCancel" class="mt-4 space-y-3">
-              <Alert v-if="cancelChannelUnrefundable" class="[&>svg]:text-destructive">
+              <Alert v-if="cancelChannelUnrefundable" class="[&>svg]:text-destructive-foreground">
                 <Icon name="lucide:triangle-alert" />
                 <AlertTitle
                   >Channel {{ reservation.payment?.channel }} tidak mendukung refund

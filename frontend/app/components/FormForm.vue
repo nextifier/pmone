@@ -1,8 +1,8 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Cover Image -->
-      <div class="space-y-2">
-        <Label>Cover image</Label>
+      <Field :data-invalid="!!errors?.tmp_cover_image">
+        <FieldLabel>Cover image</FieldLabel>
         <InputFileImage
           ref="coverImageInputRef"
           v-model="imageFiles.cover_image"
@@ -12,23 +12,23 @@
         />
         <p class="text-muted-foreground text-xs sm:text-sm">1500x500 pixels recommended</p>
         <FieldError :errors="errors.tmp_cover_image" />
-      </div>
+      </Field>
 
-      <div class="space-y-2">
-        <Label for="title">Title</Label>
+      <Field :data-invalid="!!errors?.title">
+        <FieldLabel for="title">Title</FieldLabel>
         <Input
           id="title"
           v-model="formData.title"
           required
           placeholder="My Form"
-          :class="{ 'border-destructive': errors.title }"
+          :aria-invalid="!!errors?.title"
         />
         <FieldError :errors="errors.title" />
-      </div>
+      </Field>
 
       <!-- Description with TipTapEditor -->
-      <div class="space-y-2">
-        <Label for="description">Description</Label>
+      <Field :data-invalid="!!errors?.description">
+        <FieldLabel for="description">Description</FieldLabel>
         <TipTapEditor
           v-model="formData.description"
           placeholder="Describe your form"
@@ -36,25 +36,25 @@
           min-height="150px"
         />
         <FieldError :errors="errors.description" />
-      </div>
+      </Field>
 
-      <div class="space-y-2">
-        <Label for="slug">Slug</Label>
+      <Field :data-invalid="!!errors?.slug">
+        <FieldLabel for="slug">Slug</FieldLabel>
         <Input
           id="slug"
           v-model="formData.slug"
           placeholder="auto-generated"
-          :class="{ 'border-destructive': errors.slug }"
+          :aria-invalid="!!errors?.slug"
         />
         <p class="text-muted-foreground text-xs sm:text-sm">Leave empty to auto-generate from title</p>
         <FieldError :errors="errors.slug" />
-      </div>
+      </Field>
 
       <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-        <div class="space-y-2">
-          <Label for="status">Status</Label>
+        <Field :data-invalid="!!errors?.status">
+          <FieldLabel for="status">Status</FieldLabel>
           <Select v-model="formData.status">
-            <SelectTrigger id="status" class="w-full">
+            <SelectTrigger id="status" class="w-full" :aria-invalid="!!errors?.status">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
@@ -64,13 +64,13 @@
             </SelectContent>
           </Select>
           <FieldError :errors="errors.status" />
-        </div>
+        </Field>
 
         <!-- Project with Avatar -->
-        <div class="space-y-2">
-          <Label for="project_id">Project</Label>
+        <Field :data-invalid="!!errors?.project_id">
+          <FieldLabel for="project_id">Project</FieldLabel>
           <Select v-model="formData.project_id">
-            <SelectTrigger class="w-full">
+            <SelectTrigger class="w-full" :aria-invalid="!!errors?.project_id">
               <template #default>
                 <div v-if="selectedProject" class="flex items-center gap-2">
                   <Avatar :model="selectedProject" size="sm" class="size-5" rounded="rounded" />
@@ -101,7 +101,7 @@
             </SelectContent>
           </Select>
           <FieldError :errors="errors.project_id" />
-        </div>
+        </Field>
       </div>
 
       <!-- Active: only meaningful once the form is published -->
@@ -116,8 +116,8 @@
       </div>
 
       <!-- Tags -->
-      <div class="space-y-2">
-        <Label>Tags</Label>
+      <Field>
+        <FieldLabel>Tags</FieldLabel>
         <TagsInput v-model="formData.tags" class="text-sm">
           <TagsInputItem v-for="tag in formData.tags" :key="tag" :value="tag">
             <TagsInputItemText />
@@ -126,7 +126,7 @@
           <TagsInputInput placeholder="Add tag" />
         </TagsInput>
         <p class="text-muted-foreground text-xs sm:text-sm">Press Enter to add a tag</p>
-      </div>
+      </Field>
 
       <!-- Schedule & limit -->
       <div class="frame">
@@ -136,8 +136,8 @@
         </div>
         <div class="frame-panel space-y-6">
           <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="opens_at">Opens at</Label>
+            <Field :data-invalid="!!errors?.opens_at">
+              <FieldLabel for="opens_at">Opens at</FieldLabel>
               <DatePicker with-time
                 v-model="formData.opens_at"
                 placeholder="Select open date"
@@ -145,10 +145,10 @@
                 :default-minute="0"
               />
               <FieldError :errors="errors.opens_at" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label for="closes_at">Closes at</Label>
+            <Field :data-invalid="!!errors?.closes_at">
+              <FieldLabel for="closes_at">Closes at</FieldLabel>
               <DatePicker with-time
                 v-model="formData.closes_at"
                 placeholder="Select close date"
@@ -156,22 +156,43 @@
                 :default-minute="59"
               />
               <FieldError :errors="errors.closes_at" />
-            </div>
+            </Field>
           </div>
 
-          <div class="space-y-2">
-            <Label for="response_limit">Response limit</Label>
+          <Field :data-invalid="!!errors?.response_limit">
+            <FieldLabel for="response_limit">Response limit</FieldLabel>
             <InputNumber
               id="response_limit"
               v-model="formData.response_limit"
               :min="0"
               placeholder="Unlimited"
-              :class="{ 'border-destructive': errors.response_limit }"
+              :aria-invalid="!!errors?.response_limit"
             />
             <p class="text-muted-foreground text-xs sm:text-sm">
               Maximum number of responses. Leave empty for unlimited.
             </p>
             <FieldError :errors="errors.response_limit" />
+          </Field>
+        </div>
+      </div>
+
+      <!-- Layout -->
+      <div class="frame">
+        <div class="frame-header">
+          <h3 class="frame-title">Layout</h3>
+          <p class="frame-description">
+            How questions are presented to people filling in this form.
+          </p>
+        </div>
+        <div class="frame-panel">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <Switch id="multi_step" v-model="multiStep" />
+              <Label for="multi_step">One question at a time</Label>
+            </div>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Show a single question per screen instead of the whole form at once.
+            </p>
           </div>
         </div>
       </div>
@@ -183,18 +204,18 @@
           <p class="frame-description">What happens when someone submits a response.</p>
         </div>
         <div class="frame-panel space-y-6">
-          <div class="space-y-2">
-            <Label for="confirmation_message">Confirmation message</Label>
+          <Field>
+            <FieldLabel for="confirmation_message">Confirmation message</FieldLabel>
             <Textarea
               id="confirmation_message"
               v-model="formData.settings.confirmation_message"
               :rows="2"
               placeholder="Thank you for your response!"
             />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="closed_message">Closed message</Label>
+          <Field>
+            <FieldLabel for="closed_message">Closed message</FieldLabel>
             <Textarea
               id="closed_message"
               v-model="formData.settings.closed_message"
@@ -204,19 +225,19 @@
             <p class="text-muted-foreground text-xs sm:text-sm">
               Shown when the form is closed or has reached its response limit.
             </p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="redirect_url">Redirect URL</Label>
+          <Field>
+            <FieldLabel for="redirect_url">Redirect URL</FieldLabel>
             <InputLink id="redirect_url" v-model="formData.settings.redirect_url" />
             <p class="text-muted-foreground text-xs sm:text-sm">
               Redirect to this URL after form submission (optional)
             </p>
-          </div>
+          </Field>
 
-          <div class="space-y-6">
-            <div class="space-y-1">
-              <Label>Notification emails</Label>
+          <Field class="gap-6" :data-invalid="!!errors?.['settings.notification_emails.to']">
+            <div class="grid gap-1">
+              <FieldLabel>Notification emails</FieldLabel>
               <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                 Each new response is emailed to these recipients.
               </p>
@@ -240,7 +261,7 @@
               add-label="Add BCC Email"
             />
             <FieldError :errors="errors['settings.notification_emails.to']" />
-          </div>
+          </Field>
 
           <div class="flex items-center gap-2">
             <Switch id="require_email" v-model="formData.settings.require_email" />
@@ -252,8 +273,8 @@
             <Label for="prevent_duplicate">Prevent duplicate submissions</Label>
           </div>
 
-          <div v-if="formData.settings.prevent_duplicate" class="space-y-2">
-            <Label for="prevent_duplicate_by">Prevent duplicate by</Label>
+          <Field v-if="formData.settings.prevent_duplicate">
+            <FieldLabel for="prevent_duplicate_by">Prevent duplicate by</FieldLabel>
             <Select v-model="formData.settings.prevent_duplicate_by">
               <SelectTrigger id="prevent_duplicate_by" class="w-full">
                 <SelectValue placeholder="Select method" />
@@ -264,7 +285,7 @@
                 <SelectItem value="both">Both</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
         </div>
       </div>
 
@@ -291,7 +312,7 @@ import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
 import { EmailRecipientsInput } from "@/components/ui/email-recipients-input";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputLink } from "@/components/ui/input-link";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -350,6 +371,7 @@ const formData = ref({
   project_id: null,
   tags: [],
   settings: {
+    layout: "single_page",
     confirmation_message: "",
     closed_message: "",
     redirect_url: "",
@@ -357,6 +379,16 @@ const formData = ref({
     prevent_duplicate: false,
     prevent_duplicate_by: "fingerprint",
     notification_emails: { to: [], cc: [], bcc: [] },
+  },
+});
+
+// Stored as an enum so a third presentation can be added without the boolean
+// turning into a lie, but there are only two of them today, so the control is
+// the toggle authors expect.
+const multiStep = computed({
+  get: () => formData.value.settings.layout === "multi_step",
+  set: (on) => {
+    formData.value.settings.layout = on ? "multi_step" : "single_page";
   },
 });
 
@@ -433,6 +465,7 @@ watch(
         project_id: newForm.project?.id ? String(newForm.project.id) : null,
         tags: newForm.tags || [],
         settings: {
+          layout: settings.layout || "single_page",
           confirmation_message: settings.confirmation_message || "",
           closed_message: settings.closed_message || "",
           redirect_url: settings.redirect_url || "",

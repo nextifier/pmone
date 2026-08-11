@@ -299,7 +299,7 @@ const columns = computed(() => [
           "button",
           {
             type: "button",
-            class: "text-muted-foreground hover:text-destructive rounded p-1 transition",
+            class: "text-muted-foreground hover:text-destructive-foreground rounded p-1 transition",
             onClick: () => openDeleteDialog(row.original),
           },
           [h(resolveComponent("Icon"), { name: "hugeicons:delete-01", class: "size-4" })]

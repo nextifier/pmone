@@ -11,7 +11,7 @@
           placeholder="Content Editor"
           :aria-invalid="!!errors.name"
         />
-        <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
+        <p v-if="errors.name" class="text-destructive-foreground text-xs">{{ errors.name[0] }}</p>
         <p class="text-muted-foreground text-xs">Will be automatically converted to slug format (e.g., "content_editor")</p>
       </div>
 
@@ -28,7 +28,7 @@
 
         <div
           v-else-if="permissionsError"
-          class="border-destructive text-destructive rounded-md border p-3 text-sm"
+          class="border-destructive-foreground text-destructive-foreground rounded-md border p-3 text-sm"
         >
           Failed to load permissions
         </div>
@@ -87,7 +87,7 @@
           </div>
         </div>
 
-        <p v-if="errors.permissions" class="text-destructive text-xs">
+        <p v-if="errors.permissions" class="text-destructive-foreground text-xs">
           {{ errors.permissions[0] }}
         </p>
       </div>

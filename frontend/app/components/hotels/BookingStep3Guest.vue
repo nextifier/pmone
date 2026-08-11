@@ -145,21 +145,23 @@ defineExpose({ validateAll });
     </div>
 
     <section class="bg-background space-y-5 rounded-2xl border p-4 sm:p-5">
-      <div class="space-y-2">
-        <Label for="guest_name">Full Name</Label>
+      <Field :data-invalid="!!mergedErrors.name">
+        <FieldLabel for="guest_name">Full Name</FieldLabel>
         <Input
+          :aria-invalid="!!mergedErrors.name"
           id="guest_name"
           :model-value="guest.name"
           required
           @update:model-value="(v) => update('name', v)"
         />
         <FieldError :errors="mergedErrors.name" />
-      </div>
+      </Field>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="space-y-2">
-          <Label for="guest_email">Email</Label>
+        <Field :data-invalid="!!mergedErrors.email">
+          <FieldLabel for="guest_email">Email</FieldLabel>
           <Input
+            :aria-invalid="!!mergedErrors.email"
             id="guest_email"
             :model-value="guest.email"
             type="email"
@@ -168,10 +170,11 @@ defineExpose({ validateAll });
             @blur="validateField('email')"
           />
           <FieldError :errors="mergedErrors.email" />
-        </div>
-        <div class="space-y-2">
-          <Label for="guest_phone">Phone</Label>
+        </Field>
+        <Field :data-invalid="!!mergedErrors.phone">
+          <FieldLabel for="guest_phone">Phone</FieldLabel>
           <InputPhone
+            :aria-invalid="!!mergedErrors.phone"
             id="guest_phone"
             :model-value="guest.phone"
             required
@@ -179,17 +182,17 @@ defineExpose({ validateAll });
             @blur="validateField('phone')"
           />
           <FieldError :errors="mergedErrors.phone" />
-        </div>
+        </Field>
       </div>
 
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="space-y-2">
-          <Label for="identity_type">ID Type</Label>
+        <Field :data-invalid="!!mergedErrors.identity_type">
+          <FieldLabel for="identity_type">ID Type</FieldLabel>
           <Select
             :model-value="guest.identity_type"
             @update:model-value="(v) => update('identity_type', v)"
           >
-            <SelectTrigger id="identity_type" class="w-full">
+            <SelectTrigger id="identity_type" class="w-full" :aria-invalid="!!mergedErrors.identity_type">
               <SelectValue placeholder="Select ID type" />
             </SelectTrigger>
             <SelectContent>
@@ -198,10 +201,11 @@ defineExpose({ validateAll });
             </SelectContent>
           </Select>
           <FieldError :errors="mergedErrors.identity_type" />
-        </div>
-        <div class="space-y-2">
-          <Label for="identity_number">ID Number</Label>
+        </Field>
+        <Field :data-invalid="!!mergedErrors.identity_number">
+          <FieldLabel for="identity_number">ID Number</FieldLabel>
           <Input
+            :aria-invalid="!!mergedErrors.identity_number"
             id="identity_number"
             :model-value="guest.identity_number"
             :placeholder="guest.identity_type === 'nik' ? '16 digits NIK' : 'Passport number'"
@@ -210,11 +214,11 @@ defineExpose({ validateAll });
             @blur="validateField('identity_number')"
           />
           <FieldError :errors="mergedErrors.identity_number" />
-        </div>
+        </Field>
       </div>
 
-      <div class="space-y-2">
-        <Label>Nationality</Label>
+      <Field :data-invalid="!!mergedErrors.nationality">
+        <FieldLabel>Nationality</FieldLabel>
         <LocationCombobox
           :model-value="guest.nationality"
           :options="countries"
@@ -224,7 +228,7 @@ defineExpose({ validateAll });
           @update:model-value="(v) => update('nationality', v)"
         />
         <FieldError :errors="mergedErrors.nationality" />
-      </div>
+      </Field>
     </section>
 
     <Collapsible v-model:open="showOptional">
@@ -242,16 +246,16 @@ defineExpose({ validateAll });
         />
       </CollapsibleTrigger>
       <CollapsibleContent class="mt-3 space-y-5">
-        <div class="space-y-2">
-          <Label for="company">Company</Label>
+        <Field>
+          <FieldLabel for="company">Company</FieldLabel>
           <Input
             id="company"
             :model-value="guest.company"
             @update:model-value="(v) => update('company', v)"
           />
-        </div>
-        <div class="space-y-2">
-          <Label for="special_request">Special Request</Label>
+        </Field>
+        <Field>
+          <FieldLabel for="special_request">Special Request</FieldLabel>
           <Textarea
             id="special_request"
             :model-value="guest.special_request"
@@ -259,7 +263,7 @@ defineExpose({ validateAll });
             placeholder="Late check-in, dietary, etc."
             @update:model-value="(v) => update('special_request', v)"
           />
-        </div>
+        </Field>
       </CollapsibleContent>
     </Collapsible>
   </div>

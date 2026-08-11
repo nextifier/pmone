@@ -13,15 +13,19 @@
     />
   </div>
 
-  <div v-else :class="isLargeLabel ? 'space-y-2.5' : 'space-y-2'">
-    <Label :for="fieldId" :required="isRequired" :class="labelClass">
+  <Field
+    v-else
+    :class="isLargeLabel ? 'gap-2.5' : 'gap-2'"
+    :data-invalid="!!error"
+  >
+    <FieldLabel :for="fieldId" :required="isRequired" :class="labelClass">
       {{ normalized.label }}
-    </Label>
+    </FieldLabel>
 
     <!-- Control wrapper: one shared error indicator for every field type -->
     <div
       class="rounded-md"
-      :class="{ 'ring-destructive/50 ring-offset-background ring-2 ring-offset-2': error }"
+      :class="{ 'ring-destructive-foreground/50 ring-offset-background ring-2 ring-offset-2': error }"
     >
       <!-- Text -->
       <Input
@@ -537,7 +541,7 @@
 
     <!-- Error -->
     <FieldError :errors="error ? [error] : []" />
-  </div>
+  </Field>
 </template>
 
 <script setup>

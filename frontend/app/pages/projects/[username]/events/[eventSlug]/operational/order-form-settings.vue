@@ -11,8 +11,8 @@
           </p>
         </div>
 
-        <div class="space-y-2">
-          <Label for="order_form_content">Terms & Conditions / Important Information</Label>
+        <Field>
+          <FieldLabel for="order_form_content">Terms & Conditions / Important Information</FieldLabel>
           <TipTapEditor
             v-model="form.order_form_content"
             model-type="App\Models\Event"
@@ -21,10 +21,10 @@
             min-height="150px"
             placeholder="Write terms & conditions or important information for exhibitors"
           />
-        </div>
+        </Field>
 
-        <div class="space-y-2">
-          <Label for="notification_emails">Notification Emails</Label>
+        <Field>
+          <FieldLabel for="notification_emails">Notification Emails</FieldLabel>
           <div class="space-y-2">
             <div
               v-for="(email, index) in notificationEmails"
@@ -41,7 +41,7 @@
                 v-if="notificationEmails.length > 1"
                 type="button"
                 @click="notificationEmails.splice(index, 1)"
-                class="text-muted-foreground hover:text-destructive shrink-0"
+                class="text-muted-foreground hover:text-destructive-foreground shrink-0"
               >
                 <Icon name="hugeicons:delete-02" class="size-4" />
               </button>
@@ -61,11 +61,11 @@
               </button>
             </div>
           </div>
-        </div>
+        </Field>
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="order_form_deadline">Order Form Deadline</Label>
+          <Field :data-invalid="!!errors?.order_form_deadline">
+            <FieldLabel for="order_form_deadline">Order Form Deadline</FieldLabel>
             <DatePicker with-time
               v-model="form.order_form_deadline"
               placeholder="No deadline"
@@ -76,9 +76,9 @@
               Exhibitors cannot submit orders after this date.
             </p>
             <FieldError :errors="errors.order_form_deadline" />
-          </div>
-          <div class="space-y-2">
-            <Label for="promotion_post_deadline">Promotion Post Deadline</Label>
+          </Field>
+          <Field :data-invalid="!!errors?.promotion_post_deadline">
+            <FieldLabel for="promotion_post_deadline">Promotion Post Deadline</FieldLabel>
             <DatePicker with-time
               v-model="form.promotion_post_deadline"
               placeholder="No deadline"
@@ -89,23 +89,23 @@
               Exhibitors cannot upload promotion posts after this date.
             </p>
             <FieldError :errors="errors.promotion_post_deadline" />
-          </div>
+          </Field>
         </div>
       </div>
 
       <!-- Order Periods -->
       <div class="space-y-4">
-        <div class="space-y-1">
-          <Label class="text-base font-semibold tracking-tight">Order Periods</Label>
+        <Field>
+          <FieldLabel class="text-base font-semibold tracking-tight">Order Periods</FieldLabel>
           <p class="text-muted-foreground text-xs tracking-tight">
             Configure normal and onsite order periods. Onsite orders can have a penalty rate
             applied.
           </p>
-        </div>
+        </Field>
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="normal_order_opens_at">Normal Order Opens</Label>
+          <Field :data-invalid="!!errors?.normal_order_opens_at">
+            <FieldLabel for="normal_order_opens_at">Normal Order Opens</FieldLabel>
             <DatePicker with-time
               v-model="form.normal_order_opens_at"
               placeholder="Not set"
@@ -113,9 +113,9 @@
               :default-minute="0"
             />
             <FieldError :errors="errors.normal_order_opens_at" />
-          </div>
-          <div class="space-y-2">
-            <Label for="normal_order_closes_at">Normal Order Closes</Label>
+          </Field>
+          <Field :data-invalid="!!errors?.normal_order_closes_at">
+            <FieldLabel for="normal_order_closes_at">Normal Order Closes</FieldLabel>
             <DatePicker with-time
               v-model="form.normal_order_closes_at"
               placeholder="Not set"
@@ -123,12 +123,12 @@
               :default-minute="59"
             />
             <FieldError :errors="errors.normal_order_closes_at" />
-          </div>
+          </Field>
         </div>
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="onsite_order_opens_at">Onsite Order Opens</Label>
+          <Field :data-invalid="!!errors?.onsite_order_opens_at">
+            <FieldLabel for="onsite_order_opens_at">Onsite Order Opens</FieldLabel>
             <DatePicker with-time
               v-model="form.onsite_order_opens_at"
               placeholder="Not set"
@@ -136,9 +136,9 @@
               :default-minute="0"
             />
             <FieldError :errors="errors.onsite_order_opens_at" />
-          </div>
-          <div class="space-y-2">
-            <Label for="onsite_order_closes_at">Onsite Order Closes</Label>
+          </Field>
+          <Field :data-invalid="!!errors?.onsite_order_closes_at">
+            <FieldLabel for="onsite_order_closes_at">Onsite Order Closes</FieldLabel>
             <DatePicker with-time
               v-model="form.onsite_order_closes_at"
               placeholder="Not set"
@@ -146,12 +146,12 @@
               :default-minute="59"
             />
             <FieldError :errors="errors.onsite_order_closes_at" />
-          </div>
+          </Field>
         </div>
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="settings_tax_rate">Tax Rate (IDR) %</Label>
+          <Field>
+            <FieldLabel for="settings_tax_rate">Tax Rate (IDR) %</FieldLabel>
             <InputGroup>
               <InputNumber
                 id="settings_tax_rate"
@@ -167,10 +167,10 @@
               </InputGroupAddon>
             </InputGroup>
             <p class="text-muted-foreground text-xs tracking-tight">Default: 11% (PPN)</p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="settings_tax_rate_usd">Tax Rate (USD) %</Label>
+          <Field>
+            <FieldLabel for="settings_tax_rate_usd">Tax Rate (USD) %</FieldLabel>
             <InputGroup>
               <InputNumber
                 id="settings_tax_rate_usd"
@@ -188,12 +188,13 @@
             <p class="text-muted-foreground text-xs tracking-tight">
               Applied to USD orders. Falls back to the IDR tax rate if empty.
             </p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="onsite_penalty_rate">Onsite Penalty Rate (%)</Label>
+          <Field :data-invalid="!!errors?.onsite_penalty_rate">
+            <FieldLabel for="onsite_penalty_rate">Onsite Penalty Rate (%)</FieldLabel>
             <InputGroup>
               <InputNumber
+                :aria-invalid="!!errors?.onsite_penalty_rate"
                 id="onsite_penalty_rate"
                 v-model="form.onsite_penalty_rate"
                 :min="0"
@@ -211,7 +212,7 @@
               Promotion Rule automatically. Default: 50%.
             </p>
             <FieldError :errors="errors.onsite_penalty_rate" />
-          </div>
+          </Field>
         </div>
       </div>
 
@@ -405,7 +406,7 @@
                     <button
                       type="button"
                       @click="confirmDeleteDoc(doc)"
-                      class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition"
+                      class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-md p-1.5 transition"
                       title="Delete"
                     >
                       <Icon name="hugeicons:delete-02" class="size-4" />
@@ -494,7 +495,6 @@ import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,

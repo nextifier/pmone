@@ -69,7 +69,7 @@
             <Button
               variant="ghost"
               size="iconSm"
-              class="hover:bg-destructive/10 text-destructive"
+              class="hover:bg-destructive/10 text-destructive-foreground"
               v-tippy="'Delete'"
               @click="confirmDelete(category)"
             >
@@ -89,16 +89,17 @@
           </h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
-            <div class="space-y-2">
-              <Label for="business-category-name">Name</Label>
+            <Field :data-invalid="!!errors?.name">
+              <FieldLabel for="business-category-name">Name</FieldLabel>
               <Input
+                :aria-invalid="!!errors?.name"
                 id="business-category-name"
                 v-model="form.name"
                 required
                 placeholder="e.g. Foundation Models"
               />
               <FieldError :errors="errors.name" />
-            </div>
+            </Field>
 
             <div class="flex justify-end gap-2 pt-2">
               <Button variant="outline" type="button" @click="dialogOpen = false">Cancel</Button>
@@ -137,9 +138,8 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { computed, reactive, ref } from "vue";
 import { toast } from "vue-sonner";

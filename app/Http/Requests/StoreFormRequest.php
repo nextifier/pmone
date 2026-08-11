@@ -40,6 +40,7 @@ class StoreFormRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'slug' => ['nullable', 'string', 'max:255', 'unique:forms,slug'],
             'settings' => ['nullable', 'array'],
+            'settings.layout' => ['nullable', 'string', 'in:'.implode(',', Form::allowedLayouts())],
             'settings.confirmation_message' => ['nullable', 'string', 'max:1000'],
             'settings.closed_message' => ['nullable', 'string', 'max:1000'],
             'settings.redirect_url' => ['nullable', 'url', 'max:2048'],

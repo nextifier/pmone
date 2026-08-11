@@ -43,14 +43,14 @@
 
         <div
           v-else-if="error && !events.length"
-          class="border-destructive/40 bg-destructive/10 flex items-start gap-x-2 rounded-lg border p-3"
+          class="border-destructive-foreground/40 bg-destructive/10 flex items-start gap-x-2 rounded-lg border p-3"
         >
           <Icon
             name="hugeicons:alert-circle"
-            class="text-destructive mt-0.5 size-4 shrink-0"
+            class="text-destructive-foreground mt-0.5 size-4 shrink-0"
           />
           <div class="flex-1 space-y-2">
-            <p class="text-destructive text-sm tracking-tight">{{ error }}</p>
+            <p class="text-destructive-foreground text-sm tracking-tight">{{ error }}</p>
             <Button variant="outline" size="sm" @click="fetchPage({ reset: true })">
               Try again
             </Button>

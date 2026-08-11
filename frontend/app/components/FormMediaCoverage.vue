@@ -53,7 +53,7 @@ defineShortcuts({
     <div class="space-y-2">
       <Label class="text-sm">Title</Label>
       <Input v-model="form.title" placeholder="Article headline" auto-focus />
-      <p v-if="err('title')" class="text-destructive text-xs">{{ err("title") }}</p>
+      <p v-if="err('title')" class="text-destructive-foreground text-xs">{{ err("title") }}</p>
     </div>
 
     <!-- Article URL -->
@@ -63,14 +63,14 @@ defineShortcuts({
       <p class="text-muted-foreground text-xs tracking-tight">
         The publication's domain is shown automatically on the website.
       </p>
-      <p v-if="err('url')" class="text-destructive text-xs">{{ err("url") }}</p>
+      <p v-if="err('url')" class="text-destructive-foreground text-xs">{{ err("url") }}</p>
     </div>
 
     <!-- Published date -->
     <div class="space-y-2">
       <Label class="text-sm">Published Date</Label>
       <DatePicker v-model="form.published_at" placeholder="Pick the publish date" />
-      <p v-if="err('published_at')" class="text-destructive text-xs">
+      <p v-if="err('published_at')" class="text-destructive-foreground text-xs">
         {{ err("published_at") }}
       </p>
     </div>

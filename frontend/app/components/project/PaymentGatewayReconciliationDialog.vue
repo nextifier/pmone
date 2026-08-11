@@ -37,10 +37,10 @@
 
         <div
           v-else-if="error"
-          class="border-destructive/40 bg-destructive/10 flex items-start gap-x-2 rounded-lg border p-3"
+          class="border-destructive-foreground/40 bg-destructive/10 flex items-start gap-x-2 rounded-lg border p-3"
         >
-          <Icon name="hugeicons:alert-circle" class="text-destructive mt-0.5 size-4 shrink-0" />
-          <p class="text-destructive text-sm tracking-tight">{{ error }}</p>
+          <Icon name="hugeicons:alert-circle" class="text-destructive-foreground mt-0.5 size-4 shrink-0" />
+          <p class="text-destructive-foreground text-sm tracking-tight">{{ error }}</p>
         </div>
 
         <div v-else-if="report" class="space-y-4">
@@ -64,7 +64,7 @@
               <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">Discrepancies</p>
               <p
                 class="mt-0.5 text-lg font-semibold tracking-tighter"
-                :class="report.discrepancy_count ? 'text-destructive' : ''"
+                :class="report.discrepancy_count ? 'text-destructive-foreground' : ''"
               >
                 {{ report.discrepancy_count }}
               </p>
@@ -184,7 +184,7 @@ function typeLabel(type) {
 
 function typeClass(type) {
   if (type === "orphan") {
-    return "bg-destructive/10 text-destructive border-destructive/20";
+    return "bg-destructive/10 text-destructive-foreground border-destructive-foreground/20";
   }
   return "bg-warning/10 text-warning-foreground border-warning/20";
 }

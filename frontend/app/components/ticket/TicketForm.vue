@@ -7,13 +7,13 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="ticket-kind">Kind</Label>
+          <Field :data-invalid="!!errors?.kind">
+            <FieldLabel for="ticket-kind">Kind</FieldLabel>
             <Select
               :model-value="form.kind"
               @update:model-value="(v) => v && (form.kind = v)"
             >
-              <SelectTrigger id="ticket-kind" class="w-full">
+              <SelectTrigger id="ticket-kind" class="w-full" :aria-invalid="!!errors?.kind">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -25,11 +25,11 @@
               Entry tickets control event admission by day. Add-on tickets can host sessions.
             </p>
             <FieldError :errors="errors.kind" />
-          </div>
+          </Field>
 
           <!-- Translatable title -->
-          <div class="space-y-2">
-            <Label>Title</Label>
+          <Field :data-invalid="!!localizedTitleErrors">
+            <FieldLabel>Title</FieldLabel>
             <Tabs v-model="activeLocale" variant="segmented">
               <TabsList>
                 <TabsIndicator />
@@ -39,44 +39,45 @@
               </TabsList>
             </Tabs>
             <Input
+              :aria-invalid="!!localizedTitleErrors"
               v-model="titleField"
               :required="activeLocale === 'en'"
               :placeholder="activeLocale === 'en' ? 'Ticket title' : 'Judul tiket'"
             />
             <FieldError :errors="localizedTitleErrors" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="ticket-tier">Tier</Label>
-            <Input id="ticket-tier" v-model="form.tier" placeholder="VIP / Regular / Early Bird" />
+          <Field :data-invalid="!!errors?.tier">
+            <FieldLabel for="ticket-tier">Tier</FieldLabel>
+            <Input id="ticket-tier" v-model="form.tier" placeholder="VIP / Regular / Early Bird" :aria-invalid="!!errors?.tier" />
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Optional grouping label shown alongside the ticket.
             </p>
             <FieldError :errors="errors.tier" />
-          </div>
+          </Field>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="ticket-day-pass">Day pass label</Label>
-              <Input id="ticket-day-pass" v-model="form.day_pass" placeholder="All-day pass / One-day pass" />
+            <Field :data-invalid="!!errors?.['more_details.day_pass']">
+              <FieldLabel for="ticket-day-pass">Day pass label</FieldLabel>
+              <Input id="ticket-day-pass" v-model="form.day_pass" placeholder="All-day pass / One-day pass" :aria-invalid="!!errors?.['more_details.day_pass']" />
               <FieldError :errors="errors['more_details.day_pass']" />
-            </div>
-            <div class="space-y-2">
-              <Label for="ticket-entrance">Entrance label</Label>
-              <Input id="ticket-entrance" v-model="form.entrance" placeholder="Regular entrance / VIP entrance" />
+            </Field>
+            <Field :data-invalid="!!errors?.['more_details.entrance']">
+              <FieldLabel for="ticket-entrance">Entrance label</FieldLabel>
+              <Input id="ticket-entrance" v-model="form.entrance" placeholder="Regular entrance / VIP entrance" :aria-invalid="!!errors?.['more_details.entrance']" />
               <FieldError :errors="errors['more_details.entrance']" />
-            </div>
+            </Field>
           </div>
           <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
             Optional badges shown on the public ticket card. Leave empty to hide.
           </p>
 
-          <div class="space-y-2">
-            <Label>Benefits</Label>
+          <Field :data-invalid="!!errors?.benefits">
+            <FieldLabel>Benefits</FieldLabel>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Type and press Enter to add. Examples: Lunch included, Priority seating, Welcome kit.
             </p>
-            <TagsInput v-model="form.benefits" class="text-sm">
+            <TagsInput v-model="form.benefits" class="text-sm" :aria-invalid="!!errors?.benefits">
               <TagsInputItem v-for="tag in form.benefits" :key="tag" :value="tag">
                 <TagsInputItemText />
                 <TagsInputItemDelete />
@@ -84,7 +85,7 @@
               <TagsInputInput placeholder="Add benefit" />
             </TagsInput>
             <FieldError :errors="errors.benefits" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -96,13 +97,13 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="ticket-purchase-type">Purchase type</Label>
+          <Field :data-invalid="!!errors?.purchase_type">
+            <FieldLabel for="ticket-purchase-type">Purchase type</FieldLabel>
             <Select
               :model-value="form.purchase_type"
               @update:model-value="(v) => v && (form.purchase_type = v)"
             >
-              <SelectTrigger id="ticket-purchase-type" class="w-full">
+              <SelectTrigger id="ticket-purchase-type" class="w-full" :aria-invalid="!!errors?.purchase_type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -111,11 +112,12 @@
               </SelectContent>
             </Select>
             <FieldError :errors="errors.purchase_type" />
-          </div>
+          </Field>
 
-          <div v-if="form.purchase_type === 'external'" class="space-y-2">
-            <Label for="ticket-external-url">External URL</Label>
+          <Field v-if="form.purchase_type === 'external'" :data-invalid="!!errors?.external_url">
+            <FieldLabel for="ticket-external-url">External URL</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.external_url"
               id="ticket-external-url"
               v-model="form.external_url"
               type="url"
@@ -126,11 +128,12 @@
               Buyers are redirected here instead of checking out on the event website.
             </p>
             <FieldError :errors="errors.external_url" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="ticket-currency">Currency</Label>
+          <Field :data-invalid="!!errors?.currency">
+            <FieldLabel for="ticket-currency">Currency</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.currency"
               id="ticket-currency"
               v-model="form.currency"
               maxlength="3"
@@ -141,7 +144,7 @@
               3-letter ISO currency code. Defaults to IDR.
             </p>
             <FieldError :errors="errors.currency" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -153,43 +156,44 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="ticket-stock">Stock</Label>
-            <InputNumber id="ticket-stock" v-model="form.stock" :min="0" placeholder="Unlimited" />
+          <Field :data-invalid="!!errors?.stock">
+            <FieldLabel for="ticket-stock">Stock</FieldLabel>
+            <InputNumber id="ticket-stock" v-model="form.stock" :min="0" placeholder="Unlimited" :aria-invalid="!!errors?.stock" />
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Total tickets available. Leave empty for unlimited stock.
             </p>
             <FieldError :errors="errors.stock" />
-          </div>
+          </Field>
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-            <div class="space-y-2">
-              <Label for="ticket-min-qty">Min quantity per order</Label>
-              <InputNumber id="ticket-min-qty" v-model="form.min_quantity" :min="1" />
+            <Field :data-invalid="!!errors?.min_quantity">
+              <FieldLabel for="ticket-min-qty">Min quantity per order</FieldLabel>
+              <InputNumber id="ticket-min-qty" v-model="form.min_quantity" :min="1" :aria-invalid="!!errors?.min_quantity" />
               <FieldError :errors="errors.min_quantity" />
-            </div>
-            <div class="space-y-2">
-              <Label for="ticket-max-qty">Max quantity per order</Label>
+            </Field>
+            <Field :data-invalid="!!errors?.max_quantity">
+              <FieldLabel for="ticket-max-qty">Max quantity per order</FieldLabel>
               <InputNumber
+                :aria-invalid="!!errors?.max_quantity"
                 id="ticket-max-qty"
                 v-model="form.max_quantity"
                 :min="1"
                 placeholder="No limit"
               />
               <FieldError :errors="errors.max_quantity" />
-            </div>
+            </Field>
           </div>
 
           <div
             v-if="form.kind === 'add_on'"
             class="flex items-center justify-between gap-3"
           >
-            <div class="space-y-1">
-              <Label for="ticket-print-on-redeem" class="cursor-pointer">Print on redeem</Label>
+            <Field>
+              <FieldLabel for="ticket-print-on-redeem" class="cursor-pointer">Print on redeem</FieldLabel>
               <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
                 Print a physical pass when this add-on is redeemed on-site.
               </p>
-            </div>
+            </Field>
             <Switch id="ticket-print-on-redeem" v-model="form.print_on_redeem" />
           </div>
         </div>
@@ -206,13 +210,13 @@
         </div>
       </div>
       <div class="frame-panel">
-        <div class="space-y-2">
-          <Label for="ticket-visibility">Who can buy this</Label>
+        <Field :data-invalid="!!errors?.visibility">
+          <FieldLabel for="ticket-visibility">Who can buy this</FieldLabel>
           <Select
             :model-value="form.visibility"
             @update:model-value="(v) => v && (form.visibility = v)"
           >
-            <SelectTrigger id="ticket-visibility" class="w-full">
+            <SelectTrigger id="ticket-visibility" class="w-full" :aria-invalid="!!errors?.visibility">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -226,7 +230,7 @@
             </SelectContent>
           </Select>
           <FieldError :errors="errors.visibility" />
-        </div>
+        </Field>
       </div>
     </div>
 
@@ -240,12 +244,12 @@
       </div>
       <div class="frame-panel">
         <div class="mb-4 flex items-center justify-between gap-3 border-b pb-4">
-          <div class="space-y-1">
-            <Label for="ticket-requires-day" class="cursor-pointer">Let buyer pick a day</Label>
+          <Field>
+            <FieldLabel for="ticket-requires-day" class="cursor-pointer">Let buyer pick a day</FieldLabel>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               On (day pass): the buyer picks one valid day at checkout. Off (bundle): the ticket admits on every valid day selected below.
             </p>
-          </div>
+          </Field>
           <Switch id="ticket-requires-day" v-model="form.requires_day_selection" />
         </div>
         <div v-if="daysLoading" class="flex justify-center py-6">
@@ -279,8 +283,8 @@
         <div class="frame-title">Poster</div>
       </div>
       <div class="frame-panel">
-        <div class="space-y-2">
-          <Label>Poster image</Label>
+        <Field :data-invalid="!!errors?.tmp_poster">
+          <FieldLabel>Poster image</FieldLabel>
           <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
             Single image shown on ticket cards. Format JPG/PNG/WebP.
           </p>
@@ -292,7 +296,7 @@
             image-class="size-full object-cover"
           />
           <FieldError :errors="errors.tmp_poster" />
-        </div>
+        </Field>
       </div>
     </div>
 
@@ -302,16 +306,16 @@
         <div class="frame-title">Visibility</div>
       </div>
       <div class="frame-panel">
-        <div class="flex items-center justify-between gap-3">
-          <div class="space-y-1">
-            <Label for="ticket-active" class="cursor-pointer">Ticket is active</Label>
+        <Field orientation="horizontal" :data-invalid="!!errors?.is_active">
+          <FieldContent>
+            <FieldLabel for="ticket-active" class="cursor-pointer">Ticket is active</FieldLabel>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Inactive tickets are hidden from the public event website and cannot be purchased.
             </p>
-          </div>
+            <FieldError :errors="errors.is_active" />
+          </FieldContent>
           <Switch id="ticket-active" v-model="form.is_active" />
-        </div>
-        <FieldError :errors="errors.is_active" />
+        </Field>
       </div>
     </div>
 
@@ -330,8 +334,7 @@ import InputFileImage from "@/components/InputFileImage.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,

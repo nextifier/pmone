@@ -122,7 +122,7 @@
               <p class="text-sm tracking-tight tabular-nums font-medium">
                 -Rp{{ formatRupiah(usage.amount_discounted) }}
               </p>
-              <p v-if="usage.voided_at" class="text-destructive text-xs tracking-tight">Voided</p>
+              <p v-if="usage.voided_at" class="text-destructive-foreground text-xs tracking-tight">Voided</p>
             </div>
           </div>
         </div>

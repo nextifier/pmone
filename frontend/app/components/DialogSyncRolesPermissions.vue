@@ -22,7 +22,7 @@
             <Skeleton class="h-64 w-full" />
           </div>
           <div v-else-if="exportError" class="mt-4">
-            <p class="text-destructive text-sm tracking-tight">
+            <p class="text-destructive-foreground text-sm tracking-tight">
               Failed to load data. Please try again.
             </p>
           </div>
@@ -63,7 +63,7 @@
               placeholder="Paste exported JSON here"
               class="mt-4 h-48 font-mono text-xs"
             />
-            <p v-if="parseError" class="text-destructive mt-2 text-sm tracking-tight">
+            <p v-if="parseError" class="text-destructive-foreground mt-2 text-sm tracking-tight">
               {{ parseError }}
             </p>
             <div class="mt-3 flex justify-end">
@@ -137,7 +137,7 @@
                     <span
                       v-for="perm in sync.removed"
                       :key="'rm-' + perm"
-                      class="text-destructive text-sm tracking-tight"
+                      class="text-destructive-foreground text-sm tracking-tight"
                     >
                       - {{ perm }}
                     </span>

@@ -60,7 +60,7 @@
         v-tippy="'Delete'"
         aria-label="Delete field"
         @click="$emit('delete', field)"
-        class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex size-7 items-center justify-center rounded-md transition-colors"
+        class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 flex size-7 items-center justify-center rounded-md transition-colors"
       >
         <Icon name="lucide:trash-2" class="size-4" />
       </button>

@@ -1,10 +1,10 @@
 <template>
   <div class="space-y-5">
     <!-- Type selector (only for new fields) -->
-    <div v-if="!editingField" class="space-y-2">
-      <Label>Field type</Label>
+    <Field v-if="!editingField">
+      <FieldLabel>Field type</FieldLabel>
       <FieldTypeSelector :selected="fieldForm.type" @select="changeType" />
-    </div>
+    </Field>
 
     <div v-else class="flex items-center gap-x-2">
       <span class="text-muted-foreground text-sm tracking-tight">Type:</span>
@@ -32,17 +32,17 @@
       </p>
     </div>
 
-    <div class="space-y-2">
-      <Label for="field_label">{{ isSection ? "Section title" : "Label" }}</Label>
+    <Field :data-invalid="!!localizedLabelErrors">
+      <FieldLabel for="field_label">{{ isSection ? "Section title" : "Label" }}</FieldLabel>
       <Input
         id="field_label"
         v-model="labelField"
         :required="activeLocale === 'en'"
         :placeholder="isSection ? 'Section title' : 'Field label'"
-        :class="{ 'border-destructive': localizedLabelErrors }"
+        :aria-invalid="!!localizedLabelErrors"
       />
       <FieldError :errors="localizedLabelErrors" />
-    </div>
+    </Field>
 
     <FieldTypeSettings
       v-model:placeholder="placeholderField"
@@ -55,8 +55,8 @@
       allow-prefill
     >
       <template #options>
-        <div v-if="typeConfig.hasOptions" class="space-y-2">
-          <Label>Options</Label>
+        <Field v-if="typeConfig.hasOptions" :data-invalid="!!errors?.options">
+          <FieldLabel>Options</FieldLabel>
           <div class="space-y-2">
             <div
               v-for="(option, idx) in fieldForm.options"
@@ -64,6 +64,7 @@
               class="flex items-center gap-x-2"
             >
               <Input
+                :aria-invalid="!!errors?.options"
                 v-model="fieldForm.options[idx].label"
                 placeholder="Option label"
                 class="flex-1"
@@ -77,7 +78,7 @@
                 type="button"
                 variant="ghost"
                 size="iconSm"
-                class="text-muted-foreground hover:text-destructive shrink-0"
+                class="text-muted-foreground hover:text-destructive-foreground shrink-0"
                 @click="fieldForm.options.splice(idx, 1)"
               >
                 <Icon name="lucide:x" class="size-4" />
@@ -105,7 +106,7 @@
             </Button>
           </div>
           <FieldError :errors="errors.options" />
-        </div>
+        </Field>
       </template>
     </FieldTypeSettings>
 
@@ -129,8 +130,7 @@ import FieldTypeSettings from "@/components/custom-field-editor/FieldTypeSetting
 import FieldTypeSelector from "@/components/form-builder/FieldTypeSelector.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {

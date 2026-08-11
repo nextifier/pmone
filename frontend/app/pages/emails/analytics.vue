@@ -91,7 +91,7 @@
         class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs tracking-tight sm:text-sm"
       >
         <span class="text-foreground font-medium">Bounce breakdown</span>
-        <span><span class="text-destructive">{{ bounceBreakdown.permanent }}</span> permanent</span>
+        <span><span class="text-destructive-foreground">{{ bounceBreakdown.permanent }}</span> permanent</span>
         <span><span class="text-warning-foreground">{{ bounceBreakdown.transient }}</span> transient</span>
         <span v-if="bounceBreakdown.unclassified > 0">
           {{ bounceBreakdown.unclassified }} unclassified (awaiting webhook)
@@ -251,7 +251,7 @@ const stats = computed(() => {
       color: "text-rose-500",
       value: s.bounced ?? 0,
       caption: `${formatRate(s.bounce_rate)} of sent, limit 5%`,
-      captionClass: bounceVariant.value === "success" ? neutral : "text-destructive",
+      captionClass: bounceVariant.value === "success" ? neutral : "text-destructive-foreground",
     },
     {
       key: "complained",
@@ -260,7 +260,7 @@ const stats = computed(() => {
       color: "text-amber-500",
       value: s.complained ?? 0,
       caption: `${formatRate(s.complaint_rate)} of sent, limit 0.1%`,
-      captionClass: complaintVariant.value === "success" ? neutral : "text-destructive",
+      captionClass: complaintVariant.value === "success" ? neutral : "text-destructive-foreground",
     },
   ];
 });

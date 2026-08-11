@@ -17,7 +17,7 @@
           @click="open()"
           v-tippy="'Delete permanently'"
         >
-          <Icon name="hugeicons:delete-01" class="text-destructive size-4" />
+          <Icon name="hugeicons:delete-01" class="text-destructive-foreground size-4" />
         </button>
       </template>
       <template #default>

@@ -6,18 +6,19 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="name">Full Name</Label>
-            <Input id="name" v-model="form.name" type="text" autocomplete="one-time-code" />
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="name">Full Name</FieldLabel>
+            <Input id="name" v-model="form.name" type="text" autocomplete="one-time-code" :aria-invalid="!!errors?.name" />
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated from email if left empty." : "" }}
             </p>
             <FieldError :errors="errors.name" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="username">Username</Label>
+          <Field :data-invalid="!!errors?.username">
+            <FieldLabel for="username">Username</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.username"
               id="username"
               v-model="form.username"
               type="text"
@@ -28,11 +29,12 @@
               {{ isCreate ? "Will be auto-generated if left empty." : "" }}
             </p>
             <FieldError :errors="errors.username" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="email">Email Address</Label>
+          <Field :data-invalid="!!errors?.email">
+            <FieldLabel for="email">Email Address</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.email"
               id="email"
               v-model="form.email"
               type="email"
@@ -40,22 +42,22 @@
               autocomplete="one-time-code"
             />
             <FieldError :errors="errors.email" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="phone">Phone Number</Label>
-            <InputPhone v-model="form.phone" id="phone" />
+          <Field :data-invalid="!!errors?.phone">
+            <FieldLabel for="phone">Phone Number</FieldLabel>
+            <InputPhone v-model="form.phone" id="phone" :aria-invalid="!!errors?.phone" />
             <FieldError :errors="errors.phone" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="title">Job Title</Label>
-            <Input id="title" v-model="form.title" type="text" autocomplete="one-time-code" />
+          <Field :data-invalid="!!errors?.title">
+            <FieldLabel for="title">Job Title</FieldLabel>
+            <Input id="title" v-model="form.title" type="text" autocomplete="one-time-code" :aria-invalid="!!errors?.title" />
             <FieldError :errors="errors.title" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="gender">Gender</Label>
+          <Field :data-invalid="!!errors?.gender">
+            <FieldLabel for="gender">Gender</FieldLabel>
 
             <RadioGroup class="flex flex-wrap gap-2" v-model="form.gender">
               <div
@@ -77,23 +79,23 @@
               </div>
             </RadioGroup>
             <FieldError :errors="errors.gender" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="birth_date">Birth Date</Label>
+          <Field :data-invalid="!!errors?.birth_date">
+            <FieldLabel for="birth_date">Birth Date</FieldLabel>
             <DatePicker
               v-model="form.birth_date"
               disable-future-dates
               placeholder="Pick your birth date"
             />
             <FieldError :errors="errors.birth_date" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="bio">Bio</Label>
-            <Textarea id="bio" v-model="form.bio" maxlength="1000" />
+          <Field :data-invalid="!!errors?.bio">
+            <FieldLabel for="bio">Bio</FieldLabel>
+            <Textarea id="bio" v-model="form.bio" maxlength="1000" :aria-invalid="!!errors?.bio" />
             <FieldError :errors="errors.bio" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -104,8 +106,8 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-4">
-            <Label>Profile Image</Label>
+          <Field :data-invalid="!!errors?.tmp_profile_image">
+            <FieldLabel>Profile Image</FieldLabel>
             <InputFileImage
               ref="profileImageInputRef"
               v-model="imageFiles.profile_image"
@@ -114,10 +116,10 @@
               container-class="squircle relative isolate aspect-square max-w-40"
             />
             <FieldError :errors="errors.tmp_profile_image" />
-          </div>
+          </Field>
 
-          <div class="space-y-4">
-            <Label>Cover Image</Label>
+          <Field :data-invalid="!!errors?.tmp_cover_image">
+            <FieldLabel>Cover Image</FieldLabel>
             <InputFileImage
               ref="coverImageInputRef"
               v-model="imageFiles.cover_image"
@@ -125,7 +127,7 @@
               v-model:delete-flag="deleteFlags.cover_image"
             />
             <FieldError :errors="errors.tmp_cover_image" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -171,7 +173,7 @@
               <button
                 type="button"
                 @click="removeLink(index)"
-                class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
               >
                 <Icon name="hugeicons:delete-01" class="size-4" />
               </button>
@@ -197,9 +199,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div v-if="showPassword" class="space-y-2">
-            <Label for="password">Password</Label>
+          <Field v-if="showPassword" :data-invalid="!!errors?.password">
+            <FieldLabel for="password">Password</FieldLabel>
             <InputPassword
+              :aria-invalid="!!errors?.password"
               id="password"
               v-model="form.password"
               minlength="8"
@@ -213,14 +216,14 @@
               }}
             </p>
             <FieldError :errors="errors.password" />
-          </div>
+          </Field>
 
           <div v-if="showAccountSettings" class="space-y-5">
             <div class="grid grid-cols-2 gap-3">
-              <div class="space-y-2">
-                <Label for="status">Status</Label>
+              <Field :data-invalid="!!errors?.status">
+                <FieldLabel for="status">Status</FieldLabel>
                 <Select v-model="form.status">
-                  <SelectTrigger class="w-full">
+                  <SelectTrigger class="w-full" :aria-invalid="!!errors?.status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -230,13 +233,13 @@
                   </SelectContent>
                 </Select>
                 <FieldError :errors="errors.status" />
-              </div>
+              </Field>
 
               <ProfileVisibilityField v-model="form.visibility" :errors="errors.visibility" />
             </div>
 
-            <div v-if="showRoles" class="space-y-2">
-              <Label>Roles</Label>
+            <Field v-if="showRoles" :data-invalid="!!errors?.roles">
+              <FieldLabel>Roles</FieldLabel>
               <div class="space-y-2">
                 <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
                   <Checkbox
@@ -250,7 +253,7 @@
                 </div>
               </div>
               <FieldError :errors="errors.roles" />
-            </div>
+            </Field>
           </div>
 
           <ProfileVisibilityField
@@ -268,8 +271,8 @@
         <div class="frame-title">Projects</div>
       </div>
       <div class="frame-panel">
-        <div class="space-y-2">
-          <Label>Assigned Projects</Label>
+        <Field :data-invalid="!!errors?.project_ids">
+          <FieldLabel>Assigned Projects</FieldLabel>
           <ProjectMultiSelect
             v-if="projects.length"
             v-model="selectedProjects"
@@ -279,7 +282,7 @@
           />
           <p v-else class="text-muted-foreground text-sm tracking-tight">No projects available</p>
           <FieldError :errors="errors.project_ids" />
-        </div>
+        </Field>
       </div>
     </div>
 

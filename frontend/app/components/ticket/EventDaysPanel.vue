@@ -65,7 +65,7 @@
             v-if="canDelete"
             variant="ghost"
             size="iconSm"
-            class="hover:bg-destructive/10 text-destructive"
+            class="hover:bg-destructive/10 text-destructive-foreground"
             v-tippy="'Delete'"
             @click="confirmDelete(day)"
           >
@@ -85,24 +85,24 @@
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
             <div class="grid grid-cols-2 gap-x-2">
-              <div class="space-y-2">
-                <Label>Day number</Label>
-                <InputNumber v-model="form.day_number" :min="1" required />
+              <Field :data-invalid="!!errors?.day_number">
+                <FieldLabel>Day number</FieldLabel>
+                <InputNumber v-model="form.day_number" :min="1" required :aria-invalid="!!errors?.day_number" />
                 <FieldError :errors="errors.day_number" />
-              </div>
-              <div class="space-y-2">
-                <Label>Date</Label>
+              </Field>
+              <Field :data-invalid="!!errors?.date">
+                <FieldLabel>Date</FieldLabel>
                 <DatePicker
                   :model-value="form._date_obj"
                   placeholder="Pick date"
                   @update:model-value="(d) => (form._date_obj = d)"
                 />
                 <FieldError :errors="errors.date" />
-              </div>
+              </Field>
             </div>
 
-            <div class="space-y-2">
-              <Label>Label</Label>
+            <Field :data-invalid="!!localizedLabelErrors">
+              <FieldLabel>Label</FieldLabel>
               <Tabs v-model="activeLocale" variant="segmented">
                 <TabsList>
                   <TabsIndicator />
@@ -112,11 +112,12 @@
                 </TabsList>
               </Tabs>
               <Input
+                :aria-invalid="!!localizedLabelErrors"
                 v-model="labelField"
                 :placeholder="activeLocale === 'en' ? 'e.g. Opening Day' : 'mis. Hari Pembukaan'"
               />
               <FieldError :errors="localizedLabelErrors" />
-            </div>
+            </Field>
 
             <div class="flex items-center gap-2">
               <Switch id="day-active" v-model="form.is_active" />
@@ -162,7 +163,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";

@@ -1,7 +1,6 @@
 <script setup>
 import { computed, nextTick, watch } from "vue";
-import { FieldError } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { LocationCombobox } from "@/components/ui/location-combobox";
 import { Textarea } from "@/components/ui/textarea";
 import countries from "@/data/countries.json";
@@ -78,8 +77,8 @@ watch(
 
 <template>
   <div class="grid grid-cols-1 gap-y-6">
-    <div class="space-y-2">
-      <Label>Country</Label>
+    <Field :data-invalid="!!errorList('address.country').length">
+      <FieldLabel>Country</FieldLabel>
       <LocationCombobox
         v-model="model.country"
         :options="countries"
@@ -88,11 +87,11 @@ watch(
         placeholder="Select country"
       />
       <FieldError :errors="errorList('address.country')" />
-    </div>
+    </Field>
 
     <div v-if="isIndonesia" class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-      <div class="space-y-2">
-        <Label>Province</Label>
+      <Field :data-invalid="!!errorList('address.province').length">
+        <FieldLabel>Province</FieldLabel>
         <LocationCombobox
           v-model="model.province"
           :options="provinceOptions"
@@ -100,9 +99,9 @@ watch(
           placeholder="Select province"
         />
         <FieldError :errors="errorList('address.province')" />
-      </div>
-      <div class="space-y-2">
-        <Label>City</Label>
+      </Field>
+      <Field :data-invalid="!!errorList('address.city').length">
+        <FieldLabel>City</FieldLabel>
         <LocationCombobox
           v-model="model.city"
           :options="cityOptions"
@@ -110,18 +109,19 @@ watch(
           placeholder="Select city"
         />
         <FieldError :errors="errorList('address.city')" />
-      </div>
+      </Field>
     </div>
 
-    <div class="space-y-2">
-      <Label for="address_street">Street Address</Label>
+    <Field :data-invalid="!!errorList('address.street').length">
+      <FieldLabel for="address_street">Street Address</FieldLabel>
       <Textarea
+        :aria-invalid="!!errorList('address.street').length"
         id="address_street"
         v-model="model.street"
         rows="2"
         placeholder="Street, building, area"
       />
       <FieldError :errors="errorList('address.street')" />
-    </div>
+    </Field>
   </div>
 </template>

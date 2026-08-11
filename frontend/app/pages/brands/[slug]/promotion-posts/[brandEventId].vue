@@ -49,7 +49,7 @@
         :class="[
           'flex items-center gap-x-3 rounded-lg border px-4 py-3 text-xs tracking-tight sm:text-sm',
           isDeadlinePassed
-            ? 'border-destructive/40 bg-destructive/10 text-destructive'
+            ? 'border-destructive-foreground/40 bg-destructive/10 text-destructive-foreground'
             : 'border-warning/40 bg-warning/10 text-warning-foreground',
         ]"
       >
@@ -294,7 +294,7 @@
                     <Button
                       size="sm"
                       variant="ghost"
-                      class="text-destructive hover:text-destructive"
+                      class="text-destructive-foreground hover:text-destructive-foreground"
                       :disabled="deletingPostId === post.id"
                       @click="confirmingDeleteId = post.id"
                     >

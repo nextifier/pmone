@@ -3,7 +3,7 @@
     <div class="space-y-2">
       <Label for="name">Person Name</Label>
       <Input id="name" ref="nameInputRef" v-model="form.name" />
-      <p v-if="errors.name" class="text-destructive text-xs tracking-tight">
+      <p v-if="errors.name" class="text-destructive-foreground text-xs tracking-tight">
         {{ errors.name }}
       </p>
     </div>
@@ -67,7 +67,7 @@
             v-if="form.emails.length > 1"
             type="button"
             @click="form.emails.splice(index, 1)"
-            class="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1.5 transition"
+            class="text-muted-foreground hover:text-destructive-foreground shrink-0 rounded-md p-1.5 transition"
           >
             <Icon name="lucide:x" class="size-4" />
           </button>
@@ -95,7 +95,7 @@
             v-if="form.phones.length > 1"
             type="button"
             @click="form.phones.splice(index, 1)"
-            class="text-muted-foreground hover:text-destructive shrink-0 rounded-md p-1.5 transition"
+            class="text-muted-foreground hover:text-destructive-foreground shrink-0 rounded-md p-1.5 transition"
           >
             <Icon name="lucide:x" class="size-4" />
           </button>

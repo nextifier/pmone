@@ -91,14 +91,14 @@
           <Icon
             name="hugeicons:time-schedule"
             class="size-4"
-            :class="task.is_overdue ? 'text-destructive' : 'text-muted-foreground'"
+            :class="task.is_overdue ? 'text-destructive-foreground' : 'text-muted-foreground'"
           />
         </div>
         <div class="min-w-0">
           <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Due Date</div>
           <div
             class="text-xs font-medium tracking-tight sm:text-sm"
-            :class="task.is_overdue ? 'text-destructive' : ''"
+            :class="task.is_overdue ? 'text-destructive-foreground' : ''"
           >
             {{ formatDateTime(task.estimated_completion_at) }}
           </div>

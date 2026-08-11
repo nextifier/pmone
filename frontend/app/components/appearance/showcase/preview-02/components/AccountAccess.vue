@@ -80,7 +80,7 @@ import {
             hugeicons="AlertCircleIcon"
             phosphor="WarningCircleIcon"
             remixicon="RiErrorWarningLine"
-            class="text-destructive"
+            class="text-destructive-foreground"
           />
         </ItemMedia>
         <ItemContent>

@@ -2,9 +2,9 @@
   <!-- Error State -->
   <div
     v-if="error"
-    class="border-destructive/50 bg-destructive/10 flex flex-col items-start gap-y-3 rounded-lg border p-4"
+    class="border-destructive-foreground/50 bg-destructive/10 flex flex-col items-start gap-y-3 rounded-lg border p-4"
   >
-    <div class="text-destructive flex items-center gap-x-2">
+    <div class="text-destructive-foreground flex items-center gap-x-2">
       <Icon name="hugeicons:alert-circle" class="size-5" />
       <span class="font-medium tracking-tight">{{ errorTitle }}</span>
     </div>

@@ -20,7 +20,7 @@
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
             16:9 ratio. JPG, PNG, or WebP.
           </p>
-          <p v-if="errors.tmp_image" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.tmp_image" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.tmp_image[0] }}
           </p>
         </div>
@@ -29,14 +29,14 @@
         <div class="space-y-2">
           <Label for="banner-url">Destination URL (optional)</Label>
           <InputLink id="banner-url" v-model="formData.url" placeholder="https://example.com" />
-          <p v-if="errors.url" class="text-destructive text-xs sm:text-sm">{{ errors.url[0] }}</p>
+          <p v-if="errors.url" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.url[0] }}</p>
         </div>
 
         <!-- Caption -->
         <div class="space-y-2">
           <Label for="banner-caption">Caption (optional)</Label>
           <Input id="banner-caption" v-model="formData.caption" placeholder="Short banner caption" />
-          <p v-if="errors.caption" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.caption" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.caption[0] }}
           </p>
         </div>
@@ -52,7 +52,7 @@
               :default-hour="0"
               :default-minute="0"
             />
-            <p v-if="errors.starts_at" class="text-destructive text-xs sm:text-sm">
+            <p v-if="errors.starts_at" class="text-destructive-foreground text-xs sm:text-sm">
               {{ errors.starts_at[0] }}
             </p>
           </div>
@@ -65,7 +65,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <p v-if="errors.ends_at" class="text-destructive text-xs sm:text-sm">
+            <p v-if="errors.ends_at" class="text-destructive-foreground text-xs sm:text-sm">
               {{ errors.ends_at[0] }}
             </p>
           </div>

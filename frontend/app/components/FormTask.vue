@@ -12,9 +12,9 @@
           rows="1"
           placeholder="Enter task title"
           class="min-h-0 resize-none text-base"
-          :class="{ 'border-destructive': errors.title }"
+          :aria-invalid="!!errors.title"
         />
-        <p v-if="errors.title" class="text-destructive text-xs">{{ errors.title[0] }}</p>
+        <p v-if="errors.title" class="text-destructive-foreground text-xs">{{ errors.title[0] }}</p>
       </div>
 
       <!-- Description -->
@@ -28,7 +28,7 @@
           min-height="150px"
           placeholder="Describe the task in detail"
         />
-        <p v-if="errors.description" class="text-destructive text-xs">
+        <p v-if="errors.description" class="text-destructive-foreground text-xs">
           {{ errors.description[0] }}
         </p>
       </div>
@@ -49,7 +49,7 @@
               <SelectItem value="archived">Archived</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.status" class="text-destructive text-xs">{{ errors.status[0] }}</p>
+          <p v-if="errors.status" class="text-destructive-foreground text-xs">{{ errors.status[0] }}</p>
         </div>
 
         <!-- Priority -->
@@ -66,7 +66,7 @@
               <SelectItem value="high">High</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.priority" class="text-destructive text-xs">{{ errors.priority[0] }}</p>
+          <p v-if="errors.priority" class="text-destructive-foreground text-xs">{{ errors.priority[0] }}</p>
         </div>
 
         <!-- Complexity -->
@@ -83,7 +83,7 @@
               <SelectItem value="high">High</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.complexity" class="text-destructive text-xs">
+          <p v-if="errors.complexity" class="text-destructive-foreground text-xs">
             {{ errors.complexity[0] }}
           </p>
         </div>
@@ -99,7 +99,7 @@
             placeholder="Select start time"
             :default-hour="9"
           />
-          <p v-if="errors.estimated_start_at" class="text-destructive text-xs">
+          <p v-if="errors.estimated_start_at" class="text-destructive-foreground text-xs">
             {{ errors.estimated_start_at[0] }}
           </p>
         </div>
@@ -112,7 +112,7 @@
             placeholder="Select completion time"
             :default-hour="17"
           />
-          <p v-if="errors.estimated_completion_at" class="text-destructive text-xs">
+          <p v-if="errors.estimated_completion_at" class="text-destructive-foreground text-xs">
             {{ errors.estimated_completion_at[0] }}
           </p>
         </div>
@@ -134,9 +134,9 @@
           v-model.number="form.assignee_id"
           type="number"
           placeholder="User ID"
-          :class="{ 'border-destructive': errors.assignee_id }"
+          :aria-invalid="!!errors.assignee_id"
         />
-        <p v-if="errors.assignee_id" class="text-destructive text-xs">
+        <p v-if="errors.assignee_id" class="text-destructive-foreground text-xs">
           {{ errors.assignee_id[0] }}
         </p>
         <!-- <p class="text-muted-foreground text-xs">Optional: Assign this task to a user</p> -->
@@ -172,7 +172,7 @@
             </SelectItem>
           </SelectContent>
         </Select>
-        <p v-if="errors.project_id" class="text-destructive text-xs">{{ errors.project_id[0] }}</p>
+        <p v-if="errors.project_id" class="text-destructive-foreground text-xs">{{ errors.project_id[0] }}</p>
       </div>
 
       <!-- Visibility -->
@@ -198,7 +198,7 @@
             </Label>
           </div>
         </RadioGroup>
-        <p v-if="errors.visibility" class="text-destructive text-xs">{{ errors.visibility[0] }}</p>
+        <p v-if="errors.visibility" class="text-destructive-foreground text-xs">{{ errors.visibility[0] }}</p>
       </div>
 
       <!-- Shared Users (only if visibility is 'shared') -->
@@ -215,13 +215,13 @@
             v-model="sharedUserIdsInput"
             type="text"
             placeholder="Enter user IDs separated by comma"
-            :class="{ 'border-destructive': errors.shared_user_ids }"
+            :aria-invalid="!!errors.shared_user_ids"
           />
           <p class="text-muted-foreground mt-2 text-xs">
             Example: 1,2,3 (will default to viewer role)
           </p>
         </div>
-        <p v-if="errors.shared_user_ids" class="text-destructive text-xs">
+        <p v-if="errors.shared_user_ids" class="text-destructive-foreground text-xs">
           {{ errors.shared_user_ids[0] }}
         </p>
       </div>

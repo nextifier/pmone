@@ -6,30 +6,31 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="name">Name</Label>
-            <Input id="name" v-model="form.name" placeholder="Grand Mercure Jakarta" required />
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="name">Name</FieldLabel>
+            <Input id="name" v-model="form.name" placeholder="Grand Mercure Jakarta" required :aria-invalid="!!errors?.name" />
             <FieldError :errors="errors.name" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="description">Description</Label>
+          <Field :data-invalid="!!errors?.description">
+            <FieldLabel for="description">Description</FieldLabel>
             <Textarea
+              :aria-invalid="!!errors?.description"
               id="description"
               v-model="form.description"
               rows="4"
               placeholder="Hotel description, facilities, ambience"
             />
             <FieldError :errors="errors.description" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="star_rating">Star Rating</Label>
+          <Field :data-invalid="!!errors?.star_rating">
+            <FieldLabel for="star_rating">Star Rating</FieldLabel>
             <Select
               :model-value="form.star_rating ? String(form.star_rating) : 'none'"
               @update:model-value="(v) => (form.star_rating = v === 'none' ? null : Number(v))"
             >
-              <SelectTrigger id="star_rating" class="w-full">
+              <SelectTrigger id="star_rating" class="w-full" :aria-invalid="!!errors?.star_rating">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -42,14 +43,14 @@
               </SelectContent>
             </Select>
             <FieldError :errors="errors.star_rating" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label>Facilities</Label>
+          <Field :data-invalid="!!errors?.facilities">
+            <FieldLabel>Facilities</FieldLabel>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Type and press Enter to add. Examples: WiFi, Swimming Pool, Gym, Restaurant.
             </p>
-            <TagsInput v-model="form.facilities" class="text-sm">
+            <TagsInput v-model="form.facilities" class="text-sm" :aria-invalid="!!errors?.facilities">
               <TagsInputItem v-for="tag in form.facilities" :key="tag" :value="tag">
                 <TagsInputItemText />
                 <TagsInputItemDelete />
@@ -57,7 +58,7 @@
               <TagsInputInput placeholder="Add facility" />
             </TagsInput>
             <FieldError :errors="errors.facilities" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -70,9 +71,10 @@
         <div class="grid grid-cols-1 gap-y-6">
           <AddressFields v-model="form.address" :errors="errors" />
 
-          <div class="space-y-2">
-            <Label for="google_maps_link">Google Maps Link</Label>
+          <Field :data-invalid="!!errors?.google_maps_link">
+            <FieldLabel for="google_maps_link">Google Maps Link</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.google_maps_link"
               id="google_maps_link"
               v-model="form.google_maps_link"
               type="url"
@@ -82,11 +84,12 @@
               Paste the share link from Google Maps. Used for the "Get Directions" button.
             </p>
             <FieldError :errors="errors.google_maps_link" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="google_maps_embed_src">Google Maps Embed Src</Label>
+          <Field :data-invalid="!!errors?.google_maps_embed_src">
+            <FieldLabel for="google_maps_embed_src">Google Maps Embed Src</FieldLabel>
             <Textarea
+              :aria-invalid="!!errors?.google_maps_embed_src"
               id="google_maps_embed_src"
               v-model="form.google_maps_embed_src"
               rows="3"
@@ -96,24 +99,25 @@
               From Google Maps → Share → Embed a map, copy the <code>src</code> value of the iframe.
             </p>
             <FieldError :errors="errors.google_maps_embed_src" />
-          </div>
+          </Field>
 
           <div class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="contact_email">Contact Email</Label>
+            <Field :data-invalid="!!errors?.contact_email">
+              <FieldLabel for="contact_email">Contact Email</FieldLabel>
               <Input
+                :aria-invalid="!!errors?.contact_email"
                 id="contact_email"
                 v-model="form.contact_email"
                 type="email"
                 placeholder="reservation@hotel.com"
               />
               <FieldError :errors="errors.contact_email" />
-            </div>
-            <div class="space-y-2">
-              <Label for="contact_phone">Contact Phone</Label>
-              <InputPhone id="contact_phone" v-model="form.contact_phone" />
+            </Field>
+            <Field :data-invalid="!!errors?.contact_phone">
+              <FieldLabel for="contact_phone">Contact Phone</FieldLabel>
+              <InputPhone id="contact_phone" v-model="form.contact_phone" :aria-invalid="!!errors?.contact_phone" />
               <FieldError :errors="errors.contact_phone" />
-            </div>
+            </Field>
           </div>
         </div>
       </div>
@@ -124,16 +128,17 @@
         <div class="frame-title">Policies</div>
       </div>
       <div class="frame-panel">
-        <div class="space-y-2">
-          <Label for="cancellation_policy">Cancellation Policy</Label>
+        <Field :data-invalid="!!errors?.cancellation_policy">
+          <FieldLabel for="cancellation_policy">Cancellation Policy</FieldLabel>
           <Textarea
+            :aria-invalid="!!errors?.cancellation_policy"
             id="cancellation_policy"
             v-model="form.cancellation_policy"
             rows="3"
             placeholder="Free cancellation up to 7 days before check-in"
           />
           <FieldError :errors="errors.cancellation_policy" />
-        </div>
+        </Field>
       </div>
     </div>
 
@@ -143,10 +148,11 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="commission_rate">Commission Rate (%)</Label>
+          <Field :data-invalid="!!errors?.commission_rate">
+            <FieldLabel for="commission_rate">Commission Rate (%)</FieldLabel>
             <InputGroup>
               <InputNumber
+                :aria-invalid="!!errors?.commission_rate"
                 id="commission_rate"
                 v-model="form.commission_rate"
                 :min="0"
@@ -160,13 +166,14 @@
               </InputGroupAddon>
             </InputGroup>
             <FieldError :errors="errors.commission_rate" />
-          </div>
+          </Field>
 
           <div class="grid gap-4 lg:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="tax_percentage">Tax (%)</Label>
+            <Field :data-invalid="!!errors?.tax_percentage">
+              <FieldLabel for="tax_percentage">Tax (%)</FieldLabel>
               <InputGroup>
                 <InputNumber
+                  :aria-invalid="!!errors?.tax_percentage"
                   id="tax_percentage"
                   v-model="form.tax_percentage"
                   :min="0"
@@ -180,11 +187,12 @@
                 </InputGroupAddon>
               </InputGroup>
               <FieldError :errors="errors.tax_percentage" />
-            </div>
-            <div class="space-y-2">
-              <Label for="service_charge_percentage">Service Charge (%)</Label>
+            </Field>
+            <Field :data-invalid="!!errors?.service_charge_percentage">
+              <FieldLabel for="service_charge_percentage">Service Charge (%)</FieldLabel>
               <InputGroup>
                 <InputNumber
+                  :aria-invalid="!!errors?.service_charge_percentage"
                   id="service_charge_percentage"
                   v-model="form.service_charge_percentage"
                   :min="0"
@@ -198,20 +206,20 @@
                 </InputGroupAddon>
               </InputGroup>
               <FieldError :errors="errors.service_charge_percentage" />
-            </div>
+            </Field>
           </div>
 
-          <div class="flex items-center justify-between gap-3">
-            <div class="space-y-1">
-              <Label for="is_active" class="cursor-pointer">Hotel is active</Label>
+          <Field orientation="horizontal" :data-invalid="!!errors?.is_active">
+            <FieldContent>
+              <FieldLabel for="is_active" class="cursor-pointer">Hotel is active</FieldLabel>
               <p class="text-muted-foreground text-xs sm:text-sm">
                 Inactive hotels are hidden from all event websites and cannot be booked by
                 customers.
               </p>
-            </div>
+              <FieldError :errors="errors.is_active" />
+            </FieldContent>
             <Switch id="is_active" v-model="form.is_active" />
-          </div>
-          <FieldError :errors="errors.is_active" />
+          </Field>
         </div>
       </div>
     </div>
@@ -222,8 +230,8 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label>Featured Image</Label>
+          <Field :data-invalid="!!errors?.tmp_featured">
+            <FieldLabel>Featured Image</FieldLabel>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Single hero image displayed on hotel cards. Format JPG/PNG/WebP.
             </p>
@@ -234,10 +242,10 @@
               image-class="size-full object-cover"
             />
             <FieldError :errors="errors.tmp_featured" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label>Gallery</Label>
+          <Field :data-invalid="!!errors?.gallery_files">
+            <FieldLabel>Gallery</FieldLabel>
             <p class="text-muted-foreground text-xs sm:text-sm tracking-tight">
               Multiple images for hotel detail page. Up to 20 files, max 20MB each.
             </p>
@@ -245,6 +253,7 @@
             <GalleryManager v-if="existingGallery.length" v-model:items="existingGallery" />
 
             <InputFile
+              :aria-invalid="!!errors?.gallery_files"
               v-model="galleryFiles"
               allow-multiple
               :max-files="20"
@@ -252,7 +261,7 @@
               :accepted-file-types="['image/jpeg', 'image/png', 'image/webp']"
             />
             <FieldError :errors="errors.gallery_files" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -276,9 +285,8 @@ import GalleryManager from "@/components/GalleryManager.vue";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputPhone } from "@/components/ui/input-phone";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,

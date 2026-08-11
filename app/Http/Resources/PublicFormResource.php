@@ -15,6 +15,7 @@ class PublicFormResource extends JsonResource
             'slug' => $this->slug,
             'cover_image' => $this->getMediaUrls('cover_image'),
             'settings' => [
+                'layout' => $this->layout(),
                 'confirmation_message' => $this->settings['confirmation_message'] ?? null,
                 'redirect_url' => $this->settings['redirect_url'] ?? null,
                 'require_email' => $this->settings['require_email'] ?? false,

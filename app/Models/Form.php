@@ -185,6 +185,34 @@ class Form extends Model implements HasMedia
         ];
     }
 
+    /** Every field on one page, the way forms have always rendered. */
+    public const LAYOUT_SINGLE_PAGE = 'single_page';
+
+    /** One question per screen, rendered by the Questionnaire component. */
+    public const LAYOUT_MULTI_STEP = 'multi_step';
+
+    /**
+     * @return array<int, string>
+     */
+    public static function allowedLayouts(): array
+    {
+        return [
+            self::LAYOUT_SINGLE_PAGE,
+            self::LAYOUT_MULTI_STEP,
+        ];
+    }
+
+    /**
+     * Absent settings read as single page, so forms created before the setting
+     * existed keep rendering exactly as they did.
+     */
+    public function layout(): string
+    {
+        $layout = $this->settings['layout'] ?? null;
+
+        return in_array($layout, self::allowedLayouts(), true) ? $layout : self::LAYOUT_SINGLE_PAGE;
+    }
+
     public function sluggable(): array
     {
         return [

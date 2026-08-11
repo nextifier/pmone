@@ -94,7 +94,7 @@
           <span>{{ task.status === "in_progress" ? "Move to To Do" : "Start Working" }}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem class="text-destructive" @click="$emit('delete', task)">
+        <DropdownMenuItem class="text-destructive-foreground" @click="$emit('delete', task)">
           <Icon name="hugeicons:delete-02" class="size-4" />
           <span>Delete</span>
         </DropdownMenuItem>

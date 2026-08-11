@@ -354,7 +354,7 @@
                 <button
                   type="button"
                   @click="removeLink(index)"
-                  class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                  class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                 >
                   <Icon name="hugeicons:delete-01" class="size-4" />
                 </button>
@@ -538,7 +538,7 @@
                     type="button"
                     @click="removeMember(member)"
                     :disabled="removingMember === member.id"
-                    class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition"
+                    class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-md p-1.5 transition"
                   >
                     <Icon
                       v-if="removingMember === member.id"

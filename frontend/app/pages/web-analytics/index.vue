@@ -56,7 +56,7 @@
 
     <div v-else-if="error && !hasRealData" class="flex items-center justify-center p-6">
       <div class="flex flex-col items-center gap-3 text-center">
-        <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
+        <Icon name="hugeicons:alert-circle" class="text-destructive-foreground size-6" />
         <div>
           <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
           <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>
@@ -85,10 +85,10 @@
 
       <div
         v-if="aggregateData.errors && aggregateData.errors.length > 0"
-        class="bg-destructive/5 border-destructive/20 flex flex-col gap-3 rounded-lg border p-4"
+        class="bg-destructive/5 border-destructive-foreground/20 flex flex-col gap-3 rounded-lg border p-4"
       >
         <div class="flex items-start gap-2">
-          <Icon name="hugeicons:alert-circle" class="text-destructive mt-0.5 size-5 shrink-0" />
+          <Icon name="hugeicons:alert-circle" class="text-destructive-foreground mt-0.5 size-5 shrink-0" />
           <div class="flex-1">
             <h3 class="text-foreground font-semibold tracking-tight">
               Some properties failed to load
@@ -113,12 +113,12 @@
           <div
             v-for="(err, index) in aggregateData.errors"
             :key="index"
-            class="bg-background/50 border-destructive/10 flex items-start gap-2 rounded-md border p-2.5 text-sm"
+            class="bg-background/50 border-destructive-foreground/10 flex items-start gap-2 rounded-md border p-2.5 text-sm"
           >
             <div class="flex-1">
               <span class="font-medium">{{ err.property_name }}</span>
               <span class="text-muted-foreground ml-1 text-xs">({{ err.property_id }})</span>
-              <p class="text-destructive mt-0.5 text-xs">{{ err.error }}</p>
+              <p class="text-destructive-foreground mt-0.5 text-xs">{{ err.error }}</p>
             </div>
           </div>
         </div>

@@ -426,7 +426,7 @@ const columns = computed(() => {
               type: "button",
               title: "Delete",
               class:
-                "text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition",
+                "text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-md p-1.5 transition",
               onClick: () => confirmDelete(product),
             },
             [h(Icon, { name: "hugeicons:delete-02", class: "size-4" })]

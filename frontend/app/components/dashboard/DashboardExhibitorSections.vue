@@ -14,11 +14,12 @@
     >
       <!-- All four fields are what `profile_complete` is computed from, so all
            four are required. The red asterisk comes from main.css off the
-           `required` attribute - no manual markup. -->
+           `required` attribute - no manual markup. `data-invalid` on the Field
+           is what turns the label red alongside the control's ring. -->
       <form class="space-y-4" novalidate @submit.prevent="saveProfile">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div class="space-y-2">
-            <Label :for="`ex_name_${be.brand_event_id}`">{{ $t("ed.profile.fullName") }}</Label>
+          <Field :data-invalid="!!profileErrors.name">
+            <FieldLabel :for="`ex_name_${be.brand_event_id}`">{{ $t("ed.profile.fullName") }}</FieldLabel>
             <Input
               :id="`ex_name_${be.brand_event_id}`"
               v-model="profileForm.name"
@@ -28,9 +29,9 @@
               @blur="validateProfileField('name')"
             />
             <FieldError :errors="profileErrors.name" />
-          </div>
-          <div class="space-y-2">
-            <Label :for="`ex_phone_${be.brand_event_id}`">{{ $t("ed.profile.phone") }}</Label>
+          </Field>
+          <Field :data-invalid="!!profileErrors.phone">
+            <FieldLabel :for="`ex_phone_${be.brand_event_id}`">{{ $t("ed.profile.phone") }}</FieldLabel>
             <InputPhone
               :id="`ex_phone_${be.brand_event_id}`"
               v-model="profileForm.phone"
@@ -39,9 +40,9 @@
               @blur="validateProfileField('phone')"
             />
             <FieldError :errors="profileErrors.phone" />
-          </div>
-          <div class="space-y-2">
-            <Label :for="`ex_title_${be.brand_event_id}`">{{ $t("ed.profile.jobTitle") }}</Label>
+          </Field>
+          <Field :data-invalid="!!profileErrors.title">
+            <FieldLabel :for="`ex_title_${be.brand_event_id}`">{{ $t("ed.profile.jobTitle") }}</FieldLabel>
             <Input
               :id="`ex_title_${be.brand_event_id}`"
               v-model="profileForm.title"
@@ -51,9 +52,9 @@
               @blur="validateProfileField('title')"
             />
             <FieldError :errors="profileErrors.title" />
-          </div>
-          <div class="space-y-2">
-            <Label :for="`ex_company_${be.brand_event_id}`">{{ $t("ed.profile.company") }}</Label>
+          </Field>
+          <Field :data-invalid="!!profileErrors.company_name">
+            <FieldLabel :for="`ex_company_${be.brand_event_id}`">{{ $t("ed.profile.company") }}</FieldLabel>
             <Input
               :id="`ex_company_${be.brand_event_id}`"
               v-model="profileForm.company_name"
@@ -63,7 +64,7 @@
               @blur="validateProfileField('company_name')"
             />
             <FieldError :errors="profileErrors.company_name" />
-          </div>
+          </Field>
         </div>
         <Button type="submit" size="sm" :disabled="profileSaving">
           <Spinner v-if="profileSaving" class="mr-1.5 size-4" />
@@ -114,39 +115,39 @@
               </p>
             </div>
             <!-- Not yet agreed or needs re-agreement: show checkbox + submit -->
-            <div v-else>
-              <div class="flex items-start gap-x-2">
-                <Checkbox
-                  :id="`rule_${be.brand_event_id}_${rule.document.id}`"
-                  :model-value="!!checkedRules[rule.document.id]"
-                  @update:model-value="(v) => (checkedRules[rule.document.id] = v)"
-                />
-                <div>
-                  <Label
-                    :for="`rule_${be.brand_event_id}_${rule.document.id}`"
-                    class="text-sm leading-snug font-normal"
-                  >
-                    {{ agreeLabel(rule.document) }}
-                  </Label>
-                  <p
-                    v-if="rule.needs_reagreement"
-                    class="text-warning-foreground mt-1 text-sm tracking-tight sm:text-sm"
-                  >
-                    {{ $t("ed.rules.reagreeWarning") }}
-                  </p>
-                </div>
-              </div>
-              <Button
-                v-if="checkedRules[rule.document.id]"
-                size="sm"
-                class="mt-2 ml-6"
-                :disabled="agreeingId === rule.document.id"
-                @click="handleAgreeRule(rule)"
-              >
-                <Spinner v-if="agreeingId === rule.document.id" class="mr-1.5 size-4" />
-                {{ $t("ed.rules.submit") }}
-              </Button>
-            </div>
+            <Field v-else orientation="horizontal">
+              <Checkbox
+                :id="`rule_${be.brand_event_id}_${rule.document.id}`"
+                :model-value="!!checkedRules[rule.document.id]"
+                @update:model-value="(v) => (checkedRules[rule.document.id] = v)"
+              />
+              <FieldContent>
+                <FieldLabel
+                  :for="`rule_${be.brand_event_id}_${rule.document.id}`"
+                  class="font-normal"
+                >
+                  {{ agreeLabel(rule.document) }}
+                </FieldLabel>
+                <FieldDescription
+                  v-if="rule.needs_reagreement"
+                  class="text-warning-foreground mt-1"
+                >
+                  {{ $t("ed.rules.reagreeWarning") }}
+                </FieldDescription>
+                <!-- Inside FieldContent so it lines up with the label text
+                     whatever gap the active style gives the Field. -->
+                <Button
+                  v-if="checkedRules[rule.document.id]"
+                  size="sm"
+                  class="mt-2 w-fit"
+                  :disabled="agreeingId === rule.document.id"
+                  @click="handleAgreeRule(rule)"
+                >
+                  <Spinner v-if="agreeingId === rule.document.id" class="mr-1.5 size-4" />
+                  {{ $t("ed.rules.submit") }}
+                </Button>
+              </FieldContent>
+            </Field>
           </template>
         </div>
       </DashboardExhibitorSection>
@@ -297,13 +298,13 @@
           <p class="mb-3 text-sm font-medium">{{ $t("ed.docs.boothDetails") }}</p>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <!-- Both fields gate `exhibitorDocsComplete`, so both are required
-                 wherever they are shown. `<Label required>` rather than the CSS
-                 rule: Badge Name puts a description between label and input, so
-                 the adjacent-sibling selector would never match there. -->
-            <div v-if="showFascia" class="space-y-2">
-              <Label :for="`fascia_${be.brand_event_id}`" required>
+                 wherever they are shown. `<FieldLabel required>` rather than the
+                 CSS rule: Badge Name puts a description between label and input,
+                 so the adjacent-sibling selector would never match there. -->
+            <Field v-if="showFascia" :data-invalid="!!boothErrors.fascia_name">
+              <FieldLabel :for="`fascia_${be.brand_event_id}`" required>
                 {{ $t("ed.docs.fasciaName") }}
-              </Label>
+              </FieldLabel>
               <Input
                 :id="`fascia_${be.brand_event_id}`"
                 :model-value="boothFields.fascia_name ?? be.fascia_name ?? ''"
@@ -314,13 +315,10 @@
                 @update:model-value="(v) => setBoothField('fascia_name', v.toUpperCase())"
               />
               <FieldError :errors="boothErrors.fascia_name" />
-              <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
+              <FieldDescription>
                 {{ $t("ed.docs.fasciaHint") }}
-              </p>
-              <p
-                v-if="be.event?.project_contact"
-                class="text-muted-foreground text-sm tracking-tight sm:text-sm"
-              >
+              </FieldDescription>
+              <FieldDescription v-if="be.event?.project_contact">
                 {{ $t("ed.docs.fasciaContactHint") }}
                 <a
                   :href="`https://wa.me/${be.event.project_contact}`"
@@ -330,15 +328,15 @@
                 >
                   {{ $t("ed.docs.fasciaContactCta") }}
                 </a>
-              </p>
-            </div>
-            <div v-if="showBadge" class="space-y-2">
-              <Label :for="`badge_${be.brand_event_id}`" required>
+              </FieldDescription>
+            </Field>
+            <Field v-if="showBadge" :data-invalid="!!boothErrors.badge_name">
+              <FieldLabel :for="`badge_${be.brand_event_id}`" required>
                 {{ $t("ed.docs.badgeName") }}
-              </Label>
-              <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
+              </FieldLabel>
+              <FieldDescription>
                 {{ $t("ed.docs.badgeDescription") }}
-              </p>
+              </FieldDescription>
               <Input
                 :id="`badge_${be.brand_event_id}`"
                 :model-value="boothFields.badge_name ?? be.badge_name ?? ''"
@@ -348,7 +346,7 @@
                 @update:model-value="(v) => setBoothField('badge_name', v)"
               />
               <FieldError :errors="boothErrors.badge_name" />
-            </div>
+            </Field>
             <div class="sm:col-span-2">
               <Button size="sm" :disabled="savingBoothFields" @click="saveBoothFields">
                 <Spinner v-if="savingBoothFields" class="mr-1.5 size-4" />
@@ -380,9 +378,14 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FieldError } from "@/components/ui/field";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { exhibitorDocsComplete, exhibitorShowBadge, exhibitorShowFascia } from "@/utils/exhibitorDashboard";
 import { toast } from "vue-sonner";

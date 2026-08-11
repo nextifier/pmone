@@ -4,7 +4,7 @@
     <div class="space-y-2">
       <Label for="title">Title</Label>
       <Input id="title" v-model="form.title" placeholder="Document title" required />
-      <p v-if="errors.title" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.title" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.title) ? errors.title[0] : errors.title }}
       </p>
     </div>
@@ -20,7 +20,7 @@
         min-height="120px"
         placeholder="Document content or instructions for exhibitors"
       />
-      <p v-if="errors.description" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.description" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.description) ? errors.description[0] : errors.description }}
       </p>
     </div>
@@ -46,7 +46,7 @@
         :default-hour="23"
         :default-minute="59"
       />
-      <p v-if="errors.submission_deadline" class="text-destructive mt-1 text-xs">
+      <p v-if="errors.submission_deadline" class="text-destructive-foreground mt-1 text-xs">
         {{ Array.isArray(errors.submission_deadline) ? errors.submission_deadline[0] : errors.submission_deadline }}
       </p>
     </div>

@@ -138,7 +138,7 @@
               v-if="canDelete"
               variant="ghost"
               size="iconSm"
-              class="hover:bg-destructive/10 text-destructive"
+              class="hover:bg-destructive/10 text-destructive-foreground"
               title="Delete"
               @click="confirmDelete(room)"
             >
@@ -220,7 +220,7 @@
               <p v-if="form.pricing_periods.length === 0" class="text-muted-foreground text-sm tracking-tight rounded-md border border-dashed py-6 text-center">
                 No pricing periods yet. Add one to define a date range and rate.
               </p>
-              <div v-if="pricingPeriodOverlap" class="text-destructive text-xs sm:text-sm tracking-tight">
+              <div v-if="pricingPeriodOverlap" class="text-destructive-foreground text-xs sm:text-sm tracking-tight">
                 {{ pricingPeriodOverlap }}
               </div>
               <div
@@ -281,7 +281,7 @@
                     type="button"
                     variant="ghost"
                     size="iconSm"
-                    class="hover:bg-destructive/10 text-destructive"
+                    class="hover:bg-destructive/10 text-destructive-foreground"
                     title="Remove period"
                     @click="removePricingPeriod(idx)"
                   >

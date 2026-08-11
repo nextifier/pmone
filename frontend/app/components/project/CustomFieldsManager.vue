@@ -81,7 +81,7 @@
               v-if="canManage"
               variant="ghost"
               size="iconSm"
-              class="hover:bg-destructive/10 text-destructive"
+              class="hover:bg-destructive/10 text-destructive-foreground"
               v-tippy="'Delete'"
               @click="confirmDelete(field)"
             >
@@ -119,21 +119,22 @@
               </p>
             </div>
 
-            <div class="space-y-2">
-              <Label for="brand-field-label">Label</Label>
+            <Field :data-invalid="!!localizedLabelErrors">
+              <FieldLabel for="brand-field-label">Label</FieldLabel>
               <Input
+                :aria-invalid="!!localizedLabelErrors"
                 id="brand-field-label"
                 v-model="labelField"
                 :required="activeLocale === 'en'"
                 :placeholder="activeLocale === 'en' ? 'e.g. Business Concept' : 'Konsep bisnis'"
               />
               <FieldError :errors="localizedLabelErrors" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label>Field type</Label>
+            <Field :data-invalid="!!errors?.type">
+              <FieldLabel>Field type</FieldLabel>
               <Select v-model="form.type">
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full" :aria-invalid="!!errors?.type">
                   <SelectValue placeholder="Select a field type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -157,7 +158,7 @@
                 </SelectContent>
               </Select>
               <FieldError :errors="errors.type" />
-            </div>
+            </Field>
 
             <FieldTypeSettings
               v-model:placeholder="placeholderField"
@@ -171,20 +172,20 @@
               id-prefix="brand-field"
             >
               <template #options>
-                <div v-if="showOptions" class="space-y-2">
-                  <Label>Options</Label>
+                <Field v-if="showOptions" :data-invalid="!!errors?.options">
+                  <FieldLabel>Options</FieldLabel>
                   <div class="space-y-2">
                     <div
                       v-for="(option, index) in form.options"
                       :key="index"
                       class="flex items-center gap-x-2"
                     >
-                      <Input v-model="form.options[index]" :placeholder="`Option ${index + 1}`" />
+                      <Input v-model="form.options[index]" :placeholder="`Option ${index + 1}`" :aria-invalid="!!errors?.options" />
                       <Button
                         variant="ghost"
                         size="iconSm"
                         type="button"
-                        class="hover:bg-destructive/10 text-destructive shrink-0"
+                        class="hover:bg-destructive/10 text-destructive-foreground shrink-0"
                         v-tippy="'Remove'"
                         @click="removeOption(index)"
                       >
@@ -197,7 +198,7 @@
                     Add option
                   </Button>
                   <FieldError :errors="errors.options" />
-                </div>
+                </Field>
               </template>
             </FieldTypeSettings>
 
@@ -259,7 +260,7 @@ import FieldTypeSettings from "@/components/custom-field-editor/FieldTypeSetting
 import { Button } from "@/components/ui/button";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import {
   Select,

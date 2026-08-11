@@ -61,11 +61,11 @@
 
     <div
       v-if="user.suspended_at"
-      class="border-destructive/30 bg-destructive/5 flex items-start gap-x-2.5 rounded-lg border p-4"
+      class="border-destructive-foreground/30 bg-destructive/5 flex items-start gap-x-2.5 rounded-lg border p-4"
     >
-      <Icon name="hugeicons:alert-02" class="text-destructive mt-0.5 size-4 shrink-0" />
+      <Icon name="hugeicons:alert-02" class="text-destructive-foreground mt-0.5 size-4 shrink-0" />
       <div class="text-sm tracking-tight">
-        <span class="text-destructive font-medium">Suspended</span>
+        <span class="text-destructive-foreground font-medium">Suspended</span>
         <span v-if="user.suspension_reason" class="text-body"> · {{ user.suspension_reason }}</span>
       </div>
     </div>

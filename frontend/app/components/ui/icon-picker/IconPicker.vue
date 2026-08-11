@@ -523,7 +523,7 @@ watch(focusedIndex, (idx) => {
               <button
                 type="button"
                 aria-label="Remove from recent"
-                class="bg-card border-border text-muted-foreground hover:text-destructive absolute -top-1 -right-1 hidden size-4 items-center justify-center rounded-full border shadow-sm group-hover/recent:flex"
+                class="bg-card border-border text-muted-foreground hover:text-destructive-foreground absolute -top-1 -right-1 hidden size-4 items-center justify-center rounded-full border shadow-sm group-hover/recent:flex"
                 @click.stop="removeRecent(name)"
               >
                 <Icon name="lucide:x" class="size-2.5" />
@@ -568,7 +568,7 @@ watch(focusedIndex, (idx) => {
         </span>
         <button
           type="button"
-          class="text-muted-foreground hover:text-destructive text-sm tracking-tight"
+          class="text-muted-foreground hover:text-destructive-foreground text-sm tracking-tight"
           @click="clear"
         >
           Clear

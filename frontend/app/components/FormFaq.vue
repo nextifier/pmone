@@ -115,7 +115,7 @@ defineShortcuts({
         v-model="questionField"
         :placeholder="activeLocale === 'en' ? 'Question' : 'Pertanyaan'"
       />
-      <p v-if="localizedError('question')" class="text-destructive text-xs">
+      <p v-if="localizedError('question')" class="text-destructive-foreground text-xs">
         {{ localizedError("question") }}
       </p>
     </div>
@@ -129,7 +129,7 @@ defineShortcuts({
         :sticky="false"
         min-height="140px"
       />
-      <p v-if="localizedError('answer')" class="text-destructive text-xs">
+      <p v-if="localizedError('answer')" class="text-destructive-foreground text-xs">
         {{ localizedError("answer") }}
       </p>
     </div>

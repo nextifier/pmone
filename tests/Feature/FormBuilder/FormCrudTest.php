@@ -77,6 +77,34 @@ it('accepts to/cc/bcc notification emails', function () {
         ->and($form->settings['notification_emails']['bcc'])->toBe(['bcc@example.com']);
 });
 
+it('stores the multi-step layout setting', function () {
+    $form = Form::factory()->create(['user_id' => $this->user->id, 'created_by' => $this->user->id]);
+
+    $this->putJson("/api/forms/{$form->slug}", [
+        'settings' => ['layout' => 'multi_step'],
+    ])->assertSuccessful();
+
+    expect($form->fresh()->layout())->toBe('multi_step');
+});
+
+it('rejects an unknown layout', function () {
+    $form = Form::factory()->create(['user_id' => $this->user->id, 'created_by' => $this->user->id]);
+
+    $this->putJson("/api/forms/{$form->slug}", [
+        'settings' => ['layout' => 'carousel'],
+    ])->assertUnprocessable();
+});
+
+it('reads an absent layout as single page', function () {
+    $form = Form::factory()->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+        'settings' => ['confirmation_message' => 'Thanks!'],
+    ]);
+
+    expect($form->layout())->toBe('single_page');
+});
+
 it('denies form creation without permission', function () {
     $plainUser = User::factory()->create(['email_verified_at' => now()]);
     $this->actingAs($plainUser);

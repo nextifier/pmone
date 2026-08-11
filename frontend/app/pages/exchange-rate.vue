@@ -300,10 +300,10 @@
 
     <div
       v-else-if="error"
-      class="border-destructive/50 bg-destructive/10 rounded-lg border p-6 text-center"
+      class="border-destructive-foreground/50 bg-destructive/10 rounded-lg border p-6 text-center"
     >
-      <Icon name="hugeicons:alert-circle" class="text-destructive mx-auto mb-2 size-8" />
-      <p class="text-destructive text-sm font-medium tracking-tight">
+      <Icon name="hugeicons:alert-circle" class="text-destructive-foreground mx-auto mb-2 size-8" />
+      <p class="text-destructive-foreground text-sm font-medium tracking-tight">
         Failed to load exchange rates
       </p>
       <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>

@@ -45,9 +45,9 @@
       </div>
 
       <!-- Danger Zone -->
-      <div v-if="canDeleteProject(settingsProject)" class="frame border-destructive/30 mt-6">
+      <div v-if="canDeleteProject(settingsProject)" class="frame border-destructive-foreground/30 mt-6">
         <div class="frame-header">
-          <div class="frame-title text-destructive">Danger Zone</div>
+          <div class="frame-title text-destructive-foreground">Danger Zone</div>
         </div>
         <div class="frame-panel">
           <div class="flex items-center justify-between">

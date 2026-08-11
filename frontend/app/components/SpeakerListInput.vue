@@ -83,7 +83,7 @@ function patch(index: number, key: keyof Speaker, value: string) {
           @click="remove(index)"
           v-tippy="'Remove speaker'"
         >
-          <Icon name="lucide:x" class="text-destructive size-3.5" />
+          <Icon name="lucide:x" class="text-destructive-foreground size-3.5" />
         </button>
       </div>
     </div>

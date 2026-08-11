@@ -142,7 +142,7 @@
                   type="button"
                   variant="ghost"
                   size="sm"
-                  class="text-destructive hover:text-destructive/80"
+                  class="text-destructive-foreground hover:text-destructive-foreground/80"
                   @click="removeLink"
                 >
                   Remove

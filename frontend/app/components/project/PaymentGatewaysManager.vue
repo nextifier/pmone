@@ -122,7 +122,7 @@
               <button
                 v-if="canDelete"
                 type="button"
-                class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition"
+                class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-md p-1.5 transition"
                 @click="openDeleteDialog(gateway)"
               >
                 <Icon name="hugeicons:delete-01" class="size-4" />
@@ -356,7 +356,7 @@
                 'rounded-md border p-3 text-sm tracking-tight',
                 testResult.success
                   ? 'border-success/40 bg-success/10'
-                  : 'border-destructive/40 bg-destructive/10',
+                  : 'border-destructive-foreground/40 bg-destructive/10',
               ]"
             >
               <div class="flex items-start gap-2">
@@ -366,14 +366,14 @@
                   "
                   :class="[
                     'mt-0.5 size-4 shrink-0',
-                    testResult.success ? 'text-success-foreground' : 'text-destructive',
+                    testResult.success ? 'text-success-foreground' : 'text-destructive-foreground',
                   ]"
                 />
                 <div class="flex-1 space-y-1">
                   <p
                     :class="[
                       'font-medium',
-                      testResult.success ? 'text-success-foreground' : 'text-destructive',
+                      testResult.success ? 'text-success-foreground' : 'text-destructive-foreground',
                     ]"
                   >
                     {{
@@ -398,7 +398,7 @@
                     v-if="testResult.webhook_token"
                     :class="[
                       'text-xs tracking-tight sm:text-sm',
-                      testResult.webhook_token.ok ? 'text-muted-foreground' : 'text-destructive',
+                      testResult.webhook_token.ok ? 'text-muted-foreground' : 'text-destructive-foreground',
                     ]"
                   >
                     Webhook token: {{ testResult.webhook_token.message }}

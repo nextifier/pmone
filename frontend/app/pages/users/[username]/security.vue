@@ -64,9 +64,9 @@
     </div>
 
     <!-- Danger zone: suspend -->
-    <div v-if="canSuspend && !isSelf" class="border-destructive/30 flex flex-col gap-y-3 rounded-lg border p-4">
+    <div v-if="canSuspend && !isSelf" class="border-destructive-foreground/30 flex flex-col gap-y-3 rounded-lg border p-4">
       <div>
-        <h2 class="text-destructive text-sm font-medium tracking-tight">Account access</h2>
+        <h2 class="text-destructive-foreground text-sm font-medium tracking-tight">Account access</h2>
         <p class="text-muted-foreground text-sm tracking-tight">
           <template v-if="user.suspended_at">
             Suspended<span v-if="user.suspension_reason"> · {{ user.suspension_reason }}</span>.

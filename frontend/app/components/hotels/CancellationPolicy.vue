@@ -7,7 +7,7 @@
     <ul class="text-muted-foreground space-y-1 text-xs sm:text-sm tracking-tight list-disc list-inside">
       <li>Cancel 14+ days before check-in — <span class="text-foreground font-medium">100% refund</span></li>
       <li>Cancel 7-13 days before check-in — <span class="text-foreground font-medium">50% refund</span></li>
-      <li>Cancel less than 7 days before check-in — <span class="text-destructive font-medium">no refund</span></li>
+      <li>Cancel less than 7 days before check-in — <span class="text-destructive-foreground font-medium">no refund</span></li>
     </ul>
     <p v-if="customPolicy" class="text-muted-foreground text-xs tracking-tight pt-2 border-t whitespace-pre-line">
       {{ customPolicy }}

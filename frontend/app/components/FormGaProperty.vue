@@ -7,10 +7,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="project_id">Project</Label>
+          <Field :data-invalid="!!errors?.project_id">
+            <FieldLabel for="project_id">Project</FieldLabel>
             <Select v-model="formData.project_id" :disabled="loadingProjects">
-              <SelectTrigger class="w-full">
+              <SelectTrigger class="w-full" :aria-invalid="!!errors?.project_id">
                 <SelectValue placeholder="Select a project" />
               </SelectTrigger>
               <SelectContent>
@@ -23,11 +23,12 @@
             <p class="text-muted-foreground text-xs">
               Select the project this GA property belongs to
             </p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="name">Property Name</Label>
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="name">Property Name</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.name"
               id="name"
               v-model="formData.name"
               type="text"
@@ -36,11 +37,12 @@
             />
             <FieldError :errors="errors.name" />
             <p class="text-muted-foreground text-xs">Friendly name for this GA4 property</p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="property_id">GA4 Property ID</Label>
+          <Field :data-invalid="!!errors?.property_id">
+            <FieldLabel for="property_id">GA4 Property ID</FieldLabel>
             <Input
+              :aria-invalid="!!errors?.property_id"
               id="property_id"
               v-model="formData.property_id"
               type="text"
@@ -51,11 +53,11 @@
             <p class="text-muted-foreground text-xs">
               The Google Analytics 4 property ID (numbers only)
             </p>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="tags">Tags</Label>
-            <TagsInput v-model="formData.tags">
+          <Field :data-invalid="!!errors?.tags">
+            <FieldLabel for="tags">Tags</FieldLabel>
+            <TagsInput v-model="formData.tags" :aria-invalid="!!errors?.tags">
               <TagsInputItem v-for="item in formData.tags" :key="item" :value="item">
                 <TagsInputItemText />
                 <TagsInputItemDelete />
@@ -64,7 +66,7 @@
             </TagsInput>
             <FieldError :errors="errors.tags" />
             <p class="text-muted-foreground text-xs">Organize properties with tags</p>
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -76,9 +78,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="sync_frequency">Sync Frequency (minutes)</Label>
+          <Field :data-invalid="!!errors?.sync_frequency">
+            <FieldLabel for="sync_frequency">Sync Frequency (minutes)</FieldLabel>
             <InputNumber
+              :aria-invalid="!!errors?.sync_frequency"
               id="sync_frequency"
               v-model="formData.sync_frequency"
               :min="5"
@@ -87,7 +90,7 @@
             />
             <FieldError :errors="errors.sync_frequency" />
             <p class="text-muted-foreground text-xs">How often to sync data (5-60 minutes)</p>
-          </div>
+          </Field>
 
           <div class="flex items-center gap-2">
             <Switch id="is_active" v-model="formData.is_active" />

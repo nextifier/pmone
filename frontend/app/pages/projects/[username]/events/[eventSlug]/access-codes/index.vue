@@ -331,7 +331,7 @@ const RowActions = defineComponent({
                     ? h(PopoverClose, { asChild: true }, {
                         default: () =>
                           h("button", {
-                            class: "hover:bg-destructive/10 text-destructive rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
+                            class: "hover:bg-destructive/10 text-destructive-foreground rounded-md px-3 py-2 text-left text-sm tracking-tight flex items-center gap-x-1.5",
                             onClick: () => destroy(p.code),
                           }, [
                             h(resolveComponent("Icon"), { name: "lucide:trash", class: "size-4 shrink-0" }),

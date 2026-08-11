@@ -68,7 +68,7 @@
               </ComboboxViewport>
             </ComboboxList>
           </AutocompleteRoot>
-          <p v-if="errors.hotel_id" class="text-destructive text-xs">{{ errors.hotel_id }}</p>
+          <p v-if="errors.hotel_id" class="text-destructive-foreground text-xs">{{ errors.hotel_id }}</p>
         </div>
 
         <div class="space-y-2">

@@ -25,7 +25,7 @@
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
             Where this banner appears on the event website.
           </p>
-          <p v-if="errors.placement" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.placement" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.placement[0] }}
           </p>
         </div>
@@ -58,7 +58,7 @@
           <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
             JPG, PNG, or WebP. Recommended ratio: {{ formData.aspect_ratio }}.
           </p>
-          <p v-if="errors.tmp_image" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.tmp_image" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.tmp_image[0] }}
           </p>
         </div>
@@ -74,7 +74,7 @@
               <SelectItem v-for="r in aspectRatios" :key="r" :value="r">{{ r }}</SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="errors.aspect_ratio" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.aspect_ratio" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.aspect_ratio[0] }}
           </p>
         </div>
@@ -97,7 +97,7 @@
             v-model="formData.title"
             :placeholder="showText ? 'Headline' : 'Used as image alt text'"
           />
-          <p v-if="errors.title" class="text-destructive text-xs sm:text-sm">{{ errors.title[0] }}</p>
+          <p v-if="errors.title" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.title[0] }}</p>
         </div>
 
         <!-- Description (text types) -->
@@ -111,7 +111,7 @@
             min-height="160px"
             placeholder="Supporting text"
           />
-          <p v-if="errors.description" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.description" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.description[0] }}
           </p>
         </div>
@@ -120,7 +120,7 @@
         <div v-if="showText" class="space-y-2">
           <Label for="banner-cta">CTA label (optional)</Label>
           <Input id="banner-cta" v-model="formData.cta_label" placeholder="e.g. Book Your Space Now" />
-          <p v-if="errors.cta_label" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.cta_label" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.cta_label[0] }}
           </p>
         </div>
@@ -136,7 +136,7 @@
                 : "Optional. Adds an external link button to the image."
             }}
           </p>
-          <p v-if="errors.link" class="text-destructive text-xs sm:text-sm">{{ errors.link[0] }}</p>
+          <p v-if="errors.link" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.link[0] }}</p>
         </div>
 
         <!-- Schedule -->
@@ -150,7 +150,7 @@
               :default-hour="0"
               :default-minute="0"
             />
-            <p v-if="errors.start_time" class="text-destructive text-xs sm:text-sm">
+            <p v-if="errors.start_time" class="text-destructive-foreground text-xs sm:text-sm">
               {{ errors.start_time[0] }}
             </p>
           </div>
@@ -163,7 +163,7 @@
               :default-hour="23"
               :default-minute="59"
             />
-            <p v-if="errors.end_time" class="text-destructive text-xs sm:text-sm">
+            <p v-if="errors.end_time" class="text-destructive-foreground text-xs sm:text-sm">
               {{ errors.end_time[0] }}
             </p>
           </div>

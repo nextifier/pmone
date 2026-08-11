@@ -150,7 +150,7 @@
                   <button
                     type="button"
                     @click="confirmDelete(category)"
-                    class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md p-1.5 transition"
+                    class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 rounded-md p-1.5 transition"
                     title="Delete"
                   >
                     <Icon name="hugeicons:delete-02" class="size-4" />

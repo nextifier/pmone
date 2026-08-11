@@ -56,7 +56,7 @@
             v-tippy="'Remove conjunction'"
             aria-label="Remove conjunction"
             :disabled="removeLoading === item.id"
-            class="text-muted-foreground hover:text-destructive shrink-0"
+            class="text-muted-foreground hover:text-destructive-foreground shrink-0"
             @click="handleRemove(item.id)"
           >
             <Spinner v-if="removeLoading === item.id" class="size-4" />

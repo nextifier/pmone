@@ -45,15 +45,15 @@
 
         <!-- Form -->
         <form v-else class="space-y-4" @submit.prevent="submit">
-          <div class="space-y-2">
-            <Label for="ac-name">Batch name</Label>
-            <Input id="ac-name" v-model="form.name" placeholder="e.g. VIP invitations - speakers" />
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="ac-name">Batch name</FieldLabel>
+            <Input id="ac-name" v-model="form.name" placeholder="e.g. VIP invitations - speakers" :aria-invalid="!!errors?.name" />
             <FieldError :errors="errors.name" />
-          </div>
+          </Field>
 
           <!-- Unlocked tickets -->
-          <div class="space-y-2">
-            <Label>Unlocks tickets</Label>
+          <Field :data-invalid="!!errors?.unlocks">
+            <FieldLabel>Unlocks tickets</FieldLabel>
             <div class="space-y-2 rounded-lg border p-3">
               <p v-if="!tickets.length" class="text-muted-foreground text-sm tracking-tight">
                 No tickets in this event yet.
@@ -73,7 +73,7 @@
               </div>
             </div>
             <FieldError :errors="errors.unlocks" />
-          </div>
+          </Field>
 
           <!-- Kind -->
           <Tabs
@@ -88,13 +88,13 @@
             </TabsList>
           </Tabs>
 
-          <div v-if="form.kind === 'shared'" class="space-y-2">
-            <Label for="ac-max-uses">Max uses</Label>
+          <Field v-if="form.kind === 'shared'">
+            <FieldLabel for="ac-max-uses">Max uses</FieldLabel>
             <InputNumber id="ac-max-uses" v-model="form.max_uses" :min="1" placeholder="Leave blank for unlimited" />
             <p class="text-muted-foreground text-xs tracking-tight">
               How many times this single code can be redeemed in total.
             </p>
-          </div>
+          </Field>
 
           <div v-else class="space-y-2">
             <Label for="ac-recipients">Recipients</Label>
@@ -131,8 +131,8 @@
 
           <!-- Price effect -->
           <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="ac-effect">Price effect</Label>
+            <Field>
+              <FieldLabel for="ac-effect">Price effect</FieldLabel>
               <Select :model-value="form.price_effect" @update:model-value="(v) => (form.price_effect = v)">
                 <SelectTrigger id="ac-effect" class="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -142,14 +142,14 @@
                   <SelectItem value="amount">Amount off</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div v-if="form.price_effect !== 'none'" class="space-y-2">
-              <Label for="ac-value">
+            </Field>
+            <Field v-if="form.price_effect !== 'none'" :data-invalid="!!errors?.price_value">
+              <FieldLabel for="ac-value">
                 {{ form.price_effect === "percentage" ? "Percent (%)" : "Value (IDR)" }}
-              </Label>
-              <InputNumber id="ac-value" v-model="form.price_value" :min="0" />
+              </FieldLabel>
+              <InputNumber id="ac-value" v-model="form.price_value" :min="0" :aria-invalid="!!errors?.price_value" />
               <FieldError :errors="errors.price_value" />
-            </div>
+            </Field>
           </div>
 
           <div v-if="form.price_effect !== 'none'" class="flex items-center gap-2">
@@ -161,35 +161,35 @@
 
           <!-- Validity + limits -->
           <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <Label>Valid from</Label>
+            <Field>
+              <FieldLabel>Valid from</FieldLabel>
               <DatePicker
                 with-time
                 :model-value="form._valid_from_obj"
                 placeholder="Optional start"
                 @update:model-value="(d) => (form._valid_from_obj = d)"
               />
-            </div>
-            <div class="space-y-2">
-              <Label>Valid until</Label>
+            </Field>
+            <Field>
+              <FieldLabel>Valid until</FieldLabel>
               <DatePicker
                 with-time
                 :model-value="form._valid_until_obj"
                 placeholder="Optional end"
                 @update:model-value="(d) => (form._valid_until_obj = d)"
               />
-            </div>
+            </Field>
           </div>
 
           <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="ac-maxqty">Max tickets per redemption</Label>
+            <Field>
+              <FieldLabel for="ac-maxqty">Max tickets per redemption</FieldLabel>
               <InputNumber id="ac-maxqty" v-model="form.max_qty_per_redemption" :min="1" :max="50" />
-            </div>
-            <div class="space-y-2">
-              <Label for="ac-assigned">Assigned to (optional)</Label>
+            </Field>
+            <Field>
+              <FieldLabel for="ac-assigned">Assigned to (optional)</FieldLabel>
               <Input id="ac-assigned" v-model="form.assigned_to" placeholder="e.g. Gold Sponsor" />
-            </div>
+            </Field>
           </div>
 
           <div v-if="canSendInvites" class="flex items-center gap-2">
@@ -220,7 +220,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";

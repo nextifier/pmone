@@ -45,7 +45,7 @@
             v-tippy="'Delete note'"
             variant="ghost"
             size="iconSm"
-            class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+            class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 shrink-0"
             @click="deleteNote(note)"
           >
             <Icon name="lucide:trash" class="size-3.5" />

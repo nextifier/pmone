@@ -129,11 +129,11 @@
       <!-- Cancellation Reason -->
       <div
         v-if="order.operational_status === 'cancelled' && order.cancellation_reason"
-        class="border-destructive/30 bg-destructive/5 mt-6 rounded-lg border p-4"
+        class="border-destructive-foreground/30 bg-destructive/5 mt-6 rounded-lg border p-4"
       >
         <div class="flex items-center gap-x-2">
-          <Icon name="hugeicons:alert-circle" class="text-destructive size-4 shrink-0" />
-          <h4 class="text-destructive font-medium tracking-tight">{{ $t('orderDetail.cancellationReason') }}</h4>
+          <Icon name="hugeicons:alert-circle" class="text-destructive-foreground size-4 shrink-0" />
+          <h4 class="text-destructive-foreground font-medium tracking-tight">{{ $t('orderDetail.cancellationReason') }}</h4>
         </div>
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight whitespace-pre-line">
           {{ order.cancellation_reason }}

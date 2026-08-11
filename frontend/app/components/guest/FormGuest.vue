@@ -176,8 +176,8 @@ defineShortcuts({
 
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-6">
-    <div class="space-y-2">
-      <Label>Profile Image</Label>
+    <Field :data-invalid="!!errors?.tmp_profile_image">
+      <FieldLabel>Profile Image</FieldLabel>
       <InputFileImage
         v-model="imageFiles.profile"
         v-model:delete-flag="deleteFlags.profile"
@@ -188,45 +188,46 @@ defineShortcuts({
         Recommended ratio 4:5 (portrait), JPG/PNG/WEBP, max 20MB
       </p>
       <FieldError :errors="errors.tmp_profile_image" />
-    </div>
+    </Field>
 
     <div class="flex items-center justify-between gap-3">
-      <div class="space-y-1">
-        <Label for="guest-transparent" class="cursor-pointer">
+      <Field>
+        <FieldLabel for="guest-transparent" class="cursor-pointer">
           Transparent background image
-        </Label>
+        </FieldLabel>
         <p class="text-muted-foreground text-sm tracking-tight">
           Enable for cut-out PNG photos - adds a soft backdrop behind the image.
         </p>
-      </div>
+      </Field>
       <Switch id="guest-transparent" v-model="form.transparent_background" />
     </div>
 
     <div class="grid grid-cols-1 gap-x-3 gap-y-6 sm:grid-cols-2">
-      <div class="space-y-2">
-        <Label for="guest-name">Name</Label>
-        <Input id="guest-name" v-model="form.name" auto-focus required />
+      <Field :data-invalid="!!errors?.name">
+        <FieldLabel for="guest-name">Name</FieldLabel>
+        <Input id="guest-name" v-model="form.name" auto-focus required :aria-invalid="!!errors?.name" />
         <FieldError :errors="errors.name" />
-      </div>
-      <div class="space-y-2">
-        <Label for="guest-organization">Organization</Label>
-        <Input id="guest-organization" v-model="form.organization" />
+      </Field>
+      <Field :data-invalid="!!errors?.organization">
+        <FieldLabel for="guest-organization">Organization</FieldLabel>
+        <Input id="guest-organization" v-model="form.organization" :aria-invalid="!!errors?.organization" />
         <FieldError :errors="errors.organization" />
-      </div>
+      </Field>
     </div>
 
-    <div class="space-y-2">
-      <Label for="guest-title">Title / Position</Label>
+    <Field :data-invalid="!!errors?.title">
+      <FieldLabel for="guest-title">Title / Position</FieldLabel>
       <Input
+        :aria-invalid="!!errors?.title"
         id="guest-title"
         v-model="form.title"
         placeholder="e.g. CEO, Founder, Keynote Speaker"
       />
       <FieldError :errors="errors.title" />
-    </div>
+    </Field>
 
-    <div class="space-y-2">
-      <Label>Appearance Date</Label>
+    <Field :data-invalid="!!errors?.appearance_date">
+      <FieldLabel>Appearance Date</FieldLabel>
       <DatePicker
         v-model="form.appearanceDate"
         mode="range"
@@ -239,10 +240,10 @@ defineShortcuts({
         Event day(s) this guest appears - shown as a date badge on the website.
       </p>
       <FieldError :errors="errors.appearance_date" />
-    </div>
+    </Field>
 
-    <div class="space-y-2">
-      <Label>Bio</Label>
+    <Field :data-invalid="!!errors?.bio">
+      <FieldLabel>Bio</FieldLabel>
       <TipTapEditor
         v-model="form.bio"
         model-type="App\Models\Guest"
@@ -252,11 +253,11 @@ defineShortcuts({
         placeholder="Write a short bio"
       />
       <FieldError :errors="errors.bio" />
-    </div>
+    </Field>
 
-    <div class="space-y-2">
-      <Label>Topics / Expertise</Label>
-      <TagsInput v-model="form.tags">
+    <Field :data-invalid="!!errors?.tags">
+      <FieldLabel>Topics / Expertise</FieldLabel>
+      <TagsInput v-model="form.tags" :aria-invalid="!!errors?.tags">
         <TagsInputItem v-for="tag in form.tags" :key="tag" :value="tag">
           <TagsInputItemText />
           <TagsInputItemDelete />
@@ -264,10 +265,10 @@ defineShortcuts({
         <TagsInputInput placeholder="Add topic" />
       </TagsInput>
       <FieldError :errors="errors.tags" />
-    </div>
+    </Field>
 
-    <div class="space-y-2">
-      <Label>Links</Label>
+    <Field :data-invalid="!!errors?.links">
+      <FieldLabel>Links</FieldLabel>
       <div class="grid grid-cols-1 gap-y-3">
         <div v-if="form.links.length" class="space-y-2">
           <div
@@ -282,6 +283,7 @@ defineShortcuts({
               >
                 <div v-if="link.isCustomLabel" class="relative">
                   <Input
+                    :aria-invalid="!!errors?.links"
                     v-model="link.label"
                     type="text"
                     placeholder="Enter custom label"
@@ -312,7 +314,7 @@ defineShortcuts({
             <button
               type="button"
               @click="removeLink(index)"
-              class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+              class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
             >
               <Icon name="hugeicons:delete-01" class="size-4" />
             </button>
@@ -329,23 +331,23 @@ defineShortcuts({
         </button>
       </div>
       <FieldError :errors="errors.links" />
-    </div>
+    </Field>
 
     <div class="flex items-center justify-between gap-3">
-      <div class="space-y-1">
-        <Label for="guest-featured" class="cursor-pointer">Featured</Label>
+      <Field>
+        <FieldLabel for="guest-featured" class="cursor-pointer">Featured</FieldLabel>
         <p class="text-muted-foreground text-sm tracking-tight">
           Highlight as keynote / featured speaker
         </p>
-      </div>
+      </Field>
       <Switch id="guest-featured" v-model="form.is_featured" />
     </div>
 
     <div class="grid grid-cols-2 gap-3">
-      <div class="space-y-2">
-        <Label for="guest-status">Status</Label>
+      <Field :data-invalid="!!errors?.status">
+        <FieldLabel for="guest-status">Status</FieldLabel>
         <Select v-model="form.status">
-          <SelectTrigger id="guest-status" class="w-full">
+          <SelectTrigger id="guest-status" class="w-full" :aria-invalid="!!errors?.status">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -354,11 +356,11 @@ defineShortcuts({
           </SelectContent>
         </Select>
         <FieldError :errors="errors.status" />
-      </div>
-      <div class="space-y-2">
-        <Label for="guest-visibility">Visibility</Label>
+      </Field>
+      <Field :data-invalid="!!errors?.visibility">
+        <FieldLabel for="guest-visibility">Visibility</FieldLabel>
         <Select v-model="form.visibility">
-          <SelectTrigger id="guest-visibility" class="w-full">
+          <SelectTrigger id="guest-visibility" class="w-full" :aria-invalid="!!errors?.visibility">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -367,7 +369,7 @@ defineShortcuts({
           </SelectContent>
         </Select>
         <FieldError :errors="errors.visibility" />
-      </div>
+      </Field>
     </div>
 
     <!-- Submit -->

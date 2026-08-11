@@ -63,7 +63,7 @@
 
       <div v-else-if="error && !propertyData" class="flex items-center justify-center p-6">
         <div class="flex flex-col items-center gap-3 text-center">
-          <Icon name="hugeicons:alert-circle" class="text-destructive size-6" />
+          <Icon name="hugeicons:alert-circle" class="text-destructive-foreground size-6" />
           <div>
             <h3 class="text-foreground font-semibold tracking-tighter">Failed to load analytics</h3>
             <p class="text-muted-foreground mt-1 text-sm tracking-tight">{{ error }}</p>

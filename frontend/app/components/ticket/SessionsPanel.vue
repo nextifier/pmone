@@ -74,7 +74,7 @@
               v-if="canDelete"
               variant="ghost"
               size="iconSm"
-              class="hover:bg-destructive/10 text-destructive"
+              class="hover:bg-destructive/10 text-destructive-foreground"
               v-tippy="'Delete'"
               @click="confirmDelete(session)"
             >
@@ -94,15 +94,15 @@
           </h3>
 
           <form @submit.prevent="handleSubmit" class="mt-4 space-y-3">
-            <div class="space-y-2">
-              <Label for="session-label">Label</Label>
-              <Input id="session-label" v-model="form.label" placeholder="Keynote / Workshop A" required />
+            <Field :data-invalid="!!errors?.label">
+              <FieldLabel for="session-label">Label</FieldLabel>
+              <Input id="session-label" v-model="form.label" placeholder="Keynote / Workshop A" required :aria-invalid="!!errors?.label" />
               <FieldError :errors="errors.label" />
-            </div>
+            </Field>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div class="space-y-2">
-                <Label>Starts at</Label>
+              <Field :data-invalid="!!errors?.starts_at">
+                <FieldLabel>Starts at</FieldLabel>
                 <DatePicker
                   with-time
                   :model-value="form._starts_at_obj"
@@ -110,9 +110,9 @@
                   @update:model-value="(d) => (form._starts_at_obj = d)"
                 />
                 <FieldError :errors="errors.starts_at" />
-              </div>
-              <div class="space-y-2">
-                <Label>Ends at</Label>
+              </Field>
+              <Field :data-invalid="!!errors?.ends_at">
+                <FieldLabel>Ends at</FieldLabel>
                 <DatePicker
                   with-time
                   :model-value="form._ends_at_obj"
@@ -120,26 +120,26 @@
                   @update:model-value="(d) => (form._ends_at_obj = d)"
                 />
                 <FieldError :errors="errors.ends_at" />
-              </div>
+              </Field>
             </div>
 
-            <div class="space-y-2">
-              <Label for="session-location">Location</Label>
-              <Input id="session-location" v-model="form.location" placeholder="Hall B, Level 2" />
+            <Field :data-invalid="!!errors?.location">
+              <FieldLabel for="session-location">Location</FieldLabel>
+              <Input id="session-location" v-model="form.location" placeholder="Hall B, Level 2" :aria-invalid="!!errors?.location" />
               <FieldError :errors="errors.location" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label for="session-host">Host</Label>
-              <Input id="session-host" v-model="form.host" placeholder="Speaker or facilitator" />
+            <Field :data-invalid="!!errors?.host">
+              <FieldLabel for="session-host">Host</FieldLabel>
+              <Input id="session-host" v-model="form.host" placeholder="Speaker or facilitator" :aria-invalid="!!errors?.host" />
               <FieldError :errors="errors.host" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label>Capacity</Label>
-              <InputNumber v-model="form.capacity" :min="0" placeholder="Unlimited" />
+            <Field :data-invalid="!!errors?.capacity">
+              <FieldLabel>Capacity</FieldLabel>
+              <InputNumber v-model="form.capacity" :min="0" placeholder="Unlimited" :aria-invalid="!!errors?.capacity" />
               <FieldError :errors="errors.capacity" />
-            </div>
+            </Field>
 
             <div class="flex items-center gap-2">
               <Switch id="session-active" v-model="form.is_active" />
@@ -184,7 +184,7 @@ import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";

@@ -305,7 +305,7 @@ const TYPE_ICON = {
   info: "text-info",
   success: "text-success",
   warning: "text-warning",
-  error: "text-destructive",
+  error: "text-destructive-foreground",
   marketing: "text-muted-foreground",
 };
 

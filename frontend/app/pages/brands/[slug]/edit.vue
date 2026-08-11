@@ -65,7 +65,7 @@
                     type="button"
                     @click="removeMember(member)"
                     :disabled="removingMember === member.id"
-                    class="text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 rounded-md p-1.5 transition"
+                    class="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive/10 shrink-0 rounded-md p-1.5 transition"
                   >
                     <Icon
                       v-if="removingMember === member.id"

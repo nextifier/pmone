@@ -380,7 +380,7 @@
             <button
               v-if="guest.can_delete"
               type="button"
-              class="hover:bg-destructive/10 hover:text-destructive inline-flex size-8 items-center justify-center rounded-md transition"
+              class="hover:bg-destructive/10 hover:text-destructive-foreground inline-flex size-8 items-center justify-center rounded-md transition"
               @click="confirmDelete(guest)"
               v-tippy="'Delete'"
             >
@@ -619,7 +619,7 @@
                 </button>
                 <button
                   type="button"
-                  class="text-destructive hover:bg-destructive/10 inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm tracking-tight"
+                  class="text-destructive-foreground hover:bg-destructive/10 inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-sm tracking-tight"
                   @click="forceDestroy(guest)"
                 >
                   <Icon name="hugeicons:delete-01" class="size-4" />

@@ -76,9 +76,9 @@
     <EventConjunctionManager v-if="event" :event="event" />
 
     <!-- Danger Zone -->
-    <div v-if="event && event.can_delete" class="frame border-destructive/30">
+    <div v-if="event && event.can_delete" class="frame border-destructive-foreground/30">
       <div class="frame-header">
-        <div class="frame-title text-destructive">Danger Zone</div>
+        <div class="frame-title text-destructive-foreground">Danger Zone</div>
       </div>
       <div class="frame-panel">
         <div class="flex items-center justify-between">

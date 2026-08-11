@@ -41,7 +41,7 @@ const eventColor = (event) => {
   const map = {
     created: "bg-success/15 text-success",
     updated: "bg-info/15 text-info",
-    deleted: "bg-destructive/15 text-destructive",
+    deleted: "bg-destructive/15 text-destructive-foreground",
     restored: "bg-warning/15 text-warning",
   };
   return map[event] || "bg-muted text-muted-foreground";
@@ -63,7 +63,7 @@ const formatDate = (iso) => {
       <Spinner class="size-5" />
     </div>
 
-    <p v-else-if="errorMessage" class="text-destructive text-sm tracking-tight">
+    <p v-else-if="errorMessage" class="text-destructive-foreground text-sm tracking-tight">
       {{ errorMessage }}
     </p>
 

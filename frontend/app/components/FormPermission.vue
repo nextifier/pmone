@@ -18,7 +18,7 @@
             placeholder="posts.publish"
             required
           />
-          <p v-if="errors.name" class="text-destructive text-xs">{{ errors.name[0] }}</p>
+          <p v-if="errors.name" class="text-destructive-foreground text-xs">{{ errors.name[0] }}</p>
           <p class="text-muted-foreground text-xs tracking-tight">
             Use dot notation (e.g., "resource.action").
           </p>

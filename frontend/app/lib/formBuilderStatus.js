@@ -23,7 +23,7 @@ export const RESPONSE_STATUS_OPTIONS = [
   { value: "new", label: "New", icon: "lucide:circle", color: "text-info" },
   { value: "read", label: "Read", icon: "lucide:check", color: "text-muted-foreground" },
   { value: "starred", label: "Starred", icon: "lucide:star", color: "text-warning" },
-  { value: "spam", label: "Spam", icon: "lucide:shield-alert", color: "text-destructive" },
+  { value: "spam", label: "Spam", icon: "lucide:shield-alert", color: "text-destructive-foreground" },
 ];
 
 export function responseStatusDisplay(status) {

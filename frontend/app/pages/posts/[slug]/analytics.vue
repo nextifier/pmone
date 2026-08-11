@@ -29,7 +29,7 @@
     <LoadingState v-if="loading" label="Loading analytics.." />
 
     <div v-else-if="error" class="py-12 text-center">
-      <p class="text-destructive">{{ error }}</p>
+      <p class="text-destructive-foreground">{{ error }}</p>
     </div>
 
     <div v-else-if="analyticsData" class="space-y-6">

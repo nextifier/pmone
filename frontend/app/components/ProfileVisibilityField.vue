@@ -1,8 +1,8 @@
 <template>
-  <div class="space-y-2">
-    <Label for="visibility">Profile Visibility</Label>
+  <Field :data-invalid="!!errors">
+    <FieldLabel for="visibility">Profile Visibility</FieldLabel>
     <Select v-model="localValue">
-      <SelectTrigger class="w-full">
+      <SelectTrigger class="w-full" :aria-invalid="!!errors">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -14,11 +14,10 @@
     <p v-if="showDescription" class="text-muted-foreground text-xs">
       Public profiles can be viewed by anyone. Private profiles are only visible to you.
     </p>
-  </div>
+  </Field>
 </template>
 
 <script setup>
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,

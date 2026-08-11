@@ -6,7 +6,7 @@
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
-      <DropdownMenuItem class="hover:text-destructive" @select="emit('remove')">
+      <DropdownMenuItem class="hover:text-destructive-foreground" @select="emit('remove')">
         <Icon name="hugeicons:delete-02" class="size-4" />
         <span>Remove from list</span>
       </DropdownMenuItem>

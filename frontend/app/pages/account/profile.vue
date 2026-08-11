@@ -9,7 +9,7 @@
     <!-- Error -->
     <Empty v-else-if="error" class="border">
       <EmptyMedia variant="icon">
-        <Icon name="hugeicons:alert-02" class="text-destructive size-6" />
+        <Icon name="hugeicons:alert-02" class="text-destructive-foreground size-6" />
       </EmptyMedia>
       <EmptyHeader>
         <EmptyTitle>Couldn't load your profile</EmptyTitle>
@@ -48,30 +48,30 @@
           </div>
           <div class="frame-panel">
             <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-              <div class="space-y-2">
-                <Label for="name">Full Name</Label>
-                <Input id="name" v-model="form.name" type="text" required autocomplete="off" />
+              <Field :data-invalid="!!errors?.name">
+                <FieldLabel for="name">Full Name</FieldLabel>
+                <Input id="name" v-model="form.name" type="text" required autocomplete="off" :aria-invalid="!!errors?.name" />
                 <FieldError :errors="errors.name" />
-              </div>
+              </Field>
 
-              <div class="space-y-2">
-                <Label for="email">Email</Label>
+              <Field>
+                <FieldLabel for="email">Email</FieldLabel>
                 <Input id="email" :model-value="profile?.email" type="email" disabled readonly />
                 <p class="text-muted-foreground text-xs tracking-tight">
                   Email cannot be changed here.
                 </p>
-              </div>
+              </Field>
 
-              <div class="space-y-2">
-                <Label for="phone">Phone</Label>
-                <InputPhone id="phone" v-model="form.phone" />
+              <Field :data-invalid="!!errors?.phone">
+                <FieldLabel for="phone">Phone</FieldLabel>
+                <InputPhone id="phone" v-model="form.phone" :aria-invalid="!!errors?.phone" />
                 <FieldError :errors="errors.phone" />
-              </div>
+              </Field>
 
-              <div class="space-y-2">
-                <Label for="gender">Gender</Label>
+              <Field :data-invalid="!!errors?.gender">
+                <FieldLabel for="gender">Gender</FieldLabel>
                 <Select v-model="form.gender">
-                  <SelectTrigger id="gender" class="w-full">
+                  <SelectTrigger id="gender" class="w-full" :aria-invalid="!!errors?.gender">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
@@ -81,17 +81,17 @@
                   </SelectContent>
                 </Select>
                 <FieldError :errors="errors.gender" />
-              </div>
+              </Field>
 
-              <div class="space-y-2">
-                <Label for="birth_date">Birth Date</Label>
+              <Field :data-invalid="!!errors?.birth_date">
+                <FieldLabel for="birth_date">Birth Date</FieldLabel>
                 <DatePicker
                   v-model="form.birth_date"
                   disable-future-dates
                   placeholder="Pick your birth date"
                 />
                 <FieldError :errors="errors.birth_date" />
-              </div>
+              </Field>
             </div>
           </div>
         </div>
@@ -102,8 +102,8 @@
           </div>
           <div class="frame-panel">
             <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-              <div class="space-y-2">
-                <Label for="country">Country</Label>
+              <Field :data-invalid="!!errors?.country">
+                <FieldLabel for="country">Country</FieldLabel>
                 <LocationCombobox
                   v-model="form.country"
                   :options="countries"
@@ -112,13 +112,13 @@
                   placeholder="Select country"
                 />
                 <FieldError :errors="errors.country" />
-              </div>
+              </Field>
 
-              <div class="space-y-2">
-                <Label for="city">City</Label>
-                <Input id="city" v-model="form.city" type="text" autocomplete="off" />
+              <Field :data-invalid="!!errors?.city">
+                <FieldLabel for="city">City</FieldLabel>
+                <Input id="city" v-model="form.city" type="text" autocomplete="off" :aria-invalid="!!errors?.city" />
                 <FieldError :errors="errors.city" />
-              </div>
+              </Field>
             </div>
           </div>
         </div>
@@ -129,23 +129,23 @@
           </div>
           <div class="frame-panel">
             <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-              <div class="space-y-2">
-                <Label for="company_name">Company</Label>
-                <Input id="company_name" v-model="form.company_name" type="text" autocomplete="off" />
+              <Field :data-invalid="!!errors?.company_name">
+                <FieldLabel for="company_name">Company</FieldLabel>
+                <Input id="company_name" v-model="form.company_name" type="text" autocomplete="off" :aria-invalid="!!errors?.company_name" />
                 <FieldError :errors="errors.company_name" />
-              </div>
+              </Field>
 
-              <div class="space-y-2">
-                <Label for="position">Position</Label>
-                <Input id="position" v-model="form.position" type="text" autocomplete="off" />
+              <Field :data-invalid="!!errors?.position">
+                <FieldLabel for="position">Position</FieldLabel>
+                <Input id="position" v-model="form.position" type="text" autocomplete="off" :aria-invalid="!!errors?.position" />
                 <FieldError :errors="errors.position" />
-              </div>
+              </Field>
 
-              <div class="space-y-2 sm:col-span-2">
-                <Label for="profession">Profession</Label>
-                <Input id="profession" v-model="form.profession" type="text" autocomplete="off" />
+              <Field class="sm:col-span-2" :data-invalid="!!errors?.profession">
+                <FieldLabel for="profession">Profession</FieldLabel>
+                <Input id="profession" v-model="form.profession" type="text" autocomplete="off" :aria-invalid="!!errors?.profession" />
                 <FieldError :errors="errors.profession" />
-              </div>
+              </Field>
             </div>
           </div>
         </div>
@@ -215,7 +215,7 @@
 import BusinessMatchingIntake from "@/components/BusinessMatchingIntake.vue";
 import countries from "@/data/countries.json";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { LocationCombobox } from "@/components/ui/location-combobox";
 import {
   Select,

@@ -307,7 +307,7 @@ defineShortcuts({
         :initial-image="initialPoster"
         container-class="relative isolate aspect-[16/9] max-w-md"
       />
-      <p v-if="err('tmp_poster')" class="text-destructive text-xs">{{ err("tmp_poster") }}</p>
+      <p v-if="err('tmp_poster')" class="text-destructive-foreground text-xs">{{ err("tmp_poster") }}</p>
     </div>
 
     <!-- Date + Time -->
@@ -321,7 +321,7 @@ defineShortcuts({
           :placeholder-date="eventStart"
           placeholder="Pick a date"
         />
-        <p v-if="err('date')" class="text-destructive text-xs">{{ err("date") }}</p>
+        <p v-if="err('date')" class="text-destructive-foreground text-xs">{{ err("date") }}</p>
       </div>
       <div v-if="!isGroupHeader" class="space-y-2">
         <Label class="text-sm">Time</Label>
@@ -330,7 +330,7 @@ defineShortcuts({
           clearable
           class="bg-background border-border rounded-md border px-3"
         />
-        <p v-if="err('start_time') || err('end_time')" class="text-destructive text-xs">
+        <p v-if="err('start_time') || err('end_time')" class="text-destructive-foreground text-xs">
           {{ err("start_time") || err("end_time") }}
         </p>
       </div>
@@ -343,7 +343,7 @@ defineShortcuts({
         v-model="titleField"
         :placeholder="activeLocale === 'en' ? 'Session title' : 'Judul sesi'"
       />
-      <p v-if="localizedError('title')" class="text-destructive text-xs">
+      <p v-if="localizedError('title')" class="text-destructive-foreground text-xs">
         {{ localizedError("title") }}
       </p>
     </div>

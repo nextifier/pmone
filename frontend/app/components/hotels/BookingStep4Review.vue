@@ -446,7 +446,7 @@ watch(promoError, (val) => {
       </div>
       <div
         v-if="promoError"
-        class="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs sm:text-sm tracking-tight"
+        class="bg-destructive/10 text-destructive-foreground rounded-md px-3 py-2 text-xs sm:text-sm tracking-tight"
       >
         {{ promoError }}
       </div>

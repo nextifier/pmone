@@ -60,7 +60,7 @@
           <PopoverClose v-if="canRebuild && isRunning" as-child>
             <button
               :disabled="busy"
-              class="hover:bg-muted text-destructive flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
+              class="hover:bg-muted text-destructive-foreground flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight disabled:opacity-50"
               @click="cancel"
             >
               <Icon name="hugeicons:stop" class="size-4 shrink-0" />

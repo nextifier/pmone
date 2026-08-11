@@ -63,7 +63,7 @@
               <span v-else-if="status === 'connected'" class="text-success">
                 Terhubung: {{ device?.name ?? "(unnamed)" }}
               </span>
-              <span v-else-if="status === 'error'" class="text-destructive">
+              <span v-else-if="status === 'error'" class="text-destructive-foreground">
                 Error: {{ errorMessage }}
               </span>
               <span v-else-if="status === 'unsupported'" class="text-warning">
@@ -444,7 +444,7 @@ function logColorClass(level: LogLevel): string {
     info: "",
     success: "text-success",
     warn: "text-warning",
-    error: "text-destructive",
+    error: "text-destructive-foreground",
     data: "text-info",
   };
   return map[level] ?? "";

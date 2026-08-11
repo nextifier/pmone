@@ -8,7 +8,7 @@
     <!-- Error -->
     <Empty v-else-if="error" class="border">
       <EmptyMedia variant="icon">
-        <Icon name="hugeicons:alert-02" class="text-destructive size-6" />
+        <Icon name="hugeicons:alert-02" class="text-destructive-foreground size-6" />
       </EmptyMedia>
       <EmptyHeader>
         <EmptyTitle>Couldn't load your orders</EmptyTitle>
@@ -200,7 +200,7 @@ const statusClass = (status) => {
     confirmed: "bg-success/10 text-success-foreground border-success/20",
     pending_payment: "bg-warning/10 text-warning-foreground border-warning/20",
     expired: "bg-muted text-muted-foreground border-border",
-    cancelled: "bg-destructive/10 text-destructive border-destructive/20",
+    cancelled: "bg-destructive/10 text-destructive-foreground border-destructive-foreground/20",
   };
   return map[status] || "bg-muted text-muted-foreground border-border";
 };

@@ -472,6 +472,9 @@
     "alreadyMessage": "Kami telah menerima tanggapan Anda. Formulir ini hanya menerima satu tanggapan per orang.",
     "showMore": "Selengkapnya",
     "showLess": "Sembunyikan",
-    "submitFailed": "Gagal mengirim formulir. Silakan coba lagi."
+    "submitFailed": "Gagal mengirim formulir. Silakan coba lagi.",
+    "back": "Kembali",
+    "next": "Lanjut",
+    "stepProgress": "Pertanyaan {current} dari {total}"
   }
 }

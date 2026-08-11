@@ -67,7 +67,7 @@
                     <button
                       type="button"
                       @click="form.email_config.to.splice(index, 1)"
-                      class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                      class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                     >
                       <Icon name="hugeicons:delete-01" class="size-4" />
                     </button>
@@ -101,7 +101,7 @@
                     <button
                       type="button"
                       @click="form.email_config.cc.splice(index, 1)"
-                      class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                      class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                     >
                       <Icon name="hugeicons:delete-01" class="size-4" />
                     </button>
@@ -135,7 +135,7 @@
                     <button
                       type="button"
                       @click="form.email_config.bcc.splice(index, 1)"
-                      class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                      class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                     >
                       <Icon name="hugeicons:delete-01" class="size-4" />
                     </button>

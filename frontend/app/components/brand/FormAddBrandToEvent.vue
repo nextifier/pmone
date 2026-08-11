@@ -62,7 +62,7 @@
               </ComboboxViewport>
             </ComboboxList>
           </AutocompleteRoot>
-          <p v-if="errors.brand_name" class="text-destructive text-xs">{{ errors.brand_name }}</p>
+          <p v-if="errors.brand_name" class="text-destructive-foreground text-xs">{{ errors.brand_name }}</p>
         </div>
 
         <div class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
@@ -80,7 +80,7 @@
               show-flag
               placeholder="Select country"
             />
-            <p v-if="errors.country" class="text-destructive text-xs">{{ errors.country }}</p>
+            <p v-if="errors.country" class="text-destructive-foreground text-xs">{{ errors.country }}</p>
           </div>
         </div>
 

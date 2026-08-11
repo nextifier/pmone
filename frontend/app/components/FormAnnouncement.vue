@@ -8,23 +8,23 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="title">Title</Label>
-            <Input id="title" v-model="form.title" type="text" required maxlength="255" />
+          <Field :data-invalid="!!errors?.title">
+            <FieldLabel for="title">Title</FieldLabel>
+            <Input id="title" v-model="form.title" type="text" required maxlength="255" :aria-invalid="!!errors?.title" />
             <FieldError :errors="errors.title" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="description">Description</Label>
-            <Textarea id="description" v-model="form.description" rows="4" />
+          <Field :data-invalid="!!errors?.description">
+            <FieldLabel for="description">Description</FieldLabel>
+            <Textarea id="description" v-model="form.description" rows="4" :aria-invalid="!!errors?.description" />
             <FieldError :errors="errors.description" />
-          </div>
+          </Field>
 
           <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-            <div class="space-y-2">
-              <Label for="type">Type</Label>
+            <Field :data-invalid="!!errors?.type">
+              <FieldLabel for="type">Type</FieldLabel>
               <Select v-model="form.type">
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full" :aria-invalid="!!errors?.type">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -36,12 +36,12 @@
                 </SelectContent>
               </Select>
               <FieldError :errors="errors.type" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label for="status">Status</Label>
+            <Field :data-invalid="!!errors?.status">
+              <FieldLabel for="status">Status</FieldLabel>
               <Select v-model="form.status">
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full" :aria-invalid="!!errors?.status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -51,7 +51,7 @@
                 </SelectContent>
               </Select>
               <FieldError :errors="errors.status" />
-            </div>
+            </Field>
           </div>
         </div>
       </div>
@@ -67,8 +67,8 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label>Image</Label>
+          <Field :data-invalid="!!errors?.tmp_image">
+            <FieldLabel>Image</FieldLabel>
             <InputFileImage
               ref="imageInputRef"
               v-model="imageFiles"
@@ -77,13 +77,13 @@
               container-class="relative isolate aspect-video max-w-full"
             />
             <FieldError :errors="errors.tmp_image" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="icon">Icon</Label>
+          <Field :data-invalid="!!errors?.icon">
+            <FieldLabel for="icon">Icon</FieldLabel>
             <IconPicker v-model="form.icon" placeholder="Pick an icon" />
             <FieldError :errors="errors.icon" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -98,8 +98,8 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="start_time">Start</Label>
+          <Field :data-invalid="!!errors?.start_time">
+            <FieldLabel for="start_time">Start</FieldLabel>
             <DatePicker
               with-time
               v-model="form.start_time"
@@ -107,10 +107,10 @@
               :default-hour="8"
             />
             <FieldError :errors="errors.start_time" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="end_time">End</Label>
+          <Field :data-invalid="!!errors?.end_time">
+            <FieldLabel for="end_time">End</FieldLabel>
             <DatePicker
               with-time
               v-model="form.end_time"
@@ -118,7 +118,7 @@
               :default-hour="23"
             />
             <FieldError :errors="errors.end_time" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -144,8 +144,8 @@
           </div>
 
           <template v-if="!form.is_global">
-            <div class="space-y-2">
-              <Label>Roles</Label>
+            <Field :data-invalid="!!errors?.target_roles">
+              <FieldLabel>Roles</FieldLabel>
               <Combobox v-model="selectedRoles" multiple ignore-filter open-on-focus>
                 <ComboboxAnchor class="w-full">
                   <ComboboxChips
@@ -195,10 +195,10 @@
                 User must hold any of these roles to see the announcement.
               </p>
               <FieldError :errors="errors.target_roles" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label>Specific users</Label>
+            <Field :data-invalid="!!errors?.target_user_ids">
+              <FieldLabel>Specific users</FieldLabel>
               <Combobox v-model="selectedUsers" multiple ignore-filter open-on-focus>
                 <ComboboxAnchor class="w-full">
                   <ComboboxChips
@@ -248,10 +248,10 @@
                 Optional. Adds these users on top of role targeting.
               </p>
               <FieldError :errors="errors.target_user_ids" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label>Specific events</Label>
+            <Field :data-invalid="!!errors?.target_event_ids">
+              <FieldLabel>Specific events</FieldLabel>
               <Combobox v-model="selectedEvents" multiple ignore-filter open-on-focus>
                 <ComboboxAnchor class="w-full">
                   <ComboboxChips
@@ -301,10 +301,10 @@
                 Optional. Members of the selected events' projects will see it.
               </p>
               <FieldError :errors="errors.target_event_ids" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label>Specific projects</Label>
+            <Field :data-invalid="!!errors?.target_project_ids">
+              <FieldLabel>Specific projects</FieldLabel>
               <Combobox v-model="selectedProjects" multiple ignore-filter open-on-focus>
                 <ComboboxAnchor class="w-full">
                   <ComboboxChips
@@ -354,7 +354,7 @@
                 Optional. Members of these projects will see the announcement.
               </p>
               <FieldError :errors="errors.target_project_ids" />
-            </div>
+            </Field>
           </template>
         </div>
       </div>
@@ -385,7 +385,7 @@
                 type="button"
                 variant="ghost"
                 size="iconSm"
-                class="text-muted-foreground hover:text-destructive"
+                class="text-muted-foreground hover:text-destructive-foreground"
                 v-tippy="'Remove CTA'"
                 @click="removeCta(idx)"
               >
@@ -394,8 +394,8 @@
             </div>
 
             <div class="grid grid-cols-1 gap-x-2 gap-y-6 sm:grid-cols-2">
-              <div class="space-y-2">
-                <Label :for="`cta-label-${idx}`">Label</Label>
+              <Field>
+                <FieldLabel :for="`cta-label-${idx}`">Label</FieldLabel>
                 <Input
                   :id="`cta-label-${idx}`"
                   v-model="cta.label"
@@ -403,9 +403,9 @@
                   required
                   maxlength="100"
                 />
-              </div>
-              <div class="space-y-2">
-                <Label :for="`cta-url-${idx}`">URL</Label>
+              </Field>
+              <Field>
+                <FieldLabel :for="`cta-url-${idx}`">URL</FieldLabel>
                 <Input
                   :id="`cta-url-${idx}`"
                   v-model="cta.url"
@@ -413,9 +413,9 @@
                   required
                   maxlength="500"
                 />
-              </div>
-              <div class="space-y-2">
-                <Label :for="`cta-style-${idx}`">Style</Label>
+              </Field>
+              <Field>
+                <FieldLabel :for="`cta-style-${idx}`">Style</FieldLabel>
                 <Select v-model="cta.style">
                   <SelectTrigger class="w-full">
                     <SelectValue />
@@ -426,11 +426,11 @@
                     <SelectItem value="button-outline">Outline button</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div class="space-y-2">
-                <Label :for="`cta-icon-${idx}`">Icon (optional)</Label>
+              </Field>
+              <Field>
+                <FieldLabel :for="`cta-icon-${idx}`">Icon (optional)</FieldLabel>
                 <IconPicker v-model="cta.icon" placeholder="Pick an icon" />
-              </div>
+              </Field>
             </div>
           </div>
 
@@ -466,9 +466,10 @@
             <Switch id="is_dismissible" v-model="form.is_dismissible" />
           </div>
 
-          <div class="space-y-2">
-            <Label for="order_column">Order</Label>
+          <Field :data-invalid="!!errors?.order_column">
+            <FieldLabel for="order_column">Order</FieldLabel>
             <InputNumber
+              :aria-invalid="!!errors?.order_column"
               id="order_column"
               v-model="form.order_column"
               :min="0"
@@ -478,7 +479,7 @@
               Lower numbers appear first.
             </p>
             <FieldError :errors="errors.order_column" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>

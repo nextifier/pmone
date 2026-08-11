@@ -7,43 +7,43 @@
 
     <form @submit.prevent="handleSubmit" class="mt-8 grid gap-6">
       <!-- Current Password (only if user has existing password) -->
-      <div v-if="userHasPassword" class="grid gap-2.5">
-        <label for="current_password">{{ $t('settings.currentPassword') }}</label>
+      <Field v-if="userHasPassword" :data-invalid="!!errors?.current_password">
+        <FieldLabel for="current_password">{{ $t('settings.currentPassword') }}</FieldLabel>
         <InputPassword
           id="current_password"
           v-model="form.current_password"
-          :class="{ 'border-destructive': errors?.current_password }"
+          :aria-invalid="!!errors?.current_password"
           required
         />
         <FieldError v-if="errors?.current_password" :errors="errors.current_password" />
-      </div>
+      </Field>
 
       <!-- New Password -->
-      <div class="grid gap-2.5">
-        <label for="password">{{ $t('settings.newPassword') }}</label>
+      <Field :data-invalid="!!errors?.password">
+        <FieldLabel for="password">{{ $t('settings.newPassword') }}</FieldLabel>
         <InputPassword
           id="password"
           v-model="form.password"
-          :class="{ 'border-destructive': errors?.password }"
+          :aria-invalid="!!errors?.password"
           required
         />
         <FieldError v-if="errors?.password" :errors="errors.password" />
-      </div>
+      </Field>
 
       <!-- Confirm New Password -->
-      <div class="grid gap-2.5">
-        <label for="password_confirmation">{{ $t('settings.confirmNewPassword') }}</label>
+      <Field :data-invalid="!!errors?.password_confirmation">
+        <FieldLabel for="password_confirmation">{{ $t('settings.confirmNewPassword') }}</FieldLabel>
         <InputPassword
           id="password_confirmation"
           v-model="form.password_confirmation"
-          :class="{ 'border-destructive': errors?.password_confirmation }"
+          :aria-invalid="!!errors?.password_confirmation"
           required
         />
         <FieldError
           v-if="errors?.password_confirmation"
           :errors="errors.password_confirmation"
         />
-      </div>
+      </Field>
 
       <!-- Submit Button -->
       <div class="flex justify-end">

@@ -76,7 +76,7 @@
           <span>{{ conv.title }}</span>
         </SidebarMenuButton>
         <SidebarMenuAction
-          class="text-destructive hover:text-destructive opacity-0 transition-opacity group-hover/conv:opacity-100"
+          class="text-destructive-foreground hover:text-destructive-foreground opacity-0 transition-opacity group-hover/conv:opacity-100"
           @click.stop="openDeleteDialog(conv)"
         >
           <Icon name="hugeicons:delete-02" class="size-3.5" />

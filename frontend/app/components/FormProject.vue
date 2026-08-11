@@ -6,29 +6,29 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-2">
-            <Label for="name">Project Name</Label>
-            <Input id="name" v-model="form.name" type="text" required />
+          <Field :data-invalid="!!errors?.name">
+            <FieldLabel for="name">Project Name</FieldLabel>
+            <Input id="name" v-model="form.name" type="text" required :aria-invalid="!!errors?.name" />
             <FieldError :errors="errors.name" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="username">Username</Label>
-            <Input id="username" v-model="form.username" type="text" :required="!isCreate" />
+          <Field :data-invalid="!!errors?.username">
+            <FieldLabel for="username">Username</FieldLabel>
+            <Input id="username" v-model="form.username" type="text" :required="!isCreate" :aria-invalid="!!errors?.username" />
             <p class="text-muted-foreground line-clamp-1 text-xs tracking-tight">
               {{ isCreate ? "Will be auto-generated if left empty." : "" }}
             </p>
             <FieldError :errors="errors.username" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="email">Email Address</Label>
-            <Input id="email" v-model="form.email" type="email" />
+          <Field :data-invalid="!!errors?.email">
+            <FieldLabel for="email">Email Address</FieldLabel>
+            <Input id="email" v-model="form.email" type="email" :aria-invalid="!!errors?.email" />
             <FieldError :errors="errors.email" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="bio">Description</Label>
+          <Field :data-invalid="!!errors?.bio">
+            <FieldLabel for="bio">Description</FieldLabel>
             <TipTapEditor
               v-model="form.bio"
               model-type="App\Models\Project"
@@ -38,7 +38,7 @@
               placeholder="Write project description"
             />
             <FieldError :errors="errors.bio" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -49,8 +49,8 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div class="space-y-4">
-            <Label>Profile Image</Label>
+          <Field :data-invalid="!!errors?.tmp_profile_image">
+            <FieldLabel>Profile Image</FieldLabel>
             <InputFileImage
               ref="profileImageInputRef"
               v-model="imageFiles.profile_image"
@@ -59,10 +59,10 @@
               container-class="squircle relative isolate aspect-square max-w-40"
             />
             <FieldError :errors="errors.tmp_profile_image" />
-          </div>
+          </Field>
 
-          <div class="space-y-4">
-            <Label>Cover Image</Label>
+          <Field :data-invalid="!!errors?.tmp_cover_image">
+            <FieldLabel>Cover Image</FieldLabel>
             <InputFileImage
               ref="coverImageInputRef"
               v-model="imageFiles.cover_image"
@@ -70,7 +70,7 @@
               v-model:delete-flag="deleteFlags.cover_image"
             />
             <FieldError :errors="errors.tmp_cover_image" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -125,7 +125,7 @@
                 <button
                   type="button"
                   @click="removePhone(index)"
-                  class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                  class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                 >
                   <Icon name="hugeicons:delete-01" class="size-4" />
                 </button>
@@ -192,7 +192,7 @@
                 <button
                   type="button"
                   @click="removeLink(index)"
-                  class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                  class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                 >
                   <Icon name="hugeicons:delete-01" class="size-4" />
                 </button>
@@ -220,10 +220,10 @@
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
           <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-2">
-              <Label for="status">Status</Label>
+            <Field :data-invalid="!!errors?.status">
+              <FieldLabel for="status">Status</FieldLabel>
               <Select v-model="form.status">
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full" :aria-invalid="!!errors?.status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -233,12 +233,12 @@
                 </SelectContent>
               </Select>
               <FieldError :errors="errors.status" />
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label for="visibility">Visibility</Label>
+            <Field :data-invalid="!!errors?.visibility">
+              <FieldLabel for="visibility">Visibility</FieldLabel>
               <Select v-model="form.visibility">
-                <SelectTrigger class="w-full">
+                <SelectTrigger class="w-full" :aria-invalid="!!errors?.visibility">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -248,17 +248,18 @@
                 </SelectContent>
               </Select>
               <FieldError :errors="errors.visibility" />
-            </div>
+            </Field>
           </div>
 
-          <div class="space-y-2">
-            <Label for="organization">Organization</Label>
+          <Field :data-invalid="!!errors?.organization">
+            <FieldLabel for="organization">Organization</FieldLabel>
             <Select
               v-model="form.organization"
               @update:model-value="handleOrganizationChange"
             >
               <div v-if="organizationIsCustom" class="relative">
                 <Input
+                  :aria-invalid="!!errors?.organization"
                   v-model="form.organization"
                   type="text"
                   placeholder="Enter organization name"
@@ -283,7 +284,7 @@
               </SelectContent>
             </Select>
             <FieldError :errors="errors.organization" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -299,19 +300,19 @@
         <div class="grid grid-cols-1 gap-y-6">
           <!-- Enable Contact Form -->
           <div class="flex items-center justify-between">
-            <div class="space-y-0.5">
-              <Label>Enable Contact Form</Label>
+            <Field>
+              <FieldLabel>Enable Contact Form</FieldLabel>
               <p class="text-muted-foreground text-xs">
                 Allow external websites to submit contact forms for this project
               </p>
-            </div>
+            </Field>
             <Switch v-model="form.settings.contact_form.enabled" />
           </div>
 
           <template v-if="form.settings.contact_form.enabled">
             <!-- To Recipients -->
-            <div class="space-y-3">
-              <Label>To (Recipients)</Label>
+            <Field>
+              <FieldLabel>To (Recipients)</FieldLabel>
               <p class="text-muted-foreground text-xs tracking-tight">
                 Primary email recipients for form submissions
               </p>
@@ -329,7 +330,7 @@
                   <button
                     type="button"
                     @click="form.settings.contact_form.email_config.to.splice(index, 1)"
-                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                   >
                     <Icon name="hugeicons:delete-01" class="size-4" />
                   </button>
@@ -343,11 +344,11 @@
                 <Icon name="hugeicons:add-01" class="size-4" />
                 Add To Email
               </button>
-            </div>
+            </Field>
 
             <!-- CC Recipients -->
-            <div class="space-y-3">
-              <Label>CC (Carbon Copy)</Label>
+            <Field>
+              <FieldLabel>CC (Carbon Copy)</FieldLabel>
               <p class="text-muted-foreground text-xs tracking-tight">Optional CC recipients</p>
               <div v-if="form.settings.contact_form.email_config.cc.length > 0" class="space-y-2">
                 <div
@@ -363,7 +364,7 @@
                   <button
                     type="button"
                     @click="form.settings.contact_form.email_config.cc.splice(index, 1)"
-                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                   >
                     <Icon name="hugeicons:delete-01" class="size-4" />
                   </button>
@@ -377,11 +378,11 @@
                 <Icon name="hugeicons:add-01" class="size-4" />
                 Add CC Email
               </button>
-            </div>
+            </Field>
 
             <!-- BCC Recipients -->
-            <div class="space-y-3">
-              <Label>BCC (Blind Carbon Copy)</Label>
+            <Field>
+              <FieldLabel>BCC (Blind Carbon Copy)</FieldLabel>
               <p class="text-muted-foreground text-xs tracking-tight">Optional BCC recipients</p>
               <div v-if="form.settings.contact_form.email_config.bcc.length > 0" class="space-y-2">
                 <div
@@ -397,7 +398,7 @@
                   <button
                     type="button"
                     @click="form.settings.contact_form.email_config.bcc.splice(index, 1)"
-                    class="text-destructive hover:text-destructive/80 flex size-9 items-center justify-center rounded-lg transition"
+                    class="text-destructive-foreground hover:text-destructive-foreground/80 flex size-9 items-center justify-center rounded-lg transition"
                   >
                     <Icon name="hugeicons:delete-01" class="size-4" />
                   </button>
@@ -411,11 +412,11 @@
                 <Icon name="hugeicons:add-01" class="size-4" />
                 Add BCC Email
               </button>
-            </div>
+            </Field>
 
             <!-- From Name -->
-            <div class="space-y-2">
-              <Label for="from_name">From Name</Label>
+            <Field>
+              <FieldLabel for="from_name">From Name</FieldLabel>
               <Input
                 id="from_name"
                 v-model="form.settings.contact_form.email_config.from_name"
@@ -425,11 +426,11 @@
               <p class="text-muted-foreground text-xs tracking-tight">
                 The sender name that appears in the email
               </p>
-            </div>
+            </Field>
 
             <!-- Reply To -->
-            <div class="space-y-2">
-              <Label for="reply_to">Reply To Email</Label>
+            <Field>
+              <FieldLabel for="reply_to">Reply To Email</FieldLabel>
               <Input
                 id="reply_to"
                 v-model="form.settings.contact_form.email_config.reply_to"
@@ -439,7 +440,7 @@
               <p class="text-muted-foreground text-xs tracking-tight">
                 Email address for replies (defaults to submitter's email if not set)
               </p>
-            </div>
+            </Field>
           </template>
         </div>
       </div>
@@ -461,7 +462,6 @@
 <script setup>
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,

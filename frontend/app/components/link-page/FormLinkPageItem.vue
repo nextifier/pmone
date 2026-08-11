@@ -9,13 +9,13 @@
         <div class="space-y-2">
           <Label for="label">Label</Label>
           <Input id="label" v-model="formData.label" placeholder="My Website" required auto-focus />
-          <p v-if="errors.label" class="text-destructive text-xs sm:text-sm">{{ errors.label[0] }}</p>
+          <p v-if="errors.label" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.label[0] }}</p>
         </div>
 
         <div class="space-y-2">
           <Label for="url">URL</Label>
           <Input id="url" v-model="formData.url" type="url" placeholder="https://example.com" required />
-          <p v-if="errors.url" class="text-destructive text-xs sm:text-sm">{{ errors.url[0] }}</p>
+          <p v-if="errors.url" class="text-destructive-foreground text-xs sm:text-sm">{{ errors.url[0] }}</p>
         </div>
 
         <div class="space-y-2">
@@ -38,7 +38,7 @@
             v-model:delete-flag="deletePoster"
             container-class="relative isolate max-w-full"
           />
-          <p v-if="errors.tmp_poster" class="text-destructive text-xs sm:text-sm">
+          <p v-if="errors.tmp_poster" class="text-destructive-foreground text-xs sm:text-sm">
             {{ errors.tmp_poster[0] }}
           </p>
         </div>

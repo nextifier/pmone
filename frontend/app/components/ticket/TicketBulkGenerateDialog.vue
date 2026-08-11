@@ -37,7 +37,7 @@
           </template>
           <template v-else-if="batch.batch_status === 'failed'">
             <div
-              class="bg-destructive/10 text-destructive flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm tracking-tight"
+              class="bg-destructive/10 text-destructive-foreground flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm tracking-tight"
             >
               <Icon name="hugeicons:alert-circle" class="size-4 shrink-0" />
               Generation failed. Please try again.
@@ -54,13 +54,13 @@
 
         <!-- Form -->
         <form v-else class="space-y-4" @submit.prevent="submit">
-          <div class="space-y-2">
-            <Label for="bulk-ticket">Ticket type</Label>
+          <Field :data-invalid="!!errors?.ticket_id">
+            <FieldLabel for="bulk-ticket">Ticket type</FieldLabel>
             <Select
               :model-value="form.ticket_id ? String(form.ticket_id) : ''"
               @update:model-value="onTicketChange"
             >
-              <SelectTrigger id="bulk-ticket" class="w-full">
+              <SelectTrigger id="bulk-ticket" class="w-full" :aria-invalid="!!errors?.ticket_id">
                 <SelectValue placeholder="Select a ticket" />
               </SelectTrigger>
               <SelectContent>
@@ -70,10 +70,10 @@
               </SelectContent>
             </Select>
             <FieldError :errors="errors.ticket_id" />
-          </div>
+          </Field>
 
-          <div v-if="needsSession" class="space-y-2">
-            <Label for="bulk-session">Session</Label>
+          <Field v-if="needsSession">
+            <FieldLabel for="bulk-session">Session</FieldLabel>
             <Select
               :model-value="form.ticket_session_id ? String(form.ticket_session_id) : ''"
               @update:model-value="(v) => (form.ticket_session_id = Number(v))"
@@ -83,10 +83,10 @@
                 <SelectItem v-for="s in sessions" :key="s.id" :value="String(s.id)">{{ s.label }}</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
-          <div v-if="needsDay" class="space-y-2">
-            <Label for="bulk-day">Day</Label>
+          <Field v-if="needsDay">
+            <FieldLabel for="bulk-day">Day</FieldLabel>
             <Select
               :model-value="form.selected_event_day_id ? String(form.selected_event_day_id) : ''"
               @update:model-value="(v) => (form.selected_event_day_id = Number(v))"
@@ -96,7 +96,7 @@
                 <SelectItem v-for="d in validDays" :key="d.id" :value="String(d.id)">{{ dayLabel(d) }}</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
           <Tabs
             :model-value="form.mode"
@@ -111,18 +111,18 @@
           </Tabs>
 
           <div v-if="form.mode === 'anonymous'" class="grid grid-cols-1 gap-x-2 gap-y-4 sm:grid-cols-2">
-            <div class="space-y-2">
-              <Label for="bulk-qty">Quantity</Label>
+            <Field>
+              <FieldLabel for="bulk-qty">Quantity</FieldLabel>
               <InputNumber id="bulk-qty" v-model="form.quantity" :min="1" :max="5000" />
-            </div>
-            <div class="space-y-2">
-              <Label for="bulk-prefix">Name prefix</Label>
+            </Field>
+            <Field>
+              <FieldLabel for="bulk-prefix">Name prefix</FieldLabel>
               <Input id="bulk-prefix" v-model="form.label_prefix" placeholder="Tamu" />
-            </div>
+            </Field>
           </div>
 
-          <div v-else class="space-y-2">
-            <Label for="bulk-recipients">Recipients</Label>
+          <Field v-else>
+            <FieldLabel for="bulk-recipients">Recipients</FieldLabel>
             <Textarea
               id="bulk-recipients"
               v-model="form.recipients_text"
@@ -150,10 +150,10 @@
                 @change="onCsv"
               />
             </div>
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label>Delivery</Label>
+          <Field :data-invalid="!!errors?.delivery">
+            <FieldLabel>Delivery</FieldLabel>
             <RadioGroup :model-value="form.delivery" @update:model-value="(v) => (form.delivery = v)" class="gap-2">
               <div class="flex items-center gap-2">
                 <RadioGroupItem id="del-generate" value="generate_only" />
@@ -170,12 +170,12 @@
               Every recipient needs an email (named list only).
             </p>
             <FieldError :errors="errors.delivery" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="bulk-label">Batch label (optional)</Label>
+          <Field>
+            <FieldLabel for="bulk-label">Batch label (optional)</FieldLabel>
             <Input id="bulk-label" v-model="form.batch_label" placeholder="e.g. VIP invites - speakers" />
-          </div>
+          </Field>
 
           <div class="flex justify-end gap-2 border-t pt-4">
             <Button type="button" variant="outline" @click="openModel = false">Cancel</Button>
@@ -195,7 +195,7 @@ import { Button } from "@/components/ui/button";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";

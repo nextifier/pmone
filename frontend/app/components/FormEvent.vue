@@ -1,30 +1,30 @@
 <template>
   <form @submit.prevent="handleSubmit" class="grid gap-y-6">
     <!-- Event Title -->
-    <div class="space-y-2">
-      <Label for="title">Event Title</Label>
-      <Input id="title" v-model="form.title" type="text" required />
+    <Field :data-invalid="!!errors?.title">
+      <FieldLabel for="title">Event Title</FieldLabel>
+      <Input id="title" v-model="form.title" type="text" required :aria-invalid="!!errors?.title" />
       <FieldError :errors="errors.title" />
-    </div>
+    </Field>
 
     <!-- Slug | Edition Number -->
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-      <div class="space-y-2">
-        <Label for="slug">Slug</Label>
-        <Input id="slug" v-model="form.slug" type="text" />
+      <Field :data-invalid="!!errors?.slug">
+        <FieldLabel for="slug">Slug</FieldLabel>
+        <Input id="slug" v-model="form.slug" type="text" :aria-invalid="!!errors?.slug" />
         <FieldError :errors="errors.slug" />
-      </div>
-      <div class="space-y-2">
-        <Label for="edition_number">Edition Number</Label>
-        <InputNumber id="edition_number" v-model="form.edition_number" :min="1" />
+      </Field>
+      <Field :data-invalid="!!errors?.edition_number">
+        <FieldLabel for="edition_number">Edition Number</FieldLabel>
+        <InputNumber id="edition_number" v-model="form.edition_number" :min="1" :aria-invalid="!!errors?.edition_number" />
         <FieldError :errors="errors.edition_number" />
-      </div>
+      </Field>
     </div>
 
     <!-- Start Date & Time | End Date & Time -->
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-      <div class="space-y-2">
-        <Label for="start_date">Start Date & Time</Label>
+      <Field :data-invalid="!!errors?.start_date">
+        <FieldLabel for="start_date">Start Date & Time</FieldLabel>
         <DatePicker
           with-time
           v-model="form.start_date"
@@ -32,9 +32,9 @@
           :default-hour="10"
         />
         <FieldError :errors="errors.start_date" />
-      </div>
-      <div class="space-y-2">
-        <Label for="end_date">End Date & Time</Label>
+      </Field>
+      <Field :data-invalid="!!errors?.end_date">
+        <FieldLabel for="end_date">End Date & Time</FieldLabel>
         <DatePicker
           with-time
           v-model="form.end_date"
@@ -42,36 +42,37 @@
           :default-hour="18"
         />
         <FieldError :errors="errors.end_date" />
-      </div>
+      </Field>
     </div>
 
     <div class="grid grid-cols-1 gap-x-2 gap-y-6 lg:grid-cols-3">
-      <div class="space-y-2">
-        <Label for="location">Venue</Label>
-        <Input id="location" v-model="form.location" type="text" />
+      <Field :data-invalid="!!errors?.location">
+        <FieldLabel for="location">Venue</FieldLabel>
+        <Input id="location" v-model="form.location" type="text" :aria-invalid="!!errors?.location" />
         <FieldError :errors="errors.location" />
-      </div>
-      <div class="space-y-2">
-        <Label for="location_short">Venue Short</Label>
+      </Field>
+      <Field>
+        <FieldLabel for="location_short">Venue Short</FieldLabel>
         <Input id="location_short" v-model="form.custom_fields.location_short" type="text" />
-      </div>
-      <div class="space-y-2">
-        <Label for="location_link">Location Link</Label>
-        <Input id="location_link" v-model="form.location_link" type="url" />
+      </Field>
+      <Field :data-invalid="!!errors?.location_link">
+        <FieldLabel for="location_link">Location Link</FieldLabel>
+        <Input id="location_link" v-model="form.location_link" type="url" :aria-invalid="!!errors?.location_link" />
         <FieldError :errors="errors.location_link" />
-      </div>
+      </Field>
     </div>
 
     <div class="grid grid-cols-1 gap-x-2 gap-y-6 lg:grid-cols-2">
-      <div class="space-y-2">
-        <Label for="hall">Hall</Label>
-        <Input id="hall" v-model="form.hall" type="text" />
+      <Field :data-invalid="!!errors?.hall">
+        <FieldLabel for="hall">Hall</FieldLabel>
+        <Input id="hall" v-model="form.hall" type="text" :aria-invalid="!!errors?.hall" />
         <FieldError :errors="errors.hall" />
-      </div>
+      </Field>
       <!-- Saleable Area -->
-      <div class="space-y-2">
-        <Label for="saleable_area">Saleable Area (m²)</Label>
+      <Field :data-invalid="!!errors?.saleable_area">
+        <FieldLabel for="saleable_area">Saleable Area (m²)</FieldLabel>
         <InputNumber
+          :aria-invalid="!!errors?.saleable_area"
           id="saleable_area"
           v-model="form.saleable_area"
           :min="0"
@@ -79,15 +80,13 @@
           placeholder="e.g. 5000"
         />
         <FieldError :errors="errors.saleable_area" />
-      </div>
+      </Field>
     </div>
 
     <!-- Poster Image -->
-    <div class="space-y-2">
-      <div class="space-y-1">
-        <Label>Poster Image</Label>
-        <p class="text-muted-foreground text-xs">1080 x 1350px, format JPG / PNG</p>
-      </div>
+    <Field :data-invalid="!!errors?.tmp_poster_image">
+      <FieldLabel>Poster Image</FieldLabel>
+      <p class="text-muted-foreground text-xs">1080 x 1350px, format JPG / PNG</p>
       <InputFileImage
         ref="posterImageInputRef"
         v-model="imageFiles.poster_image"
@@ -96,23 +95,21 @@
         container-class="relative isolate aspect-4/5 max-w-full"
       />
       <FieldError :errors="errors.tmp_poster_image" />
-    </div>
+    </Field>
 
     <!-- Teaser Video ID -->
-    <div class="space-y-2">
-      <Label for="teaser_video_id">Teaser Video ID</Label>
+    <Field>
+      <FieldLabel for="teaser_video_id">Teaser Video ID</FieldLabel>
       <Input id="teaser_video_id" v-model="form.custom_fields.teaser_video_id" type="text" />
       <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
         YouTube video ID for the teaser (e.g. "1Tsjh4xvtFw").
       </p>
-    </div>
+    </Field>
 
     <!-- Visitor E-guide -->
-    <div class="min-w-0 space-y-2">
-      <div class="space-y-1">
-        <Label>Visitor E-guide</Label>
-        <p class="text-muted-foreground text-xs">PDF file, max 20MB</p>
-      </div>
+    <Field class="min-w-0" :data-invalid="!!errors?.tmp_visitor_eguide">
+      <FieldLabel>Visitor E-guide</FieldLabel>
+      <p class="text-muted-foreground text-xs">PDF file, max 20MB</p>
       <AttachmentLink
         v-if="initialData?.visitor_eguide && !eguideFiles.length && !deleteFlags.visitor_eguide"
         :file="initialData.visitor_eguide"
@@ -130,6 +127,7 @@
         </template>
       </AttachmentLink>
       <InputFile
+        :aria-invalid="!!errors?.tmp_visitor_eguide"
         v-else
         ref="visitorEguideInputRef"
         v-model="eguideFiles"
@@ -145,11 +143,11 @@
         Undo remove
       </button>
       <FieldError :errors="errors.tmp_visitor_eguide" />
-    </div>
+    </Field>
 
     <!-- Description -->
-    <div class="space-y-2">
-      <Label for="description">Description</Label>
+    <Field :data-invalid="!!errors?.description">
+      <FieldLabel for="description">Description</FieldLabel>
       <TipTapEditor
         v-model="form.description"
         model-type="App\Models\Event"
@@ -159,14 +157,14 @@
         placeholder="Write event description"
       />
       <FieldError :errors="errors.description" />
-    </div>
+    </Field>
 
     <!-- Status | Visibility -->
     <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-      <div class="space-y-2">
-        <Label for="status">Status</Label>
+      <Field :data-invalid="!!errors?.status">
+        <FieldLabel for="status">Status</FieldLabel>
         <Select v-model="form.status">
-          <SelectTrigger class="w-full">
+          <SelectTrigger class="w-full" :aria-invalid="!!errors?.status">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -177,11 +175,11 @@
           </SelectContent>
         </Select>
         <FieldError :errors="errors.status" />
-      </div>
-      <div class="space-y-2">
-        <Label for="visibility">Visibility</Label>
+      </Field>
+      <Field :data-invalid="!!errors?.visibility">
+        <FieldLabel for="visibility">Visibility</FieldLabel>
         <Select v-model="form.visibility">
-          <SelectTrigger class="w-full">
+          <SelectTrigger class="w-full" :aria-invalid="!!errors?.visibility">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -190,7 +188,7 @@
           </SelectContent>
         </Select>
         <FieldError :errors="errors.visibility" />
-      </div>
+      </Field>
     </div>
 
     <div class="flex justify-end">
@@ -209,7 +207,6 @@
 <script setup>
 import { AttachmentAction } from "@/components/ui/attachment";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,

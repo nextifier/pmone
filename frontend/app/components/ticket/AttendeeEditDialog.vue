@@ -11,25 +11,25 @@
 
         <form class="space-y-4" @submit.prevent="save">
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div class="space-y-2 sm:col-span-2">
-              <Label for="att-name">Name</Label>
-              <Input id="att-name" v-model="form.name" placeholder="Attendee name" />
+            <Field class="sm:col-span-2" :data-invalid="!!errors?.name">
+              <FieldLabel for="att-name">Name</FieldLabel>
+              <Input id="att-name" v-model="form.name" placeholder="Attendee name" :aria-invalid="!!errors?.name" />
               <FieldError :errors="errors.name" />
-            </div>
-            <div class="space-y-2">
-              <Label for="att-email">Email</Label>
-              <Input id="att-email" v-model="form.email" type="email" placeholder="name@example.com" />
+            </Field>
+            <Field :data-invalid="!!errors?.email">
+              <FieldLabel for="att-email">Email</FieldLabel>
+              <Input id="att-email" v-model="form.email" type="email" placeholder="name@example.com" :aria-invalid="!!errors?.email" />
               <FieldError :errors="errors.email" />
-            </div>
-            <div class="space-y-2">
-              <Label for="att-phone">Phone</Label>
-              <InputPhone id="att-phone" v-model="form.phone" />
+            </Field>
+            <Field :data-invalid="!!errors?.phone">
+              <FieldLabel for="att-phone">Phone</FieldLabel>
+              <InputPhone id="att-phone" v-model="form.phone" :aria-invalid="!!errors?.phone" />
               <FieldError :errors="errors.phone" />
-            </div>
+            </Field>
           </div>
 
-          <div v-if="hasSessions" class="space-y-2">
-            <Label for="att-session">Session</Label>
+          <Field v-if="hasSessions">
+            <FieldLabel for="att-session">Session</FieldLabel>
             <Select
               :model-value="form.ticket_session_id ? String(form.ticket_session_id) : ''"
               @update:model-value="(v) => (form.ticket_session_id = Number(v))"
@@ -39,11 +39,11 @@
                 <SelectItem v-for="s in sessions" :key="s.id" :value="String(s.id)">{{ s.label }}</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div v-if="needsDay" class="space-y-2">
-              <Label for="att-day">Day</Label>
+            <Field v-if="needsDay">
+              <FieldLabel for="att-day">Day</FieldLabel>
               <Select
                 :model-value="form.selected_event_day_id ? String(form.selected_event_day_id) : ''"
                 @update:model-value="(v) => (form.selected_event_day_id = v ? Number(v) : null)"
@@ -53,10 +53,10 @@
                   <SelectItem v-for="d in validDays" :key="d.id" :value="String(d.id)">{{ dayLabel(d) }}</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
-            <div class="space-y-2">
-              <Label for="att-checked-in">Check-in</Label>
+            <Field>
+              <FieldLabel for="att-checked-in">Check-in</FieldLabel>
               <Button
                 id="att-checked-in"
                 type="button"
@@ -70,7 +70,7 @@
                 />
                 <span>{{ form.checked_in ? "Mark as not checked in" : "Mark as checked in" }}</span>
               </Button>
-            </div>
+            </Field>
           </div>
 
           <div v-if="registrationFields.length" class="space-y-4 border-t pt-4">
@@ -105,9 +105,8 @@
 import { Button } from "@/components/ui/button";
 import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputPhone } from "@/components/ui/input-phone";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { CustomFieldGroup } from "@/components/ui/custom-field";

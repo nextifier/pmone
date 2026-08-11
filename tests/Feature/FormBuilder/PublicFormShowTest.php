@@ -77,6 +77,24 @@ it('falls back to the default closed message when unset', function () {
         ->assertJson(['message' => 'Form is closed']);
 });
 
+it('exposes the layout so the public renderer can pick a presentation', function () {
+    $form = Form::factory()->published()->create([
+        'settings' => ['layout' => 'multi_step'],
+    ]);
+
+    $this->getJson("/api/public/forms/{$form->slug}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.layout', 'multi_step');
+});
+
+it('defaults the public layout to single page', function () {
+    $form = Form::factory()->published()->create(['settings' => null]);
+
+    $this->getJson("/api/public/forms/{$form->slug}")
+        ->assertSuccessful()
+        ->assertJsonPath('data.settings.layout', 'single_page');
+});
+
 it('does not expose notification emails publicly', function () {
     $form = Form::factory()->published()->create([
         'settings' => [

@@ -92,7 +92,7 @@ Sisanya:
 - Default: `text-foreground`.
 - Teks sekunder, helper, caption, label di samping value: `text-muted-foreground`.
 - Link / emphasis: `text-primary`.
-- Error / delete: `text-destructive`. Untuk pesan error di bawah input jangan menulis warnanya sendiri - `<FieldError>` sudah membawa `text-destructive` lewat rule `cn-field-error` milik style.
+- Error / delete: `text-destructive-foreground`. Untuk pesan error di bawah input jangan menulis warnanya sendiri - `<FieldError>` sudah membawa `text-destructive-foreground` lewat rule `cn-field-error` milik style.
 
 ---
 
@@ -105,7 +105,8 @@ Wajib pakai CSS variable, bukan warna Tailwind generik.
 - `bg-muted/50` untuk overlay tipis (lihat `.frame`).
 - `bg-primary` + `text-primary-foreground` untuk CTA utama.
 - `bg-secondary` + `text-secondary-foreground` untuk button sekunder.
-- `bg-destructive` + `text-white` untuk tombol delete. Versi soft: `bg-destructive/10 text-destructive`.
+- `bg-destructive` + `text-white` untuk tombol delete. Versi soft: `bg-destructive/10 text-destructive-foreground`.
+- **`--destructive` hanya untuk background.** Semua warna teks, ikon, border, dan ring yang bersifat error pakai `--destructive-foreground`: `text-destructive-foreground`, `aria-invalid:border-destructive-foreground`, `aria-invalid:ring-destructive-foreground/20`. Satu-satunya `border-destructive` yang tersisa ada di button destructive solid (style mono), karena border-nya menyatu dengan background.
 - `bg-success`, `bg-warning`, `bg-info` untuk status badge. Versi soft: `bg-success/10 text-success-foreground` dst.
 
 Jangan pakai:
@@ -225,7 +226,7 @@ Semua input harus pakai component dari `frontend/app/components/ui/`. Jangan pak
 ```
 
 - Label wajib pakai `for` yang match dengan `id` input.
-- Required field: cukup pasang attribute `required`. Asterisk merah otomatis muncul via CSS selector `label:has(+ input:required)::after` di `main.css`. Jangan pernah menambah `<span class="text-destructive">*</span>` manual.
+- Required field: cukup pasang attribute `required`. Asterisk merah otomatis muncul via CSS selector `label:has(+ input:required)::after` di `main.css`. Jangan pernah menambah `<span class="text-destructive-foreground">*</span>` manual.
 - Error message: pakai `<FieldError :errors="errors.field" />` (`components/ui/field/`). Jangan render manual, dan jangan pakai `<p>` biasa - `FieldError` sudah membawa `role="alert"`.
 - Helper text pakai `text-muted-foreground text-xs`, posisi di bawah input sebelum error message.
 
@@ -417,7 +418,7 @@ Hindari:
 
 - Hover background default: `hover:bg-muted`. Pakai ini untuk row, list item, ghost button.
 - Hover background primary: `hover:bg-primary/90` (sudah dari Button component).
-- Hover text destructive: `hover:text-destructive`.
+- Hover text destructive: `hover:text-destructive-foreground`.
 - Transition: `transition` atau `transition-colors` untuk perubahan warna. `transition-all` hanya kalau memang banyak property berubah.
 - Active state: `active:scale-98` untuk tombol yang ditekan (sudah jadi pattern di app).
 - **Jangan menambahkan hover-zoom pada image atau card.** Ini aturan untuk kode yang sedang kamu tulis, bukan untuk mengaudit kode yang sudah ada. Menempelkan `hover:scale-105` / `group-hover:scale-105` plus `transition-transform` ke setiap thumbnail, foto, dan tile adalah refleks yang membuat UI terasa templated, dan itu yang aturan ini cegah. Affordance untuk card yang bisa diklik cukup dari perubahan warna atau border. Kalau kamu menambahkannya karena "biar tidak flat", hapus. Catatan: `active:scale-98` pada tombol yang ditekan tetap boleh - itu feedback klik, bukan dekorasi hover.

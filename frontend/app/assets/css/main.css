@@ -1650,7 +1650,7 @@ label:not(:has([data-slot="label-required"])) {
   &:has(+ select:required)::after,
   &:has(+ textarea:required)::after,
   &:has(+ .base-phone-input input:required)::after {
-    @apply text-destructive ml-0 content-['*'];
+    @apply text-destructive-foreground ml-0 content-['*'];
   }
 }
 

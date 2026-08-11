@@ -3,8 +3,8 @@
        spaced dialog column, so it inherits the surrounding rhythm. -->
 
   <!-- Section description -->
-  <div v-if="typeConfig.hasDescription" class="space-y-2">
-    <Label>Description</Label>
+  <Field v-if="typeConfig.hasDescription">
+    <FieldLabel>Description</FieldLabel>
     <TipTapEditor
       v-model="settings.description"
       placeholder="Describe this section (optional)"
@@ -12,30 +12,32 @@
       :allow-images="false"
       min-height="120px"
     />
-  </div>
+  </Field>
 
-  <div v-if="typeConfig.hasPlaceholder" class="space-y-2">
-    <Label :for="`${idPrefix}_placeholder`">
+  <Field v-if="typeConfig.hasPlaceholder" :data-invalid="!!errorFor('placeholder')">
+    <FieldLabel :for="`${idPrefix}_placeholder`">
       {{ typeConfig.placeholderLabel || "Placeholder" }}
-    </Label>
+    </FieldLabel>
     <Input
+      :aria-invalid="!!errorFor('placeholder')"
       :id="`${idPrefix}_placeholder`"
       v-model="placeholder"
       :placeholder="typeConfig.placeholderLabel ? 'Text shown next to the control' : 'Placeholder text'"
     />
     <FieldError :errors="errorFor('placeholder')" />
-  </div>
+  </Field>
 
-  <div v-if="!isLayout" class="space-y-2">
-    <Label :for="`${idPrefix}_help_text`">Help text</Label>
+  <Field v-if="!isLayout" :data-invalid="!!errorFor('help_text')">
+    <FieldLabel :for="`${idPrefix}_help_text`">Help text</FieldLabel>
     <Textarea
+      :aria-invalid="!!errorFor('help_text')"
       :id="`${idPrefix}_help_text`"
       v-model="helpText"
       :rows="2"
       placeholder="Optional hint shown below the field"
     />
     <FieldError :errors="errorFor('help_text')" />
-  </div>
+  </Field>
 
   <!-- Each host keeps its own options editor (pairs vs plain strings,
        predefined fields read-only), but it belongs in this slot so the field
@@ -55,39 +57,39 @@
 
       <!-- Min / max -->
       <div v-if="typeConfig.minMaxMode" class="grid grid-cols-2 gap-x-2 gap-y-4">
-        <div class="space-y-2">
-          <Label>{{ minMaxLabels.min }}</Label>
+        <Field>
+          <FieldLabel>{{ minMaxLabels.min }}</FieldLabel>
           <InputNumber v-model="validation[minMaxKeys.min]" placeholder="None" />
-        </div>
-        <div class="space-y-2">
-          <Label>{{ minMaxLabels.max }}</Label>
+        </Field>
+        <Field>
+          <FieldLabel>{{ minMaxLabels.max }}</FieldLabel>
           <InputNumber v-model="validation[minMaxKeys.max]" placeholder="None" />
-        </div>
+        </Field>
       </div>
 
       <!-- Linear scale labels -->
       <div v-if="typeConfig.hasScaleLabels" class="grid grid-cols-2 gap-x-2 gap-y-4">
-        <div class="space-y-2">
-          <Label :for="`${idPrefix}_min_label`">Low label</Label>
+        <Field>
+          <FieldLabel :for="`${idPrefix}_min_label`">Low label</FieldLabel>
           <Input :id="`${idPrefix}_min_label`" v-model="settings.min_label" placeholder="e.g. Poor" />
-        </div>
-        <div class="space-y-2">
-          <Label :for="`${idPrefix}_max_label`">High label</Label>
+        </Field>
+        <Field>
+          <FieldLabel :for="`${idPrefix}_max_label`">High label</FieldLabel>
           <Input :id="`${idPrefix}_max_label`" v-model="settings.max_label" placeholder="e.g. Excellent" />
-        </div>
+        </Field>
       </div>
 
       <!-- Slider step -->
-      <div v-if="typeConfig.hasStep" class="space-y-2">
-        <Label>Step</Label>
+      <Field v-if="typeConfig.hasStep">
+        <FieldLabel>Step</FieldLabel>
         <InputNumber v-model="settings.step" decimal placeholder="1" />
-      </div>
+      </Field>
 
       <!-- Currency symbol -->
-      <div v-if="typeConfig.hasCurrency" class="space-y-2">
-        <Label :for="`${idPrefix}_currency`">Currency symbol</Label>
+      <Field v-if="typeConfig.hasCurrency">
+        <FieldLabel :for="`${idPrefix}_currency`">Currency symbol</FieldLabel>
         <Input :id="`${idPrefix}_currency`" v-model="settings.currency" placeholder="Rp" />
-      </div>
+      </Field>
 
       <!-- Range slider -->
       <div v-if="typeConfig.hasSliderToggle" class="space-y-2">
@@ -102,10 +104,10 @@
       </div>
 
       <!-- Rating max -->
-      <div v-if="typeConfig.hasRatingMax" class="space-y-2">
-        <Label>Number of stars</Label>
+      <Field v-if="typeConfig.hasRatingMax">
+        <FieldLabel>Number of stars</FieldLabel>
         <InputNumber v-model="settings.max" :min="2" :max="10" placeholder="5" />
-      </div>
+      </Field>
 
       <!-- File config -->
       <template v-if="showFileConfig">
@@ -115,18 +117,18 @@
         </div>
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-4">
-          <div v-if="settings.multiple" class="space-y-2">
-            <Label>Max files</Label>
+          <Field v-if="settings.multiple">
+            <FieldLabel>Max files</FieldLabel>
             <InputNumber v-model="validation.max_files" :min="1" :max="10" placeholder="5" />
-          </div>
-          <div class="space-y-2">
-            <Label>Max file size (MB)</Label>
+          </Field>
+          <Field>
+            <FieldLabel>Max file size (MB)</FieldLabel>
             <InputNumber v-model="maxFileSizeMb" :min="1" :max="20" placeholder="20" />
-          </div>
+          </Field>
         </div>
 
-        <div class="space-y-2">
-          <Label>Allowed file types</Label>
+        <Field>
+          <FieldLabel>Allowed file types</FieldLabel>
           <TagsInput v-model="validation.allowed_file_types" class="text-sm">
             <TagsInputItem v-for="ext in validation.allowed_file_types" :key="ext" :value="ext">
               <TagsInputItemText />
@@ -137,7 +139,7 @@
           <p class="text-muted-foreground text-xs">
             File extensions without the dot. Leave empty to allow any type.
           </p>
-        </div>
+        </Field>
       </template>
     </div>
   </div>
@@ -148,27 +150,27 @@
       <h4 class="frame-title">Advanced</h4>
     </div>
     <div class="frame-panel">
-      <div class="space-y-2">
-        <Label :for="`${idPrefix}_param_key`">URL parameter key</Label>
+      <Field :data-invalid="!!errors?.['settings.param_key']">
+        <FieldLabel :for="`${idPrefix}_param_key`">URL parameter key</FieldLabel>
         <Input
           :id="`${idPrefix}_param_key`"
           v-model="settings.param_key"
           placeholder="e.g. ticket"
-          :class="{ 'border-destructive': errors['settings.param_key'] }"
+          :aria-invalid="!!errors?.['settings.param_key']"
         />
         <p class="text-muted-foreground text-xs">
           Prefill this field from the public URL, e.g. ?ticket=vip. Letters, numbers, dashes and
           underscores only.
         </p>
         <FieldError :errors="errors['settings.param_key']" />
-      </div>
+      </Field>
     </div>
   </div>
 </template>
 
 <script setup>
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { InputNumber } from "@/components/ui/input-number";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";

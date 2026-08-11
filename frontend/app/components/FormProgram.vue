@@ -110,7 +110,7 @@ defineShortcuts({
         v-model="titleField"
         :placeholder="activeLocale === 'en' ? 'Program title' : 'Judul program'"
       />
-      <p v-if="localizedError('title')" class="text-destructive text-xs">
+      <p v-if="localizedError('title')" class="text-destructive-foreground text-xs">
         {{ localizedError("title") }}
       </p>
     </div>
@@ -123,7 +123,7 @@ defineShortcuts({
         :rows="4"
         :placeholder="activeLocale === 'en' ? 'Short description' : 'Deskripsi singkat'"
       />
-      <p v-if="localizedError('description')" class="text-destructive text-xs">
+      <p v-if="localizedError('description')" class="text-destructive-foreground text-xs">
         {{ localizedError("description") }}
       </p>
     </div>
@@ -145,7 +145,7 @@ defineShortcuts({
           container-class="relative isolate aspect-[2/3] max-w-[10rem]"
         />
         <p class="text-muted-foreground text-xs tracking-tight">For image-style cards.</p>
-        <p v-if="err('tmp_image')" class="text-destructive text-xs">{{ err("tmp_image") }}</p>
+        <p v-if="err('tmp_image')" class="text-destructive-foreground text-xs">{{ err("tmp_image") }}</p>
       </div>
     </div>
 

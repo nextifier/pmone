@@ -8,10 +8,10 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-1 gap-y-6">
-          <div v-if="isCreate" class="space-y-2">
-            <Label for="rule_ulid">Promotion Rule</Label>
+          <Field v-if="isCreate" :data-invalid="!!errors?.promotion_rule_id">
+            <FieldLabel for="rule_ulid">Promotion Rule</FieldLabel>
             <Select v-model="form.rule_ulid" :disabled="loadingRules">
-              <SelectTrigger class="w-full"><SelectValue placeholder="Select a rule" /></SelectTrigger>
+              <SelectTrigger class="w-full" :aria-invalid="!!errors?.promotion_rule_id"><SelectValue placeholder="Select a rule" /></SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="rule in rules" :key="rule.id" :value="rule.ulid">
                   {{ rule.name }} ({{ rule.kind_label }} - {{ rule.value_type === "percentage" ? `${rule.value}%` : `Rp${formatRupiah(rule.value)}` }})
@@ -19,20 +19,20 @@
               </SelectContent>
             </Select>
             <FieldError :errors="errors.promotion_rule_id" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="code">Code</Label>
-            <Input id="code" v-model="form.code" type="text" required maxlength="60" pattern="[A-Za-z0-9_-]+" class="uppercase font-mono" />
+          <Field :data-invalid="!!errors?.code">
+            <FieldLabel for="code">Code</FieldLabel>
+            <Input id="code" v-model="form.code" type="text" required maxlength="60" pattern="[A-Za-z0-9_-]+" class="uppercase font-mono" :aria-invalid="!!errors?.code" />
             <p class="text-muted-foreground text-xs tracking-tight">Uppercase letters, numbers, dashes only. Stored uppercase.</p>
             <FieldError :errors="errors.code" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="issued_to_email">Issued To Email (optional)</Label>
-            <Input id="issued_to_email" v-model="form.issued_to_email" type="email" maxlength="255" placeholder="Restrict to specific email" />
+          <Field :data-invalid="!!errors?.issued_to_email">
+            <FieldLabel for="issued_to_email">Issued To Email (optional)</FieldLabel>
+            <Input id="issued_to_email" v-model="form.issued_to_email" type="email" maxlength="255" placeholder="Restrict to specific email" :aria-invalid="!!errors?.issued_to_email" />
             <FieldError :errors="errors.issued_to_email" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -45,19 +45,19 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="usage_limit">Usage Limit (total)</Label>
-            <InputNumber id="usage_limit" v-model="form.usage_limit" :min="1" placeholder="Unlimited" />
+          <Field :data-invalid="!!errors?.usage_limit">
+            <FieldLabel for="usage_limit">Usage Limit (total)</FieldLabel>
+            <InputNumber id="usage_limit" v-model="form.usage_limit" :min="1" placeholder="Unlimited" :aria-invalid="!!errors?.usage_limit" />
             <p class="text-muted-foreground text-xs tracking-tight">Leave empty for unlimited.</p>
             <FieldError :errors="errors.usage_limit" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="usage_limit_per_email">Per Email</Label>
-            <InputNumber id="usage_limit_per_email" v-model="form.usage_limit_per_email" :min="1" placeholder="1" />
+          <Field :data-invalid="!!errors?.usage_limit_per_email">
+            <FieldLabel for="usage_limit_per_email">Per Email</FieldLabel>
+            <InputNumber id="usage_limit_per_email" v-model="form.usage_limit_per_email" :min="1" placeholder="1" :aria-invalid="!!errors?.usage_limit_per_email" />
             <p class="text-muted-foreground text-xs tracking-tight">Max times each email can use this code.</p>
             <FieldError :errors="errors.usage_limit_per_email" />
-          </div>
+          </Field>
         </div>
       </div>
     </div>
@@ -70,8 +70,8 @@
       </div>
       <div class="frame-panel">
         <div class="grid grid-cols-2 gap-x-2 gap-y-6">
-          <div class="space-y-2">
-            <Label for="valid_from">Valid From</Label>
+          <Field :data-invalid="!!errors?.valid_from">
+            <FieldLabel for="valid_from">Valid From</FieldLabel>
             <DatePicker
               v-model="form.valid_from"
               with-time
@@ -80,10 +80,10 @@
               :default-minute="0"
             />
             <FieldError :errors="errors.valid_from" />
-          </div>
+          </Field>
 
-          <div class="space-y-2">
-            <Label for="valid_until">Valid Until</Label>
+          <Field :data-invalid="!!errors?.valid_until">
+            <FieldLabel for="valid_until">Valid Until</FieldLabel>
             <DatePicker
               v-model="form.valid_until"
               with-time
@@ -92,7 +92,7 @@
               :default-minute="59"
             />
             <FieldError :errors="errors.valid_until" />
-          </div>
+          </Field>
         </div>
 
         <div class="mt-6 flex items-center gap-2">
@@ -116,7 +116,7 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FieldError } from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";

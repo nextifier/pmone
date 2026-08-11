@@ -35,7 +35,7 @@ function focusInput(event: PointerEvent) {
         'cn-combobox-chips cursor-text',
         // The chips container reacts to an invalid descendant; TagsInput can also be
         // marked invalid on the root itself.
-        'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:ring-3',
+        'aria-invalid:border-destructive-foreground aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:ring-3',
         'data-disabled:pointer-events-none data-disabled:opacity-50',
         props.class
       )
