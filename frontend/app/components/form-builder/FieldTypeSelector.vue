@@ -29,7 +29,7 @@
             v-if="selected === type.value"
             class="bg-primary text-primary-foreground absolute top-2 right-2 z-10 grid size-5 place-items-center rounded-full"
           >
-            <Icon name="lucide:check" class="size-3 shrink-0" />
+            <Icon name="hugeicons:tick-02" class="size-3 shrink-0" />
           </span>
           <div
             class="flex h-20 items-center justify-center overflow-hidden rounded-lg border p-3"

@@ -42,6 +42,8 @@ const props = defineProps({
   submitting: { type: Boolean, default: false },
   uploadsInProgress: { type: Number, default: 0 },
   submitLabel: { type: String, required: true },
+  /** Builder preview: render the steps but never take focus. */
+  preview: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
@@ -236,6 +238,7 @@ watch(
     v-model:item="activeName"
     :items="items"
     :data-direction="direction"
+    :autofocus="!props.preview"
     class="gap-7"
     @submit="handleSubmit"
   >

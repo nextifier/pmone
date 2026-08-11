@@ -1,6 +1,6 @@
 <template>
-  <div class="mx-auto max-w-2xl space-y-6 py-6 lg:max-w-6xl">
-    <div class="flex items-center gap-x-3">
+  <div class="flex flex-col">
+    <div class="flex items-center gap-x-3 pt-4 pb-3">
       <ButtonBack destination="/brands" :show-label="true" force-destination />
     </div>
 
@@ -9,14 +9,17 @@
       <Icon name="svg-spinners:ring-resize" class="text-muted-foreground size-6" />
     </div>
 
-    <TabsRoot v-else-if="brand" v-model="activeTab" class="relative contents">
-      <div class="grid gap-6 lg:grid-cols-5">
-        <!-- Edit column -->
-        <TabsContent
-          value="edit"
-          force-mount
-          class="space-y-6 outline-none max-lg:data-[state=inactive]:hidden lg:col-span-3"
-        >
+    <PreviewPanel
+      v-else-if="brand"
+      v-model:tab="activeTab"
+      ratio="3:2"
+      offset="calc(var(--navbar-height-desktop) + 1rem)"
+      preview-title="Brand page"
+    >
+      <template #edit>
+        <!-- Centred while stacked, flush left once split - see
+             forms/[slug]/index.vue for why. -->
+        <div class="mx-auto w-full max-w-2xl space-y-6 @5xl/preview:mx-0">
           <BrandFormBrandProfile
             :brand="brand"
             :api-url="`/api/brands/${slug}`"
@@ -152,26 +155,13 @@
           </div>
         </div>
       </div>
-        </TabsContent>
+        </div>
+      </template>
 
-        <!-- Preview column -->
-        <TabsContent
-          value="preview"
-          force-mount
-          class="outline-none max-lg:data-[state=inactive]:hidden lg:col-span-2"
-        >
-          <BrandLivePreview
-            :preview="previewData"
-            class="lg:sticky lg:top-[var(--navbar-height-desktop)]"
-          />
-        </TabsContent>
-      </div>
-
-      <!-- Mobile pill trigger -->
-      <div class="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 lg:hidden">
-        <BrandPreviewTabsTrigger />
-      </div>
-    </TabsRoot>
+      <template #preview>
+        <BrandPreviewPage :preview="previewData" class="p-5 sm:p-6" />
+      </template>
+    </PreviewPanel>
 
     <!-- Not Found -->
     <div v-else class="flex flex-col items-center justify-center gap-3 py-20">
@@ -187,13 +177,12 @@
 </template>
 
 <script setup>
-import BrandLivePreview from "@/components/brand/preview/BrandLivePreview.vue";
-import BrandPreviewTabsTrigger from "@/components/brand/preview/BrandPreviewTabsTrigger.vue";
+import BrandPreviewPage from "@/components/brand/preview/BrandPreviewPage.vue";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TabsContent, TabsRoot } from "reka-ui";
+import { PreviewPanel } from "@/components/ui/preview-panel";
 import { toast } from "vue-sonner";
 
 const { t } = useI18n();

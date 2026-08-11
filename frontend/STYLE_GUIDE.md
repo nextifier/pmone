@@ -519,6 +519,48 @@ Ganti menjadi `<Badge variant="success" plain>Active</Badge>` (atau dengan `icon
 - Min height: `min-h-screen-offset` (custom utility, sudah menghitung navbar).
 - Sticky header section: `sticky top-0 z-10 bg-background` di dalam page (header utama sudah sticky dari layout).
 
+### 18.1 Edit + preview dua panel (`<PreviewPanel>`)
+
+Halaman yang mengedit sesuatu yang punya hasil terlihat (form builder, brand
+editor, link page, announcement) memakai `components/ui/preview-panel`. Jangan
+bikin grid + Tabs sendiri lagi.
+
+```vue
+<PreviewPanel v-model:tab="activeTab" ratio="3:2" preview-title="Brand page" reloadable>
+  <template #edit><div class="mx-auto w-full max-w-2xl space-y-6">…</div></template>
+  <template #preview><BrandPreviewPage :preview="previewData" class="p-5 sm:p-6" /></template>
+  <template #footer>…save bar…</template>
+</PreviewPanel>
+```
+
+Aturannya:
+
+- **Split dipicu container query, bukan breakpoint viewport.** Sidebar 18rem vs
+  3rem menggeser lebar konten 240px, dan media query tidak melihat itu. Default
+  threshold `5xl` (panel ≥1024px).
+- **Tinggi datang dari halaman, bukan dari component.** Halaman opt-in dengan
+  `definePageMeta({ lockedShell: true })`; `layouts/app.vue` memasang
+  `screen-lock-lg`, lalu tiap layout perantara meneruskan `flex min-h-0 flex-1
+  flex-col`. Satu mata rantai yang putus = panel diam-diam tidak terkunci.
+- **`screen-lock-lg`, bukan `h-screen-offset`.** Yang kedua memakai `lvh` di
+  `lg`; halaman terkunci tidak pernah scroll, jadi chrome browser tidak pernah
+  mengecil dan `lvh` kelebihan setinggi toolbar. Kelihatan di tablet ≥lg saja.
+- **`min-h-0` dan `min-w-0` di tiap level flex.** Tanpa `min-h-0` panel tidak
+  akan pernah scroll; tanpa `min-w-0` tabel panjang jebol dan terpotong diam-diam
+  oleh `overflow-x-clip` milik layout.
+- **DILARANG `position: fixed` di dalam panel.** `container-type: inline-size`
+  menyiratkan `contain: layout`, yang bikin panel jadi containing block untuk
+  keturunan `fixed` — element itu akan menempel ke panel, bukan ke viewport.
+  Pill Edit/Preview memakai `sticky` di rail setinggi 0. Dialog/Popover reka-ui
+  aman karena semuanya di-portal ke `body`.
+- **TabNav di dalam shell terkunci pakai `:sticky="false"`.** Offset sticky
+  dihitung dari scrollport terdekat, dan `overflow-hidden` milik shell menjadi
+  scrollport, jadi nav sticky akan terdorong turun setinggi satu navbar lagi.
+- Jangan pakai `scroll-fade-b` di dalam panel: mask-nya digerakkan
+  `animation-timeline: scroll(self y)` dengan `fill-mode: both`, jadi scroller
+  yang tidak punya jarak scroll akan terkunci di keyframe 0% dan fade-nya tidak
+  pernah hilang. Pakai prop `fade` (gradien absolut) kalau perlu.
+
 ---
 
 ## 19. Skeleton & Loading

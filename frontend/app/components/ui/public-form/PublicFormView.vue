@@ -1,21 +1,31 @@
 <template>
   <div
-    class="relative min-h-dvh"
+    class="relative"
     :class="[
+      // `min-h-dvh` is the page filling the viewport. In preview it is a pane
+      // inside an editor, so it must be content-height or the pane's scroller
+      // is handed a screenful of empty space under every short form.
+      preview ? '' : 'min-h-dvh',
       embed ? 'py-4' : 'pt-6 pb-12 sm:pt-8 sm:pb-16',
       centerTerminal && 'flex flex-col justify-center',
     ]"
   >
     <!-- Page chrome belongs to the host app, so it is a slot and is dropped
-         entirely when embedded in someone else's iframe. -->
+         entirely when embedded in someone else's iframe, and in preview where
+         the panel supplies its own toolbar. -->
     <div
-      v-if="!embed && $slots.chrome"
+      v-if="!embed && !preview && $slots.chrome"
       class="border-border bg-background/95 supports-backdrop-filter:bg-background/90 fixed top-4 right-3 z-10 flex items-center gap-x-1 rounded-full border p-1 backdrop-blur-sm"
     >
       <slot name="chrome" :locales="formLocales" />
     </div>
 
-    <div class="container sm:max-w-xl">
+    <!--
+      `container sm:max-w-xl` is a VIEWPORT breakpoint. In a 450px preview pane
+      on a desktop screen `sm:` still matches, so the form would be forced to
+      576px and overflow the pane. Preview measures itself instead.
+    -->
+    <div :class="preview ? 'mx-auto w-full max-w-xl px-4' : 'container sm:max-w-xl'">
       <!-- Only forms that dedupe by fingerprint land here: the answer needs the
            browser, so the form is held back rather than shown and then retracted.
            Every other form renders straight from SSR with no placeholder. -->
@@ -118,6 +128,7 @@
           :submitting="submitting"
           :uploads-in-progress="uploadsInProgress"
           :submit-label="submitLabel"
+          :preview="preview"
           @update:response="setResponse"
           @uploading="handleUploading"
           @submit="handleSubmit"
@@ -163,13 +174,26 @@ const props = defineProps({
   form: { type: Object, default: null },
   /** useFetch error, kept raw so the 403/404 split stays in one place. */
   fetchError: { type: Object, default: null },
-  /** Absolute or same-origin URLs: { check, submit }. */
-  endpoints: { type: Object, required: true },
+  /** Absolute or same-origin URLs: { check, submit }. Not used in preview. */
+  endpoints: { type: Object, default: () => ({}) },
   /** { uploadHandler, revertHandler } from lib/uploadHandlers. */
-  uploadHandlers: { type: Object, required: true },
+  uploadHandlers: { type: Object, default: () => ({}) },
   /** Picks which translation of each field label is rendered. */
   locale: { type: String, default: "en" },
   embed: { type: Boolean, default: false },
+  /**
+   * Rendered inside the form builder against an unsaved draft rather than
+   * served to a respondent. Nothing may reach the network: submit and the
+   * duplicate pre-check are inert, and query prefill is ignored because the
+   * route is the admin's, not the form's.
+   */
+  preview: { type: Boolean, default: false },
+  /** Preview only: which terminal state to render. */
+  previewState: {
+    type: String,
+    default: "form",
+    validator: (value) => ["form", "success", "closed"].includes(value),
+  },
 });
 
 const { t } = useI18n();
@@ -324,13 +348,35 @@ const handleUploading = (active) => {
  * read as a failure they caused.
  */
 const statusCard = computed(() => {
+  // The builder's state switcher: the confirmation and closed copy are edited
+  // on another tab, so they need to be viewable without actually submitting the
+  // form or closing it.
+  if (props.preview && props.previewState !== "form") {
+    if (props.previewState === "success") {
+      return {
+        status: "success",
+        variant: "soft",
+        title: t("forms.successTitle"),
+        description: props.form?.settings?.confirmation_message || t("forms.successMessage"),
+      };
+    }
+
+    return {
+      status: "error",
+      variant: "muted",
+      icon: "hugeicons:alert-circle",
+      title: t("forms.closedTitle"),
+      description: props.form?.settings?.closed_message || t("forms.closedMessage"),
+    };
+  }
+
   if (props.fetchError) {
     const closed = isClosedError(props.fetchError);
 
     return {
       status: "error",
       variant: "muted",
-      icon: "lucide:alert-circle",
+      icon: "hugeicons:alert-circle",
       title: closed ? t("forms.closedTitle") : t("forms.notFoundTitle"),
       // The 403 body carries the owner's own "form closed" wording. A 404 body
       // does not: Laravel answers a missing form with the raw model name.
@@ -353,7 +399,7 @@ const statusCard = computed(() => {
     return {
       status: "info",
       variant: "soft",
-      icon: "lucide:check-circle-2",
+      icon: "hugeicons:checkmark-circle-02",
       title: t("forms.alreadyTitle"),
       description: t("forms.alreadyMessage"),
     };
@@ -365,7 +411,7 @@ const statusCard = computed(() => {
 const duplicateMode = computed(() => duplicateModeFor(props.form?.settings));
 
 const isCheckingDuplicate = computed(
-  () => duplicateMode.value.checksFingerprint && !duplicateCheckDone.value
+  () => !props.preview && duplicateMode.value.checksFingerprint && !duplicateCheckDone.value
 );
 
 /**
@@ -390,6 +436,8 @@ watch(statusCard, async (card) => {
 });
 
 const runDuplicateCheck = async (email = null) => {
+  if (props.preview) return;
+
   const params = new URLSearchParams();
   if (email) params.append("email", email);
   if (visitorId.value) params.append("fingerprint", visitorId.value);
@@ -420,6 +468,11 @@ onMounted(async () => {
   // toggle are already correct in the first painted frame after hydration.
   measureDescription();
 
+  if (props.preview) {
+    duplicateCheckDone.value = true;
+    return;
+  }
+
   honeypotToken.value = generateHoneypotToken();
   visitorId.value = await loadVisitorId();
 
@@ -432,6 +485,7 @@ onMounted(async () => {
 // Prefill a field from URL query params (?{ulid}=value or ?{param_key}=value).
 // The view owns query extraction; per-type coercion lives in custom-field/core.
 const prefillValueFor = (field) => {
+  if (props.preview) return undefined;
   if (!supportsPrefill(field.type)) return undefined;
 
   const paramKey = field.settings?.param_key;
@@ -464,7 +518,7 @@ const scrollToFirstError = async () => {
 };
 
 const handleSubmit = async () => {
-  if (alreadySubmitted.value) return;
+  if (props.preview || alreadySubmitted.value) return;
 
   submitting.value = true;
   formErrors.value = {};

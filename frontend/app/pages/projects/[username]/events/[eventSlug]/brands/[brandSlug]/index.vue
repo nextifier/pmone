@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-2xl space-y-6 lg:max-w-6xl">
+  <div class="space-y-6">
     <div class="flex items-start justify-between gap-x-2">
       <div class="space-y-1">
         <h3 class="page-title">Brand Details</h3>
@@ -15,15 +15,14 @@
       </Button>
     </div>
 
-    <!-- Same two-column edit/preview split as the exhibitor's own brand editor.
-         Below lg the two become tabs driven by the floating pill at the bottom. -->
-    <TabsRoot v-model="activeTab" class="relative contents">
-      <div class="grid gap-6 lg:grid-cols-5">
-        <TabsContent
-          value="edit"
-          force-mount
-          class="space-y-6 outline-none max-lg:data-[state=inactive]:hidden lg:col-span-3"
-        >
+    <PreviewPanel
+      v-model:tab="activeTab"
+      ratio="3:2"
+      offset="calc(var(--navbar-height-desktop) + var(--tabnav-height) + 1rem)"
+      preview-title="Brand page"
+    >
+      <template #edit>
+        <div class="mx-auto w-full max-w-2xl space-y-6 @5xl/preview:mx-0">
     <form v-if="event?.can_edit" @submit.prevent="handleSubmit" class="grid gap-y-8">
       <!-- Booth Information -->
       <div class="frame">
@@ -626,36 +625,19 @@
         </div>
       </div>
     </div>
-        </TabsContent>
+        </div>
+      </template>
 
-        <!-- Preview column -->
-        <TabsContent
-          value="preview"
-          force-mount
-          class="outline-none max-lg:data-[state=inactive]:hidden lg:col-span-2"
-        >
-          <!-- Offsets past the TabNav as well as the header: both are sticky on
-               this page, so the navbar height alone would park the preview
-               underneath the tabs. -->
-          <BrandLivePreview
-            :preview="previewData"
-            class="lg:sticky lg:top-[calc(var(--navbar-height-desktop)+var(--tabnav-height)+--spacing(6))]"
-          />
-        </TabsContent>
-      </div>
-
-      <!-- Mobile pill trigger -->
-      <div class="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 lg:hidden">
-        <BrandPreviewTabsTrigger />
-      </div>
-    </TabsRoot>
+      <template #preview>
+        <BrandPreviewPage :preview="previewData" class="p-5 sm:p-6" />
+      </template>
+    </PreviewPanel>
   </div>
 </template>
 
 <script setup>
 import AddressFields from "@/components/AddressFields.vue";
-import BrandLivePreview from "@/components/brand/preview/BrandLivePreview.vue";
-import BrandPreviewTabsTrigger from "@/components/brand/preview/BrandPreviewTabsTrigger.vue";
+import BrandPreviewPage from "@/components/brand/preview/BrandPreviewPage.vue";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -679,7 +661,8 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { TabsContent, TabsRoot, useFilter } from "reka-ui";
+import { useFilter } from "reka-ui";
+import { PreviewPanel } from "@/components/ui/preview-panel";
 import { toast } from "vue-sonner";
 import { formatResponseValue, localizedLabel } from "@/components/ui/custom-field";
 

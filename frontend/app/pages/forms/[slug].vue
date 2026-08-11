@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col pb-16 sm:container">
     <template v-if="initialLoading">
-      <div class="flex flex-col items-start gap-y-4 px-4 pt-4 sm:px-0">
+      <div class="flex flex-col items-start gap-y-4 pt-4">
         <Skeleton class="h-8 w-24 rounded-lg" />
         <div class="flex w-full flex-wrap items-center gap-x-3 gap-y-2">
           <Skeleton class="h-7 w-56 max-w-full" />
@@ -38,7 +38,7 @@
             </p>
           </div>
           <Button to="/forms">
-            <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
+            <Icon name="hugeicons:arrow-left-01" class="size-4 shrink-0" />
             <span>Back to forms</span>
           </Button>
         </div>
@@ -47,8 +47,9 @@
 
     <template v-else-if="form">
       <!-- Header info -->
-      <div class="flex flex-col items-start gap-y-4 px-4 pt-4 sm:px-0">
-        <ButtonBack destination="/forms" force-destination />
+      <!-- No in-page back button: it lives in the app header now, which is the
+           only chrome that survives once a sticky-panel route scrolls. -->
+      <div class="flex flex-col items-start gap-y-4 pt-4">
         <div class="flex w-full flex-wrap items-center gap-x-3 gap-y-2">
           <h1 class="text-xl font-semibold tracking-tighter text-balance">{{ form.title }}</h1>
           <Badge :variant="statusBadge.variant" :icon="statusBadge.icon">
@@ -60,42 +61,66 @@
           >
             {{ form.responses_count }} {{ form.responses_count === 1 ? "response" : "responses" }}
           </span>
-          <div v-if="form.status === 'published'" class="ml-auto flex items-center gap-1">
-            <ButtonCopy :text="publicFormUrl" />
-            <button
-              type="button"
-              v-tippy="'Share form'"
-              class="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-lg"
-              @click="shareDialogOpen = true"
-            >
-              <Icon name="hugeicons:share-03" class="size-4 shrink-0" />
-            </button>
-            <a
-              :href="`/f/${form.slug}`"
-              target="_blank"
-              rel="noopener noreferrer"
-              v-tippy="'Open public form'"
-              class="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-lg"
-            >
+          <!--
+            Every action here needs a live public URL, so a draft shows none of
+            them - the Editor tab previews it instead.
+
+            Labelled, not four bare icons: a globe and two arrows next to each
+            other are a guessing game. The two frequent actions stay visible and
+            the rest move into the overflow, which is also what keeps the group
+            inside a phone's width.
+          -->
+          <ButtonGroup v-if="form.status === 'published'" class="ml-auto">
+            <Button variant="outline" size="sm" @click="copy(publicFormUrl)">
+              <span class="t-icon-swap-slot grid">
+                <Transition name="t-iswap" mode="out-in">
+                  <Icon
+                    :key="copied ? 'done' : 'copy'"
+                    :name="copied ? 'hugeicons:tick-02' : 'hugeicons:copy-01'"
+                    :class="['size-4 shrink-0', copied && 'text-success-foreground']"
+                  />
+                </Transition>
+              </span>
+              <Transition name="t-tswap" mode="out-in">
+                <span :key="copied ? 'done' : 'copy'" class="inline-block whitespace-nowrap">
+                  {{ copied ? "Copied" : "Copy link" }}
+                </span>
+              </Transition>
+            </Button>
+
+            <Button variant="outline" size="sm" :to="publicFormUrl">
               <Icon name="hugeicons:arrow-up-right-01" class="size-4 shrink-0" />
-            </a>
-            <a
-              v-if="eventUrl"
-              :href="eventUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              v-tippy="'Open on event website'"
-              class="text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-lg"
-            >
-              <Icon name="hugeicons:globe-02" class="size-4 shrink-0" />
-            </a>
-          </div>
+              <span>View form</span>
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <Button variant="outline" size="sm" aria-label="More form actions">
+                  <Icon name="hugeicons:arrow-down-01" class="size-4 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" class="w-52">
+                <DropdownMenuItem @select="shareDialogOpen = true">
+                  <Icon name="hugeicons:share-03" class="size-4 shrink-0" />
+                  <span>Share &amp; embed</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem v-if="eventUrl" as-child>
+                  <a :href="eventUrl" target="_blank" rel="noopener noreferrer">
+                    <Icon name="hugeicons:globe-02" class="size-4 shrink-0" />
+                    <span>Open on event website</span>
+                  </a>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ButtonGroup>
         </div>
       </div>
 
       <FormShareDialog v-model:open="shareDialogOpen" :form="form" />
 
-      <TabNav :tabs="formTabs" class="mt-4" />
+      <!-- Not sticky: it would hover over the pinned preview beside it, and
+           the preview would have to give up a tab-bar of height to clear it. -->
+      <TabNav :tabs="formTabs" class="mt-4" :sticky="false" />
 
       <div class="pt-6">
         <NuxtPage :form="form" @refresh="refreshForm" />
@@ -106,16 +131,29 @@
 
 <script setup>
 import FormShareDialog from "@/components/form-builder/FormShareDialog.vue";
+import { useClipboard } from "@vueuse/core";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TabNav } from "@/components/ui/tabs";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
+
+const { copy, copied } = useClipboard();
 
 definePageMeta({
   layout: "app",
   middleware: ["sanctum:auth", "permission"],
   permissions: ["forms.read"],
+  // Back control + section name in the app header instead of in the page body.
+  // Static, so AppHeader can render it during SSR (see HeaderPageContext).
+  headerContext: { back: "/forms", label: "Form Builder", to: "/forms" },
 });
 
 const route = useRoute();
@@ -148,9 +186,12 @@ const statusBadge = computed(() => formStatusBadge(form.value?.status));
 
 const formBase = computed(() => `/forms/${route.params.slug}`);
 
+// Editor is what respondents see (cover, title, description, layout, fields);
+// Settings is how the form behaves. Splitting them is what makes room for the
+// live preview beside the Editor.
 const formTabs = computed(() => [
-  { label: "Settings", to: formBase.value, exact: true },
-  { label: "Fields", to: `${formBase.value}/fields` },
+  { label: "Editor", to: formBase.value, exact: true },
+  { label: "Settings", to: `${formBase.value}/settings` },
   { label: "Responses", to: `${formBase.value}/responses` },
   { label: "Analytics", to: `${formBase.value}/analytics` },
 ]);
@@ -159,6 +200,5 @@ const { pmoneUrl: publicFormUrl, eventUrl } = useFormPublicUrls(form);
 
 const shareDialogOpen = ref(false);
 
-provide("form", form);
-provide("refreshForm", refreshForm);
+useHeaderPageTitle(() => form.value?.title);
 </script>

@@ -194,6 +194,60 @@ it('updates settings without losing notification emails', function () {
     expect($form->fresh()->settings['notification_emails']['to'])->toBe(['a@example.com', 'b@example.com']);
 });
 
+it('merges a partial settings payload instead of replacing the column', function () {
+    // The builder splits authoring across an Editor tab (layout) and a Settings
+    // tab (messages, notification emails); each saves only the keys it owns.
+    $form = Form::factory()->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+        'settings' => [
+            'layout' => 'single_page',
+            'confirmation_message' => 'Thanks!',
+            'redirect_url' => 'https://example.com/done',
+            'require_email' => true,
+            'notification_emails' => [
+                'to' => ['a@example.com'],
+                'cc' => ['cc@example.com'],
+            ],
+        ],
+    ]);
+
+    $this->putJson("/api/forms/{$form->slug}", [
+        'settings' => ['layout' => 'multi_step'],
+    ])->assertSuccessful();
+
+    $settings = $form->fresh()->settings;
+
+    expect($settings['layout'])->toBe('multi_step')
+        ->and($settings['confirmation_message'])->toBe('Thanks!')
+        ->and($settings['redirect_url'])->toBe('https://example.com/done')
+        ->and($settings['require_email'])->toBeTrue()
+        ->and($settings['notification_emails']['to'])->toBe(['a@example.com'])
+        ->and($settings['notification_emails']['cc'])->toBe(['cc@example.com']);
+});
+
+it('merges notification email lists one level deep', function () {
+    $form = Form::factory()->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+        'settings' => [
+            'notification_emails' => [
+                'to' => ['a@example.com'],
+                'bcc' => ['bcc@example.com'],
+            ],
+        ],
+    ]);
+
+    $this->putJson("/api/forms/{$form->slug}", [
+        'settings' => ['notification_emails' => ['to' => ['b@example.com']]],
+    ])->assertSuccessful();
+
+    $emails = $form->fresh()->settings['notification_emails'];
+
+    expect($emails['to'])->toBe(['b@example.com'])
+        ->and($emails['bcc'])->toBe(['bcc@example.com']);
+});
+
 it('creates a short link when a form is published', function () {
     $form = Form::factory()->create(['user_id' => $this->user->id, 'created_by' => $this->user->id]);
 

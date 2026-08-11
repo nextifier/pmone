@@ -35,6 +35,12 @@
         </Tippy>
 
         <HeaderBreadcrumb v-if="showBreadcrumb" />
+        <!-- Pages outside the project hierarchy declare their own back target
+             and section through `definePageMeta({ headerContext })`. Route meta,
+             not page state: this header renders before the page does on the
+             server, so anything set in the page's setup would still be empty
+             here and the markup would differ from the client's. -->
+        <HeaderPageContext v-else-if="headerContext" :context="headerContext" />
       </div>
 
       <div class="ml-auto flex h-full shrink-0 items-center gap-x-1 sm:gap-x-2">
@@ -90,4 +96,7 @@ defineProps({
 const { toggleSidebar, open, isMobile } = useSidebar();
 const { metaSymbol } = useShortcuts();
 const { isAuthenticated } = useSanctumAuth();
+
+const route = useRoute();
+const headerContext = computed(() => route.meta.headerContext || null);
 </script>

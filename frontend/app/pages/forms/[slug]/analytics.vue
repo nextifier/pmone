@@ -33,7 +33,7 @@
       </EmptyHeader>
       <EmptyContent>
         <Button size="sm" variant="outline" @click="loadAnalytics">
-          <Icon name="lucide:rotate-cw" class="size-4" />
+          <Icon name="hugeicons:refresh" class="size-4" />
           <span>Try again</span>
         </Button>
       </EmptyContent>
@@ -58,33 +58,45 @@
         </div>
       </div>
 
-      <!-- Status breakdown -->
+      <!-- Status breakdown. These read as controls, so they now behave like
+           ones: each opens Responses already filtered to that status. -->
       <div v-if="analytics.summary.total_responses" class="flex flex-wrap gap-2">
-        <span
+        <NuxtLink
           v-for="status in statusBreakdown"
           :key="status.label"
-          class="bg-muted/50 flex items-center gap-x-1.5 rounded-full border px-2.5 py-1 text-xs tracking-tight sm:text-sm"
+          :to="`/forms/${slug}/responses?status=${status.value}`"
+          class="bg-muted/50 hover:bg-muted focus-visible:ring-ring flex items-center gap-x-1.5 rounded-full border px-2.5 py-1 text-xs tracking-tight transition-colors outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:text-sm"
         >
           <Icon :name="status.icon" class="size-3.5" :class="status.color" />
           <span class="capitalize">{{ status.label }}</span>
           <span class="text-muted-foreground font-medium tabular-nums">{{ status.count }}</span>
-        </span>
+        </NuxtLink>
       </div>
 
-      <!-- Responses over time -->
+      <!--
+        Bars, not a line. Daily counts here are mostly 0 with the odd 1, and a
+        line through that sits flat on the axis and reads as an empty chart -
+        which is exactly what the old version rendered. Bars show single days.
+        The guard also counts DAYS WITH DATA rather than days in the range: a
+        30-day window around two responses passed `length > 2` and still had
+        nothing to draw.
+      -->
       <div class="bg-card rounded-xl border p-4 sm:p-5">
         <h3 class="text-sm font-semibold tracking-tighter">Responses over time</h3>
-        <div v-if="chartData.length > 2" class="mt-2">
-          <ChartLine
+        <div v-if="daysWithResponses >= 2" class="mt-2">
+          <ChartBar
             :data="chartData"
             :config="chartConfig"
-            :gradient="true"
             data-key="count"
-            class="h-auto! overflow-hidden py-2.5"
+            class="h-56! overflow-hidden py-2.5"
           />
         </div>
         <div v-else class="text-muted-foreground py-8 text-center text-sm tracking-tight">
-          Not enough data for this period
+          {{
+            daysWithResponses === 1
+              ? "All responses arrived on a single day"
+              : "No responses in this period"
+          }}
         </div>
       </div>
 
@@ -95,7 +107,7 @@
       >
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <Icon name="lucide:chart-bar" />
+            <Icon name="hugeicons:bar-chart" />
           </EmptyMedia>
           <EmptyTitle>No responses yet</EmptyTitle>
           <EmptyDescription>
@@ -155,6 +167,11 @@
 
           <!-- Numeric stats -->
           <div v-else-if="field.aggregation === 'numeric'" class="mt-4 space-y-4">
+            <!--
+              Median replaces the standalone Max tile: on a 1-5 rating almost
+              every question bottoms out at 1 and tops out at 5, so those two
+              numbers said nothing. Min and max still show, as one range.
+            -->
             <div class="grid grid-cols-3 gap-2">
               <div class="bg-muted/50 rounded-lg p-3 text-center">
                 <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Average</div>
@@ -163,15 +180,18 @@
                 </div>
               </div>
               <div class="bg-muted/50 rounded-lg p-3 text-center">
-                <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Min</div>
+                <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Median</div>
                 <div class="mt-0.5 text-lg font-semibold tracking-tighter tabular-nums">
-                  {{ field.min ?? "-" }}
+                  {{ medianOf(field) ?? "-" }}
                 </div>
               </div>
               <div class="bg-muted/50 rounded-lg p-3 text-center">
-                <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Max</div>
+                <div class="text-muted-foreground text-xs tracking-tight sm:text-sm">Range</div>
                 <div class="mt-0.5 text-lg font-semibold tracking-tighter tabular-nums">
-                  {{ field.max ?? "-" }}
+                  <template v-if="field.min != null && field.max != null">
+                    {{ field.min }}–{{ field.max }}
+                  </template>
+                  <template v-else>-</template>
                 </div>
               </div>
             </div>
@@ -226,7 +246,7 @@
 import countries from "@/data/countries.json";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
-import { ChartLine } from "@/components/ui/chart";
+import { ChartBar } from "@/components/ui/chart";
 import {
   Empty,
   EmptyContent,
@@ -288,7 +308,7 @@ const statusBreakdown = computed(() => {
   const breakdown = analytics.value?.summary?.status_breakdown || {};
   return Object.entries(breakdown).map(([label, count]) => {
     const meta = responseStatusDisplay(label);
-    return { label, count, icon: meta.icon, color: meta.color };
+    return { label, value: label, count, icon: meta.icon, color: meta.color };
   });
 });
 
@@ -300,6 +320,15 @@ const chartData = computed(() => {
     .sort((a, b) => a.date - b.date);
 });
 
+/**
+ * How many days actually carry a response. `chartData.length` is the size of
+ * the requested window, which is 30 even when the form has two answers, so it
+ * could never tell an empty chart from a full one.
+ */
+const daysWithResponses = computed(
+  () => chartData.value.filter((point) => point.count > 0).length
+);
+
 const chartConfig = computed(() => ({
   count: {
     label: "Responses",
@@ -309,8 +338,34 @@ const chartConfig = computed(() => ({
 
 const countryCode = (name) => countries.find((c) => c.label === name)?.value || null;
 
+/**
+ * Share of all answers, not share of the most common one. Scaling to the max
+ * meant that with one 3★ and one 5★ both bars filled the row completely, which
+ * reads as "everybody said 3" and "everybody said 5" at the same time.
+ */
 const distributionWidth = (field, row) => {
-  const max = Math.max(...(field.distribution || []).map((r) => r.count), 1);
-  return Math.round((row.count / max) * 100);
+  const total = (field.distribution || []).reduce((sum, r) => sum + r.count, 0);
+  if (!total) return 0;
+  return Math.round((row.count / total) * 100);
+};
+
+/**
+ * Derived from the distribution the API already sends, so no extra endpoint.
+ * For an even count this takes the lower of the two middle values rather than
+ * averaging them - a rating of "3.5★" is not a thing a respondent could give.
+ */
+const medianOf = (field) => {
+  const rows = (field.distribution || []).filter((r) => r.count > 0);
+  if (!rows.length) return null;
+
+  const total = rows.reduce((sum, r) => sum + r.count, 0);
+  const target = Math.ceil(total / 2);
+
+  let seen = 0;
+  for (const row of [...rows].sort((a, b) => Number(a.value) - Number(b.value))) {
+    seen += row.count;
+    if (seen >= target) return row.value;
+  }
+  return null;
 };
 </script>

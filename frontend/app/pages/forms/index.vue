@@ -23,7 +23,7 @@
       :pending="pending"
       :error="error"
       model="forms"
-      label="Forms"
+      label="Form"
       search-column="title"
       search-placeholder="Search forms"
       error-title="Error loading forms"
@@ -78,7 +78,7 @@
           @confirm="handleDeleteRows(selectedRows)"
         >
           <template #trigger="{ open }">
-            <TableBulkAction icon="lucide:trash" label="Delete" destructive @click="open()" />
+            <TableBulkAction icon="hugeicons:delete-02" label="Delete" destructive @click="open()" />
           </template>
         </ConfirmDialog>
       </template>

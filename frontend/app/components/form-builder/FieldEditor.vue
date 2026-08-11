@@ -81,17 +81,17 @@
                 class="text-muted-foreground hover:text-destructive-foreground shrink-0"
                 @click="fieldForm.options.splice(idx, 1)"
               >
-                <Icon name="lucide:x" class="size-4" />
+                <Icon name="hugeicons:cancel-01" class="size-4" />
               </Button>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <Button type="button" variant="outline" size="sm" @click="addOption">
-              <Icon name="lucide:plus" class="size-3.5" />
+              <Icon name="hugeicons:add-01" class="size-3.5" />
               <span>Add option</span>
             </Button>
             <Button type="button" variant="ghost" size="sm" @click="showBulkAdd = !showBulkAdd">
-              <Icon name="lucide:list-plus" class="size-3.5" />
+              <Icon name="hugeicons:list-plus" class="size-3.5" />
               <span>Bulk add</span>
             </Button>
           </div>

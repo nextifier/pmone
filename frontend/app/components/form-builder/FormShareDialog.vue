@@ -52,7 +52,7 @@
           <Label>Embed</Label>
           <Textarea :model-value="embedSnippet" readonly :rows="3" class="font-mono text-xs" />
           <Button size="sm" variant="outline" @click="copyEmbedSnippet">
-            <Icon name="lucide:code" class="size-4" />
+            <Icon name="hugeicons:source-code" class="size-4" />
             <span>Copy embed code</span>
           </Button>
           <p class="text-muted-foreground text-xs sm:text-sm">

@@ -112,6 +112,10 @@ class FormController extends Controller
         $data = $request->validated();
         unset($data['tmp_cover_image'], $data['delete_cover_image'], $data['tags']);
 
+        if (array_key_exists('settings', $data)) {
+            $data['settings'] = $this->mergeSettings($form, $data['settings']);
+        }
+
         $form->update($data);
 
         $this->handleTemporaryUpload($request, $form);
@@ -298,6 +302,41 @@ class FormController extends Controller
         if (in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
         }
+    }
+
+    /**
+     * `settings` is a single JSON column, so `$form->update()` replaces it
+     * wholesale. The builder splits form authoring across an Editor tab
+     * (layout) and a Settings tab (messages, notification emails, redirect),
+     * and each saves only the keys it owns — without this merge, saving one tab
+     * would silently wipe the other's, notification recipients included.
+     *
+     * Merging on the way in also makes any partial PATCH safe, whatever the
+     * caller.
+     *
+     * @param  array<string, mixed>  $incoming
+     * @return array<string, mixed>
+     */
+    private function mergeSettings(Form $form, ?array $incoming): array
+    {
+        $current = is_array($form->settings) ? $form->settings : [];
+
+        if ($incoming === null) {
+            return $current;
+        }
+
+        $merged = array_merge($current, $incoming);
+
+        // One level deeper for notification_emails so a tab that sends only
+        // `to` does not drop `cc` and `bcc`.
+        if (isset($incoming['notification_emails']) && is_array($incoming['notification_emails'])) {
+            $merged['notification_emails'] = array_merge(
+                is_array($current['notification_emails'] ?? null) ? $current['notification_emails'] : [],
+                $incoming['notification_emails'],
+            );
+        }
+
+        return $merged;
     }
 
     private function handleTemporaryUpload(Request $request, Form $form): void

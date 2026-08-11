@@ -6,7 +6,7 @@
           class="hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md"
           aria-label="Form actions"
         >
-          <Icon name="lucide:ellipsis" class="size-4" />
+          <Icon name="hugeicons:more-horizontal" class="size-4" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" class="w-40 p-1">
@@ -16,7 +16,7 @@
               :to="`/forms/${form.slug}`"
               class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
             >
-              <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
+              <Icon name="hugeicons:edit-02" class="size-4 shrink-0" />
               <span>Edit</span>
             </NuxtLink>
           </PopoverClose>
@@ -25,7 +25,7 @@
               class="hover:bg-muted flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
               @click="onDuplicate(form)"
             >
-              <Icon name="lucide:copy" class="size-4 shrink-0" />
+              <Icon name="hugeicons:copy-01" class="size-4 shrink-0" />
               <span>Duplicate</span>
             </button>
           </PopoverClose>
@@ -34,7 +34,7 @@
               class="hover:bg-destructive/10 text-destructive-foreground flex items-center gap-x-1.5 rounded-md px-3 py-2 text-left text-sm tracking-tight"
               @click="deleteDialogOpen = true"
             >
-              <Icon name="lucide:trash" class="size-4 shrink-0" />
+              <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
               <span>Delete</span>
             </button>
           </PopoverClose>

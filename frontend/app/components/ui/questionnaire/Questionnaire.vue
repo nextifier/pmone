@@ -31,9 +31,18 @@ const props = withDefaults(
     noValidate?: boolean;
     /** Assigns a keyboard shortcut to every choice. */
     shortcuts?: QuestionnaireShortcutMode;
+    /**
+     * Set to `false` where the questionnaire is being shown rather than filled
+     * in - a builder preview, a thumbnail. Moving focus into it on mount steals
+     * the caret from whatever the user is actually editing, and dragging the
+     * nearest scroll container down to the first question hides everything
+     * above it (cover image, title, description).
+     */
+    autofocus?: boolean;
   }>(),
   {
-    noValidate: true
+    noValidate: true,
+    autofocus: true
   }
 );
 
@@ -385,6 +394,11 @@ watch(
     const activeItemChanged = previousActiveItemName !== activeItemName.value;
 
     previousActiveItemName = activeItemName.value;
+
+    if (!props.autofocus) {
+      pendingFocus.value = null;
+      return;
+    }
 
     if (!focus || focus.name !== activeItemName.value) {
       if (controlled.value && activeItemChanged) {

@@ -38,13 +38,25 @@ const isProjectPage = computed(() => {
 });
 
 /**
- * Project pages carry their own sidebar state. They open as an icon rail by
- * default - a project already has its own tab nav, so the full sidebar would be
- * a second navigation competing with it - while the dashboard keeps whatever
- * the user last chose. One shared cookie could not express both, so the
- * provider runs controlled here (`:persist="false"`) and the layout owns the
- * two cookies. `useCookie` is SSR-aware, so the first paint already has the
- * right `data-state` and the rail never flashes open.
+ * A form's detail screens are the same kind of surface as a project page: their
+ * own tab nav, and (on the Editor tab) a two-pane layout that wants every pixel
+ * of width. They share the collapsed-rail default for the same reason.
+ */
+const isFormDetailPage = computed(() => {
+  const name = route.name?.toString() || "";
+  return name === "forms-slug" || name.startsWith("forms-slug-");
+});
+
+const prefersCollapsedSidebar = computed(() => isProjectPage.value || isFormDetailPage.value);
+
+/**
+ * Focused surfaces (project pages, form detail) carry their own sidebar state.
+ * They open as an icon rail by default - they already have their own tab nav,
+ * so the full sidebar would be a second navigation competing with it - while
+ * the dashboard keeps whatever the user last chose. One shared cookie could not
+ * express both, so the provider runs controlled here (`:persist="false"`) and
+ * the layout owns the two cookies. `useCookie` is SSR-aware, so the first paint
+ * already has the right `data-state` and the rail never flashes open.
  */
 const SIDEBAR_COOKIE_OPTS = { maxAge: 60 * 60 * 24 * 7 };
 
@@ -58,11 +70,11 @@ const projectSidebarOpen = useCookie("sidebar_state_project", {
 });
 
 const sidebarOpen = computed(() =>
-  isProjectPage.value ? projectSidebarOpen.value : mainSidebarOpen.value,
+  prefersCollapsedSidebar.value ? projectSidebarOpen.value : mainSidebarOpen.value,
 );
 
 function setSidebarOpen(value) {
-  if (isProjectPage.value) {
+  if (prefersCollapsedSidebar.value) {
     projectSidebarOpen.value = value;
   } else {
     mainSidebarOpen.value = value;

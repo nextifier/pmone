@@ -23,10 +23,11 @@ export const usePageMeta = (pageKey, overrides = {}) => {
   // Same shape as levenium and pmone-events: a static per-page image wins,
   // otherwise the generated Takumi card.
   //
-  // `ogImage.enabled` is currently false in nuxt.config, so `defineOgImage`
-  // below resolves to the module's no-op mock (it registers mocks for exactly
-  // this case) — the call is free and keeps this file aligned with the other
-  // two repos. Flipping `enabled: true` is all it takes to turn cards on; the
+  // Guarded on the same `OG_IMAGE_ENABLED` constant that drives the module in
+  // nuxt.config, so there is nothing to keep in sync. While it is off the
+  // module swaps `defineOgImage` for a mock that logs a warning on every single
+  // page, which is pure noise; skipping the call is the same no-op without it.
+  // Flipping the constant is all it takes to turn cards on; the
   // OgImage/Page.takumi.vue component is already in place.
   //
   // The old note here claimed OG generation needs prerendering and would break
@@ -38,7 +39,9 @@ export const usePageMeta = (pageKey, overrides = {}) => {
     useSeoMeta({
       ogImage: meta.ogImage,
     });
-  } else {
+    // `!== false` rather than truthy: pmone-events and levenium have OG on and
+    // no such flag, so an undefined here has to keep calling through.
+  } else if (useRuntimeConfig().public.ogImageEnabled !== false) {
     if (import.meta.dev) {
       useState(`og-image:ssr-exists:${route.path}`, () => false).value = true;
     }

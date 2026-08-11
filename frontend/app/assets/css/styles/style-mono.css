@@ -978,16 +978,18 @@
     @apply rounded-2xl;
   }
 
-  /* Both modes stay on `--input`, one step above `--muted`. The switch carries no
-     text, so the track colour is the only thing separating it from the surface:
-     `--muted` in dark sits at 1.5x the luminance of `--card`, which reads as blank.
-     Do not align this with the field rules above. */
+  /* MARK: Switch
+     Identical to nova's. Both modes stay on `--input`, one step above `--muted`:
+     the switch carries no text, so the track colour is the only thing separating
+     it from the surface, and `--muted` in dark sits at 1.5x the luminance of
+     `--card`, which reads as blank. Do not align this with the field rules
+     above. */
   .cn-switch {
-    @apply data-checked:bg-primary data-unchecked:bg-input data-checked:border-primary data-unchecked:border-border focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-full border focus-visible:ring-2 aria-invalid:ring-2 data-[size=default]:h-5 data-[size=default]:w-11 data-[size=sm]:h-4 data-[size=sm]:w-7;
+    @apply data-checked:bg-primary data-unchecked:bg-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-full border border-transparent focus-visible:ring-2 aria-invalid:ring-2 data-[size=default]:h-[18.4px] data-[size=default]:w-8 data-[size=sm]:h-3.5 data-[size=sm]:w-6;
   }
 
   .cn-switch-thumb {
-    @apply bg-background dark:data-unchecked:bg-foreground dark:data-checked:bg-primary-foreground rounded-full shadow-sm not-dark:bg-clip-padding group-data-[size=default]/switch:h-4 group-data-[size=default]/switch:w-6 group-data-[size=sm]/switch:h-3 group-data-[size=sm]/switch:w-4 data-checked:translate-x-[calc(100%-6px)] data-unchecked:translate-x-0;
+    @apply bg-background dark:data-unchecked:bg-foreground dark:data-checked:bg-primary-foreground rounded-full group-data-[size=default]/switch:size-4 group-data-[size=sm]/switch:size-3 group-data-[size=default]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=sm]/switch:data-checked:translate-x-[calc(100%-2px)] group-data-[size=default]/switch:data-unchecked:translate-x-0 group-data-[size=sm]/switch:data-unchecked:translate-x-0;
   }
 
   /* MARK: Table */

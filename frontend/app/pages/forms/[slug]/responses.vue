@@ -1,14 +1,10 @@
 <template>
   <div class="mx-auto max-w-6xl space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="flex items-center gap-x-2">
-        <h2 class="text-base font-semibold tracking-tighter">Responses</h2>
-        <span
-          class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium tabular-nums"
-        >
-          {{ meta.total || 0 }}
-        </span>
-      </div>
+      <!-- No count pill: the page header above already carries the form's
+           total, and the table's own footer reports the filtered count with a
+           label that says which it is. -->
+      <h2 class="text-base font-semibold tracking-tighter">Responses</h2>
 
       <div class="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         <!-- Export (all or selected) -->
@@ -46,7 +42,7 @@
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm">
-                <Icon name="lucide:tag" class="size-4 shrink-0" />
+                <Icon name="hugeicons:tag-01" class="size-4 shrink-0" />
                 <span>Status</span>
                 <span
                   class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-xs font-medium tabular-nums"
@@ -85,7 +81,7 @@
                 class="hover:bg-muted flex items-center gap-x-1 rounded-md border px-2 py-1 text-sm tracking-tight active:scale-98"
                 @click="open()"
               >
-                <Icon name="lucide:trash" class="size-4 shrink-0" />
+                <Icon name="hugeicons:delete-02" class="size-4 shrink-0" />
                 <span>Delete</span>
                 <span
                   class="text-muted-foreground/80 -me-1 inline-flex h-5 max-h-full items-center rounded border px-1 font-[inherit] text-xs font-medium tabular-nums"
@@ -97,7 +93,7 @@
           </ConfirmDialog>
 
           <Button variant="outline" size="sm" @click="clearSelection">
-            <Icon name="lucide:x" class="size-4 shrink-0" />
+            <Icon name="hugeicons:cancel-01" class="size-4 shrink-0" />
             <span>Clear</span>
           </Button>
         </template>
@@ -115,7 +111,8 @@
       label="Response"
       search-column="respondent_email"
       search-placeholder="Search responses"
-      :column-toggle="false"
+      :column-toggle="true"
+      :initial-column-visibility="initialColumnVisibility"
       :show-add-button="false"
       :initial-pagination="pagination"
       :initial-sorting="sorting"
@@ -183,9 +180,37 @@ const statusFilterOptions = RESPONSE_STATUS_OPTIONS.map((s) => ({
 }));
 
 // Table state
-const columnFilters = ref([]);
+/**
+ * Seeded from `?status=` so the Analytics status pills can deep-link straight
+ * into a filtered list instead of only counting.
+ */
+const columnFilters = ref(
+  route.query.status
+    ? [{ id: "status", value: String(route.query.status).split(",").filter(Boolean) }]
+    : []
+);
 const pagination = ref({ pageIndex: 0, pageSize: 15 });
 const sorting = ref([{ id: "submitted_at", desc: true }]);
+
+/** Columns the API can order by. Answer columns live in a JSON blob and cannot. */
+const SERVER_SORTABLE = ["submitted_at", "status", "respondent_email"];
+
+/**
+ * Show the first few answers and leave the rest to the column picker. A 30-field
+ * form would otherwise open as a 5000px table that has to be scrolled sideways
+ * before a single row can be identified.
+ */
+const VISIBLE_ANSWER_COLUMNS = 4;
+
+const initialColumnVisibility = computed(() => {
+  const answers = (props.form?.fields || [])
+    .filter((field) => field.type !== "section")
+    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
+
+  return Object.fromEntries(
+    answers.slice(VISIBLE_ANSWER_COLUMNS).map((field) => [`field_${field.ulid}`, false])
+  );
+});
 
 // Build query params
 const buildQueryParams = () => {
@@ -201,6 +226,15 @@ const buildQueryParams = () => {
   const searchFilter = columnFilters.value.find((f) => f.id === "respondent_email");
   if (searchFilter?.value) {
     params.append("filter_search", searchFilter.value);
+  }
+
+  // FormResponseController accepts sort_by / sort_order for these three; the
+  // page used to disable sorting outright and never send them, so the headers
+  // looked unsortable when the API had supported it all along.
+  const sort = sorting.value?.[0];
+  if (sort && SERVER_SORTABLE.includes(sort.id)) {
+    params.append("sort_by", sort.id);
+    params.append("sort_order", sort.desc ? "desc" : "asc");
   }
 
   return params.toString();
@@ -305,7 +339,71 @@ const columns = computed(() => {
     enableHiding: false,
   });
 
-  // Dynamic field columns
+  // Submitted at
+  cols.push({
+    header: "Submitted",
+    accessorKey: "submitted_at",
+    size: 130,
+    cell: ({ getValue }) => {
+      const date = getValue();
+      if (!date) return h("span", { class: "text-muted-foreground text-sm" }, "-");
+      return h(
+        resolveComponent("ClientOnly"),
+        {},
+        {
+          default: () =>
+            withDirectives(
+              h(
+                "div",
+                { class: "text-sm text-muted-foreground tracking-tight tabular-nums" },
+                $dayjs(date).fromNow()
+              ),
+              [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
+            ),
+          fallback: () =>
+            h(
+              "div",
+              { class: "text-sm text-muted-foreground tracking-tight tabular-nums" },
+              $dayjs(date).format("MMM D, YYYY")
+            ),
+        }
+      );
+    },
+  });
+
+  // Email
+  cols.push({
+    header: "Email",
+    accessorKey: "respondent_email",
+    cell: ({ getValue }) =>
+      h("span", { class: "text-sm tracking-tight" }, getValue() || "-"),
+    size: 180,
+  });
+
+  // Status
+  cols.push({
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      const s = responseStatusDisplay(row.getValue("status"));
+      return h("div", { class: "flex items-center gap-x-1.5" }, [
+        h(resolveComponent("Icon"), { name: s.icon, class: `size-3.5 shrink-0 ${s.color}` }),
+        h("span", { class: "text-sm tracking-tight capitalize" }, s.label),
+      ]);
+    },
+    size: 100,
+    filterFn: (row, columnId, filterValue) => {
+      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+      return filterValue.includes(row.getValue(columnId));
+    },
+  });
+
+  /**
+   * Answers come after the identifying columns. Leading with them meant seven
+   * headers of truncated question text ("How would you rate t…") and nothing to
+   * recognise a row by; the column picker is on so a form with 30 questions
+   * does not force a 5000px-wide table either.
+   */
   const fields = props.form?.fields || [];
   const sortedFields = [...fields].sort((a, b) => (a.order_column || 0) - (b.order_column || 0));
 
@@ -334,67 +432,6 @@ const columns = computed(() => {
       enableSorting: false,
     });
   }
-
-  // Email
-  cols.push({
-    header: "Email",
-    accessorKey: "respondent_email",
-    cell: ({ getValue }) =>
-      h("span", { class: "text-sm tracking-tight" }, getValue() || "-"),
-    size: 180,
-    enableSorting: false,
-  });
-
-  // Status
-  cols.push({
-    header: "Status",
-    accessorKey: "status",
-    cell: ({ row }) => {
-      const s = responseStatusDisplay(row.getValue("status"));
-      return h("div", { class: "flex items-center gap-x-1.5" }, [
-        h(resolveComponent("Icon"), { name: s.icon, class: `size-3.5 shrink-0 ${s.color}` }),
-        h("span", { class: "text-sm tracking-tight capitalize" }, s.label),
-      ]);
-    },
-    size: 100,
-    filterFn: (row, columnId, filterValue) => {
-      if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
-      return filterValue.includes(row.getValue(columnId));
-    },
-  });
-
-  // Submitted at (API always returns newest first; column sorting is not supported)
-  cols.push({
-    header: "Submitted",
-    accessorKey: "submitted_at",
-    enableSorting: false,
-    cell: ({ getValue }) => {
-      const date = getValue();
-      if (!date) return h("span", { class: "text-muted-foreground text-sm" }, "-");
-      return h(
-        resolveComponent("ClientOnly"),
-        {},
-        {
-          default: () =>
-            withDirectives(
-              h(
-                "div",
-                { class: "text-sm text-muted-foreground tracking-tight tabular-nums" },
-                $dayjs(date).fromNow()
-              ),
-              [[resolveDirective("tippy"), $dayjs(date).format("MMMM D, YYYY [at] h:mm A")]]
-            ),
-          fallback: () =>
-            h(
-              "div",
-              { class: "text-sm text-muted-foreground tracking-tight tabular-nums" },
-              $dayjs(date).format("MMM D, YYYY")
-            ),
-        }
-      );
-    },
-    size: 120,
-  });
 
   // Actions
   cols.push({
@@ -459,8 +496,8 @@ const handleFilterChange = (columnId, { checked, value }) => {
 const exportPending = ref(false);
 
 const exportFormats = [
-  { value: "xlsx", label: "Export as XLSX", icon: "lucide:file-spreadsheet" },
-  { value: "csv", label: "Export as CSV", icon: "lucide:file-text" },
+  { value: "xlsx", label: "Export as XLSX", icon: "hugeicons:xls-01" },
+  { value: "csv", label: "Export as CSV", icon: "hugeicons:csv-01" },
 ];
 
 const exportMimeTypes = {

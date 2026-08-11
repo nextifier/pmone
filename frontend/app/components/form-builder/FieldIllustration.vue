@@ -45,7 +45,7 @@
     class="border-border bg-card flex w-full max-w-28 items-center gap-1.5 rounded-md border px-2 py-1.5"
   >
     <div class="bg-muted-foreground/20 h-1.5 flex-1 rounded-full" />
-    <Icon name="lucide:chevrons-up-down" class="text-muted-foreground/60 size-3.5 shrink-0" />
+    <Icon name="hugeicons:unfold-more" class="text-muted-foreground/60 size-3.5 shrink-0" />
   </div>
 
   <!-- Multi Select -->
@@ -55,7 +55,7 @@
   >
     <div class="bg-muted-foreground/15 h-3 w-6 rounded" />
     <div class="bg-muted-foreground/15 h-3 w-5 rounded" />
-    <Icon name="lucide:chevrons-up-down" class="text-muted-foreground/60 ml-auto size-3.5 shrink-0" />
+    <Icon name="hugeicons:unfold-more" class="text-muted-foreground/60 ml-auto size-3.5 shrink-0" />
   </div>
 
   <!-- Radio -->
@@ -72,7 +72,7 @@
   <!-- Checkbox (single inline) -->
   <div v-else-if="type === 'checkbox'" class="flex w-full max-w-28 items-center gap-1.5">
     <div class="bg-primary flex size-3 shrink-0 items-center justify-center rounded-sm">
-      <Icon name="lucide:check" class="text-primary-foreground size-2" />
+      <Icon name="hugeicons:tick-02" class="text-primary-foreground size-2" />
     </div>
     <div class="bg-muted-foreground/25 h-1.5 flex-1 rounded-full" />
   </div>
@@ -84,7 +84,7 @@
         class="flex size-2.5 shrink-0 items-center justify-center rounded-sm border"
         :class="i === 1 ? 'bg-primary border-primary' : 'border-muted-foreground/40'"
       >
-        <Icon v-if="i === 1" name="lucide:check" class="text-primary-foreground size-1.5" />
+        <Icon v-if="i === 1" name="hugeicons:tick-02" class="text-primary-foreground size-1.5" />
       </div>
       <div class="bg-muted-foreground/25 h-1.5 flex-1 rounded-full" />
     </div>
@@ -113,9 +113,9 @@
     v-else-if="type === 'country'"
     class="border-border bg-card flex w-full max-w-28 items-center gap-1.5 rounded-md border px-2 py-1.5"
   >
-    <Icon name="lucide:globe" class="text-muted-foreground/60 size-3.5 shrink-0" />
+    <Icon name="hugeicons:globe-02" class="text-muted-foreground/60 size-3.5 shrink-0" />
     <div class="bg-muted-foreground/20 h-1.5 flex-1 rounded-full" />
-    <Icon name="lucide:chevrons-up-down" class="text-muted-foreground/60 size-3.5 shrink-0" />
+    <Icon name="hugeicons:unfold-more" class="text-muted-foreground/60 size-3.5 shrink-0" />
   </div>
 
   <!-- Date / Time / Date & Time / Month / Year (input with trailing icon) -->
@@ -136,7 +136,7 @@
       <Icon :name="rangeIcon" class="text-muted-foreground/60 size-2.5 shrink-0" />
       <div class="bg-muted-foreground/20 h-1 flex-1 rounded-full" />
     </div>
-    <Icon name="lucide:arrow-right" class="text-muted-foreground/50 size-3 shrink-0" />
+    <Icon name="hugeicons:arrow-right-01" class="text-muted-foreground/50 size-3 shrink-0" />
     <div class="border-border bg-card flex h-5 flex-1 items-center gap-1 rounded-md border px-1.5">
       <Icon :name="rangeIcon" class="text-muted-foreground/60 size-2.5 shrink-0" />
       <div class="bg-muted-foreground/20 h-1 flex-1 rounded-full" />
@@ -148,7 +148,7 @@
     v-else-if="type === 'number'"
     class="border-border bg-card flex w-full max-w-28 items-center gap-1.5 rounded-md border px-2 py-1.5"
   >
-    <Icon name="lucide:hash" class="text-muted-foreground/60 size-3.5 shrink-0" />
+    <Icon name="hugeicons:hashtag" class="text-muted-foreground/60 size-3.5 shrink-0" />
     <div class="bg-muted-foreground/20 h-1.5 w-8 rounded-full" />
   </div>
 
@@ -208,7 +208,7 @@
     v-else-if="type === 'file'"
     class="border-muted-foreground/30 flex w-full max-w-28 flex-col items-center gap-1 rounded-md border border-dashed px-2 py-2.5"
   >
-    <Icon name="lucide:paperclip" class="text-muted-foreground/60 size-4" />
+    <Icon name="hugeicons:attachment-01" class="text-muted-foreground/60 size-4" />
     <div class="bg-muted-foreground/20 h-1 w-10 rounded-full" />
   </div>
 
@@ -240,21 +240,21 @@ const props = defineProps({
 });
 
 const leadingIcon = computed(
-  () => ({ email: "lucide:at-sign", phone: "lucide:phone", url: "lucide:link" })[props.type] || "lucide:type"
+  () => ({ email: "hugeicons:mail-at-sign-01", phone: "hugeicons:call-02", url: "hugeicons:link-01" })[props.type] || "hugeicons:text-font"
 );
 
 const trailingIcon = computed(
   () =>
     ({
-      date: "lucide:calendar",
-      time: "lucide:clock",
-      datetime: "lucide:calendar-clock",
-      month: "lucide:calendar-days",
-      year: "lucide:calendar-1",
-    })[props.type] || "lucide:calendar"
+      date: "hugeicons:calendar-03",
+      time: "hugeicons:clock-01",
+      datetime: "hugeicons:date-time",
+      month: "hugeicons:calendar-02",
+      year: "hugeicons:calendar-01",
+    })[props.type] || "hugeicons:calendar-03"
 );
 
-const rangeIcon = computed(() => (props.type === "time_range" ? "lucide:clock" : "lucide:calendar"));
+const rangeIcon = computed(() => (props.type === "time_range" ? "hugeicons:clock-01" : "hugeicons:calendar-03"));
 
 const fallbackIcon = computed(() => getTypeIcon(props.type));
 </script>

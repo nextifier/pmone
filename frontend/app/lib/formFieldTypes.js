@@ -30,38 +30,38 @@ export const FIELD_GROUPS = [
 export const FIELD_TYPES = {
   text: {
     label: "Short Text",
-    icon: "lucide:type",
+    icon: "hugeicons:text-font",
     group: "text",
     hasPlaceholder: true,
     minMaxMode: "length",
   },
   textarea: {
     label: "Long Text",
-    icon: "lucide:align-left",
+    icon: "hugeicons:text-align-left",
     group: "text",
     hasPlaceholder: true,
     minMaxMode: "length",
   },
   rich_text: {
     label: "Rich Text",
-    icon: "lucide:pilcrow",
+    icon: "hugeicons:paragraph",
     group: "text",
     hasPlaceholder: true,
   },
   email: {
     label: "Email",
-    icon: "lucide:mail",
+    icon: "hugeicons:mail-01",
     group: "text",
     hasPlaceholder: true,
   },
   phone: {
     label: "Phone",
-    icon: "lucide:phone",
+    icon: "hugeicons:call-02",
     group: "text",
   },
   url: {
     label: "Link",
-    icon: "lucide:link",
+    icon: "hugeicons:link-01",
     group: "text",
     hasPlaceholder: true,
   },
@@ -69,14 +69,14 @@ export const FIELD_TYPES = {
     // "Select", not "Dropdown": it renders a `<Select>`, and it sits next to
     // "Select Multiple" in the picker — the pair reads as one family.
     label: "Select",
-    icon: "lucide:chevrons-up-down",
+    icon: "hugeicons:unfold-more",
     group: "choice",
     hasOptions: true,
     hasPlaceholder: true,
   },
   multi_select: {
     label: "Select Multiple",
-    icon: "lucide:list-checks",
+    icon: "hugeicons:check-list",
     group: "choice",
     hasOptions: true,
     hasPlaceholder: true,
@@ -85,20 +85,20 @@ export const FIELD_TYPES = {
   },
   radio: {
     label: "Radio",
-    icon: "lucide:circle-dot",
+    icon: "hugeicons:radio-button",
     group: "choice",
     hasOptions: true,
   },
   checkbox: {
     label: "Checkbox",
-    icon: "lucide:square-check",
+    icon: "hugeicons:checkmark-square-02",
     group: "choice",
     hasPlaceholder: true,
     placeholderLabel: "Inline label",
   },
   checkbox_group: {
     label: "Checkboxes",
-    icon: "lucide:copy-check",
+    icon: "hugeicons:copy-check",
     group: "choice",
     hasOptions: true,
     minMaxMode: "selections",
@@ -106,14 +106,14 @@ export const FIELD_TYPES = {
   },
   switch: {
     label: "Switch",
-    icon: "lucide:toggle-left",
+    icon: "hugeicons:toggle-off",
     group: "choice",
     hasPlaceholder: true,
     placeholderLabel: "Inline label",
   },
   tags: {
     label: "Tags",
-    icon: "lucide:tags",
+    icon: "hugeicons:tags",
     group: "choice",
     hasPlaceholder: true,
     minMaxMode: "selections",
@@ -121,85 +121,85 @@ export const FIELD_TYPES = {
   },
   country: {
     label: "Country",
-    icon: "lucide:globe",
+    icon: "hugeicons:globe-02",
     group: "choice",
     hasPlaceholder: true,
   },
   date: {
     label: "Date",
-    icon: "lucide:calendar",
+    icon: "hugeicons:calendar-03",
     group: "datetime",
   },
   time: {
     label: "Time",
-    icon: "lucide:clock",
+    icon: "hugeicons:clock-01",
     group: "datetime",
   },
   datetime: {
     label: "Date & Time",
-    icon: "lucide:calendar-clock",
+    icon: "hugeicons:date-time",
     group: "datetime",
   },
   date_range: {
     label: "Date Range",
-    icon: "lucide:calendar-range",
+    icon: "hugeicons:calendar-04",
     group: "datetime",
   },
   month: {
     label: "Month",
-    icon: "lucide:calendar-days",
+    icon: "hugeicons:calendar-02",
     group: "datetime",
     hasPlaceholder: true,
   },
   month_range: {
     label: "Month Range",
-    icon: "lucide:calendar-fold",
+    icon: "hugeicons:calendar-fold",
     group: "datetime",
     hasPlaceholder: true,
   },
   year: {
     label: "Year",
-    icon: "lucide:calendar-1",
+    icon: "hugeicons:calendar-01",
     group: "datetime",
     hasPlaceholder: true,
     minMaxMode: "value",
   },
   year_range: {
     label: "Year Range",
-    icon: "lucide:unfold-horizontal",
+    icon: "hugeicons:horizontal-resize",
     group: "datetime",
     hasPlaceholder: true,
     minMaxMode: "value",
   },
   time_range: {
     label: "Time Range",
-    icon: "lucide:timer",
+    icon: "hugeicons:timer-01",
     group: "datetime",
   },
   number: {
     label: "Number",
-    icon: "lucide:hash",
+    icon: "hugeicons:hashtag",
     group: "number",
     hasPlaceholder: true,
     minMaxMode: "value",
   },
   slider: {
     label: "Slider",
-    icon: "lucide:sliders-horizontal",
+    icon: "hugeicons:sliders-horizontal",
     group: "number",
     minMaxMode: "value",
     hasStep: true,
   },
   slider_range: {
     label: "Range Slider",
-    icon: "lucide:move-horizontal",
+    icon: "hugeicons:arrow-left-right",
     group: "number",
     minMaxMode: "value",
     hasStep: true,
   },
   slider_ruler: {
     label: "Value Scrubber",
-    icon: "lucide:pencil-ruler",
+    icon: "hugeicons:pencil-ruler",
     group: "number",
     hasPlaceholder: true,
     placeholderLabel: "Track label",
@@ -208,7 +208,7 @@ export const FIELD_TYPES = {
   },
   price: {
     label: "Price",
-    icon: "lucide:banknote",
+    icon: "hugeicons:money-01",
     group: "number",
     hasPlaceholder: true,
     minMaxMode: "value",
@@ -216,7 +216,7 @@ export const FIELD_TYPES = {
   },
   price_range: {
     label: "Price Range",
-    icon: "lucide:banknote-arrow-up",
+    icon: "hugeicons:money-send-01",
     group: "number",
     minMaxMode: "value",
     hasStep: true,
@@ -225,32 +225,32 @@ export const FIELD_TYPES = {
   },
   rating: {
     label: "Rating",
-    icon: "lucide:star",
+    icon: "hugeicons:star",
     group: "number",
     hasRatingMax: true,
   },
   linear_scale: {
     label: "Linear Scale",
-    icon: "lucide:ruler",
+    icon: "hugeicons:ruler",
     group: "number",
     minMaxMode: "scale",
     hasScaleLabels: true,
   },
   file: {
     label: "File Upload",
-    icon: "lucide:paperclip",
+    icon: "hugeicons:attachment-01",
     group: "special",
     hasFileConfig: true,
     noPrefill: true,
   },
   color: {
     label: "Color",
-    icon: "lucide:palette",
+    icon: "hugeicons:paint-board",
     group: "special",
   },
   section: {
     label: "Section",
-    icon: "lucide:heading",
+    icon: "hugeicons:heading",
     group: "layout",
     isLayout: true,
     hasDescription: true,
@@ -270,7 +270,7 @@ export const getTypeConfig = (type) => FIELD_TYPES[type] || FIELD_TYPES.text;
 
 export const getTypeLabel = (type) => FIELD_TYPES[type]?.label || type;
 
-export const getTypeIcon = (type) => FIELD_TYPES[type]?.icon || "lucide:type";
+export const getTypeIcon = (type) => FIELD_TYPES[type]?.icon || "hugeicons:text-font";
 
 // Editor-metadata view of hasOptions (whether the editor shows an options
 // panel). The runtime hasOptions lives in the ui core; they agree.

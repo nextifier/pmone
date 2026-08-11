@@ -13,7 +13,7 @@
            a live preview (not SEO content) and its ~70 reka-ui components would
            otherwise cause SSR/client `useId` hydration drift. -->
       <ClientOnly>
-        <AppearancePreviewPanel />
+        <AppearanceShowcasePanel />
         <template #fallback>
           <div
             class="bg-muted dark:bg-muted/30 min-h-[50svh] flex-1 rounded-2xl ring ring-foreground/10 md:min-h-0 md:ring-muted dark:ring-foreground/10"
@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import AppearanceCustomizer from "@/components/appearance/AppearanceCustomizer.vue";
-import AppearancePreviewPanel from "@/components/appearance/showcase/PreviewPanel.vue";
+import AppearanceShowcasePanel from "@/components/appearance/showcase/ShowcasePanel.vue";
 
 definePageMeta({
   middleware: ["sanctum:auth"],

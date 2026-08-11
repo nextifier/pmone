@@ -1,18 +1,9 @@
 <template>
   <div class="flex grow items-center gap-x-2 overflow-hidden sm:gap-x-2.5">
-    <ButtonBack :destination="backDestination" :force-destination="forceBackDestination">
-      <template #default="{ goBack }">
-        <button
-          @click="goBack"
-          class="text-primary/80 hover:text-primary sm:bg-card bg-muted border-border flex aspect-square h-9 shrink-0 items-center justify-center gap-x-1 rounded-full px-1 text-sm tracking-tight transition active:scale-98 sm:aspect-auto sm:h-8 sm:rounded-lg sm:border"
-        >
-          <Icon name="hugeicons:arrow-left-02" class="size-5 shrink-0" />
-          <KbdGroup>
-            <Kbd>B</Kbd>
-          </KbdGroup>
-        </button>
-      </template>
-    </ButtonBack>
+    <HeaderBackButton
+      :destination="backDestination"
+      :force-destination="forceBackDestination"
+    />
 
     <ClientOnly>
       <div

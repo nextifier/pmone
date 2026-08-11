@@ -10,11 +10,11 @@
               class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tracking-tight tabular-nums sm:text-sm"
             >
               <span v-if="response.submitted_at" class="flex items-center gap-x-1">
-                <Icon name="lucide:clock" class="size-3.5" />
+                <Icon name="hugeicons:clock-01" class="size-3.5" />
                 {{ $dayjs(response.submitted_at).format("MMMM D, YYYY [at] h:mm A") }}
               </span>
               <span v-if="response.ip_address" class="flex items-center gap-x-1">
-                <Icon name="lucide:network" class="size-3.5" />
+                <Icon name="hugeicons:global" class="size-3.5" />
                 {{ response.ip_address }}
               </span>
             </div>
@@ -45,7 +45,7 @@
             <div
               class="text-muted-foreground flex items-center gap-x-1.5 text-xs font-medium tracking-tight sm:text-sm"
             >
-              <Icon name="lucide:mail" class="size-3.5" />
+              <Icon name="hugeicons:mail-01" class="size-3.5" />
               Email
             </div>
             <a
@@ -57,7 +57,17 @@
           </div>
 
           <!-- Answers -->
-          <div v-for="field in answerFields" :key="field.ulid" class="space-y-1 px-4 py-3">
+          <template v-for="field in answerFields" :key="field.ulid">
+            <!-- Section header: the grouping the respondent saw, kept here so a
+                 long survey does not read as one flat list. -->
+            <div
+              v-if="field.type === 'section'"
+              class="bg-muted/50 px-4 py-2 text-xs font-semibold tracking-tight uppercase"
+            >
+              {{ field.label }}
+            </div>
+
+            <div v-else class="space-y-1 px-4 py-3">
             <div
               class="text-muted-foreground flex items-center gap-x-1.5 text-xs font-medium tracking-tight sm:text-sm"
             >
@@ -67,9 +77,23 @@
 
             <!-- Value, indented to line up with the label text (icon width + gap) -->
             <div class="ps-5">
+            <!-- Rating -->
+            <div
+              v-if="field.type === 'rating' && ratingStars(field)"
+              class="flex items-center gap-x-1.5"
+            >
+              <span class="text-sm tracking-tight tabular-nums">
+                {{ ratingStars(field).value }}
+              </span>
+              <span class="text-muted-foreground text-sm" aria-hidden="true">
+                {{ "★".repeat(ratingStars(field).value)
+                }}{{ "☆".repeat(Math.max(0, ratingStars(field).max - ratingStars(field).value)) }}
+              </span>
+            </div>
+
             <!-- Rich text -->
             <div
-              v-if="field.type === 'rich_text' && valueOf(field)"
+              v-else-if="field.type === 'rich_text' && valueOf(field)"
               class="typeset typeset-sm tracking-tight"
               v-html="sanitizeHtml(valueOf(field))"
             />
@@ -104,7 +128,7 @@
             <div v-else-if="field.type === 'file' && filePaths(field).length" class="space-y-1.5">
               <Attachment v-for="(path, index) in filePaths(field)" :key="path" state="done">
                 <AttachmentMedia>
-                  <Icon name="lucide:file" class="size-5" />
+                  <Icon name="hugeicons:file-01" class="size-5" />
                 </AttachmentMedia>
                 <AttachmentContent>
                   <AttachmentTitle>{{ fileName(path) }}</AttachmentTitle>
@@ -117,7 +141,7 @@
                     @click="downloadFile(field, index, path)"
                   >
                     <Spinner v-if="downloadingKey === `${field.ulid}-${index}`" class="size-4" />
-                    <Icon v-else name="lucide:download" class="size-4" />
+                    <Icon v-else name="hugeicons:download-01" class="size-4" />
                   </AttachmentAction>
                 </AttachmentActions>
               </Attachment>
@@ -136,7 +160,8 @@
               {{ displayValue(field) }}
             </div>
             </div>
-          </div>
+            </div>
+          </template>
         </div>
       </div>
     </template>
@@ -178,11 +203,22 @@ const { $dayjs } = useNuxtApp();
 const client = useSanctumClient();
 const { sanitizeHtml } = useSanitize();
 
+/**
+ * Sections stay in the list rather than being filtered out: dropping them made
+ * a long survey read as one flat wall of answers with no sign of the grouping
+ * the respondent actually saw.
+ */
 const answerFields = computed(() =>
-  [...(props.form?.fields || [])]
-    .filter((f) => f.type !== "section")
-    .sort((a, b) => (a.order_column || 0) - (b.order_column || 0))
+  [...(props.form?.fields || [])].sort((a, b) => (a.order_column || 0) - (b.order_column || 0))
 );
+
+/** Analytics renders ratings as "4★"; the dialog used to print a bare "4". */
+const ratingStars = (field) => {
+  const value = Number(valueOf(field));
+  if (!Number.isFinite(value) || value <= 0) return null;
+  const max = Number(field.validation?.max ?? field.settings?.max ?? 5) || 5;
+  return { value, max };
+};
 
 const valueOf = (field) => props.response?.response_data?.[field.ulid] ?? null;
 

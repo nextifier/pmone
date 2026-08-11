@@ -1,6 +1,11 @@
 <template>
   <nav
-    class="no-scrollbar bg-background scroll-fade-x relative sticky top-(--navbar-height-mobile) z-10 -mx-4 flex h-(--tabnav-height) gap-x-5 overflow-x-auto px-4 sm:mx-0 sm:px-0 lg:top-(--navbar-height-desktop)"
+    :class="[
+      'no-scrollbar bg-background scroll-fade-x relative z-10 -mx-4 flex h-(--tabnav-height) shrink-0 gap-x-5 overflow-x-auto px-4 sm:mx-0 sm:px-0',
+      props.sticky
+        ? 'sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop)'
+        : 'static',
+    ]"
   >
     <NuxtLink
       v-for="(tab, index) in tabs"
@@ -29,6 +34,16 @@ const props = defineProps({
   tabs: {
     type: Array,
     required: true,
+  },
+  /**
+   * Turn off inside a page shell that is pinned to the viewport and therefore
+   * never scrolls. The offset is measured from the nearest scrollport, and an
+   * `overflow: hidden` shell becomes one, so a sticky nav there would be pushed
+   * down by a second navbar height instead of staying put.
+   */
+  sticky: {
+    type: Boolean,
+    default: true,
   },
 });
 

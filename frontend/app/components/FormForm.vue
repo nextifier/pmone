@@ -1,5 +1,12 @@
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-6">
+    <!--
+      One component, two surfaces. `section` only gates which blocks render;
+      `formData` always holds the whole record and every save posts it whole, so
+      splitting the builder across two tabs can never drop the other tab's
+      values. (FormController merges `settings` server-side as well.)
+    -->
+    <template v-if="showEditor">
       <!-- Cover Image -->
       <Field :data-invalid="!!errors?.tmp_cover_image">
         <FieldLabel>Cover image</FieldLabel>
@@ -38,6 +45,29 @@
         <FieldError :errors="errors.description" />
       </Field>
 
+      <!-- Layout -->
+      <div class="frame">
+        <div class="frame-header">
+          <h3 class="frame-title">Layout</h3>
+          <p class="frame-description">
+            How questions are presented to people filling in this form.
+          </p>
+        </div>
+        <div class="frame-panel">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <Switch id="multi_step" v-model="multiStep" />
+              <Label for="multi_step">One question at a time</Label>
+            </div>
+            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+              Show a single question per screen instead of the whole form at once.
+            </p>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template v-if="showSettings">
       <Field :data-invalid="!!errors?.slug">
         <FieldLabel for="slug">Slug</FieldLabel>
         <Input
@@ -176,27 +206,6 @@
         </div>
       </div>
 
-      <!-- Layout -->
-      <div class="frame">
-        <div class="frame-header">
-          <h3 class="frame-title">Layout</h3>
-          <p class="frame-description">
-            How questions are presented to people filling in this form.
-          </p>
-        </div>
-        <div class="frame-panel">
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-2">
-              <Switch id="multi_step" v-model="multiStep" />
-              <Label for="multi_step">One question at a time</Label>
-            </div>
-            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              Show a single question per screen instead of the whole form at once.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <!-- Submission settings -->
       <div class="frame">
         <div class="frame-header">
@@ -288,20 +297,21 @@
           </Field>
         </div>
       </div>
+    </template>
 
-      <div class="flex gap-2">
-        <Button type="submit" :disabled="loading">
-          <Spinner v-if="loading" class="size-4" />
-          <span>{{ loading ? loadingText : submitText }}</span>
-          <KbdGroup>
-            <Kbd>{{ metaSymbol }}</Kbd>
-            <Kbd>S</Kbd>
-          </KbdGroup>
-        </Button>
-        <Button variant="outline" as-child>
-          <nuxt-link to="/forms">Cancel</nuxt-link>
-        </Button>
-      </div>
+    <div v-if="showActions" class="flex gap-2">
+      <Button type="submit" :disabled="loading">
+        <Spinner v-if="loading" class="size-4" />
+        <span>{{ loading ? loadingText : submitText }}</span>
+        <KbdGroup>
+          <Kbd>{{ metaSymbol }}</Kbd>
+          <Kbd>S</Kbd>
+        </KbdGroup>
+      </Button>
+      <Button variant="outline" as-child>
+        <nuxt-link to="/forms">Cancel</nuxt-link>
+      </Button>
+    </div>
   </form>
 </template>
 
@@ -352,9 +362,28 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  /**
+   * Which half of the builder to render. `editor` is what respondents see
+   * (cover, title, description, layout); `settings` is how the form behaves
+   * (slug, status, project, availability, submission). `all` keeps the original
+   * single-page form for /forms/create.
+   */
+  section: {
+    type: String,
+    default: "all",
+    validator: (value) => ["all", "editor", "settings"].includes(value),
+  },
+  /** Off when the page owns the save button (a PreviewPanel footer or header). */
+  showActions: {
+    type: Boolean,
+    default: true,
+  },
 });
 
-const emit = defineEmits(["saved"]);
+const showEditor = computed(() => props.section === "all" || props.section === "editor");
+const showSettings = computed(() => props.section === "all" || props.section === "settings");
+
+const emit = defineEmits(["saved", "update:preview"]);
 const sanctumFetch = useSanctumClient();
 const { metaSymbol } = useShortcuts();
 const { signalRefresh } = useDataRefresh();
@@ -562,7 +591,37 @@ async function handleSubmit() {
   }
 }
 
+/**
+ * Everything the live preview needs, shaped like PublicFormResource so the
+ * builder can hand it straight to PublicFormView. Cover image is the saved one:
+ * a freshly picked file only exists as a temporary upload id here, and resolving
+ * it to a URL would mean a round trip the preview does not need.
+ */
+watch(
+  [formData, initialCoverImage],
+  () => {
+    emit("update:preview", {
+      title: formData.value.title,
+      description: formData.value.description,
+      slug: formData.value.slug,
+      status: formData.value.status,
+      cover_image: deleteFlags.value.cover_image ? null : initialCoverImage.value,
+      settings: {
+        layout: formData.value.settings.layout,
+        confirmation_message: formData.value.settings.confirmation_message,
+        closed_message: formData.value.settings.closed_message,
+        redirect_url: formData.value.settings.redirect_url,
+        require_email: formData.value.settings.require_email,
+        prevent_duplicate: false,
+        prevent_duplicate_by: formData.value.settings.prevent_duplicate_by,
+      },
+    });
+  },
+  { deep: true, immediate: true }
+);
+
 defineExpose({
   handleSubmit,
+  loading,
 });
 </script>

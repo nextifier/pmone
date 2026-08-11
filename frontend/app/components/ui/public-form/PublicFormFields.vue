@@ -29,6 +29,9 @@ defineProps({
   submitting: { type: Boolean, default: false },
   uploadsInProgress: { type: Number, default: 0 },
   submitLabel: { type: String, required: true },
+  /** Builder preview. Accepted so both bodies share one prop surface; the
+   *  single-page body has no focus behaviour to suppress. */
+  preview: { type: Boolean, default: false },
 });
 
 defineEmits([

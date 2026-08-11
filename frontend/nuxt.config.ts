@@ -82,6 +82,10 @@ const brandHeadLinks = brand.assetsReady
     ]
   : [];
 
+/** Single switch for the OG Image module: the module option and the public
+ *  runtime flag usePageMeta reads both come from here. */
+const OG_IMAGE_ENABLED = false;
+
 export default defineNuxtConfig({
   devtools: {
     enabled: false,
@@ -103,6 +107,9 @@ export default defineNuxtConfig({
       apiUrl:
         process.env.NUXT_PUBLIC_API_URL || (isProduction ? brand.apiUrl : "http://localhost:8000"),
       blogUsernames: "", // Empty string means show all posts (no author filter)
+      // Read by usePageMeta so it can skip defineOgImage entirely while the
+      // module is off, instead of calling a mock that warns on every page.
+      ogImageEnabled: OG_IMAGE_ENABLED,
     },
   },
 
@@ -468,9 +475,9 @@ export default defineNuxtConfig({
     // one per build and every card scraped from an earlier deploy starts
     // 403ing). `@takumi-rs/wasm` must be a dependency here, and the renderer is
     // picked by the `.takumi` filename suffix of app/components/OgImage/. The
-    // defineOgImage call in usePageMeta is already wired and currently resolves
-    // to the module's no-op mock.
-    enabled: false,
+    // defineOgImage call in usePageMeta is guarded by the same constant, so
+    // flipping OG_IMAGE_ENABLED is the only edit needed.
+    enabled: OG_IMAGE_ENABLED,
   },
 
   schemaOrg: {
