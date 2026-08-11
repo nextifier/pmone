@@ -15,7 +15,10 @@
     </div>
     <div class="space-y-2">
       <Label>{{ boothNumberLabel }}</Label>
-      <Input v-model="form.booth_number" :placeholder="boothNumberPlaceholder" />
+      <BrandInputBoothNumber
+        v-model="form.booth_number"
+        :placeholder="boothNumberPlaceholder"
+      />
     </div>
     <div class="space-y-2">
       <Label>Booth Size (sqm)</Label>
@@ -34,7 +37,7 @@
           :min="0"
           placeholder="Ex: 50,000,000"
           data-slot="input-group-control"
-          class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+          class="cn-input-group-input flex-1"
         />
         <InputGroupAddon>
           <InputGroupText>Rp</InputGroupText>
@@ -58,6 +61,11 @@
         </SelectContent>
       </Select>
     </div>
+
+    <!-- Order Currency is the last cell of an even grid, so it leaves a hole on
+         its right. Call sites that have one more booth-scoped field (Sales in
+         the add-brand dialog) drop it in here rather than opening a new row. -->
+    <slot />
   </div>
 </template>
 

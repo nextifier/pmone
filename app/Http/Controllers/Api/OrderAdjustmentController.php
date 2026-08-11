@@ -105,7 +105,31 @@ class OrderAdjustmentController extends Controller
 
         $this->promoCodes->void($adjustment, 'admin_voided');
 
-        $order = $order->fresh(['items.productCategory', 'brandEvent.brand.media', 'creator', 'adjustments']);
+        // A voided promo code is no longer applied, so the order must stop
+        // claiming it - the string otherwise survives into the resource, the
+        // exports, the sheets feed, the confirmation email and the invoice PDF.
+        if ($adjustment->promo_code_id !== null && $order->promo_code_applied !== null) {
+            $stillApplied = $order->adjustments()
+                ->whereNull('voided_at')
+                ->whereNotNull('promo_code_id')
+                ->exists();
+
+            if (! $stillApplied) {
+                $order->forceFill(['promo_code_applied' => null])->save();
+            }
+        }
+
+        // Same eager loads as OrderController@show: the page assigns this
+        // response straight into its `order` ref, so a leaner shape here would
+        // leave the in-memory order missing keys a real GET would have carried.
+        $order = $order->fresh([
+            'items.productCategory',
+            'brandEvent.brand.media',
+            'creator',
+            'adjustments.promotionRule',
+            'adjustments.promoCode',
+            'media',
+        ]);
 
         activity()
             ->causedBy(auth()->user())

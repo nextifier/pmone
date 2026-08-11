@@ -38,6 +38,8 @@ export const MANAGED_SETTINGS_KEYS = [
   "max_label",
   "description",
   "param_key",
+  "currency",
+  "show_slider",
 ];
 
 export const emptyTranslatable = () => ({ en: "", id: "", ja: "", ko: "", zh: "" });
@@ -61,6 +63,8 @@ const emptySettings = () => ({
   max_label: "",
   description: "",
   param_key: "",
+  currency: "",
+  show_slider: true,
 });
 
 /**
@@ -238,6 +242,8 @@ export const buildSettingsPayload = (state, type, { prefill = false, presets = t
 
   if (config.hasDescription && settings.description) payload.description = settings.description;
   if (config.hasStep && settings.step) payload.step = settings.step;
+  if (config.hasCurrency && settings.currency) payload.currency = settings.currency;
+  if (config.hasSliderToggle) payload.show_slider = settings.show_slider !== false;
   if (config.hasRatingMax && settings.max) payload.max = settings.max;
 
   if (config.hasScaleLabels) {

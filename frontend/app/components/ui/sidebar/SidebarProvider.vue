@@ -16,11 +16,20 @@ const props = withDefaults(
   defineProps<{
     defaultOpen?: boolean;
     open?: boolean;
+    /**
+     * Whether the provider writes its own `sidebar_state` cookie on toggle.
+     * Set to false when the parent runs the provider in controlled mode and
+     * persists the state itself - an app that keeps more than one sidebar state
+     * (e.g. a separate one per section) needs its own cookie, and the built-in
+     * write would clobber the shared one on every toggle.
+     */
+    persist?: boolean;
     class?: HTMLAttributes["class"];
   }>(),
   {
     defaultOpen: !defaultDocument?.cookie.includes(`${SIDEBAR_COOKIE_NAME}=false`),
     open: undefined,
+    persist: true,
   }
 );
 
@@ -66,6 +75,8 @@ const open = useVModel(props, "open", emits, {
 
 function setOpen(value: boolean) {
   open.value = value; // emits('update:open', value)
+
+  if (!props.persist) return;
 
   // This sets the cookie to keep the sidebar state.
   document.cookie = `${SIDEBAR_COOKIE_NAME}=${open.value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;

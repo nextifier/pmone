@@ -187,7 +187,7 @@ class BrandEventController extends Controller
             'company_name' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:255'],
             'booth_type' => ['nullable', 'string', Rule::in(array_column(BoothType::cases(), 'value'))],
-            'booth_number' => ['nullable', 'string', 'max:255'],
+            'booth_number' => ['nullable', 'string', 'max:50'],
             'booth_size' => ['nullable', 'numeric', 'min:0'],
             'booth_price' => ['nullable', 'numeric', 'min:0'],
             'currency_override' => ['nullable', 'in:IDR,USD'],

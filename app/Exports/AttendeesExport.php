@@ -84,7 +84,7 @@ class AttendeesExport extends BaseExport
         // attendee of an order shows the same answers.
         $answers = $this->answersByUser[$order?->user_id] ?? [];
         foreach ($this->customFields() as $field) {
-            $row[] = FormFieldTypes::formatStoredValue($field->type, $answers[$field->id] ?? null, $field->options ?? []);
+            $row[] = FormFieldTypes::formatStoredValue($field->type, $answers[$field->id] ?? null, $field->options ?? [], $field->settings ?? []);
         }
 
         return $row;

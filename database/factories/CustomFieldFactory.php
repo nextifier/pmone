@@ -131,6 +131,11 @@ class CustomFieldFactory extends Factory
                 'validation' => ['required' => false, 'min' => 0, 'max' => 100],
                 'settings' => ['step' => 5],
             ],
+            CustomField::TYPE_PRICE,
+            CustomField::TYPE_PRICE_RANGE => [
+                'validation' => ['required' => false, 'min' => 0, 'max' => 100000000],
+                'settings' => ['step' => 1000000, 'currency' => 'Rp'],
+            ],
             CustomField::TYPE_YEAR,
             CustomField::TYPE_YEAR_RANGE => [
                 'validation' => ['required' => false, 'min' => 1990, 'max' => 2030],

@@ -88,57 +88,57 @@
           :form="form"
           booth-number-label="Booth Number(s)"
           booth-number-placeholder="Ex: A-01, A-02, A-03"
-        />
-
-        <div class="space-y-2">
-          <Label>Sales</Label>
-          <!-- `reset-model-value-on-clear` is what makes ComboboxClear actually null the
-               model (reka defaults it to false); the update handler clears the search
-               term too, since ComboboxCancel writes the input's value straight to the
-               DOM without firing an event. -->
-          <Combobox
-            v-model="form.sales_id"
-            :ignore-filter="true"
-            :open-on-focus="true"
-            reset-model-value-on-clear
-            @update:model-value="
-              (v) => {
-                if (v == null) salesSearch = '';
-              }
-            "
-          >
-            <ComboboxAnchor class="w-full">
-              <ComboboxInput
-                v-model="salesSearch"
-                :display-value="() => selectedSales?.name || ''"
-                placeholder="Select sales person"
-                autocomplete="off"
-                :show-clear="!!form.sales_id"
-                class="w-full"
-              />
-            </ComboboxAnchor>
-            <ComboboxList>
-              <ComboboxViewport>
-                <ComboboxEmpty>No results found.</ComboboxEmpty>
-                <ComboboxItem :value="null">
-                  <div class="flex items-center gap-2">
-                    <Icon name="hugeicons:border-none-02" class="size-5" />
-                    <span>None</span>
-                  </div>
-                </ComboboxItem>
-                <ComboboxItem v-for="user in filteredMembers" :key="user.id" :value="user.id">
-                  <div class="flex items-center gap-2">
-                    <Avatar :model="user" size="sm" class="squircle size-5" rounded="rounded-sm" />
-                    <span class="tracking-tight">{{ user.name }}</span>
-                  </div>
-                  <ComboboxItemIndicator>
-                    <Icon name="lucide:check" class="ml-auto size-4" />
-                  </ComboboxItemIndicator>
-                </ComboboxItem>
-              </ComboboxViewport>
-            </ComboboxList>
-          </Combobox>
-        </div>
+        >
+          <div class="space-y-2">
+            <Label>Sales</Label>
+            <!-- `reset-model-value-on-clear` is what makes ComboboxClear actually null the
+                 model (reka defaults it to false); the update handler clears the search
+                 term too, since ComboboxCancel writes the input's value straight to the
+                 DOM without firing an event. -->
+            <Combobox
+              v-model="form.sales_id"
+              :ignore-filter="true"
+              :open-on-focus="true"
+              reset-model-value-on-clear
+              @update:model-value="
+                (v) => {
+                  if (v == null) salesSearch = '';
+                }
+              "
+            >
+              <ComboboxAnchor class="w-full">
+                <ComboboxInput
+                  v-model="salesSearch"
+                  :display-value="() => selectedSales?.name || ''"
+                  placeholder="Select sales person"
+                  autocomplete="off"
+                  :show-clear="!!form.sales_id"
+                  class="w-full"
+                />
+              </ComboboxAnchor>
+              <ComboboxList>
+                <ComboboxViewport>
+                  <ComboboxEmpty>No results found.</ComboboxEmpty>
+                  <ComboboxItem :value="null">
+                    <div class="flex items-center gap-2">
+                      <Icon name="hugeicons:border-none-02" class="size-5" />
+                      <span>None</span>
+                    </div>
+                  </ComboboxItem>
+                  <ComboboxItem v-for="user in filteredMembers" :key="user.id" :value="user.id">
+                    <div class="flex items-center gap-2">
+                      <Avatar :model="user" size="sm" class="squircle size-5" rounded="rounded-sm" />
+                      <span class="tracking-tight">{{ user.name }}</span>
+                    </div>
+                    <ComboboxItemIndicator>
+                      <Icon name="lucide:check" class="ml-auto size-4" />
+                    </ComboboxItemIndicator>
+                  </ComboboxItem>
+                </ComboboxViewport>
+              </ComboboxList>
+            </Combobox>
+          </div>
+        </BrandBoothFields>
 
         <div class="space-y-2">
           <Label for="brand_notes">Notes</Label>
@@ -226,7 +226,7 @@ const form = reactive({
   sales_id: null,
   notes: "",
   emails: [""],
-  send_login_email: false,
+  send_login_email: true,
 });
 
 const selectedBrand = ref(null);
@@ -302,7 +302,7 @@ watch(isOpen, (val) => {
     salesSearch.value = "";
     form.notes = "";
     form.emails = [""];
-    form.send_login_email = false;
+    form.send_login_email = true;
     errors.value = {};
     brandResults.value = [];
     searching.value = false;

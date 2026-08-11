@@ -81,6 +81,38 @@
         @update:model-value="$emit('update:modelValue', $event)"
       />
 
+      <!-- Price -->
+      <InputGroup v-else-if="normalized.type === 'price'">
+        <InputNumber
+          :id="fieldId"
+          :model-value="modelValue"
+          :min="priceMin"
+          :max="normalized.validation?.max"
+          :disabled="disabled"
+          :placeholder="normalized.placeholder || 'Ex: 50,000,000'"
+          data-slot="input-group-control"
+          class="cn-input-group-input flex-1"
+          @update:model-value="$emit('update:modelValue', $event)"
+        />
+        <InputGroupAddon>
+          <InputGroupText>{{ currencySymbol }}</InputGroupText>
+        </InputGroupAddon>
+      </InputGroup>
+
+      <!-- Price Range -->
+      <PriceRange
+        v-else-if="normalized.type === 'price_range'"
+        :id="fieldId"
+        :model-value="modelValue"
+        :min="priceMin"
+        :max="priceMax"
+        :step="priceStep"
+        :currency="currencySymbol"
+        :show-slider="showPriceSlider"
+        :disabled="disabled"
+        @update:model-value="$emit('update:modelValue', $event)"
+      />
+
       <!-- Phone -->
       <InputPhone
         v-else-if="normalized.type === 'phone'"
@@ -246,11 +278,15 @@
             <ComboboxEmpty>No results found.</ComboboxEmpty>
 
             <ComboboxGroup v-if="multiSelectOptions.length">
+              <!-- The predicate is bound here rather than spread onto the option
+                   objects: `multiSelectValue` resolves selections out of the same
+                   `normalized.options` array, so the items must stay
+                   reference-identical for reka to match them. -->
               <ComboboxItem
                 v-for="opt in multiSelectOptions"
                 :key="opt.value"
                 :value="opt"
-                :disabled="opt.disabled"
+                :disabled="disabled || isOptionBlocked(opt.value)"
               >
                 {{ opt.label }}
 
@@ -295,10 +331,19 @@
           <Checkbox
             :id="`${fieldId}-${opt.value}`"
             :model-value="(modelValue || []).includes(opt.value)"
-            :disabled="disabled"
+            :disabled="disabled || isOptionBlocked(opt.value)"
             @update:model-value="handleMultiCheck($event, opt.value)"
           />
-          <Label :for="`${fieldId}-${opt.value}`" :class="['font-normal', labelClass]">
+          <!-- The label dims with the box: a full-contrast label next to a
+               greyed checkbox reads as a rendering glitch, not as a rule. -->
+          <Label
+            :for="`${fieldId}-${opt.value}`"
+            :class="[
+              'font-normal',
+              labelClass,
+              isOptionBlocked(opt.value) && 'text-muted-foreground',
+            ]"
+          >
             {{ opt.label }}
           </Label>
         </div>
@@ -468,14 +513,27 @@
       </div>
     </div>
 
-    <!-- Help text -->
-    <p
-      v-if="normalized.help_text"
-      class="text-muted-foreground tracking-tight"
-      :class="isLargeLabel ? 'text-sm' : 'text-xs sm:text-sm'"
+    <!-- Help text + selection counter, sharing one row so a capped field does
+         not grow a third line of small print. -->
+    <div
+      v-if="normalized.help_text || selectionCounter"
+      class="flex items-start justify-between gap-x-2"
     >
-      {{ normalized.help_text }}
-    </p>
+      <p
+        v-if="normalized.help_text"
+        class="text-muted-foreground tracking-tight"
+        :class="isLargeLabel ? 'text-sm' : 'text-xs sm:text-sm'"
+      >
+        {{ normalized.help_text }}
+      </p>
+      <span
+        v-if="selectionCounter"
+        class="text-muted-foreground ml-auto shrink-0 tracking-tight tabular-nums"
+        :class="isLargeLabel ? 'text-sm' : 'text-xs sm:text-sm'"
+      >
+        {{ selectionCounter }}
+      </span>
+    </div>
 
     <!-- Error -->
     <FieldError :errors="error ? [error] : []" />
@@ -512,11 +570,13 @@ import {
 } from "../date-picker";
 import { FieldError } from "../field";
 import { Input } from "../input";
+import { InputGroup, InputGroupAddon, InputGroupText } from "../input-group";
 import { InputLink } from "../input-link";
 import { InputNumber } from "../input-number";
 import { InputPhone } from "../input-phone";
 import { Label } from "../label";
 import { LocationCombobox } from "../location-combobox";
+import { PriceRange } from "../price-range";
 import { RadioGroup, RadioGroupItem } from "../radio-group";
 import { Rating } from "../rating";
 import {
@@ -623,6 +683,7 @@ watch(
 const handleMultiCheck = (checked, value) => {
   const current = props.modelValue || [];
   if (checked) {
+    if (limitReached.value && !current.includes(value)) return;
     emit("update:modelValue", [...current, value]);
   } else {
     emit(
@@ -631,6 +692,40 @@ const handleMultiCheck = (checked, value) => {
     );
   }
 };
+
+/* ----- Selection limits ----- */
+// A `max_selections` cap used to be invisible until the server rejected the
+// submission. Showing it while the user picks - unselected options go disabled,
+// a counter says where they are - saves the round trip.
+const isMultiChoice = computed(() =>
+  ["multi_select", "checkbox_group", "tags"].includes(normalized.value.type)
+);
+
+const maxSelections = computed(() => Number(normalized.value.validation?.max_selections) || null);
+
+const minSelections = computed(() => Number(normalized.value.validation?.min_selections) || null);
+
+const selectedCount = computed(() =>
+  Array.isArray(props.modelValue) ? props.modelValue.length : 0
+);
+
+const limitReached = computed(
+  () => maxSelections.value !== null && selectedCount.value >= maxSelections.value
+);
+
+// Selected options stay live at the cap so a choice can always be traded for
+// another; only the ones that would push past it go dead.
+const isOptionBlocked = (value) =>
+  limitReached.value && !(props.modelValue || []).includes(value);
+
+const selectionCounter = computed(() => {
+  if (!isMultiChoice.value) return "";
+  if (maxSelections.value) return `${selectedCount.value} of ${maxSelections.value} selected`;
+  if (minSelections.value) {
+    return `${selectedCount.value} selected, at least ${minSelections.value} required`;
+  }
+  return "";
+});
 
 /* ----- Date & time ----- */
 const parseTimeString = (value) => {
@@ -776,6 +871,19 @@ const scaleGridVars = computed(() => {
 const sliderMin = computed(() => Number(normalized.value.validation?.min ?? 0));
 const sliderMax = computed(() => Number(normalized.value.validation?.max ?? 100));
 const sliderStep = computed(() => Number(normalized.value.settings?.step) || 1);
+
+/* ----- Price ----- */
+// No invented ceiling: an unset max means the amount is open-ended, which is
+// the honest default for money. The slider only appears when the author has
+// actually set a ceiling and left the toggle on.
+const currencySymbol = computed(() => String(normalized.value.settings?.currency || "Rp"));
+const priceMin = computed(() => Number(normalized.value.validation?.min ?? 0));
+const priceMax = computed(() => {
+  const max = normalized.value.validation?.max;
+  return max === null || max === undefined || max === "" ? null : Number(max);
+});
+const priceStep = computed(() => Number(normalized.value.settings?.step) || 1000000);
+const showPriceSlider = computed(() => normalized.value.settings?.show_slider !== false);
 
 const sliderRangeValue = computed(() => {
   const value = props.modelValue;

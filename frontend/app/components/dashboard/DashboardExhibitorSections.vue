@@ -12,35 +12,57 @@
       :default-open="defaultProfileOpen"
       section-key="profile"
     >
-      <form class="space-y-4" @submit.prevent="saveProfile">
+      <!-- All four fields are what `profile_complete` is computed from, so all
+           four are required. The red asterisk comes from main.css off the
+           `required` attribute - no manual markup. -->
+      <form class="space-y-4" novalidate @submit.prevent="saveProfile">
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="space-y-2">
             <Label :for="`ex_name_${be.brand_event_id}`">{{ $t("ed.profile.fullName") }}</Label>
             <Input
               :id="`ex_name_${be.brand_event_id}`"
               v-model="profileForm.name"
+              required
+              :aria-invalid="!!profileErrors.name"
               :placeholder="$t('ed.profile.placeholderName')"
+              @blur="validateProfileField('name')"
             />
+            <FieldError :errors="profileErrors.name" />
           </div>
           <div class="space-y-2">
             <Label :for="`ex_phone_${be.brand_event_id}`">{{ $t("ed.profile.phone") }}</Label>
-            <InputPhone :id="`ex_phone_${be.brand_event_id}`" v-model="profileForm.phone" />
+            <InputPhone
+              :id="`ex_phone_${be.brand_event_id}`"
+              v-model="profileForm.phone"
+              required
+              :aria-invalid="!!profileErrors.phone"
+              @blur="validateProfileField('phone')"
+            />
+            <FieldError :errors="profileErrors.phone" />
           </div>
           <div class="space-y-2">
             <Label :for="`ex_title_${be.brand_event_id}`">{{ $t("ed.profile.jobTitle") }}</Label>
             <Input
               :id="`ex_title_${be.brand_event_id}`"
               v-model="profileForm.title"
+              required
+              :aria-invalid="!!profileErrors.title"
               :placeholder="$t('ed.profile.placeholderTitle')"
+              @blur="validateProfileField('title')"
             />
+            <FieldError :errors="profileErrors.title" />
           </div>
           <div class="space-y-2">
             <Label :for="`ex_company_${be.brand_event_id}`">{{ $t("ed.profile.company") }}</Label>
             <Input
               :id="`ex_company_${be.brand_event_id}`"
               v-model="profileForm.company_name"
+              required
+              :aria-invalid="!!profileErrors.company_name"
               :placeholder="$t('ed.profile.placeholderCompany')"
+              @blur="validateProfileField('company_name')"
             />
+            <FieldError :errors="profileErrors.company_name" />
           </div>
         </div>
         <Button type="submit" size="sm" :disabled="profileSaving">
@@ -274,15 +296,24 @@
         >
           <p class="mb-3 text-sm font-medium">{{ $t("ed.docs.boothDetails") }}</p>
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <!-- Both fields gate `exhibitorDocsComplete`, so both are required
+                 wherever they are shown. `<Label required>` rather than the CSS
+                 rule: Badge Name puts a description between label and input, so
+                 the adjacent-sibling selector would never match there. -->
             <div v-if="showFascia" class="space-y-2">
-              <Label :for="`fascia_${be.brand_event_id}`">{{ $t("ed.docs.fasciaName") }}</Label>
+              <Label :for="`fascia_${be.brand_event_id}`" required>
+                {{ $t("ed.docs.fasciaName") }}
+              </Label>
               <Input
                 :id="`fascia_${be.brand_event_id}`"
                 :model-value="boothFields.fascia_name ?? be.fascia_name ?? ''"
                 :placeholder="$t('ed.docs.fasciaPlaceholder')"
                 maxlength="24"
+                required
+                :aria-invalid="!!boothErrors.fascia_name"
                 @update:model-value="(v) => setBoothField('fascia_name', v.toUpperCase())"
               />
+              <FieldError :errors="boothErrors.fascia_name" />
               <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
                 {{ $t("ed.docs.fasciaHint") }}
               </p>
@@ -302,7 +333,9 @@
               </p>
             </div>
             <div v-if="showBadge" class="space-y-2">
-              <Label :for="`badge_${be.brand_event_id}`">{{ $t("ed.docs.badgeName") }}</Label>
+              <Label :for="`badge_${be.brand_event_id}`" required>
+                {{ $t("ed.docs.badgeName") }}
+              </Label>
               <p class="text-muted-foreground text-sm tracking-tight sm:text-sm">
                 {{ $t("ed.docs.badgeDescription") }}
               </p>
@@ -310,8 +343,11 @@
                 :id="`badge_${be.brand_event_id}`"
                 :model-value="boothFields.badge_name ?? be.badge_name ?? ''"
                 :placeholder="$t('ed.docs.badgePlaceholder')"
+                required
+                :aria-invalid="!!boothErrors.badge_name"
                 @update:model-value="(v) => setBoothField('badge_name', v)"
               />
+              <FieldError :errors="boothErrors.badge_name" />
             </div>
             <div class="sm:col-span-2">
               <Button size="sm" :disabled="savingBoothFields" @click="saveBoothFields">
@@ -344,6 +380,7 @@
 <script setup>
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -367,6 +404,7 @@ const sectionStates = reactive({});
 const checkedRules = reactive({});
 const agreeingId = ref(null);
 const boothFields = reactive({});
+const boothErrors = ref({});
 const savingBoothFields = ref(false);
 const wrapRefs = {};
 
@@ -391,6 +429,9 @@ const sectionsLocked = computed(
 // --- Profile form ---
 const profileForm = reactive({ name: "", phone: "", title: "", company_name: "" });
 const profileSaving = ref(false);
+const profileErrors = ref({});
+
+const PROFILE_FIELDS = ["name", "phone", "title", "company_name"];
 
 watch(
   () => props.dashboard?.user,
@@ -404,14 +445,50 @@ watch(
   { immediate: true }
 );
 
+function profileFieldError(field) {
+  return profileForm[field]?.trim() ? null : [t("ed.profile.fieldRequired")];
+}
+
+function validateProfileField(field) {
+  const next = { ...profileErrors.value };
+  const error = profileFieldError(field);
+
+  if (error) next[field] = error;
+  else delete next[field];
+
+  profileErrors.value = next;
+}
+
 async function saveProfile() {
+  // Every field at once, then scroll to the first one, rather than letting the
+  // server reject them one round trip at a time.
+  const errors = {};
+  for (const field of PROFILE_FIELDS) {
+    const error = profileFieldError(field);
+    if (error) errors[field] = error;
+  }
+  profileErrors.value = errors;
+
+  if (Object.keys(errors).length) {
+    toast.error(t("ed.profile.fixErrors"));
+    await nextTick();
+    wrapRefs.profile
+      ?.querySelector('[data-slot="field-error"]')
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   profileSaving.value = true;
   try {
-    await client("/api/user/profile", { method: "PUT", body: profileForm });
+    await client("/api/exhibitor/profile", { method: "PUT", body: profileForm });
     toast.success(t("ed.profile.updated"));
     emit("refresh");
   } catch (e) {
-    toast.error(e?.data?.message || t("ed.profile.failedToUpdate"));
+    // ofetch parks the parsed body on `response._data`; reading `e.data` swallowed
+    // every 422 detail.
+    const body = e?.response?._data ?? e?.data;
+    if (body?.errors) profileErrors.value = body.errors;
+    toast.error(body?.message || t("ed.profile.failedToUpdate"));
   } finally {
     profileSaving.value = false;
   }
@@ -508,22 +585,38 @@ function setBoothField(field, value) {
 }
 
 async function saveBoothFields() {
+  const fascia = boothFields.fascia_name ?? props.be.fascia_name ?? "";
+  const badge = boothFields.badge_name ?? props.be.badge_name ?? "";
+
+  const errors = {};
+  if (showFascia.value && !fascia.trim()) errors.fascia_name = [t("ed.docs.fieldRequired")];
+  if (showBadge.value && !badge.trim()) errors.badge_name = [t("ed.docs.fieldRequired")];
+  boothErrors.value = errors;
+
+  if (Object.keys(errors).length) {
+    toast.error(t("ed.docs.fixErrors"));
+    await nextTick();
+    wrapRefs.docs
+      ?.querySelector('[data-slot="field-error"]')
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   savingBoothFields.value = true;
   try {
     await client(
       `/api/exhibitor/brands/${props.be.brand.slug}/events/${props.be.brand_event_id}/booth-fields`,
       {
         method: "PUT",
-        body: {
-          fascia_name: boothFields.fascia_name ?? props.be.fascia_name,
-          badge_name: boothFields.badge_name ?? props.be.badge_name,
-        },
+        body: { fascia_name: fascia, badge_name: badge },
       }
     );
     toast.success(t("ed.docs.saved"));
     emit("refresh");
   } catch (err) {
-    toast.error(err?.data?.message || t("ed.docs.failedToSave"));
+    const body = err?.response?._data ?? err?.data;
+    if (body?.errors) boothErrors.value = body.errors;
+    toast.error(body?.message || t("ed.docs.failedToSave"));
   } finally {
     savingBoothFields.value = false;
   }

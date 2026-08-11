@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-2xl flex-col gap-y-6">
+  <div class="mx-auto max-w-2xl space-y-6 lg:max-w-6xl">
     <div class="flex items-start justify-between gap-x-2">
       <div class="space-y-1">
         <h3 class="page-title">Brand Details</h3>
@@ -15,6 +15,15 @@
       </Button>
     </div>
 
+    <!-- Same two-column edit/preview split as the exhibitor's own brand editor.
+         Below lg the two become tabs driven by the floating pill at the bottom. -->
+    <TabsRoot v-model="activeTab" class="relative contents">
+      <div class="grid gap-6 lg:grid-cols-5">
+        <TabsContent
+          value="edit"
+          force-mount
+          class="space-y-6 outline-none max-lg:data-[state=inactive]:hidden lg:col-span-3"
+        >
     <form v-if="event?.can_edit" @submit.prevent="handleSubmit" class="grid gap-y-8">
       <!-- Booth Information -->
       <div class="frame">
@@ -151,6 +160,7 @@
                   container-class="relative isolate size-32 rounded-lg"
                   image-class="border-border size-full rounded-lg border object-contain"
                   :container-style="checkerboardStyle"
+                  @preview-url="(url) => (previewImageUrl = url)"
                 />
                 <ul class="text-muted-foreground space-y-1 text-xs tracking-tight sm:text-sm">
                   <li class="flex items-center gap-1.5">
@@ -286,52 +296,18 @@
               />
             </div>
 
-            <!-- Custom Fields -->
-            <template v-if="customFieldDefinitions?.length">
-              <div v-for="field in customFieldDefinitions" :key="field.id" class="space-y-2">
-                <Label :for="`cf_${field.key}`" :required="field.is_required">
-                  {{ field.label }}
-                </Label>
-
-                <Input
-                  v-if="field.type === 'text'"
-                  :id="`cf_${field.key}`"
-                  v-model="customFields[field.key]"
-                />
-                <Input
-                  v-else-if="field.type === 'number'"
-                  :id="`cf_${field.key}`"
-                  v-model="customFields[field.key]"
-                  type="number"
-                />
-                <Textarea
-                  v-else-if="field.type === 'textarea'"
-                  :id="`cf_${field.key}`"
-                  v-model="customFields[field.key]"
-                  rows="3"
-                />
-                <Select v-else-if="field.type === 'select'" v-model="customFields[field.key]">
-                  <SelectTrigger :id="`cf_${field.key}`" class="w-full">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="option in field.options" :key="option" :value="option">
-                      {{ option }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select v-else-if="field.type === 'year_select'" v-model="customFields[field.key]">
-                  <SelectTrigger :id="`cf_${field.key}`" class="w-full">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="year in yearOptions" :key="year" :value="String(year)">
-                      {{ year }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </template>
+            <!-- Custom Fields. The shared renderer covers all 29 types the brand
+                 context allows; the hand-rolled chain this replaced knew only
+                 five and drew a bare label for everything else. -->
+            <CustomFieldGroup
+              v-if="customFieldDefinitions?.length"
+              :fields="customFieldDefinitions"
+              :model-value="customFields"
+              :errors="brandErrors"
+              error-prefix="project_custom_fields."
+              value-key="key"
+              @update:model-value="applyCustomFields"
+            />
           </div>
         </div>
       </div>
@@ -650,11 +626,36 @@
         </div>
       </div>
     </div>
+        </TabsContent>
+
+        <!-- Preview column -->
+        <TabsContent
+          value="preview"
+          force-mount
+          class="outline-none max-lg:data-[state=inactive]:hidden lg:col-span-2"
+        >
+          <!-- Offsets past the TabNav as well as the header: both are sticky on
+               this page, so the navbar height alone would park the preview
+               underneath the tabs. -->
+          <BrandLivePreview
+            :preview="previewData"
+            class="lg:sticky lg:top-[calc(var(--navbar-height-desktop)+var(--tabnav-height)+--spacing(6))]"
+          />
+        </TabsContent>
+      </div>
+
+      <!-- Mobile pill trigger -->
+      <div class="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 lg:hidden">
+        <BrandPreviewTabsTrigger />
+      </div>
+    </TabsRoot>
   </div>
 </template>
 
 <script setup>
 import AddressFields from "@/components/AddressFields.vue";
+import BrandLivePreview from "@/components/brand/preview/BrandLivePreview.vue";
+import BrandPreviewTabsTrigger from "@/components/brand/preview/BrandPreviewTabsTrigger.vue";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -678,8 +679,9 @@ import {
   TagsInputItemDelete,
   TagsInputItemText,
 } from "@/components/ui/tags-input";
-import { useFilter } from "reka-ui";
+import { TabsContent, TabsRoot, useFilter } from "reka-ui";
 import { toast } from "vue-sonner";
+import { formatResponseValue, localizedLabel } from "@/components/ui/custom-field";
 
 const props = defineProps({
   brandEvent: Object,
@@ -697,6 +699,11 @@ const event = inject("event");
 
 const saving = ref(false);
 const { metaSymbol } = useShortcuts();
+
+const activeTab = ref("edit");
+
+// Object URL of a freshly picked avatar, so the preview updates before saving.
+const previewImageUrl = ref(null);
 
 // Brand form
 const profileImageFiles = ref([]);
@@ -785,12 +792,11 @@ function normalizeCustomFieldValues(values, definitions) {
   return result;
 }
 
-const currentYear = new Date().getFullYear();
-const yearOptions = computed(() => {
-  const years = [];
-  for (let y = currentYear; y >= 1950; y--) years.push(y);
-  return years;
-});
+// CustomFieldGroup emits a whole replacement map, but `customFields` is the
+// reactive object the submit handler spreads, so patch it in place.
+function applyCustomFields(next) {
+  Object.assign(customFields, next);
+}
 
 // Booth form
 const boothForm = reactive({
@@ -830,6 +836,44 @@ function handleLinkLabelChange(index, value) {
     brandLinks[index].label = value;
   }
 }
+
+/**
+ * Live preview payload, same shape FormBrandProfile emits on the exhibitor's
+ * own editor so both sides render through the identical BrandPreviewPage.
+ * One difference: this page is scoped to an event, so the booth number is
+ * real here instead of the placeholder the exhibitor editor has to show.
+ */
+const savedProfileImageUrl = computed(() => {
+  const image = props.brandEvent?.brand?.profile_image;
+  return image?.lg || image?.url || null;
+});
+
+// Every non-empty public custom field, in definition order, formatted the way
+// the public brand page reads them (matches PublicBrandDetailResource).
+const previewCustomFields = computed(() =>
+  (props.customFieldDefinitions || [])
+    .filter((def) => def.type !== "section" && def.is_public !== false)
+    .map((def) => ({
+      key: def.key,
+      label: localizedLabel(def.label),
+      value: formatResponseValue(def, customFields[def.key]),
+    }))
+    .filter((field) => field.value && field.value !== "-")
+);
+
+const previewData = computed(() => ({
+  brand_name: brandForm.name,
+  company_name: brandForm.company_name,
+  profile_image_url: previewImageUrl.value || savedProfileImageUrl.value,
+  business_categories: [...(brandForm.business_categories || [])],
+  links: brandLinks
+    .filter((link) => link.label && link.url)
+    .map((link) => ({ label: link.label, url: link.url })),
+  booth_number: boothForm.booth_number || null,
+  custom_fields: previewCustomFields.value,
+  description_html: brandForm.description,
+  promotions: [],
+}));
 
 const members = computed(() => project.value?.members || []);
 const salesSearch = ref("");
@@ -956,8 +1000,12 @@ async function handleSubmit() {
     toast.success("Brand details saved");
     emit("refresh");
   } catch (e) {
-    brandErrors.value = e?.data?.errors || {};
-    toast.error(e?.data?.message || "Failed to save");
+    // ofetch puts the parsed body on `response._data`; `e.data` is only
+    // populated for some error shapes, so a 422 used to arrive with no field
+    // errors at all.
+    const body = e?.response?._data ?? e?.data;
+    brandErrors.value = body?.errors || {};
+    toast.error(body?.message || "Failed to save");
   } finally {
     saving.value = false;
   }
@@ -992,7 +1040,7 @@ const membersApiBase = computed(
 );
 const members_list = ref(props.brandEvent?.members || []);
 const newMemberEmail = ref("");
-const sendLoginEmail = ref(false);
+const sendLoginEmail = ref(true);
 const addingMember = ref(false);
 const removingMember = ref(null);
 const sendingInvite = ref(null);

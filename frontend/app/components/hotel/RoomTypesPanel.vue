@@ -180,7 +180,7 @@
                     :min="0"
                     required
                     data-slot="input-group-control"
-                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                    class="cn-input-group-input flex-1"
                   />
                   <InputGroupAddon>
                     <InputGroupText>Rp</InputGroupText>
@@ -260,7 +260,7 @@
                         :min="0"
                         required
                         data-slot="input-group-control"
-                        class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                        class="cn-input-group-input flex-1"
                       />
                       <InputGroupAddon>
                         <InputGroupText>Rp</InputGroupText>

@@ -128,6 +128,12 @@ class CustomField extends Model implements Sortable
 
     public const TYPE_SLIDER_RULER = 'slider_ruler';
 
+    /** A single money amount: number input with a currency addon. */
+    public const TYPE_PRICE = 'price';
+
+    /** A {start, end} money range: two currency inputs synced to a range slider. */
+    public const TYPE_PRICE_RANGE = 'price_range';
+
     public array $translatable = [
         'label',
         'placeholder',

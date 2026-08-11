@@ -160,7 +160,7 @@
                 :max="100"
                 placeholder="11"
                 data-slot="input-group-control"
-                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                class="cn-input-group-input flex-1"
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupText>%</InputGroupText>
@@ -179,7 +179,7 @@
                 :max="100"
                 :placeholder="String(form.settings.tax_rate ?? 11)"
                 data-slot="input-group-control"
-                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                class="cn-input-group-input flex-1"
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupText>%</InputGroupText>
@@ -200,7 +200,7 @@
                 :max="100"
                 placeholder="50"
                 data-slot="input-group-control"
-                class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                class="cn-input-group-input flex-1"
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupText>%</InputGroupText>

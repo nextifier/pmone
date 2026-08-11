@@ -8,6 +8,7 @@ use App\Helpers\PhoneCountryHelper;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\User;
+use App\Support\InputNormalizer;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Email;
@@ -224,7 +225,7 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
         $brandEvent = BrandEvent::create([
             'brand_id' => $brand->id,
             'event_id' => $this->eventId,
-            'booth_number' => ! empty($row['booth_number']) ? trim($row['booth_number']) : null,
+            'booth_number' => InputNormalizer::boothNumber($row['booth_number'] ?? null),
             'booth_size' => ! empty($row['booth_size_sqm']) ? (float) $row['booth_size_sqm'] : null,
             'booth_type' => $boothType,
             'status' => $status,

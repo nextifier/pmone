@@ -924,10 +924,11 @@ test('only the booth primary can update booth fields and submit documents', func
 
     $this->actingAs($exhibitor);
 
-    // Primary can write booth fields.
+    // Primary can write booth fields. Both are required for a typed booth, so
+    // send a complete payload - this case is about who may write, not validation.
     $this->putJson(
         "/api/exhibitor/brands/{$primaryBrand->slug}/events/{$primaryBe->id}/booth-fields",
-        ['fascia_name' => 'HELLO']
+        ['fascia_name' => 'HELLO', 'badge_name' => 'Primary Brand']
     )->assertSuccessful();
 
     // Non-primary is blocked on booth fields.
@@ -957,9 +958,11 @@ test('brand event without a booth number is always its own primary', function ()
 
     $this->actingAs($exhibitor);
 
+    // Both booth fields are required for a typed booth; this case is about
+    // primary-ownership, so send a complete payload.
     $this->putJson(
         "/api/exhibitor/brands/{$brand->slug}/events/{$brandEvent->id}/booth-fields",
-        ['fascia_name' => 'SOLO']
+        ['fascia_name' => 'SOLO', 'badge_name' => 'Solo Brand']
     )->assertSuccessful();
 
     expect($brandEvent->fresh()->isBoothPrimary())->toBeTrue();

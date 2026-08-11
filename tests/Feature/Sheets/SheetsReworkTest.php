@@ -8,7 +8,9 @@ use App\Models\Event;
 use App\Models\EventDocument;
 use App\Models\EventDocumentSubmission;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Project;
+use App\Models\PromotionPost;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -192,14 +194,109 @@ it('adds event, country, source and adjustment reason to the orders sheet', func
     expect($headings)->toContain('Event Title');
     expect($headings)->toContain('Country');
     expect($headings)->toContain('Source');
-    expect($headings)->toContain('Adjustment Reason');
+    expect($headings)->toContain('Order Adjustment Reason');
 
-    $reasonCol = array_search('Adjustment Reason', $headings, true);
+    $reasonCol = array_search('Order Adjustment Reason', $headings, true);
     $countryCol = array_search('Country', $headings, true);
     $sourceCol = array_search('Source', $headings, true);
     expect($response->json("rows.0.{$reasonCol}"))->toBe('Repeat exhibitor');
     expect($response->json("rows.0.{$countryCol}"))->toBe('Indonesia');
     expect($response->json("rows.0.{$sourceCol}"))->toBe('Staff');
+});
+
+it('reports a per-item discount on its own line and marks the first line of each order', function () {
+    $project = Project::factory()->create();
+    $event = Event::factory()->create(['project_id' => $project->id]);
+    $brandEvent = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create()->id,
+        'event_id' => $event->id,
+    ]);
+    $order = Order::factory()->create([
+        'brand_event_id' => $brandEvent->id,
+        'subtotal' => 3000000,
+        'discount_amount' => 200000,
+        'submitted_at' => now(),
+    ]);
+
+    $discounted = OrderItem::create([
+        'order_id' => $order->id,
+        'product_name' => 'Booth Lighting',
+        'unit_price' => 2000000,
+        'quantity' => 1,
+        'total_price' => 2000000,
+    ]);
+    $untouched = OrderItem::create([
+        'order_id' => $order->id,
+        'product_name' => 'Extra Chair',
+        'unit_price' => 1000000,
+        'quantity' => 1,
+        'total_price' => 1000000,
+    ]);
+
+    $staff = User::factory()->create();
+
+    AppliedAdjustment::create([
+        'adjustable_type' => Order::class,
+        'adjustable_id' => $order->id,
+        'order_item_id' => $discounted->id,
+        'kind' => 'discount',
+        'label' => 'Lighting promo',
+        'value_type' => 'fixed_amount',
+        'value' => 200000,
+        'base_amount' => 2000000,
+        'amount' => 200000,
+        'applied_by' => $staff->id,
+    ]);
+
+    // A voided one on the same item must not show: its amount is kept as an
+    // audit record, not as a live discount.
+    AppliedAdjustment::create([
+        'adjustable_type' => Order::class,
+        'adjustable_id' => $order->id,
+        'order_item_id' => $discounted->id,
+        'kind' => 'discount',
+        'label' => 'Cancelled promo',
+        'value_type' => 'fixed_amount',
+        'value' => 500000,
+        'base_amount' => 2000000,
+        'amount' => 500000,
+        'applied_by' => $staff->id,
+        'voided_at' => now(),
+        'void_reason' => 'admin_voided',
+    ]);
+
+    $response = $this->getJson("/api/sheets/orders?token={$this->token}")->assertSuccessful();
+    $headings = $response->json('headings');
+    $rows = $response->json('rows');
+
+    expect($rows)->toHaveCount(2);
+    expect($rows[0])->toHaveCount(count($headings));
+
+    $col = fn (string $heading) => array_search($heading, $headings, true);
+
+    $byProduct = collect($rows)->keyBy(fn ($row) => $row[$col('Product Name')]);
+
+    // JSON collapses a float with no fraction back to an int, so compare numerically.
+    $lit = $byProduct['Booth Lighting'];
+    expect((float) $lit[$col('Item Discount')])->toBe(200000.0)
+        ->and((float) $lit[$col('Item Penalty')])->toBe(0.0)
+        ->and((float) $lit[$col('Item Net Total')])->toBe(1800000.0)
+        ->and($lit[$col('Item Adjustment Note')])->toBe('Lighting promo');
+
+    $chair = $byProduct['Extra Chair'];
+    expect((float) $chair[$col('Item Discount')])->toBe(0.0)
+        ->and((float) $chair[$col('Item Net Total')])->toBe(1000000.0)
+        ->and($chair[$col('Item Adjustment Note')])->toBe('-');
+
+    // The order-level total repeats on both rows, so exactly one row is flagged
+    // as the one to sum.
+    expect(collect($rows)->pluck($col('Is First Line'))->filter()->count())->toBe(1);
+    expect(collect($rows)->pluck($col('Line #'))->all())->toBe([1, 2]);
+    expect(collect($rows)->pluck($col('Order Discount Amount'))->map(fn ($v) => (float) $v)->unique()->all())->toBe([200000.0]);
+
+    // Item-scoped adjustments are reported on their line, not repeated in the
+    // order-level reason column.
+    expect(collect($rows)->pluck($col('Order Adjustment Reason'))->unique()->all())->toBe(['-']);
 });
 
 it('returns orders across every event, unscoped', function () {
@@ -237,7 +334,7 @@ it('lists a row per applicable document with file history', function () {
     $brandEvent = BrandEvent::factory()->create([
         'brand_id' => $brand->id,
         'event_id' => $event->id,
-        'booth_number' => 'A01',
+        'booth_number' => 'A-01',
     ]);
 
     $document = EventDocument::factory()->create([
@@ -250,7 +347,7 @@ it('lists a row per applicable document with file history', function () {
     $submission = EventDocumentSubmission::factory()->create([
         'event_document_id' => $document->id,
         'event_id' => $event->id,
-        'booth_identifier' => 'A01',
+        'booth_identifier' => 'A-01',
         'document_version' => $document->content_version ?? 1,
     ]);
 
@@ -279,4 +376,61 @@ it('lists a row per applicable document with file history', function () {
     expect($rows[0][$historyCol])->toContain('v1 v1');
     expect($rows[0][$historyCol])->toContain('(current)');
     expect($rows[0][$historyCol])->toContain('(superseded)');
+});
+
+it('links the brand-events sheet to a downloadable promotion image bundle', function () {
+    Storage::fake('public');
+
+    $event = Event::factory()->create(['project_id' => Project::factory()->create()->id]);
+
+    $withoutImages = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'No Images'])->id,
+        'event_id' => $event->id,
+    ]);
+    $withOne = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'One Image'])->id,
+        'event_id' => $event->id,
+    ]);
+    $withMany = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'Many Images'])->id,
+        'event_id' => $event->id,
+    ]);
+
+    PromotionPost::factory()->create(['brand_event_id' => $withOne->id])
+        ->addMedia(UploadedFile::fake()->image('poster.jpg'))->toMediaCollection('post_image');
+
+    // Two posts, so the bundle has to gather media across posts, not just within one.
+    PromotionPost::factory()->create(['brand_event_id' => $withMany->id])
+        ->addMedia(UploadedFile::fake()->image('first.jpg'))->toMediaCollection('post_image');
+    PromotionPost::factory()->create(['brand_event_id' => $withMany->id])
+        ->addMedia(UploadedFile::fake()->image('second.jpg'))->toMediaCollection('post_image');
+
+    $response = $this->getJson("/api/sheets/brand-events?token={$this->token}")->assertSuccessful();
+    $headings = $response->json('headings');
+    $rows = collect($response->json('rows'));
+
+    expect($headings)->toContain('Promotion Post Image Link');
+
+    $nameCol = array_search('Brand Name', $headings, true);
+    $linkCol = array_search('Promotion Post Image Link', $headings, true);
+    $byBrand = $rows->keyBy(fn ($row) => $row[$nameCol]);
+
+    expect($byBrand['No Images'][$linkCol])->toBe('-');
+    expect($byBrand['One Image'][$linkCol])->toContain("/brand-events/{$withOne->id}/promotion-images");
+    expect($byBrand['One Image'][$linkCol])->toContain("token={$this->token}");
+
+    // One image downloads as itself; several arrive zipped.
+    $single = $this->get("/api/sheets/brand-events/{$withOne->id}/promotion-images?token={$this->token}")
+        ->assertSuccessful();
+    expect($single->headers->get('content-type'))->toStartWith('image/');
+
+    $bundle = $this->get("/api/sheets/brand-events/{$withMany->id}/promotion-images?token={$this->token}")
+        ->assertSuccessful();
+    expect($bundle->headers->get('content-type'))->toContain('zip');
+    expect($bundle->headers->get('content-disposition'))->toContain('.zip');
+
+    $this->get("/api/sheets/brand-events/{$withoutImages->id}/promotion-images?token={$this->token}")
+        ->assertNotFound();
+    $this->get("/api/sheets/brand-events/{$withOne->id}/promotion-images?token=wrong")
+        ->assertStatus(401);
 });

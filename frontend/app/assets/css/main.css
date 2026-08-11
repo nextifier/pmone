@@ -183,6 +183,10 @@ html.appearance-switching *::after {
 
   --navbar-height-mobile: 3.5rem;
   --navbar-height-desktop: 3.5rem;
+  /* TabNav's own height, declared so anything that sticks below one can offset
+     past it (`top: calc(var(--navbar-height-desktop) + var(--tabnav-height))`)
+     instead of guessing. TabNav applies it, so the two cannot drift. */
+  --tabnav-height: 2.75rem;
   --sidebar-width: 18rem;
   --sidebar-width-mobile: 18rem;
   --sidebar-width-icon: 3rem;

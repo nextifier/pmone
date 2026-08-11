@@ -317,7 +317,9 @@
       "placeholderCompany": "Your company",
       "save": "Save Profile",
       "updated": "Profile updated",
-      "failedToUpdate": "Failed to update profile"
+      "failedToUpdate": "Failed to update profile",
+      "fieldRequired": "This field is required.",
+      "fixErrors": "Please fill in all required fields."
     },
     "rules": {
       "title": "Event Rules",
@@ -385,7 +387,9 @@
       "fileUploaded": "File uploaded successfully",
       "failedToUpload": "Failed to upload file",
       "responseSubmitted": "Response submitted",
-      "failedToSubmit": "Failed to submit"
+      "failedToSubmit": "Failed to submit",
+      "fieldRequired": "This field is required.",
+      "fixErrors": "Please fill in all required fields."
     },
     "order": {
       "title": "Order Form",

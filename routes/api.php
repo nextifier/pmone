@@ -706,6 +706,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Exhibitor dashboard endpoints
     Route::prefix('exhibitor')->group(function () {
         Route::get('/dashboard', [ExhibitorDashboardController::class, 'dashboard'])->name('exhibitor.dashboard');
+        // Separate from PUT /user/profile: the four fields that unlock the
+        // dashboard are required here, and that endpoint serves every role.
+        Route::put('/profile', [ExhibitorDashboardController::class, 'updateProfile'])->name('exhibitor.profile.update');
         Route::get('/events', [ExhibitorDashboardController::class, 'myEvents'])->name('exhibitor.events');
         Route::get('/brands', [ExhibitorDashboardController::class, 'brands'])->name('exhibitor.brands');
         Route::get('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandShow'])->name('exhibitor.brands.show');
@@ -967,6 +970,16 @@ Route::middleware(['throttle:120,1', 'sheets.token'])
         Route::get('/brands', [SheetsController::class, 'brands'])->name('brands');
         Route::get('/brand-events', [SheetsController::class, 'brandEvents'])->name('brand-events');
         Route::get('/operational-documents', [SheetsController::class, 'operationalDocuments'])->name('operational-documents');
+
+        // Clicked straight out of a spreadsheet cell, so it has to authenticate
+        // the same way the feeds do - `sheets.token` reads `?token=`, which a
+        // hyperlink can carry. One image streams as itself, several stream as a
+        // zip. Given a zip can be tens of megabytes, this gets its own, tighter
+        // throttle rather than eating the feeds' 120/min budget.
+        Route::get('/brand-events/{brandEvent}/promotion-images', [SheetsController::class, 'promotionPostImages'])
+            ->whereNumber('brandEvent')
+            ->middleware('throttle:30,1')
+            ->name('brand-events.promotion-images');
 
         // whereNumber keeps a non-numeric segment from reaching the implicit
         // binding, where Postgres would reject it against a bigint id with a

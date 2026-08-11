@@ -206,6 +206,23 @@ export const FIELD_TYPES = {
     minMaxMode: "value",
     hasStep: true,
   },
+  price: {
+    label: "Price",
+    icon: "lucide:banknote",
+    group: "number",
+    hasPlaceholder: true,
+    minMaxMode: "value",
+    hasCurrency: true,
+  },
+  price_range: {
+    label: "Price Range",
+    icon: "lucide:banknote-arrow-up",
+    group: "number",
+    minMaxMode: "value",
+    hasStep: true,
+    hasCurrency: true,
+    hasSliderToggle: true,
+  },
   rating: {
     label: "Rating",
     icon: "lucide:star",

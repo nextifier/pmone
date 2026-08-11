@@ -282,7 +282,8 @@ it('exhibitor can submit a multi-field document', function () {
 
     $submission = EventDocumentSubmission::query()->firstOrFail();
     expect($submission->field_values[$text->ulid])->toBe('PT Contoh Jaya');
-    expect($submission->booth_identifier)->toBe('A01');
+    // 'A01' is stored as 'A-01' - BrandEvent normalizes booth numbers on save.
+    expect($submission->booth_identifier)->toBe('A-01');
     expect($submission->document_version)->toBe($this->document->fresh()->content_version);
 });
 

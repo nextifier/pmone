@@ -102,7 +102,7 @@
                   :min="0"
                   decimal
                   data-slot="input-group-control"
-                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  class="cn-input-group-input flex-1"
                 />
                 <InputGroupAddon :align="form.value_type === 'percentage' ? 'inline-end' : 'inline-start'">
                   <InputGroupText>{{ form.value_type === "percentage" ? "%" : currencySymbol }}</InputGroupText>

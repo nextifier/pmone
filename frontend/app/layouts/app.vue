@@ -1,12 +1,18 @@
 <template>
-  <SidebarProvider variant="sidebar" :defaultOpen="defaultOpen" id="layout-app">
-    <AppSidebar v-if="!isExcluded && !isProjectPage" class="select-none" />
+  <SidebarProvider
+    variant="sidebar"
+    id="layout-app"
+    :open="sidebarOpen"
+    :persist="false"
+    @update:open="setSidebarOpen"
+  >
+    <AppSidebar v-if="!isExcluded" class="select-none" />
 
     <SidebarInset
       :class="isExcluded ? 'contents' : 'mx-auto min-h-screen min-w-0 max-w-[1920px]'"
     >
       <ImpersonateExitBanner />
-      <AppHeader v-if="!isExcluded" :hide-sidebar="isProjectPage" />
+      <AppHeader v-if="!isExcluded" :show-breadcrumb="isProjectPage" />
       <div
         :class="isExcluded ? 'contents' : 'grow overflow-x-clip px-4'"
       >
@@ -19,7 +25,6 @@
 <script setup>
 import ImpersonateExitBanner from "@/components/user/ImpersonateExitBanner.vue";
 
-const defaultOpen = useCookie("sidebar_state");
 const route = useRoute();
 
 // Report presence (current page + keepalive) for every authenticated admin.
@@ -31,6 +36,38 @@ const isProjectPage = computed(() => {
   const name = route.name?.toString() || "";
   return name === "projects-username" || name.startsWith("projects-username-");
 });
+
+/**
+ * Project pages carry their own sidebar state. They open as an icon rail by
+ * default - a project already has its own tab nav, so the full sidebar would be
+ * a second navigation competing with it - while the dashboard keeps whatever
+ * the user last chose. One shared cookie could not express both, so the
+ * provider runs controlled here (`:persist="false"`) and the layout owns the
+ * two cookies. `useCookie` is SSR-aware, so the first paint already has the
+ * right `data-state` and the rail never flashes open.
+ */
+const SIDEBAR_COOKIE_OPTS = { maxAge: 60 * 60 * 24 * 7 };
+
+const mainSidebarOpen = useCookie("sidebar_state", {
+  ...SIDEBAR_COOKIE_OPTS,
+  default: () => true,
+});
+const projectSidebarOpen = useCookie("sidebar_state_project", {
+  ...SIDEBAR_COOKIE_OPTS,
+  default: () => false,
+});
+
+const sidebarOpen = computed(() =>
+  isProjectPage.value ? projectSidebarOpen.value : mainSidebarOpen.value,
+);
+
+function setSidebarOpen(value) {
+  if (isProjectPage.value) {
+    projectSidebarOpen.value = value;
+  } else {
+    mainSidebarOpen.value = value;
+  }
+}
 
 // Block default "user" role from accessing pages beyond dashboard & settings
 const { hasRole, hasAnyRole, isStaffOrAbove } = usePermission();

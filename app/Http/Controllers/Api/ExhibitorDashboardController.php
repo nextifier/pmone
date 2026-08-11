@@ -16,6 +16,7 @@ use App\Models\EventDocumentSubmission;
 use App\Models\EventProduct;
 use App\Models\Order;
 use App\Models\PromotionPost;
+use App\Models\User;
 use App\Notifications\OrderSubmittedNotification;
 use App\Services\Order\OrderSubmissionService;
 use App\Support\CustomFieldValidation;
@@ -34,13 +35,23 @@ use Spatie\Tags\Tag;
 class ExhibitorDashboardController extends Controller
 {
     /**
+     * The four fields the dashboard's "Complete Your Profile" step is measured
+     * against. Every one of them gates the rest of the dashboard, so all four
+     * are required here - unlike the shared PUT /api/user/profile, which every
+     * role uses to edit an already-complete profile and must stay lenient.
+     *
+     * @var array<int, string>
+     */
+    private const PROFILE_FIELDS = ['name', 'phone', 'title', 'company_name'];
+
+    /**
      * Exhibitor dashboard - step-by-step progress per brand-event.
      */
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
 
-        $profileComplete = ! empty($user->name) && ! empty($user->phone) && ! empty($user->title) && ! empty($user->company_name);
+        $profileComplete = $this->isProfileComplete($user);
 
         $brands = $user->brands()->with([
             'media',
@@ -1306,6 +1317,47 @@ class ExhibitorDashboardController extends Controller
     }
 
     /**
+     * Complete the exhibitor's own profile. Separate from the shared
+     * PUT /api/user/profile so the four fields that unlock the dashboard can be
+     * required here without forcing them on every other role's settings page.
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:20'],
+            'title' => ['required', 'string', 'max:255'],
+            'company_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'data' => [
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'title' => $user->title,
+                'company_name' => $user->company_name,
+                'profile_complete' => $this->isProfileComplete($user->fresh()),
+            ],
+        ]);
+    }
+
+    private function isProfileComplete(User $user): bool
+    {
+        foreach (self::PROFILE_FIELDS as $field) {
+            if (empty($user->{$field})) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Update booth fields (fascia_name, badge_name) for a brand-event.
      */
     public function updateBoothFields(Request $request, string $brandSlug, int $brandEventId): JsonResponse
@@ -1317,9 +1369,11 @@ class ExhibitorDashboardController extends Controller
 
         $this->assertBoothPrimary($brandEvent);
 
+        // Both fields gate exhibitorDocsComplete(), so each one is required
+        // wherever the dashboard shows it - which is what the booth type decides.
         $validated = $request->validate([
-            'fascia_name' => ['nullable', 'string', 'max:24'],
-            'badge_name' => ['nullable', 'string', 'max:255'],
+            'fascia_name' => [$brandEvent->requiresFasciaName() ? 'required' : 'nullable', 'string', 'max:24'],
+            'badge_name' => [$brandEvent->requiresBadgeName() ? 'required' : 'nullable', 'string', 'max:255'],
         ]);
 
         // Force fascia_name uppercase

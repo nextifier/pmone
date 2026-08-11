@@ -169,7 +169,8 @@ it('exhibitor can agree to checkbox document', function () {
 
     $this->assertDatabaseHas('event_document_submissions', [
         'event_document_id' => $doc->id,
-        'booth_identifier' => 'A01',
+        // 'A01' is stored as 'A-01' - BrandEvent normalizes booth numbers on save.
+        'booth_identifier' => 'A-01',
         'event_id' => $this->event->id,
         'submitted_by' => $this->exhibitor->id,
     ]);

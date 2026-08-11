@@ -31,6 +31,7 @@ class FormFieldTypes
         CustomField::TYPE_YEAR_RANGE,
         CustomField::TYPE_TIME_RANGE,
         CustomField::TYPE_SLIDER_RANGE,
+        CustomField::TYPE_PRICE_RANGE,
     ];
 
     /**
@@ -70,6 +71,8 @@ class FormFieldTypes
         CustomField::TYPE_SLIDER => 'numeric',
         CustomField::TYPE_SLIDER_RANGE => 'text',
         CustomField::TYPE_SLIDER_RULER => 'numeric',
+        CustomField::TYPE_PRICE => 'numeric',
+        CustomField::TYPE_PRICE_RANGE => 'text',
         CustomField::TYPE_SECTION => 'none',
     ];
 
@@ -177,6 +180,7 @@ class FormFieldTypes
             case CustomField::TYPE_NUMBER:
             case CustomField::TYPE_SLIDER:
             case CustomField::TYPE_SLIDER_RULER:
+            case CustomField::TYPE_PRICE:
                 $base[] = 'numeric';
                 if (isset($opts['min'])) {
                     $base[] = 'min:'.$opts['min'];
@@ -187,6 +191,7 @@ class FormFieldTypes
                 break;
 
             case CustomField::TYPE_SLIDER_RANGE:
+            case CustomField::TYPE_PRICE_RANGE:
                 $base[] = 'array';
                 $numRules = ['numeric'];
                 if (isset($opts['min'])) {
@@ -328,7 +333,7 @@ class FormFieldTypes
      */
     public static function formatValue(CustomField $field, mixed $value): string
     {
-        return self::formatValueForType($field->type, $value, $field->options ?? []);
+        return self::formatValueForType($field->type, $value, $field->options ?? [], $field->settings ?? []);
     }
 
     /**
@@ -337,8 +342,9 @@ class FormFieldTypes
      * `$options` may be plain strings or {value,label} pairs.
      *
      * @param  array<int, mixed>  $options
+     * @param  array<string, mixed>  $settings  carries `currency` for money types
      */
-    public static function formatValueForType(string $type, mixed $value, array $options = []): string
+    public static function formatValueForType(string $type, mixed $value, array $options = [], array $settings = []): string
     {
         if ($value === null || $value === '' || $value === []) {
             return '-';
@@ -378,6 +384,26 @@ class FormFieldTypes
 
                 return (string) $value;
 
+            case CustomField::TYPE_PRICE:
+                return is_numeric($value) ? self::formatMoney($value, $settings) : (string) $value;
+
+            case CustomField::TYPE_PRICE_RANGE:
+                if (is_array($value)) {
+                    $parts = array_filter(
+                        [$value['start'] ?? null, $value['end'] ?? null],
+                        fn ($v) => $v !== null && $v !== ''
+                    );
+
+                    return $parts
+                        ? implode(' - ', array_map(
+                            fn ($v) => is_numeric($v) ? self::formatMoney($v, $settings) : (string) $v,
+                            $parts
+                        ))
+                        : '-';
+                }
+
+                return (string) $value;
+
             case CustomField::TYPE_RICH_TEXT:
                 return Str::squish(strip_tags((string) $value)) ?: '-';
 
@@ -402,9 +428,9 @@ class FormFieldTypes
      *
      * @param  array<int, mixed>  $options
      */
-    public static function formatStoredValue(string $type, mixed $stored, array $options = []): string
+    public static function formatStoredValue(string $type, mixed $stored, array $options = [], array $settings = []): string
     {
-        return self::formatValueForType($type, self::normalizeStored($type, $stored), $options);
+        return self::formatValueForType($type, self::normalizeStored($type, $stored), $options, $settings);
     }
 
     /**
@@ -517,6 +543,22 @@ class FormFieldTypes
         }
 
         return is_scalar($value) ? (string) $value : (string) json_encode($value);
+    }
+
+    /**
+     * Thousands-grouped, no decimals, prefixed with the field's currency symbol
+     * so an amount never reads as a bare number. Comma grouping (not the
+     * Indonesian dot) so the value reads the same here, in exports, and in the
+     * InputNumber that produced it - that component's separator is a comma.
+     *
+     * @param  array<string, mixed>  $settings
+     */
+    private static function formatMoney(mixed $value, array $settings = []): string
+    {
+        $currency = trim((string) ($settings['currency'] ?? 'Rp'));
+        $amount = number_format((float) $value, 0, '.', ',');
+
+        return $currency === '' ? $amount : $currency.' '.$amount;
     }
 
     private static function localizedOptionLabel(mixed $label): string

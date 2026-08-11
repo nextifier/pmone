@@ -464,6 +464,62 @@ it('staff can apply fixed discount to order', function () {
     expect((float) $order->total)->toBe(2775000.0);
 });
 
+it('voiding a per-item discount clears the order total and flags the adjustment', function () {
+    $this->actingAs($this->exhibitor);
+
+    $this->postJson(
+        "/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders",
+        ['items' => [
+            ['event_product_id' => $this->product1->id, 'quantity' => 2],
+            ['event_product_id' => $this->product2->id, 'quantity' => 1],
+        ]]
+    )->assertStatus(201);
+
+    $order = Order::first();
+    // subtotal = 1500000*2 + 3000000 = 6000000
+    $item = $order->items()->where('unit_price', '3000000.00')->firstOrFail();
+
+    $this->actingAs($this->staff);
+
+    $applyResponse = $this->postJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments",
+        [
+            'mode' => 'manual',
+            'kind' => 'discount',
+            'value_type' => 'percentage',
+            'value' => 10,
+            'order_item_id' => $item->id,
+        ]
+    )->assertSuccessful();
+
+    $adjustmentUlid = $applyResponse->json('data.adjustment.ulid');
+
+    // 10% of the item (3.000.000), not of the whole order.
+    expect((float) $order->fresh()->discount_amount)->toBe(300000.0);
+
+    $voidResponse = $this->deleteJson(
+        "/api/projects/{$this->project->username}/events/{$this->event->slug}/orders/{$order->ulid}/adjustments/{$adjustmentUlid}"
+    )->assertSuccessful();
+
+    $order->refresh();
+    expect((float) $order->discount_amount)->toBe(0.0);
+    expect((float) $order->tax_amount)->toBe(660000.0);
+    expect((float) $order->total)->toBe(6660000.0);
+
+    // The response the page assigns straight into its `order` ref must already
+    // carry the recalculated totals and mark the adjustment as voided - the
+    // frontend hides voided rows from the item line off `is_voided`.
+    expect((float) $voidResponse->json('data.discount_amount'))->toBe(0.0);
+    expect((float) $voidResponse->json('data.total'))->toBe(6660000.0);
+
+    $adjustments = $voidResponse->json('data.adjustments');
+    expect($adjustments)->toHaveCount(1);
+    expect($adjustments[0]['is_voided'])->toBeTrue();
+    expect($adjustments[0]['order_item_id'])->toBe($item->id);
+    // The amount is deliberately left intact as the audit record of what applied.
+    expect((float) $adjustments[0]['amount'])->toBe(300000.0);
+});
+
 it('staff can void discount adjustment from order', function () {
     $this->actingAs($this->exhibitor);
 

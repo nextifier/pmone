@@ -126,9 +126,9 @@ it('includes the multi-currency columns in the orders export', function () {
     expect($export->headings())
         ->toContain('Currency')
         ->toContain('Exchange Rate (to IDR)')
-        ->toContain('Total (IDR)');
+        ->toContain('Order Total (IDR)');
 
-    $row = collect($export->map($this->usdOrder->fresh(['brandEvent.brand', 'items'])))
+    $row = collect($export->map($this->usdOrder->fresh(['brandEvent.brand', 'items', 'adjustments'])))
         ->flatten()
         ->all();
 

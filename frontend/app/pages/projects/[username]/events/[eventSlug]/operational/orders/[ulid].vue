@@ -316,6 +316,11 @@
                     </Badge>
                     <span class="text-muted-foreground text-xs tracking-tight">
                       {{ adj.order_item_id ? itemName(adj.order_item_id) : "Order-level" }}
+                      <!-- Spelled out, not left to opacity alone: this is the only
+                           place a voided adjustment still shows its amount, so the
+                           reason it no longer counts has to be readable. Matches
+                           the reservation page. -->
+                      <span v-if="adj.is_voided"> · voided</span>
                     </span>
                   </div>
                   <p class="text-muted-foreground truncate text-sm tracking-tight">{{ adj.label }}</p>
@@ -599,8 +604,12 @@ const activeAdjustmentsCount = computed(
   () => allAdjustments.value.filter((a) => !a.is_voided).length
 );
 
+// Voided ones are excluded: their `amount` column is never zeroed (it stays as
+// the audit record of what once applied), so leaving them in painted a live
+// looking "Discount -Rp…" under a product whose order total had already gone
+// back up. They remain visible, labelled, in the Adjustments dialog.
 const itemAdjustments = (itemId) =>
-  order.value?.adjustments?.filter((a) => a.order_item_id === itemId) ?? [];
+  order.value?.adjustments?.filter((a) => a.order_item_id === itemId && !a.is_voided) ?? [];
 
 const itemName = (itemId) =>
   order.value?.items?.find((i) => i.id === itemId)?.product_name ?? `Item #${itemId}`;

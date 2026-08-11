@@ -305,7 +305,9 @@
       "placeholderCompany": "公司名称",
       "save": "保存",
       "updated": "已保存",
-      "failedToUpdate": "保存失败，请重试"
+      "failedToUpdate": "保存失败，请重试",
+      "fieldRequired": "此项为必填。",
+      "fixErrors": "请填写所有必填项。"
     },
     "rules": {
       "title": "展会规则",
@@ -373,7 +375,9 @@
       "fileUploaded": "上传成功",
       "failedToUpload": "上传失败，请重试",
       "responseSubmitted": "已提交",
-      "failedToSubmit": "提交失败"
+      "failedToSubmit": "提交失败",
+      "fieldRequired": "此项为必填。",
+      "fixErrors": "请填写所有必填项。"
     },
     "order": {
       "title": "订购表",

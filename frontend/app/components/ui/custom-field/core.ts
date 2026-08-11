@@ -85,6 +85,8 @@ export const TYPE_META: Record<string, TypeMeta> = {
   slider: {},
   slider_range: {},
   slider_ruler: {},
+  price: {},
+  price_range: {},
   rating: {},
   linear_scale: {},
   file: { noPrefill: true },
@@ -101,7 +103,14 @@ export const LAYOUT_TYPES = ["section"];
  * scalar storage wrapping and share the joined "start - end" display format.
  * Mirrors FormFieldTypes::OBJECT_RANGE_TYPES on the backend.
  */
-export const OBJECT_RANGE_TYPES = ["date_range", "month_range", "year_range", "time_range", "slider_range"];
+export const OBJECT_RANGE_TYPES = [
+  "date_range",
+  "month_range",
+  "year_range",
+  "time_range",
+  "slider_range",
+  "price_range",
+];
 
 export const hasOptions = (type: string): boolean => Boolean(TYPE_META[type]?.hasOptions);
 export const isInputType = (type: string): boolean => !TYPE_META[type]?.isLayout;
@@ -284,6 +293,7 @@ export const prefillValueFor = (field: CustomFieldShape, rawValue: unknown) => {
     case "number":
     case "slider":
     case "slider_ruler":
+    case "price":
     case "year":
     case "rating":
     case "linear_scale": {
@@ -307,7 +317,8 @@ export const prefillValueFor = (field: CustomFieldShape, rawValue: unknown) => {
       return valid(start) && valid(end) ? { start, end } : undefined;
     }
     case "year_range":
-    case "slider_range": {
+    case "slider_range":
+    case "price_range": {
       const [start, end] = value.split(",").map((v) => Number(v.trim()));
       return Number.isNaN(start) || Number.isNaN(end) ? undefined : { start, end };
     }
@@ -317,6 +328,23 @@ export const prefillValueFor = (field: CustomFieldShape, rawValue: unknown) => {
 };
 
 export const fileName = (path: string): string => String(path).split("/").pop() as string;
+
+/**
+ * Thousands-grouped, no decimals, prefixed with the field's currency symbol so
+ * an amount never reads as a bare number. Comma grouping (not the Indonesian
+ * dot) to match InputNumber's hardcoded separator and
+ * FormFieldTypes::formatMoney on the API, so the same amount reads identically
+ * in the field, the table, and the export.
+ */
+const formatMoney = (value: unknown, currency = "Rp"): string => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return String(value);
+
+  const amount = number.toLocaleString("en-US");
+  const symbol = String(currency ?? "").trim();
+
+  return symbol ? `${symbol} ${amount}` : amount;
+};
 
 const stripHtml = (html: unknown): string =>
   String(html)
@@ -335,6 +363,7 @@ export const formatResponseValue = (field: CustomFieldShape, value: unknown, loc
 
   const options = normalizeOptions(field?.options, locale, field?.settings?.options_preset as string | undefined);
   const optionLabel = (v: unknown) => options.find((o) => o.value === String(v))?.label ?? String(v);
+  const currency = (field?.settings?.currency as string | undefined) ?? "Rp";
 
   switch (field?.type) {
     case "select":
@@ -357,6 +386,16 @@ export const formatResponseValue = (field: CustomFieldShape, value: unknown, loc
         const range = value as { start?: string | number; end?: string | number };
         const parts = [range.start, range.end].filter((v) => v !== null && v !== undefined && v !== "");
         return parts.length ? parts.join(" - ") : "-";
+      }
+      return String(value);
+    }
+    case "price":
+      return formatMoney(value, currency);
+    case "price_range": {
+      if (value && typeof value === "object") {
+        const range = value as { start?: string | number; end?: string | number };
+        const parts = [range.start, range.end].filter((v) => v !== null && v !== undefined && v !== "");
+        return parts.length ? parts.map((v) => formatMoney(v, currency)).join(" - ") : "-";
       }
       return String(value);
     }

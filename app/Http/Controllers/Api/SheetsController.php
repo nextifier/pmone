@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\AdjustmentKind;
 use App\Http\Controllers\Controller;
+use App\Models\AppliedAdjustment;
 use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\Contact;
@@ -12,10 +14,16 @@ use App\Models\EventDocument;
 use App\Models\EventDocumentSubmission;
 use App\Models\Order;
 use App\Models\Project;
+use App\Models\PromotionPost;
 use App\Support\Sheets\SheetFormatting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\MediaLibrary\Support\MediaStream;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Feeds for the Google Sheets Apps Script integration. Every endpoint returns
@@ -61,19 +69,29 @@ class SheetsController extends Controller
             ->orderByDesc('submitted_at')
             ->get();
 
+        // One row per order ITEM. The order-level cells repeat on every row of a
+        // multi-item order so filtering by brand/event still works, which is why
+        // they are all prefixed "Order " and why `Is First Line` exists: sum them
+        // with SUMIF(Is First Line = TRUE; ...) or every order is counted once
+        // per item. The per-item adjustment columns are the ones that carry a
+        // discount attached to a single product - `Order Discount Amount` is the
+        // total of item-scoped AND order-scoped discounts together, so on its own
+        // it cannot say which line was discounted.
         $headings = [
             'ID', 'Order Number', 'Event ID', 'Event Title',
             'Brand Name', 'Company Name', 'Country',
             'Booth Type', 'Booth Number', 'Booth Size (sqm)', 'Booth Price',
             'Fascia Name', 'Badge Name', 'Sales PIC', 'Order Period', 'Source',
             'Product Name', 'Product Category', 'Qty', 'Unit Price', 'Item Total',
+            'Item Discount', 'Item Penalty', 'Item Net Total', 'Item Adjustment Note',
             'Item Notes', 'Item Internal Notes',
-            'Subtotal', 'Discount Amount', 'Penalty Amount', 'Promo Code', 'Adjustment Reason',
-            'Tax Rate (%)', 'Tax Amount', 'Total',
+            'Line #', 'Is First Line',
+            'Order Subtotal', 'Order Discount Amount', 'Order Penalty Amount', 'Promo Code', 'Order Adjustment Reason',
+            'Tax Rate (%)', 'Order Tax Amount', 'Order Total',
             'Operational Status', 'Payment Status', 'Cancellation Reason',
             'Order Notes', 'Order Internal Notes',
             'Submitted At', 'Confirmed At', 'Created By',
-            'Currency', 'Exchange Rate (to IDR)', 'Total (IDR)',
+            'Currency', 'Exchange Rate (to IDR)', 'Order Total (IDR)',
         ];
 
         $rows = [];
@@ -83,6 +101,14 @@ class SheetsController extends Controller
             $brandEvent = $order->brandEvent;
             $orderEvent = $brandEvent?->event;
             $items = $order->items;
+
+            // Live per-item adjustments, grouped in memory - `adjustments` is
+            // already eager-loaded, so this costs no extra query. Voided rows are
+            // dropped: their `amount` is never zeroed (it stays as the audit
+            // record of what once applied) and would otherwise read as live.
+            $itemAdjustments = $order->adjustments
+                ->filter(fn (AppliedAdjustment $a) => $a->order_item_id !== null && $a->voided_at === null)
+                ->groupBy('order_item_id');
 
             $orderIdentity = [
                 $order->id,
@@ -94,8 +120,8 @@ class SheetsController extends Controller
                 data_get($brand?->address, 'country') ?? '-',
                 $brandEvent?->booth_type?->label() ?? '-',
                 $brandEvent?->booth_number ?? '-',
-                $brandEvent?->booth_size,
-                $brandEvent?->booth_price,
+                self::money($brandEvent?->booth_size),
+                self::money($brandEvent?->booth_price),
                 $brandEvent?->fascia_name ?? '-',
                 $brandEvent?->badge_name ?? '-',
                 $brandEvent?->sales?->name ?? '-',
@@ -104,14 +130,14 @@ class SheetsController extends Controller
             ];
 
             $orderSummary = [
-                $order->subtotal,
-                $order->discount_amount,
-                $order->penalty_amount,
+                self::money($order->subtotal),
+                self::money($order->discount_amount),
+                self::money($order->penalty_amount),
                 $order->promo_code_applied ?? '-',
                 $this->adjustmentReason($order),
-                $order->tax_rate,
-                $order->tax_amount,
-                $order->total,
+                self::money($order->tax_rate),
+                self::money($order->tax_amount),
+                self::money($order->total),
                 $order->operational_status?->label() ?? '-',
                 $order->payment_status?->label() ?? '-',
                 $order->cancellation_reason,
@@ -121,28 +147,52 @@ class SheetsController extends Controller
                 $order->confirmed_at?->format('Y-m-d H:i:s'),
                 $order->creator?->name ?? '-',
                 $order->currency ?? 'IDR',
-                (float) $order->exchange_rate_to_idr,
-                (float) $order->total_idr,
+                self::money($order->exchange_rate_to_idr),
+                self::money($order->total_idr),
             ];
 
             if ($items->isEmpty()) {
-                $rows[] = array_merge($orderIdentity, ['-', '-', 0, 0, 0, '-', '-'], $orderSummary);
-            } else {
-                foreach ($items as $item) {
-                    $rows[] = array_merge(
-                        $orderIdentity,
-                        [
-                            $item->product_name,
-                            $item->productCategory?->title ?? '-',
-                            $item->quantity,
-                            $item->unit_price,
-                            $item->total_price,
-                            $item->notes,
-                            $item->internal_notes,
-                        ],
-                        $orderSummary,
-                    );
-                }
+                $rows[] = array_merge(
+                    $orderIdentity,
+                    ['-', '-', 0, 0.0, 0.0, 0.0, 0.0, 0.0, '-', '-', '-', 1, true],
+                    $orderSummary,
+                );
+
+                continue;
+            }
+
+            $line = 0;
+
+            foreach ($items as $item) {
+                $line++;
+
+                $adjustments = $itemAdjustments->get($item->id, collect());
+                $itemDiscount = (float) $adjustments
+                    ->filter(fn (AppliedAdjustment $a) => $a->kind === AdjustmentKind::Discount)
+                    ->sum('amount');
+                $itemPenalty = (float) $adjustments
+                    ->filter(fn (AppliedAdjustment $a) => $a->kind === AdjustmentKind::Penalty)
+                    ->sum('amount');
+
+                $rows[] = array_merge(
+                    $orderIdentity,
+                    [
+                        $item->product_name,
+                        $item->productCategory?->title ?? '-',
+                        $item->quantity,
+                        self::money($item->unit_price),
+                        self::money($item->total_price),
+                        $itemDiscount,
+                        $itemPenalty,
+                        (float) $item->total_price - $itemDiscount + $itemPenalty,
+                        $this->itemAdjustmentNote($adjustments),
+                        $item->notes,
+                        $item->internal_notes,
+                        $line,
+                        $line === 1,
+                    ],
+                    $orderSummary,
+                );
             }
         }
 
@@ -401,6 +451,54 @@ class SheetsController extends Controller
     /**
      * @return array<string, mixed>
      */
+    /**
+     * The brand-event's promotion post images as one downloadable thing, for the
+     * "Promotion Post Image Link" cell in the Brand Events sheet. One image is
+     * served as itself; several are zipped.
+     *
+     * MediaStream rather than ZipArchive: it streams through `Media::stream()`
+     * (Flysystem), so it keeps working once MEDIA_DISK flips to R2 - the
+     * ZipArchive path in PostExportService resolves real filesystem paths and
+     * would break there.
+     */
+    public function promotionPostImages(BrandEvent $brandEvent): StreamedResponse|BinaryFileResponse
+    {
+        $images = $brandEvent->promotionPosts()
+            ->with('media')
+            ->get()
+            ->flatMap(fn (PromotionPost $post) => $post->getMedia('post_image'));
+
+        abort_if($images->isEmpty(), 404, 'This brand has no promotion post images.');
+
+        $brandEvent->loadMissing(['brand:id,name,slug', 'event:id,slug']);
+        $stem = Str::slug(trim(($brandEvent->brand?->slug ?? 'brand').'-'.($brandEvent->event?->slug ?? '')), '-');
+
+        if ($images->count() === 1) {
+            $media = $images->first();
+
+            return Storage::disk($media->disk)->download(
+                $media->getPathRelativeToRoot(),
+                $this->downloadFileName($media),
+            );
+        }
+
+        // ZipStream would otherwise emit its own headers mid-stream, after
+        // Symfony has already sent the response's - leaving the declared type as
+        // MediaStream's `application/octet-stream` on the way out and ZipStream's
+        // non-standard `application/x-zip` on the wire. Silence it and declare
+        // the canonical type once.
+        $response = MediaStream::create("promotion-images-{$stem}.zip")
+            ->useZipOptions(function (array &$options) {
+                $options['sendHttpHeaders'] = false;
+            })
+            ->addMedia($images)
+            ->toResponse(request());
+
+        $response->headers->set('Content-Type', 'application/zip');
+
+        return $response;
+    }
+
     private function brandEventsPayload(?Event $event = null): array
     {
         $brandEvents = BrandEvent::query()
@@ -419,7 +517,17 @@ class SheetsController extends Controller
                 'event:id,title,slug,start_date,end_date,location,hall,status',
                 'sales:id,name,email,phone',
             ])
-            ->withCount(['promotionPosts', 'visits', 'clicks'])
+            ->withCount([
+                'promotionPosts',
+                // Only "does it have any" is needed for the download link, so
+                // count instead of eager-loading media across every brand-event.
+                'promotionPosts as promotion_post_images_count' => fn ($q) => $q->whereHas(
+                    'media',
+                    fn ($m) => $m->where('collection_name', 'post_image'),
+                ),
+                'visits',
+                'clicks',
+            ])
             ->orderBy('created_at')
             ->get();
 
@@ -471,7 +579,7 @@ class SheetsController extends Controller
             'Fascia Name', 'Badge Name',
             'Sales PIC Name', 'Sales PIC Email', 'Sales PIC Phone',
             'Participation Status', 'Notes', 'Promotion Post Limit',
-            'Visits Count', 'Clicks Count', 'Promotion Posts Count',
+            'Visits Count', 'Clicks Count', 'Promotion Posts Count', 'Promotion Post Image Link',
             'Brand Links Count',
             ...$linkLabels,
             ...$linkClickHeadings,
@@ -571,6 +679,7 @@ class SheetsController extends Controller
                 (int) $brandEvent->visits_count,
                 (int) $brandEvent->clicks_count,
                 (int) $brandEvent->promotion_posts_count,
+                $this->promotionImagesLink($brandEvent),
                 (int) ($brand?->links_count ?? 0),
                 ...$linkUrlSlots,
                 ...$linkClickSlots,
@@ -619,6 +728,7 @@ class SheetsController extends Controller
                     'label' => (string) $canonical->label,
                     'type' => $canonical->type,
                     'options' => $canonical->options ?? [],
+                    'settings' => $canonical->settings ?? [],
                     'keys' => $group->pluck('key')->unique()->values()->all(),
                 ];
             })
@@ -896,7 +1006,11 @@ class SheetsController extends Controller
         }
 
         return $order->adjustments
-            ->map(function ($adjustment) {
+            // Order-scoped only. Anything with an `order_item_id` belongs to a
+            // single line and is reported there, in `Item Adjustment Note`;
+            // listing it here too would double it up on every row of the order.
+            ->filter(fn (AppliedAdjustment $adjustment) => $adjustment->order_item_id === null)
+            ->map(function (AppliedAdjustment $adjustment) {
                 $reason = $adjustment->rule_snapshot['reason'] ?? $adjustment->label;
 
                 if ($adjustment->voided_at !== null) {
@@ -907,5 +1021,66 @@ class SheetsController extends Controller
             })
             ->filter()
             ->implode('; ') ?: '-';
+    }
+
+    /**
+     * Labels of the live adjustments on one order item. Voided ones are already
+     * filtered out by the caller, so unlike `adjustmentReason()` this never
+     * annotates - a line either carries an adjustment or it does not.
+     *
+     * @param  Collection<int, AppliedAdjustment>  $adjustments
+     */
+    private function itemAdjustmentNote(Collection $adjustments): string
+    {
+        return $adjustments
+            ->map(fn (AppliedAdjustment $adjustment) => $adjustment->rule_snapshot['reason'] ?? $adjustment->label)
+            ->filter()
+            ->implode('; ') ?: '-';
+    }
+
+    /**
+     * A sane name for a single downloaded image. Media library stores an
+     * on-disk `file_name` that can carry two extensions ("SB-1.jpg.jpeg") when
+     * the uploaded name already had one and the normalised mime type disagreed;
+     * this rebuilds it from the original name plus the real extension.
+     */
+    private function downloadFileName(Media $media): string
+    {
+        $name = (string) $media->name;
+        $extension = (string) $media->extension;
+
+        if ($extension === '' || str_ends_with(mb_strtolower($name), '.'.mb_strtolower($extension))) {
+            return $name !== '' ? $name : $media->file_name;
+        }
+
+        return preg_replace('/\.(jpe?g|png|webp|gif|svg|avif)$/i', '', $name).'.'.$extension;
+    }
+
+    /**
+     * Download URL for the brand-event's promotion post images, or '-' when it
+     * has none. The token is embedded so the cell is clickable straight out of
+     * the spreadsheet - which already holds the same token in its feed URLs, so
+     * this exposes nothing new.
+     */
+    private function promotionImagesLink(BrandEvent $brandEvent): string
+    {
+        if ((int) ($brandEvent->promotion_post_images_count ?? 0) === 0) {
+            return '-';
+        }
+
+        return route('sheets.brand-events.promotion-images', [
+            'brandEvent' => $brandEvent->id,
+            'token' => config('services.sheets.api_token'),
+        ]);
+    }
+
+    /**
+     * Money and rates as real numbers. The `decimal:2` casts hand back strings
+     * ("6000000.00"), which land in the spreadsheet next to genuinely numeric
+     * columns and make a sheet that mixes two types in one row.
+     */
+    private static function money(mixed $value): ?float
+    {
+        return $value === null ? null : (float) $value;
     }
 }

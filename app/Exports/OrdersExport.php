@@ -2,6 +2,8 @@
 
 namespace App\Exports;
 
+use App\Enums\AdjustmentKind;
+use App\Models\AppliedAdjustment;
 use App\Models\BrandEvent;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,12 +21,15 @@ class OrdersExport extends BaseExport
     {
         return Order::query()
             ->whereIn('brand_event_id', BrandEvent::where('event_id', $this->eventId)->select('id'))
-            ->with(['brandEvent.brand', 'brandEvent.sales', 'items.productCategory', 'creator'])
+            ->with(['brandEvent.brand', 'brandEvent.sales', 'items.productCategory', 'adjustments', 'creator'])
             ->withCount('items');
     }
 
     public function headings(): array
     {
+        // Same shape as the Google Sheets orders feed, so the two never disagree:
+        // one row per item, the order-level cells repeated and prefixed "Order ",
+        // and `Is First Line` to sum them without counting an order once per item.
         return [
             'ID',
             'Order Number',
@@ -43,14 +48,21 @@ class OrdersExport extends BaseExport
             'Qty',
             'Unit Price',
             'Item Total',
+            'Item Discount',
+            'Item Penalty',
+            'Item Net Total',
+            'Item Adjustment Note',
             'Item Notes',
-            'Subtotal',
-            'Discount Amount',
-            'Penalty Amount',
+            'Line #',
+            'Is First Line',
+            'Order Subtotal',
+            'Order Discount Amount',
+            'Order Penalty Amount',
             'Promo Code',
+            'Order Adjustment Reason',
             'Tax Rate (%)',
-            'Tax Amount',
-            'Total',
+            'Order Tax Amount',
+            'Order Total',
             'Operational Status',
             'Payment Status',
             'Cancellation Reason',
@@ -60,7 +72,7 @@ class OrdersExport extends BaseExport
             'Created By',
             'Currency',
             'Exchange Rate (to IDR)',
-            'Total (IDR)',
+            'Order Total (IDR)',
         ];
     }
 
@@ -74,6 +86,13 @@ class OrdersExport extends BaseExport
         $brandEvent = $order->brandEvent;
         $items = $order->items;
 
+        // Live per-item adjustments only. A voided one keeps its `amount` as the
+        // audit record of what once applied, so including it would report a
+        // discount the order total no longer carries.
+        $itemAdjustments = $order->adjustments
+            ->filter(fn (AppliedAdjustment $a) => $a->order_item_id !== null && $a->voided_at === null)
+            ->groupBy('order_item_id');
+
         $orderFields = [
             $order->id,
             $order->order_number,
@@ -81,8 +100,8 @@ class OrdersExport extends BaseExport
             $brand?->company_name ?? '-',
             $brandEvent?->booth_type?->label() ?? '-',
             $brandEvent?->booth_number ?? '-',
-            $brandEvent?->booth_size,
-            $brandEvent?->booth_price,
+            $this->money($brandEvent?->booth_size),
+            $this->money($brandEvent?->booth_price),
             $brandEvent?->fascia_name ?? '-',
             $brandEvent?->badge_name ?? '-',
             $brandEvent?->sales?->name ?? '-',
@@ -90,13 +109,14 @@ class OrdersExport extends BaseExport
         ];
 
         $orderSummary = [
-            $order->subtotal,
-            $order->discount_amount,
-            $order->penalty_amount,
+            $this->money($order->subtotal),
+            $this->money($order->discount_amount),
+            $this->money($order->penalty_amount),
             $order->promo_code_applied ?? '-',
-            $order->tax_rate,
-            $order->tax_amount,
-            $order->total,
+            $this->orderAdjustmentNote($order),
+            $this->money($order->tax_rate),
+            $this->money($order->tax_amount),
+            $this->money($order->total),
             $order->operational_status?->label() ?? '-',
             $order->payment_status?->label() ?? '-',
             $order->cancellation_reason,
@@ -105,33 +125,86 @@ class OrdersExport extends BaseExport
             $order->confirmed_at?->format('Y-m-d H:i:s'),
             $order->creator?->name ?? '-',
             $order->currency ?? 'IDR',
-            (float) $order->exchange_rate_to_idr,
-            (float) $order->total_idr,
+            $this->money($order->exchange_rate_to_idr),
+            $this->money($order->total_idr),
         ];
 
         if ($items->isEmpty()) {
-            return [array_merge($orderFields, ['-', '-', 0, 0, 0, '-'], $orderSummary)];
+            return [array_merge(
+                $orderFields,
+                ['-', '-', 0, 0.0, 0.0, 0.0, 0.0, 0.0, '-', '-', 1, true],
+                $orderSummary,
+            )];
         }
 
-        return $items->map(fn ($item) => array_merge(
-            $orderFields,
-            [
-                $item->product_name,
-                $item->productCategory?->title ?? '-',
-                $item->quantity,
-                $item->unit_price,
-                $item->total_price,
-                $item->notes,
-            ],
-            $orderSummary,
-        ))->toArray();
+        $line = 0;
+
+        return $items->map(function ($item) use ($orderFields, $orderSummary, $itemAdjustments, &$line) {
+            $line++;
+
+            $adjustments = $itemAdjustments->get($item->id, collect());
+            $discount = (float) $adjustments
+                ->filter(fn (AppliedAdjustment $a) => $a->kind === AdjustmentKind::Discount)
+                ->sum('amount');
+            $penalty = (float) $adjustments
+                ->filter(fn (AppliedAdjustment $a) => $a->kind === AdjustmentKind::Penalty)
+                ->sum('amount');
+
+            return array_merge(
+                $orderFields,
+                [
+                    $item->product_name,
+                    $item->productCategory?->title ?? '-',
+                    $item->quantity,
+                    $this->money($item->unit_price),
+                    $this->money($item->total_price),
+                    $discount,
+                    $penalty,
+                    (float) $item->total_price - $discount + $penalty,
+                    $adjustments
+                        ->map(fn (AppliedAdjustment $a) => $a->rule_snapshot['reason'] ?? $a->label)
+                        ->filter()
+                        ->implode('; ') ?: '-',
+                    $item->notes,
+                    $line,
+                    $line === 1,
+                ],
+                $orderSummary,
+            );
+        })->toArray();
     }
 
     /**
-     * Number columns (after inserting "Badge Name" at col J): G=Booth Size,
-     * H=Booth Price, O=Qty, P=Unit Price, Q=Item Total, S=Subtotal,
-     * T=Discount Amount, U=Penalty Amount, W=Tax Rate, X=Tax Amount, Y=Total,
-     * AH=Exchange Rate (to IDR), AI=Total (IDR).
+     * Order-scoped adjustments only; item-scoped ones are reported on their own
+     * line so they are not repeated on every row of the order.
+     */
+    private function orderAdjustmentNote(Order $order): string
+    {
+        return $order->adjustments
+            ->filter(fn (AppliedAdjustment $a) => $a->order_item_id === null)
+            ->map(function (AppliedAdjustment $a) {
+                $reason = $a->rule_snapshot['reason'] ?? $a->label;
+
+                return $a->voided_at !== null
+                    ? "{$reason} (voided: ".($a->void_reason ?: 'no reason').')'
+                    : $reason;
+            })
+            ->filter()
+            ->implode('; ') ?: '-';
+    }
+
+    /** Money and rates as real numbers; the `decimal:2` casts hand back strings. */
+    private function money(mixed $value): ?float
+    {
+        return $value === null ? null : (float) $value;
+    }
+
+    /**
+     * Numeric columns, keyed to headings(): G=Booth Size, H=Booth Price, O=Qty,
+     * P=Unit Price, Q=Item Total, R=Item Discount, S=Item Penalty,
+     * T=Item Net Total, W=Line #, Y=Order Subtotal, Z=Order Discount Amount,
+     * AA=Order Penalty Amount, AD=Tax Rate, AE=Order Tax Amount,
+     * AF=Order Total, AO=Exchange Rate (to IDR), AP=Order Total (IDR).
      */
     public function columnFormats(): array
     {
@@ -141,14 +214,18 @@ class OrdersExport extends BaseExport
             'O' => '#,##0',
             'P' => '#,##0',
             'Q' => '#,##0',
+            'R' => '#,##0',
             'S' => '#,##0',
             'T' => '#,##0',
-            'U' => '#,##0',
-            'W' => '#,##0.00',
-            'X' => '#,##0',
+            'W' => '#,##0',
             'Y' => '#,##0',
-            'AH' => '#,##0.000000',
-            'AI' => '#,##0',
+            'Z' => '#,##0',
+            'AA' => '#,##0',
+            'AD' => '#,##0.00',
+            'AE' => '#,##0',
+            'AF' => '#,##0',
+            'AO' => '#,##0.000000',
+            'AP' => '#,##0',
         ];
     }
 
@@ -163,7 +240,7 @@ class OrdersExport extends BaseExport
             ],
         ];
 
-        foreach (['G', 'H', 'O', 'P', 'Q', 'S', 'T', 'U', 'W', 'X', 'Y', 'AH', 'AI'] as $column) {
+        foreach (array_keys($this->columnFormats()) as $column) {
             $styles[$column] = $numberFont;
         }
 

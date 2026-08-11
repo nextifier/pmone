@@ -434,6 +434,8 @@ class ExampleFormsSeeder extends Seeder
             CustomField::TYPE_YEAR_RANGE => $this->makeYearRange($validation),
             CustomField::TYPE_TIME_RANGE => $this->makeTimeRange(),
             CustomField::TYPE_SLIDER_RANGE => $this->makeSliderRange($field),
+            CustomField::TYPE_PRICE => $this->makePriceValue($field),
+            CustomField::TYPE_PRICE_RANGE => $this->makePriceRange($field),
             CustomField::TYPE_SLIDER_RULER => $this->makeSliderValue($field),
             CustomField::TYPE_SELECT, CustomField::TYPE_RADIO => $optionValues
                 ? $optionValues[$this->weightedIndex(count($optionValues))]
@@ -578,6 +580,29 @@ class ExampleFormsSeeder extends Seeder
     {
         $a = $this->makeSliderValue($field);
         $b = $this->makeSliderValue($field);
+
+        return ['start' => min($a, $b), 'end' => max($a, $b)];
+    }
+
+    private function makePriceValue(CustomField $field): int
+    {
+        $validation = $field->validation ?? [];
+        $min = (int) ($validation['min'] ?? 0);
+        $max = (int) ($validation['max'] ?? 100000000);
+        $step = max(1, (int) ($field->settings['step'] ?? 1000000));
+
+        $steps = max(1, (int) floor(($max - $min) / $step));
+
+        return $min + mt_rand(0, $steps) * $step;
+    }
+
+    /**
+     * @return array{start: int, end: int}
+     */
+    private function makePriceRange(CustomField $field): array
+    {
+        $a = $this->makePriceValue($field);
+        $b = $this->makePriceValue($field);
 
         return ['start' => min($a, $b), 'end' => max($a, $b)];
     }

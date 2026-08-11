@@ -92,7 +92,7 @@
                   decimal
                   placeholder="Leave empty to use room type's default base rate"
                   data-slot="input-group-control"
-                  class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                  class="cn-input-group-input flex-1"
                 />
                 <InputGroupAddon>
                   <InputGroupText>Rp</InputGroupText>
@@ -146,7 +146,7 @@
                     decimal
                     :disabled="!form.surcharge_type"
                     data-slot="input-group-control"
-                    class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+                    class="cn-input-group-input flex-1"
                   />
                   <InputGroupAddon :align="form.surcharge_type === 'percentage' ? 'inline-end' : 'inline-start'">
                     <InputGroupText>{{ form.surcharge_type === "percentage" ? "%" : "Rp" }}</InputGroupText>

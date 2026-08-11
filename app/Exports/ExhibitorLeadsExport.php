@@ -71,7 +71,7 @@ class ExhibitorLeadsExport implements FromCollection, WithHeadings, WithMapping
         $answers = $this->answersByUser[$buyerId] ?? [];
         foreach ($this->customFields() as $field) {
             $value = $field->event_id === $lead->event_id ? ($answers[$field->id] ?? null) : null;
-            $row[] = FormFieldTypes::formatStoredValue($field->type, $value, $field->options ?? []);
+            $row[] = FormFieldTypes::formatStoredValue($field->type, $value, $field->options ?? [], $field->settings ?? []);
         }
 
         return $row;

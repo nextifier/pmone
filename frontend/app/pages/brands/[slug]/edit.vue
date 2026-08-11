@@ -243,7 +243,7 @@ const fetchBrand = async () => {
 
 // Members
 const newMemberEmail = ref("");
-const sendLoginEmail = ref(false);
+const sendLoginEmail = ref(true);
 const addingMember = ref(false);
 const removingMember = ref(null);
 

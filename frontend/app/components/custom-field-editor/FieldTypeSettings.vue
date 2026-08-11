@@ -83,6 +83,24 @@
         <InputNumber v-model="settings.step" decimal placeholder="1" />
       </div>
 
+      <!-- Currency symbol -->
+      <div v-if="typeConfig.hasCurrency" class="space-y-2">
+        <Label :for="`${idPrefix}_currency`">Currency symbol</Label>
+        <Input :id="`${idPrefix}_currency`" v-model="settings.currency" placeholder="Rp" />
+      </div>
+
+      <!-- Range slider -->
+      <div v-if="typeConfig.hasSliderToggle" class="space-y-2">
+        <div class="flex items-center gap-x-2">
+          <Switch :id="`${idPrefix}_show_slider`" v-model="settings.show_slider" />
+          <Label :for="`${idPrefix}_show_slider`" class="font-normal">Show range slider</Label>
+        </div>
+        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+          Needs a max value. Leave the max empty when the amount is open-ended - the
+          two fields then accept any figure, with no ceiling implied.
+        </p>
+      </div>
+
       <!-- Rating max -->
       <div v-if="typeConfig.hasRatingMax" class="space-y-2">
         <Label>Number of stars</Label>

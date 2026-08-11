@@ -55,6 +55,28 @@ done < <(
     | cut -c1-160
 )
 
+# An input nested in an `<InputGroup>` must carry `cn-input-group-input`, which
+# strips its border/radius/shadow/ring AND its background. Hand-writing that
+# stripping is what the pattern below catches: 23 call sites had spelled it out
+# as `rounded-none border-0 shadow-none ... dark:bg-transparent`, which clears
+# the background in dark mode ONLY. In light mode the input kept `bg-background`
+# and, being 1px taller than the group's content box, painted over the group's
+# top and bottom border — the field read as a broken half-drawn box.
+# The heuristic above misses this: its GEOMETRY regex knows `rounded-sm..2xl`
+# but not `rounded-none`, and its SURFACE regex knows `border`/`border-border`
+# but not `border-0`.
+group_input=$(grep -rnE 'class="[^"]*\brounded-none\b[^"]*"' --include="*.vue" "$ROOT/components" "$ROOT/pages" 2>/dev/null \
+  | grep -v "/components/ui/" \
+  | grep -vE 'cn-input-group-(input|textarea)' \
+  | grep -E '\bborder-0\b' \
+  | grep -v 'cn-allow' \
+  | cut -c1-160 || true)
+if [ -n "$group_input" ]; then
+  echo "  ${RED}GROUP-INPUT${RST} strips field chrome by hand; use \`cn-input-group-input flex-1\`:"
+  echo "$group_input" | sed 's/^/    /'
+  hits=$((hits + 1))
+fi
+
 # The legacy `.input-base` / `.input-group` rules were removed from main.css; both
 # selectors were unlayered and therefore beat every `cn-*` rule, which silently
 # pinned six auth pages to a 40px/rounded-md field.

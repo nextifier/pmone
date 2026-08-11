@@ -70,6 +70,7 @@ https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsK
 - URL API: `https://api.pmone.id/api/sheets/brand-events`
 - Sheet name: `Brand Events`
 - Berisi: satu baris per keikutsertaan brand di sebuah event (booth, sales PIC, status partisipasi, dsb)
+- Kolom `Promotion Post Image Link` berisi satu link unduhan per booth. Kalau brand itu punya satu gambar promosi, link-nya membuka gambar itu langsung; kalau lebih dari satu, link-nya mengunduh satu file zip berisi semua gambarnya. Booth tanpa gambar isinya `-`. Link-nya sudah membawa token, jadi bisa langsung diklik dari spreadsheet
 
 **6. Brand Events - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/brand-events`
@@ -85,6 +86,32 @@ https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsK
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/orders`
 - Sheet name: `Orders`
 - Berisi: hanya order di event tersebut. Kolomnya sama persis dengan versi semua event
+
+### Cara baca kolom di sheet Orders
+
+Satu order dengan tiga item jadi tiga baris. Kolom yang diawali `Order ` adalah nilai
+milik ORDER dan diulang di ketiga baris itu; sisanya milik baris/item tersebut.
+
+| Kolom | Artinya |
+|---|---|
+| `Item Discount` / `Item Penalty` | diskon atau penalti yang menempel di produk itu saja |
+| `Item Net Total` | `Item Total` setelah diskon dan penalti item |
+| `Item Adjustment Note` | alasan diskon/penalti item itu |
+| `Order Discount Amount` | TOTAL diskon satu order, gabungan diskon per item dan diskon order |
+| `Order Adjustment Reason` | alasan diskon/penalti yang berlaku untuk seluruh order (yang per item ada di kolom item) |
+| `Line #` | nomor urut item dalam order (1, 2, 3, ...) |
+| `Is First Line` | `TRUE` hanya di baris pertama tiap order |
+
+**Penting saat menjumlahkan.** Karena kolom `Order ...` diulang di tiap baris,
+`SUM` biasa akan menghitung satu order berkali-kali. Pakai `Is First Line`:
+
+```
+=SUMIF(AC:AC; TRUE; AK:AK)     // AC = Is First Line, AK = Order Total
+```
+
+Kalau yang mau dijumlahkan nilai per item (`Item Total`, `Item Net Total`,
+`Item Discount`), jumlahkan langsung tanpa filter, karena kolom itu memang unik
+per baris.
 
 **9. Operational Documents (semua)**
 - URL API: `https://api.pmone.id/api/sheets/operational-documents`

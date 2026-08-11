@@ -56,7 +56,7 @@
             :decimal="true"
             placeholder="0"
             data-slot="input-group-control"
-            class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+            class="cn-input-group-input flex-1"
           />
         </InputGroup>
         <p v-if="errors.price" class="text-destructive mt-1 text-xs">
@@ -77,7 +77,7 @@
             :decimal="true"
             placeholder="0"
             data-slot="input-group-control"
-            class="flex-1 rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-transparent dark:bg-transparent"
+            class="cn-input-group-input flex-1"
           />
         </InputGroup>
         <p v-if="errors.price_usd" class="text-destructive mt-1 text-xs">

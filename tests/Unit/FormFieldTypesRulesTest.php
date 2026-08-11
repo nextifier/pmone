@@ -77,3 +77,40 @@ it('keeps rulesFor delegating identically to rulesForType', function () {
     expect(FormFieldTypes::rulesFor($select, 'answer'))
         ->toBe(['answer' => ['nullable', 'string', 'in:a,b']]);
 });
+
+it('validates price as a bounded number', function () {
+    expect(FormFieldTypes::rulesForType(CustomField::TYPE_PRICE, 'answer', true, [], ['min' => 0, 'max' => 500000000]))
+        ->toBe(['answer' => ['required', 'numeric', 'min:0', 'max:500000000']]);
+
+    expect(FormFieldTypes::rulesForType(CustomField::TYPE_PRICE, 'answer', false))
+        ->toBe(['answer' => ['nullable', 'numeric']]);
+});
+
+it('validates price_range as an ordered pair of bounded numbers', function () {
+    expect(FormFieldTypes::rulesForType(CustomField::TYPE_PRICE_RANGE, 'answer', false, [], ['min' => 0, 'max' => 500000000]))
+        ->toBe([
+            'answer' => ['nullable', 'array'],
+            'answer.start' => ['required_with:answer', 'numeric', 'min:0', 'max:500000000'],
+            'answer.end' => ['required_with:answer', 'numeric', 'min:0', 'max:500000000', 'gte:answer.start'],
+        ]);
+});
+
+it('formats money values with a currency symbol and thousands separators', function () {
+    expect(FormFieldTypes::formatValueForType(CustomField::TYPE_PRICE, 20000000))->toBe('Rp 20,000,000');
+    expect(FormFieldTypes::formatValueForType(CustomField::TYPE_PRICE_RANGE, ['start' => 20000000, 'end' => 75000000]))
+        ->toBe('Rp 20,000,000 - Rp 75,000,000');
+    expect(FormFieldTypes::formatValueForType(CustomField::TYPE_PRICE_RANGE, ['start' => null, 'end' => null]))->toBe('-');
+
+    // The symbol follows the field's own setting, and an empty one is dropped.
+    expect(FormFieldTypes::formatValueForType(CustomField::TYPE_PRICE, 1500, [], ['currency' => 'USD']))
+        ->toBe('USD 1,500');
+    expect(FormFieldTypes::formatValueForType(CustomField::TYPE_PRICE, 1500, [], ['currency' => '']))
+        ->toBe('1,500');
+});
+
+it('treats price_range as an object-range type', function () {
+    expect(FormFieldTypes::OBJECT_RANGE_TYPES)->toContain(CustomField::TYPE_PRICE_RANGE)
+        ->and(CustomField::allowedTypesFor(CustomField::CONTEXT_BRAND))
+        ->toContain(CustomField::TYPE_PRICE)
+        ->toContain(CustomField::TYPE_PRICE_RANGE);
+});

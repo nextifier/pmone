@@ -53,6 +53,7 @@ class SheetFormatting
                     $column['type'],
                     $value,
                     $column['options'] ?? [],
+                    $column['settings'] ?? [],
                 );
             })
             ->values()

@@ -113,10 +113,10 @@ it('exposes currency columns on the Google Sheets orders feed', function () {
     $headings = $response->json('headings');
     expect($headings)->toContain('Currency')
         ->toContain('Exchange Rate (to IDR)')
-        ->toContain('Total (IDR)');
+        ->toContain('Order Total (IDR)');
 
     $currencyIdx = array_search('Currency', $headings, true);
-    $totalIdrIdx = array_search('Total (IDR)', $headings, true);
+    $totalIdrIdx = array_search('Order Total (IDR)', $headings, true);
 
     expect($response->json("rows.0.{$currencyIdx}"))->toBe('USD');
     expect((float) $response->json("rows.0.{$totalIdrIdx}"))->toBe(3520000.0);

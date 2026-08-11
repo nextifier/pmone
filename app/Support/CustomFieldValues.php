@@ -138,6 +138,6 @@ class CustomFieldValues
      */
     public static function format(CustomField $field, mixed $stored): string
     {
-        return FormFieldTypes::formatStoredValue($field->type, $stored, $field->options ?? []);
+        return FormFieldTypes::formatStoredValue($field->type, $stored, $field->options ?? [], $field->settings ?? []);
     }
 }

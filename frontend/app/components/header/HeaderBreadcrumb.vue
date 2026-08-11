@@ -1,5 +1,5 @@
 <template>
-  <div class="-ml-2 flex grow items-center gap-x-2 overflow-hidden sm:ml-0 sm:gap-x-2.5">
+  <div class="flex grow items-center gap-x-2 overflow-hidden sm:gap-x-2.5">
     <ButtonBack :destination="backDestination" :force-destination="forceBackDestination">
       <template #default="{ goBack }">
         <button

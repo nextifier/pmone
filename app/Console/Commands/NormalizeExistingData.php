@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Attendee;
 use App\Models\Brand;
+use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\CustomFieldValue;
 use App\Models\Form;
@@ -25,7 +26,7 @@ use Spatie\ResponseCache\Facades\ResponseCache;
 class NormalizeExistingData extends Command
 {
     protected $signature = 'data:normalize
-        {--table=* : Limit to specific targets (users, contacts, reservations, reservation_items, attendees, ticket_orders, ticket_waitlist_entries, hotels, brands, projects, guests, forms, form_responses, custom_field_values)}
+        {--table=* : Limit to specific targets (users, contacts, reservations, reservation_items, attendees, ticket_orders, ticket_waitlist_entries, hotels, brands, brand_events, projects, guests, forms, form_responses, custom_field_values)}
         {--dry-run : Report what would change without writing anything}
         {--force : Apply without the confirmation prompt}
         {--chunk=200 : Rows per chunk}';
@@ -48,6 +49,7 @@ class NormalizeExistingData extends Command
         'ticket_waitlist_entries' => TicketWaitlistEntry::class,
         'hotels' => Hotel::class,
         'brands' => Brand::class,
+        'brand_events' => BrandEvent::class,
         'projects' => Project::class,
         'guests' => Guest::class,
     ];

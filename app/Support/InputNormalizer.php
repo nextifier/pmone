@@ -67,6 +67,38 @@ final class InputNormalizer
     }
 
     /**
+     * Normalize a booth number so a hall/block prefix is always separated from
+     * its number by a dash: "8A81" becomes "8A-81" and "B01" becomes "B-01".
+     *
+     * The dash goes in front of a token's FINAL digit group only, which is what
+     * keeps compound prefixes intact - "B1A01" becomes "B1A-01", not
+     * "B-1A-01". Values that are already correct ("6E-01", "A-04A", "AA-105")
+     * are left alone, and the rule is idempotent.
+     *
+     * Letters are uppercased: booth numbers are signage, and case is never
+     * meaningful in one. It also keeps `boothPrimaryId()` honest, since that
+     * groups shared booths by an exact string match - "B1B35" and "B1b35" would
+     * otherwise count as two different physical booths.
+     *
+     * Tokens are separated by comma, slash, ampersand, or whitespace, and every
+     * separator survives as typed; only spacing around commas is tidied. The
+     * mirror of this rule for live typing lives in
+     * frontend/app/utils/boothNumber.js - change both together.
+     */
+    public static function boothNumber(?string $value): ?string
+    {
+        $value = self::collapseWhitespace($value);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $value = mb_strtoupper((string) preg_replace('/\s*,\s*/u', ', ', $value), 'UTF-8');
+
+        return (string) preg_replace('/([A-Z])(\d+)(?![^\s,\/&]*\d)/u', '$1-$2', $value);
+    }
+
+    /**
      * Normalize a phone number to international format. Empty becomes null.
      */
     public static function phone(?string $value): ?string

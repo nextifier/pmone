@@ -2,6 +2,7 @@
 
 use App\Models\Attendee;
 use App\Models\Brand;
+use App\Models\BrandEvent;
 use App\Models\Contact;
 use App\Models\Guest;
 use App\Models\Hotel;
@@ -151,4 +152,32 @@ it('normalizes guest speaker names', function () {
     $guest = Guest::factory()->create(['name' => 'ALBERTHINOES PAKENDEN']);
 
     expect($guest->name)->toBe('Alberthinoes Pakenden');
+});
+
+it('normalizes booth numbers on save', function (string $input, ?string $expected) {
+    $brandEvent = BrandEvent::factory()->create(['booth_number' => $input]);
+
+    expect($brandEvent->fresh()->booth_number)->toBe($expected);
+})->with([
+    'missing dash' => ['8A81', '8A-81'],
+    'compound prefix' => ['B1A01', 'B1A-01'],
+    'already correct' => ['A-04A', 'A-04A'],
+    'multi token' => ['B1B19,B1B20', 'B1B-19, B1B-20'],
+    'blank becomes null' => ['   ', null],
+]);
+
+it('normalizes booth numbers on update', function () {
+    $brandEvent = BrandEvent::factory()->create(['booth_number' => 'A-01']);
+
+    $brandEvent->update(['booth_number' => '8A81']);
+
+    expect($brandEvent->fresh()->booth_number)->toBe('8A-81');
+});
+
+it('skips booth normalization inside withoutNormalization', function () {
+    BrandEvent::withoutNormalization(function () {
+        $brandEvent = BrandEvent::factory()->create(['booth_number' => '8A81']);
+
+        expect($brandEvent->fresh()->booth_number)->toBe('8A81');
+    });
 });

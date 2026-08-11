@@ -16,6 +16,7 @@
             data-slot="input"
             class="cn-input flex w-auto min-w-0 shrink-0 items-center gap-1 rounded-e-none border-e-0"
             aria-label="Select country"
+            :aria-invalid="isInvalid || undefined"
           >
             <Flag :country="inputValue" />
             <ChevronsUpDown class="h-4 w-4 opacity-50" />
@@ -65,6 +66,7 @@
         @input="updateInputValue"
         :placeholder="placeholder"
         :required="required"
+        :aria-invalid="isInvalid || undefined"
       />
     </template>
   </PhoneInput>
@@ -80,12 +82,22 @@ const props = withDefaults(
   defineProps<{
     modelValue?: string;
     required?: boolean;
+    /**
+     * Declared rather than left to fall through: the fallthrough target is
+     * `PhoneInput`'s wrapper div, so the `aria-invalid:` rules on `.cn-input`
+     * would never see it and an invalid phone field would keep a normal border
+     * while every other field in the row turned red. Bound to both halves of
+     * the group so the country button reddens with the number.
+     */
+    ariaInvalid?: boolean | "true" | "false";
     align?: "start" | "center" | "end";
   }>(),
   {
     align: "start",
   }
 );
+
+const isInvalid = computed(() => props.ariaInvalid === true || props.ariaInvalid === "true");
 
 const emit = defineEmits<{
   "update:modelValue": [value: string];

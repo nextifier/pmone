@@ -171,6 +171,8 @@ class FormTemplates
                     ['type' => 'slider', 'label' => 'Slider', 'validation' => ['min' => 0, 'max' => 10], 'settings' => ['step' => 1]],
                     ['type' => 'slider_range', 'label' => 'Budget Range', 'validation' => ['min' => 0, 'max' => 100], 'settings' => ['step' => 5], 'help_text' => 'Drag both handles to set a range.'],
                     ['type' => 'slider_ruler', 'label' => 'Intensity', 'placeholder' => 'Intensity', 'validation' => ['min' => 0, 'max' => 100], 'settings' => ['step' => 1]],
+                    ['type' => 'price', 'label' => 'Price', 'placeholder' => 'Ex: 50,000,000', 'validation' => ['min' => 0, 'max' => 100000000], 'settings' => ['currency' => 'Rp']],
+                    ['type' => 'price_range', 'label' => 'Price Range', 'validation' => ['min' => 0, 'max' => 100000000], 'settings' => ['step' => 1000000, 'currency' => 'Rp'], 'help_text' => 'Drag both handles, or type the amounts.'],
                     ['type' => 'rating', 'label' => 'Rating', 'settings' => ['max' => 5]],
                     ['type' => 'linear_scale', 'label' => 'Linear Scale', 'validation' => ['min' => 1, 'max' => 7], 'settings' => ['min_label' => 'Low', 'max_label' => 'High']],
                     ['type' => 'section', 'label' => 'Special'],

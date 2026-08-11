@@ -6,8 +6,8 @@ use App\Enums\BoothType;
 use App\Services\Currency\CurrencyResolver;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -95,9 +95,15 @@ class BrandEvent extends Model implements HasMedia, Sortable
     use HasMediaManager;
     use InteractsWithMedia;
     use LogsActivity;
+    use NormalizesAttributes;
     use SortableTrait;
 
     protected $table = 'brand_event';
+
+    /** @var array<string, string> */
+    protected array $normalizes = [
+        'booth_number' => 'boothNumber',
+    ];
 
     protected $fillable = [
         'brand_id',
@@ -131,13 +137,6 @@ class BrandEvent extends Model implements HasMedia, Sortable
             // per-instance; the posts' DB FK cascade would otherwise orphan media.
             $model->promotionPosts()->get()->each(fn ($child) => $child->delete());
         });
-    }
-
-    protected function boothNumber(): Attribute
-    {
-        return Attribute::make(
-            set: fn (?string $value) => $value ? collect(preg_split('/[\s,]+/', trim($value)))->filter()->implode(', ') : null,
-        );
     }
 
     protected function casts(): array
@@ -197,6 +196,28 @@ class BrandEvent extends Model implements HasMedia, Sortable
     public function isBoothPrimary(): bool
     {
         return $this->boothPrimaryId() === $this->id;
+    }
+
+    /**
+     * Fascia is a shell-scheme fitting, so raw space has no board to print on.
+     * Mirrors exhibitorShowFascia() in frontend/app/utils/exhibitorDashboard.js.
+     */
+    public function requiresFasciaName(): bool
+    {
+        return in_array(
+            $this->booth_type,
+            [BoothType::StandardShellScheme, BoothType::EnhancedShellScheme],
+            true,
+        );
+    }
+
+    /**
+     * Any booth with a type gets exhibitor badges printed.
+     * Mirrors exhibitorShowBadge() in frontend/app/utils/exhibitorDashboard.js.
+     */
+    public function requiresBadgeName(): bool
+    {
+        return $this->booth_type !== null;
     }
 
     /**
