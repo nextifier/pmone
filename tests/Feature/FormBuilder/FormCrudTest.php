@@ -271,6 +271,66 @@ it('exposes the short link for published forms', function () {
         ->and($response->json('data.short_link.url'))->toContain($response->json('data.short_link.slug'));
 });
 
+it('bulk restores several trashed forms at once', function () {
+    $forms = Form::factory()->count(3)->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+    ]);
+
+    foreach ($forms as $form) {
+        $this->deleteJson("/api/forms/{$form->slug}")->assertSuccessful();
+    }
+
+    $ids = $forms->pluck('id')->all();
+
+    $this->postJson('/api/forms/trash/restore/bulk', ['ids' => $ids])
+        ->assertSuccessful()
+        ->assertJsonPath('restored_count', 3);
+
+    expect(Form::whereIn('id', $ids)->count())->toBe(3);
+});
+
+it('bulk force deletes several trashed forms at once', function () {
+    $forms = Form::factory()->count(2)->create([
+        'user_id' => $this->user->id,
+        'created_by' => $this->user->id,
+    ]);
+
+    foreach ($forms as $form) {
+        $this->deleteJson("/api/forms/{$form->slug}")->assertSuccessful();
+    }
+
+    $ids = $forms->pluck('id')->all();
+
+    $this->deleteJson('/api/forms/trash/bulk', ['ids' => $ids])
+        ->assertSuccessful()
+        ->assertJsonPath('deleted_count', 2);
+
+    expect(Form::withTrashed()->whereIn('id', $ids)->count())->toBe(0);
+});
+
+it('leaves a live form alone when its id is passed to bulk restore', function () {
+    $live = Form::factory()->create(['user_id' => $this->user->id, 'created_by' => $this->user->id]);
+    $trashed = Form::factory()->create(['user_id' => $this->user->id, 'created_by' => $this->user->id]);
+
+    $this->deleteJson("/api/forms/{$trashed->slug}")->assertSuccessful();
+
+    // `onlyTrashed()` is what keeps the live one out of the set, so the count
+    // has to come back as 1 rather than 2.
+    $this->postJson('/api/forms/trash/restore/bulk', ['ids' => [$live->id, $trashed->id]])
+        ->assertSuccessful()
+        ->assertJsonPath('restored_count', 1);
+
+    expect(Form::find($live->id))->not->toBeNull()
+        ->and(Form::find($trashed->id))->not->toBeNull();
+});
+
+it('rejects a bulk restore with no ids', function () {
+    $this->postJson('/api/forms/trash/restore/bulk', ['ids' => []])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('ids');
+});
+
 it('soft deletes, lists in trash, restores, and force deletes a form', function () {
     $form = Form::factory()->create(['user_id' => $this->user->id, 'created_by' => $this->user->id]);
 

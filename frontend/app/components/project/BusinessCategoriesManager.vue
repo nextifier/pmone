@@ -30,7 +30,7 @@
           Export
         </Button>
         <Button size="sm" @click="openCreateDialog">
-          <Icon name="lucide:plus" class="-ml-1 size-4 shrink-0" />
+          <Icon name="hugeicons:add-01" class="-ml-1 size-4 shrink-0" />
           Add category
         </Button>
       </div>
@@ -54,7 +54,7 @@
           class="bg-card flex items-center gap-x-3 rounded-xl border px-3 py-3"
         >
           <Icon
-            name="lucide:grip-vertical"
+            name="hugeicons:drag-drop-vertical"
             class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab"
           />
 

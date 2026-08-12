@@ -4,6 +4,12 @@
 
   <!-- Section description -->
   <Field v-if="typeConfig.hasDescription">
+    <!-- No `for` here on purpose. TipTapEditor renders a wrapper div as its
+         root, so an id lands on the div and not on the contenteditable; a
+         label pointing at a non-labelable element is worse than none. Giving
+         the editor a real accessible name means an `aria-label` inside its
+         `editorProps.attributes`, which is a components/ui change across three
+         repos and out of scope here. -->
     <FieldLabel>Description</FieldLabel>
     <TipTapEditor
       v-model="settings.description"
@@ -58,12 +64,12 @@
       <!-- Min / max -->
       <div v-if="typeConfig.minMaxMode" class="grid grid-cols-2 gap-x-2 gap-y-4">
         <Field>
-          <FieldLabel>{{ minMaxLabels.min }}</FieldLabel>
-          <InputNumber v-model="validation[minMaxKeys.min]" placeholder="None" />
+          <FieldLabel :for="`${idPrefix}_min`">{{ minMaxLabels.min }}</FieldLabel>
+          <InputNumber :id="`${idPrefix}_min`" v-model="validation[minMaxKeys.min]" placeholder="None" />
         </Field>
         <Field>
-          <FieldLabel>{{ minMaxLabels.max }}</FieldLabel>
-          <InputNumber v-model="validation[minMaxKeys.max]" placeholder="None" />
+          <FieldLabel :for="`${idPrefix}_max`">{{ minMaxLabels.max }}</FieldLabel>
+          <InputNumber :id="`${idPrefix}_max`" v-model="validation[minMaxKeys.max]" placeholder="None" />
         </Field>
       </div>
 
@@ -81,8 +87,8 @@
 
       <!-- Slider step -->
       <Field v-if="typeConfig.hasStep">
-        <FieldLabel>Step</FieldLabel>
-        <InputNumber v-model="settings.step" decimal placeholder="1" />
+        <FieldLabel :for="`${idPrefix}_step`">Step</FieldLabel>
+        <InputNumber :id="`${idPrefix}_step`" v-model="settings.step" decimal placeholder="1" />
       </Field>
 
       <!-- Currency symbol -->
@@ -105,8 +111,8 @@
 
       <!-- Rating max -->
       <Field v-if="typeConfig.hasRatingMax">
-        <FieldLabel>Number of stars</FieldLabel>
-        <InputNumber v-model="settings.max" :min="2" :max="10" placeholder="5" />
+        <FieldLabel :for="`${idPrefix}_rating_max`">Number of stars</FieldLabel>
+        <InputNumber :id="`${idPrefix}_rating_max`" v-model="settings.max" :min="2" :max="10" placeholder="5" />
       </Field>
 
       <!-- File config -->
@@ -118,18 +124,18 @@
 
         <div class="grid grid-cols-2 gap-x-2 gap-y-4">
           <Field v-if="settings.multiple">
-            <FieldLabel>Max files</FieldLabel>
-            <InputNumber v-model="validation.max_files" :min="1" :max="10" placeholder="5" />
+            <FieldLabel :for="`${idPrefix}_max_files`">Max files</FieldLabel>
+            <InputNumber :id="`${idPrefix}_max_files`" v-model="validation.max_files" :min="1" :max="10" placeholder="5" />
           </Field>
           <Field>
-            <FieldLabel>Max file size (MB)</FieldLabel>
-            <InputNumber v-model="maxFileSizeMb" :min="1" :max="20" placeholder="20" />
+            <FieldLabel :for="`${idPrefix}_max_size`">Max file size (MB)</FieldLabel>
+            <InputNumber :id="`${idPrefix}_max_size`" v-model="maxFileSizeMb" :min="1" :max="20" placeholder="20" />
           </Field>
         </div>
 
         <Field>
-          <FieldLabel>Allowed file types</FieldLabel>
-          <TagsInput v-model="validation.allowed_file_types" class="text-sm">
+          <FieldLabel :for="`${idPrefix}_file_types`">Allowed file types</FieldLabel>
+          <TagsInput :id="`${idPrefix}_file_types`" v-model="validation.allowed_file_types" class="text-sm">
             <TagsInputItem v-for="ext in validation.allowed_file_types" :key="ext" :value="ext">
               <TagsInputItemText />
               <TagsInputItemDelete />

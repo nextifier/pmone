@@ -64,6 +64,45 @@ beforeEach(function () {
     $this->submitUrl = fn (EventDocument $document) => "{$this->exhibitorApiBase}/documents/{$document->ulid}";
 });
 
+// Authorization
+
+it('refuses document field access to a user without event_documents permissions', function () {
+    // These routes carried no `can:` middleware at all until now: any verified
+    // user could read and rewrite another project's document fields.
+    $field = CustomField::factory()->create([
+        'fieldable_type' => EventDocument::class,
+        'fieldable_id' => $this->document->id,
+        'context' => CustomField::CONTEXT_DOCUMENT,
+        'type' => CustomField::TYPE_TEXT,
+    ]);
+
+    $this->actingAs($this->exhibitor)->getJson($this->fieldsApiBase)->assertForbidden();
+
+    $this->actingAs($this->exhibitor)
+        ->postJson($this->fieldsApiBase, ['label' => ['en' => 'Sneaky'], 'type' => CustomField::TYPE_TEXT])
+        ->assertForbidden();
+
+    $this->actingAs($this->exhibitor)
+        ->putJson("{$this->fieldsApiBase}/{$field->ulid}", ['label' => ['en' => 'Sneaky']])
+        ->assertForbidden();
+
+    $this->actingAs($this->exhibitor)
+        ->deleteJson("{$this->fieldsApiBase}/{$field->ulid}")
+        ->assertForbidden();
+
+    $this->actingAs($this->exhibitor)
+        ->putJson("{$this->fieldsApiBase}/reorder", ['orders' => [['id' => $field->id, 'order' => 1]]])
+        ->assertForbidden();
+});
+
+it('refuses document CRUD to a user without event_documents permissions', function () {
+    $this->actingAs($this->exhibitor)->getJson($this->staffApiBase)->assertForbidden();
+
+    $this->actingAs($this->exhibitor)
+        ->deleteJson("{$this->staffApiBase}/{$this->document->ulid}")
+        ->assertForbidden();
+});
+
 // Admin sub-resource CRUD
 
 it('staff can create a field on a document', function () {

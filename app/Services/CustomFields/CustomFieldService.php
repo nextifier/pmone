@@ -121,7 +121,11 @@ class CustomFieldService
         $field = $this->query($owner, $context)->where('system_key', $systemKey)->first();
 
         if ($field === null) {
-            return $owner->morphMany(CustomField::class, 'fieldable')->create($attributes);
+            // `attributesFor()` hands back `is_active => true`, so creating
+            // blindly turned "disable this library field" into "create it,
+            // enabled" whenever the row did not exist yet.
+            return $owner->morphMany(CustomField::class, 'fieldable')
+                ->create([...$attributes, 'is_active' => $enabled]);
         }
 
         $field->update(['is_active' => $enabled]);

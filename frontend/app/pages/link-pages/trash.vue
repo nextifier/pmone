@@ -533,7 +533,7 @@ const RowActions = defineComponent({
                         class:
                           "hover:bg-muted data-[state=open]:bg-muted inline-flex size-8 items-center justify-center rounded-md",
                       },
-                      [h(resolveComponent("Icon"), { name: "lucide:ellipsis", class: "size-4" })]
+                      [h(resolveComponent("Icon"), { name: "hugeicons:more-horizontal", class: "size-4" })]
                     ),
                 }
               ),
@@ -557,7 +557,7 @@ const RowActions = defineComponent({
                               },
                               [
                                 h(resolveComponent("Icon"), {
-                                  name: "lucide:undo-2",
+                                  name: "hugeicons:undo-02",
                                   class: "size-4 shrink-0",
                                 }),
                                 h("span", {}, "Restore"),
@@ -579,7 +579,7 @@ const RowActions = defineComponent({
                               },
                               [
                                 h(resolveComponent("Icon"), {
-                                  name: "lucide:trash",
+                                  name: "hugeicons:delete-02",
                                   class: "size-4 shrink-0",
                                 }),
                                 h("span", {}, "Delete"),

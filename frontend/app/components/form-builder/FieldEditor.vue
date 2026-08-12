@@ -1,19 +1,17 @@
 <template>
-  <div class="space-y-5">
-    <!-- Type selector (only for new fields) -->
-    <Field v-if="!editingField">
-      <FieldLabel>Field type</FieldLabel>
-      <FieldTypeSelector :selected="fieldForm.type" @select="changeType" />
-    </Field>
-
-    <div v-else class="flex items-center gap-x-2">
-      <span class="text-muted-foreground text-sm tracking-tight">Type:</span>
-      <span class="bg-muted text-muted-foreground flex items-center gap-x-1.5 rounded px-1.5 py-0.5 text-xs tracking-tight sm:text-sm">
-        <Icon :name="getTypeIcon(fieldForm.type)" class="size-3.5" />
-        {{ getTypeLabel(fieldForm.type) }}
-      </span>
-    </div>
-
+  <!--
+    `@container/editor` rather than `sm:`/`lg:`: this renders inside a dialog on
+    desktop and a drawer on mobile, so the space it actually has is the dialog's
+    width, not the window's.
+  -->
+  <!--
+    `keydown.enter` rather than a `<form>`: this renders inside a dialog, and a
+    real form here would submit the page behind it (DESIGN.md, Dialogs).
+    Textareas and the rich-text editor keep Enter for newlines.
+  -->
+  <div class="@container/editor space-y-5" @keydown.enter="onEnter">
+    <div class="flex flex-col gap-5 @4xl/editor:flex-row @4xl/editor:items-start">
+    <div class="min-w-0 flex-1 space-y-5">
     <div class="space-y-2">
       <Tabs v-model="activeLocale" variant="segmented">
         <TabsList>
@@ -24,6 +22,13 @@
             :value="locale.value"
           >
             {{ locale.label }}
+            <!-- A rejected translation is invisible from any other tab, so the
+                 tab itself has to say that something over there needs fixing. -->
+            <span
+              v-if="localesWithErrors.includes(locale.value)"
+              class="bg-destructive ms-1.5 size-1.5 rounded-full"
+              :aria-label="`${locale.label} has an error`"
+            />
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -44,6 +49,23 @@
       <FieldError :errors="localizedLabelErrors" />
     </Field>
 
+    <Field :data-invalid="!!errors?.type">
+      <FieldLabel for="field_type">Field type</FieldLabel>
+      <FieldTypeCombobox
+        id="field_type"
+        :model-value="fieldForm.type"
+        :disabled="!!editingField"
+        :aria-invalid="!!errors?.type"
+        @update:model-value="changeType"
+      />
+      <!-- Locked while editing: the stored answers are shaped by the type, so
+           switching it would leave every existing response unreadable. -->
+      <p v-if="editingField" class="text-muted-foreground text-xs tracking-tight">
+        Field type is fixed once the field exists. Delete it and add a new one to change it.
+      </p>
+      <FieldError :errors="errors.type" />
+    </Field>
+
     <FieldTypeSettings
       v-model:placeholder="placeholderField"
       v-model:help-text="helpTextField"
@@ -55,62 +77,36 @@
       allow-prefill
     >
       <template #options>
-        <Field v-if="typeConfig.hasOptions" :data-invalid="!!errors?.options">
-          <FieldLabel>Options</FieldLabel>
-          <div class="space-y-2">
-            <div
-              v-for="(option, idx) in fieldForm.options"
-              :key="idx"
-              class="flex items-center gap-x-2"
-            >
-              <Input
-                :aria-invalid="!!errors?.options"
-                v-model="fieldForm.options[idx].label"
-                placeholder="Option label"
-                class="flex-1"
-              />
-              <Input
-                v-model="fieldForm.options[idx].value"
-                placeholder="Value"
-                class="w-24 sm:w-28"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="iconSm"
-                class="text-muted-foreground hover:text-destructive-foreground shrink-0"
-                @click="fieldForm.options.splice(idx, 1)"
-              >
-                <Icon name="hugeicons:cancel-01" class="size-4" />
-              </Button>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" @click="addOption">
-              <Icon name="hugeicons:add-01" class="size-3.5" />
-              <span>Add option</span>
-            </Button>
-            <Button type="button" variant="ghost" size="sm" @click="showBulkAdd = !showBulkAdd">
-              <Icon name="hugeicons:list-plus" class="size-3.5" />
-              <span>Bulk add</span>
-            </Button>
-          </div>
-          <div v-if="showBulkAdd" class="space-y-2">
-            <Textarea
-              v-model="bulkOptionsText"
-              :rows="4"
-              placeholder="One option per line. Use label|value to set a custom value."
-            />
-            <Button type="button" size="sm" :disabled="!bulkOptionsText.trim()" @click="applyBulkOptions">
-              Add {{ bulkOptionsCount }} {{ bulkOptionsCount === 1 ? "option" : "options" }}
-            </Button>
-          </div>
-          <FieldError :errors="errors.options" />
-        </Field>
+        <OptionsEditor
+          v-if="typeConfig.hasOptions"
+          v-model="fieldForm.options"
+          mode="pairs"
+          allow-bulk
+          :errors="errors.options"
+          :locale="activeLocale"
+          id-prefix="field"
+        />
       </template>
     </FieldTypeSettings>
+    </div>
 
-    <FieldPreviewFrame :field="previewField" :locale="activeLocale" label-size="lg" />
+      <!--
+        Sticky, not just side-by-side: the settings column runs longer than the
+        preview on almost every type, and the whole point is watching the field
+        change while you tune validation two screens down.
+
+        `top-12` rather than `top-0`: the dialog's close button is absolutely
+        positioned at its top-right and does not scroll, so a frame pinned flush
+        to the top of the scrollport lands underneath it.
+
+        `order-first` while stacked, which is what the mobile drawer always is:
+        side by side is impossible there, and last in the column means the
+        preview sits below two frames of validation where nobody sees it.
+      -->
+      <div class="order-first shrink-0 @4xl/editor:order-none @4xl/editor:sticky @4xl/editor:top-12 @4xl/editor:w-80">
+        <FieldPreviewFrame :field="previewField" :locale="activeLocale" label-size="lg" />
+      </div>
+    </div>
 
     <div class="flex justify-end gap-2">
       <Button type="button" variant="outline" :disabled="saving" @click="$emit('cancel')">
@@ -127,7 +123,8 @@
 <script setup>
 import FieldPreviewFrame from "@/components/custom-field-editor/FieldPreviewFrame.vue";
 import FieldTypeSettings from "@/components/custom-field-editor/FieldTypeSettings.vue";
-import FieldTypeSelector from "@/components/form-builder/FieldTypeSelector.vue";
+import OptionsEditor from "@/components/custom-field-editor/OptionsEditor.vue";
+import FieldTypeCombobox from "@/components/custom-field-editor/FieldTypeCombobox.vue";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -138,12 +135,9 @@ import {
   buildTranslatablePayload,
   buildValidationPayload,
   cleanTranslatable,
-  emptyFieldState,
   FIELD_LOCALE_TABS,
-  hydrateFieldState,
-  previewFieldFrom,
 } from "@/lib/customFieldEditor";
-import { getTypeConfig, getTypeIcon, getTypeLabel } from "@/lib/formFieldTypes";
+import { getTypeConfig, getTypeLabel } from "@/lib/formFieldTypes";
 import { toast } from "vue-sonner";
 
 const props = defineProps({
@@ -155,36 +149,34 @@ const emit = defineEmits(["saved", "cancel"]);
 
 const client = useSanctumClient();
 const saving = ref(false);
-const errors = ref({});
-const activeLocale = ref("en");
 
-const fieldForm = reactive(
-  props.editingField ? hydrateFieldState(props.editingField) : emptyFieldState()
-);
+const {
+  form: fieldForm,
+  errors,
+  activeLocale,
+  typeConfig,
+  labelField,
+  placeholderField,
+  helpTextField,
+  localizedLabelErrors,
+  localesWithErrors,
+  hasEnglishLabel,
+  previewField,
+  localProblem,
+  isDirty,
+  loadField,
+  takeSnapshot,
+  applyServerErrors,
+} = useCustomFieldForm();
 
-const typeConfig = computed(() => getTypeConfig(fieldForm.type));
+if (props.editingField) {
+  loadField(props.editingField);
+}
+takeSnapshot();
+
 const isSection = computed(() => fieldForm.type === "section");
 
-// One language tab drives all three translatable inputs, same as the brand,
-// ticket and ops-document editors.
-const translatableProxy = (key) =>
-  computed({
-    get: () => fieldForm[key][activeLocale.value] ?? "",
-    set: (value) => {
-      fieldForm[key] = { ...fieldForm[key], [activeLocale.value]: value };
-    },
-  });
-
-const labelField = translatableProxy("label");
-const placeholderField = translatableProxy("placeholder");
-const helpTextField = translatableProxy("help_text");
-
-const localizedLabelErrors = computed(
-  () => errors.value[`label.${activeLocale.value}`] ?? errors.value.label ?? null
-);
-
-// English is the only required translation, so it also gates the save button.
-const hasEnglishLabel = computed(() => Boolean(String(fieldForm.label.en ?? "").trim()));
+defineExpose({ isDirty });
 
 const changeType = (type) => {
   fieldForm.type = type;
@@ -197,52 +189,23 @@ const changeType = (type) => {
   }
 };
 
-const addOption = () => {
-  fieldForm.options.push({ label: "", value: "" });
+const onEnter = (event) => {
+  const el = event.target;
+  if (el?.tagName === "TEXTAREA" || el?.isContentEditable) return;
+  // The combobox and any other listbox own Enter for choosing an item.
+  if (el?.getAttribute?.("role") === "combobox" && el.getAttribute("aria-expanded") === "true") {
+    return;
+  }
+  event.preventDefault();
+  save();
 };
-
-/* ----- Bulk add options ----- */
-const showBulkAdd = ref(false);
-const bulkOptionsText = ref("");
-
-const parseBulkOptions = () =>
-  bulkOptionsText.value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [label, value] = line.split("|").map((part) => part.trim());
-      return { label, value: value || label.toLowerCase().replace(/\s+/g, "-") };
-    });
-
-const bulkOptionsCount = computed(() => parseBulkOptions().length);
-
-const applyBulkOptions = () => {
-  fieldForm.options = [
-    ...fieldForm.options.filter((o) => o.label || o.value),
-    ...parseBulkOptions(),
-  ];
-  bulkOptionsText.value = "";
-  showBulkAdd.value = false;
-};
-
-/* ----- Live preview ----- */
-const previewField = computed(() =>
-  previewFieldFrom(fieldForm, {
-    label: Object.keys(cleanTranslatable(fieldForm.label)).length
-      ? fieldForm.label
-      : { en: getTypeLabel(fieldForm.type) },
-    options: fieldForm.options.filter((o) => o.label || o.value),
-  })
-);
 
 /* ----- Save ----- */
 const save = async () => {
-  if (!fieldForm.type) return;
-
-  if (!String(fieldForm.label.en ?? "").trim()) {
-    activeLocale.value = "en";
-    toast.error("English label is required");
+  const problem = localProblem.value;
+  if (problem) {
+    if (problem.locale) activeLocale.value = problem.locale;
+    toast.error(problem.message);
     return;
   }
 
@@ -285,9 +248,9 @@ const save = async () => {
 
     emit("saved");
   } catch (e) {
-    if (e.response?.status === 422 && e.response?._data?.errors) {
-      errors.value = e.response._data.errors;
-    }
+    // A 422 already speaks through the inline messages; a toast on top of them
+    // says the same thing twice and covers the fields it is talking about.
+    if (applyServerErrors(e)) return;
     toast.error(e?.data?.message || e?.response?._data?.message || "Failed to save field");
   } finally {
     saving.value = false;

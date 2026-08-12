@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-xl space-y-6">
+  <div class="mx-auto max-w-xl space-y-6 pb-16">
     <div class="space-y-1">
       <h2 class="text-base font-semibold tracking-tighter">Settings</h2>
       <p class="text-muted-foreground text-sm tracking-tight">

@@ -33,6 +33,25 @@ function togglePredefined(string $systemKey, bool $enabled, string $context = 't
     );
 }
 
+it('does not create an enabled row when disabling a predefined field that was never instantiated', function () {
+    expect(CustomField::where('system_key', 'gender')->exists())->toBeFalse();
+
+    togglePredefined('gender', false)->assertOk();
+
+    // Either no row at all, or one that is genuinely inactive - never an
+    // active field conjured by a request that asked for the opposite.
+    $field = CustomField::withTrashed()->where('system_key', 'gender')->first();
+
+    expect($field?->is_active ?? false)->toBeFalse();
+
+    $catalog = test()->actingAs(test()->staff)
+        ->getJson("/api/events/{$this->event->id}/custom-fields/predefined?context=ticket_registration")
+        ->assertOk();
+
+    $gender = collect($catalog->json('data'))->firstWhere('system_key', 'gender');
+    expect($gender['enabled'])->toBeFalse();
+});
+
 it('lists the predefined catalog for both contexts with everything disabled', function () {
     $registration = $this->actingAs($this->staff)
         ->getJson("/api/events/{$this->event->id}/custom-fields/predefined?context=ticket_registration")

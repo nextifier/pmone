@@ -350,6 +350,12 @@ const props = defineProps({
     required: true,
     validator: (value) => ["create", "edit"].includes(value),
   },
+  /**
+   * Starter template key, create mode only. Sent along with the form so the
+   * backend seeds its fields - see `FormController@store` and
+   * `App\Support\FormTemplates`.
+   */
+  template: { type: String, default: null },
   form: {
     type: Object,
     default: null,
@@ -520,6 +526,9 @@ async function handleSubmit() {
     const method = props.mode === "create" ? "POST" : "PUT";
 
     const body = { ...formData.value };
+    if (props.mode === "create" && props.template) {
+      body.template = props.template;
+    }
 
     // Clean up empty values
     if (!body.slug) delete body.slug;
@@ -620,8 +629,31 @@ watch(
   { deep: true, immediate: true }
 );
 
+/**
+ * Fills the title and description from a starter template. Only touches fields
+ * the author has not written in yet, or ones a previous template put there, so
+ * switching templates never eats typed copy.
+ */
+const templateFilled = ref({ title: "", description: "" });
+
+const applyTemplate = (template) => {
+  const title = template?.title ?? "";
+  const description = template?.description ?? "";
+
+  const current = formData.value;
+  if (!current.title.trim() || current.title === templateFilled.value.title) {
+    current.title = title;
+  }
+  if (!current.description?.trim() || current.description === templateFilled.value.description) {
+    current.description = description;
+  }
+
+  templateFilled.value = { title, description };
+};
+
 defineExpose({
   handleSubmit,
   loading,
+  applyTemplate,
 });
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-6xl space-y-6">
+  <div class="mx-auto max-w-6xl space-y-6 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
       <!-- No count pill: the page header above already carries the form's
            total, and the table's own footer reports the filtered count with a

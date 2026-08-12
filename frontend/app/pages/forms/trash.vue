@@ -34,7 +34,73 @@
       @update:sorting="sorting = $event"
       @update:column-filters="columnFilters = $event"
       @refresh="refresh"
-    />
+    >
+      <template #actions="{ selectedRows }">
+        <ResponsiveDialog
+          v-if="selectedRows.length > 0"
+          v-model:open="restoreDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <TableBulkAction icon="hugeicons:undo-02" label="Restore" @click="open()" />
+          </template>
+          <template #default>
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
+              <div class="text-foreground text-lg font-semibold tracking-tight">Restore forms?</div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This will restore {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "form" : "forms" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <Button variant="outline" :disabled="restorePending" @click="restoreDialogOpen = false">
+                  Cancel
+                </Button>
+                <Button :disabled="restorePending" @click="handleRestoreRows(selectedRows)">
+                  <Spinner v-if="restorePending" class="size-4" />
+                  <span>Restore</span>
+                </Button>
+              </div>
+            </div>
+          </template>
+        </ResponsiveDialog>
+
+        <ResponsiveDialog
+          v-if="selectedRows.length > 0"
+          v-model:open="deleteDialogOpen"
+          class="h-full"
+        >
+          <template #trigger="{ open }">
+            <TableBulkAction
+              icon="hugeicons:delete-01"
+              label="Delete Permanently"
+              destructive
+              @click="open()"
+            />
+          </template>
+          <template #default>
+            <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
+              <div class="text-foreground text-lg font-semibold tracking-tight">
+                Are you absolutely sure?
+              </div>
+              <p class="text-body mt-1.5 text-sm tracking-tight">
+                This can't be undone. It permanently deletes {{ selectedRows.length }} selected
+                {{ selectedRows.length === 1 ? "form" : "forms" }}, along with every response and
+                field on {{ selectedRows.length === 1 ? "it" : "them" }}.
+              </p>
+              <div class="mt-3 flex justify-end gap-2">
+                <Button variant="outline" :disabled="deletePending" @click="deleteDialogOpen = false">
+                  Cancel
+                </Button>
+                <Button variant="destructive" :disabled="deletePending" @click="handleDeleteRows(selectedRows)">
+                  <Spinner v-if="deletePending" class="size-4" />
+                  <span>Delete Permanently</span>
+                </Button>
+              </div>
+            </div>
+          </template>
+        </ResponsiveDialog>
+      </template>
+    </TableData>
   </div>
 </template>
 
@@ -42,7 +108,8 @@
 import { Button } from "@/components/ui/button";
 import TrashRowActions from "@/components/form-builder/TrashRowActions.vue";
 import { Badge } from "@/components/ui/badge";
-import { TableData } from "@/components/ui/table-data";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TableBulkAction, TableData } from "@/components/ui/table-data";
 import { formStatusBadge } from "@/lib/formBuilderStatus";
 import { resolveDirective, withDirectives } from "vue";
 import { toast } from "vue-sonner";
@@ -87,6 +154,26 @@ const refresh = fetchForms;
 
 // Table columns
 const columns = [
+  {
+    id: "select",
+    header: ({ table }) =>
+      h(Checkbox, {
+        modelValue:
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate"),
+        "onUpdate:modelValue": (value) => table.toggleAllPageRowsSelected(!!value),
+        "aria-label": "Select all",
+      }),
+    cell: ({ row }) =>
+      h(Checkbox, {
+        modelValue: row.getIsSelected(),
+        "onUpdate:modelValue": (value) => row.toggleSelected(!!value),
+        "aria-label": "Select row",
+      }),
+    size: 28,
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     header: "Title",
     accessorKey: "title",
@@ -176,6 +263,52 @@ const handleRestoreSingleRow = async (form) => {
     toast.error("Failed to restore form", {
       description: error?.data?.message || error?.message || "An error occurred",
     });
+  }
+};
+
+/* ----- Bulk actions ----- */
+const restoreDialogOpen = ref(false);
+const restorePending = ref(false);
+const deleteDialogOpen = ref(false);
+const deletePending = ref(false);
+
+const handleRestoreRows = async (selectedRows) => {
+  const ids = selectedRows.map((row) => row.original.id);
+  restorePending.value = true;
+  try {
+    const client = useSanctumClient();
+    await client("/api/forms/trash/restore/bulk", { method: "POST", body: { ids } });
+    await refresh();
+    restoreDialogOpen.value = false;
+    tableRef.value?.resetRowSelection();
+    toast.success(`${ids.length} form(s) restored`);
+  } catch (error) {
+    console.error("Failed to restore forms:", error);
+    toast.error("Failed to restore forms", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    restorePending.value = false;
+  }
+};
+
+const handleDeleteRows = async (selectedRows) => {
+  const ids = selectedRows.map((row) => row.original.id);
+  deletePending.value = true;
+  try {
+    const client = useSanctumClient();
+    await client("/api/forms/trash/bulk", { method: "DELETE", body: { ids } });
+    await refresh();
+    deleteDialogOpen.value = false;
+    tableRef.value?.resetRowSelection();
+    toast.success(`${ids.length} form(s) permanently deleted`);
+  } catch (error) {
+    console.error("Failed to permanently delete forms:", error);
+    toast.error("Failed to permanently delete forms", {
+      description: error?.data?.message || error?.message || "An error occurred",
+    });
+  } finally {
+    deletePending.value = false;
   }
 };
 

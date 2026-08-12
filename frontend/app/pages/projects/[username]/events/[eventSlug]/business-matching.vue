@@ -1,52 +1,70 @@
 <template>
-  <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl xl:max-w-5xl">
-    <div class="space-y-2">
-      <div class="flex items-center gap-x-2.5">
-        <Icon name="hugeicons:agreement-02" class="size-5 sm:size-6" />
-        <h1 class="page-title">Business Matching</h1>
-      </div>
-      <p class="page-description">
-        Define the custom intake fields shown to visitors who opt into Business Matching. Requires
-        ticketing to be enabled.
-      </p>
-    </div>
-
-    <!-- Enable toggle -->
-    <div class="frame">
-      <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
-        <Icon name="hugeicons:agreement-02" class="mt-0.5 size-5 shrink-0" />
-        <div class="min-w-0 flex-1 space-y-1">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h3 class="text-base font-semibold tracking-tight">Business Matching program</h3>
-            <Skeleton v-if="loading" class="h-7 w-20 rounded-full" />
-            <Badge v-else-if="enabled" variant="success" icon="hugeicons:checkmark-circle-02">Active</Badge>
-            <Badge v-else variant="muted">Disabled</Badge>
-          </div>
-          <p class="text-muted-foreground text-sm tracking-tight">
-            Not every event runs Business Matching. Turn this on only when this event has the program.
-          </p>
+  <!--
+    Everything, heading included, lives in the edit pane. The `max-w-*` cap the
+    page used to carry is gone: the preview needs the full column, and the panel
+    already holds the edit side to a readable measure.
+  -->
+  <CustomFieldPreviewPanel
+    :fields="previewFields"
+    value-key="ulid"
+    preview-title="Business Matching intake"
+    empty-message="Add a field to see the intake form buyers get at checkout."
+    class="pb-16"
+  >
+    <div class="space-y-6">
+      <div class="space-y-2">
+        <div class="flex items-center gap-x-2.5">
+          <Icon name="hugeicons:agreement-02" class="size-5 sm:size-6" />
+          <h1 class="page-title">Business Matching</h1>
         </div>
+        <p class="page-description">
+          Define the custom intake fields shown to visitors who opt into Business Matching. Requires
+          ticketing to be enabled.
+        </p>
       </div>
 
-      <div class="frame-panel">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-          <div class="flex-1 space-y-1 text-sm tracking-tight">
-            <p class="font-medium">Enable Business Matching for this event</p>
-            <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
-              {{
-                enabled
-                  ? "The intake questions below are shown to buyers during ticket checkout."
-                  : "Buyers won't see any Business Matching questions at checkout while this is off."
-              }}
+      <!-- Enable toggle -->
+      <div class="frame">
+        <div class="flex items-start gap-x-2.5 px-3 py-3 lg:px-5">
+          <Icon name="hugeicons:agreement-02" class="mt-0.5 size-5 shrink-0" />
+          <div class="min-w-0 flex-1 space-y-1">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-base font-semibold tracking-tight">Business Matching program</h3>
+              <Skeleton v-if="loading" class="h-7 w-20 rounded-full" />
+              <Badge v-else-if="enabled" variant="success" icon="hugeicons:checkmark-circle-02">Active</Badge>
+              <Badge v-else variant="muted">Disabled</Badge>
+            </div>
+            <p class="text-muted-foreground text-sm tracking-tight">
+              Not every event runs Business Matching. Turn this on only when this event has the program.
             </p>
           </div>
-          <Switch :model-value="enabled" :disabled="loading || toggling" @update:model-value="onToggle" />
+        </div>
+
+        <div class="frame-panel">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="flex-1 space-y-1 text-sm tracking-tight">
+              <p class="font-medium">Enable Business Matching for this event</p>
+              <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+                {{
+                  enabled
+                    ? "The intake questions below are shown to buyers during ticket checkout."
+                    : "Buyers won't see any Business Matching questions at checkout while this is off."
+                }}
+              </p>
+            </div>
+            <Switch :model-value="enabled" :disabled="loading || toggling" @update:model-value="onToggle" />
+          </div>
         </div>
       </div>
-    </div>
 
-    <CustomFieldsPanel :event="event" context="business_matching" library />
-  </div>
+      <CustomFieldsPanel
+        :event="event"
+        context="business_matching"
+        library
+        @update:fields="previewFields = $event"
+      />
+    </div>
+  </CustomFieldPreviewPanel>
 </template>
 
 <script setup>
@@ -74,6 +92,9 @@ const settingsUrl = computed(() => `/api/events/${props.event?.id}/ticket-settin
 const enabled = ref(false);
 const loading = ref(true);
 const toggling = ref(false);
+
+/** Streamed out of CustomFieldsPanel so the pane beside it can render them. */
+const previewFields = ref([]);
 
 onMounted(async () => {
   try {

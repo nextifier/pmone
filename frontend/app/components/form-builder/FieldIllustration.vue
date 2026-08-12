@@ -1,6 +1,11 @@
 <template>
   <!-- Skeleton mockups that preview each field type, using the same visual
-       language as the /ui illustration components (muted skeleton bars + accents). -->
+       language as the /ui illustration components (muted skeleton bars + accents).
+
+       Currently unreferenced: the field-type picker it drew a grid for is now
+       `custom-field-editor/FieldTypeCombobox.vue`, which is compact and
+       searchable across all four surfaces. Kept on purpose - these are a real
+       asset and a future picker or onboarding surface may want them back. -->
 
   <!-- Short Text -->
   <div v-if="type === 'text'" class="w-full max-w-28 space-y-1.5">

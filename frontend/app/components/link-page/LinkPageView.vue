@@ -1,5 +1,11 @@
 <template>
-  <div class="relative mx-auto flex min-h-dvh max-w-lg flex-col pt-2 pb-10 sm:pt-4">
+  <!-- `min-h-dvh` only on the real page. Inside the builder's preview pane it
+       would stretch the card to a full viewport of empty space below the last
+       link. -->
+  <div
+    class="relative mx-auto flex max-w-lg flex-col pt-2 pb-10 sm:pt-4"
+    :class="preview ? '' : 'min-h-dvh'"
+  >
     <!-- Title & Description -->
     <div class="flex items-start gap-x-2 px-4 pt-2">
       <div class="flex grow flex-col gap-y-1">
@@ -103,7 +109,7 @@
           </p>
         </div>
         <span class="bg-muted mr-1 flex size-9 shrink-0 items-center justify-center rounded-full">
-          <Icon name="lucide:arrow-up-right" class="text-muted-foreground size-4 shrink-0" />
+          <Icon name="hugeicons:arrow-up-right-01" class="text-muted-foreground size-4 shrink-0" />
         </span>
       </a>
     </div>
@@ -122,6 +128,8 @@ import {
 
 const props = defineProps({
   linkPage: { type: Object, required: true },
+  /** Rendered inside the admin builder rather than served at /{username}. */
+  preview: { type: Boolean, default: false },
 });
 
 defineEmits(["trackClick", "trackBannerClick"]);

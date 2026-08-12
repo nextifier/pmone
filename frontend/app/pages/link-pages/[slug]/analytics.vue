@@ -48,7 +48,7 @@
           <div class="flex items-center gap-2">
             <Input :model-value="publicUrl" readonly class="flex-1 font-mono text-sm" />
             <Button @click="copyToClipboard" variant="outline" size="icon">
-              <Icon :name="copied ? 'lucide:check' : 'lucide:copy'" class="size-4" />
+              <Icon :name="copied ? 'hugeicons:tick-02' : 'hugeicons:copy-01'" class="size-4" />
             </Button>
           </div>
         </div>
@@ -145,7 +145,7 @@
                 v-else
                 class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-full"
               >
-                <Icon name="lucide:user" class="text-muted-foreground size-5" />
+                <Icon name="hugeicons:user" class="text-muted-foreground size-5" />
               </div>
 
               <div class="min-w-0 flex-1">

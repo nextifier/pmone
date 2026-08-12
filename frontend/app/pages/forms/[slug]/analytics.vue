@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto max-w-4xl space-y-6 pb-16">
     <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-3">
       <h2 class="text-base font-semibold tracking-tighter">Analytics</h2>
       <DatePicker

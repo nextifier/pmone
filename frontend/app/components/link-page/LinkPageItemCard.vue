@@ -2,7 +2,7 @@
   <div class="border-border flex gap-3 rounded-lg border p-3 transition-colors">
     <div class="flex shrink-0 pt-1 sm:items-center sm:pt-0">
       <Icon
-        name="lucide:grip-vertical"
+        name="hugeicons:drag-drop-vertical"
         class="drag-handle text-muted-foreground size-4 cursor-grab"
       />
     </div>
@@ -31,7 +31,7 @@
           class="flex shrink-0 items-center gap-1 text-sm tracking-tight"
           v-tippy="'Total clicks'"
         >
-          <Icon name="lucide:mouse-pointer-click" class="size-5" />
+          <Icon name="hugeicons:mouse-left-click-01" class="size-5" />
           <span>Total clicks:</span>
           {{ (item.clicks_count || 0).toLocaleString() }}
         </div>
@@ -39,13 +39,13 @@
         <Switch :model-value="item.is_active" @update:model-value="$emit('toggle')" />
 
         <button @click="$emit('edit')" class="hover:bg-muted rounded-md p-1.5">
-          <Icon name="lucide:pencil-line" class="size-4" />
+          <Icon name="hugeicons:edit-02" class="size-4" />
         </button>
 
         <ResponsiveDialog v-model:open="deleteDialogOpen">
           <template #trigger="{ open }">
             <button @click="open()" class="hover:bg-destructive/10 rounded-md p-1.5">
-              <Icon name="lucide:trash" class="text-destructive-foreground size-4" />
+              <Icon name="hugeicons:delete-02" class="text-destructive-foreground size-4" />
             </button>
           </template>
           <template #default>

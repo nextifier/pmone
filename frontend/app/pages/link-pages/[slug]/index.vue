@@ -1,5 +1,20 @@
 <template>
-  <div class="mx-auto space-y-6 pt-4 pb-16 lg:max-w-4xl xl:max-w-6xl">
+  <!--
+    No `max-w-*` cap and no bottom padding: the preview needs the full column,
+    and space after a panel whose preview is `sticky` gets taken out of the
+    pinned preview at the end of the scroll. See `preview-panel/context.ts`.
+  -->
+  <PreviewPanel
+    v-model:tab="activeTab"
+    ratio="3:2"
+    offset="calc(var(--navbar-height-desktop) + 1rem)"
+    :preview-title="publicUrl"
+    reloadable
+    expandable
+    client-only-preview
+  >
+    <template #edit>
+      <div class="space-y-6 pt-4">
     <!-- Back button -->
     <ButtonBack destination="/link-pages" :forceDestination="true" />
 
@@ -21,11 +36,11 @@
 
       <div class="ml-auto flex items-center gap-1 sm:gap-2">
         <Button v-if="linkPage" variant="outline" size="sm" :to="publicUrl" target="_blank">
-          <Icon name="lucide:external-link" class="size-4 shrink-0" />
-          <span>Preview</span>
+          <Icon name="hugeicons:arrow-up-right-01" class="size-4 shrink-0" />
+          <span>View page</span>
         </Button>
         <Button v-if="linkPage" variant="outline" size="sm" :to="`/link-pages/${linkPage.slug}/analytics`">
-          <Icon name="lucide:chart-no-axes-combined" class="size-4 shrink-0" />
+          <Icon name="hugeicons:chart-line-data-02" class="size-4 shrink-0" />
           <span>Analytics</span>
         </Button>
         <Button v-if="linkPage" variant="outline" size="sm" :to="`/link-pages/${linkPage.slug}/trash`">
@@ -111,7 +126,7 @@
           >
             <Icon
               v-if="item._banner.url"
-              name="lucide:link"
+              name="hugeicons:link-01"
               class="size-3.5 shrink-0 text-white/80"
             />
             <span class="truncate text-xs font-medium tracking-tight text-white/95 sm:text-sm">
@@ -125,7 +140,7 @@
             aria-label="Edit banner"
             @click.stop="openBannerForm(item._banner)"
           >
-            <Icon name="lucide:pencil-line" class="size-4 shrink-0" />
+            <Icon name="hugeicons:edit-02" class="size-4 shrink-0" />
           </button>
         </template>
       </GalleryManager>
@@ -165,7 +180,21 @@
       :banner="editingBanner"
       @success="fetchLinkPage"
     />
-  </div>
+      </div>
+    </template>
+
+    <template #preview>
+      <div class="px-4 py-6">
+        <p
+          v-if="!linkPage"
+          class="text-muted-foreground rounded-lg border border-dashed px-4 py-10 text-center text-sm tracking-tight"
+        >
+          Loading the page&hellip;
+        </p>
+        <LinkPageView v-else :link-page="previewPayload" preview />
+      </div>
+    </template>
+  </PreviewPanel>
 </template>
 
 <script setup>
@@ -173,6 +202,8 @@ import { Button } from "@/components/ui/button";
 import LinkPageItemCard from "@/components/link-page/LinkPageItemCard.vue";
 import FormLinkPageItem from "@/components/link-page/FormLinkPageItem.vue";
 import FormLinkPageBanner from "@/components/link-page/FormLinkPageBanner.vue";
+import LinkPageView from "@/components/link-page/LinkPageView.vue";
+import { PreviewPanel } from "@/components/ui/preview-panel";
 import { useSortableList } from "@/composables/useSortableList";
 import { toast } from "vue-sonner";
 
@@ -190,6 +221,7 @@ const client = useSanctumClient();
 const loading = ref(true);
 const linkPage = ref(null);
 const items = ref([]);
+const activeTab = ref("edit");
 
 // Banners
 const bannerTiles = ref([]);
@@ -214,6 +246,18 @@ const domain = computed(() => config.public.siteUrl.replace(/^https?:\/\//, ""))
 const publicUrl = computed(() => {
   return `${config.public.siteUrl}/${linkPage.value?.slug}`;
 });
+
+/**
+ * The same shape `/{username}` hands LinkPageView, assembled from the builder's
+ * own state so reordering and toggling show up without a save or a refetch.
+ * `bannerTiles` is the gallery's view of the banners, so the originals are
+ * unwrapped back out of it.
+ */
+const previewPayload = computed(() => ({
+  ...(linkPage.value || {}),
+  items: items.value,
+  banners: bannerTiles.value.map((tile) => tile._banner),
+}));
 
 const fetchLinkPage = async () => {
   try {

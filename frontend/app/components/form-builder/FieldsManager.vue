@@ -53,7 +53,17 @@
     </div>
 
     <!-- Add/Edit Field Dialog -->
-    <ResponsiveDialog v-model:open="fieldDialogOpen" dialog-max-width="760px" :overflow-content="true">
+    <!-- 1080px, not 760: the editor splits into settings + live preview at
+         `@4xl` and needs the room for both columns to stay usable. -->
+    <ResponsiveDialog
+      v-model:open="fieldDialogOpen"
+      :title="editingField ? 'Edit field' : 'Add field'"
+      description="Configure this form field: its label, type, validation and advanced options."
+      dialog-max-width="1080px"
+      :overflow-content="true"
+      :prevent-close="editorDirty"
+      @close-prevented="discardDialogOpen = true"
+    >
       <template #default>
         <div class="px-4 pt-5 pb-8 md:px-6 md:py-5">
           <h3 class="text-foreground text-lg font-semibold tracking-tighter">
@@ -62,16 +72,29 @@
           <div class="mt-4">
             <FieldEditor
               v-if="fieldDialogOpen"
+              ref="editorRef"
               :key="editingField?.ulid || 'new'"
               :form-slug="slug"
               :editing-field="editingField"
               @saved="handleFieldSaved"
-              @cancel="fieldDialogOpen = false"
+              @cancel="requestClose"
             />
           </div>
         </div>
       </template>
     </ResponsiveDialog>
+
+    <!-- Escape, the backdrop and Cancel all land here once something has been
+         typed. A field editor holds several minutes of work and dismissing it
+         is one stray click away. -->
+    <ConfirmDialog
+      v-model:open="discardDialogOpen"
+      title="Discard changes?"
+      description="This field has unsaved changes. Closing now loses them."
+      confirm-label="Discard"
+      variant="destructive"
+      @confirm="closeFieldDialog"
+    />
 
     <!-- Delete Confirmation Dialog -->
     <ConfirmDialog
@@ -126,6 +149,24 @@ const deletingField = ref(false);
 
 const fieldDialogOpen = ref(false);
 const editingField = ref(null);
+const editorRef = ref(null);
+const discardDialogOpen = ref(false);
+
+/** Drives `prevent-close`; false while the editor is untouched or unmounted. */
+const editorDirty = computed(() => !!editorRef.value?.isDirty);
+
+function requestClose() {
+  if (editorDirty.value) {
+    discardDialogOpen.value = true;
+    return;
+  }
+  closeFieldDialog();
+}
+
+function closeFieldDialog() {
+  discardDialogOpen.value = false;
+  fieldDialogOpen.value = false;
+}
 
 const deleteDialogOpen = ref(false);
 const fieldToDelete = ref(null);
@@ -167,6 +208,7 @@ function confirmDeleteField(field) {
 }
 
 async function handleFieldSaved() {
+  discardDialogOpen.value = false;
   fieldDialogOpen.value = false;
   editingField.value = null;
   await fetchFields();

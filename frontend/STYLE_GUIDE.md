@@ -538,24 +538,38 @@ Aturannya:
 - **Split dipicu container query, bukan breakpoint viewport.** Sidebar 18rem vs
   3rem menggeser lebar konten 240px, dan media query tidak melihat itu. Default
   threshold `5xl` (panel ≥1024px).
-- **Tinggi datang dari halaman, bukan dari component.** Halaman opt-in dengan
-  `definePageMeta({ lockedShell: true })`; `layouts/app.vue` memasang
-  `screen-lock-lg`, lalu tiap layout perantara meneruskan `flex min-h-0 flex-1
-  flex-col`. Satu mata rantai yang putus = panel diam-diam tidak terkunci.
-- **`screen-lock-lg`, bukan `h-screen-offset`.** Yang kedua memakai `lvh` di
-  `lg`; halaman terkunci tidak pernah scroll, jadi chrome browser tidak pernah
-  mengecil dan `lvh` kelebihan setinggi toolbar. Kelihatan di tablet ≥lg saja.
+- **Cuma panel preview yang `sticky`.** Panel editor scroll normal ikut body,
+  tanpa border, padding, atau shadow tambahan. Dua pendekatan sebelumnya sudah
+  dicoba dan dibuang: mengunci viewport bikin page header nempel permanen dan
+  memakan tinggi panel, sementara dua-duanya sticky bikin editor tidak bisa
+  di-scroll pakai body.
+- **Halaman kirim `offset`, component tidak tahu tinggi navbar.** Misal
+  `offset="calc(var(--navbar-height-desktop) + 1rem)"`, tambah `--tabnav-height`
+  kalau di bawah TabNav yang sticky. Ini yang bikin component-nya sama di tiga
+  repo dengan tiga header berbeda.
+- **JANGAN taruh padding bawah di halaman yang memuat panel.** Sticky berhenti
+  menempel begitu containing block-nya habis, jadi `pb-16` di halaman + 1rem
+  `insetBottom` = preview terdorong 3rem ke atas dan bagian atasnya masuk ke
+  balik header saat di-scroll mentok bawah. Padding taruh di **dalam** slot
+  `#edit`. Tidak bisa diperbaiki dari dalam component: padding-nya milik
+  ancestor yang tidak kelihatan dari sana.
 - **`min-h-0` dan `min-w-0` di tiap level flex.** Tanpa `min-h-0` panel tidak
   akan pernah scroll; tanpa `min-w-0` tabel panjang jebol dan terpotong diam-diam
   oleh `overflow-x-clip` milik layout.
-- **DILARANG `position: fixed` di dalam panel.** `container-type: inline-size`
-  menyiratkan `contain: layout`, yang bikin panel jadi containing block untuk
-  keturunan `fixed` — element itu akan menempel ke panel, bukan ke viewport.
-  Pill Edit/Preview memakai `sticky` di rail setinggi 0. Dialog/Popover reka-ui
-  aman karena semuanya di-portal ke `body`.
-- **TabNav di dalam shell terkunci pakai `:sticky="false"`.** Offset sticky
-  dihitung dari scrollport terdekat, dan `overflow-hidden` milik shell menjadi
-  scrollport, jadi nav sticky akan terdorong turun setinggi satu navbar lagi.
+- **`container-type: inline-size` TIDAK menangkap `position: fixed`.** Ini
+  pernah diasumsikan sebaliknya di sini dan salah — sudah dibuktikan pakai probe:
+  element fixed tetap anchor ke viewport dan computed `contain` terbaca `none`.
+  Jadi pill Edit/Preview memakai `fixed` biasa, sama seperti pane switcher lain.
+  Konsekuensinya: container query TIDAK bisa menyembunyikan element fixed
+  langsung (query resolve lewat containing-block chain, bukan DOM tree) —
+  bungkus dengan element statis yang bawa query-nya, lalu turunkan lewat
+  `visibility` yang sifatnya inherited. JANGAN `transition-[visibility]`, CSS
+  menginterpolasi visibility sebagai step function dan nilainya terkunci di
+  `visible`.
+- **`TabNav :sticky="false"` tidak boleh menambah class `static`.** Nav-nya sudah
+  punya `relative` di base class, dan `static` masuk grup position yang sama lalu
+  menang di cascade — indicator yang `absolute` kehilangan offsetParent dan
+  hilang dari nav. Biarkan branch falsy-nya kosong.
 - Jangan pakai `scroll-fade-b` di dalam panel: mask-nya digerakkan
   `animation-timeline: scroll(self y)` dengan `fill-mode: both`, jadi scroller
   yang tidak punya jarak scroll akan terkunci di keyframe 0% dan fade-nya tidak

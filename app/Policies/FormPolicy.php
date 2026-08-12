@@ -61,6 +61,16 @@ class FormPolicy
         return $form->user_id === $user->id || $form->created_by === $user->id;
     }
 
+    /**
+     * Gate for the trash page's bulk restore. Every selected form is still
+     * checked one by one against `restore()`; this only decides whether the
+     * action is offered at all.
+     */
+    public function restoreAny(User $user): bool
+    {
+        return true;
+    }
+
     public function forceDelete(User $user, Form $form): bool
     {
         return $user->hasRole(['master', 'admin']);

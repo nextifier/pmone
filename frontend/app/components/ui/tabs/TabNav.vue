@@ -2,9 +2,11 @@
   <nav
     :class="[
       'no-scrollbar bg-background scroll-fade-x relative z-10 -mx-4 flex h-(--tabnav-height) shrink-0 gap-x-5 overflow-x-auto px-4 sm:mx-0 sm:px-0',
-      props.sticky
-        ? 'sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop)'
-        : 'static',
+      // Nothing in the falsy branch on purpose. `relative` above is what the
+      // indicator measures itself against, and a `static` here would land in
+      // the same Tailwind position group and win the cascade - the indicator
+      // then anchors to some ancestor further up and disappears off the nav.
+      props.sticky && 'sticky top-(--navbar-height-mobile) lg:top-(--navbar-height-desktop)',
     ]"
   >
     <NuxtLink

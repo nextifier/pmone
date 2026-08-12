@@ -258,6 +258,60 @@ class FormController extends Controller
         ]);
     }
 
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $this->authorize('restoreAny', Form::class);
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer', 'exists:forms,id'],
+        ]);
+
+        $forms = Form::onlyTrashed()->whereIn('id', $validated['ids'])->get();
+
+        // Every form individually: `restoreAny` only decides whether the action
+        // is offered, ownership still decides which rows may move.
+        foreach ($forms as $form) {
+            $this->authorize('restore', $form);
+        }
+
+        foreach ($forms as $form) {
+            $form->restore();
+        }
+
+        return response()->json([
+            'message' => $forms->count().' form(s) restored successfully',
+            'restored_count' => $forms->count(),
+        ]);
+    }
+
+    public function bulkForceDestroy(Request $request): JsonResponse
+    {
+        $this->authorize('forceDeleteAny', Form::class);
+
+        $validated = $request->validate([
+            'ids' => ['required', 'array'],
+            'ids.*' => ['integer', 'exists:forms,id'],
+        ]);
+
+        $forms = Form::onlyTrashed()->whereIn('id', $validated['ids'])->get();
+
+        foreach ($forms as $form) {
+            $this->authorize('forceDelete', $form);
+        }
+
+        // One at a time rather than a mass delete: `forceDelete` is what fires
+        // the model events that clean up media, fields and the short link.
+        foreach ($forms as $form) {
+            $form->forceDelete();
+        }
+
+        return response()->json([
+            'message' => $forms->count().' form(s) permanently deleted',
+            'deleted_count' => $forms->count(),
+        ]);
+    }
+
     public function forceDestroy(int $id): JsonResponse
     {
         $form = Form::onlyTrashed()->findOrFail($id);

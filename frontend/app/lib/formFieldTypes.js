@@ -3,7 +3,7 @@
 // normalization, response formatting, prefill coercion) lives in the portable
 // components/ui/custom-field folder and is re-exported here so admin code has
 // one import surface without duplicating logic.
-// Consumed by FieldTypeSelector, FieldCard, FieldEditor, the responses table,
+// Consumed by FieldTypeCombobox, FieldCard, FieldEditor, the responses table,
 // the response detail dialog, and the analytics page.
 export {
   defaultValueFor,
@@ -249,7 +249,10 @@ export const FIELD_TYPES = {
     group: "special",
   },
   section: {
-    label: "Section",
+    // "Section Heading", not "Section": it labels the divider itself, and the
+    // field list shows this string under every row where a question shows
+    // "Rating" or "Short Text".
+    label: "Section Heading",
     icon: "hugeicons:heading",
     group: "layout",
     isLayout: true,

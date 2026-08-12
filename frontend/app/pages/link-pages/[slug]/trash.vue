@@ -55,7 +55,7 @@
           <ResponsiveDialog v-model:open="restoreDialogs[item.id]">
             <template #trigger="{ open }">
               <button @click="open()" class="hover:bg-muted rounded-md p-1.5" title="Restore">
-                <Icon name="lucide:undo-2" class="size-4" />
+                <Icon name="hugeicons:undo-02" class="size-4" />
               </button>
             </template>
             <template #default>
@@ -86,7 +86,7 @@
           <ResponsiveDialog v-model:open="deleteDialogs[item.id]">
             <template #trigger="{ open }">
               <button @click="open()" class="hover:bg-destructive/10 rounded-md p-1.5" title="Delete permanently">
-                <Icon name="lucide:trash" class="text-destructive-foreground size-4" />
+                <Icon name="hugeicons:delete-02" class="text-destructive-foreground size-4" />
               </button>
             </template>
             <template #default>

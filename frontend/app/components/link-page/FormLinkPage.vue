@@ -34,12 +34,12 @@
               <Spinner v-if="slugChecking" class="size-4" />
               <Icon
                 v-else-if="hasUppercase || hasInvalidChars || slugAvailable === false"
-                name="lucide:x"
+                name="hugeicons:cancel-01"
                 class="text-destructive-foreground size-4"
               />
               <Icon
                 v-else-if="slugAvailable === true"
-                name="lucide:check"
+                name="hugeicons:tick-02"
                 class="text-success-foreground size-4"
               />
             </InputGroupAddon>

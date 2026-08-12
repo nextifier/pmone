@@ -1,5 +1,12 @@
 <template>
-  <div class="flex flex-col pb-16 sm:container">
+  <!--
+    No bottom padding here. The Editor tab pins its preview with `position:
+    sticky`, and sticky stops sticking once its containing block runs out - so
+    any space between the panel and the end of the document is space the pinned
+    preview gets shoved up by, right under the header. Each tab pads its own
+    bottom instead. See `preview-panel/context.ts`.
+  -->
+  <div class="flex flex-col sm:container">
     <template v-if="initialLoading">
       <div class="flex flex-col items-start gap-y-4 pt-4">
         <Skeleton class="h-8 w-24 rounded-lg" />

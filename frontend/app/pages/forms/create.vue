@@ -5,7 +5,12 @@
       <h1 class="page-title">Create form</h1>
     </div>
 
-    <FormForm ref="formRef" mode="create" />
+    <FormBuilderTemplatePicker
+      v-model="templateKey"
+      @loaded="templates = $event"
+    />
+
+    <FormForm ref="formRef" mode="create" :template="templateKey" />
   </div>
 </template>
 
@@ -22,6 +27,18 @@ usePageMeta(null, {
 });
 
 const formRef = ref(null);
+const templateKey = ref(null);
+const templates = ref([]);
+
+/**
+ * The key rides along to the backend, which seeds the fields; the title and
+ * description are filled in here so the author sees what they picked before
+ * they submit.
+ */
+watch(templateKey, (key) => {
+  const template = templates.value.find((item) => item.key === key);
+  formRef.value?.applyTemplate(template ?? { title: "", description: "" });
+});
 
 defineShortcuts({
   meta_s: {

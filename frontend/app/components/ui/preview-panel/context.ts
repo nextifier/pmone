@@ -15,6 +15,15 @@ import type { ComputedRef, InjectionKey, Ref } from "vue";
  * the viewport, and the computed `contain` reads `none`. Only an explicit
  * `contain: layout`/`paint` would capture them. So the floating switcher is
  * plain `fixed`, matching every other pane switcher in the app.
+ *
+ * HOST INVARIANT (`mode="sticky"`): whatever follows the panel in the document
+ * must be no taller than `insetBottom`. A sticky element stops sticking once
+ * its containing block runs out, so with `pb-16` on the page and a 1rem
+ * `insetBottom`, scrolling to the very bottom shoves the pinned preview 3rem up
+ * and its top disappears under the page header. Pad the *inside* of the edit
+ * slot instead - that height belongs to the containing block and costs nothing.
+ * There is no way to fix this from in here: the offending padding lives on an
+ * ancestor the panel cannot see or cancel.
  */
 
 export type PreviewPanelTab = "edit" | "preview";

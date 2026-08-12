@@ -535,7 +535,7 @@ const props = defineProps({
   submitLoadingText: { type: String, default: "Saving.." },
 });
 
-const emit = defineEmits(["submit", "cancel"]);
+const emit = defineEmits(["submit", "cancel", "update:preview"]);
 
 const { metaSymbol } = useShortcuts();
 const client = useSanctumClient();
@@ -557,6 +557,21 @@ function createEmptyForm() {
 }
 
 const form = reactive(createEmptyForm());
+
+/**
+ * Streams the draft out for the live preview beside this form. Deep, because
+ * every field here writes into the same reactive object and `cta_actions` is
+ * edited in place.
+ *
+ * The image comes from `initialData` rather than the uploader: a freshly picked
+ * file is a temp folder id the preview cannot render, and the saved image is
+ * the one still on screen until the form is submitted.
+ */
+watch(
+  () => ({ ...form, image: props.initialData?.image ?? null }),
+  (draft) => emit("update:preview", draft),
+  { deep: true, immediate: true }
+);
 
 const imageFiles = ref([]);
 const deleteImage = ref(false);

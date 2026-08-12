@@ -34,6 +34,49 @@ function enablePredefined(string $systemKey, string $context = 'ticket_registrat
     )->assertOk();
 }
 
+it('accepts a partial update without context, type or a full label map', function () {
+    $create = $this->actingAs($this->staff)
+        ->postJson("/api/events/{$this->event->id}/custom-fields", [
+            'context' => 'business_matching',
+            'label' => ['en' => 'Company size', 'id' => 'Ukuran perusahaan'],
+            'type' => CustomField::TYPE_TEXT,
+        ])
+        ->assertCreated();
+
+    $id = $create->json('data.id');
+
+    // Until the update request relaxed its inherited create rules, this 422'd
+    // on context, label.en and type all being required - the only one of the
+    // four custom-field contexts that demanded a full payload to patch a field.
+    $this->actingAs($this->staff)
+        ->putJson("/api/events/{$this->event->id}/custom-fields/{$id}", [
+            'validation' => ['required' => true],
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.required', true)
+        ->assertJsonPath('data.type', 'text')
+        ->assertJsonPath('data.label', 'Company size')
+        ->assertJsonPath('data.label_translations.id', 'Ukuran perusahaan');
+});
+
+it('still rejects a partial update that sends an empty english label', function () {
+    $id = $this->actingAs($this->staff)
+        ->postJson("/api/events/{$this->event->id}/custom-fields", [
+            'context' => 'business_matching',
+            'label' => ['en' => 'Company size'],
+            'type' => CustomField::TYPE_TEXT,
+        ])
+        ->assertCreated()
+        ->json('data.id');
+
+    $this->actingAs($this->staff)
+        ->putJson("/api/events/{$this->event->id}/custom-fields/{$id}", [
+            'label' => ['id' => 'Hanya Indonesia'],
+        ])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('label.en');
+});
+
 it('serializes predefined select options as {value, label} objects with the full locale map', function () {
     enablePredefined('gender');
 

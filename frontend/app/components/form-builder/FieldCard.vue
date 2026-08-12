@@ -1,7 +1,6 @@
 <template>
   <div
-    class="grid grid-cols-[auto_1fr_auto] items-center gap-x-2.5 rounded-lg border px-3 py-2.5"
-    :class="isSection ? 'bg-muted border-dashed' : 'bg-muted/50'"
+    class="bg-muted/50 grid grid-cols-[auto_1fr_auto] items-center gap-x-2.5 rounded-lg border px-3 py-2.5"
     :style="indentStyle"
   >
     <Icon
@@ -25,14 +24,7 @@
       @click="$emit('edit', field)"
     >
       <span class="block text-sm font-medium tracking-tight">
-        <!-- A section has no type name below to carry its glyph, so it keeps one
-             inline here. Inline rather than in its own column: a column would
-             be blank on every field row below. -->
-        <Icon
-          v-if="isSection"
-          :name="getTypeIcon(field.type)"
-          class="text-muted-foreground mr-1.5 inline size-4 align-[-0.2em]"
-        /><span
+        <span
           class="decoration-muted-foreground/50 decoration-dotted decoration-2 underline-offset-4 group-hover/label:underline"
           >{{ field.label }}</span
         ><span
@@ -47,20 +39,21 @@
            of its own: the column was 26px of every row spent on one icon, and
            it left this line reading as a separate, unrelated thing.
 
-           A section is a group header, not a field - the dashed frame says so -
-           and its type name would have made every one of these rows two lines. -->
+           Sections read exactly like fields here. Their own indent - and the
+           indent of the questions under them - is what shows the grouping, so
+           a second treatment (dashed frame, darker fill, glyph up beside the
+           title) was three ways of saying the same thing in three places. -->
       <span
-        v-if="!isSection || detail"
         class="text-muted-foreground mt-1 flex min-w-0 items-center gap-x-1.5 text-xs tracking-tight"
       >
         <!-- No pill background: its `px` would inset the glyph a few pixels and
              leave this line visibly off the label's left edge above it. -->
-        <span v-if="!isSection" class="inline-flex shrink-0 items-center gap-x-1">
+        <span class="inline-flex shrink-0 items-center gap-x-1">
           <Icon :name="getTypeIcon(field.type)" class="size-3.5 shrink-0" />
           {{ getTypeLabel(field.type) }}
         </span>
         <template v-if="detail">
-          <span v-if="!isSection" class="bg-muted-foreground/40 size-0.5 shrink-0 rounded-full" />
+          <span class="bg-muted-foreground/40 size-0.5 shrink-0 rounded-full" />
           <span class="truncate">{{ detail }}</span>
         </template>
       </span>

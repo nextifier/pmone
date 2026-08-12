@@ -483,23 +483,30 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/{id}', [EventProductCategoryController::class, 'destroy'])->name('event-product-categories.destroy');
     });
 
-    // Event document management endpoints (nested under events)
+    // Event document management endpoints (nested under events).
+    //
+    // The `event_documents.*` permissions have existed in config/permissions.php
+    // since the feature shipped but were never wired to these routes, so any
+    // verified user could read, create and delete another project's documents
+    // and their fields. The controllers do not authorize internally either.
     Route::prefix('projects/{username}/events/{eventSlug}/documents')->group(function () {
-        Route::get('/', [EventDocumentController::class, 'index'])->name('event-documents.index');
-        Route::post('/', [EventDocumentController::class, 'store'])->name('event-documents.store');
-        Route::post('/reorder', [EventDocumentController::class, 'reorder'])->name('event-documents.reorder');
-        Route::get('/{ulid}', [EventDocumentController::class, 'show'])->name('event-documents.show');
-        Route::put('/{ulid}', [EventDocumentController::class, 'update'])->name('event-documents.update');
-        Route::delete('/{ulid}', [EventDocumentController::class, 'destroy'])->name('event-documents.destroy');
+        Route::get('/', [EventDocumentController::class, 'index'])->middleware('can:event_documents.read')->name('event-documents.index');
+        Route::post('/', [EventDocumentController::class, 'store'])->middleware('can:event_documents.create')->name('event-documents.store');
+        Route::post('/reorder', [EventDocumentController::class, 'reorder'])->middleware('can:event_documents.update')->name('event-documents.reorder');
+        Route::get('/{ulid}', [EventDocumentController::class, 'show'])->middleware('can:event_documents.read')->name('event-documents.show');
+        Route::put('/{ulid}', [EventDocumentController::class, 'update'])->middleware('can:event_documents.update')->name('event-documents.update');
+        Route::delete('/{ulid}', [EventDocumentController::class, 'destroy'])->middleware('can:event_documents.delete')->name('event-documents.destroy');
     });
 
-    // Document mini-form fields (centralized custom fields, context: document)
+    // Document mini-form fields (centralized custom fields, context: document).
+    // Gated on the parent document's permissions: a field is part of the
+    // document, so editing one is editing the document.
     Route::prefix('projects/{username}/events/{eventSlug}/documents/{document}/fields')->group(function () {
-        Route::get('/', [EventDocumentFieldController::class, 'index'])->name('event-document-fields.index');
-        Route::post('/', [EventDocumentFieldController::class, 'store'])->name('event-document-fields.store');
-        Route::put('/reorder', [EventDocumentFieldController::class, 'reorder'])->name('event-document-fields.reorder');
-        Route::put('/{field}', [EventDocumentFieldController::class, 'update'])->name('event-document-fields.update');
-        Route::delete('/{field}', [EventDocumentFieldController::class, 'destroy'])->name('event-document-fields.destroy');
+        Route::get('/', [EventDocumentFieldController::class, 'index'])->middleware('can:event_documents.read')->name('event-document-fields.index');
+        Route::post('/', [EventDocumentFieldController::class, 'store'])->middleware('can:event_documents.update')->name('event-document-fields.store');
+        Route::put('/reorder', [EventDocumentFieldController::class, 'reorder'])->middleware('can:event_documents.update')->name('event-document-fields.reorder');
+        Route::put('/{field}', [EventDocumentFieldController::class, 'update'])->middleware('can:event_documents.update')->name('event-document-fields.update');
+        Route::delete('/{field}', [EventDocumentFieldController::class, 'destroy'])->middleware('can:event_documents.update')->name('event-document-fields.destroy');
     });
 
     // Order management endpoints (nested under events)
@@ -766,6 +773,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/', [FormController::class, 'index'])->name('forms.index');
         Route::post('/', [FormController::class, 'store'])->name('forms.store');
         Route::get('/trash', [FormController::class, 'trash'])->name('forms.trash');
+        // Bulk routes first: `/trash/bulk` would otherwise bind "bulk" to {id}.
+        Route::post('/trash/restore/bulk', [FormController::class, 'bulkRestore'])->name('forms.bulk-restore');
+        Route::delete('/trash/bulk', [FormController::class, 'bulkForceDestroy'])->name('forms.bulk-force-destroy');
         Route::post('/trash/{id}/restore', [FormController::class, 'restore'])->name('forms.restore');
         Route::delete('/trash/{id}', [FormController::class, 'forceDestroy'])->name('forms.force-destroy');
         Route::get('/{form:slug}', [FormController::class, 'show'])->name('forms.show');

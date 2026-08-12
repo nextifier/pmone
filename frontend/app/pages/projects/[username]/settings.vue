@@ -2,7 +2,11 @@
   <div class="flex flex-col">
     <TabNav :tabs="settingsTabs" />
 
-    <div class="mx-auto w-full max-w-2xl pt-6">
+    <!-- Settings forms read best at a single measure, so they are capped here
+         rather than in each tab. A tab that puts a live preview beside its
+         controls needs the whole column instead and opts out with
+         `definePageMeta({ wideSettings: true })`. -->
+    <div class="w-full pt-6" :class="route.meta.wideSettings ? '' : 'mx-auto max-w-2xl'">
       <NuxtPage :project="project" />
     </div>
   </div>
