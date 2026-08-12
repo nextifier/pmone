@@ -359,15 +359,15 @@
   }
 
   .cn-context-menu-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:text-destructive-foreground focus:*:[svg]:text-accent-foreground gap-2.5 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:text-destructive-foreground focus:*:[svg]:text-foreground gap-2.5 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-context-menu-checkbox-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-context-menu-radio-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-context-menu-item-indicator {
@@ -387,7 +387,7 @@
   }
 
   .cn-context-menu-sub-trigger {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground data-open:bg-muted data-open:text-foreground rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-context-menu-sub-content {
@@ -440,15 +440,15 @@
   }
 
   .cn-dropdown-menu-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:text-destructive-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground gap-2.5 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground data-[variant=destructive]:text-destructive-foreground data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive-foreground data-[variant=destructive]:*:[svg]:text-destructive-foreground not-data-[variant=destructive]:focus:**:text-foreground gap-2.5 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-dropdown-menu-checkbox-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground focus:**:text-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-dropdown-menu-radio-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground focus:**:text-foreground gap-2.5 rounded-none py-2 pr-8 pl-3 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-dropdown-menu-label {
@@ -464,7 +464,7 @@
   }
 
   .cn-dropdown-menu-sub-trigger {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground gap-2 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground data-open:bg-muted data-open:text-foreground not-data-[variant=destructive]:focus:**:text-foreground gap-2 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-dropdown-menu-sub-content {
@@ -630,7 +630,7 @@
   }
 
   .cn-menubar-checkbox-item {
-    @apply focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-2.5 rounded-none py-2 pr-3 pl-9.5 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5;
+    @apply focus:bg-muted focus:text-foreground focus:**:text-foreground gap-2.5 rounded-none py-2 pr-3 pl-9.5 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5;
   }
 
   .cn-menubar-checkbox-item-indicator {
@@ -638,7 +638,7 @@
   }
 
   .cn-menubar-radio-item {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground focus:**:text-accent-foreground gap-2.5 rounded-none py-2 pr-3 pl-9.5 text-sm font-medium uppercase tracking-wider data-disabled:opacity-50 data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground focus:**:text-foreground gap-2.5 rounded-none py-2 pr-3 pl-9.5 text-sm font-medium uppercase tracking-wider data-disabled:opacity-50 data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-menubar-radio-item-indicator {
@@ -658,7 +658,7 @@
   }
 
   .cn-menubar-sub-trigger {
-    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-accent focus:text-accent-foreground data-open:bg-accent data-open:text-accent-foreground gap-2 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
+    @apply [&_svg:not([class*='size-'])]:size-4 focus:bg-muted focus:text-foreground data-open:bg-muted data-open:text-foreground gap-2 rounded-none px-3 py-2 text-sm font-medium uppercase tracking-wider data-inset:pl-9.5 sm:[&_svg:not([class*='size-'])]:size-3.5;
   }
 
   .cn-menubar-sub-content {

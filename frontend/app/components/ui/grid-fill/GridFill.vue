@@ -52,15 +52,20 @@ const fillerCount = computed(() => {
   return remainder === 0 ? 0 : columnCount.value - remainder
 })
 
+// The base column count always travels through the custom property the class
+// reads, never as an inline `grid-template-columns`. An inline declaration
+// outranks every utility, so writing it directly made a call site's own
+// `md:grid-cols-3` silently dead. As a custom property it stays overridable
+// through the normal cascade.
 const gridStyle = computed(() => {
-  const base = `repeat(${props.cols}, minmax(0, 1fr))`
-  if (props.minColWidth === false) {
-    return { gridTemplateColumns: base }
+  const style: Record<string, string> = {
+    "--grid-fill-cols": `repeat(${props.cols}, minmax(0, 1fr))`,
   }
-  return {
-    "--grid-fill-cols": base,
-    "--grid-fill-cols-auto": `repeat(auto-fit, minmax(${props.minColWidth}, 1fr))`,
-  } as Record<string, string>
+  if (props.minColWidth !== false) {
+    style["--grid-fill-cols-auto"] =
+      `repeat(auto-fit, minmax(${props.minColWidth}, 1fr))`
+  }
+  return style
 })
 
 function detectColumns() {
