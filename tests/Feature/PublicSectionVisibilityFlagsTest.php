@@ -156,23 +156,27 @@ test('the public event payload exposes both flags', function () {
         ->assertJsonPath('data.rundown_public_visible', true);
 });
 
-test('a bare force parameter with no value is truthy', function () {
+// The whole point of the parameter is that a staff member types it by hand, so
+// every spelling a human reaches for has to work - the valueless one most of
+// all. It is the form that silently did nothing on the website side until
+// Aug 2026, because vue-router parses `?x` to null rather than "".
+test('the force parameter accepts every spelling a human types', function (string $query, int $expectedTotal) {
     $this->event->update(['brands_public_visible' => false]);
 
     $this->withHeaders($this->headers)
-        ->getJson("/api/public/projects/{$this->project->username}/brands?force_show_brands")
+        ->getJson("/api/public/projects/{$this->project->username}/brands{$query}")
         ->assertOk()
-        ->assertJsonPath('meta.total', 1);
-});
-
-test('force_show_brands=0 does not bypass the flag', function () {
-    $this->event->update(['brands_public_visible' => false]);
-
-    $this->withHeaders($this->headers)
-        ->getJson("/api/public/projects/{$this->project->username}/brands?force_show_brands=0")
-        ->assertOk()
-        ->assertJsonPath('meta.total', 0);
-});
+        ->assertJsonPath('meta.total', $expectedTotal);
+})->with([
+    'bare' => ['?force_show_brands', 1],
+    'empty value' => ['?force_show_brands=', 1],
+    'one' => ['?force_show_brands=1', 1],
+    'true' => ['?force_show_brands=true', 1],
+    'uppercase true' => ['?force_show_brands=TRUE', 1],
+    'zero' => ['?force_show_brands=0', 0],
+    'false' => ['?force_show_brands=false', 0],
+    'absent' => ['', 0],
+]);
 
 test('a rundown force parameter does not unlock brands', function () {
     $this->event->update(['brands_public_visible' => false]);

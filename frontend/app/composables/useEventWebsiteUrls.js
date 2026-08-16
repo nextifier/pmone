@@ -28,16 +28,19 @@ export const useEventWebsiteUrls = (event) => {
     return edition ? `/${edition}` : "";
   });
 
+  // `=1` rather than the bare param: an explicit value survives every URL
+  // normaliser between here and the page (chat clients, redirects, analytics
+  // rewrites), any of which can drop a valueless key.
   const brandsPreviewUrl = computed(() =>
-    base.value ? `${base.value}${editionPrefix.value}/brands?force-show-brands` : null
+    base.value ? `${base.value}${editionPrefix.value}/brands?force-show-brands=1` : null
   );
 
   const rundownPreviewUrl = computed(() =>
-    base.value ? `${base.value}${editionPrefix.value}/rundown?force-show-rundown` : null
+    base.value ? `${base.value}${editionPrefix.value}/rundown?force-show-rundown=1` : null
   );
 
   const ticketsPreviewUrl = computed(() =>
-    base.value && isActiveEdition.value ? `${base.value}/tickets?force-checkout-ticket` : null
+    base.value && isActiveEdition.value ? `${base.value}/tickets?force-checkout-ticket=1` : null
   );
 
   return { base, isActiveEdition, brandsPreviewUrl, rundownPreviewUrl, ticketsPreviewUrl };
