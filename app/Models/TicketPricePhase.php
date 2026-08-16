@@ -14,21 +14,54 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
 /**
- * A time-bound price for a ticket (Pre-registration / Pre-sale / Normal / ...).
+ * A time-bound price for a ticket (Pre-registration / Pre-sale / Normal / .
+ *
+ * ..).
  * The active phase is the one whose [starts_at, ends_at] window contains "now";
  * null bounds are treated as open-ended. price = 0 means the phase is free.
  *
  * @property int $id
  * @property int $ticket_id
  * @property string $label
- * @property string $price
+ * @property numeric $price
  * @property Carbon|null $starts_at
  * @property Carbon|null $ends_at
  * @property int|null $quota
  * @property int $sold_count
  * @property bool $is_active
  * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read Ticket|null $ticket
+ *
+ * @method static \Database\Factories\TicketPricePhaseFactory factory($count = null, $state = [])
+ * @method static Builder<static>|TicketPricePhase newModelQuery()
+ * @method static Builder<static>|TicketPricePhase newQuery()
+ * @method static Builder<static>|TicketPricePhase onlyTrashed()
+ * @method static Builder<static>|TicketPricePhase ordered(string $direction = 'asc')
+ * @method static Builder<static>|TicketPricePhase query()
+ * @method static Builder<static>|TicketPricePhase whereCreatedAt($value)
+ * @method static Builder<static>|TicketPricePhase whereCreatedBy($value)
+ * @method static Builder<static>|TicketPricePhase whereDeletedAt($value)
+ * @method static Builder<static>|TicketPricePhase whereDeletedBy($value)
+ * @method static Builder<static>|TicketPricePhase whereEndsAt($value)
+ * @method static Builder<static>|TicketPricePhase whereId($value)
+ * @method static Builder<static>|TicketPricePhase whereIsActive($value)
+ * @method static Builder<static>|TicketPricePhase whereLabel($value)
+ * @method static Builder<static>|TicketPricePhase whereOrderColumn($value)
+ * @method static Builder<static>|TicketPricePhase wherePrice($value)
+ * @method static Builder<static>|TicketPricePhase whereQuota($value)
+ * @method static Builder<static>|TicketPricePhase whereSoldCount($value)
+ * @method static Builder<static>|TicketPricePhase whereStartsAt($value)
+ * @method static Builder<static>|TicketPricePhase whereTicketId($value)
+ * @method static Builder<static>|TicketPricePhase whereUpdatedAt($value)
+ * @method static Builder<static>|TicketPricePhase whereUpdatedBy($value)
+ * @method static Builder<static>|TicketPricePhase withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|TicketPricePhase withoutTrashed()
  *
  * @mixin \Eloquent
  */
@@ -163,6 +196,26 @@ class TicketPricePhase extends Model implements Sortable
         }
 
         return $reserved;
+    }
+
+    /**
+     * Admin-preview only: increment sold_count unconditionally, skipping the
+     * quota guard in reserve().
+     *
+     * Staff testing checkout on the live site need to get past a phase whose
+     * early-bird quota is exhausted while the ticket itself still has stock -
+     * the case the website labels "sold out" even though there are seats. The
+     * counter is still incremented (rather than the reservation being skipped)
+     * so phase reporting stays truthful and release() can undo it. Ticket
+     * stock and event capacity are NOT bypassed anywhere.
+     */
+    public function reserveIgnoringQuota(int $qty): void
+    {
+        static::query()
+            ->whereKey($this->id)
+            ->update(['sold_count' => DB::raw('sold_count + '.(int) $qty)]);
+
+        $this->clearResponseCacheForRawUpdate();
     }
 
     /**

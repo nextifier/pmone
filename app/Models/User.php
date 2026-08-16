@@ -54,12 +54,6 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  * @property string $status
  * @property string $visibility
  * @property Carbon|null $last_seen
- * @property Carbon|null $last_login_at
- * @property string|null $last_login_ip
- * @property string|null $last_login_user_agent
- * @property Carbon|null $suspended_at
- * @property string|null $suspension_reason
- * @property int|null $suspended_by
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -73,24 +67,45 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  * @property string|null $company_name
  * @property string|null $encrypted_password
  * @property array<array-key, mixed>|null $custom_fields
+ * @property string|null $country
+ * @property string|null $city
+ * @property string|null $profession
+ * @property string|null $position
+ * @property bool $business_matching_opt_in
+ * @property Carbon|null $last_login_at
+ * @property string|null $last_login_ip
+ * @property string|null $last_login_user_agent
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
+ * @property int|null $suspended_by
+ * @property string|null $last_page
+ * @property string|null $last_page_title
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, Task> $assignedTasks
  * @property-read int|null $assigned_tasks_count
  * @property-read Collection<int, Brand> $brands
  * @property-read int|null $brands_count
+ * @property-read Collection<int, Attendee> $claimedAttendees
+ * @property-read int|null $claimed_attendees_count
  * @property-read Collection<int, Post> $createdPosts
  * @property-read int|null $created_posts_count
  * @property-read Collection<int, Task> $createdTasks
  * @property-read int|null $created_tasks_count
  * @property-read User|null $creator
+ * @property-read Collection<int, CustomFieldValue> $customFieldValues
+ * @property-read int|null $custom_field_values_count
  * @property-read User|null $deleter
+ * @property-read int|null $birth_year
+ * @property-read int $profile_completeness
  * @property-read Collection<int, Link> $links
  * @property-read int|null $links_count
  * @property-read Collection<int, MagicLink> $magicLinks
  * @property-read int|null $magic_links_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
+ * @property-read Collection<int, UserNote> $notes
+ * @property-read int|null $notes_count
  * @property-read DatabaseNotificationCollection<int, DatabaseNotification> $notifications
  * @property-read int|null $notifications_count
  * @property-read Collection<int, OAuthProvider> $oauthProviders
@@ -105,6 +120,7 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  * @property-read int|null $roles_count
  * @property-read Collection<int, ShortLink> $shortLinks
  * @property-read int|null $short_links_count
+ * @property-read User|null $suspendedBy
  * @property-read Collection<int, Task> $tasks
  * @property-read int|null $tasks_count
  * @property-read Collection<int, PersonalAccessToken> $tokens
@@ -128,7 +144,10 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User verified()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBio($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBirthDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereBusinessMatchingOptIn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCity($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCompanyName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCountry($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCustomFields($value)
@@ -139,13 +158,23 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEncryptedPassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereGender($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLoginAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLoginIp($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLoginUserAgent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastPage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastPageTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastSeen($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereMoreDetails($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePosition($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereProfession($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSuspendedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSuspendedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSuspensionReason($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorConfirmedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorRecoveryCodes($value)

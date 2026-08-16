@@ -16,7 +16,14 @@ class DocumentService
         // Browsershot subprocess (Node.js + Chrome) can take 5-20s on cold start.
         // Default PHP-FPM max_execution_time of 30s is borderline — bump it so the
         // request finishes instead of being killed mid-render.
-        set_time_limit(120);
+        //
+        // Web only. On CLI there is no limit to raise, and setting one here would
+        // apply to the whole process: the test suite runs in a single PHP process,
+        // so one call to this method used to hand the entire run a 120s budget and
+        // kill it mid-suite. Queue workers get their own --timeout.
+        if (PHP_SAPI !== 'cli') {
+            set_time_limit(120);
+        }
 
         $reservation->loadMissing(['hotel', 'event', 'items.roomType', 'transfers', 'paymentGateway', 'adjustments']);
 
@@ -37,7 +44,10 @@ class DocumentService
 
     public function renderReceiptPdf(Reservation $reservation): Response
     {
-        set_time_limit(120);
+        // Web only - see renderInvoicePdf().
+        if (PHP_SAPI !== 'cli') {
+            set_time_limit(120);
+        }
 
         $reservation->loadMissing(['hotel', 'event', 'items.roomType', 'transfers', 'adjustments']);
 

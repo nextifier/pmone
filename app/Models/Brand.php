@@ -35,7 +35,6 @@ use Spatie\Tags\Tag;
  * @property string $slug
  * @property string|null $description
  * @property string|null $company_name
- * @property array<array-key, mixed>|null $address
  * @property string|null $company_email
  * @property string|null $company_phone
  * @property array<array-key, mixed>|null $custom_fields
@@ -48,6 +47,7 @@ use Spatie\Tags\Tag;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property array<array-key, mixed>|null $address
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -56,9 +56,11 @@ use Spatie\Tags\Tag;
  * @property-read User|null $deleter
  * @property-read Collection<int, Event> $events
  * @property-read int|null $events_count
+ * @property-read Collection<int, ExhibitorLead> $exhibitorLeads
+ * @property-read int|null $exhibitor_leads_count
  * @property-read array|null $brand_logo
- * @property-read array|null $profile_image
  * @property-read array $business_categories_list
+ * @property-read array|null $profile_image
  * @property-read Collection<int, Link> $links
  * @property-read int|null $links_count
  * @property-read MediaCollection<int, Media> $media
@@ -403,7 +405,7 @@ class Brand extends Model implements HasMedia, Sortable
 
     public function brandEvents(): HasMany
     {
-        return $this->hasMany(BrandEvent::class)->ordered();
+        return $this->hasMany(BrandEvent::class)->orderedByBooth();
     }
 
     /**

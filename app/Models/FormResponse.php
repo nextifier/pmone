@@ -24,9 +24,11 @@ use Illuminate\Support\Str;
  * @property Carbon|null $updated_at
  * @property-read Form|null $form
  *
+ * @method static \Database\Factories\FormResponseFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse search(string $search)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereBrowserFingerprint($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|FormResponse whereFormId($value)

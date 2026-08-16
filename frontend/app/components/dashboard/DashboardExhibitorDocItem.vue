@@ -2,7 +2,7 @@
   <div>
     <!-- Header: title + status -->
     <div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div v-if="!hideTitle" class="flex flex-wrap items-center gap-2">
         <h4 class="text-base font-medium tracking-tight">{{ doc.title }}</h4>
         <Badge
           v-if="doc.is_required && status !== 'completed'"
@@ -24,7 +24,13 @@
           class="text-success-foreground size-4 shrink-0"
         />
       </div>
-      <p v-if="doc.submission_deadline" class="text-muted-foreground mt-1 text-sm tracking-tight">
+      <p
+        v-if="doc.submission_deadline"
+        :class="[
+          'mt-1 text-sm tracking-tight',
+          isPastDeadline ? 'text-destructive-foreground' : 'text-muted-foreground',
+        ]"
+      >
         {{ $t("ed.docs.deadline", { date: formatDeadline(doc.submission_deadline) }) }} ({{
           $dayjs(doc.submission_deadline).fromNow()
         }})
@@ -54,7 +60,7 @@
       <!-- Past deadline message -->
       <div
         v-if="isPastDeadline && status !== 'completed'"
-        class="text-muted-foreground bg-muted rounded-lg px-3 py-2 text-sm tracking-tight"
+        class="text-destructive-foreground bg-destructive/10 rounded-lg px-3 py-2 text-sm tracking-tight"
       >
         {{ $t("ed.docs.deadlinePassed") }}
       </div>
@@ -81,7 +87,7 @@
           </Button>
           <p
             v-else
-            class="text-muted-foreground bg-muted rounded-lg px-3 py-2 text-sm tracking-tight"
+            class="text-destructive-foreground bg-destructive/10 rounded-lg px-3 py-2 text-sm tracking-tight"
           >
             {{ $t("ed.docs.deadlinePassed") }}
           </p>
@@ -203,6 +209,10 @@ const props = defineProps({
     validator: (v) => ["view", "action"].includes(v),
   },
   apiBase: { type: String, default: "" },
+  // Set when an accordion wrapper already renders the title and status badge in
+  // its own trigger; the rest of the item (deadline, description, files, form)
+  // still belongs here.
+  hideTitle: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["submitted"]);

@@ -7,6 +7,10 @@
 // "B1A-01" (not "B-1A-01"), while values that are already correct ("6E-01",
 // "A-04A", "AA-105") are left alone. Letters are uppercased - a booth number is
 // signage, and case never carries meaning in one. Idempotent.
+//
+// Only the display format is mirrored here. The key that puts booths in physical
+// order (InputNormalizer::boothSortKey) is built server-side and arrives on the
+// row as `booth_sort_key` - there is nothing to duplicate in the browser.
 
 const dashRe = () => /([A-Z])(\d+)(?![^\s,/&]*\d)/g;
 

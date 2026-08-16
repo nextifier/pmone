@@ -9,12 +9,14 @@ use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\HasSlug;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
@@ -24,11 +26,14 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Translatable\HasTranslations;
 
 /**
  * A sellable ticket product belonging to an event. `kind` separates entry
  * tickets (carry `valid_days`) from add-ons (carry sessions + print_on_redeem).
+ *
  * Pricing lives in PricePhase; add-on scheduling lives in TicketSession.
  *
  * @property int $id
@@ -36,7 +41,7 @@ use Spatie\Translatable\HasTranslations;
  * @property int $event_id
  * @property string $slug
  * @property TicketKind $kind
- * @property array<array-key, mixed>|null $title
+ * @property array<array-key, mixed> $title
  * @property string|null $tier
  * @property array<array-key, mixed>|null $benefits
  * @property string $currency
@@ -48,13 +53,84 @@ use Spatie\Translatable\HasTranslations;
  * @property int $sold_count
  * @property int $min_quantity
  * @property int|null $max_quantity
- * @property int|null $max_per_buyer
  * @property array<array-key, mixed>|null $settings
  * @property bool $is_active
- * @property TicketVisibility $visibility
  * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property bool $requires_day_selection
+ * @property TicketVisibility $visibility
+ * @property int|null $max_per_buyer
+ * @property-read Collection<int, AccessCode> $accessCodes
+ * @property-read int|null $access_codes_count
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read User|null $creator
  * @property-read Event|null $event
  * @property-read array|null $poster
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
+ * @property-read Collection<int, TicketPricePhase> $pricePhases
+ * @property-read int|null $price_phases_count
+ * @property-read Collection<int, TicketSession> $sessions
+ * @property-read int|null $sessions_count
+ * @property-read Collection<int, TicketOrderItem> $ticketOrderItems
+ * @property-read int|null $ticket_order_items_count
+ * @property-read mixed $translations
+ * @property-read User|null $updater
+ * @property-read Collection<int, EventDay> $validDays
+ * @property-read int|null $valid_days_count
+ * @property-read Collection<int, TicketWaitlistEntry> $waitlistEntries
+ * @property-read int|null $waitlist_entries_count
+ *
+ * @method static Builder<static>|Ticket active()
+ * @method static \Database\Factories\TicketFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Ticket findSimilarSlugs(string $attribute, array $config, string $slug)
+ * @method static Builder<static>|Ticket newModelQuery()
+ * @method static Builder<static>|Ticket newQuery()
+ * @method static Builder<static>|Ticket onlyTrashed()
+ * @method static Builder<static>|Ticket ordered(string $direction = 'asc')
+ * @method static Builder<static>|Ticket query()
+ * @method static Builder<static>|Ticket whereBenefits($value)
+ * @method static Builder<static>|Ticket whereCreatedAt($value)
+ * @method static Builder<static>|Ticket whereCreatedBy($value)
+ * @method static Builder<static>|Ticket whereCurrency($value)
+ * @method static Builder<static>|Ticket whereDeletedAt($value)
+ * @method static Builder<static>|Ticket whereDeletedBy($value)
+ * @method static Builder<static>|Ticket whereEventId($value)
+ * @method static Builder<static>|Ticket whereExternalUrl($value)
+ * @method static Builder<static>|Ticket whereId($value)
+ * @method static Builder<static>|Ticket whereIsActive($value)
+ * @method static Builder<static>|Ticket whereJsonContainsLocale(string $column, string $locale, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|Ticket whereJsonContainsLocales(string $column, array $locales, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|Ticket whereKind($value)
+ * @method static Builder<static>|Ticket whereLocale(string $column, string $locale)
+ * @method static Builder<static>|Ticket whereLocales(string $column, array $locales)
+ * @method static Builder<static>|Ticket whereMaxPerBuyer($value)
+ * @method static Builder<static>|Ticket whereMaxQuantity($value)
+ * @method static Builder<static>|Ticket whereMinQuantity($value)
+ * @method static Builder<static>|Ticket whereMoreDetails($value)
+ * @method static Builder<static>|Ticket whereOrderColumn($value)
+ * @method static Builder<static>|Ticket wherePrintOnRedeem($value)
+ * @method static Builder<static>|Ticket wherePurchaseType($value)
+ * @method static Builder<static>|Ticket whereRequiresDaySelection($value)
+ * @method static Builder<static>|Ticket whereSettings($value)
+ * @method static Builder<static>|Ticket whereSlug($value)
+ * @method static Builder<static>|Ticket whereSoldCount($value)
+ * @method static Builder<static>|Ticket whereStock($value)
+ * @method static Builder<static>|Ticket whereTier($value)
+ * @method static Builder<static>|Ticket whereTitle($value)
+ * @method static Builder<static>|Ticket whereUlid($value)
+ * @method static Builder<static>|Ticket whereUpdatedAt($value)
+ * @method static Builder<static>|Ticket whereUpdatedBy($value)
+ * @method static Builder<static>|Ticket whereVisibility($value)
+ * @method static Builder<static>|Ticket withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Ticket withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
+ * @method static Builder<static>|Ticket withoutTrashed()
  *
  * @mixin \Eloquent
  */

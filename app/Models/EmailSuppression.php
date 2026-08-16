@@ -12,6 +12,32 @@ use Illuminate\Support\Carbon;
  * An address PM One refuses to send to again. Resend keeps its own account-level
  * suppression list, but this one is checked before the message ever reaches the
  * provider, so it saves a send charge and applies to every mailer.
+ *
+ * @property int $id
+ * @property string $email
+ * @property EmailSuppressionReason $reason
+ * @property string|null $subtype
+ * @property string $source
+ * @property Carbon $suppressed_at
+ * @property array<array-key, mixed>|null $payload
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ *
+ * @method static \Database\Factories\EmailSuppressionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression wherePayload($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereSource($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereSubtype($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereSuppressedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EmailSuppression whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
  */
 class EmailSuppression extends Model
 {

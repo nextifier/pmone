@@ -139,6 +139,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Production SSH Tunnel
+    |--------------------------------------------------------------------------
+    |
+    | Connection details for the SSH tunnel that exposes the production
+    | database on a local port, consumed by the `db:tunnel` command. The
+    | local port mirrors the `pgsql_production` connection above, so both
+    | sides stay in sync when DB_PROD_PORT changes.
+    |
+    */
+
+    'tunnel' => [
+        'host' => env('DB_TUNNEL_HOST'),
+        'username' => env('DB_TUNNEL_USERNAME', 'forge'),
+        'identity_file' => env('DB_TUNNEL_IDENTITY_FILE'),
+        'local_port' => env('DB_PROD_PORT', '5433'),
+        'remote_host' => env('DB_TUNNEL_REMOTE_HOST', '127.0.0.1'),
+        'remote_port' => env('DB_TUNNEL_REMOTE_PORT', '5432'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Migration Repository Table
     |--------------------------------------------------------------------------
     |

@@ -9,6 +9,7 @@ use App\Support\PaymentChannels;
 use App\Traits\HasAdjustments;
 use App\Traits\NormalizesAttributes;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,19 +36,108 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $buyer_name
  * @property string|null $buyer_email
  * @property string|null $buyer_phone
- * @property string $subtotal
- * @property string $discount_amount
- * @property string $total
+ * @property numeric $subtotal
+ * @property numeric $discount_amount
+ * @property numeric $total
  * @property string|null $promo_code_applied
+ * @property string|null $payment_ref
  * @property int|null $payment_gateway_id
+ * @property string|null $xendit_invoice_id
+ * @property string|null $payment_url
+ * @property string|null $payment_channel
  * @property Carbon|null $payment_expires_at
  * @property Carbon|null $paid_at
- * @property Carbon|null $paid_after_expiry_at
  * @property string|null $magic_link_token
  * @property Carbon|null $magic_link_expires_at
  * @property string $source
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property string|null $notes
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property string|null $return_origin
+ * @property string|null $batch_label
+ * @property string|null $batch_status
+ * @property string|null $access_code_applied
+ * @property Carbon|null $marked_paid_manually_at
+ * @property int|null $marked_paid_by
+ * @property string|null $idempotency_key
+ * @property Carbon|null $paid_after_expiry_at
+ * @property-read Collection<int, AccessCodeRedemption> $accessCodeRedemptions
+ * @property-read int|null $access_code_redemptions_count
+ * @property-read Collection<int, AppliedAdjustment> $activeAdjustments
+ * @property-read int|null $active_adjustments_count
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, AppliedAdjustment> $adjustments
+ * @property-read int|null $adjustments_count
+ * @property-read Collection<int, Attendee> $attendees
+ * @property-read int|null $attendees_count
+ * @property-read User|null $creator
+ * @property-read Collection<int, AppliedAdjustment> $discountAdjustments
+ * @property-read int|null $discount_adjustments_count
  * @property-read Event|null $event
+ * @property-read Collection<int, TicketOrderItem> $items
+ * @property-read int|null $items_count
+ * @property-read User|null $markedPaidBy
+ * @property-read ProjectPaymentGateway|null $paymentGateway
+ * @property-read Collection<int, AppliedAdjustment> $penaltyAdjustments
+ * @property-read int|null $penalty_adjustments_count
+ * @property-read User|null $updater
  * @property-read User|null $user
+ *
+ * @method static Builder<static>|TicketOrder confirmed()
+ * @method static \Database\Factories\TicketOrderFactory factory($count = null, $state = [])
+ * @method static Builder<static>|TicketOrder newModelQuery()
+ * @method static Builder<static>|TicketOrder newQuery()
+ * @method static Builder<static>|TicketOrder onlyTrashed()
+ * @method static Builder<static>|TicketOrder query()
+ * @method static Builder<static>|TicketOrder whereAccessCodeApplied($value)
+ * @method static Builder<static>|TicketOrder whereBatchLabel($value)
+ * @method static Builder<static>|TicketOrder whereBatchStatus($value)
+ * @method static Builder<static>|TicketOrder whereBuyerEmail($value)
+ * @method static Builder<static>|TicketOrder whereBuyerName($value)
+ * @method static Builder<static>|TicketOrder whereBuyerPhone($value)
+ * @method static Builder<static>|TicketOrder whereCreatedAt($value)
+ * @method static Builder<static>|TicketOrder whereCreatedBy($value)
+ * @method static Builder<static>|TicketOrder whereDeletedAt($value)
+ * @method static Builder<static>|TicketOrder whereDeletedBy($value)
+ * @method static Builder<static>|TicketOrder whereDiscountAmount($value)
+ * @method static Builder<static>|TicketOrder whereEventId($value)
+ * @method static Builder<static>|TicketOrder whereId($value)
+ * @method static Builder<static>|TicketOrder whereIdempotencyKey($value)
+ * @method static Builder<static>|TicketOrder whereIpAddress($value)
+ * @method static Builder<static>|TicketOrder whereMagicLinkExpiresAt($value)
+ * @method static Builder<static>|TicketOrder whereMagicLinkToken($value)
+ * @method static Builder<static>|TicketOrder whereMarkedPaidBy($value)
+ * @method static Builder<static>|TicketOrder whereMarkedPaidManuallyAt($value)
+ * @method static Builder<static>|TicketOrder whereNotes($value)
+ * @method static Builder<static>|TicketOrder whereOrderNumber($value)
+ * @method static Builder<static>|TicketOrder wherePaidAfterExpiryAt($value)
+ * @method static Builder<static>|TicketOrder wherePaidAt($value)
+ * @method static Builder<static>|TicketOrder wherePaymentChannel($value)
+ * @method static Builder<static>|TicketOrder wherePaymentExpiresAt($value)
+ * @method static Builder<static>|TicketOrder wherePaymentGatewayId($value)
+ * @method static Builder<static>|TicketOrder wherePaymentRef($value)
+ * @method static Builder<static>|TicketOrder wherePaymentUrl($value)
+ * @method static Builder<static>|TicketOrder wherePromoCodeApplied($value)
+ * @method static Builder<static>|TicketOrder whereReturnOrigin($value)
+ * @method static Builder<static>|TicketOrder whereSource($value)
+ * @method static Builder<static>|TicketOrder whereStatus($value)
+ * @method static Builder<static>|TicketOrder whereSubtotal($value)
+ * @method static Builder<static>|TicketOrder whereTotal($value)
+ * @method static Builder<static>|TicketOrder whereUlid($value)
+ * @method static Builder<static>|TicketOrder whereUpdatedAt($value)
+ * @method static Builder<static>|TicketOrder whereUpdatedBy($value)
+ * @method static Builder<static>|TicketOrder whereUserAgent($value)
+ * @method static Builder<static>|TicketOrder whereUserId($value)
+ * @method static Builder<static>|TicketOrder whereXenditInvoiceId($value)
+ * @method static Builder<static>|TicketOrder withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|TicketOrder withoutTrashed()
  *
  * @mixin \Eloquent
  */

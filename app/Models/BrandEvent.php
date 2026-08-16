@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BoothType;
 use App\Services\Currency\CurrencyResolver;
+use App\Support\InputNormalizer;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use App\Traits\NormalizesAttributes;
@@ -30,13 +31,13 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int $brand_id
  * @property int $event_id
  * @property string|null $booth_number
+ * @property string|null $booth_sort_key
  * @property numeric|null $booth_size
  * @property BoothType|null $booth_type
  * @property numeric|null $booth_price
  * @property int|null $sales_id
  * @property string $status
  * @property string|null $notes
- * @property string|null $currency_override
  * @property int $promotion_post_limit
  * @property array<array-key, mixed>|null $custom_fields
  * @property int|null $order_column
@@ -44,6 +45,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $updated_at
  * @property string|null $fascia_name
  * @property string|null $badge_name
+ * @property string|null $currency_override
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Brand|null $brand
@@ -130,6 +132,16 @@ class BrandEvent extends Model implements HasMedia, Sortable
     protected static function boot(): void
     {
         parent::boot();
+
+        // booth_sort_key is derived, never assigned, so it is not fillable. This
+        // listener is registered after parent::boot() has run bootTraits(),
+        // which is what registers the NormalizesAttributes `saving` hook - so
+        // booth_number is already canonical by the time the key is built.
+        static::saving(function (self $model) {
+            if ($model->isDirty('booth_number')) {
+                $model->booth_sort_key = InputNormalizer::boothSortKey($model->booth_number);
+            }
+        });
 
         static::deleting(function ($model) {
             // Delete promotion posts per-instance so their media is removed.
@@ -340,5 +352,24 @@ class BrandEvent extends Model implements HasMedia, Sortable
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);
+    }
+
+    /**
+     * Physical booth order: A-01, A-02, A-10 rather than A-1, A-10, A-2, and
+     * brands sharing a booth number always land next to each other. Replaces
+     * `ordered()` at the call site instead of stacking on top of it - a manual
+     * drag still decides between booths whose key ties or is missing.
+     *
+     * Nulls are sunk with a CASE rather than NULLS LAST because the two engines
+     * disagree on the default: PostgreSQL puts nulls last on ASC, the SQLite the
+     * tests run on puts them first.
+     */
+    public function scopeOrderedByBooth($query, string $direction = 'asc')
+    {
+        return $query
+            ->orderByRaw('CASE WHEN brand_event.booth_sort_key IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('brand_event.booth_sort_key', $direction)
+            ->orderBy('brand_event.order_column')
+            ->orderBy('brand_event.id');
     }
 }

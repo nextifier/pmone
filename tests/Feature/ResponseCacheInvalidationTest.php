@@ -1121,3 +1121,51 @@ test('posts:generate-meta busts the blog-posts cache after quiet saves', functio
 
     $spy->shouldHaveReceived('clear')->with(['blog-posts']);
 });
+
+test('the public-visibility endpoint busts the cached public brands response', function () {
+    ResponseCache::clear();
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_cache_key', 'is_active' => true]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $this->event->id,
+        'status' => 'active',
+    ]);
+
+    $brands = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands");
+
+    expect($brands()->assertOk()->json('meta.total'))->toBe(1);
+
+    $this->putJson("/api/events/{$this->event->id}/public-visibility", [
+        'brands_public_visible' => false,
+    ])->assertOk();
+
+    // No explicit ResponseCache::clear() in that controller: Event's
+    // responseCacheTags() already carries 'brands' and 'rundown', so the
+    // ClearsResponseCache saved() hook is the whole mechanism. This test is
+    // what stops someone "optimising" that save() into a saveQuietly().
+    expect($brands()->assertOk()->json('meta.total'))->toBe(0);
+});
+
+test('the public-visibility endpoint busts the cached public rundown response', function () {
+    ResponseCache::clear();
+    ApiConsumer::factory()->create(['api_key' => 'pk_test_cache_key_rundown', 'is_active' => true]);
+
+    RundownItem::factory()->create([
+        'event_id' => $this->event->id,
+        'is_active' => true,
+        'date' => $this->event->start_date,
+    ]);
+
+    $rundown = fn () => $this->withHeaders(['X-API-Key' => 'pk_test_cache_key_rundown'])
+        ->getJson("/api/public/projects/{$this->project->username}/events/{$this->event->slug}/rundown");
+
+    expect($rundown()->assertOk()->json('data.days'))->not->toBe([]);
+
+    $this->putJson("/api/events/{$this->event->id}/public-visibility", [
+        'rundown_public_visible' => false,
+    ])->assertOk();
+
+    expect($rundown()->assertOk()->json('data.days'))->toBe([]);
+});

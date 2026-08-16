@@ -189,3 +189,72 @@ test('brand detail picks the most recent edition when a brand spans editions', f
         ->assertOk()
         ->assertJsonPath('data.booth_number', 'NEW-2');
 });
+
+test('the previous-edition borrow skips an edition that hides its own brands', function () {
+    Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'edition_number' => 3,
+        'start_date' => now()->addMonths(3),
+    ]);
+
+    $hidden = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'edition_number' => 2,
+        'start_date' => now()->subYear(),
+        'brands_public_visible' => false,
+    ]);
+    $visible = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'edition_number' => 1,
+        'start_date' => now()->subYears(2),
+    ]);
+
+    BrandEvent::factory()->count(3)->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $hidden->id,
+        'status' => 'active',
+    ]);
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $visible->id,
+        'status' => 'active',
+    ]);
+
+    // Falls THROUGH the hidden edition to the older visible one, matching what
+    // activeBrand()'s third source does. Stopping at the hidden edition would
+    // make the listing and the detail resolver disagree.
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/projects/{$this->project->username}/brands?fallback=1")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('meta.fallback.source_event.edition_number', 1);
+});
+
+test('active brands returns the empty listing shape when the event hides its brands', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'brands_public_visible' => false,
+    ]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $event->id,
+        'status' => 'active',
+    ]);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/projects/{$this->project->username}/brands")
+        ->assertOk()
+        ->assertExactJson([
+            'data' => [],
+            'meta' => [
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => 200,
+                'total' => 0,
+                'fallback' => ['is_fallback' => false, 'source_event' => null],
+            ],
+        ]);
+});

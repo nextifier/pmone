@@ -275,3 +275,91 @@ it('requires accepting the terms', function () {
         ->assertStatus(422)
         ->assertJsonValidationErrors('accept_terms');
 });
+
+it('omits a switched-off ticket from the public listing but serves it under admin preview', function () {
+    $live = onSaleTicket($this->event, 60000);
+    $off = onSaleTicket($this->event, 90000);
+    $off->update(['is_active' => false]);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets")
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $live->id);
+
+    $response = $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets?force_checkout_ticket=1")
+        ->assertSuccessful()
+        ->assertJsonCount(2, 'data');
+
+    $preview = collect($response->json('data'))->firstWhere('id', $off->id);
+
+    expect($preview['is_active'])->toBeFalse()
+        ->and($preview['admin_preview'])->toBeTrue();
+});
+
+it('never serves a hidden ticket through the listing, even under admin preview', function () {
+    onSaleTicket($this->event, 60000);
+    $hidden = onSaleTicket($this->event, 90000);
+    $hidden->update(['visibility' => 'hidden']);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets?force_checkout_ticket=1")
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonMissing(['id' => $hidden->id]);
+});
+
+it('gives an off-sale ticket a display price and a stock figure under admin preview', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => 5]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 120000,
+        'starts_at' => now()->addWeek(),
+        'ends_at' => now()->addWeeks(2),
+    ]);
+
+    $response = $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets?force_checkout_ticket=1")
+        ->assertSuccessful();
+
+    // The payload stays honest: not on sale, status still upcoming. It just
+    // carries enough for the site to render a price and a stock count.
+    expect($response->json('data.0.on_sale'))->toBeFalse()
+        ->and($response->json('data.0.sales_status'))->toBe('upcoming')
+        ->and($response->json('data.0.display_price'))->toEqual(120000)
+        ->and($response->json('data.0.available'))->toBe(5);
+});
+
+it('prices a ticket whose sales already ended under admin preview', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => 3]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 75000,
+        'starts_at' => now()->subWeeks(2),
+        'ends_at' => now()->subWeek(),
+    ]);
+
+    // No live phase and no upcoming phase, so display_price is null publicly -
+    // the admin preview falls back to the phase that most recently closed.
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets")
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.sales_status', 'closed')
+        ->assertJsonPath('data.0.display_price', null);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets?force_checkout_ticket=1")
+        ->assertSuccessful()
+        ->assertJsonPath('data.0.sales_status', 'closed')
+        ->assertJsonPath('data.0.display_price', 75000);
+});
+
+it('does not expose admin_preview on a normal listing', function () {
+    onSaleTicket($this->event, 60000);
+
+    $this->withHeaders($this->headers)
+        ->getJson("/api/public/events/{$this->event->slug}/tickets")
+        ->assertSuccessful()
+        ->assertJsonMissingPath('data.0.admin_preview');
+});

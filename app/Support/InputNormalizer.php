@@ -99,6 +99,52 @@ final class InputNormalizer
     }
 
     /**
+     * Build a sortable key from a booth number, so a plain string sort puts
+     * booths in physical order: A-01, A-02, A-10 rather than A-1, A-10, A-2.
+     * Every digit group is zero-padded to six, every letter group is kept as
+     * typed, and the two alternate: "8A-81" becomes "000008A000081".
+     *
+     * A multi-booth value is keyed from its first token only ("B1B-19, B1B-20"
+     * keys as "B1B-19"), which is what puts a merged booth next to the single
+     * booth it starts at.
+     *
+     * Everything outside [A-Z0-9] is dropped rather than encoded. Punctuation
+     * is the part of a collation that differs most between PostgreSQL's ICU and
+     * the SQLite the test suite runs on; letters and digits sort the same in
+     * both, so dropping the rest is what makes this key behave identically in
+     * production and in tests. Do not add a COLLATE clause to the column.
+     *
+     * The key is derived, never entered: it is recomputed from booth_number on
+     * every save (see BrandEvent::boot), so it is not fillable.
+     */
+    public static function boothSortKey(?string $value): ?string
+    {
+        $value = self::boothNumber($value);
+
+        if ($value === null) {
+            return null;
+        }
+
+        $firstToken = preg_split('/[,\/&\s]+/u', $value, -1, PREG_SPLIT_NO_EMPTY)[0] ?? null;
+
+        if ($firstToken === null) {
+            return null;
+        }
+
+        $bare = (string) preg_replace('/[^A-Z0-9]/u', '', $firstToken);
+
+        if ($bare === '') {
+            return null;
+        }
+
+        preg_match_all('/\d+|[A-Z]+/u', $bare, $matches);
+
+        return collect($matches[0])
+            ->map(fn (string $run) => ctype_digit($run) ? str_pad($run, 6, '0', STR_PAD_LEFT) : $run)
+            ->implode('');
+    }
+
+    /**
      * Normalize a phone number to international format. Empty becomes null.
      */
     public static function phone(?string $value): ?string

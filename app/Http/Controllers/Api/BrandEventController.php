@@ -140,11 +140,21 @@ class BrandEventController extends Controller
             $query->whereIn('status', $statuses);
         }
 
-        // Sorting
-        $sort = $request->input('sort', 'order_column');
-        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-        $field = ltrim($sort, '-');
-        $query->orderBy($field, $direction);
+        // Sorting. The relation already carries the booth order, so an explicit
+        // sort has to reset it - appending would leave booth order in front and
+        // the requested field would never get a say.
+        if ($sort = $request->input('sort')) {
+            $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $field = ltrim($sort, '-');
+
+            $query->reorder();
+
+            // Both booth fields sort by the key: booth_number on its own would
+            // give A-1, A-10, A-2, which is not how a hall is walked.
+            in_array($field, ['booth_sort_key', 'booth_number'], true)
+                ? $query->orderedByBooth($direction)
+                : $query->orderBy($field, $direction);
+        }
 
         // Client-only mode: return all data without pagination
         if ($request->boolean('client_only')) {

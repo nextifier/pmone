@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
@@ -26,9 +27,42 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $assigned_to
  * @property int|null $brand_id
  * @property string|null $notes
- * @property-read Event|null $event
- * @property-read Brand|null $brand
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read Collection<int, AccessCode> $accessCodes
+ * @property-read int|null $access_codes_count
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Brand|null $brand
+ * @property-read User|null $creator
+ * @property-read Event|null $event
+ * @property-read User|null $updater
+ *
+ * @method static \Database\Factories\AccessCodeBatchFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereAssignedTo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereBrandId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereKind($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereNotes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AccessCodeBatch withoutTrashed()
  *
  * @mixin \Eloquent
  */

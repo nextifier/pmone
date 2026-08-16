@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\EventDocumentController;
 use App\Http\Controllers\Api\EventDocumentFieldController;
 use App\Http\Controllers\Api\EventProductCategoryController;
 use App\Http\Controllers\Api\EventProductController;
+use App\Http\Controllers\Api\EventPublicVisibilityController;
 use App\Http\Controllers\Api\EventReservationAnalyticsController;
 use App\Http\Controllers\Api\EventTicketSettingsController;
 use App\Http\Controllers\Api\ExchangeRateController;
@@ -717,6 +718,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         // dashboard are required here, and that endpoint serves every role.
         Route::put('/profile', [ExhibitorDashboardController::class, 'updateProfile'])->name('exhibitor.profile.update');
         Route::get('/events', [ExhibitorDashboardController::class, 'myEvents'])->name('exhibitor.events');
+        // Flat list across every brand, booth and event the user holds. The
+        // per-brand-event list lives further down under /brands/{slug}/events.
+        Route::get('/orders', [ExhibitorDashboardController::class, 'allMyOrders'])->name('exhibitor.orders.all');
         Route::get('/brands', [ExhibitorDashboardController::class, 'brands'])->name('exhibitor.brands');
         Route::get('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandShow'])->name('exhibitor.brands.show');
         Route::put('/brands/{brandSlug}', [ExhibitorDashboardController::class, 'brandUpdate'])->name('exhibitor.brands.update');
@@ -1341,6 +1345,18 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group
     Route::get('ticket-settings/payment-channels', [EventTicketSettingsController::class, 'paymentChannels'])
         ->middleware('can:events.read')
         ->name('events.ticket-settings.payment-channels');
+});
+
+// Per-event PUBLIC WEBSITE visibility (exhibitor list, rundown). Deliberately
+// outside the ticket-settings group above: an expo with ticketing off still
+// hides and shows its exhibitor list.
+Route::middleware(['auth:sanctum', 'verified'])->prefix('events/{event}')->group(function () {
+    Route::get('public-visibility', [EventPublicVisibilityController::class, 'show'])
+        ->middleware('can:events.read')
+        ->name('events.public-visibility.show');
+    Route::put('public-visibility', [EventPublicVisibilityController::class, 'update'])
+        ->middleware('can:events.update')
+        ->name('events.public-visibility.update');
 });
 
 // Ticketing management endpoints (nested under event, authenticated + verified + toggle-gated)

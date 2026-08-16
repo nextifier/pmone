@@ -277,17 +277,24 @@
       >
         <!-- Document list -->
         <div v-if="be.documents?.length" class="divide-border -mx-4 divide-y sm:-mx-5">
-          <DashboardExhibitorDocItem
+          <DashboardExhibitorDocAccordion
             v-for="doc in be.documents"
             :key="doc.document.id"
-            class="px-4 py-6 first:pt-0 last:pb-0 sm:px-5"
             :doc="doc.document"
-            :submission="doc.submission"
             :status="doc.status"
-            :api-base="docsApiBase"
-            mode="action"
-            @submitted="$emit('refresh')"
-          />
+            :open="openDocId === doc.document.id"
+            @update:open="(v) => (openDocId = v ? doc.document.id : null)"
+          >
+            <DashboardExhibitorDocItem
+              :doc="doc.document"
+              :submission="doc.submission"
+              :status="doc.status"
+              :api-base="docsApiBase"
+              mode="action"
+              hide-title
+              @submitted="$emit('refresh')"
+            />
+          </DashboardExhibitorDocAccordion>
         </div>
 
         <!-- Booth Fields (fascia & badge) -->
@@ -422,6 +429,18 @@ const docsComplete = computed(() => exhibitorDocsComplete(props.be));
 const docsApiBase = computed(
   () => `/api/exhibitor/brands/${props.be.brand.slug}/events/${props.be.brand_event_id}/documents`
 );
+
+// One document open at a time, and on load it is the first one still waiting on
+// the exhibitor - so the list opens on the thing that needs them rather than on
+// a wall of forms. It follows along after each submit, moving to whatever is
+// left; once everything is done, everything closes.
+const openDocId = ref(null);
+
+const firstIncompleteDocId = computed(
+  () => props.be.documents?.find((d) => d.status !== "completed")?.document?.id ?? null
+);
+
+watch(firstIncompleteDocId, (id) => (openDocId.value = id), { immediate: true });
 
 const sectionsLocked = computed(
   () =>

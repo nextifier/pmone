@@ -63,6 +63,8 @@ class OrderIndexResource extends JsonResource
                     'id' => $this->brandEvent->event->id,
                     'title' => $this->brandEvent->event->title,
                     'slug' => $this->brandEvent->event->slug,
+                    'date_label' => $this->brandEvent->event->date_label,
+                    'start_date' => $this->brandEvent->event->start_date?->toIso8601String(),
                     'project' => $this->when(
                         $this->brandEvent->event->relationLoaded('project') && $this->brandEvent->event->project,
                         fn () => [

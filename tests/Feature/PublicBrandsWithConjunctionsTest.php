@@ -182,3 +182,168 @@ test('active brand can be found in conjunction events', function () {
     $response->assertOk()
         ->assertJsonPath('data.brand_name', $brand->name);
 });
+
+test('hiding brands on the requested event empties the page including conjunction groups', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'brands_public_visible' => false,
+    ]);
+
+    $conjunctionEvent = Event::factory()->published()->create([
+        'project_id' => Project::factory(),
+    ]);
+    $event->conjunctionEvents()->attach($conjunctionEvent->id, ['order_column' => 1]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $event->id,
+        'status' => 'active',
+    ]);
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $conjunctionEvent->id,
+        'status' => 'active',
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands-with-conjunctions")
+        ->assertOk()
+        ->assertJsonPath('data.groups', []);
+});
+
+test('a conjunction event that hides its own brands is dropped from another event page', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+    ]);
+
+    $shy = Event::factory()->published()->create([
+        'project_id' => Project::factory(),
+        'brands_public_visible' => false,
+    ]);
+    $openProject = Project::factory()->create();
+    $open = Event::factory()->published()->create(['project_id' => $openProject->id]);
+
+    $event->conjunctionEvents()->attach($shy->id, ['order_column' => 1]);
+    $event->conjunctionEvents()->attach($open->id, ['order_column' => 2]);
+
+    foreach ([$event, $shy, $open] as $each) {
+        BrandEvent::factory()->create([
+            'brand_id' => Brand::factory(),
+            'event_id' => $each->id,
+            'status' => 'active',
+        ]);
+    }
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands-with-conjunctions")
+        ->assertOk()
+        ->assertJsonCount(2, 'data.groups')
+        ->assertJsonPath('data.groups.0.is_primary', true)
+        ->assertJsonPath('data.groups.1.project_username', $openProject->username);
+});
+
+test('hiding brands on the primary event leaves the conjunction event own site untouched', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'brands_public_visible' => false,
+    ]);
+
+    $neighbourProject = Project::factory()->create();
+    $neighbour = Event::factory()->published()->create([
+        'project_id' => $neighbourProject->id,
+        'is_active' => true,
+    ]);
+    $event->conjunctionEvents()->attach($neighbour->id, ['order_column' => 1]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $neighbour->id,
+        'status' => 'active',
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$neighbourProject->username}/brands-with-conjunctions")
+        ->assertOk()
+        ->assertJsonCount(1, 'data.groups')
+        ->assertJsonPath('data.groups.0.brands_count', 1);
+});
+
+test('force_show_brands restores every group', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'brands_public_visible' => false,
+    ]);
+
+    $conjunctionEvent = Event::factory()->published()->create([
+        'project_id' => Project::factory(),
+        'brands_public_visible' => false,
+    ]);
+    $event->conjunctionEvents()->attach($conjunctionEvent->id, ['order_column' => 1]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $event->id,
+        'status' => 'active',
+    ]);
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $conjunctionEvent->id,
+        'status' => 'active',
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands-with-conjunctions?force_show_brands=1")
+        ->assertOk()
+        ->assertJsonCount(2, 'data.groups');
+});
+
+test('brand detail 404s when the requested event hides its brands', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'brands_public_visible' => false,
+    ]);
+
+    $brand = Brand::factory()->create();
+    BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $event->id,
+        'status' => 'active',
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands/{$brand->slug}?fallback=0")
+        ->assertNotFound();
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands/{$brand->slug}?force_show_brands=1")
+        ->assertOk();
+});
+
+test('brand detail does not resolve through a conjunction event that hides its brands', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+    ]);
+
+    $shy = Event::factory()->published()->create([
+        'project_id' => Project::factory(),
+        'brands_public_visible' => false,
+    ]);
+    $event->conjunctionEvents()->attach($shy->id, ['order_column' => 1]);
+
+    $brand = Brand::factory()->create();
+    BrandEvent::factory()->create([
+        'brand_id' => $brand->id,
+        'event_id' => $shy->id,
+        'status' => 'active',
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_conjunction'])
+        ->getJson("/api/public/projects/{$this->project->username}/brands/{$brand->slug}")
+        ->assertNotFound();
+});

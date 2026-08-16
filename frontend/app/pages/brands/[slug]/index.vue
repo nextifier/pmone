@@ -185,7 +185,9 @@
             <AccordionContent class="pb-4 sm:pb-4">
               <!-- Quick Links -->
               <div class="flex flex-wrap gap-2">
-                <Button :to="`/brands/${route.params.slug}/documents/${ev.id}`" variant="outline" size="sm">
+                <!-- Documents live in the dashboard's Operational Documents
+                     section; this used to point at a second, thinner copy. -->
+                <Button to="/dashboard" variant="outline" size="sm">
                   <Icon name="hugeicons:file-01" class="size-4 shrink-0" />
                   Documents
                 </Button>

@@ -16,6 +16,7 @@ use App\Rules\AllowedEmailDomain;
 use App\Support\TagAwareResponseCache;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Foundation\DevCommands;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -178,6 +179,8 @@ class AppServiceProvider extends ServiceProvider
         ShortLink::observe(ShortLinkObserver::class);
         LinkPageItem::observe(LinkPageItemObserver::class);
 
+        $this->registerDevProcesses();
+
         // Global Browsershot defaults for laravel-pdf. Allow Chromium to read
         // local SVG assets referenced via public_path() and give renders a
         // generous timeout. We do NOT wait for network idle — the only assets
@@ -187,5 +190,32 @@ class AppServiceProvider extends ServiceProvider
                 ->setOption('args', ['--allow-file-access-from-files'])
                 ->timeout(60);
         });
+    }
+
+    /**
+     * Define the processes `php artisan dev` starts.
+     *
+     * Four processes, replacing Laravel's defaults:
+     *
+     *  - server:   the API itself, on the default 127.0.0.1:8000.
+     *  - horizon:  every queue in this app is dispatched through Horizon's
+     *              supervisors, so the default `queue:listen` would work the
+     *              wrong queues.
+     *  - frontend: the Nuxt admin in ./frontend, a separate pnpm project - not
+     *              the root npm workspace the default `vite` process would run.
+     *  - tunnel:   the SSH tunnel to the production database.
+     *
+     * Pail is left out on purpose: `php artisan pail` is worth its own window
+     * when something is actually being debugged. Add it back for a single run
+     * with `php artisan dev --no-restart` after dropping the `only` call, or
+     * append 'logs' to the list below.
+     */
+    private function registerDevProcesses(): void
+    {
+        DevCommands::artisan('horizon', 'horizon')->orange();
+        DevCommands::register('pnpm --dir frontend run dev', 'frontend')->purple();
+        DevCommands::artisan('db:tunnel', 'tunnel')->green();
+
+        DevCommands::only('server', 'horizon', 'frontend', 'tunnel');
     }
 }

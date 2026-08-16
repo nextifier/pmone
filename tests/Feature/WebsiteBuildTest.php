@@ -47,6 +47,15 @@ beforeEach(function () {
 function fakeCloudflare(array $builds = []): void
 {
     Http::fake([
+        // Build-minutes quota, read on every listing. Left unstubbed, this call
+        // used to reach the live Cloudflare account on every test run.
+        CF.'/accounts/acct123/builds/account/limits' => Http::response([
+            'success' => true,
+            'result' => [
+                'has_reached_build_minutes_limit' => false,
+                'build_minutes_refresh_on' => '2026-09-01T00:00:00Z',
+            ],
+        ]),
         CF.'/accounts/acct123/workers/scripts*' => Http::response([
             'success' => true,
             'result' => [
@@ -61,6 +70,11 @@ function fakeCloudflare(array $builds = []): void
         CF.'/accounts/acct123/builds/builds/latest*' => Http::response([
             'success' => true,
             'result' => ['builds' => $builds],
+        ]),
+        // Per-worker build history, read by the single-site endpoint.
+        CF.'/accounts/acct123/builds/workers/*/builds*' => Http::response([
+            'success' => true,
+            'result' => [],
         ]),
         CF.'/accounts/acct123/builds/triggers/*/builds' => Http::response([
             'success' => true,
@@ -336,6 +350,10 @@ it('treats a failed build as never having shipped', function () {
 
 it('returns build history for one site', function () {
     Http::fake([
+        CF.'/accounts/acct123/builds/account/limits' => Http::response([
+            'success' => true,
+            'result' => ['has_reached_build_minutes_limit' => false],
+        ]),
         CF.'/accounts/acct123/workers/scripts*' => Http::response([
             'success' => true, 'result' => [['id' => 'megabuild', 'tag' => 'tag-mb']],
         ]),
@@ -407,6 +425,8 @@ it('surfaces a Cloudflare refusal to cancel', function () {
 });
 
 it('requires the rebuild permission to cancel', function () {
+    fakeCloudflare();
+
     $other = User::factory()->create(['email_verified_at' => now()]);
     Role::firstOrCreate(['name' => 'viewer', 'guard_name' => 'web'])
         ->syncPermissions([Permission::findByName('websites.view')]);
@@ -514,6 +534,13 @@ function configureProjectlessSite(): void
     ])]);
 
     Http::fake([
+        CF.'/accounts/acct123/builds/account/limits' => Http::response([
+            'success' => true,
+            'result' => [
+                'has_reached_build_minutes_limit' => false,
+                'build_minutes_refresh_on' => '2026-09-01T00:00:00Z',
+            ],
+        ]),
         CF.'/accounts/acct123/workers/scripts*' => Http::response([
             'success' => true,
             'result' => [

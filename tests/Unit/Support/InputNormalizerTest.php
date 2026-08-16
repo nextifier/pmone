@@ -96,3 +96,48 @@ it('is idempotent for booth numbers', function (string $input) {
 
     expect(InputNormalizer::boothNumber($once))->toBe($once);
 })->with(['8A81', 'B1A01', 'B-17B2', 'B1B19, B1B20', 'B2E08/B2E09', 'A-22, &, A-23', 'KM-13&14']);
+
+it('builds a zero-padded sort key from a booth number', function (?string $input, ?string $expected) {
+    expect(InputNormalizer::boothSortKey($input))->toBe($expected);
+})->with([
+    'letter then digits' => ['8A81', '000008A000081'],
+    'single letter prefix' => ['B01', 'B000001'],
+    'compound prefix' => ['B1A01', 'B000001A000001'],
+    'trailing letter suffix' => ['A-04A', 'A000004A'],
+    'double letter prefix' => ['AA-105', 'AA000105'],
+    'digit in prefix' => ['6E-01', '000006E000001'],
+    'no digits at all' => ['A-NA', 'ANA'],
+    'first token wins, comma separated' => ['B1B19, B1B20', 'B000001B000019'],
+    'first token wins, slash separated' => ['B2E08/B2E09, B2D29/B2D31', 'B000002E000008'],
+    'first token wins, inline ampersand' => ['KM-13&14', 'KM000013'],
+    'first token wins, spaced ampersand' => ['A-22 & A-23', 'A000022'],
+    'empty becomes null' => ['', null],
+    'whitespace becomes null' => ['   ', null],
+    'punctuation only becomes null' => ['---', null],
+    'null stays null' => [null, null],
+]);
+
+it('gives booth numbers that differ only in formatting the same sort key', function () {
+    $key = InputNormalizer::boothSortKey('B1B35');
+
+    expect(InputNormalizer::boothSortKey('B1b35'))->toBe($key)
+        ->and(InputNormalizer::boothSortKey('B1B-35'))->toBe($key)
+        ->and(InputNormalizer::boothSortKey(' b1b-35 '))->toBe($key);
+});
+
+it('sorts booth numbers in physical order through the sort key', function () {
+    $booths = ['A-10', 'B-1', 'A-2', 'A-1', '6E-05', 'CB-002', 'CB-001', 'Z-10'];
+
+    usort($booths, fn ($a, $b) => strcmp(
+        InputNormalizer::boothSortKey($a),
+        InputNormalizer::boothSortKey($b),
+    ));
+
+    expect($booths)->toBe(['6E-05', 'A-1', 'A-2', 'A-10', 'B-1', 'CB-001', 'CB-002', 'Z-10']);
+});
+
+it('is idempotent for booth sort keys', function (string $input) {
+    $once = InputNormalizer::boothSortKey($input);
+
+    expect(InputNormalizer::boothSortKey($once))->toBe($once);
+})->with(['8A81', 'B1A01', 'B01', 'A-NA', 'AA-105']);

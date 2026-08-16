@@ -10,6 +10,7 @@ use App\Http\Resources\PublicTicketResource;
 use App\Models\Event;
 use App\Models\User;
 use App\Services\Ticket\TicketPurchaseService;
+use App\Support\AdminPreview;
 use App\Support\PaymentChannels;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,9 +35,16 @@ class PublicTicketController extends Controller
         // Hidden tickets are NEVER served through this (response-cached) listing —
         // they are revealed only by the uncached validate-access-code endpoint, so
         // a cached page can't leak one buyer's unlocked view to another (§8).
+        // That holds even under admin preview: `?force_checkout_ticket=1` only
+        // surfaces SWITCHED-OFF (is_active = false) tickets, which is what the
+        // dashboard's Active toggle produces. Reaching a `hidden` ticket is still
+        // the access code's job. AdminPreview::wants() also marks this response
+        // do-not-cache, so the relaxed listing is never stored.
         // `code_required` tickets are listed but flagged `locked` in the resource.
+        $adminPreview = AdminPreview::wants($request, AdminPreview::CHECKOUT);
+
         $tickets = $event->tickets()
-            ->where('is_active', true)
+            ->when(! $adminPreview, fn ($q) => $q->where('is_active', true))
             ->where('visibility', '!=', TicketVisibility::Hidden->value)
             ->with(['media', 'pricePhases', 'sessions', 'validDays'])
             ->orderBy('order_column')
@@ -158,6 +166,7 @@ class PublicTicketController extends Controller
             $request->input('email'),
             $request->input('access_code'),
             $request->input('phone'),
+            AdminPreview::wants($request, AdminPreview::CHECKOUT),
         );
 
         return response()->json(['data' => $preview]);

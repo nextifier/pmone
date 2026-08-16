@@ -1,43 +1,58 @@
 <template>
   <div class="flex flex-col gap-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
-      <div class="space-y-1">
-        <h3 class="page-title">Brands</h3>
-        <p class="page-description">Manage exhibitor brands for this event.</p>
+    <!-- Header and the website switch are one group: the switch describes this
+         page, so it sits close to the title rather than floating a full section
+         above the table. -->
+    <div class="flex flex-col gap-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-x-2.5 gap-y-4">
+        <div class="space-y-1">
+          <h3 class="page-title">Brands</h3>
+          <p class="page-description">Manage exhibitor brands for this event.</p>
+        </div>
+
+        <div class="ml-auto flex flex-wrap gap-1 sm:gap-2">
+          <!-- Import -->
+          <BrandImportDialog
+            v-if="event?.can_edit"
+            :username="route.params.username"
+            :event-slug="route.params.eventSlug"
+            @imported="refresh()"
+            @import-errors="handleImportErrors"
+          >
+            <template #trigger="{ open }">
+              <Button variant="outline" size="sm" @click="open()">
+                <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+                <span>Import</span>
+              </Button>
+            </template>
+          </BrandImportDialog>
+
+          <!-- Export -->
+          <Button variant="outline" size="sm" @click="handleExport" :disabled="exportPending">
+            <Spinner v-if="exportPending" class="size-4 shrink-0" />
+            <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
+            <span>Export {{ totalActiveFilters > 0 ? "selected" : "all" }}</span>
+          </Button>
+
+          <Button v-if="event?.can_edit" @click="showAddDialog = true" size="sm">
+            <Icon name="hugeicons:add-01" class="size-4" />
+            New Brand
+            <KbdGroup>
+              <Kbd>N</Kbd>
+            </KbdGroup>
+          </Button>
+        </div>
       </div>
 
-      <div class="ml-auto flex flex-wrap gap-1 sm:gap-2">
-        <!-- Import -->
-        <BrandImportDialog
-          v-if="event?.can_edit"
-          :username="route.params.username"
-          :event-slug="route.params.eventSlug"
-          @imported="refresh()"
-          @import-errors="handleImportErrors"
-        >
-          <template #trigger="{ open }">
-            <Button variant="outline" size="sm" @click="open()">
-              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
-              <span>Import</span>
-            </Button>
-          </template>
-        </BrandImportDialog>
-
-        <!-- Export -->
-        <Button variant="outline" size="sm" @click="handleExport" :disabled="exportPending">
-          <Spinner v-if="exportPending" class="size-4 shrink-0" />
-          <Icon v-else name="hugeicons:file-export" class="size-4 shrink-0" />
-          <span>Export {{ totalActiveFilters > 0 ? "selected" : "all" }}</span>
-        </Button>
-
-        <Button v-if="event?.can_edit" @click="showAddDialog = true" size="sm">
-          <Icon name="hugeicons:add-01" class="size-4" />
-          New Brand
-          <KbdGroup>
-            <Kbd>N</Kbd>
-          </KbdGroup>
-        </Button>
-      </div>
+      <EventWebsiteVisibility
+        v-model="brandsVisible"
+        label="Show on website"
+        :hint="editionHint"
+        :preview-url="brandsPreviewUrl"
+        :pending="brandsVisibilityPending"
+        :can-edit="!!event?.can_edit"
+        @update:model-value="toggleBrandsVisible"
+      />
     </div>
 
     <!-- Import errors -->
@@ -101,7 +116,7 @@
       search-placeholder="Search brands"
       error-title="Error loading brands"
       :initial-pagination="{ pageIndex: 0, pageSize: 50 }"
-      :initial-sorting="[{ id: 'created_at', desc: true }]"
+      :initial-sorting="[{ id: 'booth_number', desc: false }]"
       :initial-column-visibility="{
         order_column: false,
       }"
@@ -270,6 +285,7 @@ import { Button } from "@/components/ui/button";
 import BrandEventStatusDropdown from "@/components/brand/EventStatusDropdown.vue";
 import BrandImportDialog from "@/components/brand/EventBrandImportDialog.vue";
 import BrandTableItem from "@/components/brand/TableItem.vue";
+import EventWebsiteVisibility from "@/components/event/WebsiteVisibility.vue";
 import { TableData, TableBulkAction, TableFilterButton } from "@/components/ui/table-data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CircularProgress } from "@/components/ui/circular-progress";
@@ -296,6 +312,19 @@ const { hasAnyRole } = usePermission();
 const canDeletePermanently = computed(() => hasAnyRole(["master", "admin"]));
 const showAddDialog = ref(false);
 const importResult = ref(null);
+
+const { brandsPreviewUrl, isActiveEdition } = useEventWebsiteUrls(() => props.event);
+const {
+  visible: brandsVisible,
+  pending: brandsVisibilityPending,
+  toggle: toggleBrandsVisible,
+} = useEventPublicVisibility(() => props.event, "brands_public_visible", "Brands");
+
+// The live /brands page resolves the project's ACTIVE edition, so a switch
+// flipped on any other edition changes nothing a visitor can see.
+const editionHint = computed(() =>
+  isActiveEdition.value ? "" : "This is not the active edition, so the switch does not affect the live site."
+);
 
 const importErrorsText = computed(() => {
   if (!importResult.value) return "";
@@ -454,6 +483,11 @@ const columns = [
       if (!booth) return h("span", { class: "text-sm" }, "-");
       return h("div", { class: "text-sm tracking-tight" }, booth);
     },
+    // Sort on the server-built key, so A-1, A-2, A-10 come out in that order and
+    // brands sharing a booth number stay next to each other. The sentinel keeps
+    // booths without a number at the bottom, matching orderedByBooth().
+    sortingFn: (a, b) =>
+      (a.original.booth_sort_key ?? "￿").localeCompare(b.original.booth_sort_key ?? "￿"),
     size: 100,
   },
   {
@@ -600,7 +634,7 @@ const handleExport = async () => {
 
     // Add sorting
     const sorting = tableRef.value?.table?.atoms?.sorting?.get();
-    const sortField = sorting?.[0]?.id || "order_column";
+    const sortField = sorting?.[0]?.id || "booth_sort_key";
     const sortDirection = sorting?.[0]?.desc ? "desc" : "asc";
     params.append("sort", sortDirection === "desc" ? `-${sortField}` : sortField);
 

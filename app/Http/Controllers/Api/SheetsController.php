@@ -523,7 +523,8 @@ class SheetsController extends Controller
                 'promotionPosts.media',
             ])
             ->withCount(['promotionPosts', 'visits', 'clicks'])
-            ->orderBy('created_at')
+            ->orderBy('event_id')
+            ->orderedByBooth()
             ->get();
 
         $linkLabels = $brandEvents
@@ -574,7 +575,7 @@ class SheetsController extends Controller
             'Fascia Name', 'Badge Name',
             'Sales PIC Name', 'Sales PIC Email', 'Sales PIC Phone',
             'Participation Status', 'Notes', 'Promotion Post Limit',
-            'Visits Count', 'Clicks Count', 'Promotion Posts Count', 'Promotion Post Image Link',
+            'Visits Count', 'Clicks Count', 'Promotion Posts Count', 'Caption Promotion Post', 'Promotion Post Image Link',
             'Brand Links Count',
             ...$linkLabels,
             ...$linkClickHeadings,
@@ -674,6 +675,7 @@ class SheetsController extends Controller
                 (int) $brandEvent->visits_count,
                 (int) $brandEvent->clicks_count,
                 (int) $brandEvent->promotion_posts_count,
+                $this->promotionCaptions($brandEvent),
                 $this->promotionImagesLink($brandEvent),
                 (int) ($brand?->links_count ?? 0),
                 ...$linkUrlSlots,
@@ -755,7 +757,7 @@ class SheetsController extends Controller
             ->when($event, fn ($query) => $query->where('event_id', $event->id))
             ->with(['brand:id,name,company_name', 'event:id,title'])
             ->orderBy('event_id')
-            ->orderBy('created_at')
+            ->orderedByBooth()
             ->get();
 
         // Scoped, take the event id from the scope rather than from the brand
@@ -1060,6 +1062,19 @@ class SheetsController extends Controller
      * brand-event with several images needs the endpoint, because only then is
      * there a zip to build. Empty gives '-', like every other blank cell here.
      */
+    /**
+     * Every caption on this booth's promotion posts, one per line. Newline
+     * separated rather than comma separated because a caption is free text and
+     * routinely holds commas of its own; Sheets wraps "\n" inside one cell.
+     */
+    private function promotionCaptions(BrandEvent $brandEvent): string
+    {
+        return $brandEvent->promotionPosts
+            ->map(fn (PromotionPost $post) => trim((string) $post->caption))
+            ->filter()
+            ->implode("\n") ?: '-';
+    }
+
     private function promotionImagesLink(BrandEvent $brandEvent): string
     {
         $images = $brandEvent->promotionPosts

@@ -23,6 +23,11 @@ class ProjectPaymentGatewayFactory extends Factory
             // Invoices flow. Use the states below to opt into Sessions.
             'checkout_method' => CheckoutMethod::PaymentLinkLegacy,
             'is_active' => true,
+            // Shaped like a real key. This was briefly digits-only, to dodge
+            // isConfigured() rejecting any secret containing 'xxx' - which cost
+            // RefundIdempotencyTest an intermittent "no active Xendit gateway
+            // found" about once in 858 gateways. That rule now matches whole
+            // words only, so the realistic alphabet is safe again.
             'secret_key' => 'xnd_'.fake()->regexify('[A-Za-z0-9]{40}'),
             'public_key' => null,
             'webhook_token' => fake()->regexify('[A-Za-z0-9]{32}'),

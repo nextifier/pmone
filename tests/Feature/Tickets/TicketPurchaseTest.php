@@ -320,3 +320,160 @@ it('marks an order confirmed and expires a pending order releasing stock', funct
     expect($pending->fresh()->status)->toBe(TicketOrderStatus::Expired)
         ->and($ticket->fresh()->sold_count)->toBe($before - 1);
 });
+
+/*
+ * Admin preview (`?force_checkout_ticket=1` on the public order endpoint,
+ * translated into $data['admin_preview'] by the controller). It relaxes three
+ * gates - is_active, the sale window, the price-phase quota - and NOTHING else.
+ */
+
+it('buys a switched-off ticket under admin preview', function () {
+    $ticket = entryTicketWithPrice($this->event, 50000);
+    $ticket->update(['is_active' => false]);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ];
+
+    expect(fn () => $this->service->createOrder($payload))
+        ->toThrow(HttpException::class);
+
+    $order = $this->service->createOrder($payload + ['admin_preview' => true]);
+
+    expect((float) $order->total)->toBe(50000.0)
+        ->and($order->items()->count())->toBe(1);
+});
+
+it('buys a ticket whose sale window has not opened under admin preview', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 80000,
+        'starts_at' => now()->addWeek(),
+        'ends_at' => now()->addWeeks(2),
+    ]);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ];
+
+    expect(fn () => $this->service->createOrder($payload))
+        ->toThrow(HttpException::class);
+
+    $order = $this->service->createOrder($payload + ['admin_preview' => true]);
+
+    expect((float) $order->total)->toBe(80000.0);
+});
+
+it('buys past an exhausted price-phase quota under admin preview', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id, 'stock' => 100]);
+    $phase = TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 30000,
+        'quota' => 2,
+        'sold_count' => 2,
+        'starts_at' => now()->subDay(),
+        'ends_at' => now()->addDay(),
+    ]);
+
+    $payload = [
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+    ];
+
+    expect(fn () => $this->service->createOrder($payload))
+        ->toThrow(HttpException::class);
+
+    $order = $this->service->createOrder($payload + ['admin_preview' => true]);
+
+    expect((float) $order->total)->toBe(30000.0)
+        // The counter still moves, so phase reporting stays truthful.
+        ->and($phase->fresh()->sold_count)->toBe(3);
+});
+
+it('still refuses a ticket with no stock left, even under admin preview', function () {
+    $ticket = entryTicketWithPrice($this->event, 50000, stock: 1);
+    // sold_count is guarded: it is only ever moved by reserve()/release().
+    $ticket->forceFill(['sold_count' => 1])->save();
+
+    expect(fn () => $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+        'admin_preview' => true,
+    ]))->toThrow(HttpException::class);
+});
+
+it('still refuses when the event is at capacity, even under admin preview', function () {
+    $this->event->forceFill(['capacity' => 1, 'reserved_count' => 1])->save();
+    $ticket = entryTicketWithPrice($this->event, 50000);
+
+    expect(fn () => $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+        'admin_preview' => true,
+    ]))->toThrow(HttpException::class);
+});
+
+it('still refuses a gated ticket without an access code under admin preview', function () {
+    $ticket = entryTicketWithPrice($this->event, 50000);
+    $ticket->update(['visibility' => 'code_required']);
+
+    expect(fn () => $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+        'admin_preview' => true,
+    ]))->toThrow(HttpException::class);
+});
+
+it('still refuses a ticket with no active price phase at all under admin preview', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
+
+    expect(fn () => $this->service->createOrder([
+        'event_id' => $this->event->id,
+        'buyer_name' => 'Staff',
+        'buyer_email' => 'staff@example.com',
+        'buyer_phone' => '08123456789',
+        'items' => [['ticket_id' => $ticket->id, 'quantity' => 1]],
+        'admin_preview' => true,
+    ]))->toThrow(HttpException::class);
+});
+
+it('prices an off-sale ticket in the cart preview under admin preview', function () {
+    $ticket = Ticket::factory()->create(['event_id' => $this->event->id]);
+    TicketPricePhase::factory()->create([
+        'ticket_id' => $ticket->id,
+        'price' => 45000,
+        'starts_at' => now()->addWeek(),
+        'ends_at' => now()->addWeeks(2),
+    ]);
+
+    $items = [['ticket_id' => $ticket->id, 'quantity' => 2]];
+
+    $public = $this->service->previewCart($this->event, $items);
+    expect($public['lines'])->toBe([])
+        ->and($public['subtotal'])->toBe(0.0);
+
+    $preview = $this->service->previewCart($this->event, $items, adminPreview: true);
+    expect($preview['lines'])->toHaveCount(1)
+        ->and($preview['subtotal'])->toBe(90000.0);
+});

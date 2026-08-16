@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Support\FormFieldTypes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\EloquentSortable\Sortable;
@@ -33,9 +35,9 @@ use Spatie\Translatable\HasTranslations;
  * @property int $fieldable_id
  * @property string $context
  * @property string $type
- * @property string $label
- * @property string|null $placeholder
- * @property string|null $help_text
+ * @property array<array-key, mixed> $label
+ * @property array<array-key, mixed>|null $placeholder
+ * @property array<array-key, mixed>|null $help_text
  * @property array<array-key, mixed>|null $options
  * @property array<array-key, mixed>|null $validation
  * @property array<array-key, mixed>|null $settings
@@ -44,6 +46,58 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $legacy_id
  * @property bool $is_active
  * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property mixed $event_id
+ * @property-read Model|\Eloquent $fieldable
+ * @property mixed $form_id
+ * @property mixed $project_id
+ * @property mixed $required
+ * @property-read mixed $translations
+ * @property-read Collection<int, CustomFieldValue> $values
+ * @property-read int|null $values_count
+ *
+ * @method static Builder<static>|CustomField active()
+ * @method static Builder<static>|CustomField context(string $context)
+ * @method static \Database\Factories\CustomFieldFactory factory($count = null, $state = [])
+ * @method static Builder<static>|CustomField newModelQuery()
+ * @method static Builder<static>|CustomField newQuery()
+ * @method static Builder<static>|CustomField onlyTrashed()
+ * @method static Builder<static>|CustomField ordered(string $direction = 'asc')
+ * @method static Builder<static>|CustomField query()
+ * @method static Builder<static>|CustomField whereContext($value)
+ * @method static Builder<static>|CustomField whereCreatedAt($value)
+ * @method static Builder<static>|CustomField whereCreatedBy($value)
+ * @method static Builder<static>|CustomField whereDeletedAt($value)
+ * @method static Builder<static>|CustomField whereDeletedBy($value)
+ * @method static Builder<static>|CustomField whereFieldableId($value)
+ * @method static Builder<static>|CustomField whereFieldableType($value)
+ * @method static Builder<static>|CustomField whereHelpText($value)
+ * @method static Builder<static>|CustomField whereId($value)
+ * @method static Builder<static>|CustomField whereIsActive($value)
+ * @method static Builder<static>|CustomField whereJsonContainsLocale(string $column, string $locale, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|CustomField whereJsonContainsLocales(string $column, array $locales, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|CustomField whereKey($value)
+ * @method static Builder<static>|CustomField whereLabel($value)
+ * @method static Builder<static>|CustomField whereLegacyId($value)
+ * @method static Builder<static>|CustomField whereLocale(string $column, string $locale)
+ * @method static Builder<static>|CustomField whereLocales(string $column, array $locales)
+ * @method static Builder<static>|CustomField whereOptions($value)
+ * @method static Builder<static>|CustomField whereOrderColumn($value)
+ * @method static Builder<static>|CustomField wherePlaceholder($value)
+ * @method static Builder<static>|CustomField whereSettings($value)
+ * @method static Builder<static>|CustomField whereSystemKey($value)
+ * @method static Builder<static>|CustomField whereType($value)
+ * @method static Builder<static>|CustomField whereUlid($value)
+ * @method static Builder<static>|CustomField whereUpdatedAt($value)
+ * @method static Builder<static>|CustomField whereUpdatedBy($value)
+ * @method static Builder<static>|CustomField whereValidation($value)
+ * @method static Builder<static>|CustomField withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|CustomField withoutTrashed()
  *
  * @mixin \Eloquent
  */

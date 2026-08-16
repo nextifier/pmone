@@ -111,9 +111,7 @@
         class="border-warning/40 bg-warning/10 text-warning-foreground mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
-        <span>
-          Onsite order period - all prices include a {{ info.penalty_rate }}% surcharge.
-        </span>
+        <span>{{ $t("orderForm.onsiteBanner", { rate: info.penalty_rate }) }}</span>
       </div>
 
       <!-- Order Closed Banner -->
@@ -122,7 +120,7 @@
         class="border-destructive-foreground/40 bg-destructive/10 text-destructive-foreground mt-4 flex items-center gap-x-3 rounded-lg border px-4 py-3 text-sm tracking-tight"
       >
         <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
-        <span>The order form is currently closed. No active order period at this time.</span>
+        <span>{{ $t("orderForm.closedBanner") }}</span>
       </div>
 
       <!-- Main content grid -->

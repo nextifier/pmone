@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,10 +28,39 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
- * @property-read Event|null $event
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
  * @property-read User|null $creator
- * @property-read User|null $updater
  * @property-read User|null $deleter
+ * @property-read Event|null $event
+ * @property-read User|null $updater
+ *
+ * @method static Builder<static>|MediaCoverage active()
+ * @method static \Database\Factories\MediaCoverageFactory factory($count = null, $state = [])
+ * @method static Builder<static>|MediaCoverage newModelQuery()
+ * @method static Builder<static>|MediaCoverage newQuery()
+ * @method static Builder<static>|MediaCoverage onlyTrashed()
+ * @method static Builder<static>|MediaCoverage ordered(string $direction = 'asc')
+ * @method static Builder<static>|MediaCoverage query()
+ * @method static Builder<static>|MediaCoverage whereCreatedAt($value)
+ * @method static Builder<static>|MediaCoverage whereCreatedBy($value)
+ * @method static Builder<static>|MediaCoverage whereDeletedAt($value)
+ * @method static Builder<static>|MediaCoverage whereDeletedBy($value)
+ * @method static Builder<static>|MediaCoverage whereEventId($value)
+ * @method static Builder<static>|MediaCoverage whereId($value)
+ * @method static Builder<static>|MediaCoverage whereIsActive($value)
+ * @method static Builder<static>|MediaCoverage whereOrderColumn($value)
+ * @method static Builder<static>|MediaCoverage wherePublishedAt($value)
+ * @method static Builder<static>|MediaCoverage whereSettings($value)
+ * @method static Builder<static>|MediaCoverage whereTitle($value)
+ * @method static Builder<static>|MediaCoverage whereUpdatedAt($value)
+ * @method static Builder<static>|MediaCoverage whereUpdatedBy($value)
+ * @method static Builder<static>|MediaCoverage whereUrl($value)
+ * @method static Builder<static>|MediaCoverage withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|MediaCoverage withoutTrashed()
  *
  * @mixin \Eloquent
  */

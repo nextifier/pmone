@@ -20,6 +20,8 @@ use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property int $id
@@ -28,15 +30,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string $order_number
  * @property OperationalStatus $operational_status
  * @property string|null $notes
- * @property string|null $internal_notes
  * @property numeric $discount_amount
  * @property numeric $subtotal
  * @property numeric $tax_rate
  * @property numeric $tax_amount
  * @property numeric $total
- * @property string $currency
- * @property numeric $exchange_rate_to_idr
- * @property numeric $total_idr
  * @property Carbon|null $submitted_at
  * @property Carbon|null $confirmed_at
  * @property int|null $created_by
@@ -48,6 +46,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property string|null $order_period
  * @property numeric $penalty_amount
  * @property string|null $promo_code_applied
+ * @property string|null $internal_notes
+ * @property string $source
+ * @property string $currency
+ * @property numeric $exchange_rate_to_idr
+ * @property numeric $total_idr
  * @property-read Collection<int, AppliedAdjustment> $activeAdjustments
  * @property-read int|null $active_adjustments_count
  * @property-read Collection<int, Activity> $activities
@@ -60,6 +63,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property-read int|null $discount_adjustments_count
  * @property-read Collection<int, OrderItem> $items
  * @property-read int|null $items_count
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
  * @property-read Collection<int, AppliedAdjustment> $penaltyAdjustments
  * @property-read int|null $penalty_adjustments_count
  * @property-read User|null $updater
@@ -74,12 +79,12 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCancellationReason($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereConfirmedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCurrency($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereExchangeRateToIdr($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotalIdr($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereCurrency($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereDiscountAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereExchangeRateToIdr($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereInternalNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOperationalStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereOrderNumber($value)
@@ -87,11 +92,13 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePaymentStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePenaltyAmount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order wherePromoCodeApplied($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSource($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubmittedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereSubtotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxAmount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTaxRate($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereTotalIdr($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUlid($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Order whereUpdatedBy($value)

@@ -1,37 +1,51 @@
 <template>
   <div class="mx-auto space-y-6 pb-16 lg:max-w-4xl xl:max-w-6xl">
-    <!-- Page header -->
-    <div
-      class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
-    >
-      <div class="flex shrink-0 items-center gap-x-2.5">
-        <Icon name="hugeicons:time-schedule" class="size-5 sm:size-6" />
-        <h1 class="page-title">Rundown</h1>
+    <!-- Page header and the website switch are one group: the switch describes
+         this page, so it sits close to the title rather than reading as another
+         toolbar between the header and the filters. -->
+    <div class="flex flex-col gap-y-2">
+      <div
+        class="flex flex-col gap-x-2.5 gap-y-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+      >
+        <div class="flex shrink-0 items-center gap-x-2.5">
+          <Icon name="hugeicons:time-schedule" class="size-5 sm:size-6" />
+          <h1 class="page-title">Rundown</h1>
+        </div>
+
+        <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
+          <RundownExportMenu :username="username" :event-slug="eventSlug" />
+          <RundownImportDialog :username="username" :event-slug="eventSlug" @imported="fetchItems">
+            <template #trigger="{ open }">
+              <Button variant="outline" size="sm" type="button" @click="open">
+                <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+                <span class="hidden sm:inline">Import</span>
+              </Button>
+            </template>
+          </RundownImportDialog>
+          <Button variant="outline" size="sm" type="button" @click="openTrash">
+            <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
+            <span class="hidden sm:inline">Trash</span>
+          </Button>
+          <button
+            type="button"
+            class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
+            @click="openCreate(null)"
+          >
+            <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
+            <span>Add Item</span>
+          </button>
+        </div>
       </div>
 
-      <div class="ml-auto flex shrink-0 gap-1 sm:gap-2">
-        <RundownExportMenu :username="username" :event-slug="eventSlug" />
-        <RundownImportDialog :username="username" :event-slug="eventSlug" @imported="fetchItems">
-          <template #trigger="{ open }">
-            <Button variant="outline" size="sm" type="button" @click="open">
-              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
-              <span class="hidden sm:inline">Import</span>
-            </Button>
-          </template>
-        </RundownImportDialog>
-        <Button variant="outline" size="sm" type="button" @click="openTrash">
-          <Icon name="hugeicons:delete-01" class="size-4 shrink-0" />
-          <span class="hidden sm:inline">Trash</span>
-        </Button>
-        <button
-          type="button"
-          class="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-x-1 rounded-md px-3 py-1.5 text-sm font-medium tracking-tight active:scale-98"
-          @click="openCreate(null)"
-        >
-          <Icon name="hugeicons:plus-sign" class="size-4 shrink-0" />
-          <span>Add Item</span>
-        </button>
-      </div>
+      <EventWebsiteVisibility
+        v-model="rundownVisible"
+        label="Show on website"
+        :hint="editionHint"
+        :preview-url="rundownPreviewUrl"
+        :pending="rundownVisibilityPending"
+        :can-edit="!!event?.can_edit"
+        @update:model-value="toggleRundownVisible"
+      />
     </div>
 
     <!-- Filter bar -->
@@ -445,6 +459,7 @@
 
 <script setup>
 import { Button } from "@/components/ui/button";
+import EventWebsiteVisibility from "@/components/event/WebsiteVisibility.vue";
 import FormRundownItem from "@/components/FormRundownItem.vue";
 import { Input } from "@/components/ui/input";
 import {
@@ -467,6 +482,19 @@ const route = useRoute();
 const client = useSanctumClient();
 const { username, eventSlug } = route.params;
 const apiBase = `/api/projects/${username}/events/${eventSlug}/rundown-items`;
+
+const { rundownPreviewUrl, isActiveEdition } = useEventWebsiteUrls(() => props.event);
+const {
+  visible: rundownVisible,
+  pending: rundownVisibilityPending,
+  toggle: toggleRundownVisible,
+} = useEventPublicVisibility(() => props.event, "rundown_public_visible", "Rundown");
+
+// The live /rundown page resolves the project's ACTIVE edition, so a switch
+// flipped on any other edition changes nothing a visitor can see.
+const editionHint = computed(() =>
+  isActiveEdition.value ? "" : "This is not the active edition, so the switch does not affect the live site."
+);
 
 // --- State ---
 const rawDays = ref([]);

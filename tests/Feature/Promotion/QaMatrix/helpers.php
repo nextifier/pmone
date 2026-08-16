@@ -10,6 +10,21 @@ use App\Models\ProjectPaymentGateway;
 use App\Models\Reservation;
 use App\Models\ReservationItem;
 use App\Models\RoomType;
+use Illuminate\Support\Carbon;
+
+/**
+ * The whole matrix is pinned to a July 2026 allotment window, and every booking
+ * in it checks in on 2026-07-10. Once real time moved past that date the two
+ * tests that post a reservation started failing on "Check-in date cannot be in
+ * the past" - the fixtures were fine, the calendar had simply moved on.
+ *
+ * Freezing the clock inside the window keeps the dates readable and stops this
+ * suite from expiring again. Laravel resets Carbon's test clock after each test.
+ */
+function qaFreezeClock(): void
+{
+    Carbon::setTestNow(Carbon::parse('2026-07-05 09:00:00'));
+}
 
 /**
  * Spin up a project + event + hotel + room + allotment + active Xendit gateway
@@ -20,6 +35,8 @@ use App\Models\RoomType;
  */
 function qaScenario(array $overrides = []): array
 {
+    qaFreezeClock();
+
     $project = Project::factory()->create();
 
     ProjectPaymentGateway::factory()->create([

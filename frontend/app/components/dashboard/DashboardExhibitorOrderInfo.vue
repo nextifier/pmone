@@ -62,7 +62,7 @@
         <Icon name="hugeicons:shopping-cart-01" class="mr-1.5 size-4" />
         {{ be.orders_count > 0 ? $t("ed.order.newOrder") : $t("ed.order.openForm") }}
       </Button>
-      <p v-else class="text-muted-foreground text-sm tracking-tight">
+      <p v-else :class="['text-sm tracking-tight', closedMessageClass]">
         {{ closedMessage }}
       </p>
       <Button
@@ -118,7 +118,9 @@ function getPeriodStatus(opensAt, closesAt) {
       status: "open",
     };
   }
-  return { icon: "hugeicons:cancel-circle", color: "text-muted-foreground", label: t("ed.order.statusClosed"), status: "closed" };
+  // Closed is a wall, not a neutral note: an exhibitor who misses it thinks the
+  // form is still coming.
+  return { icon: "hugeicons:cancel-circle", color: "text-destructive-foreground", label: t("ed.order.statusClosed"), status: "closed" };
 }
 
 const normalStatus = computed(() =>
@@ -146,5 +148,17 @@ const closedMessage = computed(() => {
     return t("ed.order.gapMessage");
   }
   return t("ed.order.closedMessage");
+});
+
+// Waiting for a period to open is neutral; having missed every one of them is
+// not, so only the closed case turns red.
+const closedMessageClass = computed(() => {
+  const be = props.be;
+  const now = new Date();
+  const waiting =
+    (be.normal_order_opens_at && now < new Date(be.normal_order_opens_at)) ||
+    (be.onsite_order_opens_at && now < new Date(be.onsite_order_opens_at));
+
+  return waiting ? "text-muted-foreground" : "text-destructive-foreground";
 });
 </script>

@@ -58,7 +58,10 @@ class ExhibitorDashboardController extends Controller
             'brandEvents' => function ($q) {
                 $q->whereHas('event', fn ($e) => $e->where('is_active', true))
                     ->with(['event.media', 'event.project', 'event.eventDocuments' => function ($q2) {
-                        $q2->with(['media', 'fields'])->ordered();
+                        // Hidden documents drop out here, which is what keeps them
+                        // out of the steps, the progress counters, and the rules
+                        // gate further down - all of those read this relation.
+                        $q2->active()->with(['media', 'fields'])->ordered();
                     }])
                     ->withCount(['promotionPosts', 'orders']);
             },
@@ -456,6 +459,7 @@ class ExhibitorDashboardController extends Controller
             ->with(['event.media'])
             ->withCount('promotionPosts')
             ->where('brand_id', $brand->id)
+            ->orderedByBooth()
             ->get()
             ->map(fn (BrandEvent $be) => [
                 'id' => $be->id,
@@ -844,6 +848,33 @@ class ExhibitorDashboardController extends Controller
     }
 
     /**
+     * Every order the user can reach, across all their brands, booths and
+     * events. The per-brand-event list below stays as it is; this one backs the
+     * dashboard's "View My Orders", which cannot assume a single booth - an
+     * exhibitor with two booths was only ever shown the first one's orders.
+     */
+    public function allMyOrders(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Ownership travels user -> brands -> brand events. Expressed as a
+        // subquery rather than a pluck so an agency holding dozens of brands
+        // does not build an IN list of every booth it owns.
+        $orders = Order::query()
+            ->whereIn('brand_event_id', BrandEvent::query()
+                ->whereIn('brand_id', $user->brands()->select('brands.id'))
+                ->select('id'))
+            ->with(['brandEvent.brand', 'brandEvent.event', 'items'])
+            ->withCount('items')
+            ->orderByDesc('submitted_at')
+            ->get();
+
+        return response()->json([
+            'data' => OrderIndexResource::collection($orders),
+        ]);
+    }
+
+    /**
      * List orders for the exhibitor's brand event.
      */
     public function myOrders(Request $request, string $brandSlug, int $brandEventId): JsonResponse
@@ -878,7 +909,10 @@ class ExhibitorDashboardController extends Controller
         $order = Order::query()
             ->where('brand_event_id', $brandEvent->id)
             ->where('ulid', $ulid)
-            ->with(['items.productCategory', 'creator'])
+            // `media` is eager-loaded because the resource asks the order for its
+            // invoice and receipt three times each; without it that is six extra
+            // queries per page view.
+            ->with(['items.productCategory', 'creator', 'media'])
             ->firstOrFail();
 
         return response()->json([
@@ -899,8 +933,9 @@ class ExhibitorDashboardController extends Controller
 
         $event = $brandEvent->event;
 
-        // Get all documents for this event, filtered by booth type
+        // Get all visible documents for this event, filtered by booth type
         $documents = $event->eventDocuments()
+            ->active()
             ->with(['media', 'fields'])
             ->ordered()
             ->get()
@@ -966,7 +1001,9 @@ class ExhibitorDashboardController extends Controller
         $this->assertBoothPrimary($brandEvent);
 
         $event = $brandEvent->event;
-        $document = $event->eventDocuments()->where('ulid', $documentUlid)->firstOrFail();
+        // A hidden document is not addressable: the exhibitor cannot see it, so
+        // a submission aimed at it can only be a stale tab or a hand-made call.
+        $document = $event->eventDocuments()->active()->where('ulid', $documentUlid)->firstOrFail();
 
         // Check booth type applicability
         if (! $document->appliesToBoothType($brandEvent->booth_type?->value)) {

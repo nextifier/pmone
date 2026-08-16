@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * A line item of a ticket order: a quantity of one ticket at a snapshotted
  * unit price (and phase label), optionally tied to a chosen add-on session.
+ *
  * Produces N attendees.
  *
  * @property int $id
@@ -18,13 +21,47 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $ticket_id
  * @property int|null $ticket_session_id
  * @property int $quantity
- * @property string $unit_price
+ * @property numeric $unit_price
  * @property string|null $phase_label
+ * @property numeric $subtotal
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property int|null $selected_event_day_id
  * @property int|null $ticket_price_phase_id
- * @property string $subtotal
- * @property-read TicketOrder|null $ticketOrder
+ * @property-read Collection<int, Attendee> $attendees
+ * @property-read int|null $attendees_count
+ * @property-read EventDay|null $selectedEventDay
  * @property-read Ticket|null $ticket
+ * @property-read TicketOrder|null $ticketOrder
  * @property-read TicketSession|null $ticketSession
+ *
+ * @method static \Database\Factories\TicketOrderItemFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem wherePhaseLabel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereSelectedEventDayId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereSubtotal($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereTicketId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereTicketOrderId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereTicketPricePhaseId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereTicketSessionId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereUnitPrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketOrderItem withoutTrashed()
  *
  * @mixin \Eloquent
  */

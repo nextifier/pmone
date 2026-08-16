@@ -16,10 +16,10 @@ use Illuminate\Support\Carbon;
  * @property int $quantity
  * @property numeric $total_price
  * @property string|null $notes
- * @property string|null $internal_notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property int|null $category_id
+ * @property string|null $internal_notes
  * @property-read EventProduct|null $eventProduct
  * @property-read Order $order
  * @property-read EventProductCategory|null $productCategory
@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereEventProductId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereInternalNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereNotes($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereOrderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|OrderItem whereProductImageUrl($value)

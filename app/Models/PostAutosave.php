@@ -11,12 +11,12 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int|null $post_id
  * @property int $user_id
- * @property string $title
- * @property string|null $excerpt
- * @property string $content
+ * @property array<array-key, mixed> $title
+ * @property array<array-key, mixed>|null $excerpt
+ * @property array<array-key, mixed> $content
  * @property string $content_format
- * @property string|null $meta_title
- * @property string|null $meta_description
+ * @property array<array-key, mixed>|null $meta_title
+ * @property array<array-key, mixed>|null $meta_description
  * @property string $status
  * @property string $visibility
  * @property Carbon|null $published_at

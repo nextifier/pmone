@@ -31,10 +31,16 @@
           </div>
           <div
             v-if="order.order_period === 'onsite_order' && Number(order.penalty_amount) > 0"
-            class="mt-2 inline-flex items-center gap-x-2 rounded-md border bg-warning/15 px-3 py-1.5 text-xs sm:text-sm text-warning-foreground"
+            class="border-destructive-foreground/30 bg-destructive/10 text-destructive-foreground mt-2 inline-flex items-center gap-x-2 rounded-md border px-3 py-1.5 text-xs sm:text-sm"
           >
             <Icon name="hugeicons:alert-02" class="size-4 shrink-0" />
-            <span>Onsite Order - includes {{ formatPrice(order.penalty_amount, order.currency) }} surcharge</span>
+            <span>
+              {{
+                $t('orders.onsiteSurcharge', {
+                  amount: formatPrice(order.penalty_amount, order.currency),
+                })
+              }}
+            </span>
           </div>
         </div>
         <Badge :variant="statusVariant(order.operational_status)" class="shrink-0 capitalize">
@@ -98,8 +104,8 @@
             <span>{{ formatPrice(order.subtotal, order.currency) }}</span>
           </div>
           <div v-if="order.penalty_amount && parseFloat(order.penalty_amount) > 0" class="flex justify-between">
-            <span class="text-warning-foreground">Penalty</span>
-            <span class="text-warning-foreground">+{{ formatPrice(order.penalty_amount, order.currency) }}</span>
+            <span class="text-destructive-foreground">{{ $t('orderDetail.penalty') }}</span>
+            <span class="text-destructive-foreground">+{{ formatPrice(order.penalty_amount, order.currency) }}</span>
           </div>
           <div v-if="order.discount_amount && parseFloat(order.discount_amount) > 0" class="flex justify-between">
             <span class="text-success-foreground">
@@ -138,6 +144,27 @@
         <p class="text-muted-foreground mt-1.5 text-sm tracking-tight whitespace-pre-line">
           {{ order.cancellation_reason }}
         </p>
+      </div>
+
+      <!-- Documents uploaded by the organizer -->
+      <div v-if="order.invoice || order.receipt" class="frame mt-6">
+        <div class="frame-header">
+          <div class="frame-title">{{ $t('orderDetail.documents') }}</div>
+        </div>
+        <div class="frame-panel space-y-2">
+          <AttachmentLink
+            v-if="order.invoice"
+            :file="order.invoice"
+            :label="$t('orderDetail.invoice')"
+            fallback-name="Invoice"
+          />
+          <AttachmentLink
+            v-if="order.receipt"
+            :file="order.receipt"
+            :label="$t('orderDetail.receipt')"
+            fallback-name="Receipt"
+          />
+        </div>
       </div>
 
       <!-- Notes -->

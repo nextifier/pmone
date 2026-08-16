@@ -9,6 +9,7 @@ use App\Models\RoomType;
 use App\Models\User;
 use App\Services\Reservation\DocumentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -36,17 +37,23 @@ beforeEach(function () {
     $this->room = RoomType::factory()->create(['hotel_id' => $this->hotel->id]);
 });
 
+// What these two routes have to get right is reachability, the payment gate,
+// and which document gets rendered - not the bytes Chrome produces. Faking the
+// PDF asserts the view directly and keeps a headless browser out of the run;
+// PdfBrandingTest still renders one real PDF end to end.
 test('admin can download invoice pdf', function () {
+    Pdf::fake();
+
     $reservation = Reservation::factory()->create(['hotel_id' => $this->hotel->id, 'event_id' => $this->event->id]);
     ReservationItem::factory()->create([
         'reservation_id' => $reservation->id,
         'room_type_id' => $this->room->id,
     ]);
 
-    $response = $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/invoice.pdf");
+    $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/invoice.pdf")
+        ->assertSuccessful();
 
-    $response->assertSuccessful();
-    expect($response->headers->get('Content-Type'))->toContain('application/pdf');
+    Pdf::assertRespondedWithPdf(fn ($pdf) => $pdf->viewName === 'pdf.reservation.invoice');
 });
 
 test('admin cannot download receipt before payment', function () {
@@ -62,16 +69,18 @@ test('admin cannot download receipt before payment', function () {
 });
 
 test('admin can download receipt after payment', function () {
+    Pdf::fake();
+
     $reservation = Reservation::factory()->paid()->create(['hotel_id' => $this->hotel->id, 'event_id' => $this->event->id]);
     ReservationItem::factory()->create([
         'reservation_id' => $reservation->id,
         'room_type_id' => $this->room->id,
     ]);
 
-    $response = $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/receipt.pdf");
+    $this->get("/api/events/{$this->event->id}/reservations/{$reservation->ulid}/receipt.pdf")
+        ->assertSuccessful();
 
-    $response->assertSuccessful();
-    expect($response->headers->get('Content-Type'))->toContain('application/pdf');
+    Pdf::assertRespondedWithPdf(fn ($pdf) => $pdf->viewName === 'pdf.reservation.receipt');
 });
 
 function renderInvoiceHtml(Reservation $reservation): string

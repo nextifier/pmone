@@ -40,7 +40,7 @@ use Spatie\Translatable\HasTranslations;
  * @property string $title
  * @property string $slug
  * @property int|null $edition_number
- * @property string|null $description
+ * @property array<array-key, mixed>|null $description
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
  * @property string|null $location
@@ -67,10 +67,21 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon|null $onsite_order_opens_at
  * @property Carbon|null $onsite_order_closes_at
  * @property numeric $onsite_penalty_rate
+ * @property string $timezone
+ * @property bool $allow_cross_day
+ * @property bool $tickets_enabled
+ * @property bool $business_matching_enabled
  * @property int|null $capacity
  * @property int $reserved_count
  * @property int|null $max_tickets_per_buyer
  * @property bool $bot_protection_enabled
+ * @property WaitlistMode $waitlist_mode
+ * @property bool $brands_public_visible
+ * @property bool $rundown_public_visible
+ * @property-read Collection<int, AccessCodeBatch> $accessCodeBatches
+ * @property-read int|null $access_code_batches_count
+ * @property-read Collection<int, AccessCode> $accessCodes
+ * @property-read int|null $access_codes_count
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, BrandEvent> $brandEvents
@@ -80,7 +91,13 @@ use Spatie\Translatable\HasTranslations;
  * @property-read Collection<int, Event> $conjunctionEvents
  * @property-read int|null $conjunction_events_count
  * @property-read User|null $creator
+ * @property-read Collection<int, CustomField> $customFields
+ * @property-read int|null $custom_fields_count
  * @property-read User|null $deleter
+ * @property-read Collection<int, CustomField> $eventCustomFields
+ * @property-read int|null $event_custom_fields_count
+ * @property-read Collection<int, EventDay> $eventDays
+ * @property-read int|null $event_days_count
  * @property-read Collection<int, EventDocumentSubmission> $eventDocumentSubmissions
  * @property-read int|null $event_document_submissions_count
  * @property-read Collection<int, EventDocument> $eventDocuments
@@ -89,6 +106,8 @@ use Spatie\Translatable\HasTranslations;
  * @property-read int|null $event_product_categories_count
  * @property-read Collection<int, EventProduct> $eventProducts
  * @property-read int|null $event_products_count
+ * @property-read Collection<int, Faq> $faqs
+ * @property-read int|null $faqs_count
  * @property-read string|null $date_label
  * @property-read string|null $edition_number_with_ordinal
  * @property-read string|null $end_time
@@ -102,14 +121,27 @@ use Spatie\Translatable\HasTranslations;
  * @property-read int|null $hotels_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
+ * @property-read Collection<int, MediaCoverage> $mediaCoverages
+ * @property-read int|null $media_coverages_count
  * @property-read Collection<int, Order> $orders
  * @property-read int|null $orders_count
  * @property-read Collection<int, PartnerCategory> $partnerCategories
  * @property-read int|null $partner_categories_count
+ * @property-read Collection<int, Program> $programs
+ * @property-read int|null $programs_count
  * @property-read Project|null $project
+ * @property-read Collection<int, CustomField> $registrationFields
+ * @property-read int|null $registration_fields_count
  * @property-read Collection<int, RundownItem> $rundownItems
  * @property-read int|null $rundown_items_count
+ * @property-read Collection<int, TicketOrder> $ticketOrders
+ * @property-read int|null $ticket_orders_count
+ * @property-read Collection<int, Ticket> $tickets
+ * @property-read int|null $tickets_count
+ * @property-read mixed $translations
  * @property-read User|null $updater
+ * @property-read Collection<int, TicketWaitlistEntry> $waitlistEntries
+ * @property-read int|null $waitlist_entries_count
  *
  * @method static Builder<static>|Event active()
  * @method static Builder<static>|Event byStatus(string $status)
@@ -121,6 +153,9 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|Event ordered(string $direction = 'asc')
  * @method static Builder<static>|Event published()
  * @method static Builder<static>|Event query()
+ * @method static Builder<static>|Event whereAllowCrossDay($value)
+ * @method static Builder<static>|Event whereBotProtectionEnabled($value)
+ * @method static Builder<static>|Event whereBusinessMatchingEnabled($value)
  * @method static Builder<static>|Event whereCapacity($value)
  * @method static Builder<static>|Event whereCreatedAt($value)
  * @method static Builder<static>|Event whereCreatedBy($value)
@@ -133,8 +168,13 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|Event whereHall($value)
  * @method static Builder<static>|Event whereId($value)
  * @method static Builder<static>|Event whereIsActive($value)
+ * @method static Builder<static>|Event whereJsonContainsLocale(string $column, string $locale, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|Event whereJsonContainsLocales(string $column, array $locales, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|Event whereLocale(string $column, string $locale)
+ * @method static Builder<static>|Event whereLocales(string $column, array $locales)
  * @method static Builder<static>|Event whereLocation($value)
  * @method static Builder<static>|Event whereLocationLink($value)
+ * @method static Builder<static>|Event whereMaxTicketsPerBuyer($value)
  * @method static Builder<static>|Event whereNormalOrderClosesAt($value)
  * @method static Builder<static>|Event whereNormalOrderOpensAt($value)
  * @method static Builder<static>|Event whereOnsiteOrderClosesAt($value)
@@ -151,11 +191,14 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|Event whereSlug($value)
  * @method static Builder<static>|Event whereStartDate($value)
  * @method static Builder<static>|Event whereStatus($value)
+ * @method static Builder<static>|Event whereTicketsEnabled($value)
+ * @method static Builder<static>|Event whereTimezone($value)
  * @method static Builder<static>|Event whereTitle($value)
  * @method static Builder<static>|Event whereUlid($value)
  * @method static Builder<static>|Event whereUpdatedAt($value)
  * @method static Builder<static>|Event whereUpdatedBy($value)
  * @method static Builder<static>|Event whereVisibility($value)
+ * @method static Builder<static>|Event whereWaitlistMode($value)
  * @method static Builder<static>|Event withTrashed(bool $withTrashed = true)
  * @method static Builder<static>|Event withUniqueSlugConstraints(\Illuminate\Database\Eloquent\Model $model, string $attribute, array $config, string $slug)
  * @method static Builder<static>|Event withoutTrashed()
@@ -208,6 +251,8 @@ class Event extends Model implements HasMedia, Sortable
         'max_tickets_per_buyer',
         'bot_protection_enabled',
         'waitlist_mode',
+        'brands_public_visible',
+        'rundown_public_visible',
     ];
 
     public array $translatable = [
@@ -251,6 +296,8 @@ class Event extends Model implements HasMedia, Sortable
             'max_tickets_per_buyer' => 'integer',
             'bot_protection_enabled' => 'boolean',
             'waitlist_mode' => WaitlistMode::class,
+            'brands_public_visible' => 'boolean',
+            'rundown_public_visible' => 'boolean',
         ];
     }
 
@@ -273,6 +320,13 @@ class Event extends Model implements HasMedia, Sortable
         // EventTicketSettingsController used to clear that tag by hand, so
         // editing the same fields through any other path left the ticket
         // payload stale.
+        //
+        // 'brands' + 'rundown' also cover brands_public_visible /
+        // rundown_public_visible (Aug 2026): every public brand and rundown
+        // endpoint reads those columns straight off this model, so a plain
+        // save() is the ONLY supported way to flip them. A saveQuietly() or a
+        // query-builder update leaves the public sites serving hidden content
+        // for a full hour.
         return [
             'events', 'faqs', 'brands', 'gallery',
             'partners', 'programs', 'guests', 'media-coverages', 'rundown', 'hotels',
@@ -400,7 +454,10 @@ class Event extends Model implements HasMedia, Sortable
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['title', 'slug', 'status', 'visibility'])
+            ->logOnly([
+                'title', 'slug', 'status', 'visibility',
+                'brands_public_visible', 'rundown_public_visible',
+            ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs();
     }
@@ -591,7 +648,7 @@ class Event extends Model implements HasMedia, Sortable
 
     public function brandEvents(): HasMany
     {
-        return $this->hasMany(BrandEvent::class)->ordered();
+        return $this->hasMany(BrandEvent::class)->orderedByBooth();
     }
 
     public function hotels(): BelongsToMany

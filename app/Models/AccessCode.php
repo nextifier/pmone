@@ -37,15 +37,64 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string|null $bind_email
  * @property string|null $bind_phone
  * @property AccessCodePriceEffect $price_effect
- * @property string|null $price_value
+ * @property numeric|null $price_value
  * @property bool $stackable
  * @property int $max_qty_per_redemption
  * @property AccessCodeStatus $status
  * @property array<array-key, mixed>|null $metadata
- * @property-read Event|null $event
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, AppliedAdjustment> $appliedAdjustments
+ * @property-read int|null $applied_adjustments_count
  * @property-read AccessCodeBatch|null $batch
- * @property-read Collection<int, Ticket> $unlocks
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
+ * @property-read Event|null $event
  * @property-read Collection<int, AccessCodeRedemption> $redemptions
+ * @property-read int|null $redemptions_count
+ * @property-read Collection<int, Ticket> $unlocks
+ * @property-read int|null $unlocks_count
+ * @property-read User|null $updater
+ *
+ * @method static Builder<static>|AccessCode active()
+ * @method static \Database\Factories\AccessCodeFactory factory($count = null, $state = [])
+ * @method static Builder<static>|AccessCode newModelQuery()
+ * @method static Builder<static>|AccessCode newQuery()
+ * @method static Builder<static>|AccessCode onlyTrashed()
+ * @method static Builder<static>|AccessCode query()
+ * @method static Builder<static>|AccessCode whereBatchId($value)
+ * @method static Builder<static>|AccessCode whereBindEmail($value)
+ * @method static Builder<static>|AccessCode whereBindPhone($value)
+ * @method static Builder<static>|AccessCode whereCode($value)
+ * @method static Builder<static>|AccessCode whereCreatedAt($value)
+ * @method static Builder<static>|AccessCode whereCreatedBy($value)
+ * @method static Builder<static>|AccessCode whereDeletedAt($value)
+ * @method static Builder<static>|AccessCode whereDeletedBy($value)
+ * @method static Builder<static>|AccessCode whereEventId($value)
+ * @method static Builder<static>|AccessCode whereId($value)
+ * @method static Builder<static>|AccessCode whereKind($value)
+ * @method static Builder<static>|AccessCode whereMaxQtyPerRedemption($value)
+ * @method static Builder<static>|AccessCode whereMaxUses($value)
+ * @method static Builder<static>|AccessCode whereMetadata($value)
+ * @method static Builder<static>|AccessCode wherePriceEffect($value)
+ * @method static Builder<static>|AccessCode wherePriceValue($value)
+ * @method static Builder<static>|AccessCode whereStackable($value)
+ * @method static Builder<static>|AccessCode whereStatus($value)
+ * @method static Builder<static>|AccessCode whereUlid($value)
+ * @method static Builder<static>|AccessCode whereUpdatedAt($value)
+ * @method static Builder<static>|AccessCode whereUpdatedBy($value)
+ * @method static Builder<static>|AccessCode whereUsedCount($value)
+ * @method static Builder<static>|AccessCode whereValidFrom($value)
+ * @method static Builder<static>|AccessCode whereValidUntil($value)
+ * @method static Builder<static>|AccessCode withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|AccessCode withinWindow(?\Illuminate\Support\Carbon $at = null)
+ * @method static Builder<static>|AccessCode withoutTrashed()
  *
  * @mixin \Eloquent
  */

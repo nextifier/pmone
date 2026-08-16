@@ -10,6 +10,7 @@ use App\Models\CustomField;
 use App\Models\TicketOrder;
 use App\Services\Ticket\TicketDocumentService;
 use App\Services\Ticket\TicketPurchaseService;
+use App\Support\AdminPreview;
 use App\Support\FormFieldTypes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,11 @@ class PublicTicketOrderController extends Controller
         $data = $request->validated();
         $data['ip_address'] = $request->ip();
         $data['user_agent'] = $request->userAgent();
+        // Injected here, outside the validated payload, for the same reason as
+        // ip_address: the request BODY is forwarded verbatim by the event
+        // websites' proxy and so is attacker-controllable. AdminPreview reads
+        // the query string only.
+        $data['admin_preview'] = AdminPreview::wants($request, AdminPreview::CHECKOUT);
 
         $order = $this->purchases->createOrder($data);
 

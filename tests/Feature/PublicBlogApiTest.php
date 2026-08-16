@@ -381,7 +381,9 @@ test('the browser beacon counts a view against a post', function () {
 test('API request updates last_used_at', function () {
     $originalLastUsed = $this->apiConsumer->last_used_at;
 
-    sleep(1);
+    // Move the clock rather than waiting on it: a real sleep(1) buys the same
+    // assertion at the cost of a second of everyone's time.
+    $this->travel(1)->second();
 
     $this->withHeaders([
         'X-API-Key' => 'pk_test_123456789',

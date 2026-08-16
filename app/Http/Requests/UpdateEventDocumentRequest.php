@@ -25,6 +25,7 @@ class UpdateEventDocumentRequest extends FormRequest
             'document_type' => ['sometimes', 'required', 'string', Rule::in(['file_upload', 'checkbox_agreement', 'text_input', 'custom'])],
             'is_required' => ['sometimes', 'boolean'],
             'blocks_next_step' => ['sometimes', 'boolean'],
+            'is_active' => ['sometimes', 'boolean'],
             'submission_deadline' => ['nullable', 'date'],
             'booth_types' => ['nullable', 'array'],
             'booth_types.*' => ['string', Rule::in(array_column(BoothType::cases(), 'value'))],

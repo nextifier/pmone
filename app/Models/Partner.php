@@ -58,6 +58,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner ordered(string $direction = 'asc')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner publiclyVisible()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Partner whereCreatedBy($value)

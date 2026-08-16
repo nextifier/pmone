@@ -91,13 +91,9 @@ class ProjectPaymentGateway extends Model
     public function isConfigured(): bool
     {
         $secret = (string) ($this->secret_key ?? '');
-        $lower = strtolower($secret);
 
-        // Reject obvious placeholders so dummy seed values do not pass.
-        foreach (['dummy', 'placeholder', 'fake', 'changeme', 'xxx', 'sample', 'test_key_for', 'replace'] as $marker) {
-            if (str_contains($lower, $marker)) {
-                return false;
-            }
+        if (self::looksLikePlaceholder($secret)) {
+            return false;
         }
 
         if ($this->provider === 'xendit') {
@@ -111,6 +107,61 @@ class ProjectPaymentGateway extends Model
         }
 
         return strlen($secret) >= 20;
+    }
+
+    /**
+     * Whether a secret is a stand-in someone typed rather than a real credential.
+     *
+     * This used to be `str_contains($lower, $marker)` over the whole string, which
+     * quietly rejected genuine keys: a random 40-character Xendit secret contains
+     * "xxx" about once in 858, and the merchant would just see payments stop with
+     * no message pointing here.
+     *
+     * The two failure directions are not equal. Wrongly calling a real key a
+     * placeholder stops that merchant's payments with nothing in the logs
+     * pointing here; wrongly accepting a fake one just fails at the provider,
+     * loudly. So every rule below is tuned to almost never fire on a generated
+     * credential, even at the cost of letting an odd placeholder through.
+     *
+     * Placeholders long enough to clear the length checks give themselves away
+     * in one of three ways, and only these are disqualifying:
+     *
+     *   1. A dictionary word standing on its own between separators -
+     *      "xnd_dummy_key", "SB-Mid-server-CHANGEME", "xnd_test_key_for_dev".
+     *      Inside a random run ("a9xxxQ2") it is just noise and is left alone.
+     *   2. A long run of one repeated character - "SB-Mid-server-XXXXXXXX",
+     *      "xnd_00000000". This is how masked and redacted keys are written.
+     *      Eight in a row is ~1 in 70,000,000 for a random hex secret and
+     *      rarer still for base62, so it never fires by accident.
+     *   3. Barely any alphabet at all - twenty or more characters drawn from
+     *      four or fewer distinct ones. Note the ceiling is deliberately this
+     *      low: an earlier attempt used eight, which rejected genuine 20-char
+     *      hex secrets once in 142 - six times worse than the substring bug
+     *      this guard replaced.
+     */
+    protected static function looksLikePlaceholder(string $secret): bool
+    {
+        if ($secret === '') {
+            return false;
+        }
+
+        $markers = ['dummy', 'placeholder', 'fake', 'changeme', 'xxx', 'sample', 'test key for', 'replace'];
+
+        // Collapse every separator to a single space so a marker can be matched
+        // as a whole word regardless of how the placeholder was punctuated.
+        $words = trim((string) preg_replace('/[^a-z0-9]+/', ' ', strtolower($secret)));
+
+        foreach ($markers as $marker) {
+            if (preg_match('/(?:^| )'.preg_quote($marker, '/').'(?: |$)/', $words) === 1) {
+                return true;
+            }
+        }
+
+        if (preg_match('/(.)\1{7,}/', $secret) === 1) {
+            return true;
+        }
+
+        return strlen($secret) >= 20 && count(array_unique(str_split(strtolower($secret)))) <= 4;
     }
 
     protected function casts(): array

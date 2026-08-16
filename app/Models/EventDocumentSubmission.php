@@ -25,7 +25,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int $event_id
  * @property Carbon|null $agreed_at
  * @property string|null $text_value
- * @property array<array-key, mixed>|null $field_values
  * @property int $document_version
  * @property int $submitted_by
  * @property Carbon $submitted_at
@@ -33,6 +32,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $user_agent
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property array<array-key, mixed>|null $field_values
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Event|null $event
@@ -51,6 +51,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereDocumentVersion($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereEventDocumentId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereFieldValues($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereIpAddress($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|EventDocumentSubmission whereSubmittedAt($value)

@@ -36,6 +36,12 @@ class EventFactory extends Factory
             'hall' => fake()->optional(0.5)->randomElement(['Hall A', 'Hall B', 'Hall A1-A2', 'Hall C']),
             'status' => 'draft',
             'visibility' => 'private',
+            // Mirrors the column defaults. Set explicitly because Eloquent does
+            // not hydrate database defaults back onto the model it just
+            // inserted, so a freshly-created event would otherwise read null
+            // for these and look hidden to any code holding that instance.
+            'brands_public_visible' => true,
+            'rundown_public_visible' => true,
         ];
     }
 

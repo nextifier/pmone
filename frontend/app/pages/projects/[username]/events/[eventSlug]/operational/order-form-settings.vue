@@ -270,6 +270,17 @@
             </SelectItem>
           </SelectContent>
         </Select>
+
+        <Select v-model="docVisibilityFilter">
+          <SelectTrigger class="w-40 shrink-0">
+            <SelectValue placeholder="All visibility" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All visibility</SelectItem>
+            <SelectItem value="visible">Visible only</SelectItem>
+            <SelectItem value="hidden">Hidden only</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <!-- Table -->
@@ -302,22 +313,18 @@
           </div>
           <div class="space-y-1">
             <p class="text-sm font-medium">
-              {{
-                docSearch || selectedDocType !== "all"
-                  ? "No documents match your filters"
-                  : "No documents yet"
-              }}
+              {{ docFiltersActive ? "No documents match your filters" : "No documents yet" }}
             </p>
             <p class="text-muted-foreground text-xs tracking-tight">
               {{
-                docSearch || selectedDocType !== "all"
+                docFiltersActive
                   ? "Try adjusting your search or filters."
                   : "Add event rules, required documents, or forms."
               }}
             </p>
           </div>
           <Button
-            v-if="!docSearch && selectedDocType === 'all' && event?.can_edit"
+            v-if="!docFiltersActive && event?.can_edit"
             @click="openCreateDoc"
             size="sm"
             variant="outline"
@@ -337,6 +344,7 @@
                 <th class="text-muted-foreground px-4 py-3 font-medium">Type</th>
                 <th class="text-muted-foreground px-4 py-3 font-medium">Required</th>
                 <th class="text-muted-foreground px-4 py-3 font-medium">Blocks</th>
+                <th class="text-muted-foreground px-4 py-3 font-medium">Visible</th>
                 <th class="text-muted-foreground px-4 py-3 font-medium">Version</th>
                 <th class="text-muted-foreground px-4 py-3 font-medium">Deadline</th>
                 <th v-if="event?.can_edit" class="text-muted-foreground px-4 py-3 text-right font-medium">Actions</th>
@@ -348,10 +356,12 @@
                 :key="doc.id"
                 :data-id="doc.id"
                 class="border-b last:border-0"
+                :class="{ 'opacity-60': !doc.is_active }"
               >
                 <td class="text-muted-foreground px-4 py-3">
                   <div class="flex items-center gap-x-1">
                     <Icon
+                      v-if="!docFiltersActive"
                       name="lucide:grip-vertical"
                       class="drag-handle text-muted-foreground size-4 shrink-0 cursor-grab"
                     />
@@ -359,7 +369,10 @@
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <div class="font-medium tracking-tight">{{ doc.title }}</div>
+                  <div class="flex flex-wrap items-center gap-x-2">
+                    <span class="font-medium tracking-tight">{{ doc.title }}</span>
+                    <Badge v-if="!doc.is_active" variant="muted" plain>Hidden</Badge>
+                  </div>
                   <div v-if="doc.booth_types?.length" class="mt-0.5 flex flex-wrap gap-1">
                     <Badge
                       v-for="type in doc.booth_types"
@@ -381,6 +394,13 @@
                 </td>
                 <td class="text-muted-foreground px-4 py-3 tracking-tight">
                   {{ doc.blocks_next_step ? "Yes" : "No" }}
+                </td>
+                <td class="px-4 py-3">
+                  <Switch
+                    :model-value="doc.is_active"
+                    :disabled="togglingDocId === doc.id || !event?.can_edit"
+                    @update:model-value="handleToggleDocActive(doc)"
+                  />
                 </td>
                 <td class="px-4 py-3">
                   <Badge variant="muted" class="font-mono text-xs font-normal">
@@ -502,6 +522,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
 const props = defineProps({ event: Object, project: Object });
@@ -626,6 +647,8 @@ const documents = ref([]);
 const docLoading = ref(true);
 const docSearch = ref("");
 const selectedDocType = ref("all");
+const docVisibilityFilter = ref("all");
+const togglingDocId = ref(null);
 const showDocFormDialog = ref(false);
 const editingDocument = ref(null);
 const showDocDeleteDialog = ref(false);
@@ -655,9 +678,17 @@ async function reorderDocuments() {
   }
 }
 
-// Sortable with proper instance lifecycle (fixes mobile touch)
+const docFiltersActive = computed(
+  () => !!docSearch.value || selectedDocType.value !== "all" || docVisibilityFilter.value !== "all"
+);
+
+// Sortable with proper instance lifecycle (fixes mobile touch).
+// Dragging is off while a filter is on: SortableJS moves items inside
+// `documents`, but the rows on screen come from `filteredDocuments`, so the
+// indexes would not line up and the reorder would land on the wrong rows.
 useSortableList(sortableRef, documents, {
   onReorder: reorderDocuments,
+  enabled: computed(() => !docFiltersActive.value),
 });
 
 const filteredDocuments = computed(() => {
@@ -672,8 +703,35 @@ const filteredDocuments = computed(() => {
     result = result.filter((d) => documentKind(d).key === selectedDocType.value);
   }
 
+  if (docVisibilityFilter.value === "visible") {
+    result = result.filter((d) => d.is_active);
+  }
+
+  if (docVisibilityFilter.value === "hidden") {
+    result = result.filter((d) => !d.is_active);
+  }
+
   return result;
 });
+
+async function handleToggleDocActive(doc) {
+  togglingDocId.value = doc.id;
+
+  try {
+    await client(`${docApiBase.value}/${doc.ulid}`, {
+      method: "PUT",
+      body: { is_active: !doc.is_active },
+    });
+    doc.is_active = !doc.is_active;
+    toast.success(doc.is_active ? "Document shown to exhibitors" : "Document hidden from exhibitors");
+  } catch (err) {
+    toast.error("Failed to update document", {
+      description: err?.data?.message || err?.message || "An error occurred",
+    });
+  } finally {
+    togglingDocId.value = null;
+  }
+}
 
 const documentKindOptions = computed(() => {
   const seen = new Map();

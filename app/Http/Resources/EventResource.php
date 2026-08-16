@@ -59,6 +59,8 @@ class EventResource extends JsonResource
             'is_active' => $this->is_active,
             'hotel_reservation_enabled' => (bool) $this->project?->hotel_reservation_enabled,
             'business_matching_enabled' => (bool) $this->business_matching_enabled,
+            'brands_public_visible' => (bool) $this->brands_public_visible,
+            'rundown_public_visible' => (bool) $this->rundown_public_visible,
             'order_column' => $this->order_column,
             'poster_image' => $this->when(
                 $this->hasMedia('poster_image'),

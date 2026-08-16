@@ -69,6 +69,33 @@ class TicketPurchaseService
      * line is rejected as not currently on sale rather than oversold at a
      * stale price.
      */
+    /**
+     * The phase to charge when an admin is force-previewing checkout.
+     *
+     * Ignores both the sale window and the quota, so a ticket that is "coming
+     * soon", whose sales have ended, or whose early-bird quota is exhausted can
+     * still be bought for a production smoke test. Preference order keeps the
+     * charged price the least surprising one: the phase that is live now, else
+     * the next one to open, else the one that most recently closed, else any
+     * active phase. Null when the ticket has no active phase at all - there
+     * would be no price to charge, so the line is still rejected.
+     */
+    public function resolvePhaseForAdminPreview(Ticket $ticket, ?Carbon $now = null): ?TicketPricePhase
+    {
+        $now ??= now();
+
+        $active = $ticket->pricePhases->where('is_active', true);
+
+        return $active->first(fn (TicketPricePhase $phase) => $phase->isActiveAt($now))
+            ?? $active->filter(fn (TicketPricePhase $phase) => $phase->starts_at !== null && $now->lt($phase->starts_at))
+                ->sortBy('starts_at')
+                ->first()
+            ?? $active->filter(fn (TicketPricePhase $phase) => $phase->ends_at !== null && $now->gt($phase->ends_at))
+                ->sortByDesc('ends_at')
+                ->first()
+            ?? $active->first();
+    }
+
     public function resolveActivePhaseForPurchase(Ticket $ticket, int $qty, ?Carbon $now = null): ?TicketPricePhase
     {
         $now ??= now();
@@ -117,7 +144,7 @@ class TicketPurchaseService
      * @param  array<int, array{ticket_id:int, quantity?:int, ticket_session_id?:int|null}>  $items
      * @return array{lines: array<int, array<string, mixed>>, subtotal: float, on_sale: bool, discount: float, total: float, promo: array<string, mixed>|null, access: array<string, mixed>|null}
      */
-    public function previewCart(Event $event, array $items, ?string $promoCode = null, ?string $email = null, ?string $accessCode = null, ?string $phone = null): array
+    public function previewCart(Event $event, array $items, ?string $promoCode = null, ?string $email = null, ?string $accessCode = null, ?string $phone = null, bool $adminPreview = false): array
     {
         $now = now();
         $lines = [];
@@ -151,7 +178,9 @@ class TicketPurchaseService
                 ->where('id', $item['ticket_id'])
                 ->first();
 
-            if (! $ticket || ! $ticket->is_active || $ticket->purchase_type !== PurchaseType::FirstParty) {
+            // $adminPreview lets a switched-off ticket price, so the cart total
+            // matches what createOrder() will charge in the same mode.
+            if (! $ticket || (! $adminPreview && ! $ticket->is_active) || $ticket->purchase_type !== PurchaseType::FirstParty) {
                 continue;
             }
 
@@ -164,7 +193,9 @@ class TicketPurchaseService
             }
 
             $qty = max(1, (int) ($item['quantity'] ?? 1));
-            $phase = $this->resolveActivePhase($ticket, $now);
+            $phase = $adminPreview
+                ? $this->resolvePhaseForAdminPreview($ticket, $now)
+                : $this->resolveActivePhase($ticket, $now);
 
             if (! $phase) {
                 $onSale = false;
@@ -292,7 +323,13 @@ class TicketPurchaseService
 
         $idempotencyKey = $this->normalizeIdempotencyKey($data['idempotency_key'] ?? null);
 
-        $result = DB::transaction(function () use ($data, $event, $items, $idempotencyKey) {
+        // Set by the controller from the QUERY STRING, never from the validated
+        // body - see StorePublicTicketOrderRequest. Relaxes the is_active, sale
+        // window and phase-quota gates only; ticket stock, event capacity,
+        // per-buyer caps and the access-code gate all still apply.
+        $adminPreview = (bool) ($data['admin_preview'] ?? false);
+
+        $result = DB::transaction(function () use ($data, $event, $items, $idempotencyKey, $adminPreview) {
             // A client retrying a submission (double-click, network timeout)
             // sends the same key: hand back the order already created for it
             // instead of holding inventory a second time.
@@ -418,7 +455,7 @@ class TicketPurchaseService
                 $ticket = Ticket::query()
                     ->where('id', $item['ticket_id'])
                     ->where('event_id', $event->id)
-                    ->where('is_active', true)
+                    ->when(! $adminPreview, fn ($q) => $q->where('is_active', true))
                     ->where('purchase_type', PurchaseType::FirstParty->value)
                     ->with(['pricePhases', 'validDays'])
                     ->first();
@@ -453,7 +490,9 @@ class TicketPurchaseService
                     }
                 }
 
-                $phase = $this->resolveActivePhaseForPurchase($ticket, $requestedByTicket[$ticket->id]);
+                $phase = $adminPreview
+                    ? $this->resolvePhaseForAdminPreview($ticket)
+                    : $this->resolveActivePhaseForPurchase($ticket, $requestedByTicket[$ticket->id]);
                 if (! $phase) {
                     $fail("Ticket {$ticket->slug} is not currently on sale.");
                 }
@@ -470,7 +509,12 @@ class TicketPurchaseService
                 }
 
                 if (! isset($phaseReserved[$phase->id])) {
-                    if (! $phase->reserve($requestedByTicket[$ticket->id])) {
+                    // Admin preview skips the quota guard (not the ticket stock
+                    // guard above): an exhausted early-bird quota is the "sold
+                    // out" the site shows while seats remain.
+                    if ($adminPreview) {
+                        $phase->reserveIgnoringQuota($requestedByTicket[$ticket->id]);
+                    } elseif (! $phase->reserve($requestedByTicket[$ticket->id])) {
                         $fail("Ticket {$ticket->slug} is not currently on sale.");
                     }
                     $phaseReserved[$phase->id] = true;

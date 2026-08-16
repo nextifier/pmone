@@ -5,10 +5,12 @@ namespace App\Models;
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -16,6 +18,8 @@ use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Translatable\HasTranslations;
 
 /**
@@ -30,11 +34,47 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read User|null $creator
+ * @property-read User|null $deleter
  * @property-read Event|null $event
  * @property-read array|null $image
- * @property-read User|null $creator
+ * @property-read MediaCollection<int, Media> $media
+ * @property-read int|null $media_count
+ * @property-read mixed $translations
  * @property-read User|null $updater
- * @property-read User|null $deleter
+ *
+ * @method static Builder<static>|Program active()
+ * @method static \Database\Factories\ProgramFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Program newModelQuery()
+ * @method static Builder<static>|Program newQuery()
+ * @method static Builder<static>|Program onlyTrashed()
+ * @method static Builder<static>|Program ordered(string $direction = 'asc')
+ * @method static Builder<static>|Program query()
+ * @method static Builder<static>|Program whereCreatedAt($value)
+ * @method static Builder<static>|Program whereCreatedBy($value)
+ * @method static Builder<static>|Program whereDeletedAt($value)
+ * @method static Builder<static>|Program whereDeletedBy($value)
+ * @method static Builder<static>|Program whereDescription($value)
+ * @method static Builder<static>|Program whereEventId($value)
+ * @method static Builder<static>|Program whereIcon($value)
+ * @method static Builder<static>|Program whereId($value)
+ * @method static Builder<static>|Program whereIsActive($value)
+ * @method static Builder<static>|Program whereJsonContainsLocale(string $column, string $locale, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|Program whereJsonContainsLocales(string $column, array $locales, ?mixed $value, string $operand = '=')
+ * @method static Builder<static>|Program whereLocale(string $column, string $locale)
+ * @method static Builder<static>|Program whereLocales(string $column, array $locales)
+ * @method static Builder<static>|Program whereOrderColumn($value)
+ * @method static Builder<static>|Program whereSettings($value)
+ * @method static Builder<static>|Program whereTitle($value)
+ * @method static Builder<static>|Program whereUpdatedAt($value)
+ * @method static Builder<static>|Program whereUpdatedBy($value)
+ * @method static Builder<static>|Program withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|Program withoutTrashed()
  *
  * @mixin \Eloquent
  */

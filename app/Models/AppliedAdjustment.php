@@ -17,7 +17,6 @@ use Illuminate\Support\Str;
  * @property string $ulid
  * @property string $adjustable_type
  * @property int $adjustable_id
- * @property int|null $order_item_id
  * @property int|null $promotion_rule_id
  * @property int|null $promo_code_id
  * @property AdjustmentKind $kind
@@ -34,6 +33,9 @@ use Illuminate\Support\Str;
  * @property string|null $void_reason
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property int|null $access_code_id
+ * @property int|null $order_item_id
+ * @property-read AccessCode|null $accessCode
  * @property-read Model|\Eloquent $adjustable
  * @property-read OrderItem|null $orderItem
  * @property-read PromoCode|null $promoCode
@@ -45,6 +47,7 @@ use Illuminate\Support\Str;
  * @method static Builder<static>|AppliedAdjustment newQuery()
  * @method static Builder<static>|AppliedAdjustment ofKind(\App\Enums\AdjustmentKind|string $kind)
  * @method static Builder<static>|AppliedAdjustment query()
+ * @method static Builder<static>|AppliedAdjustment whereAccessCodeId($value)
  * @method static Builder<static>|AppliedAdjustment whereAdjustableId($value)
  * @method static Builder<static>|AppliedAdjustment whereAdjustableType($value)
  * @method static Builder<static>|AppliedAdjustment whereAmount($value)
@@ -55,6 +58,7 @@ use Illuminate\Support\Str;
  * @method static Builder<static>|AppliedAdjustment whereKind($value)
  * @method static Builder<static>|AppliedAdjustment whereLabel($value)
  * @method static Builder<static>|AppliedAdjustment whereLineBreakdown($value)
+ * @method static Builder<static>|AppliedAdjustment whereOrderItemId($value)
  * @method static Builder<static>|AppliedAdjustment wherePromoCodeId($value)
  * @method static Builder<static>|AppliedAdjustment wherePromotionRuleId($value)
  * @method static Builder<static>|AppliedAdjustment whereRuleSnapshot($value)

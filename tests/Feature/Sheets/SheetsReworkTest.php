@@ -446,3 +446,43 @@ it('links the brand-events sheet to a downloadable promotion image bundle', func
     $this->get("/api/sheets/brand-events/{$withOne->id}/promotion-images?token=wrong")
         ->assertStatus(401);
 });
+
+it('carries promotion post captions next to the post count', function () {
+    $event = Event::factory()->create(['project_id' => Project::factory()->create()->id]);
+
+    $withCaptions = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'Two Captions'])->id,
+        'event_id' => $event->id,
+    ]);
+    $blankCaption = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'Blank Caption'])->id,
+        'event_id' => $event->id,
+    ]);
+    $noPosts = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'No Posts'])->id,
+        'event_id' => $event->id,
+    ]);
+
+    PromotionPost::factory()->create(['brand_event_id' => $withCaptions->id, 'caption' => 'First caption']);
+    PromotionPost::factory()->create(['brand_event_id' => $withCaptions->id, 'caption' => 'Second caption']);
+    PromotionPost::factory()->create(['brand_event_id' => $blankCaption->id, 'caption' => null]);
+
+    $response = $this->getJson("/api/sheets/brand-events?token={$this->token}")->assertSuccessful();
+    $headings = $response->json('headings');
+    $rows = collect($response->json('rows'));
+
+    $countCol = array_search('Promotion Posts Count', $headings, true);
+    $captionCol = array_search('Caption Promotion Post', $headings, true);
+
+    // The column sits between the count and the image link, which is where the
+    // spreadsheet the organisers work in expects it.
+    expect($captionCol)->toBe($countCol + 1);
+    expect($headings[$captionCol + 1])->toBe('Promotion Post Image Link');
+
+    $nameCol = array_search('Brand Name', $headings, true);
+    $byBrand = $rows->keyBy(fn ($row) => $row[$nameCol]);
+
+    expect($byBrand['Two Captions'][$captionCol])->toBe("First caption\nSecond caption");
+    expect($byBrand['Blank Caption'][$captionCol])->toBe('-');
+    expect($byBrand['No Posts'][$captionCol])->toBe('-');
+});

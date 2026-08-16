@@ -37,13 +37,11 @@ use Spatie\Translatable\HasTranslations;
  * @property string $ulid
  * @property string $name
  * @property string $username
- * @property string|null $bio
+ * @property array<array-key, mixed>|null $bio
  * @property array<array-key, mixed> $settings
  * @property array<array-key, mixed> $more_details
  * @property string $status
  * @property string $visibility
- * @property bool $hotel_reservation_enabled
- * @property array<array-key, mixed>|null $branding
  * @property string|null $email
  * @property array<array-key, mixed>|null $phone
  * @property int|null $order_column
@@ -53,8 +51,13 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
+ * @property bool $hotel_reservation_enabled
+ * @property array<array-key, mixed>|null $branding
+ * @property string|null $organization
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProjectBanner> $banners
+ * @property-read int|null $banners_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Click> $clicks
  * @property-read int|null $clicks_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ContactFormSubmission> $contactFormSubmissions
@@ -76,6 +79,7 @@ use Spatie\Translatable\HasTranslations;
  * @property-read int|null $members_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ProjectPaymentGateway> $paymentGateways
  * @property-read int|null $payment_gateways_count
+ * @property-read mixed $translations
  * @property-read User|null $updater
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Visit> $visits
  * @property-read int|null $visits_count
@@ -90,15 +94,22 @@ use Spatie\Translatable\HasTranslations;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project public()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereBio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereBranding($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereDeletedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereHotelReservationEnabled($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereJsonContainsLocale(string $column, string $locale, ?mixed $value, string $operand = '=')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereJsonContainsLocales(string $column, array $locales, ?mixed $value, string $operand = '=')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereLocale(string $column, string $locale)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereLocales(string $column, array $locales)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereMoreDetails($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereOrderColumn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereOrganization($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereSettings($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Project whereStatus($value)

@@ -277,6 +277,54 @@ it('hides internal notes from exhibitors', function () {
     expect($response->json('data'))->not->toHaveKey('internal_notes');
 });
 
+it('shows the invoice and receipt to the exhibitor once staff uploads them', function () {
+    Storage::fake('public');
+
+    $order = Order::factory()->create([
+        'brand_event_id' => $this->brandEvent->id,
+        'internal_notes' => 'secret staff note',
+    ]);
+
+    $orderUrl = "/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders/{$order->ulid}";
+
+    // Nothing uploaded yet: both keys are present but empty, so the page can
+    // decide whether to render the section without guessing.
+    $this->actingAs($this->exhibitor);
+    $before = $this->getJson($orderUrl)->assertSuccessful();
+    expect($before->json('data.invoice'))->toBeNull()
+        ->and($before->json('data.receipt'))->toBeNull();
+
+    $this->actingAs($this->staff);
+    $pdf = fn (string $name) => UploadedFile::fake()
+        ->createWithContent($name, "%PDF-1.4\n".str_repeat('a', 512)."\n%%EOF");
+
+    $this->post("{$this->ordersBase}/{$order->ulid}/invoice", ['invoice' => $pdf('invoice.pdf')])
+        ->assertSuccessful();
+    $this->post("{$this->ordersBase}/{$order->ulid}/receipt", ['receipt' => $pdf('receipt.pdf')])
+        ->assertSuccessful();
+
+    $this->actingAs($this->exhibitor);
+    $after = $this->getJson($orderUrl)->assertSuccessful();
+
+    expect($after->json('data.invoice.url'))->toContain('invoice')
+        ->and($after->json('data.receipt.url'))->toContain('receipt')
+        // Opening the paperwork up must not open anything else up with it.
+        ->and($after->json('data'))->not->toHaveKey('internal_notes');
+});
+
+it('does not hand an order to a user from another brand', function () {
+    Storage::fake('public');
+
+    $order = Order::factory()->create(['brand_event_id' => $this->brandEvent->id]);
+
+    $outsider = User::factory()->create(['email_verified_at' => now()]);
+    $outsider->assignRole('exhibitor');
+
+    $this->actingAs($outsider)
+        ->getJson("/api/exhibitor/brands/{$this->brand->slug}/events/{$this->brandEvent->id}/orders/{$order->ulid}")
+        ->assertNotFound();
+});
+
 // F: Invoice / Receipt upload + send
 it('staff can upload an order invoice and email it to brand recipients', function () {
     Storage::fake('public');

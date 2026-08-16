@@ -25,7 +25,7 @@
 
       <div v-if="be.booth_number || collapsible" class="flex items-center gap-3">
         <div v-if="be.booth_number" class="text-right leading-tight">
-          <div class="text-muted-foreground text-xs tracking-tight">Booth</div>
+          <div class="text-muted-foreground text-xs tracking-tight">{{ $t("ed.booth.label") }}</div>
           <div class="text-foreground text-lg font-semibold tracking-tighter sm:text-xl">
             {{ be.booth_number }}
           </div>

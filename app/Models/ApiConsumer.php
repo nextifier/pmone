@@ -20,8 +20,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property string $ulid
  * @property string $name
  * @property string $website_url
- * @property string|null $api_key legacy plaintext, kept only as a migration safety net; never read for auth, never returned by any resource
- * @property string $api_key_hash sha256 hash of the raw key; the only value used for authentication lookups
+ * @property string $api_key
  * @property array<array-key, mixed>|null $allowed_origins
  * @property int $rate_limit
  * @property array<array-key, mixed>|null $filters
@@ -34,6 +33,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int|null $updated_by
  * @property int|null $deleted_by
  * @property string|null $description
+ * @property string $api_key_hash
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read User|null $creator
@@ -53,6 +53,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereAllowedOrigins($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereApiKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereApiKeyHash($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ApiConsumer whereDeletedAt($value)

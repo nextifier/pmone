@@ -24,9 +24,24 @@ class BrandEventFactory extends Factory
             'event_id' => Event::factory(),
             'booth_number' => fake()->optional(0.7)->numerify('B-###'),
             'booth_size' => fake()->optional(0.5)->randomFloat(2, 4, 100),
-            'booth_type' => fake()->optional(0.5)->randomElement(['raw_space', 'standard_shell_scheme', 'enhanced_shell_scheme', 'table_chair_only']),
+            // Deliberately null, not random. Document visibility is gated on
+            // booth type, so a factory that handed out one of five values at
+            // random made every test touching that gate a coin flip - it cost
+            // EventDocumentTest and DocumentMiniFormTest an intermittent
+            // failure each. Tests that need a type ask for one with boothType().
+            'booth_type' => null,
             'status' => 'draft',
         ];
+    }
+
+    /**
+     * A booth of a specific type. Pass nothing for a plain raw space.
+     */
+    public function boothType(string $type = 'raw_space'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'booth_type' => $type,
+        ]);
     }
 
     public function confirmed(): static

@@ -47,6 +47,9 @@ beforeEach(function () {
         'brand_id' => $this->brand->id,
         'event_id' => $this->event->id,
         'booth_number' => 'A01',
+        // Stated rather than assumed: the booth-type gating test below reads
+        // this booth as having no type.
+        'booth_type' => null,
     ]);
 
     $this->document = EventDocument::factory()->create([

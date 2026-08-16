@@ -22,8 +22,26 @@ use Illuminate\Support\Str;
  * @property string|null $email
  * @property Carbon|null $redeemed_at
  * @property Carbon|null $voided_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read AccessCode|null $accessCode
  * @property-read TicketOrder|null $ticketOrder
+ *
+ * @method static \Database\Factories\AccessCodeRedemptionFactory factory($count = null, $state = [])
+ * @method static Builder<static>|AccessCodeRedemption newModelQuery()
+ * @method static Builder<static>|AccessCodeRedemption newQuery()
+ * @method static Builder<static>|AccessCodeRedemption notVoided()
+ * @method static Builder<static>|AccessCodeRedemption query()
+ * @method static Builder<static>|AccessCodeRedemption whereAccessCodeId($value)
+ * @method static Builder<static>|AccessCodeRedemption whereAppliedAdjustmentId($value)
+ * @method static Builder<static>|AccessCodeRedemption whereCreatedAt($value)
+ * @method static Builder<static>|AccessCodeRedemption whereEmail($value)
+ * @method static Builder<static>|AccessCodeRedemption whereId($value)
+ * @method static Builder<static>|AccessCodeRedemption whereRedeemedAt($value)
+ * @method static Builder<static>|AccessCodeRedemption whereTicketOrderId($value)
+ * @method static Builder<static>|AccessCodeRedemption whereUlid($value)
+ * @method static Builder<static>|AccessCodeRedemption whereUpdatedAt($value)
+ * @method static Builder<static>|AccessCodeRedemption whereVoidedAt($value)
  *
  * @mixin \Eloquent
  */

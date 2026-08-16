@@ -28,13 +28,15 @@ use Spatie\Tags\Tag;
  * @property string $property_id
  * @property bool $is_active
  * @property Carbon|null $last_synced_at
- * @property int $sync_frequency Sync frequency in minutes
+ * @property int $sync_frequency
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property int|null $deleted_by
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
  * @property-read User|null $creator
  * @property-read User|null $deleter
  * @property-read MediaCollection<int, Media> $media

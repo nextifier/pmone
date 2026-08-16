@@ -18,7 +18,13 @@ class TicketDocumentService
     {
         // Browsershot (Node.js + Chrome) can take several seconds on a cold start;
         // give the request room so PHP-FPM doesn't kill it mid-render.
-        set_time_limit(120);
+        //
+        // Web only. On CLI the limit is already unlimited, and setting one would
+        // apply to the whole process - the test suite runs in a single process, so
+        // this used to cap the entire run at 120s and kill it mid-suite.
+        if (PHP_SAPI !== 'cli') {
+            set_time_limit(120);
+        }
 
         $order->loadMissing(['items.ticket', 'items.selectedEventDay', 'items.ticketSession', 'event.project', 'paymentGateway']);
         $number = $this->invoiceNumber($order);
@@ -41,7 +47,10 @@ class TicketDocumentService
      */
     public function renderReceiptPdf(TicketOrder $order): Response
     {
-        set_time_limit(120);
+        // Web only - see renderInvoicePdf().
+        if (PHP_SAPI !== 'cli') {
+            set_time_limit(120);
+        }
 
         $order->loadMissing(['items.ticket', 'items.selectedEventDay', 'items.ticketSession', 'event.project', 'paymentGateway']);
         $number = $this->receiptNumber($order);

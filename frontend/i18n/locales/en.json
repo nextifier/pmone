@@ -148,7 +148,8 @@
     "placeAnOrder": "Place an Order",
     "failedToLoad": "Failed to load orders",
     "howToOrderInfo": "To place a new order, go to the Brands page, select your brand, then click Order Form on the desired event.",
-    "goToBrands": "Go to Brands"
+    "goToBrands": "Go to Brands",
+    "onsiteSurcharge": "Onsite Order - includes {amount} surcharge"
   },
   "orderDetail": {
     "backToOrders": "Back to Orders",
@@ -161,6 +162,10 @@
     "tax": "Tax ({rate}%)",
     "total": "Total",
     "notes": "Notes",
+    "documents": "Documents",
+    "invoice": "Invoice",
+    "receipt": "Receipt",
+    "penalty": "Penalty",
     "discount": "Discount",
     "statusUpdate": "Update Status",
     "applyDiscount": "Apply Discount",
@@ -181,6 +186,8 @@
   "orderForm": {
     "title": "Order Form",
     "booth": "Booth",
+    "onsiteBanner": "Onsite order period - all prices include a {rate}% surcharge.",
+    "closedBanner": "The order form is currently closed. No active order period at this time.",
     "termsAndConditions": "Terms & Conditions",
     "noProducts": "No products available for this event.",
     "orderCart": "Order Cart",
@@ -302,7 +309,8 @@
     "noEvents": "No events found for your brands.",
     "booth": {
       "sharedNote": "Operational documents and the order form for booth {booth} are managed under {brand}.",
-      "anotherBrand": "another brand"
+      "anotherBrand": "another brand",
+      "label": "Booth"
     },
     "profile": {
       "title": "Complete Your Profile",
@@ -368,6 +376,8 @@
       "failedToSave": "Failed to save booth details",
       "required": "Required",
       "updated": "Updated",
+      "completed": "Completed",
+      "overdue": "Overdue",
       "deadline": "Deadline: {date}",
       "viewDocEn": "View Document (EN)",
       "viewDocId": "View Document (ID)",
@@ -445,7 +455,8 @@
     "eventCard": {
       "booth": "Booth",
       "promotion": "Promotion",
-      "order": "Order"
+      "order": "Order",
+      "passed": "passed"
     },
     "daysLeft": "{days}d left"
   },

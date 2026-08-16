@@ -43,8 +43,8 @@
             {{ currentAction.action }}
           </Button>
           <Button
-            v-if="brandEventWithOrders"
-            :to="`/brands/${brandEventWithOrders.brand.slug}/orders/${brandEventWithOrders.brand_event_id}`"
+            v-if="hasAnyOrder"
+            to="/my-orders"
             size="sm"
             variant="outline"
             class="w-full sm:w-auto"
@@ -78,8 +78,10 @@ const allDone = computed(() => {
   return currentAction.value.actionKey === "all_done";
 });
 
-const brandEventWithOrders = computed(() => {
-  return (props.brandEvents || []).find((be) => be.orders_count > 0) || null;
+// Only whether there is anything to show. Picking one brand-event here is what
+// used to hide the orders of every other booth the exhibitor holds.
+const hasAnyOrder = computed(() => {
+  return (props.brandEvents || []).some((be) => be.orders_count > 0);
 });
 
 const currentAction = computed(() => {

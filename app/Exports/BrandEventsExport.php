@@ -178,12 +178,20 @@ class BrandEventsExport extends BaseExport
 
     protected function applySorting(Builder $query): void
     {
-        [$field, $direction] = $this->parseSortField($this->sort ?? 'order_column');
+        [$field, $direction] = $this->parseSortField($this->sort ?? 'booth_sort_key');
 
-        if (in_array($field, ['order_column', 'status', 'booth_number', 'created_at', 'updated_at'])) {
+        // Both booth fields sort by the key: booth_number on its own would give
+        // A-1, A-10, A-2, which is not how a hall is walked.
+        if (in_array($field, ['booth_sort_key', 'booth_number'])) {
+            $query->orderedByBooth($direction);
+
+            return;
+        }
+
+        if (in_array($field, ['order_column', 'status', 'created_at', 'updated_at'])) {
             $query->orderBy($field, $direction);
         } else {
-            $query->orderBy('order_column', 'asc');
+            $query->orderedByBooth();
         }
     }
 }

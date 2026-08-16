@@ -29,13 +29,13 @@ use Spatie\Translatable\HasTranslations;
 /**
  * @property int $id
  * @property string $ulid
- * @property string $title
+ * @property array<array-key, mixed> $title
  * @property string|null $slug
- * @property string|null $excerpt
- * @property string $content
+ * @property array<array-key, mixed>|null $excerpt
+ * @property array<array-key, mixed> $content
  * @property string $content_format
- * @property string|null $meta_title
- * @property string|null $meta_description
+ * @property array<array-key, mixed>|null $meta_title
+ * @property array<array-key, mixed>|null $meta_description
  * @property string $status
  * @property string $visibility
  * @property Carbon|null $published_at
@@ -62,6 +62,7 @@ use Spatie\Translatable\HasTranslations;
  * @property-read User|null $primaryAuthor
  * @property Collection<int, Tag> $tags
  * @property-read int|null $tags_count
+ * @property-read mixed $translations
  * @property-read User|null $updater
  * @property-read Collection<int, Visit> $visits
  * @property-read int|null $visits_count
@@ -78,6 +79,7 @@ use Spatie\Translatable\HasTranslations;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post orderByTitle(string $direction = 'asc')
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post public()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post published()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post query()
@@ -92,6 +94,10 @@ use Spatie\Translatable\HasTranslations;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereExcerpt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereFeatured($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereJsonContainsLocale(string $column, string $locale, ?mixed $value, string $operand = '=')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereJsonContainsLocales(string $column, array $locales, ?mixed $value, string $operand = '=')
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereLocale(string $column, string $locale)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereLocales(string $column, array $locales)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereMetaDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post whereMetaTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Post wherePublishedAt($value)

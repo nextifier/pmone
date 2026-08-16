@@ -386,23 +386,20 @@ it('clears response cache after bulk update', function () {
 });
 
 it('exposes only public+active guests via the public endpoint', function () {
+    // The public event lookup only resolves published events. The shared
+    // beforeEach leaves the event in its default draft state, which is right for
+    // the admin tests above but made this one 404 - and the escape hatch below
+    // hid that, so the endpoint went untested.
+    $this->event->update(['status' => 'published', 'visibility' => 'public']);
+
     Guest::factory()->create(['event_id' => $this->event->id, 'status' => 'active', 'visibility' => 'public']);
     Guest::factory()->create(['event_id' => $this->event->id, 'status' => 'inactive', 'visibility' => 'public']);
     Guest::factory()->create(['event_id' => $this->event->id, 'status' => 'active', 'visibility' => 'private']);
     Guest::factory()->featured()->create(['event_id' => $this->event->id, 'visibility' => 'public']);
 
-    $apiKey = config('app.api_key');
-    $headers = $apiKey ? ['X-API-Key' => $apiKey] : [];
-
-    $response = $this->withHeaders($headers)->getJson(
-        "/api/public/projects/{$this->project->username}/events/{$this->event->slug}/guests"
-    );
-
-    if ($response->status() === 401) {
-        $this->markTestSkipped('Public API requires api.key middleware not set in test env.');
-    }
-
-    $response->assertSuccessful()
+    // The public route runs api.key:optional, so no key is needed here.
+    $this->getJson("/api/public/projects/{$this->project->username}/events/{$this->event->slug}/guests")
+        ->assertSuccessful()
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('meta.featured_count', 1);
 });

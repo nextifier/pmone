@@ -22,6 +22,7 @@ use App\Models\BrandEvent;
 use App\Models\Event;
 use App\Models\Project;
 use App\Services\Rundown\RundownGrouper;
+use App\Support\AdminPreview;
 use App\Support\OgPages;
 use App\Support\PaginationClamp;
 use Illuminate\Database\Eloquent\Builder;
@@ -103,6 +104,10 @@ class PublicProjectController extends Controller
     {
         $event = $this->findEvent($username, $eventSlug);
 
+        if (! AdminPreview::brands($request, $event)) {
+            return $this->emptyBrandListing($request, 30);
+        }
+
         $query = BrandEvent::query()
             ->with(['brand.media', 'brand.tags', 'brand.links'])
             ->withCount([
@@ -113,7 +118,7 @@ class PublicProjectController extends Controller
             ->whereHas('brand')
             ->where('event_id', $event->id)
             ->where('status', 'active')
-            ->ordered();
+            ->orderedByBooth();
 
         if ($search = $request->input('search')) {
             $query->whereHas('brand', function ($q) use ($search) {
@@ -138,9 +143,13 @@ class PublicProjectController extends Controller
     /**
      * Get single brand detail.
      */
-    public function brand(string $username, string $eventSlug, string $brandSlug): JsonResponse
+    public function brand(Request $request, string $username, string $eventSlug, string $brandSlug): JsonResponse
     {
         $event = $this->findEvent($username, $eventSlug);
+
+        if (! AdminPreview::brands($request, $event)) {
+            abort(404);
+        }
 
         $brandEvent = BrandEvent::query()
             ->with(['brand.media', 'brand.tags', 'brand.links'])
@@ -160,6 +169,10 @@ class PublicProjectController extends Controller
     public function promotionPosts(Request $request, string $username, string $eventSlug, string $brandSlug): JsonResponse
     {
         $event = $this->findEvent($username, $eventSlug);
+
+        if (! AdminPreview::brands($request, $event)) {
+            return $this->emptyBrandListing($request, 30);
+        }
 
         $brandEvent = BrandEvent::query()
             ->where('event_id', $event->id)
@@ -196,6 +209,10 @@ class PublicProjectController extends Controller
             ]);
         }
 
+        if (! AdminPreview::brands($request, $event)) {
+            return $this->emptyBrandListing($request, 200, 1000, withFallbackMeta: true);
+        }
+
         $activeEvent = $event;
 
         // Opt-in fallback (used by the home-page BrandPreview teaser): when the
@@ -209,6 +226,13 @@ class PublicProjectController extends Controller
                 'brandEvents',
                 fn ($q) => $q->where('status', 'active'),
                 'brands',
+                // Never borrow from an edition that hides its own exhibitors:
+                // its /editions/{n}/brands page is empty, and activeBrand()'s
+                // third source skips it too, so a borrow here would make the
+                // listing and the detail resolver disagree. Filtering at query
+                // level (not with a post-if) lets it fall through to the next
+                // most recent VISIBLE edition.
+                fn ($q) => AdminPreview::brandsVisibleScope($q, $request),
             ) ?? $event;
         }
 
@@ -217,7 +241,7 @@ class PublicProjectController extends Controller
             ->whereHas('brand')
             ->where('event_id', $event->id)
             ->where('status', 'active')
-            ->ordered();
+            ->orderedByBooth();
 
         if ($search = $request->input('search')) {
             $query->whereHas('brand', function ($q) use ($search) {
@@ -257,6 +281,16 @@ class PublicProjectController extends Controller
             ]);
         }
 
+        // The requested event's flag is the master switch for THIS site's page:
+        // the conjunction groups render here too, so they go with it. Each
+        // conjunction event's own website resolves its own active event, and
+        // therefore its own flag, so nothing there changes.
+        if (! AdminPreview::brands($request, $event)) {
+            return response()->json([
+                'data' => ['groups' => []],
+            ]);
+        }
+
         $event->load('conjunctionEvents.project');
 
         $groups = [];
@@ -266,6 +300,13 @@ class PublicProjectController extends Controller
 
         // Conjunction event brands
         foreach ($event->conjunctionEvents as $conjunctionEvent) {
+            // A neighbour that hid its exhibitors on its OWN site must not have
+            // them leak onto this one. Skipping the whole group (rather than
+            // emitting an empty one) also keeps the separator heading away.
+            if (! AdminPreview::brands($request, $conjunctionEvent)) {
+                continue;
+            }
+
             $groups[] = $this->buildBrandGroup($conjunctionEvent, isPrimary: false);
         }
 
@@ -284,7 +325,7 @@ class PublicProjectController extends Controller
             ->whereHas('brand')
             ->where('event_id', $event->id)
             ->where('status', 'active')
-            ->ordered()
+            ->orderedByBooth()
             ->get();
 
         return [
@@ -328,7 +369,17 @@ class PublicProjectController extends Controller
             return response()->json(['data' => [], 'meta' => ['sources' => $counts]]);
         }
 
-        $conjunctionEventIds = $event->conjunctionEvents()->pluck('events.id');
+        // Master switch, mirroring activeBrand()'s first source: a site that
+        // hides its exhibitor list must not publish a sitemap of URLs that now
+        // 404. The 'active' source needs no further gate below - this covers it.
+        if (! AdminPreview::brands($request, $event)) {
+            return response()->json(['data' => [], 'meta' => ['sources' => $counts]]);
+        }
+
+        $conjunctionEventIds = AdminPreview::brandsVisibleScope(
+            $event->conjunctionEvents(),
+            $request,
+        )->pluck('events.id');
 
         $sources = [
             'active' => fn ($q) => $q->where('event_id', $event->id),
@@ -341,7 +392,10 @@ class PublicProjectController extends Controller
         if ($this->fallbackAllowed($request)) {
             $sources['previous_edition'] = fn ($q) => $q->whereHas(
                 'event',
-                fn ($e) => $e->where('project_id', $event->project_id)->published(),
+                fn ($e) => AdminPreview::brandsVisibleScope(
+                    $e->where('project_id', $event->project_id)->published(),
+                    $request,
+                ),
             );
         }
 
@@ -393,16 +447,26 @@ class PublicProjectController extends Controller
             abort(404);
         }
 
-        $brandEvent = BrandEvent::query()
-            ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
-            ->where('event_id', $event->id)
-            ->where('status', 'active')
-            ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
-            ->first();
+        // Source 1: the active event itself. Skipped entirely when this site
+        // hides its exhibitor list, otherwise a brand with no listing anywhere
+        // would still answer 200.
+        $brandEvent = AdminPreview::brands($request, $event)
+            ? BrandEvent::query()
+                ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
+                ->where('event_id', $event->id)
+                ->where('status', 'active')
+                ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
+                ->first()
+            : null;
 
-        // Fallback: search in conjunction events
+        // Fallback: search in conjunction events. Filtered per event, not by the
+        // primary's flag - a neighbour that hides its own exhibitors must not
+        // have them surface here.
         if (! $brandEvent) {
-            $conjunctionEventIds = $event->conjunctionEvents()->pluck('events.id');
+            $conjunctionEventIds = AdminPreview::brandsVisibleScope(
+                $event->conjunctionEvents(),
+                $request,
+            )->pluck('events.id');
 
             if ($conjunctionEventIds->isNotEmpty()) {
                 $brandEvent = BrandEvent::query()
@@ -424,7 +488,10 @@ class PublicProjectController extends Controller
                 ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
                 ->where('status', 'active')
                 ->whereHas('brand', fn ($q) => $q->where('slug', $brandSlug))
-                ->whereHas('event', fn ($q) => $q->where('project_id', $event->project_id)->published())
+                ->whereHas('event', fn ($q) => AdminPreview::brandsVisibleScope(
+                    $q->where('project_id', $event->project_id)->published(),
+                    $request,
+                ))
                 ->orderByDesc(
                     Event::select('start_date')->whereColumn('events.id', 'brand_event.event_id'),
                 )
@@ -472,12 +539,16 @@ class PublicProjectController extends Controller
     {
         $event = $this->findEventByEdition($username, $editionNumber);
 
+        if (! AdminPreview::brands($request, $event)) {
+            return $this->emptyBrandListing($request, 200, 1000);
+        }
+
         $query = BrandEvent::query()
             ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
             ->whereHas('brand')
             ->where('event_id', $event->id)
             ->where('status', 'active')
-            ->ordered();
+            ->orderedByBooth();
 
         if ($search = $request->input('search')) {
             $query->whereHas('brand', function ($q) use ($search) {
@@ -505,9 +576,13 @@ class PublicProjectController extends Controller
     /**
      * Get single brand detail for a specific edition.
      */
-    public function brandByEdition(string $username, int $editionNumber, string $brandSlug): JsonResponse
+    public function brandByEdition(Request $request, string $username, int $editionNumber, string $brandSlug): JsonResponse
     {
         $event = $this->findEventByEdition($username, $editionNumber);
+
+        if (! AdminPreview::brands($request, $event)) {
+            abort(404);
+        }
 
         $brandEvent = BrandEvent::query()
             ->with(['brand.media', 'brand.tags', 'brand.links', 'promotionPosts.media', 'event'])
@@ -527,32 +602,7 @@ class PublicProjectController extends Controller
      */
     public function rundown(Request $request, string $username, string $eventSlug): JsonResponse
     {
-        $event = $this->findEvent($username, $eventSlug);
-        $event->loadMissing('project');
-
-        $locale = $request->input('locale', config('app.locale', 'en'));
-        App::setLocale($locale);
-
-        $items = $event->rundownItems()
-            ->with(['media', 'tags'])
-            ->where('is_active', true)
-            ->get();
-
-        $rundownSettings = data_get($event->project?->settings, 'website_settings.rundown', []);
-
-        return response()->json([
-            'data' => [
-                'days' => RundownGrouper::group(
-                    $items,
-                    fn ($item) => (new RundownItemPublicResource($item))->resolve(),
-                    event: $event,
-                    unscheduledLabel: null,
-                ),
-                'settings' => [
-                    'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
-                ],
-            ],
-        ]);
+        return $this->rundownPayload($request, $this->findEvent($username, $eventSlug));
     }
 
     /**
@@ -561,29 +611,47 @@ class PublicProjectController extends Controller
      */
     public function rundownByEdition(Request $request, string $username, int $editionNumber): JsonResponse
     {
-        $event = $this->findEventByEdition($username, $editionNumber);
+        return $this->rundownPayload($request, $this->findEventByEdition($username, $editionNumber));
+    }
+
+    /**
+     * Shared body for rundown() and rundownByEdition(). One place, because the
+     * two were near-verbatim twins and a visibility gate added to only one of
+     * them is a bug that ships green.
+     */
+    private function rundownPayload(Request $request, Event $event): JsonResponse
+    {
         $event->loadMissing('project');
 
         $locale = $request->input('locale', config('app.locale', 'en'));
         App::setLocale($locale);
 
-        $items = $event->rundownItems()
-            ->with(['media', 'tags'])
-            ->where('is_active', true)
-            ->get();
+        $visible = AdminPreview::rundown($request, $event);
+
+        $items = $visible
+            ? $event->rundownItems()->with(['media', 'tags'])->where('is_active', true)->get()
+            : collect();
 
         $rundownSettings = data_get($event->project?->settings, 'website_settings.rundown', []);
 
         return response()->json([
             'data' => [
+                // Days come from the event's date range, not from the items, so
+                // filtering the items alone would still emit "Day 1 / Day 2"
+                // headers with nothing under them. Passing no event drops into
+                // the item-derived branch, which is empty when the rundown is
+                // hidden.
                 'days' => RundownGrouper::group(
                     $items,
                     fn ($item) => (new RundownItemPublicResource($item))->resolve(),
-                    event: $event,
+                    event: $visible ? $event : null,
                     unscheduledLabel: null,
                 ),
                 'settings' => [
-                    'show_rundown_on_home_page' => (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
+                    // A hidden rundown also drops the home-page teaser: otherwise
+                    // the site renders the section heading above an empty list.
+                    'show_rundown_on_home_page' => $visible
+                        && (bool) ($rundownSettings['show_rundown_on_home_page'] ?? false),
                 ],
             ],
         ]);
@@ -708,9 +776,20 @@ class PublicProjectController extends Controller
      * Returns null when the project disables previous-edition data fallback for
      * the given section ($settingKey), so callers keep the active event's own
      * (possibly empty) data.
+     *
+     * $eventConstraint narrows the candidate EVENTS (as opposed to $constraint,
+     * which narrows their items). activeBrands() uses it to skip editions that
+     * hide their own exhibitor list, so the borrow falls through to the next
+     * most recent visible one instead of stopping dead.
      */
-    private function fallbackEventWithItems(Request $request, Event $event, string $relation, ?\Closure $constraint, string $settingKey): ?Event
-    {
+    private function fallbackEventWithItems(
+        Request $request,
+        Event $event,
+        string $relation,
+        ?\Closure $constraint,
+        string $settingKey,
+        ?\Closure $eventConstraint = null,
+    ): ?Event {
         if (! $this->fallbackAllowed($request)) {
             return null;
         }
@@ -719,9 +798,37 @@ class PublicProjectController extends Controller
             ->events()
             ->where('id', '!=', $event->id)
             ->whereHas($relation, $constraint ?? fn ($q) => $q->where('is_active', true))
+            ->when($eventConstraint, $eventConstraint)
             ->reorder()
             ->orderByDesc('start_date')
             ->first();
+    }
+
+    /**
+     * The empty payload a hidden brand listing answers with.
+     *
+     * Mirrors each endpoint's own SUCCESS shape field for field, so no Nuxt
+     * client has to branch on a missing key. `per_page` still echoes the
+     * caller's clamped value, keeping their pagination maths intact.
+     */
+    private function emptyBrandListing(
+        Request $request,
+        int $default,
+        int $max = 100,
+        bool $withFallbackMeta = false,
+    ): JsonResponse {
+        $meta = [
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => PaginationClamp::perPage($request, $default, $max),
+            'total' => 0,
+        ];
+
+        if ($withFallbackMeta) {
+            $meta['fallback'] = ['is_fallback' => false, 'source_event' => null];
+        }
+
+        return response()->json(['data' => [], 'meta' => $meta]);
     }
 
     /**

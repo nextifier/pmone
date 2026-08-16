@@ -22,6 +22,7 @@ class BrandEventIndexResource extends JsonResource
             'brand_slug' => $brand?->slug,
             'company_name' => $brand?->company_name,
             'booth_number' => $this->booth_number,
+            'booth_sort_key' => $this->booth_sort_key,
             'booth_size' => $this->booth_size,
             'booth_price' => $this->booth_price,
             'booth_type' => $this->booth_type?->value,

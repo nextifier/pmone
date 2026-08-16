@@ -28,7 +28,6 @@ use Spatie\Translatable\HasTranslations;
  * @property int $id
  * @property int $event_id
  * @property Carbon|null $date
- * @property string $type
  * @property string|null $start_time
  * @property string|null $end_time
  * @property array<array-key, mixed>|null $title
@@ -37,7 +36,6 @@ use Spatie\Translatable\HasTranslations;
  * @property array<array-key, mixed>|null $theme
  * @property array<array-key, mixed>|null $location
  * @property array<array-key, mixed>|null $presented_by
- * @property int|null $presented_by_brand_id
  * @property array<array-key, mixed>|null $moderator
  * @property array<array-key, mixed>|null $panelists
  * @property array<array-key, mixed>|null $speakers
@@ -91,14 +89,12 @@ use Spatie\Translatable\HasTranslations;
  * @method static Builder<static>|RundownItem whereOrderColumn($value)
  * @method static Builder<static>|RundownItem wherePanelists($value)
  * @method static Builder<static>|RundownItem wherePresentedBy($value)
- * @method static Builder<static>|RundownItem wherePresentedByBrandId($value)
  * @method static Builder<static>|RundownItem whereSettings($value)
  * @method static Builder<static>|RundownItem whereSpeakers($value)
  * @method static Builder<static>|RundownItem whereStartTime($value)
  * @method static Builder<static>|RundownItem whereSubtitle($value)
  * @method static Builder<static>|RundownItem whereTheme($value)
  * @method static Builder<static>|RundownItem whereTitle($value)
- * @method static Builder<static>|RundownItem whereType($value)
  * @method static Builder<static>|RundownItem whereUpdatedAt($value)
  * @method static Builder<static>|RundownItem whereUpdatedBy($value)
  * @method static Builder<static>|RundownItem withAllTags(\ArrayAccess|\Spatie\Tags\Tag|array|string $tags, ?string $type = null)

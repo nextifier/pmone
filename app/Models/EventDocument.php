@@ -33,6 +33,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string $document_type
  * @property bool $is_required
  * @property bool $blocks_next_step
+ * @property bool $is_active
  * @property Carbon|null $submission_deadline
  * @property array<array-key, mixed>|null $booth_types
  * @property int|null $order_column
@@ -47,6 +48,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read int|null $activities_count
  * @property-read User|null $creator
  * @property-read Event|null $event
+ * @property-read Collection<int, CustomField> $fields
+ * @property-read int|null $fields_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read Collection<int, EventDocumentSubmission> $submissions
@@ -99,6 +102,7 @@ class EventDocument extends Model implements HasMedia, Sortable
         'document_type',
         'is_required',
         'blocks_next_step',
+        'is_active',
         'submission_deadline',
         'booth_types',
         'settings',
@@ -116,6 +120,7 @@ class EventDocument extends Model implements HasMedia, Sortable
         return [
             'is_required' => 'boolean',
             'blocks_next_step' => 'boolean',
+            'is_active' => 'boolean',
             'submission_deadline' => 'datetime',
             'booth_types' => 'array',
             'settings' => 'array',
@@ -178,6 +183,7 @@ class EventDocument extends Model implements HasMedia, Sortable
                 'document_type',
                 'is_required',
                 'blocks_next_step',
+                'is_active',
                 'submission_deadline',
                 'booth_types',
                 'content_version',
@@ -402,6 +408,16 @@ class EventDocument extends Model implements HasMedia, Sortable
     protected function cleanUrl(string $url): string
     {
         return $url === '' ? '' : (strtok($url, '?') ?: '');
+    }
+
+    /**
+     * Documents the exhibitor is meant to see. Hiding one takes it out of their
+     * list, their progress count, and its power to block the next step; staff,
+     * exports and the sheets feed keep seeing everything.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 
     /**

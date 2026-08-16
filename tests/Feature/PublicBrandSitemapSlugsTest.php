@@ -280,3 +280,114 @@ test('still rejects an invalid API key', function () {
         ->getJson("/api/public/projects/{$this->project->username}/brands-sitemap")
         ->assertUnauthorized();
 });
+
+test('emits nothing when the active event hides its brands', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'brands_public_visible' => false,
+    ]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $event->id,
+        'status' => 'active',
+    ]);
+
+    sitemapSlugs($this->project, $this->headers)
+        ->assertOk()
+        ->assertJsonPath('data', [])
+        ->assertJsonPath('meta.sources', [
+            'active' => 0,
+            'conjunction' => 0,
+            'previous_edition' => 0,
+        ]);
+});
+
+test('drops a conjunction event that hides its own brands', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+    ]);
+
+    $shy = Event::factory()->published()->create([
+        'project_id' => Project::factory(),
+        'brands_public_visible' => false,
+    ]);
+    $event->conjunctionEvents()->attach($shy->id, ['order_column' => 1]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $shy->id,
+        'status' => 'active',
+    ]);
+
+    sitemapSlugs($this->project, $this->headers, '?fallback=0')
+        ->assertOk()
+        ->assertJsonPath('data', [])
+        ->assertJsonPath('meta.sources.conjunction', 0);
+});
+
+test('drops a previous edition that hides its own brands', function () {
+    Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+        'edition_number' => 2,
+        'start_date' => now()->addMonths(3),
+    ]);
+
+    $hidden = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'edition_number' => 1,
+        'start_date' => now()->subYear(),
+        'brands_public_visible' => false,
+    ]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $hidden->id,
+        'status' => 'active',
+    ]);
+
+    sitemapSlugs($this->project, $this->headers)
+        ->assertOk()
+        ->assertJsonPath('data', [])
+        ->assertJsonPath('meta.sources.previous_edition', 0);
+});
+
+// The anti-drift guard the activeBrandSitemapSlugs() docblock asks for: the
+// visibility flag adds a fourth dimension to a three-source resolver spelled
+// out in two methods, and only this test notices when they disagree.
+test('every slug the sitemap emits still resolves through brand detail', function () {
+    $event = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'is_active' => true,
+    ]);
+
+    $shy = Event::factory()->published()->create([
+        'project_id' => Project::factory(),
+        'brands_public_visible' => false,
+    ]);
+    $event->conjunctionEvents()->attach($shy->id, ['order_column' => 1]);
+
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $event->id,
+        'status' => 'active',
+    ]);
+    BrandEvent::factory()->create([
+        'brand_id' => Brand::factory(),
+        'event_id' => $shy->id,
+        'status' => 'active',
+    ]);
+
+    $entries = sitemapSlugs($this->project, $this->headers)->assertOk()->json('data');
+
+    expect($entries)->toHaveCount(1);
+
+    foreach ($entries as $entry) {
+        $this->withHeaders($this->headers)
+            ->getJson("/api/public/projects/{$this->project->username}/brands/{$entry['slug']}")
+            ->assertOk();
+    }
+});

@@ -29,7 +29,6 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property AdjustmentValueType $value_type
  * @property numeric $value
  * @property array<array-key, mixed>|null $value_config
- * @property string|null $currency
  * @property numeric|null $max_discount_amount
  * @property numeric|null $min_purchase_amount
  * @property bool $applies_before_tax
@@ -52,6 +51,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property string|null $currency
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read Collection<int, AppliedAdjustment> $appliedAdjustments

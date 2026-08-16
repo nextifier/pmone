@@ -43,6 +43,8 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
+ * @property-read Collection<int, LinkPageBanner> $banners
+ * @property-read int|null $banners_count
  * @property-read Collection<int, Click> $clicks
  * @property-read int $clicks_count
  * @property-read User|null $creator
@@ -51,7 +53,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property-read int|null $items_count
  * @property-read int|null $visits_count
  * @property-read Collection<int, LinkPageItem> $items
- * @property-read Collection<int, LinkPageBanner> $banners
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
  * @property-read User|null $updater

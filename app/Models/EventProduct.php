@@ -26,7 +26,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string $name
  * @property string|null $description
  * @property numeric $price
- * @property numeric|null $price_usd
  * @property string $unit
  * @property array<array-key, mixed>|null $booth_types
  * @property bool $is_active
@@ -36,6 +35,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property int|null $category_id
+ * @property numeric|null $price_usd
  * @property-read Collection<int, Activity> $activities
  * @property-read int|null $activities_count
  * @property-read User|null $creator

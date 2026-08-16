@@ -21,7 +21,26 @@ use Illuminate\Support\Carbon;
  * @property Carbon $scanned_at
  * @property string $idempotency_key
  * @property array<array-key, mixed>|null $meta
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Attendee|null $attendee
+ * @property-read Event|null $event
+ * @property-read User|null $staff
+ *
+ * @method static \Database\Factories\ScanLogFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereAction($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereAttendeeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereIdempotencyKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereMeta($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereScannedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereStaffId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ScanLog whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

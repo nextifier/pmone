@@ -26,7 +26,7 @@
     </div>
 
     <!-- Required & Blocks -->
-    <div class="grid grid-cols-2 gap-x-3">
+    <div class="grid grid-cols-2 gap-x-3 gap-y-3">
       <div class="flex items-center gap-x-2">
         <Switch id="is_required" v-model="form.is_required" />
         <Label for="is_required" class="text-sm font-normal">Required</Label>
@@ -34,6 +34,10 @@
       <div class="flex items-center gap-x-2">
         <Switch id="blocks_next_step" v-model="form.blocks_next_step" />
         <Label for="blocks_next_step" class="text-sm font-normal">Blocks Next Step</Label>
+      </div>
+      <div class="flex items-center gap-x-2">
+        <Switch id="is_active" v-model="form.is_active" />
+        <Label for="is_active" class="text-sm font-normal">Visible to exhibitors</Label>
       </div>
     </div>
 
@@ -237,6 +241,7 @@ const form = reactive({
   description: "",
   is_required: true,
   blocks_next_step: false,
+  is_active: true,
   submission_deadline: null,
   booth_types: [],
 });
@@ -256,6 +261,7 @@ watch(
       form.description = newDoc.description || "";
       form.is_required = newDoc.is_required ?? true;
       form.blocks_next_step = newDoc.blocks_next_step ?? false;
+      form.is_active = newDoc.is_active ?? true;
       form.submission_deadline = newDoc.submission_deadline ? new Date(newDoc.submission_deadline) : null;
       form.booth_types = newDoc.booth_types || [];
     } else {
@@ -263,6 +269,7 @@ watch(
       form.description = "";
       form.is_required = true;
       form.blocks_next_step = false;
+      form.is_active = true;
       form.submission_deadline = null;
       form.booth_types = [];
     }
@@ -302,6 +309,7 @@ async function handleSubmit() {
       description: form.description || null,
       is_required: form.is_required,
       blocks_next_step: form.blocks_next_step,
+      is_active: form.is_active,
       submission_deadline: formatDateTimeForBackend(form.submission_deadline),
       booth_types: form.booth_types.length > 0 ? form.booth_types : null,
     };

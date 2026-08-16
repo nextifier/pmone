@@ -14,7 +14,16 @@
         </span>
       </div>
 
-      <div v-if="!isDisabled" class="flex flex-wrap gap-2 sm:ml-auto sm:shrink-0 sm:flex-nowrap">
+      <div v-if="!isDisabled" class="flex flex-wrap gap-2 sm:ml-auto sm:shrink-0">
+        <!-- Same idiom as "Open on event website" on the form builder: the
+             public page, in a new tab, with the staff bypass already applied so
+             switched-off and not-yet-on-sale tickets can be bought for a test. -->
+        <Button v-if="ticketsPreviewUrl" as-child variant="outline">
+          <a :href="ticketsPreviewUrl" target="_blank" rel="noopener noreferrer">
+            <Icon name="hugeicons:globe-02" class="size-4 shrink-0" />
+            <span>Test Checkout</span>
+          </a>
+        </Button>
         <Button v-if="canUpdate" as-child variant="outline">
           <NuxtLink :to="`${ticketsBase}/settings`">
             <Icon name="hugeicons:settings-02" class="size-4 shrink-0" />
@@ -250,6 +259,8 @@ const ticketsBase = computed(
 const accessCodesBase = computed(
   () => `/projects/${route.params.username}/events/${route.params.eventSlug}/access-codes`
 );
+
+const { ticketsPreviewUrl } = useEventWebsiteUrls(() => props.event);
 
 usePageMeta(null, {
   title: computed(() => `Tickets · ${props.event?.title || "Event"}`),

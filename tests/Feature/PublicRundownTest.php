@@ -182,3 +182,81 @@ test('cache invalidates on rundown item save', function () {
         ->getJson($this->endpoint)
         ->assertJsonPath('data.days.0.items.0.title', 'Updated');
 });
+
+test('returns zero days when the event hides its rundown', function () {
+    RundownItem::factory()->onDate('2026-07-22')->create([
+        'event_id' => $this->event->id,
+        'is_active' => true,
+        'title' => ['en' => 'Hidden'],
+    ]);
+
+    $this->event->update(['rundown_public_visible' => false]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($this->endpoint)
+        ->assertOk()
+        // assertJsonCount, not assertJsonPath: RundownGrouper emits a row per
+        // day in the event range regardless of items, so filtering the items
+        // alone would leave two empty day scaffolds here.
+        ->assertJsonCount(0, 'data.days')
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', false);
+});
+
+test('a hidden rundown forces the home-page teaser off even when the project enables it', function () {
+    $this->project->update([
+        'settings' => ['website_settings' => ['rundown' => ['show_rundown_on_home_page' => true]]],
+    ]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($this->endpoint)
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', true);
+
+    $this->event->update(['rundown_public_visible' => false]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($this->endpoint)
+        ->assertJsonPath('data.settings.show_rundown_on_home_page', false);
+});
+
+test('force_show_rundown bypasses the flag', function () {
+    RundownItem::factory()->onDate('2026-07-22')->create([
+        'event_id' => $this->event->id,
+        'is_active' => true,
+        'title' => ['en' => 'Opening'],
+    ]);
+
+    $this->event->update(['rundown_public_visible' => false]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($this->endpoint.'?force_show_rundown=1')
+        ->assertOk()
+        ->assertJsonPath('data.days.0.items.0.title', 'Opening');
+});
+
+test('the edition rundown endpoint honours the same flag', function () {
+    RundownItem::factory()->onDate('2026-07-22')->create([
+        'event_id' => $this->event->id,
+        'is_active' => true,
+        'title' => ['en' => 'Opening'],
+    ]);
+
+    $endpoint = "/api/public/projects/{$this->project->username}/editions/{$this->event->edition_number}/rundown";
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($endpoint)
+        ->assertOk()
+        ->assertJsonPath('data.days.0.items.0.title', 'Opening');
+
+    $this->event->update(['rundown_public_visible' => false]);
+
+    $this->withHeaders(['X-API-Key' => 'pk_test_rundown'])
+        ->getJson($endpoint)
+        ->assertOk()
+        ->assertJsonCount(0, 'data.days');
+});
+
+test('hiding the rundown does not hide the brands', function () {
+    $this->event->update(['rundown_public_visible' => false]);
+
+    expect($this->event->fresh()->brands_public_visible)->toBeTrue();
+});

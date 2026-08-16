@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,7 +31,41 @@ use Spatie\EloquentSortable\SortableTrait;
  * @property int $booked_count
  * @property bool $is_active
  * @property int|null $order_column
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read Ticket|null $ticket
+ * @property-read Collection<int, TicketOrderItem> $ticketOrderItems
+ * @property-read int|null $ticket_order_items_count
+ *
+ * @method static \Database\Factories\TicketSessionFactory factory($count = null, $state = [])
+ * @method static Builder<static>|TicketSession newModelQuery()
+ * @method static Builder<static>|TicketSession newQuery()
+ * @method static Builder<static>|TicketSession onlyTrashed()
+ * @method static Builder<static>|TicketSession ordered(string $direction = 'asc')
+ * @method static Builder<static>|TicketSession query()
+ * @method static Builder<static>|TicketSession whereBookedCount($value)
+ * @method static Builder<static>|TicketSession whereCapacity($value)
+ * @method static Builder<static>|TicketSession whereCreatedAt($value)
+ * @method static Builder<static>|TicketSession whereCreatedBy($value)
+ * @method static Builder<static>|TicketSession whereDeletedAt($value)
+ * @method static Builder<static>|TicketSession whereDeletedBy($value)
+ * @method static Builder<static>|TicketSession whereEndsAt($value)
+ * @method static Builder<static>|TicketSession whereHost($value)
+ * @method static Builder<static>|TicketSession whereId($value)
+ * @method static Builder<static>|TicketSession whereIsActive($value)
+ * @method static Builder<static>|TicketSession whereLabel($value)
+ * @method static Builder<static>|TicketSession whereLocation($value)
+ * @method static Builder<static>|TicketSession whereOrderColumn($value)
+ * @method static Builder<static>|TicketSession whereStartsAt($value)
+ * @method static Builder<static>|TicketSession whereTicketId($value)
+ * @method static Builder<static>|TicketSession whereUpdatedAt($value)
+ * @method static Builder<static>|TicketSession whereUpdatedBy($value)
+ * @method static Builder<static>|TicketSession withTrashed(bool $withTrashed = true)
+ * @method static Builder<static>|TicketSession withoutTrashed()
  *
  * @mixin \Eloquent
  */

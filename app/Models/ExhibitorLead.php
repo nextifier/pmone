@@ -20,8 +20,31 @@ use Illuminate\Support\Carbon;
  * @property int|null $scanned_by
  * @property Carbon $scanned_at
  * @property array<array-key, mixed>|null $snapshot
- * @property-read Brand|null $brand
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read Attendee|null $attendee
+ * @property-read Brand|null $brand
+ * @property-read Event|null $event
+ * @property-read User|null $scannedByUser
+ *
+ * @method static \Database\Factories\ExhibitorLeadFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereAttendeeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereBrandId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereScannedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereScannedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereSnapshot($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ExhibitorLead withoutTrashed()
  *
  * @mixin \Eloquent
  */

@@ -20,6 +20,19 @@ use Illuminate\Support\Carbon;
  * @property string $path
  * @property string|null $title
  * @property Carbon $visited_at
+ * @property-read User|null $user
+ *
+ * @method static \Database\Factories\UserPageViewFactory factory($count = null, $state = [])
+ * @method static Builder<static>|UserPageView newModelQuery()
+ * @method static Builder<static>|UserPageView newQuery()
+ * @method static Builder<static>|UserPageView query()
+ * @method static Builder<static>|UserPageView whereId($value)
+ * @method static Builder<static>|UserPageView wherePath($value)
+ * @method static Builder<static>|UserPageView whereTitle($value)
+ * @method static Builder<static>|UserPageView whereUserId($value)
+ * @method static Builder<static>|UserPageView whereVisitedAt($value)
+ *
+ * @mixin \Eloquent
  */
 class UserPageView extends Model
 {

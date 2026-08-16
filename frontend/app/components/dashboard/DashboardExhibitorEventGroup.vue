@@ -41,10 +41,19 @@
             v-for="dl in deadlines"
             :key="dl.label"
             class="flex items-center gap-1.5 text-sm tracking-tight"
-            :class="dl.urgent ? 'text-warning-foreground' : 'text-muted-foreground'"
+            :class="
+              dl.passed
+                ? 'text-destructive-foreground'
+                : dl.urgent
+                  ? 'text-warning-foreground'
+                  : 'text-muted-foreground'
+            "
           >
-            <Icon :name="dl.icon" class="size-4 shrink-0" />
-            <span>{{ dl.label }}: {{ dl.date }}</span>
+            <Icon :name="dl.passed ? 'hugeicons:alert-02' : dl.icon" class="size-4 shrink-0" />
+            <span>
+              {{ dl.label }}: {{ dl.date }}
+              <template v-if="dl.passed">({{ $t("ed.eventCard.passed") }})</template>
+            </span>
           </div>
         </div>
       </div>
@@ -113,6 +122,10 @@ function isUrgent(dateStr) {
   return daysLeft > 0 && daysLeft <= 7;
 }
 
+function hasPassed(dateStr) {
+  return !!dateStr && new Date(dateStr) < new Date();
+}
+
 const deadlines = computed(() => {
   const first = props.brandEvents[0] || {};
   const items = [];
@@ -122,6 +135,7 @@ const deadlines = computed(() => {
       date: formatDeadline(first.promotion_post_deadline),
       icon: "hugeicons:image-02",
       urgent: isUrgent(first.promotion_post_deadline),
+      passed: hasPassed(first.promotion_post_deadline),
     });
   }
   if (first.order_form_deadline) {
@@ -130,6 +144,7 @@ const deadlines = computed(() => {
       date: formatDeadline(first.order_form_deadline),
       icon: "hugeicons:shopping-cart-01",
       urgent: isUrgent(first.order_form_deadline),
+      passed: hasPassed(first.order_form_deadline),
     });
   }
   return items;

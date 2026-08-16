@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\NormalizesAttributes;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,11 +33,60 @@ use Illuminate\Support\Str;
  * @property int|null $checked_in_by
  * @property int|null $checkin_event_id
  * @property int $reprint_count
+ * @property int|null $created_by
+ * @property int|null $updated_by
+ * @property int|null $deleted_by
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property Carbon|null $cancelled_at
  * @property string|null $cancelled_reason
  * @property int|null $cancelled_by
- * @property-read TicketOrderItem|null $ticketOrderItem
+ * @property-read User|null $cancelledBy
+ * @property-read User|null $checkedInBy
+ * @property-read Event|null $checkinEvent
+ * @property-read User|null $claimedByUser
+ * @property-read Collection<int, CustomFieldValue> $customFieldValues
+ * @property-read int|null $custom_field_values_count
+ * @property-read Collection<int, ExhibitorLead> $exhibitorLeads
+ * @property-read int|null $exhibitor_leads_count
+ * @property-read Collection<int, ScanLog> $scanLogs
+ * @property-read int|null $scan_logs_count
  * @property-read Ticket|null $ticket
+ * @property-read TicketOrderItem|null $ticketOrderItem
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee active()
+ * @method static \Database\Factories\AttendeeFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee forEvent(int $eventId)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCancelledAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCancelledBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCancelledReason($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCheckedInAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCheckedInBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCheckinEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereClaimedByUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereDeletedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee wherePersonalizedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereQrToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereReprintCount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereTicketId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereTicketOrderItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereUlid($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Attendee withoutTrashed()
  *
  * @mixin \Eloquent
  */

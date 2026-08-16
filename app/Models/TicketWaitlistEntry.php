@@ -29,8 +29,29 @@ use Illuminate\Support\Str;
  * @property Carbon|null $offered_at
  * @property Carbon|null $offer_expires_at
  * @property string|null $claim_token
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read Event|null $event
  * @property-read Ticket|null $ticket
+ *
+ * @method static \Database\Factories\TicketWaitlistEntryFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereClaimToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereEventId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereOfferExpiresAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereOfferedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry wherePhone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry wherePosition($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereTicketId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TicketWaitlistEntry whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */

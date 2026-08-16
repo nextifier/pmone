@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\ClearsResponseCache;
 use App\Traits\HasMediaManager;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,22 +33,53 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int $sort_order
  * @property Carbon|null $start_time
  * @property Carbon|null $end_time
- * @property array|null $more_details
- * @property array|null $settings
+ * @property array<array-key, mixed>|null $more_details
+ * @property array<array-key, mixed>|null $settings
  * @property int|null $created_by
  * @property int|null $updated_by
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Activity> $activities
+ * @property-read int|null $activities_count
+ * @property-read Collection<int, Click> $clicks
+ * @property-read int|null $clicks_count
  * @property-read array|null $image
- * @property-read Project|null $project
+ * @property-read Collection<int, Visit> $impressions
+ * @property-read int|null $impressions_count
  * @property-read MediaCollection<int, Media> $media
  * @property-read int|null $media_count
+ * @property-read Project|null $project
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner active()
  * @method static \Database\Factories\ProjectBannerFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner onlyTrashed()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner ordered()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereAspectRatio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereCtaLabel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereEndTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereIsActive($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereLink($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereMoreDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner wherePlacement($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereSettings($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereSortOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereStartTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereTitle($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner whereUpdatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner withTrashed(bool $withTrashed = true)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectBanner withoutTrashed()
  *
  * @mixin \Eloquent
  */

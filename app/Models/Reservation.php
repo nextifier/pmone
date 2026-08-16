@@ -75,13 +75,14 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
- * @property numeric $penalty_amount
- * @property string|null $promo_code_applied
  * @property Carbon|null $magic_link_expires_at
  * @property string|null $payment_channel
  * @property string|null $payment_destination
  * @property string|null $xendit_payment_id
  * @property int|null $payment_gateway_id
+ * @property numeric $penalty_amount
+ * @property string|null $promo_code_applied
+ * @property string|null $return_origin
  * @property-read Collection<int, AppliedAdjustment> $activeAdjustments
  * @property-read int|null $active_adjustments_count
  * @property-read Collection<int, Activity> $activities
@@ -148,6 +149,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @method static Builder<static>|Reservation whereRefundReason($value)
  * @method static Builder<static>|Reservation whereRefundedAt($value)
  * @method static Builder<static>|Reservation whereReservationNumber($value)
+ * @method static Builder<static>|Reservation whereReturnOrigin($value)
  * @method static Builder<static>|Reservation whereServiceChargeAmount($value)
  * @method static Builder<static>|Reservation whereSource($value)
  * @method static Builder<static>|Reservation whereSpecialRequest($value)

@@ -22,7 +22,9 @@ test('createSession posts a PAYMENT_LINK session and returns the payment link', 
         'total_amount' => 1500000,
         'guest_name' => 'Budi Santoso',
         'guest_email' => 'budi@example.com',
-        // Not E.164 — must be dropped from the request.
+        // Reservation normalizes guest_phone on save, so a local 08 number
+        // reaches Xendit already in E.164. The drop path is covered below with
+        // a value normalization cannot rescue.
         'guest_phone' => '08123456789',
     ]);
     $gateway = ProjectPaymentGateway::factory()->sessionsPaymentLink()->create();
@@ -49,8 +51,30 @@ test('createSession posts a PAYMENT_LINK session and returns the payment link', 
             && $body['success_return_url'] === 'https://app.test/success'
             && $body['cancel_return_url'] === 'https://app.test/cancel'
             && isset($body['expires_at'])
-            && ! isset($body['customer']['mobile_number']);
+            && $body['customer']['mobile_number'] === '+628123456789';
     });
+});
+
+test('createSession drops a phone number E.164 cannot be made of', function () {
+    Http::fake([
+        'api.xendit.co/sessions' => Http::response([
+            'payment_session_id' => 'ps-nophone',
+            'payment_link_url' => 'https://checkout.xendit.co/web/ps-nophone',
+            'status' => 'ACTIVE',
+        ], 201),
+    ]);
+
+    // Normalization strips the punctuation but cannot invent a country code, so
+    // Xendit would reject this outright - it has to be left out of the payload.
+    $reservation = Reservation::factory()->create([
+        'total_amount' => 200000,
+        'guest_phone' => 'not-a-phone',
+    ]);
+    $gateway = ProjectPaymentGateway::factory()->sessionsPaymentLink()->create();
+
+    XenditService::forGateway($gateway)->createSession($reservation);
+
+    Http::assertSent(fn ($request) => ! isset($request->data()['customer']['mobile_number']));
 });
 
 test('createSession forwards a valid E.164 mobile number', function () {

@@ -31,9 +31,23 @@ class TicketFactory extends Factory
             'print_on_redeem' => false,
             'stock' => fake()->optional()->numberBetween(50, 500),
             'min_quantity' => 1,
-            'max_quantity' => fake()->optional()->numberBetween(2, 10),
+            // No cap by default. This used to roll a random 2-10, so any test
+            // buying three tickets failed whenever the die came up 2 - which is
+            // what made TicketPurchaseTest fail once in a while and pass on the
+            // retry. Tests that exercise the cap set it with maxQuantity().
+            'max_quantity' => null,
             'is_active' => true,
         ];
+    }
+
+    /**
+     * A ticket that caps how many one buyer may take.
+     */
+    public function maxQuantity(int $max): static
+    {
+        return $this->state(fn () => [
+            'max_quantity' => $max,
+        ]);
     }
 
     public function addOn(): static

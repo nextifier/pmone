@@ -14,8 +14,14 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // Staff-only fields (internal notes, invoice/receipt) must never leak to
+        // Internal notes are staff working memory and must never leak to
         // exhibitors, who consume this same resource via the dashboard.
+        //
+        // Invoice and receipt are not in that category: they are the exhibitor's
+        // own paperwork, and they appear as soon as staff uploads one. Every
+        // route reaching this resource has already proved ownership - the
+        // exhibitor endpoints resolve an order through user -> brands ->
+        // brandEvent - so there is nothing left to gate here.
         $isStaff = $request->user()?->hasRole(['master', 'admin', 'staff']) ?? false;
 
         return [
@@ -32,14 +38,14 @@ class OrderResource extends JsonResource
             'source' => $this->source,
             'notes' => $this->notes,
             'internal_notes' => $this->when($isStaff, fn () => $this->internal_notes),
-            'invoice' => $this->when($isStaff, fn () => $this->hasMedia('invoice') ? [
+            'invoice' => $this->hasMedia('invoice') ? [
                 'name' => $this->getFirstMedia('invoice')?->name,
                 'url' => $this->getFirstMediaUrl('invoice'),
-            ] : null),
-            'receipt' => $this->when($isStaff, fn () => $this->hasMedia('receipt') ? [
+            ] : null,
+            'receipt' => $this->hasMedia('receipt') ? [
                 'name' => $this->getFirstMedia('receipt')?->name,
                 'url' => $this->getFirstMediaUrl('receipt'),
-            ] : null),
+            ] : null,
             'subtotal' => $this->subtotal,
             'discount_amount' => (float) $this->discount_amount,
             'penalty_amount' => (float) $this->penalty_amount,
