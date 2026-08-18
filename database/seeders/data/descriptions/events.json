@@ -1491,6 +1491,138 @@
             ]
         }
     },
+    "morefood/morefood-expo-indonesia-2027": {
+        "id": {
+            "headline": "Empat hari sourcing makanan dari seluruh dunia.",
+            "subheadline": "More Food Expo Indonesia hadir lagi pada 8-11 April 2027 di JIExpo Kemayoran, Jakarta. Supplier global bertemu pembeli se-Asia dalam satu platform sourcing.",
+            "points": [
+                {
+                    "title": "8-11 April 2027 di JIExpo Kemayoran",
+                    "detail": "Empat hari di JIExpo Kemayoran, Jakarta."
+                },
+                {
+                    "title": "Satu platform untuk sourcing",
+                    "detail": "Bahan makanan, bumbu, makanan kemasan, snack, bakery, sampai minuman dari produsen tepercaya."
+                },
+                {
+                    "title": "Mesin dan kemasan makanan",
+                    "detail": "Lihat teknologi produksi dan pengemasan terbaru untuk menaikkan kapasitas usaha Anda."
+                },
+                {
+                    "title": "Akses ke pasar halal",
+                    "detail": "Ketemu supplier bersertifikat halal dan buka peluang masuk ke salah satu pasar yang paling cepat tumbuh."
+                },
+                {
+                    "title": "Buat importir, distributor, dan HoReCa",
+                    "detail": "Cocok untuk importir, distributor, hotel, dan restoran yang sedang mencari produk dan partner baru."
+                }
+            ]
+        },
+        "en": {
+            "headline": "Four days sourcing food from around the world.",
+            "subheadline": "More Food Expo Indonesia returns 8-11 April 2027 at JIExpo Kemayoran, Jakarta. Global suppliers meet buyers from across Asia in one sourcing platform.",
+            "points": [
+                {
+                    "title": "8-11 April 2027 at JIExpo Kemayoran",
+                    "detail": "Four days at JIExpo Kemayoran, Jakarta."
+                },
+                {
+                    "title": "One platform for sourcing",
+                    "detail": "Ingredients, condiments, packaged food, snacks, bakery, and beverages from trusted makers."
+                },
+                {
+                    "title": "Food machinery and packaging",
+                    "detail": "The latest production and packaging tech to lift your capacity."
+                },
+                {
+                    "title": "Access to the halal market",
+                    "detail": "Meet halal-certified suppliers and one of the fastest-growing markets."
+                },
+                {
+                    "title": "For importers, distributors, and HoReCa",
+                    "detail": "Right for importers, distributors, hotels, and restaurants after new products and partners."
+                }
+            ]
+        },
+        "ja": {
+            "headline": "世界の食材をソーシングする、4 日間。",
+            "subheadline": "More Food Expo Indonesia が 2 回目の開催。2027 年 4 月 8〜11 日、ジャカルタの JIExpo Kemayoran で。世界中のサプライヤーとアジア各地のバイヤーが、ひとつのソーシングプラットフォームで出会います。",
+            "points": [
+                {
+                    "title": "2027 年 4 月 8〜11 日、JIExpo Kemayoran で",
+                    "detail": "ジャカルタの JIExpo Kemayoran で 4 日間。"
+                },
+                {
+                    "title": "ソーシングを、ひとつの場所で",
+                    "detail": "食材、調味料、加工食品、スナック、ベーカリー、飲料まで。信頼できるメーカーの製品が集まります。"
+                },
+                {
+                    "title": "食品の機械とパッケージ",
+                    "detail": "最新の生産・包装技術を見て、事業の生産能力を引き上げられます。"
+                },
+                {
+                    "title": "ハラル市場への入り口",
+                    "detail": "ハラル認証を取得したサプライヤーと出会い、最も急成長している市場のひとつへの入り口を開けます。"
+                },
+                {
+                    "title": "輸入業者、販売業者、HoReCa へ",
+                    "detail": "新しい製品とパートナーを探す、輸入業者、販売業者、ホテル、レストランにぴったりです。"
+                }
+            ]
+        },
+        "ko": {
+            "headline": "전 세계 식품을 소싱하는 나흘.",
+            "subheadline": "More Food Expo Indonesia가 두 번째 행사로 2027년 4월 8일부터 11일까지 자카르타 JIExpo Kemayoran에서 열립니다. 글로벌 공급사와 아시아 전역의 바이어가 하나의 소싱 플랫폼에서 만납니다.",
+            "points": [
+                {
+                    "title": "2027년 4월 8-11일, JIExpo Kemayoran",
+                    "detail": "자카르타 JIExpo Kemayoran에서 나흘간."
+                },
+                {
+                    "title": "소싱을 위한 하나의 플랫폼",
+                    "detail": "식자재, 조미료, 가공식품, 스낵, 베이커리, 음료까지 믿을 만한 제조사 제품을."
+                },
+                {
+                    "title": "식품 설비와 포장",
+                    "detail": "생산 능력을 끌어올릴 최신 생산·포장 기술을 직접 보세요."
+                },
+                {
+                    "title": "할랄 시장으로 가는 길",
+                    "detail": "할랄 인증 공급사를 만나고, 가장 빠르게 크는 시장 중 하나에 진입할 기회를 잡으세요."
+                },
+                {
+                    "title": "수입사, 유통사, 호레카(HoReCa)를 위해",
+                    "detail": "새 제품과 파트너를 찾는 수입사, 유통사, 호텔, 레스토랑에게 잘 맞습니다."
+                }
+            ]
+        },
+        "zh": {
+            "headline": "四天，向全世界采购食品。",
+            "subheadline": "More Food Expo Indonesia 第二届，2027 年 4 月 8 至 11 日在雅加达 JIExpo Kemayoran 举办。全球供应商和全亚洲的买家，聚到同一个采购平台上。",
+            "points": [
+                {
+                    "title": "2027 年 4 月 8-11 日，JIExpo Kemayoran",
+                    "detail": "四天，办在雅加达 JIExpo Kemayoran。"
+                },
+                {
+                    "title": "一个采购平台搞定",
+                    "detail": "食品原料、调料、包装食品、零食、烘焙，到饮料，都来自靠谱的厂商。"
+                },
+                {
+                    "title": "食品机械和包装",
+                    "detail": "看最新的生产和包装技术，给您的生意提产能。"
+                },
+                {
+                    "title": "打进 halal 市场",
+                    "detail": "对接有 halal 认证的供应商，敲开增长最快的市场之一。"
+                },
+                {
+                    "title": "给进口商、经销商和 HoReCa",
+                    "detail": "正在找新产品、新伙伴的进口商、经销商、酒店和餐厅，都合适。"
+                }
+            ]
+        }
+    },
     "renex/renovation-expo-by-megabuild-indonesia": {
         "id": {
             "headline": "Tiga hari semua kebutuhan renovasi rumah.",
