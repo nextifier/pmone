@@ -186,3 +186,29 @@ test('unique visitors are withheld for a range that starts before the visitor ip
     expect($this->getJson('/api/posts/analytics?days=2')->json('data.summary.unique_visitors'))
         ->toBeInt();
 });
+
+test('today is read live because the rollup has not summarised it yet', function () {
+    $post = Post::factory()->create(['status' => 'published', 'published_at' => now()->subWeek()]);
+
+    // Yesterday goes through the rollup, today does not exist there at all.
+    visitPost($post, ['user_agent' => 'Firefox', 'visited_at' => now()->subDay()]);
+    rollUpSeededVisits();
+
+    visitPost($post, ['user_agent' => 'Firefox', 'visited_at' => now()]);
+    visitPost($post, ['user_agent' => 'Firefox', 'visited_at' => now()]);
+
+    // The old server-side path still trickles in a few rows a day. Today has to
+    // apply the same source rule the rollup applies, or the current day would read
+    // higher than every day before it for no reason anyone could see.
+    visitPost($post, ['user_agent' => null, 'visited_at' => now()]);
+
+    $response = $this->getJson('/api/posts/analytics?days=7');
+
+    $response->assertSuccessful();
+
+    $today = collect($response->json('data.visits_per_day'))
+        ->firstWhere('date', now()->toDateString());
+
+    expect($today['count'])->toBe(2)
+        ->and($response->json('data.summary.total_visits'))->toBe(3);
+});
