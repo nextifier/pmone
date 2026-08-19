@@ -31,21 +31,10 @@
     </div>
 
     <div v-else-if="analyticsData" class="space-y-6">
-      <Alert v-if="showMethodologyNote">
-        <Icon name="lucide:info" />
-        <AlertTitle>This range spans a change in how visits are counted</AlertTitle>
-        <AlertDescription class="gap-1">
-          <p class="tracking-tight">
-            Visits before {{ $dayjs(meta.browser_counting_since).format("D MMM YYYY") }} counted
-            server-side page renders, which included crawlers and link previews. From that date
-            onward only real browsers are counted. Figures either side of it are not comparable.
-          </p>
-          <p class="tracking-tight">
-            Totals for completed days come from the permanent daily rollup, so a range reaching
-            back years still reports real numbers.
-          </p>
-        </AlertDescription>
-      </Alert>
+      <p v-if="showMethodologyNote" class="text-muted-foreground text-sm tracking-tight">
+        Views before {{ $dayjs(meta.browser_counting_since).format("D MMM YYYY") }} come from
+        Google Analytics, which measures a few percent lower than this site's own counter.
+      </p>
 
       <!-- Summary Cards -->
       <div
@@ -56,10 +45,6 @@
           <div class="text-muted-foreground text-sm font-medium">Views</div>
           <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_visits.toLocaleString() }}
-          </div>
-          <div class="text-muted-foreground mt-1 text-xs">
-            {{ analyticsData.summary.authenticated_visits.toLocaleString() }} authenticated •
-            {{ analyticsData.summary.anonymous_visits.toLocaleString() }} anonymous
           </div>
         </div>
 
@@ -76,10 +61,6 @@
           <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_posts.toLocaleString() }}
           </div>
-          <div class="text-muted-foreground mt-1 text-xs">
-            {{ analyticsData.summary.total_drafts.toLocaleString() }} drafts •
-            {{ analyticsData.summary.total_scheduled.toLocaleString() }} scheduled
-          </div>
         </div>
 
         <div class="border-border rounded-lg border p-6">
@@ -91,7 +72,6 @@
                 : 0
             }}
           </div>
-          <div class="text-muted-foreground mt-1 text-xs">Per published post</div>
         </div>
       </div>
 
@@ -173,7 +153,6 @@
 </template>
 
 <script setup>
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DatePicker } from "@/components/ui/date-picker";
 
 definePageMeta({

@@ -276,3 +276,17 @@ test('re-rolling a day whose raw rows are gone leaves the summary alone', functi
     expect(DailyVisitStat::sole()->views)->toBe(2)
         ->and($this->post->fresh()->lifetime_views)->toBe(2);
 });
+
+test('a trashed post still gets its lifetime total', function () {
+    $day = now()->subDays(2)->toDateString();
+    rollupVisit($this->post, $day, ['user_agent' => 'Firefox']);
+    rollupVisit($this->post, $day, ['user_agent' => 'Chrome']);
+
+    $this->post->delete();
+
+    $this->artisan('visits:rollup', ['--date' => $day])->assertSuccessful();
+
+    // The trash listing shows this column, and a restored post that reads zero
+    // would look like its history had been thrown away.
+    expect(Post::withTrashed()->find($this->post->id)->lifetime_views)->toBe(2);
+});

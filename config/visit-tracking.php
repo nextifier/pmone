@@ -21,10 +21,18 @@ return [
      *
      * Until then every beacon arrived with the Cloudflare Worker's egress
      * address, so `visits.ip_address` held exactly one distinct value and any
-     * unique-visitor figure for an earlier date would read as 1. Leave this null
-     * until the 15 event websites are rebuilt; the dashboard hides the unique
-     * visitor metric while it is unset.
+     * unique-visitor figure for an earlier date would read as 1.
+     *
+     * Set to 21 Aug 2026: the event websites were rebuilt during the early hours
+     * of the 20th, and the distinct IP count for post visits went from 1 to 34
+     * within the hour. The 20th is a partial day, so the first day that is
+     * trustworthy end to end is the 21st.
+     *
+     * A default rather than an env-only value on purpose. This is a fact about
+     * the production data's history, identical in every environment, so leaving
+     * it in .env meant it could vanish with a server rebuild and quietly take the
+     * unique visitor metric with it. The env var stays as an override.
      */
-    'visitor_ip_tracking_since' => env('VISIT_VISITOR_IP_TRACKING_SINCE'),
+    'visitor_ip_tracking_since' => env('VISIT_VISITOR_IP_TRACKING_SINCE', '2026-08-21'),
 
 ];

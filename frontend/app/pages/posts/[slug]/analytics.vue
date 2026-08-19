@@ -80,27 +80,13 @@
         </div>
       </div>
 
-      <Alert v-if="showMethodologyNote">
-        <Icon name="lucide:info" />
-        <AlertTitle>This range spans a change in how visits are counted</AlertTitle>
-        <AlertDescription class="gap-1">
-          <p class="tracking-tight">
-            Visits before {{ $dayjs(meta.browser_counting_since).format("D MMM YYYY") }} counted
-            server-side page renders, which included crawlers and link previews. From that date
-            onward only real browsers are counted. Figures either side of it are not comparable.
-          </p>
-          <p class="tracking-tight">
-            Totals for completed days come from the permanent daily rollup, so a range reaching
-            back years still reports real numbers.
-          </p>
-        </AlertDescription>
-      </Alert>
+      <p v-if="showMethodologyNote" class="text-muted-foreground text-sm tracking-tight">
+        Views before {{ $dayjs(meta.browser_counting_since).format("D MMM YYYY") }} come from
+        Google Analytics, which measures a few percent lower than this site's own counter.
+      </p>
 
       <!-- Summary Cards -->
-      <div
-        class="grid gap-4"
-        :class="showUniqueVisitors ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'"
-      >
+      <div class="grid gap-4 sm:grid-cols-2">
         <div class="border-border rounded-lg border p-6">
           <div class="text-muted-foreground text-sm font-medium">Views</div>
           <div class="text-foreground mt-2 text-4xl font-semibold">
@@ -115,20 +101,6 @@
           <div class="text-muted-foreground text-sm font-medium">Unique Visitors</div>
           <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.unique_visitors.toLocaleString() }}
-          </div>
-        </div>
-
-        <div class="border-border rounded-lg border p-6">
-          <div class="text-muted-foreground text-sm font-medium">Authenticated</div>
-          <div class="text-foreground mt-2 text-4xl font-semibold">
-            {{ analyticsData.summary.authenticated_visits.toLocaleString() }}
-          </div>
-        </div>
-
-        <div class="border-border rounded-lg border p-6">
-          <div class="text-muted-foreground text-sm font-medium">Anonymous</div>
-          <div class="text-foreground mt-2 text-4xl font-semibold">
-            {{ analyticsData.summary.anonymous_visits.toLocaleString() }}
           </div>
         </div>
       </div>
@@ -147,48 +119,6 @@
         </div>
         <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
           No view data available for this period
-        </div>
-      </div>
-
-      <!-- Top Visitors -->
-      <div class="border-border rounded-lg border p-4">
-        <h2 class="mb-4 text-lg font-semibold tracking-tighter">Top Visitors</h2>
-        <div v-if="analyticsData.top_visitors?.length" class="space-y-2">
-          <div
-            v-for="(visitorData, index) in analyticsData.top_visitors"
-            :key="index"
-            class="hover:bg-muted flex items-center gap-3 rounded-lg p-2 transition-colors"
-          >
-            <div class="flex flex-1 items-center gap-3">
-              <Avatar v-if="visitorData.visitor" :model="visitorData.visitor" class="size-10" />
-              <div
-                v-else
-                class="bg-muted flex size-10 shrink-0 items-center justify-center rounded-full"
-              >
-                <Icon name="lucide:user" class="text-muted-foreground size-5" />
-              </div>
-
-              <div class="min-w-0 flex-1">
-                <div v-if="visitorData.visitor" class="text-foreground truncate text-sm font-medium">
-                  {{ visitorData.visitor.name }}
-                </div>
-                <div v-else class="text-muted-foreground truncate text-sm italic">Anonymous</div>
-                <div
-                  v-if="visitorData.visitor?.username"
-                  class="text-muted-foreground truncate text-xs"
-                >
-                  @{{ visitorData.visitor.username }}
-                </div>
-              </div>
-            </div>
-
-            <div class="text-muted-foreground shrink-0 text-sm">
-              {{ visitorData.visit_count }} views
-            </div>
-          </div>
-        </div>
-        <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
-          No authenticated visitors yet
         </div>
       </div>
 
@@ -229,7 +159,6 @@
 </template>
 
 <script setup>
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DatePicker } from "@/components/ui/date-picker";
 
 definePageMeta({

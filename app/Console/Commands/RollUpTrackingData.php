@@ -295,7 +295,12 @@ class RollUpTrackingData extends Command
                         continue;
                     }
 
-                    Post::query()->toBase()
+                    // withTrashed() before toBase(): toBase() applies global scopes,
+                    // and the soft-delete scope would append `deleted_at is null`, so a
+                    // trashed post matched zero rows and kept a stale total forever.
+                    // The trash listing shows this column, and a restored post would
+                    // come back reading zero.
+                    Post::query()->withTrashed()->toBase()
                         ->where('id', $post->id)
                         ->update(['lifetime_views' => $total]);
                 }
