@@ -61,6 +61,13 @@ class PostResource extends JsonResource
                 'published_at' => $this->published_at,
                 'featured' => $this->featured,
                 'reading_time' => $this->reading_time,
+                // Views since the article was published, from the permanent daily
+                // rollup. Prefer this over `visits_count`.
+                'lifetime_views' => (int) ($this->lifetime_views ?? 0),
+                // @deprecated Rows in `visits` within the 90-day retention window,
+                // which for an article older than that is a fraction of its real
+                // total and shrinks on its own as days age out. Kept so existing
+                // API consumers do not break; use `lifetime_views` instead.
                 'visits_count' => $this->visits_count ?? 0,
                 'media_count' => $this->media_count ?? 0,
                 'featured_image' => $isPublicApiListView
@@ -109,6 +116,9 @@ class PostResource extends JsonResource
             'published_at' => $this->published_at,
             'featured' => $this->featured,
             'reading_time' => $this->reading_time,
+            // See the list branch above: `lifetime_views` is the real total,
+            // `visits_count` is the deprecated 90-day window.
+            'lifetime_views' => (int) ($this->lifetime_views ?? 0),
             'visits_count' => $this->visits_count ?? 0,
             'settings' => $this->settings,
             'source' => $this->source,

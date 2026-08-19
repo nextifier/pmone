@@ -7,7 +7,7 @@ use App\Models\Event;
 use App\Models\Order;
 use App\Models\Post;
 use App\Models\Project;
-use App\Models\Visit;
+use App\Support\VisitStats;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -204,11 +204,14 @@ class DashboardController extends Controller
         $publishedPosts = (int) $postCounts->published;
         $draftPosts = (int) $postCounts->draft;
 
-        // Total views across all writer's posts (last 30 days)
-        $totalViews = Visit::where('visitable_type', 'App\\Models\\Post')
-            ->whereIn('visitable_id', Post::where('created_by', $user->id)->select('id'))
-            ->where('visited_at', '>=', $thirtyDaysAgo)
-            ->count();
+        // Everything below counts only this writer's own posts.
+        $ownPosts = fn ($query) => $query->whereIn('visitable_id', Post::where('created_by', $user->id)->select('id'));
+
+        // Views over the last 30 days, read from the permanent rollup so the figure
+        // matches what the analytics pages report for the same window.
+        $recentSeries = VisitStats::viewSeries(Post::class, $thirtyDaysAgo, $now, $ownPosts);
+        $totalViews = $recentSeries['total'];
+        $recentByPost = VisitStats::viewTotalsByTarget(Post::class, $thirtyDaysAgo, $now, $ownPosts);
 
         // Recent posts - last 5
         $recentPosts = Post::where('created_by', $user->id)
@@ -216,7 +219,6 @@ class DashboardController extends Controller
                 'tags:id,name,slug,type',
                 'media' => fn ($q) => $q->where('collection_name', 'featured_image'),
             ])
-            ->withCount('visits')
             ->orderByDesc('published_at')
             ->limit(5)
             ->get()
@@ -225,21 +227,11 @@ class DashboardController extends Controller
                 'title' => $post->title,
                 'slug' => $post->slug,
                 'status' => $post->status,
-                'visits_count' => $post->visits_count,
+                'lifetime_views' => (int) $post->lifetime_views,
                 'featured_image' => $post->getMediaUrlsDetailed('featured_image'),
                 'published_at' => $post->published_at?->toISOString(),
                 'created_at' => $post->created_at?->toISOString(),
             ]);
-
-        // Visits per day (last 30 days) - for chart
-        $visitsData = Visit::where('visitable_type', 'App\\Models\\Post')
-            ->whereIn('visitable_id', Post::where('created_by', $user->id)->select('id'))
-            ->whereBetween('visited_at', [$thirtyDaysAgo, $now->copy()->endOfDay()])
-            ->select(DB::raw('DATE(visited_at) as date'), DB::raw('COUNT(*) as count'))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
 
         $visitsPerDay = [];
         $cursor = $thirtyDaysAgo->copy();
@@ -247,30 +239,27 @@ class DashboardController extends Controller
             $dateKey = $cursor->toDateString();
             $visitsPerDay[] = [
                 'date' => $dateKey,
-                'count' => (int) ($visitsData[$dateKey]->count ?? 0),
+                'count' => $recentSeries['per_day'][$dateKey]['views'] ?? 0,
             ];
             $cursor->addDay();
         }
 
-        // Top performing posts - top 5 by views
+        // Top performing posts - top 5 by lifetime views
         $topPosts = Post::where('created_by', $user->id)
             ->where('status', 'published')
-            ->whereHas('visits')
+            ->where('lifetime_views', '>', 0)
             ->with([
                 'media' => fn ($q) => $q->where('collection_name', 'featured_image'),
             ])
-            ->withCount(['visits', 'visits as recent_visits_count' => function ($query) use ($thirtyDaysAgo) {
-                $query->where('visited_at', '>=', $thirtyDaysAgo);
-            }])
-            ->orderByDesc('visits_count')
+            ->orderByDesc('lifetime_views')
             ->limit(5)
             ->get()
             ->map(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,
                 'slug' => $post->slug,
-                'visits_count' => $post->visits_count,
-                'recent_visits_count' => $post->recent_visits_count,
+                'lifetime_views' => (int) $post->lifetime_views,
+                'recent_views_count' => (int) ($recentByPost[$post->id] ?? 0),
                 'featured_image' => $post->getMediaUrlsDetailed('featured_image'),
                 'published_at' => $post->published_at?->toISOString(),
             ]);

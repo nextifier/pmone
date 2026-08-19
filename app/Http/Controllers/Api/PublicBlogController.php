@@ -43,6 +43,10 @@ class PublicBlogController extends Controller
         'published_at',
         'featured',
         'reading_time',
+        // Cheap to carry (one integer, already denormalised) and it is the field
+        // that replaces the deprecated `visits_count` for consumers that want a
+        // real total rather than a 90-day slice.
+        'lifetime_views',
         'created_by',
         'settings',
         'created_at',
@@ -391,8 +395,16 @@ class PublicBlogController extends Controller
         } elseif (in_array($field, $allowedFields)) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'view_count' || $field === 'visits_count') {
-            // Sort by visits count using withCount (polymorphic visits relationship)
-            $query->withCount('visits')->orderBy('visits_count', $direction);
+            // Ranked on the permanent lifetime total, which is what "most read"
+            // means to anyone asking for it. Ordering on a count over `visits`
+            // ranked articles by the last 90 days only, so a four-year-old piece
+            // competed on a fraction of its readership and its position moved on
+            // its own as old days aged out.
+            //
+            // The count is still selected so `visits_count` keeps its existing
+            // value in the payload for consumers that read it; it is deprecated in
+            // favour of `lifetime_views`.
+            $query->withCount('visits')->orderBy('lifetime_views', $direction);
         } else {
             $query->orderBy('published_at', 'desc');
         }

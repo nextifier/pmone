@@ -136,6 +136,33 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(300)->by($request->ip());
         });
 
+        // Analytics beacons from the event websites (post views, banner impressions,
+        // brand visits, link clicks). Split out of `api` so one viral article can
+        // never eat the allowance the public forms depend on.
+        //
+        // Keyed by IP *and* a User-Agent fingerprint, not by IP alone. Two reasons,
+        // and both matter: Indonesian carriers put thousands of readers behind one
+        // CGNAT address, and the event websites proxy these beacons through their
+        // Cloudflare Worker, so until every site ships the `X-Forwarded-For` fix
+        // the IP seen here is a single Worker egress address for all 15 domains.
+        // The wider per-IP ceiling underneath is the backstop for a flood that
+        // rotates its User-Agent.
+        //
+        // Neither ceiling may be tighter than the `api` limit this replaced, or
+        // the switch would start dropping views that get through today. Measured
+        // on production over 8-18 Aug, while every site still shares one Worker
+        // address: 47 per minute for the busiest IP + User-Agent pair, 51 for the
+        // busiest IP. Both stay well inside these limits during the transition,
+        // and become generous once real visitor IPs arrive.
+        RateLimiter::for('tracking', function (Request $request) {
+            $fingerprint = $request->ip().'|'.substr(sha1((string) $request->userAgent()), 0, 12);
+
+            return [
+                Limit::perMinute(120)->by($fingerprint),
+                Limit::perMinute(600)->by($request->ip()),
+            ];
+        });
+
         // Public form submissions are anonymous writes; keep them tight per IP.
         // Uploads get their own (larger) bucket so a multi-file form does not
         // exhaust the submit allowance before the final submit happens.

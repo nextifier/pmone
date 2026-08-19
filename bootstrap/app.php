@@ -103,7 +103,13 @@ return Application::configure(basePath: dirname(__DIR__))
             ->runInBackground()
             ->environments(['production']);
 
-        // Cleanup tracking data past its retention window (90 days), daily at 2 AM
+        // Summarise yesterday (plus a short trailing window for late arrivals) into
+        // the permanent daily rollup. Must stay ahead of tracking:cleanup below —
+        // that command refuses to delete any day this one has not processed, so a
+        // failure here stops the purge rather than silently losing view counts.
+        $schedule->command('visits:rollup')->dailyAt('01:45')->withoutOverlapping();
+
+        // Cleanup tracking data past its retention window (90 days), daily at 2 AM.
         $schedule->command('tracking:cleanup')->dailyAt('02:00')->withoutOverlapping();
 
         // Drop an event site's edge cache once its Worker has been redeployed.

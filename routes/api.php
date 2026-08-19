@@ -949,9 +949,12 @@ Route::get('/resolve/{slug}', [ProfileController::class, 'resolveSlug'])
 Route::get('/s/{slug}', [ProfileController::class, 'resolveShortLink'])
     ->middleware('throttle:short-link');
 
-// Tracking routes (public - can track anonymous visitors)
-Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:api');
-Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->middleware('throttle:api');
+// Tracking routes (public - can track anonymous visitors). `throttle:tracking`
+// rather than `throttle:api`: these are the highest-volume public writes on the
+// API, and sharing a bucket with the rest of the public surface meant a busy
+// article competed with contact-form submissions.
+Route::post('/track/click', [TrackingController::class, 'trackLinkClick'])->middleware('throttle:tracking');
+Route::post('/track/visit', [TrackingController::class, 'trackProfileVisit'])->middleware('throttle:tracking');
 
 // Public form endpoints (no auth, rate limited)
 Route::prefix('public/forms')->middleware('throttle:api')->group(function () {
@@ -1091,8 +1094,9 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('posts')->group(function
     Route::delete('/{post:slug}', [PostController::class, 'destroy'])->name('posts.destroy');
 });
 
-// Public post routes (must be after authenticated routes to avoid conflicts)
-Route::prefix('posts')->group(function () {
+// Public post routes (must be after authenticated routes to avoid conflicts).
+// Throttled because this is an unauthenticated read of arbitrary published posts.
+Route::prefix('posts')->middleware('throttle:public-read')->group(function () {
     Route::get('/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 });
 

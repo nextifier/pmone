@@ -31,10 +31,29 @@
     </div>
 
     <div v-else-if="analyticsData" class="space-y-6">
+      <Alert v-if="showMethodologyNote">
+        <Icon name="lucide:info" />
+        <AlertTitle>This range spans a change in how visits are counted</AlertTitle>
+        <AlertDescription class="gap-1">
+          <p class="tracking-tight">
+            Visits before {{ $dayjs(meta.browser_counting_since).format("D MMM YYYY") }} counted
+            server-side page renders, which included crawlers and link previews. From that date
+            onward only real browsers are counted. Figures either side of it are not comparable.
+          </p>
+          <p class="tracking-tight">
+            Totals for completed days come from the permanent daily rollup, so a range reaching
+            back years still reports real numbers.
+          </p>
+        </AlertDescription>
+      </Alert>
+
       <!-- Summary Cards -->
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        class="grid gap-4 sm:grid-cols-2"
+        :class="showUniqueVisitors ? 'lg:grid-cols-4' : 'lg:grid-cols-3'"
+      >
         <div class="border-border rounded-lg border p-6">
-          <div class="text-muted-foreground text-sm font-medium">Total Visits</div>
+          <div class="text-muted-foreground text-sm font-medium">Views</div>
           <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_visits.toLocaleString() }}
           </div>
@@ -42,6 +61,14 @@
             {{ analyticsData.summary.authenticated_visits.toLocaleString() }} authenticated •
             {{ analyticsData.summary.anonymous_visits.toLocaleString() }} anonymous
           </div>
+        </div>
+
+        <div v-if="showUniqueVisitors" class="border-border rounded-lg border p-6">
+          <div class="text-muted-foreground text-sm font-medium">Unique Visitors</div>
+          <div class="text-foreground mt-2 text-4xl font-semibold">
+            {{ analyticsData.summary.unique_visitors.toLocaleString() }}
+          </div>
+          <div class="text-muted-foreground mt-1 text-xs">Estimated from IP and browser</div>
         </div>
 
         <div class="border-border rounded-lg border p-6">
@@ -56,7 +83,7 @@
         </div>
 
         <div class="border-border rounded-lg border p-6">
-          <div class="text-muted-foreground text-sm font-medium">Avg. Visits/Post</div>
+          <div class="text-muted-foreground text-sm font-medium">Avg. Views/Post</div>
           <div class="text-foreground mt-2 text-4xl font-semibold">
             {{
               analyticsData.summary.total_posts > 0
@@ -68,9 +95,9 @@
         </div>
       </div>
 
-      <!-- Visits Over Time Chart -->
+      <!-- Views Over Time Chart -->
       <div class="border-border rounded-lg border p-4">
-        <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
+        <h2 class="mb-4 text-lg font-semibold tracking-tighter">Views Over Time</h2>
         <div v-if="chartData?.length > 0">
           <ChartLine
             :data="chartData"
@@ -81,7 +108,7 @@
           />
         </div>
         <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
-          No visit data available for this period
+          No view data available for this period
         </div>
       </div>
 
@@ -123,7 +150,11 @@
               <div class="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
                 <span>{{ $dayjs(post.published_at).format("MMM D, YYYY") }}</span>
                 <span>•</span>
-                <span>{{ post.visits_count.toLocaleString() }} visits</span>
+                <span>{{ post.visits_count.toLocaleString() }} views</span>
+                <template v-if="showUniqueVisitors">
+                  <span>•</span>
+                  <span>{{ (post.unique_visitors_count ?? 0).toLocaleString() }} unique</span>
+                </template>
               </div>
             </div>
 
@@ -142,6 +173,7 @@
 </template>
 
 <script setup>
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DatePicker } from "@/components/ui/date-picker";
 
 definePageMeta({
@@ -168,6 +200,31 @@ const {
 
 const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
+// Dates come from the API (config/visit-tracking.php) rather than being hardcoded
+// here, so the two repos cannot drift and the IP-forwarding date can be filled in
+// on deploy day without a frontend release.
+const meta = computed(() => analyticsData.value?.meta || {});
+
+// The counter moved from server-side renders to a browser beacon partway through
+// the data we hold. Say so whenever the selected range straddles that date,
+// otherwise the drop reads as lost traffic.
+const showMethodologyNote = computed(() => {
+  const cutover = meta.value.browser_counting_since;
+  return Boolean(cutover && toYmd(dateRange.value.start) < cutover);
+});
+
+// Unique visitors need a real visitor IP. Until the event websites forward one,
+// every beacon shares a single Cloudflare Worker address and the figure would
+// read as 1 for the whole range, which looks like a bug rather than a gap.
+// The API withholds the figure under exactly the same condition, and returns
+// null when it does. Checking the payload as well as the date means a response
+// that predates a config change hides the card rather than rendering a zero.
+const showUniqueVisitors = computed(() => {
+  const since = meta.value.unique_visitors_since;
+  if (!since || toYmd(dateRange.value.start) < since) return false;
+  return analyticsData.value?.summary?.unique_visitors != null;
+});
+
 const error = computed(() => {
   if (analyticsError.value)
     return analyticsError.value.response?._data?.message || "Failed to load analytics";
@@ -192,7 +249,7 @@ const chartData = computed(() => {
 const chartConfig = computed(() => {
   return {
     count: {
-      label: "Visits",
+      label: "Views",
       color: "var(--chart-1)",
     },
   };

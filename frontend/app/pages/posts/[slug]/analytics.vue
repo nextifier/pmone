@@ -80,12 +80,41 @@
         </div>
       </div>
 
+      <Alert v-if="showMethodologyNote">
+        <Icon name="lucide:info" />
+        <AlertTitle>This range spans a change in how visits are counted</AlertTitle>
+        <AlertDescription class="gap-1">
+          <p class="tracking-tight">
+            Visits before {{ $dayjs(meta.browser_counting_since).format("D MMM YYYY") }} counted
+            server-side page renders, which included crawlers and link previews. From that date
+            onward only real browsers are counted. Figures either side of it are not comparable.
+          </p>
+          <p class="tracking-tight">
+            Totals for completed days come from the permanent daily rollup, so a range reaching
+            back years still reports real numbers.
+          </p>
+        </AlertDescription>
+      </Alert>
+
       <!-- Summary Cards -->
-      <div class="grid gap-4 sm:grid-cols-3">
+      <div
+        class="grid gap-4"
+        :class="showUniqueVisitors ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'"
+      >
         <div class="border-border rounded-lg border p-6">
-          <div class="text-muted-foreground text-sm font-medium">Total Visits</div>
+          <div class="text-muted-foreground text-sm font-medium">Views</div>
           <div class="text-foreground mt-2 text-4xl font-semibold">
             {{ analyticsData.summary.total_visits.toLocaleString() }}
+          </div>
+          <div class="text-muted-foreground mt-1 text-xs">
+            {{ (analyticsData.summary.lifetime_views ?? 0).toLocaleString() }} since published
+          </div>
+        </div>
+
+        <div v-if="showUniqueVisitors" class="border-border rounded-lg border p-6">
+          <div class="text-muted-foreground text-sm font-medium">Unique Visitors</div>
+          <div class="text-foreground mt-2 text-4xl font-semibold">
+            {{ analyticsData.summary.unique_visitors.toLocaleString() }}
           </div>
         </div>
 
@@ -104,9 +133,9 @@
         </div>
       </div>
 
-      <!-- Visits Over Time Chart -->
+      <!-- Views Over Time Chart -->
       <div class="border-border rounded-lg border p-4">
-        <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
+        <h2 class="mb-4 text-lg font-semibold tracking-tighter">Views Over Time</h2>
         <div v-if="chartData?.length > 2">
           <ChartLine
             :data="chartData"
@@ -117,7 +146,7 @@
           />
         </div>
         <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
-          No visit data available for this period
+          No view data available for this period
         </div>
       </div>
 
@@ -154,7 +183,7 @@
             </div>
 
             <div class="text-muted-foreground shrink-0 text-sm">
-              {{ visitorData.visit_count }} visits
+              {{ visitorData.visit_count }} views
             </div>
           </div>
         </div>
@@ -188,7 +217,7 @@
               </div>
             </div>
 
-            <div class="text-muted-foreground shrink-0 text-sm">{{ referrer.count }} visits</div>
+            <div class="text-muted-foreground shrink-0 text-sm">{{ referrer.count }} views</div>
           </div>
         </div>
         <div v-else class="text-muted-foreground py-8 text-center tracking-tight">
@@ -200,6 +229,7 @@
 </template>
 
 <script setup>
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DatePicker } from "@/components/ui/date-picker";
 
 definePageMeta({
@@ -239,6 +269,24 @@ const {
 
 const analyticsData = computed(() => analyticsResponse.value?.data || null);
 
+// Same source of truth as the overall page: config/visit-tracking.php, served in
+// the response so the dates never have to be duplicated in the frontend.
+const meta = computed(() => analyticsData.value?.meta || {});
+
+const showMethodologyNote = computed(() => {
+  const cutover = meta.value.browser_counting_since;
+  return Boolean(cutover && toYmd(dateRange.value.start) < cutover);
+});
+
+// The API withholds the figure under exactly the same condition, and returns
+// null when it does. Checking the payload as well as the date means a response
+// that predates a config change hides the card rather than rendering a zero.
+const showUniqueVisitors = computed(() => {
+  const since = meta.value.unique_visitors_since;
+  if (!since || toYmd(dateRange.value.start) < since) return false;
+  return analyticsData.value?.summary?.unique_visitors != null;
+});
+
 const error = computed(() => {
   if (postError.value) return "Failed to load post";
   if (analyticsError.value)
@@ -264,7 +312,7 @@ const chartData = computed(() => {
 const chartConfig = computed(() => {
   return {
     count: {
-      label: "Visits",
+      label: "Views",
       color: "var(--chart-1)",
     },
   };

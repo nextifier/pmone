@@ -261,7 +261,7 @@ class PostExportService
 
         if ($field === 'title') {
             $query->orderByTitle($direction);
-        } elseif (in_array($field, ['status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+        } elseif (in_array($field, ['status', 'published_at', 'created_at', 'updated_at', 'lifetime_views', 'visits_count', 'media_count'])) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'creator') {
             $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
@@ -437,7 +437,8 @@ class PostExportService
             'Authors',
             'Tags',
             'Categories',
-            'Visits Count',
+            'Views (Lifetime)',
+            'Visits (Last 90 Days)',
             'Media Count',
             'Featured Image URL',
             'OG Image URL',
@@ -474,6 +475,7 @@ class PostExportService
                 $post->authors->pluck('name')->join(', '),
                 $post->tags->pluck('name')->join(', '),
                 $post->categories->pluck('name')->join(', '),
+                (int) ($post->lifetime_views ?? 0),
                 $post->visits_count ?? 0,
                 $post->media_count ?? 0,
                 $post->hasMedia('featured_image') ? $post->getFirstMediaUrl('featured_image', 'original') : '',

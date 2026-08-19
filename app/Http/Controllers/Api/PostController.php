@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Visit;
 use App\Services\PostExportService;
 use App\Support\ImageOptimizer;
+use App\Support\VisitStats;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -48,7 +49,10 @@ class PostController extends Controller
                     $query->where('collection_name', 'featured_image');
                 },
             ])
-            ->withCount(['visits', 'media']);
+            // No visits aggregate: the admin table reads posts.lifetime_views, which
+            // is a real total rather than the 90-day slice a count over `visits`
+            // would give, and costs nothing to read.
+            ->withCount(['media']);
 
         // Role-based filtering: Non-admin users can only see their own posts
         $user = $request->user();
@@ -175,7 +179,7 @@ class PostController extends Controller
 
         if ($field === 'title') {
             $query->orderByTitle($direction);
-        } elseif (in_array($field, ['status', 'published_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+        } elseif (in_array($field, ['status', 'published_at', 'created_at', 'updated_at', 'lifetime_views', 'media_count'])) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'creator') {
             $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
@@ -322,22 +326,11 @@ class PostController extends Controller
         $post->load(['creator', 'updater', 'authors.media', 'tags', 'media']);
         $post->loadCount('visits');
 
-        // Track visit only if not loading for edit or analytics
-        $forParam = request()->input('for');
-        if (! $forParam || ! in_array($forParam, ['edit', 'analytics'])) {
-            Visit::create([
-                'visitable_type' => Post::class,
-                'visitable_id' => $post->id,
-                'visitor_id' => auth()->id(),
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'referer' => request()->header('referer'),
-                'visited_at' => now(),
-            ]);
-
-            // Refresh the visits count
-            $post->loadCount('visits');
-        }
+        // No visit is recorded here. Article views are counted in the browser via
+        // `POST /api/track/visit` (TrackingController), which is the only path with
+        // bot filtering and a rate limit. This route is public and unauthenticated,
+        // so writing a row from it meant anyone could inflate a post's view count
+        // with a curl loop, and every server-to-server read counted as a reader.
 
         return response()->json([
             'data' => new PostResource($post),
@@ -587,7 +580,10 @@ class PostController extends Controller
                     $query->where('collection_name', 'featured_image');
                 },
             ])
-            ->withCount(['visits', 'media']);
+            // No visits aggregate: the admin table reads posts.lifetime_views, which
+            // is a real total rather than the 90-day slice a count over `visits`
+            // would give, and costs nothing to read.
+            ->withCount(['media']);
 
         // Role-based filtering: Non-admin users can only see their own posts
         $user = $request->user();
@@ -674,7 +670,7 @@ class PostController extends Controller
 
         if ($field === 'title') {
             $query->orderByTitle($direction);
-        } elseif (in_array($field, ['status', 'deleted_at', 'created_at', 'updated_at', 'visits_count', 'media_count'])) {
+        } elseif (in_array($field, ['status', 'deleted_at', 'created_at', 'updated_at', 'lifetime_views', 'media_count'])) {
             $query->orderBy($field, $direction);
         } elseif ($field === 'creator') {
             $query->leftJoin('users', 'posts.created_by', '=', 'users.id')
@@ -1429,17 +1425,25 @@ class PostController extends Controller
             $query->lastDays(30); // Default to last 30 days
         }
 
-        $totalVisits = $query->count();
-        $authenticatedVisits = $query->clone()->authenticated()->count();
-        $anonymousVisits = $query->clone()->anonymous()->count();
+        // Views come from the permanent rollup, so a range reaching past the 90 days
+        // the raw table keeps still returns real numbers instead of zeros.
+        $series = VisitStats::viewSeries(
+            Post::class,
+            $startDate,
+            $endDate,
+            fn ($builder) => $builder->where('visitable_id', $post->id),
+        );
 
-        // Visits per day - get actual data
-        $visitsData = $query->clone()
-            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+        $totalVisits = $series['total'];
+        $authenticatedVisits = $series['authenticated'];
+        $anonymousVisits = $totalVisits - $authenticatedVisits;
+
+        // Unique visitors, top visitors and referrers can only come from the raw
+        // rows, so they stay bounded by the retention window. Skipped entirely when
+        // the dashboard would not show it.
+        $unique = VisitStats::canCountUniqueVisitors($startDate)
+            ? VisitStats::uniqueVisitorCounts($query)
+            : null;
 
         // Fill in all dates in the range with zero counts
         $visitsPerDay = collect();
@@ -1449,7 +1453,8 @@ class PostController extends Controller
             $dateString = $currentDate->toDateString();
             $visitsPerDay->push([
                 'date' => $dateString,
-                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+                'count' => $series['per_day'][$dateString]['views'] ?? 0,
+                'unique_count' => $unique ? ($unique['per_day'][$dateString] ?? 0) : null,
             ]);
             $currentDate->addDay();
         }
@@ -1514,12 +1519,29 @@ class PostController extends Controller
                     'total_visits' => $totalVisits,
                     'authenticated_visits' => $authenticatedVisits,
                     'anonymous_visits' => $anonymousVisits,
+                    'unique_visitors' => $unique['total'] ?? null,
+                    'lifetime_views' => (int) $post->lifetime_views,
                 ],
                 'visits_per_day' => $visitsPerDay,
                 'top_visitors' => $topVisitors,
                 'top_referrers' => $topReferrers,
+                'meta' => $this->visitTrackingMeta(),
             ],
         ]);
+    }
+
+    /**
+     * Dates the dashboard needs to explain its own numbers: when counting moved
+     * to the browser, and when unique visitors became measurable.
+     *
+     * @return array{browser_counting_since: string|null, unique_visitors_since: string|null}
+     */
+    protected function visitTrackingMeta(): array
+    {
+        return [
+            'browser_counting_since' => config('visit-tracking.browser_counting_since'),
+            'unique_visitors_since' => config('visit-tracking.visitor_ip_tracking_since'),
+        ];
     }
 
     /**
@@ -1550,48 +1572,81 @@ class PostController extends Controller
             $endDate = now()->endOfDay();
         }
 
-        // Get all published posts with visit counts
-        $postsQuery = Post::query()
+        $countUnique = VisitStats::canCountUniqueVisitors($startDate);
+
+        // Only published posts count toward any figure on this page, so the same
+        // constraint is handed to every query below.
+        $publishedOnly = fn ($query) => $query->whereIn('visitable_id', Post::published()->select('id'));
+
+        // Ranking comes from the rollup, which reaches back past the 90 days the
+        // raw table keeps and applies the per-era source rule. `withCount('visits')`
+        // could do neither.
+        $viewsByPost = VisitStats::viewTotalsByTarget(Post::class, $startDate, $endDate, $publishedOnly);
+        arsort($viewsByPost);
+        $topPostIds = array_slice(array_keys($viewsByPost), 0, 10);
+
+        $topPostModels = Post::query()
             ->published()
-            ->withCount(['visits' => function ($query) use ($startDate, $endDate) {
-                $query->inDateRange($startDate, $endDate);
-            }])
+            ->whereIn('id', $topPostIds)
             ->with(['media' => function ($query) {
                 $query->where('collection_name', 'featured_image');
             }])
-            ->orderByDesc('visits_count')
-            ->limit(10);
+            ->get()
+            ->sortBy(fn (Post $post) => array_search($post->id, $topPostIds, true))
+            ->values();
 
-        $topPosts = $postsQuery->get()->map(function ($post) {
+        // One grouped query rather than a `withCount` closure: `withAggregate`
+        // keeps only its own `count(*)` column and discards anything the closure
+        // selects, so a distinct aggregate cannot be expressed there.
+        $uniqueByPost = $countUnique
+            ? Visit::query()
+                ->where('visitable_type', Post::class)
+                ->whereIn('visitable_id', $topPostModels->pluck('id'))
+                ->inDateRange($startDate, $endDate)
+                ->selectRaw('visitable_id, '.VisitStats::visitorKeyExpression().' as visitor_key')
+                ->groupBy('visitable_id', 'visitor_key')
+                ->get()
+                ->countBy('visitable_id')
+            : collect();
+
+        $topPosts = $topPostModels->map(function ($post) use ($countUnique, $uniqueByPost, $viewsByPost) {
             return [
                 'id' => $post->id,
                 'title' => $post->title,
                 'slug' => $post->slug,
                 'excerpt' => $post->excerpt,
                 'published_at' => $post->published_at,
-                'visits_count' => $post->visits_count,
+                'visits_count' => (int) ($viewsByPost[$post->id] ?? 0),
+                'lifetime_views' => (int) $post->lifetime_views,
+                'unique_visitors_count' => $countUnique ? (int) ($uniqueByPost[$post->id] ?? 0) : null,
                 'featured_image' => $post->hasMedia('featured_image')
                     ? $post->getMediaUrls('featured_image')
                     : null,
             ];
         });
 
-        // Get total visits for all posts
-        $totalVisitsQuery = Visit::query()
-            ->where('visitable_type', Post::class)
-            ->inDateRange($startDate, $endDate);
+        // Totals cover the same set of posts as `top_posts` above: published
+        // only, soft-deleted excluded. They used to count every post including
+        // drafts and trashed ones, which made "Avg. Visits/Post" (total divided
+        // by the published count) read higher than any post could account for.
+        $series = VisitStats::viewSeries(Post::class, $startDate, $endDate, $publishedOnly);
 
-        $totalVisits = $totalVisitsQuery->count();
-        $authenticatedVisits = $totalVisitsQuery->clone()->authenticated()->count();
-        $anonymousVisits = $totalVisitsQuery->clone()->anonymous()->count();
+        $totalVisits = $series['total'];
+        $authenticatedVisits = $series['authenticated'];
+        $anonymousVisits = $totalVisits - $authenticatedVisits;
 
-        // Visits per day for all posts - get actual data
-        $visitsData = $totalVisitsQuery->clone()
-            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+        // Unique visitors still come from the raw table: a distinct count cannot be
+        // summed out of daily figures (a reader returning on three days is one
+        // visitor, not three), so it is only available while the rows survive.
+        // Skipped entirely when the dashboard would not show it.
+        $unique = $countUnique
+            ? VisitStats::uniqueVisitorCounts(
+                Visit::query()
+                    ->where('visitable_type', Post::class)
+                    ->whereIn('visitable_id', Post::published()->select('id'))
+                    ->inDateRange($startDate, $endDate)
+            )
+            : null;
 
         // Fill in all dates in the range with zero counts
         $visitsPerDay = collect();
@@ -1601,7 +1656,8 @@ class PostController extends Controller
             $dateString = $currentDate->toDateString();
             $visitsPerDay->push([
                 'date' => $dateString,
-                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+                'count' => $series['per_day'][$dateString]['views'] ?? 0,
+                'unique_count' => $unique ? ($unique['per_day'][$dateString] ?? 0) : null,
             ]);
             $currentDate->addDay();
         }
@@ -1617,12 +1673,14 @@ class PostController extends Controller
                     'total_visits' => $totalVisits,
                     'authenticated_visits' => $authenticatedVisits,
                     'anonymous_visits' => $anonymousVisits,
+                    'unique_visitors' => $unique['total'] ?? null,
                     'total_posts' => $totalPosts,
                     'total_drafts' => $totalDrafts,
                     'total_scheduled' => $totalScheduled,
                 ],
                 'visits_per_day' => $visitsPerDay,
                 'top_posts' => $topPosts,
+                'meta' => $this->visitTrackingMeta(),
             ],
         ]);
     }

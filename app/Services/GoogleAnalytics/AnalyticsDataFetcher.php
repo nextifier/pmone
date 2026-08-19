@@ -484,7 +484,7 @@ class AnalyticsDataFetcher
      * Fetch top pages with date dimension for daily aggregation.
      * Returns per-day breakdown of top pages for filtering by date range.
      */
-    public function fetchTopPagesDaily(GaProperty $property, Period $period, int $limit = 100): array
+    public function fetchTopPagesDaily(GaProperty $property, Period $period, int $limit = 100, int $offset = 0): array
     {
         try {
             $client = $this->createGA4Client($property);
@@ -505,7 +505,12 @@ class AnalyticsDataFetcher
                 ->setMetrics([
                     new Metric(['name' => 'screenPageViews']),
                 ])
-                ->setLimit($limit);
+                ->setLimit($limit)
+                // Offset exists for the historical backfill, which has to walk past
+                // the limit: a busy month returns far more (date, path) pairs than
+                // any single page of results holds, and a silently truncated read
+                // would understate every article below the cut.
+                ->setOffset($offset);
 
             $response = $client->runReport($request);
 

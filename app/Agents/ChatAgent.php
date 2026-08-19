@@ -105,8 +105,16 @@ class ChatAgent implements Agent, Conversational, HasTools
         - contact_form_submissions: Form submissions (id, project_id, form_data, subject, status)
         - tasks: Task management (id, title, status, priority, assignee_id, project_id)
         - short_links: URL shortener (id, slug, destination_url, is_active)
-        - clicks: Click tracking (id, clickable_type, clickable_id, ip_address, clicked_at)
-        - visits: Visit tracking (id, visitable_type, visitable_id, visited_at)
+        - clicks: Raw click tracking, ONLY the last 90 days (id, clickable_type, clickable_id, ip_address, clicked_at)
+        - visits: Raw visit tracking, ONLY the last 90 days (id, visitable_type, visitable_id, visited_at)
+        - daily_visit_stats: PERMANENT daily view totals - use this, not `visits`, for anything
+          older than 90 days or for a lifetime total (id, visitable_type, visitable_id, date,
+          source, views, authenticated_views, unique_visitors). `source` is one of `beacon`,
+          `ga4` or `server_render`; NEVER sum across sources. Count `beacon` from 2026-07-28
+          onward and `ga4` before it; `server_render` counted crawlers and must be excluded.
+        - daily_click_stats: PERMANENT daily click totals (id, clickable_type, clickable_id, date, clicks)
+        - posts.lifetime_views: total views since publication, the simplest answer to
+          "how many views does this article have".
         - tags: Spatie tags (id, name, type) - type can be 'category' or null
         - taggables: Tag pivot (tag_id, taggable_type, taggable_id)
         - roles: User roles (id, name)

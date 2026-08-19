@@ -36,7 +36,7 @@
         :loading="loading"
       />
       <DashboardStatsCard
-        title="Views (30 days)"
+        title="Views (last 30 days)"
         description="Readers in the past month"
         :value="stats?.total_views_30d ?? 0"
         icon="hugeicons:eye"
@@ -45,11 +45,11 @@
       />
     </div>
 
-    <!-- Visits Over Time Chart -->
+    <!-- Views Over Time Chart -->
     <div class="mt-5 sm:mt-8">
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <h3 class="page-title text-lg!">Visits Over Time</h3>
+          <h3 class="page-title text-lg!">Views Over Time</h3>
           <NuxtLink
             to="/posts/analytics"
             class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-sm tracking-tight"
@@ -145,7 +145,7 @@
                   {{ post.status }}
                 </span>
                 <span class="text-muted-foreground text-xs tracking-tight"
-                  >{{ post.visits_count }} views</span
+                  >{{ (post.lifetime_views ?? 0).toLocaleString() }} views</span
                 >
               </div>
               <p class="line-clamp-1 text-sm tracking-tight">{{ post.title }}</p>
@@ -213,13 +213,13 @@
                   class="text-muted-foreground inline-flex items-center gap-0.5 text-xs tracking-tight"
                 >
                   <Icon name="hugeicons:eye" class="size-3" />
-                  {{ post.visits_count }}
+                  {{ (post.lifetime_views ?? 0).toLocaleString() }}
                 </span>
                 <span
-                  v-if="post.recent_visits_count > 0"
+                  v-if="post.recent_views_count > 0"
                   class="text-xs tracking-tight text-emerald-600 dark:text-emerald-400"
                 >
-                  +{{ post.recent_visits_count }} (Last 30 days)
+                  +{{ post.recent_views_count.toLocaleString() }} in the last 30 days
                 </span>
               </div>
               <p class="line-clamp-1 text-sm tracking-tight">{{ post.title }}</p>
@@ -257,7 +257,7 @@ const chartData = computed(() => {
 
 const chartConfig = {
   count: {
-    label: "Visits",
+    label: "Views",
     color: "var(--chart-1)",
   },
 };

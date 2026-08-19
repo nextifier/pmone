@@ -31,6 +31,12 @@ beforeEach(function () {
         'is_active' => true,
         'starts_at' => now()->subDay(),
         'ends_at' => now()->addDay(),
+        // The factory rolls `optional()->numberBetween(10, 200)` for the quota,
+        // so roughly one run in twenty landed under the 20 this file buys and
+        // failed with "is not currently on sale" - a different test each time,
+        // which is what made it look like pollution rather than a dice roll.
+        // Same fix as the `max_quantity` note in TicketFactory.
+        'quota' => null,
     ]);
 
     $this->purchase = app(TicketPurchaseService::class);
