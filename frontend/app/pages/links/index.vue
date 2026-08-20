@@ -337,9 +337,9 @@ const columns = [
   },
   {
     header: "Clicks",
-    accessorKey: "clicks_count",
+    accessorKey: "lifetime_clicks",
     cell: ({ row }) => {
-      const count = row.getValue("clicks_count") || 0;
+      const count = row.getValue("lifetime_clicks") || 0;
       return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
     },
     size: 80,

@@ -150,9 +150,19 @@ class ShortLink extends Model
         return $this->morphMany(Click::class, 'clickable');
     }
 
+    /**
+     * Rows inside the 90-day retention window.
+     *
+     * Reads whatever `withCount` already loaded and only falls back to a query when
+     * the caller did not ask for it. It used to query unconditionally, which meant
+     * an extra query per row on every listing — and short links carry more clicks
+     * than every other tracked type combined.
+     *
+     * @deprecated Use `lifetime_clicks`, which covers the link's whole life.
+     */
     public function getClicksCountAttribute(): int
     {
-        return $this->clicks()->count();
+        return (int) ($this->attributes['clicks_count'] ?? $this->clicks()->count());
     }
 
     public function scopeActive($query)

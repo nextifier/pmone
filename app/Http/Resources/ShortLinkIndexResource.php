@@ -14,6 +14,10 @@ class ShortLinkIndexResource extends JsonResource
             'slug' => $this->slug,
             'destination_url' => $this->destination_url,
             'is_active' => $this->is_active,
+            // Clicks since the link was created, from the permanent daily rollup.
+            // Prefer this over `clicks_count`.
+            'lifetime_clicks' => (int) ($this->lifetime_clicks ?? 0),
+            // @deprecated Rows inside the 90-day retention window.
             'clicks_count' => $this->clicks_count ?? 0,
             'og_title' => $this->og_title,
             'og_description' => $this->og_description,

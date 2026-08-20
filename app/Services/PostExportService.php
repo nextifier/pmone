@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Post;
+use App\Support\VisitStats;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -39,6 +40,7 @@ class PostExportService
     {
         // Get ALL posts for the manifest (no limit)
         $allPosts = $this->buildQuery()->get();
+        VisitStats::foldTodayInto($allPosts, Post::class, ['views' => 'lifetime_views']);
 
         if ($allPosts->isEmpty()) {
             return [

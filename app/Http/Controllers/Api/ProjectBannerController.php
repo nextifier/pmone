@@ -31,7 +31,7 @@ class ProjectBannerController extends Controller
             ->withCount(['clicks', 'impressions'])
             ->get();
 
-        VisitStats::foldTodayInto($banners, ProjectBanner::class, 'lifetime_impressions');
+        VisitStats::foldTodayInto($banners, ProjectBanner::class, ['views' => 'lifetime_impressions', 'clicks' => 'lifetime_clicks']);
 
         return response()->json([
             'data' => ProjectBannerResource::collection($banners),

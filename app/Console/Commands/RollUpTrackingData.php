@@ -10,6 +10,7 @@ use App\Models\LinkPage;
 use App\Models\LinkPageItem;
 use App\Models\Post;
 use App\Models\ProjectBanner;
+use App\Models\ShortLink;
 use App\Models\Visit;
 use App\Support\VisitStats;
 use Illuminate\Console\Command;
@@ -287,6 +288,8 @@ class RollUpTrackingData extends Command
         foreach ([
             [BrandEvent::class, 'lifetime_clicks'],
             [ProjectBanner::class, 'lifetime_clicks'],
+            [ShortLink::class, 'lifetime_clicks'],
+            [LinkPageItem::class, 'lifetime_clicks'],
         ] as [$model, $column]) {
             $changed += $this->syncColumn($model, $column, $this->clickTotalsFor($model), $dryRun);
         }

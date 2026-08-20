@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateLinkPageRequest;
 use App\Http\Resources\LinkPageIndexResource;
 use App\Http\Resources\LinkPageResource;
 use App\Models\LinkPage;
+use App\Models\LinkPageItem;
 use App\Support\ImageOptimizer;
 use App\Support\VisitStats;
 use Carbon\Carbon;
@@ -42,7 +43,7 @@ class LinkPageController extends Controller
 
         if ($clientOnly) {
             $linkPages = $query->get();
-            VisitStats::foldTodayInto($linkPages, LinkPage::class, 'lifetime_views');
+            VisitStats::foldTodayInto($linkPages, LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'data' => LinkPageIndexResource::collection($linkPages),
@@ -56,7 +57,7 @@ class LinkPageController extends Controller
         }
 
         $linkPages = $query->paginate($request->input('per_page', 15));
-        VisitStats::foldTodayInto($linkPages->items(), LinkPage::class, 'lifetime_views');
+        VisitStats::foldTodayInto($linkPages->items(), LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
         return response()->json([
             'data' => LinkPageIndexResource::collection($linkPages->items()),
@@ -148,6 +149,8 @@ class LinkPageController extends Controller
             },
         ]);
 
+        VisitStats::foldTodayInto([$linkPage], LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
+
         return response()->json([
             'data' => new LinkPageResource($linkPage),
         ]);
@@ -169,6 +172,7 @@ class LinkPageController extends Controller
 
             $linkPage->load(['user', 'items']);
             $linkPage->loadCount(['items', 'visits', 'clicks']);
+            VisitStats::foldTodayInto([$linkPage], LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'message' => 'Link page created successfully',
@@ -210,6 +214,7 @@ class LinkPageController extends Controller
 
             $linkPage->load(['user', 'items' => fn ($q) => $q->ordered()]);
             $linkPage->loadCount(['items', 'visits', 'clicks']);
+            VisitStats::foldTodayInto([$linkPage], LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'message' => 'Link page updated successfully',
@@ -360,7 +365,7 @@ class LinkPageController extends Controller
 
         if ($clientOnly) {
             $linkPages = $query->get();
-            VisitStats::foldTodayInto($linkPages, LinkPage::class, 'lifetime_views');
+            VisitStats::foldTodayInto($linkPages, LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'data' => LinkPageIndexResource::collection($linkPages),
@@ -374,7 +379,7 @@ class LinkPageController extends Controller
         }
 
         $linkPages = $query->paginate($request->input('per_page', 15));
-        VisitStats::foldTodayInto($linkPages->items(), LinkPage::class, 'lifetime_views');
+        VisitStats::foldTodayInto($linkPages->items(), LinkPage::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
         return response()->json([
             'data' => LinkPageIndexResource::collection($linkPages->items()),
@@ -491,17 +496,18 @@ class LinkPageController extends Controller
             $visitQuery->lastDays(7);
         }
 
-        $totalVisits = $visitQuery->count();
-        $authenticatedVisits = $visitQuery->clone()->authenticated()->count();
-        $anonymousVisits = $visitQuery->clone()->anonymous()->count();
+        // From the permanent rollup, so a range reaching past the 90 days the raw
+        // table keeps still returns real numbers instead of zeros.
+        $series = VisitStats::viewSeries(
+            LinkPage::class,
+            $startDate,
+            $endDate,
+            fn ($builder) => $builder->where('visitable_id', $linkPage->id),
+        );
 
-        // Visits per day
-        $visitsData = $visitQuery->clone()
-            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+        $totalVisits = $series['total'];
+        $authenticatedVisits = $series['authenticated'];
+        $anonymousVisits = $totalVisits - $authenticatedVisits;
 
         $visitsPerDay = collect();
         $currentDate = $startDate->copy();
@@ -509,7 +515,7 @@ class LinkPageController extends Controller
             $dateString = $currentDate->toDateString();
             $visitsPerDay->push([
                 'date' => $dateString,
-                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+                'count' => $series['per_day'][$dateString]['views'] ?? 0,
             ]);
             $currentDate->addDay();
         }
@@ -549,13 +555,15 @@ class LinkPageController extends Controller
 
         // Per-item clicks
         $items = $linkPage->items()->ordered()->with('media')->get();
+        VisitStats::foldTodayInto($items, LinkPageItem::class, ['clicks' => 'lifetime_clicks']);
+
         $itemClicks = $items->map(function ($item) {
             return [
                 'id' => $item->id,
                 'label' => $item->label,
                 'url' => $item->url,
                 'poster' => $item->poster,
-                'clicks_count' => $item->clicks()->count(),
+                'clicks_count' => (int) $item->lifetime_clicks,
             ];
         });
 

@@ -5,6 +5,8 @@ namespace App\Support;
 use App\Models\Click;
 use App\Models\DailyClickStat;
 use App\Models\DailyVisitStat;
+use App\Models\LinkPage;
+use App\Models\LinkPageItem;
 use App\Models\Post;
 use App\Models\Visit;
 use Carbon\Carbon;
@@ -242,10 +244,11 @@ class VisitStats
      * costs one grouped query over a single indexed day and makes the figure
      * current to the second.
      *
-     * @param  list<int>  $ids
+     * @param  list<int>|null  $ids  null means every target of this type, for callers
+     *                               that stream rows and cannot collect ids first
      * @return array<int, int>
      */
-    public static function todayViewsByTarget(string $type, array $ids): array
+    public static function todayViewsByTarget(string $type, ?array $ids): array
     {
         if ($ids === []) {
             return [];
@@ -255,7 +258,7 @@ class VisitStats
 
         $query = Visit::query()
             ->where('visitable_type', $type)
-            ->whereIn('visitable_id', $ids)
+            ->when($ids !== null, fn ($q) => $q->whereIn('visitable_id', $ids))
             ->whereBetween('visited_at', [$today, $today->copy()->endOfDay()]);
 
         self::constrainRawToCanonicalSource($query, $today, $type);
@@ -323,27 +326,103 @@ class VisitStats
     }
 
     /**
-     * Fold today's views into a set of records before they are rendered.
+     * Fold today into the cached lifetime counters on a set of records.
      *
      * The lifetime columns stop at yesterday because the rollup only summarises
      * completed days. Anyone who opens a page to check that tracking works looks at
      * the listing straight afterwards, and without this they see the number sit
-     * still. Costs one grouped query over a single indexed day.
+     * still. Costs one grouped query per metric over a single indexed day.
+     *
+     * Views and clicks fold together on purpose: two counters sitting side by side
+     * in one row must not disagree about whether today has happened.
      *
      * @param  iterable<Model>  $records
+     * @param  array{views?: string, clicks?: string}  $columns  metric => column name
      */
-    public static function foldTodayInto(iterable $records, string $type, string $column): void
+    public static function foldTodayInto(iterable $records, string $type, array $columns): void
     {
         $ids = [];
         foreach ($records as $record) {
             $ids[] = (int) $record->getKey();
         }
 
-        $today = self::todayViewsByTarget($type, $ids);
+        if ($ids === []) {
+            return;
+        }
+
+        $deltas = [];
+
+        if (isset($columns['views'])) {
+            $deltas[$columns['views']] = self::todayViewsByTarget($type, $ids);
+        }
+
+        if (isset($columns['clicks'])) {
+            $deltas[$columns['clicks']] = $type === LinkPage::class
+                ? self::todayLinkPageClicks($ids)
+                : self::todayClicksByTarget($type, $ids);
+        }
 
         foreach ($records as $record) {
-            $record->{$column} = (int) $record->{$column} + ($today[(int) $record->getKey()] ?? 0);
+            $key = (int) $record->getKey();
+
+            foreach ($deltas as $column => $byTarget) {
+                $record->{$column} = (int) $record->{$column} + ($byTarget[$key] ?? 0);
+            }
         }
+    }
+
+    /**
+     * Clicks recorded today, per target id.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, int>
+     */
+    public static function todayClicksByTarget(string $type, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $today = now()->startOfDay();
+
+        return Click::query()
+            ->where('clickable_type', $type)
+            ->whereIn('clickable_id', $ids)
+            ->whereBetween('clicked_at', [$today, $today->copy()->endOfDay()])
+            ->selectRaw('clickable_id, COUNT(*) as clicks')
+            ->groupBy('clickable_id')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [(int) $row->clickable_id => (int) $row->clicks])
+            ->all();
+    }
+
+    /**
+     * Clicks recorded today on the items of the given link pages.
+     *
+     * A link page is never clicked itself, only the items on it, so this rolls the
+     * items up exactly the way the nightly job does.
+     *
+     * @param  list<int>  $linkPageIds
+     * @return array<int, int>
+     */
+    public static function todayLinkPageClicks(array $linkPageIds): array
+    {
+        if ($linkPageIds === []) {
+            return [];
+        }
+
+        $today = now()->startOfDay();
+
+        return Click::query()
+            ->where('clickable_type', LinkPageItem::class)
+            ->whereBetween('clicked_at', [$today, $today->copy()->endOfDay()])
+            ->join('link_page_items', 'link_page_items.id', '=', 'clicks.clickable_id')
+            ->whereIn('link_page_items.link_page_id', $linkPageIds)
+            ->selectRaw('link_page_items.link_page_id as owner_id, COUNT(*) as clicks')
+            ->groupBy('link_page_items.link_page_id')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [(int) $row->owner_id => (int) $row->clicks])
+            ->all();
     }
 
     /**

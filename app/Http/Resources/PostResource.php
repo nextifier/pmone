@@ -63,6 +63,12 @@ class PostResource extends JsonResource
                 'reading_time' => $this->reading_time,
                 // Views since the article was published, from the permanent daily
                 // rollup. Prefer this over `visits_count`.
+                //
+                // Admin endpoints fold today in before rendering; the public ones do
+                // not, deliberately. Their responses are cached for an hour, so a
+                // fresher number would only be frozen for the rest of it — a figure
+                // that is uniformly "as of last night" is easier to explain than one
+                // that is sometimes an hour old and sometimes a day.
                 'lifetime_views' => (int) ($this->lifetime_views ?? 0),
                 // @deprecated Rows in `visits` within the 90-day retention window,
                 // which for an article older than that is a fraction of its real

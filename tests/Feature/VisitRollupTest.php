@@ -7,6 +7,7 @@ use App\Models\LinkPage;
 use App\Models\LinkPageItem;
 use App\Models\Post;
 use App\Models\ProjectBanner;
+use App\Models\ShortLink;
 use App\Models\User;
 use App\Models\Visit;
 use App\Support\VisitStats;
@@ -398,4 +399,57 @@ test('banner analytics reads history the raw table no longer holds', function ()
 
     expect($series['total'])->toBe(9000)
         ->and($series['per_day'][$longAgo]['views'])->toBe(9000);
+});
+
+test('short links and link page items get lifetime click totals', function () {
+    $day = now()->subDays(2)->toDateString();
+
+    $shortLink = ShortLink::factory()->create();
+    $linkPage = LinkPage::factory()->create();
+    $item = LinkPageItem::factory()->create(['link_page_id' => $linkPage->id]);
+
+    Click::factory()->count(9)->create([
+        'clickable_type' => ShortLink::class,
+        'clickable_id' => $shortLink->id,
+        'clicked_at' => $day.' 09:00:00',
+    ]);
+    Click::factory()->count(4)->create([
+        'clickable_type' => LinkPageItem::class,
+        'clickable_id' => $item->id,
+        'clicked_at' => $day.' 09:00:00',
+    ]);
+
+    $this->artisan('visits:rollup', ['--date' => $day])->assertSuccessful();
+
+    expect($shortLink->fresh()->lifetime_clicks)->toBe(9)
+        ->and($item->fresh()->lifetime_clicks)->toBe(4)
+        // The page total still comes from its items, not from the page itself.
+        ->and($linkPage->fresh()->lifetime_clicks)->toBe(4);
+});
+
+test('short link analytics reads history the raw table no longer holds', function () {
+    $shortLink = ShortLink::factory()->create();
+    $longAgo = now()->subDays(200)->toDateString();
+
+    DailyClickStat::query()->create([
+        'clickable_type' => ShortLink::class,
+        'clickable_id' => $shortLink->id,
+        'date' => $longAgo,
+        'clicks' => 1200,
+    ]);
+
+    $this->artisan('visits:rollup', ['--date' => now()->subDay()->toDateString()])
+        ->assertSuccessful();
+
+    expect(Click::count())->toBe(0)
+        ->and($shortLink->fresh()->lifetime_clicks)->toBe(1200);
+
+    $series = VisitStats::clickSeries(
+        ShortLink::class,
+        now()->subDays(250),
+        now(),
+        fn ($query) => $query->where('clickable_id', $shortLink->id),
+    );
+
+    expect(array_sum($series))->toBe(1200)->and($series[$longAgo])->toBe(1200);
 });

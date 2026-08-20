@@ -67,7 +67,7 @@ class PostController extends Controller
         // If client_only is true, return all data without pagination for client-side filtering
         if ($request->boolean('client_only')) {
             $posts = $query->get();
-            VisitStats::foldTodayInto($posts, Post::class, 'lifetime_views');
+            VisitStats::foldTodayInto($posts, Post::class, ['views' => 'lifetime_views']);
 
             return response()->json([
                 'data' => PostResource::collection($posts),
@@ -82,7 +82,7 @@ class PostController extends Controller
 
         // Server-side pagination
         $posts = $query->paginate($request->input('per_page', 15));
-        VisitStats::foldTodayInto($posts->items(), Post::class, 'lifetime_views');
+        VisitStats::foldTodayInto($posts->items(), Post::class, ['views' => 'lifetime_views']);
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),
@@ -328,7 +328,7 @@ class PostController extends Controller
 
         $post->load(['creator', 'updater', 'authors.media', 'tags', 'media']);
         $post->loadCount('visits');
-        VisitStats::foldTodayInto([$post], Post::class, 'lifetime_views');
+        VisitStats::foldTodayInto([$post], Post::class, ['views' => 'lifetime_views']);
 
         // No visit is recorded here. Article views are counted in the browser via
         // `POST /api/track/visit` (TrackingController), which is the only path with
@@ -654,7 +654,7 @@ class PostController extends Controller
 
         // Server-side pagination
         $posts = $query->paginate($request->input('per_page', 15));
-        VisitStats::foldTodayInto($posts->items(), Post::class, 'lifetime_views');
+        VisitStats::foldTodayInto($posts->items(), Post::class, ['views' => 'lifetime_views']);
 
         return response()->json([
             'data' => PostResource::collection($posts->items()),

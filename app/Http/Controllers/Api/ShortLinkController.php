@@ -12,6 +12,7 @@ use App\Http\Resources\ShortLinkIndexResource;
 use App\Http\Resources\ShortLinkResource;
 use App\Imports\ShortLinksImport;
 use App\Models\ShortLink;
+use App\Support\VisitStats;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -48,6 +49,7 @@ class ShortLinkController extends Controller
         // Paginate only if not client-only mode
         if ($clientOnly) {
             $shortLinks = $query->get();
+            VisitStats::foldTodayInto($shortLinks, ShortLink::class, ['clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'data' => ShortLinkIndexResource::collection($shortLinks),
@@ -61,6 +63,7 @@ class ShortLinkController extends Controller
         }
 
         $shortLinks = $query->paginate($request->input('per_page', 15));
+        VisitStats::foldTodayInto($shortLinks->items(), ShortLink::class, ['clicks' => 'lifetime_clicks']);
 
         return response()->json([
             'data' => ShortLinkIndexResource::collection($shortLinks->items()),
@@ -110,7 +113,7 @@ class ShortLinkController extends Controller
         $direction = str_starts_with($sortField, '-') ? 'desc' : 'asc';
         $field = ltrim($sortField, '-');
 
-        if (in_array($field, ['slug', 'destination_url', 'is_active', 'created_at', 'updated_at'])) {
+        if (in_array($field, ['slug', 'destination_url', 'is_active', 'created_at', 'updated_at', 'lifetime_clicks'])) {
             $query->orderBy($field, $direction);
         } else {
             $query->orderBy('created_at', 'desc');
@@ -318,17 +321,20 @@ class ShortLinkController extends Controller
             $query->lastDays(7); // Default to last 7 days
         }
 
-        $totalClicks = $query->count();
-        $authenticatedClicks = $query->clone()->authenticated()->count();
-        $anonymousClicks = $query->clone()->anonymous()->count();
+        // Clicks come from the permanent rollup, so a range reaching past the 90 days
+        // the raw table keeps still returns real numbers instead of zeros.
+        $clicksData = VisitStats::clickSeries(
+            ShortLink::class,
+            $startDate,
+            $endDate,
+            fn ($builder) => $builder->where('clickable_id', $shortLink->id),
+        );
 
-        // Clicks per day - get actual data
-        $clicksData = $query->clone()
-            ->selectRaw('DATE(clicked_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+        $totalClicks = array_sum($clicksData);
+        // Signed-in clicks can only come from the raw rows, so they stay bounded by
+        // the retention window. They have always been zero for short links anyway.
+        $authenticatedClicks = $query->clone()->authenticated()->count();
+        $anonymousClicks = $totalClicks - $authenticatedClicks;
 
         // Fill in all dates in the range with zero counts
         $clicksPerDay = collect();
@@ -338,7 +344,7 @@ class ShortLinkController extends Controller
             $dateString = $currentDate->toDateString();
             $clicksPerDay->push([
                 'date' => $dateString,
-                'count' => $clicksData->has($dateString) ? (int) $clicksData[$dateString]->count : 0,
+                'count' => $clicksData[$dateString] ?? 0,
             ]);
             $currentDate->addDay();
         }
@@ -449,6 +455,7 @@ class ShortLinkController extends Controller
 
         if ($clientOnly) {
             $shortLinks = $query->get();
+            VisitStats::foldTodayInto($shortLinks, ShortLink::class, ['clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'data' => ShortLinkIndexResource::collection($shortLinks),
@@ -462,6 +469,7 @@ class ShortLinkController extends Controller
         }
 
         $shortLinks = $query->paginate($request->input('per_page', 15));
+        VisitStats::foldTodayInto($shortLinks->items(), ShortLink::class, ['clicks' => 'lifetime_clicks']);
 
         return response()->json([
             'data' => ShortLinkIndexResource::collection($shortLinks->items()),

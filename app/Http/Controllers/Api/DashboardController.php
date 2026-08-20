@@ -222,6 +222,7 @@ class DashboardController extends Controller
             ->orderByDesc('published_at')
             ->limit(5)
             ->get()
+            ->tap(fn ($posts) => VisitStats::foldTodayInto($posts, Post::class, ['views' => 'lifetime_views']))
             ->map(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,
@@ -254,6 +255,7 @@ class DashboardController extends Controller
             ->orderByDesc('lifetime_views')
             ->limit(5)
             ->get()
+            ->tap(fn ($posts) => VisitStats::foldTodayInto($posts, Post::class, ['views' => 'lifetime_views']))
             ->map(fn (Post $post) => [
                 'id' => $post->id,
                 'title' => $post->title,

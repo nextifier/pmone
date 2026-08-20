@@ -160,7 +160,7 @@ class BrandEventController extends Controller
         // Client-only mode: return all data without pagination
         if ($request->boolean('client_only')) {
             $brandEvents = $query->get();
-            VisitStats::foldTodayInto($brandEvents, BrandEvent::class, 'lifetime_views');
+            VisitStats::foldTodayInto($brandEvents, BrandEvent::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
             return response()->json([
                 'data' => BrandEventIndexResource::collection($brandEvents),
@@ -174,7 +174,7 @@ class BrandEventController extends Controller
         }
 
         $brandEvents = $query->paginate($request->input('per_page', 15));
-        VisitStats::foldTodayInto($brandEvents->items(), BrandEvent::class, 'lifetime_views');
+        VisitStats::foldTodayInto($brandEvents->items(), BrandEvent::class, ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks']);
 
         return response()->json([
             'data' => BrandEventIndexResource::collection($brandEvents->items()),

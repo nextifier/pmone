@@ -16,6 +16,7 @@ use App\Models\Order;
 use App\Models\Project;
 use App\Models\PromotionPost;
 use App\Support\Sheets\SheetFormatting;
+use App\Support\VisitStats;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -318,6 +319,15 @@ class SheetsController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // Same treatment the listings get: the lifetime columns stop at yesterday,
+        // and an export that disagrees with the screen it was taken from is worse
+        // than one that is a day behind everywhere.
+        VisitStats::foldTodayInto(
+            $brands->flatMap(fn (Brand $brand) => $brand->brandEvents),
+            BrandEvent::class,
+            ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks'],
+        );
+
         $linkLabels = $brands
             ->flatMap(fn (Brand $b) => $b->links->pluck('label'))
             ->filter()
@@ -529,6 +539,12 @@ class SheetsController extends Controller
             ->orderBy('event_id')
             ->orderedByBooth()
             ->get();
+
+        VisitStats::foldTodayInto(
+            $brandEvents,
+            BrandEvent::class,
+            ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks'],
+        );
 
         $linkLabels = $brandEvents
             ->pluck('brand')

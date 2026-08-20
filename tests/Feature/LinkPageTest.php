@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\Click;
 use App\Models\LinkPage;
 use App\Models\LinkPageItem;
 use App\Models\ShortLink;
 use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -375,4 +377,44 @@ test('check slug returns unavailable for taken slug', function () {
 
     $response->assertOk()
         ->assertJson(['available' => false]);
+});
+
+test('the listing counts a click made today, before the nightly rollup runs', function () {
+    $user = createLinkPageUser(['link_pages.read']);
+    $linkPage = LinkPage::factory()->create(['user_id' => $user->id]);
+    $item = LinkPageItem::factory()->create(['link_page_id' => $linkPage->id]);
+
+    Visit::factory()->create([
+        'visitable_type' => LinkPage::class,
+        'visitable_id' => $linkPage->id,
+        'visited_at' => now()->subDay(),
+        'user_agent' => 'Firefox',
+    ]);
+    Click::factory()->create([
+        'clickable_type' => LinkPageItem::class,
+        'clickable_id' => $item->id,
+        'clicked_at' => now()->subDay(),
+    ]);
+
+    $this->artisan('visits:rollup', ['--days' => 2])->assertSuccessful();
+
+    $before = $this->actingAs($user)->getJson('/api/link-pages')->json('data.0');
+    expect($before['lifetime_views'])->toBe(1)->and($before['lifetime_clicks'])->toBe(1);
+
+    // Views and clicks have to agree about whether today has happened. Folding one
+    // and not the other is what made two columns in the same row contradict.
+    Visit::factory()->create([
+        'visitable_type' => LinkPage::class,
+        'visitable_id' => $linkPage->id,
+        'visited_at' => now(),
+        'user_agent' => 'Firefox',
+    ]);
+    Click::factory()->count(2)->create([
+        'clickable_type' => LinkPageItem::class,
+        'clickable_id' => $item->id,
+        'clicked_at' => now(),
+    ]);
+
+    $after = $this->actingAs($user)->getJson('/api/link-pages')->json('data.0');
+    expect($after['lifetime_views'])->toBe(2)->and($after['lifetime_clicks'])->toBe(3);
 });

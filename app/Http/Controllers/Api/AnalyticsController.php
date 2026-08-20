@@ -10,6 +10,7 @@ use App\Models\LinkPage;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Visit;
+use App\Support\VisitStats;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,17 +62,21 @@ class AnalyticsController extends Controller
             $query->lastDays(7); // Default to last 7 days
         }
 
-        $totalVisits = $query->count();
-        $authenticatedVisits = $query->clone()->authenticated()->count();
-        $anonymousVisits = $query->clone()->anonymous()->count();
+        // A Brand has no visits of its own; it aggregates the brand's appearances at
+        // every event. Everything else is a plain morph lookup.
+        [$statType, $statConstraint] = $model instanceof Brand
+            ? [BrandEvent::class, fn ($builder) => $builder->whereIn('visitable_id', $model->brandEvents()->pluck('id'))]
+            : [$model::class, fn ($builder) => $builder->where('visitable_id', $model->id)];
 
-        // Visits per day - get actual data
-        $visitsData = $query->clone()
-            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->keyBy('date');
+        // From the permanent rollup, so a range reaching past the 90 days the raw
+        // table keeps still returns real numbers instead of zeros.
+        $series = VisitStats::viewSeries($statType, $startDate, $endDate, $statConstraint);
+
+        $totalVisits = $series['total'];
+        $authenticatedVisits = $series['authenticated'];
+        $anonymousVisits = $totalVisits - $authenticatedVisits;
+
+        $visitsData = collect($series['per_day'])->map(fn (array $day): int => $day['views']);
 
         // Fill in all dates in the range with zero counts
         $visitsPerDay = collect();
@@ -81,7 +86,7 @@ class AnalyticsController extends Controller
             $dateString = $currentDate->toDateString();
             $visitsPerDay->push([
                 'date' => $dateString,
-                'count' => $visitsData->has($dateString) ? (int) $visitsData[$dateString]->count : 0,
+                'count' => $visitsData[$dateString] ?? 0,
             ]);
             $currentDate->addDay();
         }

@@ -33,7 +33,7 @@
         >
           <Icon name="hugeicons:mouse-left-click-01" class="size-5" />
           <span>Total clicks:</span>
-          {{ (item.clicks_count || 0).toLocaleString() }}
+          {{ (item.lifetime_clicks ?? item.clicks_count ?? 0).toLocaleString() }}
         </div>
 
         <Switch :model-value="item.is_active" @update:model-value="$emit('toggle')" />

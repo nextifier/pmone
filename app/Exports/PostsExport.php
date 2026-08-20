@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Post;
+use App\Support\VisitStats;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,19 @@ class PostsExport extends BaseExport
                 'media',
             ])
             ->withCount(['visits', 'media']);
+    }
+
+    /**
+     * The lifetime column stops at yesterday, so without this the file disagrees
+     * with the listing it was exported from.
+     */
+    public function collection()
+    {
+        $posts = parent::collection();
+
+        VisitStats::foldTodayInto($posts, Post::class, ['views' => 'lifetime_views']);
+
+        return $posts;
     }
 
     public function headings(): array

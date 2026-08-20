@@ -116,9 +116,18 @@ class LinkPageItem extends Model implements HasMedia
         return $this->morphMany(Click::class, 'clickable');
     }
 
+    /**
+     * Rows inside the 90-day retention window.
+     *
+     * Reads whatever `withCount` already loaded and only falls back to a query when
+     * the caller did not ask for it. It used to query unconditionally, one per item
+     * on every link page render.
+     *
+     * @deprecated Use `lifetime_clicks`, which covers the item's whole life.
+     */
     public function getClicksCountAttribute(): int
     {
-        return $this->clicks()->count();
+        return (int) ($this->attributes['clicks_count'] ?? $this->clicks()->count());
     }
 
     public function scopeActive($query)
