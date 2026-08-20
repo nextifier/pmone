@@ -101,6 +101,7 @@
             <h3 class="mb-3 text-sm font-medium tracking-tight">Requests Over Time</h3>
 
             <ChartLine
+              :partial-from="partialDayFrom(analyticsChartData)"
               :data="analyticsChartData"
               :config="analyticsChartConfig"
               :gradient="true"

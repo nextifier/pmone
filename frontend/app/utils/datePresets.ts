@@ -80,3 +80,24 @@ export function analyticsRangePresets(): DatePickerPreset[] {
     { label: "This year", value: thisYearRange },
   ];
 }
+
+/**
+ * The date of a chart's final point when that point is today, otherwise null.
+ *
+ * Today is always a few hours old, so plotting it beside completed days makes a
+ * healthy chart look like it fell off a cliff every morning. Pass the result to
+ * `<ChartLine :partial-from>` and the tail is drawn dashed instead.
+ *
+ * Uses local dates, not toISOString(): at 08:00 in Jakarta the UTC date is still
+ * yesterday, and the comparison would silently never match.
+ */
+export function partialDayFrom(
+  points: Array<{ date: Date | string }> | null | undefined
+): string | null {
+  const last = points?.[points.length - 1]?.date;
+  if (!last) return null;
+
+  const lastYmd = toYmd(last instanceof Date ? last : new Date(last));
+
+  return lastYmd === toYmd(new Date()) ? lastYmd : null;
+}

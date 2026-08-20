@@ -29,6 +29,7 @@
       </div>
 
       <ChartLine
+        :partial-from="partialDayFrom(chartData)"
         :data="chartData"
         :config="chartConfig"
         :data-key="selectedMetric"

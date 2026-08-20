@@ -63,6 +63,7 @@
         </template>
         <div v-else-if="chartData?.length > 0">
           <ChartLine
+            :partial-from="partialDayFrom(chartData)"
             :data="chartData"
             :config="chartConfig"
             :gradient="true"

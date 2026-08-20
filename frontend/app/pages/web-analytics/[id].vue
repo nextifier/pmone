@@ -129,6 +129,7 @@
           </div>
 
           <ChartLine
+            :partial-from="partialDayFrom(propertyChartData)"
             :data="propertyChartData"
             :config="propertyChartConfig"
             :gradient="true"

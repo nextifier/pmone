@@ -110,6 +110,7 @@
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Views Over Time</h2>
         <div v-if="chartData?.length > 2">
           <ChartLine
+            :partial-from="partialDayFrom(chartData)"
             :data="chartData"
             :config="chartConfig"
             :gradient="true"

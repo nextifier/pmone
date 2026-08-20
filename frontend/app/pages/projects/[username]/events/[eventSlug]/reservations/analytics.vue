@@ -172,6 +172,7 @@
               class="h-64! w-full"
             />
             <ChartLine
+              :partial-from="partialDayFrom(trendData)"
               v-else-if="trendData.length > 1"
               :key="metric"
               :data="trendData"

@@ -115,6 +115,7 @@
             <h2 class="mb-4 text-lg font-semibold tracking-tighter">Visits Over Time</h2>
             <div v-if="visitsChartData?.length > 2">
               <ChartLine
+                :partial-from="partialDayFrom(visitsChartData)"
                 :data="visitsChartData"
                 :config="visitsChartConfig"
                 :gradient="true"

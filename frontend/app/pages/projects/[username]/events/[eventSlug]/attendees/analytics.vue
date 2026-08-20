@@ -174,6 +174,7 @@
             />
             <!-- Tickets / orders trend: gradient line. -->
             <ChartLine
+              :partial-from="partialDayFrom(trendData)"
               v-else-if="trendData.length > 1"
               :key="metric"
               :data="trendData"

@@ -101,6 +101,7 @@
         <h2 class="mb-4 text-lg font-semibold tracking-tighter">Requests Over Time</h2>
         <div v-if="chartData?.length > 0">
           <ChartLine
+            :partial-from="partialDayFrom(chartData)"
             :data="chartData"
             :config="chartConfig"
             :gradient="true"

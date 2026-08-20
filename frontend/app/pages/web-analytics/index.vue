@@ -163,6 +163,7 @@
           </div>
 
           <ChartLine
+            :partial-from="partialDayFrom(aggregatedChartData)"
             :data="aggregatedChartData"
             :config="aggregatedChartConfig"
             :gradient="true"
