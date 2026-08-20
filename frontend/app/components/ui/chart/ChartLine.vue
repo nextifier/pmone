@@ -42,7 +42,7 @@
       <VisLine
         :x="(d) => d.date"
         :y="(d) => d[solidKey]"
-        :color="config[dataKey]?.color || 'var(--chart-1)'"
+        :color="activeColor"
         :line-width="1.5"
         :curve-type="CurveType.CatmullRom"
       />
@@ -52,7 +52,7 @@
         v-if="hasSplitSeries"
         :x="(d) => d.date"
         :y="(d) => d[DASHED_KEY]"
-        :color="config[dataKey]?.color || 'var(--chart-1)'"
+        :color="activeColor"
         :line-width="1.5"
         :curve-type="CurveType.CatmullRom"
         :line-dash-array="[4, 4]"
@@ -96,7 +96,7 @@
       <ChartTooltip />
       <ChartCrosshair
         :template="tooltipTemplate"
-        :color="config[dataKey]?.color || 'var(--chart-1)'"
+        :color="activeColor"
       />
     </VisXYContainer>
   </ChartContainer>
@@ -166,8 +166,23 @@ const comparisonKey = computed(() => `${props.dataKey}_previous`);
 // Check if we have comparison data
 const hasComparisonData = computed(() => props.comparisonData && props.comparisonData.length > 0);
 
-// Comparison line color
-const comparisonColor = "var(--chart-3, #a1a1aa)";
+// The palette ramp runs light -> dark and is defined identically for light and
+// dark mode, so no slot in it reads as prominent on both backgrounds: on white
+// the active line was pale enough to lose, while the comparison line sat at the
+// dark end and pulled the eye first. Mixing the series colour toward the
+// foreground lifts the active line and mixing it toward the background pushes
+// the comparison back, which holds in both themes and for any palette.
+const seriesColor = computed(() => props.config[props.dataKey]?.color || "var(--chart-1)");
+
+const activeColor = computed(
+  () => `color-mix(in oklab, ${seriesColor.value} 45%, var(--foreground))`
+);
+
+// Half-strength version of whatever the active line ended up as, so the gap
+// between the two stays the same on either background.
+const comparisonColor = computed(
+  () => `color-mix(in oklab, ${activeColor.value} 50%, var(--background))`
+);
 
 // Merge current data with comparison data
 const mergedData = computed(() => {
@@ -240,17 +255,27 @@ const hasSplitSeries = computed(
 
 const solidKey = computed(() => (hasSplitSeries.value ? SOLID_KEY : props.dataKey));
 
-// Merged config including comparison series
+// Merged config including comparison series. The active series carries the same
+// colour the line is drawn in, otherwise the tooltip swatches end up reading the
+// opposite way round from the chart they belong to.
 const mergedConfig = computed(() => {
+  const config = {
+    ...props.config,
+    [props.dataKey]: {
+      ...props.config[props.dataKey],
+      color: activeColor.value,
+    },
+  };
+
   if (!hasComparisonData.value) {
-    return props.config;
+    return config;
   }
 
   return {
-    ...props.config,
+    ...config,
     [comparisonKey.value]: {
       label: props.comparisonLabel,
-      color: comparisonColor,
+      color: comparisonColor.value,
     },
   };
 });
@@ -274,16 +299,17 @@ const tooltipTemplate = componentToString(currentConfig, ChartTooltipContent, {
   },
 });
 
-const svgDefs = `
+const svgDefs = computed(
+  () => `
   <linearGradient id="fillChart1" x1="0" y1="0" x2="0" y2="1">
     <stop
       offset="5%"
-      stop-color="var(--chart-1)"
+      stop-color="${seriesColor.value}"
       stop-opacity="0.8"
     />
     <stop
       offset="95%"
-      stop-color="var(--chart-1)"
+      stop-color="${seriesColor.value}"
       stop-opacity="0"
     />
   </linearGradient>
@@ -302,14 +328,15 @@ const svgDefs = `
   <linearGradient id="fillChartComparison" x1="0" y1="0" x2="0" y2="1">
     <stop
       offset="5%"
-      stop-color="var(--chart-3, #a1a1aa)"
+      stop-color="${comparisonColor.value}"
       stop-opacity="0.4"
     />
     <stop
       offset="95%"
-      stop-color="var(--chart-3, #a1a1aa)"
+      stop-color="${comparisonColor.value}"
       stop-opacity="0"
     />
   </linearGradient>
-`;
+`
+);
 </script>
