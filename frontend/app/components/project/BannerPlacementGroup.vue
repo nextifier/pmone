@@ -99,11 +99,11 @@
               class="text-muted-foreground mr-1 flex items-center gap-2 text-xs tracking-tight tabular-nums sm:gap-3 sm:text-sm"
             >
               <span class="flex items-center gap-1" v-tippy="'Total impressions'">
-                <Icon name="lucide:eye" class="size-4" />{{ formatCount(banner.impressions_count) }}
+                <Icon name="lucide:eye" class="size-4" />{{ formatCount(banner.lifetime_impressions) }}
               </span>
               <span class="flex items-center gap-1" v-tippy="'Total clicks'">
                 <Icon name="lucide:mouse-pointer-click" class="size-4" />{{
-                  formatCount(banner.clicks_count)
+                  formatCount(banner.lifetime_clicks)
                 }}
               </span>
             </div>

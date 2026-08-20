@@ -29,6 +29,7 @@ use App\Notifications\BrandInvitedToEventNotification;
 use App\Notifications\PromotionPostUploadedNotification;
 use App\Support\CustomFieldValidation;
 use App\Support\ImageDimensions;
+use App\Support\VisitStats;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -159,6 +160,7 @@ class BrandEventController extends Controller
         // Client-only mode: return all data without pagination
         if ($request->boolean('client_only')) {
             $brandEvents = $query->get();
+            VisitStats::foldTodayInto($brandEvents, BrandEvent::class, 'lifetime_views');
 
             return response()->json([
                 'data' => BrandEventIndexResource::collection($brandEvents),
@@ -172,6 +174,7 @@ class BrandEventController extends Controller
         }
 
         $brandEvents = $query->paginate($request->input('per_page', 15));
+        VisitStats::foldTodayInto($brandEvents->items(), BrandEvent::class, 'lifetime_views');
 
         return response()->json([
             'data' => BrandEventIndexResource::collection($brandEvents->items()),

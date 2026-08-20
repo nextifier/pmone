@@ -31,6 +31,12 @@ class ProjectBannerResource extends JsonResource
             'more_details' => $this->more_details,
             'settings' => $this->settings,
             'image' => $this->image,
+            // Since the banner was created, from the permanent daily rollup. A
+            // campaign sold on three months used to report only the tail of it,
+            // because the raw table is pruned to 90 days.
+            'lifetime_impressions' => (int) ($this->lifetime_impressions ?? 0),
+            'lifetime_clicks' => (int) ($this->lifetime_clicks ?? 0),
+            // @deprecated Rows inside the 90-day retention window.
             'clicks_count' => $this->clicks_count ?? 0,
             'impressions_count' => $this->impressions_count ?? 0,
             'created_at' => $this->created_at->toISOString(),

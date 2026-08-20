@@ -33,6 +33,10 @@ class BrandEventIndexResource extends JsonResource
             'brand_logo' => $brand?->relationLoaded('media') ? $brand->brand_logo : null,
             'business_categories' => $brand?->relationLoaded('tags') ? $brand->business_categories_list : [],
             'promotion_posts_count' => $this->promotion_posts_count ?? 0,
+            // Profile views since the brand joined the event, from the permanent
+            // daily rollup. Prefer this over `visits_count`.
+            'lifetime_views' => (int) ($this->lifetime_views ?? 0),
+            // @deprecated Rows inside the 90-day retention window.
             'visits_count' => $this->visits_count ?? 0,
             'score' => $profile['score'],
             'is_complete' => $profile['is_complete'],

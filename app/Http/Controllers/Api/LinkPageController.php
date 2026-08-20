@@ -10,6 +10,7 @@ use App\Http\Resources\LinkPageIndexResource;
 use App\Http\Resources\LinkPageResource;
 use App\Models\LinkPage;
 use App\Support\ImageOptimizer;
+use App\Support\VisitStats;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,7 @@ class LinkPageController extends Controller
 
         if ($clientOnly) {
             $linkPages = $query->get();
+            VisitStats::foldTodayInto($linkPages, LinkPage::class, 'lifetime_views');
 
             return response()->json([
                 'data' => LinkPageIndexResource::collection($linkPages),
@@ -54,6 +56,7 @@ class LinkPageController extends Controller
         }
 
         $linkPages = $query->paginate($request->input('per_page', 15));
+        VisitStats::foldTodayInto($linkPages->items(), LinkPage::class, 'lifetime_views');
 
         return response()->json([
             'data' => LinkPageIndexResource::collection($linkPages->items()),
@@ -357,6 +360,7 @@ class LinkPageController extends Controller
 
         if ($clientOnly) {
             $linkPages = $query->get();
+            VisitStats::foldTodayInto($linkPages, LinkPage::class, 'lifetime_views');
 
             return response()->json([
                 'data' => LinkPageIndexResource::collection($linkPages),
@@ -370,6 +374,7 @@ class LinkPageController extends Controller
         }
 
         $linkPages = $query->paginate($request->input('per_page', 15));
+        VisitStats::foldTodayInto($linkPages->items(), LinkPage::class, 'lifetime_views');
 
         return response()->json([
             'data' => LinkPageIndexResource::collection($linkPages->items()),

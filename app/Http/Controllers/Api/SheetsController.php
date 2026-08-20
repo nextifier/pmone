@@ -393,7 +393,10 @@ class SheetsController extends Controller
                 $linkClickSlots[] = $link ? (int) $link->clicks_count : '';
             }
 
-            $totalVisits = (int) $brand->brandEvents->sum('visits_count');
+            // Lifetime, not the 90-day slice a count over `visits` would give: an
+            // export that says a brand had 40 profile views when it had 4,000 is
+            // worse than no column at all.
+            $totalVisits = (int) $brand->brandEvents->sum('lifetime_views');
             $totalLinkClicks = (int) $brand->links->sum('clicks_count');
 
             $totalPromotionPosts = (int) $brand->brandEvents->sum('promotion_posts_count');
@@ -672,8 +675,8 @@ class SheetsController extends Controller
                 Str::title(str_replace('_', ' ', $brandEvent->status ?? '-')),
                 $brandEvent->notes ?? '-',
                 $brandEvent->promotion_post_limit,
-                (int) $brandEvent->visits_count,
-                (int) $brandEvent->clicks_count,
+                (int) $brandEvent->lifetime_views,
+                (int) $brandEvent->lifetime_clicks,
                 (int) $brandEvent->promotion_posts_count,
                 $this->promotionCaptions($brandEvent),
                 $this->promotionImagesLink($brandEvent),

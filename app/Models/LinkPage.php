@@ -215,14 +215,29 @@ class LinkPage extends Model implements HasMedia
         return $this->items()->count();
     }
 
+    /**
+     * Rows inside the 90-day retention window.
+     *
+     * Reads whatever `withCount` already loaded and only falls back to a query when
+     * the caller did not ask for it. It used to query unconditionally, which meant
+     * two extra queries per row on every listing and made the controller's
+     * `withCount` pure waste, because an accessor wins over the loaded attribute.
+     *
+     * @deprecated Use `lifetime_views`, which covers the page's whole life.
+     */
     public function getVisitsCountAttribute(): int
     {
-        return $this->visits()->count();
+        return (int) ($this->attributes['visits_count'] ?? $this->visits()->count());
     }
 
+    /**
+     * Always zero: clicks land on this page's items, never on the page itself.
+     *
+     * @deprecated Use `lifetime_clicks`, which sums the items.
+     */
     public function getClicksCountAttribute(): int
     {
-        return $this->clicks()->count();
+        return (int) ($this->attributes['clicks_count'] ?? $this->clicks()->count());
     }
 
     public function scopeActive($query)

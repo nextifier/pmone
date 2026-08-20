@@ -98,9 +98,9 @@ class DailyVisitStat extends Model
      * @param  Builder<DailyVisitStat>  $query
      * @return Builder<DailyVisitStat>
      */
-    public function scopeCanonical(Builder $query): Builder
+    public function scopeCanonical(Builder $query, string $type): Builder
     {
-        return VisitStats::constrainToCanonicalSources($query);
+        return VisitStats::constrainToCanonicalSources($query, $type);
     }
 
     /**

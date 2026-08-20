@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateProjectBannerRequest;
 use App\Http\Resources\ProjectBannerResource;
 use App\Models\Project;
 use App\Models\ProjectBanner;
+use App\Support\VisitStats;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,8 @@ class ProjectBannerController extends Controller
             ->with('media')
             ->withCount(['clicks', 'impressions'])
             ->get();
+
+        VisitStats::foldTodayInto($banners, ProjectBanner::class, 'lifetime_impressions');
 
         return response()->json([
             'data' => ProjectBannerResource::collection($banners),
@@ -191,21 +194,21 @@ class ProjectBannerController extends Controller
         $start = now()->subDays($days - 1)->startOfDay();
         $end = now()->endOfDay();
 
-        $clicks = $banner->clicks()->whereBetween('clicked_at', [$start, $end]);
-        $impressions = $banner->impressions()->whereBetween('visited_at', [$start, $end]);
+        // Read from the permanent rollup, not the raw tables. A campaign sold on
+        // three months used to report only its last 90 days here, and the number
+        // shrank on its own afterwards.
+        $impressionsByDay = VisitStats::viewSeries(
+            ProjectBanner::class, $start, $end,
+            fn ($query) => $query->where('visitable_id', $banner->id),
+        );
+        $clicksByDay = VisitStats::clickSeries(
+            ProjectBanner::class, $start, $end,
+            fn ($query) => $query->where('clickable_id', $banner->id),
+        );
 
-        $totalClicks = (clone $clicks)->count();
-        $totalImpressions = (clone $impressions)->count();
+        $totalImpressions = $impressionsByDay['total'];
+        $totalClicks = array_sum($clicksByDay);
         $ctr = $totalImpressions > 0 ? round(($totalClicks / $totalImpressions) * 100, 2) : 0;
-
-        $clicksByDay = (clone $clicks)
-            ->selectRaw('DATE(clicked_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->pluck('count', 'date');
-        $impressionsByDay = (clone $impressions)
-            ->selectRaw('DATE(visited_at) as date, COUNT(*) as count')
-            ->groupBy('date')
-            ->pluck('count', 'date');
 
         $perDay = [];
         $cursor = $start->copy();
@@ -213,8 +216,8 @@ class ProjectBannerController extends Controller
             $date = $cursor->toDateString();
             $perDay[] = [
                 'date' => $date,
-                'impressions' => (int) ($impressionsByDay[$date] ?? 0),
-                'clicks' => (int) ($clicksByDay[$date] ?? 0),
+                'impressions' => $impressionsByDay['per_day'][$date]['views'] ?? 0,
+                'clicks' => $clicksByDay[$date] ?? 0,
             ];
             $cursor->addDay();
         }

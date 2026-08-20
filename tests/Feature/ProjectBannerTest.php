@@ -448,8 +448,11 @@ test('tracking endpoints record banner clicks and impressions', function () {
 test('banner analytics returns summary, ctr and per_day', function () {
     [$project, $user] = projectBannerMember();
     $banner = ProjectBanner::factory()->create(['project_id' => $project->id]);
-    $banner->impressions()->create(['visited_at' => now()]);
-    $banner->impressions()->create(['visited_at' => now()]);
+    // A User-Agent is what marks a row as coming from a browser. The beacon always
+    // sends one; a row without it is filed as a server-side render and excluded from
+    // every total, so a test that omits it would measure the wrong thing.
+    $banner->impressions()->create(['visited_at' => now(), 'user_agent' => 'Firefox']);
+    $banner->impressions()->create(['visited_at' => now(), 'user_agent' => 'Firefox']);
     $banner->clicks()->create(['clicked_at' => now()]);
 
     $response = $this->actingAs($user)

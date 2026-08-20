@@ -3,6 +3,8 @@
 use App\Models\Click;
 use App\Models\DailyClickStat;
 use App\Models\DailyVisitStat;
+use App\Models\LinkPage;
+use App\Models\LinkPageItem;
 use App\Models\Post;
 use App\Models\ProjectBanner;
 use App\Models\User;
@@ -289,4 +291,111 @@ test('a trashed post still gets its lifetime total', function () {
     // The trash listing shows this column, and a restored post that reads zero
     // would look like its history had been thrown away.
     expect(Post::withTrashed()->find($this->post->id)->lifetime_views)->toBe(2);
+});
+
+test('link pages, brands and banners get lifetime totals too', function () {
+    $day = now()->subDays(2)->toDateString();
+
+    $linkPage = LinkPage::factory()->create();
+    $item = LinkPageItem::factory()->create(['link_page_id' => $linkPage->id]);
+    $banner = ProjectBanner::factory()->create();
+
+    Visit::factory()->count(3)->create([
+        'visitable_type' => LinkPage::class,
+        'visitable_id' => $linkPage->id,
+        'visited_at' => $day.' 09:00:00',
+        'user_agent' => 'Firefox',
+    ]);
+    Visit::factory()->count(5)->create([
+        'visitable_type' => ProjectBanner::class,
+        'visitable_id' => $banner->id,
+        'visited_at' => $day.' 09:00:00',
+        'user_agent' => 'Firefox',
+    ]);
+    Click::factory()->count(2)->create([
+        'clickable_type' => ProjectBanner::class,
+        'clickable_id' => $banner->id,
+        'clicked_at' => $day.' 09:00:00',
+    ]);
+    // Clicks land on the item, never on the page itself.
+    Click::factory()->count(7)->create([
+        'clickable_type' => LinkPageItem::class,
+        'clickable_id' => $item->id,
+        'clicked_at' => $day.' 09:00:00',
+    ]);
+
+    $this->artisan('visits:rollup', ['--date' => $day])->assertSuccessful();
+
+    expect($linkPage->fresh()->lifetime_views)->toBe(3)
+        ->and($linkPage->fresh()->lifetime_clicks)->toBe(7)
+        ->and($banner->fresh()->lifetime_impressions)->toBe(5)
+        ->and($banner->fresh()->lifetime_clicks)->toBe(2);
+});
+
+test('types without a google analytics history count the beacon on every date', function () {
+    // The era rule exists because article counting broke for two months. Nothing
+    // else was ever counted server-side, so applying that rule to a link page would
+    // silently drop everything it had before 28 July.
+    config()->set('visit-tracking.browser_counting_since', '2026-07-28');
+
+    $linkPage = LinkPage::factory()->create();
+
+    DailyVisitStat::query()->create([
+        'visitable_type' => LinkPage::class,
+        'visitable_id' => $linkPage->id,
+        'date' => '2026-06-01',
+        'source' => VisitStats::SOURCE_BEACON,
+        'views' => 40,
+    ]);
+    DailyVisitStat::query()->create([
+        'visitable_type' => LinkPage::class,
+        'visitable_id' => $linkPage->id,
+        'date' => '2026-08-01',
+        'source' => VisitStats::SOURCE_BEACON,
+        'views' => 2,
+    ]);
+
+    $this->artisan('visits:rollup', ['--date' => now()->subDays(2)->toDateString()])
+        ->assertSuccessful();
+
+    expect($linkPage->fresh()->lifetime_views)->toBe(42);
+});
+
+test('banner analytics reads history the raw table no longer holds', function () {
+    // A campaign sold on three months: the raw rows for its first weeks are long
+    // gone, and only the rollup remembers them.
+    $banner = ProjectBanner::factory()->create();
+    $longAgo = now()->subDays(200)->toDateString();
+
+    DailyVisitStat::query()->create([
+        'visitable_type' => ProjectBanner::class,
+        'visitable_id' => $banner->id,
+        'date' => $longAgo,
+        'source' => VisitStats::SOURCE_BEACON,
+        'views' => 9000,
+        'authenticated_views' => 0,
+    ]);
+    DailyClickStat::query()->create([
+        'clickable_type' => ProjectBanner::class,
+        'clickable_id' => $banner->id,
+        'date' => $longAgo,
+        'clicks' => 90,
+    ]);
+
+    $this->artisan('visits:rollup', ['--date' => now()->subDay()->toDateString()])
+        ->assertSuccessful();
+
+    expect(Visit::count())->toBe(0)
+        ->and($banner->fresh()->lifetime_impressions)->toBe(9000)
+        ->and($banner->fresh()->lifetime_clicks)->toBe(90);
+
+    $series = VisitStats::viewSeries(
+        ProjectBanner::class,
+        now()->subDays(250),
+        now(),
+        fn ($query) => $query->where('visitable_id', $banner->id),
+    );
+
+    expect($series['total'])->toBe(9000)
+        ->and($series['per_day'][$longAgo]['views'])->toBe(9000);
 });

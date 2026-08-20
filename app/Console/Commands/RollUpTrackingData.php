@@ -2,14 +2,20 @@
 
 namespace App\Console\Commands;
 
+use App\Models\BrandEvent;
 use App\Models\Click;
 use App\Models\DailyClickStat;
 use App\Models\DailyVisitStat;
+use App\Models\LinkPage;
+use App\Models\LinkPageItem;
 use App\Models\Post;
+use App\Models\ProjectBanner;
 use App\Models\Visit;
 use App\Support\VisitStats;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 class RollUpTrackingData extends Command
@@ -75,8 +81,8 @@ class RollUpTrackingData extends Command
         $this->info("Click stat rows written: {$clickRows}.");
 
         if (! $this->option('skip-lifetime')) {
-            $updated = $this->recomputePostLifetimeViews($dryRun);
-            $this->info("Posts with a changed lifetime view total: {$updated}.");
+            $updated = $this->recomputeLifetimeCounters($dryRun);
+            $this->info("Lifetime totals changed: {$updated}.");
         }
 
         return self::SUCCESS;
@@ -248,44 +254,121 @@ class RollUpTrackingData extends Command
     }
 
     /**
-     * Refresh the read cache on posts from the canonical rollup.
+     * Refresh the read caches on every tracked model from the canonical rollup.
      *
      * Recomputed, never incremented, so a value that drifted for any reason heals
      * on the next run.
      *
-     * Written through the base query builder on purpose. Post uses the
-     * ClearsResponseCache trait, so saving through the model would purge the
-     * `blog-posts` tag for every article every night — a nightly cache stampede
-     * across 16 event websites. The base builder fires no model events and leaves
-     * `updated_at` alone, which matters because sitemap lastmod reads it.
+     * Written through the base query builder on purpose. These models use the
+     * ClearsResponseCache trait, so saving through the model would purge public
+     * cache tags for every row every night — a nightly stampede across 16 event
+     * websites. The base builder fires no model events and leaves `updated_at`
+     * alone, which matters because sitemap lastmod reads it.
      *
-     * That trait's docblock asks any raw write to a publicly exposed column to
-     * call clearResponseCacheForRawUpdate(). Skipping it here is deliberate, not
-     * an oversight: this number moves once a day at 01:45, the public payload is
-     * cached for an hour, and it has expired on its own well before anyone is
-     * awake. A stale lifetime view count is worth far less than a nightly purge
-     * of every article on every site.
+     * That trait's docblock asks any raw write to a publicly exposed column to call
+     * clearResponseCacheForRawUpdate(). Skipping it here is deliberate: these
+     * numbers move once a day at 01:45, the public payloads are cached for an hour,
+     * and they have expired on their own well before anyone is awake.
      */
-    private function recomputePostLifetimeViews(bool $dryRun): int
+    private function recomputeLifetimeCounters(bool $dryRun): int
     {
-        $totals = DailyVisitStat::query()
-            ->forType(Post::class)
-            ->canonical()
-            ->selectRaw('visitable_id, SUM(views) as total')
-            ->groupBy('visitable_id')
-            ->pluck('total', 'visitable_id');
-
         $changed = 0;
 
-        Post::query()
-            ->withTrashed()
-            ->select(['id', 'lifetime_views'])
-            ->orderBy('id')
-            ->chunkById(500, function ($posts) use ($totals, $dryRun, &$changed): void {
-                foreach ($posts as $post) {
-                    $total = (int) ($totals[$post->id] ?? 0);
+        foreach ([
+            [Post::class, 'lifetime_views'],
+            [LinkPage::class, 'lifetime_views'],
+            [BrandEvent::class, 'lifetime_views'],
+            // The banner's own vocabulary. Same morph table underneath.
+            [ProjectBanner::class, 'lifetime_impressions'],
+        ] as [$model, $column]) {
+            $changed += $this->syncColumn($model, $column, $this->viewTotalsFor($model), $dryRun);
+        }
 
-                    if ($total === (int) $post->lifetime_views) {
+        foreach ([
+            [BrandEvent::class, 'lifetime_clicks'],
+            [ProjectBanner::class, 'lifetime_clicks'],
+        ] as [$model, $column]) {
+            $changed += $this->syncColumn($model, $column, $this->clickTotalsFor($model), $dryRun);
+        }
+
+        $changed += $this->syncColumn(LinkPage::class, 'lifetime_clicks', $this->linkPageClickTotals(), $dryRun);
+
+        return $changed;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function viewTotalsFor(string $model): array
+    {
+        return DailyVisitStat::query()
+            ->forType($model)
+            ->canonical($model)
+            ->selectRaw('visitable_id, SUM(views) as total')
+            ->groupBy('visitable_id')
+            ->pluck('total', 'visitable_id')
+            ->map(fn ($total): int => (int) $total)
+            ->all();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function clickTotalsFor(string $model): array
+    {
+        return DailyClickStat::query()
+            ->forType($model)
+            ->selectRaw('clickable_id, SUM(clicks) as total')
+            ->groupBy('clickable_id')
+            ->pluck('total', 'clickable_id')
+            ->map(fn ($total): int => (int) $total)
+            ->all();
+    }
+
+    /**
+     * A link page is never clicked itself, only the items on it.
+     *
+     * The `clicks` table has never held a single row for LinkPage, so the page-level
+     * count the admin listing showed was always zero. Rolling the items up to their
+     * page is what makes that column mean something.
+     *
+     * @return array<int, int>
+     */
+    private function linkPageClickTotals(): array
+    {
+        return DailyClickStat::query()
+            ->forType(LinkPageItem::class)
+            ->join('link_page_items', 'link_page_items.id', '=', 'daily_click_stats.clickable_id')
+            ->selectRaw('link_page_items.link_page_id as owner_id, SUM(daily_click_stats.clicks) as total')
+            ->groupBy('link_page_items.link_page_id')
+            ->pluck('total', 'owner_id')
+            ->map(fn ($total): int => (int) $total)
+            ->all();
+    }
+
+    /**
+     * @param  class-string<Model>  $model
+     * @param  array<int, int>  $totals
+     */
+    private function syncColumn(string $model, string $column, array $totals, bool $dryRun): int
+    {
+        $softDeletes = in_array(SoftDeletes::class, class_uses_recursive($model), true);
+        $changed = 0;
+
+        $query = $model::query();
+        if ($softDeletes) {
+            // Without this a trashed row keeps a stale total forever: the trash
+            // listing shows the column, and a restored row would read zero.
+            $query->withTrashed();
+        }
+
+        $query->select(['id', $column])
+            ->orderBy('id')
+            ->chunkById(500, function ($rows) use ($model, $column, $totals, $dryRun, $softDeletes, &$changed): void {
+                foreach ($rows as $row) {
+                    $total = $totals[$row->id] ?? 0;
+
+                    if ($total === (int) $row->{$column}) {
                         continue;
                     }
 
@@ -295,14 +378,12 @@ class RollUpTrackingData extends Command
                         continue;
                     }
 
-                    // withTrashed() before toBase(): toBase() applies global scopes,
-                    // and the soft-delete scope would append `deleted_at is null`, so a
-                    // trashed post matched zero rows and kept a stale total forever.
-                    // The trash listing shows this column, and a restored post would
-                    // come back reading zero.
-                    Post::query()->withTrashed()->toBase()
-                        ->where('id', $post->id)
-                        ->update(['lifetime_views' => $total]);
+                    $update = $model::query();
+                    if ($softDeletes) {
+                        $update->withTrashed();
+                    }
+
+                    $update->toBase()->where('id', $row->id)->update([$column => $total]);
                 }
             });
 

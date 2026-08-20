@@ -17,6 +17,13 @@ class LinkPageIndexResource extends JsonResource
             'is_active' => $this->is_active,
             'visibility' => $this->visibility,
             'items_count' => $this->items_count ?? 0,
+            // Views and clicks since the page was created, from the permanent daily
+            // rollup. Prefer these over the two below.
+            'lifetime_views' => (int) ($this->lifetime_views ?? 0),
+            'lifetime_clicks' => (int) ($this->lifetime_clicks ?? 0),
+            // @deprecated Rows inside the 90-day retention window. `clicks_count`
+            // has always been zero besides: clicks land on the page's items, never
+            // on the page.
             'visits_count' => $this->visits_count ?? 0,
             'clicks_count' => $this->clicks_count ?? 0,
             'cover_image' => $this->cover_image,

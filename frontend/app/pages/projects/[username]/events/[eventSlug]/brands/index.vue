@@ -565,9 +565,9 @@ const columns = [
   },
   {
     header: "Total Visit",
-    accessorKey: "visits_count",
+    accessorKey: "lifetime_views",
     cell: ({ row }) => {
-      const count = row.getValue("visits_count") || 0;
+      const count = row.getValue("lifetime_views") || 0;
       return h("div", { class: "text-sm tracking-tight" }, count.toLocaleString());
     },
     size: 100,

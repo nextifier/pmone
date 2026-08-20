@@ -2,11 +2,15 @@
 
 namespace App\Support;
 
+use App\Models\Click;
+use App\Models\DailyClickStat;
 use App\Models\DailyVisitStat;
+use App\Models\Post;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use RuntimeException;
 
@@ -36,6 +40,19 @@ class VisitStats
     public const SOURCE_SERVER_RENDER = 'server_render';
 
     public const SOURCE_GA4 = 'ga4';
+
+    /**
+     * The only types a Google Analytics history was imported for.
+     *
+     * It matters because the era rule below exists for one reason: article counting
+     * was broken between 21 May and 27 Jul 2026, and GA4 is what fills that gap.
+     * Nothing else was ever counted server-side — banners, brands and link pages
+     * have been browser-counted since the day they were added, so applying the era
+     * rule to them would silently drop every view they had before 28 July.
+     *
+     * @var list<class-string>
+     */
+    public const GA4_BACKED_TYPES = [Post::class];
 
     /**
      * The date from which the browser beacon is the truth.
@@ -107,8 +124,14 @@ class VisitStats
      * @param  Builder<DailyVisitStat>  $query
      * @return Builder<DailyVisitStat>
      */
-    public static function constrainToCanonicalSources(Builder $query): Builder
+    public static function constrainToCanonicalSources(Builder $query, string $type): Builder
     {
+        // Everything except articles has only ever been counted one way, so the
+        // beacon is simply the answer for every date.
+        if (! in_array($type, self::GA4_BACKED_TYPES, true)) {
+            return $query->where('source', self::SOURCE_BEACON);
+        }
+
         $cutover = self::browserCountingSince();
 
         return $query->where(function (Builder $inner) use ($cutover): void {
@@ -160,7 +183,7 @@ class VisitStats
                 ->where('visitable_type', $type)
                 ->whereBetween('date', [$start->toDateString(), $rollupEnd->toDateString()]);
 
-            self::constrainToCanonicalSources($rollup);
+            self::constrainToCanonicalSources($rollup, $type);
 
             if ($constrain) {
                 $constrain($rollup);
@@ -184,7 +207,7 @@ class VisitStats
                 ->where('visitable_type', $type)
                 ->whereBetween('visited_at', [$today, $today->copy()->endOfDay()]);
 
-            self::constrainRawToCanonicalSource($live, $today);
+            self::constrainRawToCanonicalSource($live, $today, $type);
 
             if ($constrain) {
                 $constrain($live);
@@ -207,6 +230,120 @@ class VisitStats
             'total' => array_sum(array_column($perDay, 'views')),
             'authenticated' => array_sum(array_column($perDay, 'authenticated')),
         ];
+    }
+
+    /**
+     * Views recorded today, per target id.
+     *
+     * The lifetime columns are refreshed by the 01:45 rollup, which only ever
+     * summarises completed days, so on its own the number a reader sees is up to a
+     * day behind. Anyone who opens an article to check that tracking works looks at
+     * the list straight afterwards and sees nothing move. Adding today at read time
+     * costs one grouped query over a single indexed day and makes the figure
+     * current to the second.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, int>
+     */
+    public static function todayViewsByTarget(string $type, array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $today = now()->startOfDay();
+
+        $query = Visit::query()
+            ->where('visitable_type', $type)
+            ->whereIn('visitable_id', $ids)
+            ->whereBetween('visited_at', [$today, $today->copy()->endOfDay()]);
+
+        self::constrainRawToCanonicalSource($query, $today, $type);
+
+        return $query
+            ->selectRaw('visitable_id, COUNT(*) as views')
+            ->groupBy('visitable_id')
+            ->get()
+            ->mapWithKeys(fn ($row): array => [(int) $row->visitable_id => (int) $row->views])
+            ->all();
+    }
+
+    /**
+     * Daily click totals for one target type over a date range.
+     *
+     * Mirrors viewSeries: permanent rollup for completed days, one live query for
+     * today. Clicks have only ever been counted one way, so there is no source rule
+     * to apply here.
+     *
+     * @param  (callable(\Illuminate\Database\Eloquent\Builder<*>): void)|null  $constrain
+     * @return array<string, int>
+     */
+    public static function clickSeries(
+        string $type,
+        CarbonInterface $start,
+        CarbonInterface $end,
+        ?callable $constrain = null,
+    ): array {
+        $perDay = [];
+
+        $today = now()->startOfDay();
+        $rollupEnd = $end->copy()->startOfDay()->min($today->copy()->subDay());
+
+        if ($start->copy()->startOfDay()->lte($rollupEnd)) {
+            $rollup = DailyClickStat::query()
+                ->where('clickable_type', $type)
+                ->whereBetween('date', [$start->toDateString(), $rollupEnd->toDateString()]);
+
+            if ($constrain) {
+                $constrain($rollup);
+            }
+
+            foreach ($rollup->selectRaw('date, SUM(clicks) as clicks')->groupBy('date')->get() as $row) {
+                $perDay[Carbon::parse((string) $row->getRawOriginal('date'))->toDateString()] = (int) $row->clicks;
+            }
+        }
+
+        if ($end->copy()->startOfDay()->gte($today)) {
+            $live = Click::query()
+                ->where('clickable_type', $type)
+                ->whereBetween('clicked_at', [$today, $today->copy()->endOfDay()]);
+
+            if ($constrain) {
+                $constrain($live);
+            }
+
+            $count = (int) $live->count();
+
+            if ($count > 0) {
+                $perDay[$today->toDateString()] = $count;
+            }
+        }
+
+        return $perDay;
+    }
+
+    /**
+     * Fold today's views into a set of records before they are rendered.
+     *
+     * The lifetime columns stop at yesterday because the rollup only summarises
+     * completed days. Anyone who opens a page to check that tracking works looks at
+     * the listing straight afterwards, and without this they see the number sit
+     * still. Costs one grouped query over a single indexed day.
+     *
+     * @param  iterable<Model>  $records
+     */
+    public static function foldTodayInto(iterable $records, string $type, string $column): void
+    {
+        $ids = [];
+        foreach ($records as $record) {
+            $ids[] = (int) $record->getKey();
+        }
+
+        $today = self::todayViewsByTarget($type, $ids);
+
+        foreach ($records as $record) {
+            $record->{$column} = (int) $record->{$column} + ($today[(int) $record->getKey()] ?? 0);
+        }
     }
 
     /**
@@ -234,7 +371,7 @@ class VisitStats
                 ->where('visitable_type', $type)
                 ->whereBetween('date', [$start->toDateString(), $rollupEnd->toDateString()]);
 
-            self::constrainToCanonicalSources($rollup);
+            self::constrainToCanonicalSources($rollup, $type);
 
             if ($constrain) {
                 $constrain($rollup);
@@ -250,7 +387,7 @@ class VisitStats
                 ->where('visitable_type', $type)
                 ->whereBetween('visited_at', [$today, $today->copy()->endOfDay()]);
 
-            self::constrainRawToCanonicalSource($live, $today);
+            self::constrainRawToCanonicalSource($live, $today, $type);
 
             if ($constrain) {
                 $constrain($live);
@@ -270,11 +407,18 @@ class VisitStats
      *
      * @param  Builder<Visit>  $query
      */
-    public static function constrainRawToCanonicalSource(Builder $query, CarbonInterface $day): void
+    public static function constrainRawToCanonicalSource(Builder $query, CarbonInterface $day, string $type): void
     {
-        self::canonicalSourceFor($day) === self::SOURCE_BEACON
-            ? $query->whereNotNull('user_agent')
-            : $query->whereNull('user_agent');
+        // Today is always browser-counted, whatever the type: the server-side path
+        // was removed in July. The date check only matters for a backdated read of
+        // an article, where GA4 owns the day and no raw row should be counted.
+        if (! in_array($type, self::GA4_BACKED_TYPES, true) || self::canonicalSourceFor($day) === self::SOURCE_BEACON) {
+            $query->whereNotNull('user_agent');
+
+            return;
+        }
+
+        $query->whereNull('user_agent');
     }
 
     /**

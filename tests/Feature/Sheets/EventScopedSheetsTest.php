@@ -127,8 +127,17 @@ it('scopes the brand aggregate columns to the event', function () {
         'sales_id' => $otherSales->id,
     ]);
 
-    Visit::factory()->count(3)->create(['visitable_type' => BrandEvent::class, 'visitable_id' => $boothA->id]);
-    Visit::factory()->count(5)->create(['visitable_type' => BrandEvent::class, 'visitable_id' => $boothB->id]);
+    // Dated yesterday and rolled up, the way the number actually reaches the sheet:
+    // the export reads the permanent lifetime total, not a count over the raw table.
+    Visit::factory()->count(3)->create([
+        'visitable_type' => BrandEvent::class, 'visitable_id' => $boothA->id,
+        'visited_at' => now()->subDay(), 'user_agent' => 'Firefox',
+    ]);
+    Visit::factory()->count(5)->create([
+        'visitable_type' => BrandEvent::class, 'visitable_id' => $boothB->id,
+        'visited_at' => now()->subDay(), 'user_agent' => 'Firefox',
+    ]);
+    test()->artisan('visits:rollup', ['--days' => 2])->assertSuccessful();
     PromotionPost::factory()->count(2)->create(['brand_event_id' => $boothA->id]);
     PromotionPost::factory()->count(4)->create(['brand_event_id' => $boothB->id]);
 

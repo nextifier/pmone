@@ -212,3 +212,20 @@ test('today is read live because the rollup has not summarised it yet', function
     expect($today['count'])->toBe(2)
         ->and($response->json('data.summary.total_visits'))->toBe(3);
 });
+
+test('the posts listing counts a view made today, before the nightly rollup runs', function () {
+    $post = Post::factory()->create(['status' => 'published', 'published_at' => now()->subWeek()]);
+
+    visitPost($post, ['user_agent' => 'Firefox', 'visited_at' => now()->subDay()]);
+    rollUpSeededVisits();
+
+    expect($this->getJson('/api/posts?client_only=1')->json('data.0.lifetime_views'))->toBe(1);
+
+    // Someone opens the article to check tracking works. The rollup will not run
+    // until 01:45, so without folding today in at read time they come back to the
+    // listing and see nothing move.
+    visitPost($post, ['user_agent' => 'Firefox', 'visited_at' => now()]);
+    visitPost($post, ['user_agent' => 'Firefox', 'visited_at' => now()]);
+
+    expect($this->getJson('/api/posts?client_only=1')->json('data.0.lifetime_views'))->toBe(3);
+});
