@@ -1,4 +1,20 @@
 /**
+ * The link labels the editors offer, in the order they are offered. Mirrors
+ * `App\Support\LinkLabels::PREDEFINED` on the API side, which also drives the
+ * fixed link columns in the Google Sheets feed - the two lists have to agree or
+ * a sheet column ends up empty for a label the form can produce.
+ */
+export const PREDEFINED_LINK_LABELS = [
+  "Website",
+  "Instagram",
+  "Facebook",
+  "X",
+  "TikTok",
+  "LinkedIn",
+  "YouTube",
+];
+
+/**
  * Seed link-editor rows so every predefined label has an open row up-front,
  * pre-filled from any saved link with a matching label (case-insensitive).
  * Saved links whose label is not predefined (custom) are appended after.

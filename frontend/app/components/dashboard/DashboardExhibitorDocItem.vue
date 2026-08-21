@@ -219,7 +219,7 @@ const emit = defineEmits(["submitted"]);
 
 const { $dayjs } = useNuxtApp();
 
-const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
+const dateLocale = computed(() => exhibitorDateLocale(locale.value));
 
 function formatDeadline(dateStr) {
   if (!dateStr) return "";

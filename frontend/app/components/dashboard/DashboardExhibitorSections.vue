@@ -408,7 +408,7 @@ const emit = defineEmits(["refresh"]);
 const { t, locale } = useI18n();
 const client = useSanctumClient();
 
-const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
+const dateLocale = computed(() => exhibitorDateLocale(locale.value));
 
 const sectionStates = reactive({});
 const checkedRules = reactive({});

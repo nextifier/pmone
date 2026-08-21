@@ -31,6 +31,18 @@ when done.
 > it. Also: event core data (dates/status/poster/edition) is **already 100%
 > runtime** — the yearly rollover already needs no rebuild.
 
+## Wave 4 — external check-in + host-assigned seating (plan 038, authored 2026-08-20)
+
+| Plan | Title | Priority | Type | Status |
+|------|-------|----------|------|--------|
+| 038 | [External participant check-in + host-assigned seating](038-external-checkin-seating-build.md) | P1 while the client engagement is live | build | **PLANNED — not started.** Written from a prospective-client evaluation (inter-school maths competition, 9 cities, ~2,700 participants who already hold QR Participant Cards from the client's own registration system). Adds a generic **External Check-in** capability: per-event `events.scan_identity` jsonb extraction rules (`delimited_kv`/`json`/`plain`; `regex` deliberately deferred), new `attendee_external_identities` table (unique `(event_id, external_id)` = the import dedupe key), CSV/Excel participant import with **upsert** (all 13 existing importers are `create()`-only — do not copy them) and client-side column mapping through the existing `ProcessExcelImport::$constructorArgs`, plus host-assigned seating (`event_rooms` + `event_seat_assignments`, room+desk shown on the scanner and working offline). **Key decision**: attendees stay bound to a synthetic free comp order rather than loosening the NOT NULL FKs — the nullable route touches 19 files / 106 refs and silently disables the `wrong_event` guard. 7 slices, 13 dev-days (7 for the shippable core). **STOP** if the QR carries no stable machine-readable field, or if single-field matching is demanded while Participant IDs are not unique across cities. |
+
+**Relationship to 033/034**: 038 borrows 033's concepts and discards most of its schema
+(no venues/seat_maps/holds/picker/waitlist/price_override) because seating here is
+host-assigned, not buyer-picked — risk drops from XL/HIGH to M/LOW. **033 stays PLANNED**
+for the concert/theatre case; do not stretch 038's model to cover it. 034 (RSVP) is not
+involved — this client's registration is already closed and owned externally.
+
 ## Wave 3 — settings IA + events SEO/perf/a11y (plans 035–037, authored 2026-07-14)
 
 Three independent plans from parallel read-only audits (settings-tab inventory,

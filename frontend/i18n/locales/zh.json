@@ -298,7 +298,9 @@
     "booth": {
       "sharedNote": "展位 {booth} 的运营文件和订购表由 {brand} 统一负责。",
       "anotherBrand": "其他品牌",
-      "label": "展位"
+      "label": "展位",
+      "shared": "共用展位",
+      "sharedWith": "与 {brands} 共用"
     },
     "profile": {
       "title": "完善个人信息",
@@ -441,10 +443,14 @@
       "order": "订单"
     },
     "eventCard": {
-      "booth": "展位",
       "promotion": "素材",
       "order": "订单",
-      "passed": "已截止"
+      "closes": "{label} {date} 截止",
+      "closed": "{label} 已于 {date} 截止",
+      "closesToday": "{label} 今天截止",
+      "closesTomorrow": "{label} 明天截止",
+      "closesInDays": "{label} {count} 天后截止",
+      "viewPoster": "查看活动海报"
     },
     "daysLeft": "剩{days}天"
   },

@@ -59,6 +59,7 @@ https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsK
 - URL API: `https://api.pmone.id/api/sheets/brands`
 - Sheet name: `Brands`
 - Berisi: profil brand, kategori bisnis, links + jumlah klik per link, total visits, custom fields
+- Kolom link selalu tujuh dan selalu di urutan yang sama: `Website`, `Instagram`, `Facebook`, `X`, `TikTok`, `LinkedIn`, `YouTube`, diikuti blok `... Click` dengan urutan yang sama. Brand yang tidak punya link tertentu isinya kosong, bukan `-`. Label buatan sendiri (opsi `Custom` di form brand) muncul setelah tujuh kolom itu
 
 **4. Brands - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/brands`
@@ -70,6 +71,7 @@ https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsK
 - URL API: `https://api.pmone.id/api/sheets/brand-events`
 - Sheet name: `Brand Events`
 - Berisi: satu baris per keikutsertaan brand di sebuah event (booth, sales PIC, status partisipasi, dsb)
+- Kolom link berperilaku sama dengan sheet Brands: tujuh kolom tetap, label custom menyusul di kanannya
 - Kolom `Promotion Post Image Link` berisi satu link per booth. Kalau brand itu punya satu gambar promosi, isinya URL gambar aslinya, jadi sekali klik gambarnya langsung terbuka. Kalau gambarnya lebih dari satu, isinya link yang mengunduh satu file zip berisi semua gambar itu. Booth tanpa gambar isinya `-`
 
 **6. Brand Events - [Nama Event]**
@@ -81,6 +83,7 @@ https://docs.google.com/spreadsheets/d/1Kyc0EX0i16Qxz0y8PWK0nXA6r5pwCQthnzXmMxsK
 - URL API: `https://api.pmone.id/api/sheets/orders`
 - Sheet name: `Orders`
 - Berisi: satu baris per item order dari SEMUA event. Ada kolom `Event ID` dan `Event Title` untuk memfilter/mengelompokkan per event (baris sudah dikelompokkan per event, order terbaru di atas)
+- Kolom `Participation Status` (setelah `Sales PIC`) adalah status keikutsertaan brand di event itu: `Active`, `Draft`, atau `Cancelled`. Nilainya sama dengan kolom bernama sama di sheet Brand Events
 
 **8. Orders - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/orders`
@@ -106,7 +109,7 @@ milik ORDER dan diulang di ketiga baris itu; sisanya milik baris/item tersebut.
 `SUM` biasa akan menghitung satu order berkali-kali. Pakai `Is First Line`:
 
 ```
-=SUMIF(AC:AC; TRUE; AK:AK)     // AC = Is First Line, AK = Order Total
+=SUMIF(AD:AD; TRUE; AL:AL)     // AD = Is First Line, AL = Order Total
 ```
 
 Kalau yang mau dijumlahkan nilai per item (`Item Total`, `Item Net Total`,
@@ -117,6 +120,7 @@ per baris.
 - URL API: `https://api.pmone.id/api/sheets/operational-documents`
 - Sheet name: `Operational Documents`
 - Berisi: satu baris per (brand event × dokumen), status pengumpulan dokumen operasional & event rules, riwayat file
+- Kolom `Participation Status` (setelah `Booth Type`) adalah status keikutsertaan brand di event itu, bukan status dokumen. Status dokumennya ada di kolom `Status`
 
 **10. Operational Documents - [Nama Event]**
 - URL API: `https://api.pmone.id/api/sheets/events/[EVENT_ID]/operational-documents`

@@ -178,3 +178,123 @@ it('orders the brand events sheet by booth', function () {
     expect(collect($response->json('rows'))->pluck($boothCol)->all())
         ->toBe(['A-1', 'A-2', 'A-10']);
 });
+
+/**
+ * An exhibitor holding one brand per booth. Written brand-first on purpose:
+ * this is exactly the shape that used to come back in `brand_user` order.
+ */
+function exhibitorWithBooths(Event $event, array $boothNumbers): User
+{
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    Role::firstOrCreate(['name' => 'exhibitor', 'guard_name' => 'web']);
+    $exhibitor->assignRole('exhibitor');
+
+    foreach ($boothNumbers as $index => $booth) {
+        $brand = Brand::factory()->create(['name' => 'Brand '.($index + 1)]);
+        $brand->users()->attach($exhibitor->id);
+
+        BrandEvent::factory()->create([
+            'brand_id' => $brand->id,
+            'event_id' => $event->id,
+            'booth_number' => $booth,
+            'status' => 'active',
+        ]);
+    }
+
+    return $exhibitor;
+}
+
+it('orders the exhibitor dashboard by booth across brands', function () {
+    $exhibitor = exhibitorWithBooths($this->event, ['A-10', 'A-2', 'A-1']);
+
+    $response = $this->actingAs($exhibitor)
+        ->getJson('/api/exhibitor/dashboard')
+        ->assertSuccessful();
+
+    expect(collect($response->json('data.brand_events'))->pluck('booth_number')->all())
+        ->toBe(['A-1', 'A-2', 'A-10']);
+});
+
+it('keeps brands sharing a booth next to each other on the dashboard', function () {
+    // The second CB-002 is added last, which is the reported bug: entered late,
+    // so it used to land at the bottom instead of beside its twin.
+    $exhibitor = exhibitorWithBooths($this->event, ['CB-001', 'CB-002', '6A-01', '6E-05', 'CB-002']);
+
+    $response = $this->actingAs($exhibitor)
+        ->getJson('/api/exhibitor/dashboard')
+        ->assertSuccessful();
+
+    expect(collect($response->json('data.brand_events'))->pluck('booth_number')->all())
+        ->toBe(['6A-01', '6E-05', 'CB-001', 'CB-002', 'CB-002']);
+});
+
+it('groups the dashboard by event newest first', function () {
+    $older = Event::factory()->published()->create([
+        'project_id' => $this->project->id,
+        'slug' => 'older-event',
+        'is_active' => true,
+        'start_date' => now()->subYear(),
+        'end_date' => now()->subYear()->addDays(3),
+    ]);
+    $this->event->update([
+        'start_date' => now()->addMonth(),
+        'end_date' => now()->addMonth()->addDays(3),
+    ]);
+
+    $exhibitor = User::factory()->create(['email_verified_at' => now()]);
+    Role::firstOrCreate(['name' => 'exhibitor', 'guard_name' => 'web']);
+    $exhibitor->assignRole('exhibitor');
+
+    // Attached older-event-first so insertion order is the opposite of the
+    // expected output.
+    foreach ([[$older, 'B-01'], [$this->event, 'B-01']] as [$event, $booth]) {
+        $brand = Brand::factory()->create();
+        $brand->users()->attach($exhibitor->id);
+        BrandEvent::factory()->create([
+            'brand_id' => $brand->id,
+            'event_id' => $event->id,
+            'booth_number' => $booth,
+            'status' => 'active',
+        ]);
+    }
+
+    $response = $this->actingAs($exhibitor)
+        ->getJson('/api/exhibitor/dashboard')
+        ->assertSuccessful();
+
+    expect(collect($response->json('data.brand_events'))->pluck('event.slug')->all())
+        ->toBe(['booth-order-event', 'older-event']);
+});
+
+it('names the other brands sharing a booth', function () {
+    $exhibitor = exhibitorWithBooths($this->event, ['CB-002', 'A-01']);
+
+    // A brand this exhibitor does not own, on the same booth.
+    $outsider = Brand::factory()->create(['name' => 'Outsider Co']);
+    BrandEvent::factory()->create([
+        'brand_id' => $outsider->id,
+        'event_id' => $this->event->id,
+        'booth_number' => 'CB-002',
+        'status' => 'active',
+    ]);
+
+    $response = $this->actingAs($exhibitor)
+        ->getJson('/api/exhibitor/dashboard')
+        ->assertSuccessful();
+
+    $byBooth = collect($response->json('data.brand_events'))->keyBy('booth_number');
+
+    expect($byBooth['CB-002']['booth_shared_with'])->toBe(['Outsider Co'])
+        ->and($byBooth['A-01']['booth_shared_with'])->toBe([]);
+});
+
+it('orders brands within an event by booth on my events', function () {
+    $exhibitor = exhibitorWithBooths($this->event, ['A-10', 'A-2', 'A-1']);
+
+    $response = $this->actingAs($exhibitor)
+        ->getJson('/api/exhibitor/events')
+        ->assertSuccessful();
+
+    expect(collect($response->json('data.0.brands'))->pluck('booth_number')->all())
+        ->toBe(['A-1', 'A-2', 'A-10']);
+});

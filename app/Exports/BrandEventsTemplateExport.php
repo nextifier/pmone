@@ -2,6 +2,8 @@
 
 namespace App\Exports;
 
+use App\Support\LinkLabels;
+
 class BrandEventsTemplateExport extends BaseTemplateExport
 {
     public function array(): array
@@ -21,9 +23,9 @@ class BrandEventsTemplateExport extends BaseTemplateExport
                 'https://example.com/logos/brand-a.png',
                 'https://brand-a.com',
                 'https://www.instagram.com/branda',
-                'https://www.tiktok.com/@branda',
                 'https://www.facebook.com/branda',
                 'https://x.com/branda',
+                'https://www.tiktok.com/@branda',
                 'https://www.linkedin.com/company/branda',
                 'https://www.youtube.com/@branda',
                 'Food & Beverage, Franchise',
@@ -99,13 +101,7 @@ class BrandEventsTemplateExport extends BaseTemplateExport
             'Status',
             'Description',
             'Brand Logo',
-            'Website',
-            'Instagram',
-            'TikTok',
-            'Facebook',
-            'X',
-            'LinkedIn',
-            'YouTube',
+            ...LinkLabels::PREDEFINED,
             'Business Categories',
             'Business Concept',
             'Branch Total',

@@ -1,63 +1,81 @@
 <template>
-  <div class="space-y-5">
-    <!-- Event header (rendered once per event) -->
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-      <img
-        v-if="posterUrl"
-        :src="posterUrl"
-        :alt="event.title"
-        :width="event.poster_image?.width || undefined"
-        :height="event.poster_image?.height || undefined"
-        class="border-border w-full rounded-xl border object-contain sm:max-w-xs"
-      />
+  <section class="space-y-5">
+    <!-- Event header, rendered once per event. The poster identifies the event
+         at a glance; it is not the content, so it stays at thumbnail scale and
+         the clock gets the width instead. -->
+    <header class="border-border flex items-start gap-3 border-b pb-5 sm:gap-4">
+      <!-- Fixed height, natural width: the poster keeps its own proportions
+           rather than being letterboxed into a square. Tap opens it full size. -->
+      <Lightbox
+        v-if="posterItems.length"
+        :items="posterItems"
+        :show-thumbnails="false"
+        :show-share="false"
+      >
+        <template #trigger="{ openAt }">
+          <button
+            type="button"
+            class="group bg-muted relative shrink-0 cursor-zoom-in overflow-hidden rounded-lg border"
+            :aria-label="$t('ed.eventCard.viewPoster')"
+            @click="openAt(0)"
+          >
+            <img :src="posterUrl" :alt="posterAlt" class="h-20 w-auto max-w-24 sm:h-24 sm:max-w-28" />
+            <span
+              class="bg-foreground/0 group-hover:bg-foreground/20 absolute inset-0 flex items-center justify-center transition-colors"
+            >
+              <Icon
+                name="lucide:zoom-in"
+                class="text-background size-5 opacity-0 transition-opacity group-hover:opacity-100"
+              />
+            </span>
+          </button>
+        </template>
+      </Lightbox>
       <div
         v-else
-        class="bg-muted text-muted-foreground flex aspect-video w-full items-center justify-center rounded-xl sm:max-w-xs"
+        class="border-border bg-muted text-muted-foreground flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border sm:h-24 sm:w-24"
       >
-        <Icon name="hugeicons:calendar-03" class="size-8" />
+        <Icon name="hugeicons:calendar-03" class="size-6" />
       </div>
 
-      <div class="min-w-0 flex-1 space-y-2">
-        <h2 class="text-xl font-semibold tracking-tighter sm:text-2xl">{{ event.title }}</h2>
-        <div class="text-muted-foreground flex flex-col gap-1 text-sm tracking-tight sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-1">
-          <span v-if="event.date_label" class="flex items-center gap-1.5">
-            <Icon name="hugeicons:calendar-03" class="size-4 shrink-0" />
-            {{ event.date_label }}
-          </span>
+      <div class="min-w-0 flex-1 space-y-1">
+        <h2 class="text-xl font-semibold tracking-tighter text-balance sm:text-2xl">
+          {{ event.title }}
+        </h2>
+
+        <div
+          v-if="event.date_label || event.location"
+          class="text-muted-foreground flex flex-col text-sm tracking-tight sm:flex-row sm:flex-wrap sm:items-center"
+        >
+          <span v-if="event.date_label">{{ event.date_label }}</span>
           <span
             v-if="event.date_label && event.location"
-            class="text-muted-foreground/40 hidden sm:inline"
+            class="text-muted-foreground/40 hidden px-1.5 sm:inline"
             >·</span
           >
-          <span v-if="event.location" class="flex items-center gap-1.5">
-            <Icon name="hugeicons:location-01" class="size-4 shrink-0" />
-            {{ event.location }}
-          </span>
+          <span v-if="event.location">{{ event.location }}</span>
         </div>
 
-        <!-- Event-level deadlines -->
-        <div v-if="deadlines.length" class="flex flex-col gap-1.5 pt-1 sm:flex-row sm:flex-wrap sm:gap-x-4">
+        <!-- Event-level deadlines. Colour reports the state, the sentence says it
+             too, so it survives a screen the exhibitor cannot see colour on. -->
+        <div
+          v-if="deadlines.length"
+          class="flex flex-col gap-x-4 gap-y-1 pt-1.5 sm:flex-row sm:flex-wrap"
+        >
           <div
             v-for="dl in deadlines"
-            :key="dl.label"
-            class="flex items-center gap-1.5 text-sm tracking-tight"
-            :class="
-              dl.passed
-                ? 'text-destructive-foreground'
-                : dl.urgent
-                  ? 'text-warning-foreground'
-                  : 'text-muted-foreground'
-            "
+            :key="dl.key"
+            class="flex items-start gap-1.5 text-sm tracking-tight"
+            :class="dl.tone"
           >
-            <Icon :name="dl.passed ? 'hugeicons:alert-02' : dl.icon" class="size-4 shrink-0" />
-            <span>
-              {{ dl.label }}: {{ dl.date }}
-              <template v-if="dl.passed">({{ $t("ed.eventCard.passed") }})</template>
-            </span>
+            <!-- Top-aligned, not centred: a longer translation wraps to two
+                 lines and the icon has to stay with the first one. -->
+            <Icon :name="dl.icon" class="mt-0.5 size-4 shrink-0" />
+            <span>{{ dl.text }}</span>
           </div>
         </div>
       </div>
-    </div>
+    </header>
 
     <!-- Brand cards -->
     <div class="space-y-4">
@@ -72,10 +90,12 @@
         @refresh="$emit('refresh')"
       />
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
+import { Lightbox } from "@/components/ui/lightbox";
+
 const { t, locale } = useI18n();
 
 const props = defineProps({
@@ -98,14 +118,30 @@ function openAndScroll(beId, sectionKey) {
 
 defineExpose({ openAndScroll });
 
-const posterUrl = computed(() => {
-  const poster = props.event.poster_image;
-  if (!poster) return null;
-  const lg = poster.lg;
-  return (typeof lg === "object" ? lg?.url : lg) || poster.md || poster.url || null;
+// Spatie media URLs come keyed lqip/sm/md/lg/xl (+ url/alt/width/height).
+const poster = computed(() => props.event.poster_image || null);
+const posterUrl = computed(() => poster.value?.sm || poster.value?.md || poster.value?.url || null);
+const posterAlt = computed(() => poster.value?.alt || props.event.title);
+
+const posterItems = computed(() => {
+  const p = poster.value;
+  if (!posterUrl.value) return [];
+
+  return [
+    {
+      sm: p.sm,
+      md: p.md,
+      lg: p.lg,
+      xl: p.xl,
+      url: p.url,
+      alt: posterAlt.value,
+      caption: props.event.title || undefined,
+      downloadUrl: p.original || p.url,
+    },
+  ];
 });
 
-const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
+const dateLocale = computed(() => exhibitorDateLocale(locale.value));
 
 function formatDeadline(dateStr) {
   if (!dateStr) return "";
@@ -116,37 +152,58 @@ function formatDeadline(dateStr) {
   });
 }
 
-function isUrgent(dateStr) {
-  if (!dateStr) return false;
-  const daysLeft = Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
-  return daysLeft > 0 && daysLeft <= 7;
+// Whole calendar days from today, so a deadline at 09:00 tomorrow reads
+// "tomorrow" rather than "in 0 days".
+function daysUntil(dateStr) {
+  const target = new Date(dateStr);
+  const startOfTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return Math.round((startOfTarget - startOfToday) / 86400000);
 }
 
-function hasPassed(dateStr) {
-  return !!dateStr && new Date(dateStr) < new Date();
+/**
+ * A raw date is not actionable, so anything closing within a week says how long
+ * is left instead. Past that, the date itself is the more useful fact.
+ */
+function deadlineState(dateStr) {
+  if (new Date(dateStr) < new Date()) {
+    return { tone: "text-destructive-foreground", key: "closed" };
+  }
+
+  const days = daysUntil(dateStr);
+
+  if (days === 0) return { tone: "text-warning-foreground", key: "closesToday" };
+  if (days === 1) return { tone: "text-warning-foreground", key: "closesTomorrow" };
+  if (days <= 7) return { tone: "text-warning-foreground", key: "closesInDays", count: days };
+
+  return { tone: "text-muted-foreground", key: "closes" };
 }
 
+// Deadlines belong to the event, not the booth, so any brand-event in this group
+// carries the same pair.
 const deadlines = computed(() => {
   const first = props.brandEvents[0] || {};
-  const items = [];
-  if (first.promotion_post_deadline) {
-    items.push({
-      label: t("ed.eventCard.promotion"),
-      date: formatDeadline(first.promotion_post_deadline),
-      icon: "hugeicons:image-02",
-      urgent: isUrgent(first.promotion_post_deadline),
-      passed: hasPassed(first.promotion_post_deadline),
+
+  return [
+    { key: "promotion", date: first.promotion_post_deadline, icon: "hugeicons:image-02" },
+    { key: "order", date: first.order_form_deadline, icon: "hugeicons:shopping-cart-01" },
+  ]
+    .filter((item) => item.date)
+    .map((item) => {
+      const state = deadlineState(item.date);
+
+      return {
+        key: item.key,
+        icon: item.icon,
+        tone: state.tone,
+        text: t(`ed.eventCard.${state.key}`, {
+          label: t(`ed.eventCard.${item.key}`),
+          date: formatDeadline(item.date),
+          count: state.count ?? 0,
+        }),
+      };
     });
-  }
-  if (first.order_form_deadline) {
-    items.push({
-      label: t("ed.eventCard.order"),
-      date: formatDeadline(first.order_form_deadline),
-      icon: "hugeicons:shopping-cart-01",
-      urgent: isUrgent(first.order_form_deadline),
-      passed: hasPassed(first.order_form_deadline),
-    });
-  }
-  return items;
 });
 </script>

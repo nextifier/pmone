@@ -310,7 +310,9 @@
     "booth": {
       "sharedNote": "Operational documents and the order form for booth {booth} are managed under {brand}.",
       "anotherBrand": "another brand",
-      "label": "Booth"
+      "label": "Booth",
+      "shared": "Shared booth",
+      "sharedWith": "Shared with {brands}"
     },
     "profile": {
       "title": "Complete Your Profile",
@@ -453,10 +455,14 @@
       "order": "Order"
     },
     "eventCard": {
-      "booth": "Booth",
       "promotion": "Promotion",
       "order": "Order",
-      "passed": "passed"
+      "closes": "{label} closes {date}",
+      "closed": "{label} closed {date}",
+      "closesToday": "{label} closes today",
+      "closesTomorrow": "{label} closes tomorrow",
+      "closesInDays": "{label} closes in {count} days",
+      "viewPoster": "View event poster"
     },
     "daysLeft": "{days}d left"
   },

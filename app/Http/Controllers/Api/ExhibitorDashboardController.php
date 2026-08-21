@@ -45,6 +45,28 @@ class ExhibitorDashboardController extends Controller
     private const PROFILE_FIELDS = ['name', 'phone', 'title', 'company_name'];
 
     /**
+     * Profile fields a brand still has to fill in before its card counts as
+     * complete. Labels are what the dashboard shows the exhibitor.
+     *
+     * @return array<int, string>
+     */
+    private function brandMissingFields(Brand $brand): array
+    {
+        $hasAddress = collect($brand->address ?? [])->contains(fn ($value) => filled($value));
+
+        return collect([
+            'company_name' => 'Company Name',
+            'company_email' => 'Email',
+            'company_phone' => 'Phone',
+            'address' => 'Address',
+            'description' => 'Description',
+        ])->filter(fn ($label, $field) => $field === 'address'
+            ? ! $hasAddress
+            : empty($brand->{$field})
+        )->values()->all();
+    }
+
+    /**
      * Exhibitor dashboard - step-by-step progress per brand-event.
      */
     public function dashboard(Request $request): JsonResponse
@@ -53,24 +75,36 @@ class ExhibitorDashboardController extends Controller
 
         $profileComplete = $this->isProfileComplete($user);
 
-        $brands = $user->brands()->with([
-            'media',
-            'brandEvents' => function ($q) {
-                $q->whereHas('event', fn ($e) => $e->where('is_active', true))
-                    ->with(['event.media', 'event.project', 'event.eventDocuments' => function ($q2) {
-                        // Hidden documents drop out here, which is what keeps them
-                        // out of the steps, the progress counters, and the rules
-                        // gate further down - all of those read this relation.
-                        $q2->active()->with(['media', 'fields'])->ordered();
-                    }])
-                    ->withCount(['promotionPosts', 'orders']);
-            },
-        ])->get();
+        // Queried brand-event-first, not brand-first. Eager-loading through
+        // `brands` would bucket the rows back onto each brand, so `orderedByBooth`
+        // would only ever sort inside one brand's own list - an exhibitor with six
+        // one-booth brands would get six sorted lists of one and see them in
+        // `brand_user` order.
+        $brandEvents = BrandEvent::query()
+            ->whereIn('brand_id', $user->brands()->select('brands.id'))
+            ->whereHas('event', fn ($e) => $e->where('is_active', true))
+            ->with([
+                'brand.media',
+                'event.media',
+                'event.project',
+                // Hidden documents drop out here, which is what keeps them out of
+                // the steps, the progress counters, and the rules gate further
+                // down - all of those read this relation.
+                'event.eventDocuments' => fn ($q) => $q->active()->with(['media', 'fields'])->ordered(),
+            ])
+            ->withCount(['promotionPosts', 'orders'])
+            ->orderedByBooth()
+            ->get();
 
-        // Collect all brand-event IDs to batch-load submissions
-        $allBrandEvents = $brands->flatMap(fn (Brand $b) => $b->brandEvents);
-        $boothIdentifiers = $allBrandEvents->map(fn (BrandEvent $be) => $be->booth_number ?: "be-{$be->id}");
-        $eventIds = $allBrandEvents->pluck('event_id')->unique();
+        // Newest event first. A stable sort, so the booth order SQL just produced
+        // survives inside each event. Never sort on `date_label` - that is a
+        // display string like "Thu-Sun, Mar 12-15, 2026" and sorts by weekday name.
+        $brandEvents = $brandEvents->sortByDesc(
+            fn (BrandEvent $be) => $be->event?->start_date?->getTimestamp() ?? 0
+        );
+
+        $boothIdentifiers = $brandEvents->map(fn (BrandEvent $be) => $be->booth_number ?: "be-{$be->id}");
+        $eventIds = $brandEvents->pluck('event_id')->unique();
 
         // Batch load all submissions for these events + booths
         $allSubmissions = EventDocumentSubmission::query()
@@ -80,162 +114,153 @@ class ExhibitorDashboardController extends Controller
             ->get()
             ->groupBy(fn ($s) => "{$s->event_id}:{$s->booth_identifier}:{$s->event_document_id}");
 
-        // Resolve the primary brand-event per shared booth across ALL brands in
-        // these events (not just this user's), so a booth used by several brands
-        // has a single owner for operational documents + the order form.
-        $boothPrimaries = BrandEvent::query()
+        // Everyone sharing each booth across ALL brands in these events, not just
+        // this user's, ordered by id so the first entry of a group is the lowest
+        // id - the same owner `BrandEvent::boothPrimaryId()` picks for operational
+        // documents and the order form.
+        $boothOccupants = BrandEvent::query()
             ->whereIn('event_id', $eventIds)
             ->whereNotNull('booth_number')
-            ->selectRaw('MIN(id) as primary_id, event_id, booth_number')
-            ->groupBy('event_id', 'booth_number')
-            ->get();
-
-        $primaryIdByBooth = $boothPrimaries->mapWithKeys(
-            fn ($row) => ["{$row->event_id}|{$row->booth_number}" => (int) $row->primary_id]
-        );
-
-        $primaryBrandNames = BrandEvent::query()
-            ->whereIn('id', $primaryIdByBooth->values()->all())
             ->with('brand:id,name')
-            ->get()
-            ->mapWithKeys(fn (BrandEvent $be) => [$be->id => $be->brand?->name]);
+            ->orderBy('id')
+            ->get(['id', 'event_id', 'booth_number', 'brand_id'])
+            ->groupBy(fn (BrandEvent $be) => "{$be->event_id}|{$be->booth_number}");
 
-        $brandEventsData = $brands->flatMap(function (Brand $brand) use ($allSubmissions, $primaryIdByBooth, $primaryBrandNames) {
-            $hasAddress = collect($brand->address ?? [])->contains(fn ($value) => filled($value));
+        // Cheap on its own, but it is per-brand while the map below is per
+        // brand-event, and one brand can hold several booths.
+        $missingFieldsByBrand = $brandEvents
+            ->pluck('brand')
+            ->filter()
+            ->unique('id')
+            ->mapWithKeys(fn (Brand $brand) => [$brand->id => $this->brandMissingFields($brand)]);
 
-            $brandMissingFields = collect([
-                'company_name' => 'Company Name',
-                'company_email' => 'Email',
-                'company_phone' => 'Phone',
-                'address' => 'Address',
-                'description' => 'Description',
-            ])->filter(fn ($label, $field) => $field === 'address'
-                ? ! $hasAddress
-                : empty($brand->{$field})
-            )->values()->all();
+        $brandEventsData = $brandEvents->map(function (BrandEvent $be) use ($allSubmissions, $boothOccupants, $missingFieldsByBrand) {
+            $brand = $be->brand;
+            $event = $be->event;
+            if (! $brand || ! $event) {
+                return null;
+            }
 
-            return $brand->brandEvents->map(function (BrandEvent $be) use ($brand, $brandMissingFields, $allSubmissions, $primaryIdByBooth, $primaryBrandNames) {
-                $event = $be->event;
-                if (! $event) {
-                    return null;
-                }
+            $brandMissingFields = $missingFieldsByBrand[$brand->id] ?? [];
 
-                $boothIdentifier = $be->booth_number ?: "be-{$be->id}";
-                $boothTypeValue = $be->booth_type?->value;
+            $boothIdentifier = $be->booth_number ?: "be-{$be->id}";
+            $boothTypeValue = $be->booth_type?->value;
 
-                // Booth-primary: a brand-event without a booth number owns its own
-                // booth; otherwise the lowest-id brand-event on that booth owns it.
-                $primaryId = empty($be->booth_number)
-                    ? $be->id
-                    : ($primaryIdByBooth["{$be->event_id}|{$be->booth_number}"] ?? $be->id);
-                $isBoothPrimary = $primaryId === $be->id;
-                $boothPrimaryBrandName = $isBoothPrimary ? null : ($primaryBrandNames[$primaryId] ?? null);
+            // Booth-primary: a brand-event without a booth number owns its own
+            // booth; otherwise the lowest-id brand-event on that booth owns it.
+            $occupants = empty($be->booth_number)
+                ? collect()
+                : ($boothOccupants["{$be->event_id}|{$be->booth_number}"] ?? collect());
+            $primary = $occupants->first();
+            $isBoothPrimary = $primary === null || $primary->id === $be->id;
+            $boothPrimaryBrandName = $isBoothPrimary ? null : $primary->brand?->name;
+            $boothSharedWith = $occupants
+                ->reject(fn (BrandEvent $occupant) => $occupant->id === $be->id)
+                ->map(fn (BrandEvent $occupant) => $occupant->brand?->name)
+                ->filter()
+                ->values()
+                ->all();
 
-                // Filter documents by booth type
-                $applicableDocs = $event->eventDocuments
-                    ->filter(fn ($doc) => $doc->appliesToBoothType($boothTypeValue))
-                    ->values();
+            // Filter documents by booth type
+            $applicableDocs = $event->eventDocuments
+                ->filter(fn ($doc) => $doc->appliesToBoothType($boothTypeValue))
+                ->values();
 
-                // Split: event rules (blocking checkbox) vs operational documents
-                $eventRules = $applicableDocs->filter(fn ($doc) => $doc->isEventRule());
-                $operationalDocs = $applicableDocs->filter(fn ($doc) => ! $doc->isEventRule());
+            // Split: event rules (blocking checkbox) vs operational documents
+            $eventRules = $applicableDocs->filter(fn ($doc) => $doc->isEventRule());
+            $operationalDocs = $applicableDocs->filter(fn ($doc) => ! $doc->isEventRule());
 
-                // Build event rules with submission status
-                $eventRulesData = $eventRules->map(function ($doc) use ($event, $boothIdentifier, $allSubmissions) {
-                    $key = "{$event->id}:{$boothIdentifier}:{$doc->id}";
-                    $submission = $allSubmissions->get($key)?->first();
-                    $needsReagreement = $submission && $submission->document_version < $doc->content_version;
-
-                    return [
-                        'document' => new EventDocumentResource($doc),
-                        'agreed' => $submission && $submission->agreed_at && ! $needsReagreement,
-                        'needs_reagreement' => $needsReagreement,
-                        'submission' => $submission ? [
-                            'agreed_at' => $submission->agreed_at?->toIso8601String(),
-                            'document_version' => $submission->document_version,
-                            'submitter_name' => $submission->submitter?->name,
-                        ] : null,
-                    ];
-                })->values();
-
-                $allRulesAgreed = $eventRulesData->every(fn ($r) => $r['agreed']);
-
-                // Build operational documents summary
-                $docsData = $operationalDocs->map(function ($doc) use ($event, $boothIdentifier, $allSubmissions) {
-                    $key = "{$event->id}:{$boothIdentifier}:{$doc->id}";
-                    $submission = $allSubmissions->get($key)?->first();
-
-                    $status = 'pending';
-                    if ($submission) {
-                        if ($submission->document_version < $doc->content_version) {
-                            $status = 'needs_reagreement';
-                        } elseif ($doc->isSubmissionComplete($submission)) {
-                            $status = 'completed';
-                        }
-                    }
-
-                    return [
-                        'document' => new EventDocumentResource($doc),
-                        'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
-                        'status' => $status,
-                    ];
-                })->values();
-
-                $docsTotal = $docsData->count();
-                $docsCompleted = $docsData->where('status', 'completed')->count();
+            // Build event rules with submission status
+            $eventRulesData = $eventRules->map(function ($doc) use ($event, $boothIdentifier, $allSubmissions) {
+                $key = "{$event->id}:{$boothIdentifier}:{$doc->id}";
+                $submission = $allSubmissions->get($key)?->first();
+                $needsReagreement = $submission && $submission->document_version < $doc->content_version;
 
                 return [
-                    'brand_event_id' => $be->id,
-                    'brand' => [
-                        'id' => $brand->id,
-                        'name' => $brand->name,
-                        'slug' => $brand->slug,
-                        'profile_image' => $brand->profile_image,
-                        'brand_logo' => $brand->brand_logo,
-                        'is_complete' => empty($brandMissingFields),
-                        'missing_fields' => $brandMissingFields,
-                    ],
-                    'event' => [
-                        'id' => $event->id,
-                        'title' => $event->title,
-                        'slug' => $event->slug,
-                        'date_label' => $event->date_label,
-                        'location' => $event->location,
-                        'poster_image' => $event->poster_image,
-                        'project_contact' => $event->project?->whatsappContactNumber(),
-                    ],
-                    'booth_number' => $be->booth_number,
-                    'booth_type' => $boothTypeValue,
-                    'booth_type_label' => $be->booth_type?->label(),
-                    'is_booth_primary' => $isBoothPrimary,
-                    'booth_primary_brand_name' => $boothPrimaryBrandName,
-                    'fascia_name' => $be->fascia_name,
-                    'badge_name' => $be->badge_name,
-                    'event_rules' => $eventRulesData,
-                    'event_rules_agreed' => $allRulesAgreed,
-                    'brand_complete' => empty($brandMissingFields),
-                    'promotion_posts_count' => $be->promotion_posts_count,
-                    'promotion_post_limit' => $be->promotion_post_limit,
-                    'promotion_post_deadline' => $event->promotion_post_deadline?->toIso8601String(),
-                    'documents' => $docsData,
-                    'documents_total' => $docsTotal,
-                    'documents_completed' => $docsCompleted,
-                    'orders_count' => $be->orders_count,
-                    'order_form_deadline' => $event->order_form_deadline?->toIso8601String(),
-                    'normal_order_opens_at' => $event->normal_order_opens_at?->toIso8601String(),
-                    'normal_order_closes_at' => $event->normal_order_closes_at?->toIso8601String(),
-                    'onsite_order_opens_at' => $event->onsite_order_opens_at?->toIso8601String(),
-                    'onsite_order_closes_at' => $event->onsite_order_closes_at?->toIso8601String(),
-                    'onsite_penalty_rate' => $event->onsite_penalty_rate,
+                    'document' => new EventDocumentResource($doc),
+                    'agreed' => $submission && $submission->agreed_at && ! $needsReagreement,
+                    'needs_reagreement' => $needsReagreement,
+                    'submission' => $submission ? [
+                        'agreed_at' => $submission->agreed_at?->toIso8601String(),
+                        'document_version' => $submission->document_version,
+                        'submitter_name' => $submission->submitter?->name,
+                    ] : null,
                 ];
-            })->filter();
-        })
-            ->sortBy(function ($item) {
-                $endDate = $item['event']['date_label'] ?? null;
+            })->values();
 
-                return $endDate ?? 'zzz';
-            })
-            ->values();
+            $allRulesAgreed = $eventRulesData->every(fn ($r) => $r['agreed']);
+
+            // Build operational documents summary
+            $docsData = $operationalDocs->map(function ($doc) use ($event, $boothIdentifier, $allSubmissions) {
+                $key = "{$event->id}:{$boothIdentifier}:{$doc->id}";
+                $submission = $allSubmissions->get($key)?->first();
+
+                $status = 'pending';
+                if ($submission) {
+                    if ($submission->document_version < $doc->content_version) {
+                        $status = 'needs_reagreement';
+                    } elseif ($doc->isSubmissionComplete($submission)) {
+                        $status = 'completed';
+                    }
+                }
+
+                return [
+                    'document' => new EventDocumentResource($doc),
+                    'submission' => $submission ? new EventDocumentSubmissionResource($submission) : null,
+                    'status' => $status,
+                ];
+            })->values();
+
+            $docsTotal = $docsData->count();
+            $docsCompleted = $docsData->where('status', 'completed')->count();
+
+            return [
+                'brand_event_id' => $be->id,
+                'brand' => [
+                    'id' => $brand->id,
+                    'name' => $brand->name,
+                    'slug' => $brand->slug,
+                    'profile_image' => $brand->profile_image,
+                    'brand_logo' => $brand->brand_logo,
+                    'is_complete' => empty($brandMissingFields),
+                    'missing_fields' => $brandMissingFields,
+                ],
+                'event' => [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'slug' => $event->slug,
+                    'date_label' => $event->date_label,
+                    'start_date' => $event->start_date?->toIso8601String(),
+                    'location' => $event->location,
+                    'poster_image' => $event->poster_image,
+                    'project_contact' => $event->project?->whatsappContactNumber(),
+                ],
+                'booth_number' => $be->booth_number,
+                'booth_type' => $boothTypeValue,
+                'booth_type_label' => $be->booth_type?->label(),
+                'is_booth_primary' => $isBoothPrimary,
+                'booth_primary_brand_name' => $boothPrimaryBrandName,
+                'booth_shared_with' => $boothSharedWith,
+                'fascia_name' => $be->fascia_name,
+                'badge_name' => $be->badge_name,
+                'event_rules' => $eventRulesData,
+                'event_rules_agreed' => $allRulesAgreed,
+                'brand_complete' => empty($brandMissingFields),
+                'promotion_posts_count' => $be->promotion_posts_count,
+                'promotion_post_limit' => $be->promotion_post_limit,
+                'promotion_post_deadline' => $event->promotion_post_deadline?->toIso8601String(),
+                'documents' => $docsData,
+                'documents_total' => $docsTotal,
+                'documents_completed' => $docsCompleted,
+                'orders_count' => $be->orders_count,
+                'order_form_deadline' => $event->order_form_deadline?->toIso8601String(),
+                'normal_order_opens_at' => $event->normal_order_opens_at?->toIso8601String(),
+                'normal_order_closes_at' => $event->normal_order_closes_at?->toIso8601String(),
+                'onsite_order_opens_at' => $event->onsite_order_opens_at?->toIso8601String(),
+                'onsite_order_closes_at' => $event->onsite_order_closes_at?->toIso8601String(),
+                'onsite_penalty_rate' => $event->onsite_penalty_rate,
+            ];
+        })->filter()->values();
 
         return response()->json([
             'data' => [
@@ -260,56 +285,58 @@ class ExhibitorDashboardController extends Controller
     {
         $user = $request->user();
 
-        $brands = $user->brands()->with([
-            'media',
-            'brandEvents' => function ($q) {
-                $q->with(['event.media'])
-                    ->withCount(['promotionPosts', 'orders']);
-            },
-        ])->get();
+        // Brand-event-first for the same reason as dashboard(): eager-loading
+        // through `brands` buckets the rows per brand, so booth order would only
+        // hold inside one brand's list. Unlike the dashboard this one keeps
+        // inactive events - it sorts them to the bottom instead of hiding them.
+        $brandEvents = BrandEvent::query()
+            ->whereIn('brand_id', $user->brands()->select('brands.id'))
+            ->with(['brand.media', 'event.media'])
+            ->withCount(['promotionPosts', 'orders'])
+            ->orderedByBooth()
+            ->get();
 
         // Group brand-events by event, each event may have multiple brands
         $eventMap = [];
 
-        foreach ($brands as $brand) {
-            foreach ($brand->brandEvents as $be) {
-                $event = $be->event;
-                if (! $event) {
-                    continue;
-                }
+        foreach ($brandEvents as $be) {
+            $brand = $be->brand;
+            $event = $be->event;
+            if (! $brand || ! $event) {
+                continue;
+            }
 
-                $eventId = $event->id;
+            $eventId = $event->id;
 
-                if (! isset($eventMap[$eventId])) {
-                    $eventMap[$eventId] = [
-                        'id' => $event->id,
-                        'title' => $event->title,
-                        'slug' => $event->slug,
-                        'date_label' => $event->date_label,
-                        'location' => $event->location,
-                        'venue' => $event->venue,
-                        'start_date' => $event->start_date?->toIso8601String(),
-                        'end_date' => $event->end_date?->toIso8601String(),
-                        'poster_image' => $event->poster_image,
-                        'is_active' => $event->is_active,
-                        'brands' => [],
-                    ];
-                }
-
-                $eventMap[$eventId]['brands'][] = [
-                    'brand_event_id' => $be->id,
-                    'id' => $brand->id,
-                    'name' => $brand->name,
-                    'slug' => $brand->slug,
-                    'profile_image' => $brand->profile_image,
-                    'brand_logo' => $brand->brand_logo,
-                    'booth_number' => $be->booth_number,
-                    'booth_type' => $be->booth_type?->value,
-                    'booth_type_label' => $be->booth_type?->label(),
-                    'promotion_posts_count' => $be->promotion_posts_count,
-                    'orders_count' => $be->orders_count,
+            if (! isset($eventMap[$eventId])) {
+                $eventMap[$eventId] = [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'slug' => $event->slug,
+                    'date_label' => $event->date_label,
+                    'location' => $event->location,
+                    'venue' => $event->venue,
+                    'start_date' => $event->start_date?->toIso8601String(),
+                    'end_date' => $event->end_date?->toIso8601String(),
+                    'poster_image' => $event->poster_image,
+                    'is_active' => $event->is_active,
+                    'brands' => [],
                 ];
             }
+
+            $eventMap[$eventId]['brands'][] = [
+                'brand_event_id' => $be->id,
+                'id' => $brand->id,
+                'name' => $brand->name,
+                'slug' => $brand->slug,
+                'profile_image' => $brand->profile_image,
+                'brand_logo' => $brand->brand_logo,
+                'booth_number' => $be->booth_number,
+                'booth_type' => $be->booth_type?->value,
+                'booth_type_label' => $be->booth_type?->label(),
+                'promotion_posts_count' => $be->promotion_posts_count,
+                'orders_count' => $be->orders_count,
+            ];
         }
 
         // Sort: active events first, then by start_date descending

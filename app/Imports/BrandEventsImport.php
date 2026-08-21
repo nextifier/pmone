@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\BrandEvent;
 use App\Models\User;
 use App\Support\InputNormalizer;
+use App\Support\LinkLabels;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Email;
@@ -364,15 +365,11 @@ class BrandEventsImport implements SkipsEmptyRows, SkipsOnFailure, ToModel, With
 
     private function createLinks(Brand $brand, array $row): void
     {
-        $linkMap = [
-            'website' => 'Website',
-            'instagram' => 'Instagram',
-            'tiktok' => 'TikTok',
-            'facebook' => 'Facebook',
-            'x' => 'X',
-            'linkedin' => 'LinkedIn',
-            'youtube' => 'YouTube',
-        ];
+        // Keyed by the sheet's snake_cased heading, so the template's column
+        // order does not matter here.
+        $linkMap = collect(LinkLabels::PREDEFINED)
+            ->mapWithKeys(fn (string $label) => [mb_strtolower($label) => $label])
+            ->all();
 
         $existingLabels = $brand->links()->pluck('label')->map(fn ($l) => strtolower($l))->toArray();
         $order = $brand->links()->max('order') ?? -1;

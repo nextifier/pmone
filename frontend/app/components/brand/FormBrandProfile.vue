@@ -413,7 +413,6 @@ watch(
 );
 
 // Links
-const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
 
 const brandLinks = reactive(seedPredefinedLinks(props.brand?.links, PREDEFINED_LINK_LABELS));
 

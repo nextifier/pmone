@@ -88,7 +88,6 @@ const emit = defineEmits<{
   cancel: [];
 }>();
 
-const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
 
 const form = ref({
   name: props.guest?.name ?? "",

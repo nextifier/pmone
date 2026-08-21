@@ -179,7 +179,7 @@
                       <SelectValue placeholder="Select label" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem v-for="label in PREDEFINED_LABELS" :key="label" :value="label">
+                      <SelectItem v-for="label in PREDEFINED_LINK_LABELS" :key="label" :value="label">
                         {{ label }}
                       </SelectItem>
                       <SelectItem value="Custom">Custom</SelectItem>
@@ -473,15 +473,6 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "vue-sonner";
 
 // Constants
-const PREDEFINED_LABELS = [
-  "Website",
-  "Instagram",
-  "Facebook",
-  "X",
-  "TikTok",
-  "LinkedIn",
-  "YouTube",
-];
 const PREDEFINED_PHONE_LABELS = [
   "WhatsApp Sales",
   "WhatsApp Marketing",
@@ -509,7 +500,7 @@ function createEmptyForm() {
     visibility: "public",
     organization: "",
     member_ids: [],
-    links: seedPredefinedLinks([], PREDEFINED_LABELS),
+    links: seedPredefinedLinks([], PREDEFINED_LINK_LABELS),
     phones: [],
     settings: {
       contact_form: {
@@ -683,7 +674,7 @@ function populateForm(data) {
       })
     : [];
 
-  form.links.splice(0, form.links.length, ...seedPredefinedLinks(savedLinks, PREDEFINED_LABELS));
+  form.links.splice(0, form.links.length, ...seedPredefinedLinks(savedLinks, PREDEFINED_LINK_LABELS));
 
   // Handle phones (API uses 'phone' singular, not 'phones')
   form.phones.splice(0, form.phones.length);

@@ -16,10 +16,23 @@
         <h3 class="truncate text-lg font-semibold tracking-tight sm:text-xl">
           {{ be.brand.name }}
         </h3>
-        <div v-if="be.booth_type_label" class="mt-1 flex flex-wrap items-center gap-2">
-          <span class="text-muted-foreground text-sm tracking-tight">
+        <div
+          v-if="be.booth_type_label || sharedWith.length"
+          class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1"
+        >
+          <span v-if="be.booth_type_label" class="text-muted-foreground text-sm tracking-tight">
             {{ be.booth_type_label }}
           </span>
+          <!-- Names go in the title, not the label: the badge sits in a column
+               that already truncates the brand name, and badges never wrap. -->
+          <Badge
+            v-if="sharedWith.length"
+            variant="muted"
+            plain
+            :title="$t('ed.booth.sharedWith', { brands: sharedWith.join(', ') })"
+          >
+            {{ $t("ed.booth.shared") }}
+          </Badge>
         </div>
       </div>
 
@@ -58,6 +71,7 @@
 
 <script setup>
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { getExhibitorSteps } from "@/utils/exhibitorDashboard";
 
 const { t } = useI18n();
@@ -75,6 +89,8 @@ const open = ref(props.defaultOpen);
 const sectionsRef = ref(null);
 
 const steps = computed(() => getExhibitorSteps(props.be, props.dashboard?.profile_complete, t));
+
+const sharedWith = computed(() => props.be.booth_shared_with ?? []);
 
 function handleJump(key) {
   if (props.collapsible) open.value = true;

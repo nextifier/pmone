@@ -486,3 +486,152 @@ it('carries promotion post captions next to the post count', function () {
     expect($byBrand['Blank Caption'][$captionCol])->toBe('-');
     expect($byBrand['No Posts'][$captionCol])->toBe('-');
 });
+
+/**
+ * A brand with the given links attached, label => url.
+ *
+ * @param  array<string, string>  $links
+ */
+function brandWithLinks(string $name, array $links): Brand
+{
+    $brand = Brand::factory()->create(['name' => $name]);
+
+    foreach (array_values($links) as $order => $url) {
+        $brand->links()->create([
+            'label' => array_keys($links)[$order],
+            'url' => $url,
+            'order' => $order,
+        ]);
+    }
+
+    return $brand;
+}
+
+it('pins the seven predefined link columns even when the data has none of them', function () {
+    $event = Event::factory()->create(['project_id' => Project::factory()->create()->id]);
+    BrandEvent::factory()->create([
+        'brand_id' => brandWithLinks('Instagram Only', ['Instagram' => 'https://instagram.com/only'])->id,
+        'event_id' => $event->id,
+    ]);
+
+    foreach (['brands', 'brand-events'] as $sheet) {
+        $headings = $this->getJson("/api/sheets/{$sheet}?token={$this->token}")
+            ->assertSuccessful()
+            ->json('headings');
+
+        $countCol = array_search($sheet === 'brands' ? 'Links Count' : 'Brand Links Count', $headings, true);
+
+        expect(array_slice($headings, $countCol + 1, 7))
+            ->toBe(['Website', 'Instagram', 'Facebook', 'X', 'TikTok', 'LinkedIn', 'YouTube'])
+            ->and(array_slice($headings, $countCol + 8, 7))
+            ->toBe([
+                'Website Click', 'Instagram Click', 'Facebook Click',
+                'X Click', 'TikTok Click', 'LinkedIn Click', 'YouTube Click',
+            ]);
+    }
+});
+
+it('appends custom link labels after the predefined ones', function () {
+    $event = Event::factory()->create(['project_id' => Project::factory()->create()->id]);
+    BrandEvent::factory()->create([
+        'brand_id' => brandWithLinks('Custom Label', [
+            'Brosur Franchise' => 'https://drive.google.com/file/d/abc/view',
+            'Website' => 'https://custom.example',
+        ])->id,
+        'event_id' => $event->id,
+    ]);
+
+    $headings = $this->getJson("/api/sheets/brand-events?token={$this->token}")
+        ->assertSuccessful()
+        ->json('headings');
+
+    $youtubeCol = array_search('YouTube', $headings, true);
+
+    expect($headings[$youtubeCol + 1])->toBe('Brosur Franchise')
+        ->and($headings[array_search('YouTube Click', $headings, true) + 1])->toBe('Brosur Franchise Click');
+});
+
+it('fills a predefined link column whatever case the label was saved in', function () {
+    $event = Event::factory()->create(['project_id' => Project::factory()->create()->id]);
+    BrandEvent::factory()->create([
+        'brand_id' => brandWithLinks('Lowercase Label', ['instagram' => 'https://instagram.com/lower'])->id,
+        'event_id' => $event->id,
+    ]);
+
+    $response = $this->getJson("/api/sheets/brand-events?token={$this->token}")->assertSuccessful();
+    $headings = $response->json('headings');
+    $row = $response->json('rows.0');
+
+    // One canonical column, not a second lowercase one beside it.
+    expect(array_count_values($headings)['Instagram'])->toBe(1)
+        ->and($row[array_search('Instagram', $headings, true)])->toBe('https://instagram.com/lower')
+        ->and($row[array_search('Website', $headings, true)])->toBe('');
+});
+
+it('reports participation status on the orders and operational documents sheets', function () {
+    $project = Project::factory()->create();
+    $event = Event::factory()->create(['project_id' => $project->id]);
+
+    $brandEvent = BrandEvent::factory()->create([
+        'brand_id' => Brand::factory()->create(['name' => 'Draft Brand'])->id,
+        'event_id' => $event->id,
+        'booth_number' => 'A-01',
+        'status' => 'draft',
+    ]);
+
+    $order = Order::factory()->create(['brand_event_id' => $brandEvent->id]);
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_name' => 'Booth Lighting',
+        'unit_price' => 2000000,
+        'quantity' => 1,
+        'total_price' => 2000000,
+    ]);
+
+    EventDocument::factory()->create(['event_id' => $event->id, 'title' => 'Booth Design']);
+
+    $orders = $this->getJson("/api/sheets/orders?token={$this->token}")->assertSuccessful();
+    $orderHeadings = $orders->json('headings');
+    $orderCol = array_search('Participation Status', $orderHeadings, true);
+
+    expect($orderHeadings[array_search('Sales PIC', $orderHeadings, true) + 1])->toBe('Participation Status')
+        ->and($orders->json('rows.0')[$orderCol])->toBe('Draft');
+
+    $docs = $this->getJson("/api/sheets/operational-documents?token={$this->token}")->assertSuccessful();
+    $docHeadings = $docs->json('headings');
+    $docCol = array_search('Participation Status', $docHeadings, true);
+
+    expect($docHeadings[array_search('Booth Type', $docHeadings, true) + 1])->toBe('Participation Status')
+        ->and($docs->json('rows.0')[$docCol])->toBe('Draft');
+});
+
+it('keeps every sheet row as wide as its heading list', function () {
+    $project = Project::factory()->create();
+    $event = Event::factory()->create(['project_id' => $project->id]);
+
+    $brandEvent = BrandEvent::factory()->create([
+        'brand_id' => brandWithLinks('Wide Row', [
+            'Website' => 'https://wide.example',
+            'Brosur Franchise' => 'https://drive.google.com/file/d/abc/view',
+        ])->id,
+        'event_id' => $event->id,
+        'booth_number' => 'A-01',
+    ]);
+
+    $order = Order::factory()->create(['brand_event_id' => $brandEvent->id]);
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_name' => 'Booth Lighting',
+        'unit_price' => 2000000,
+        'quantity' => 1,
+        'total_price' => 2000000,
+    ]);
+    EventDocument::factory()->create(['event_id' => $event->id, 'title' => 'Booth Design']);
+
+    foreach (['brands', 'brand-events', 'orders', 'operational-documents'] as $sheet) {
+        $response = $this->getJson("/api/sheets/{$sheet}?token={$this->token}")->assertSuccessful();
+
+        expect($response->json('rows.0'))
+            ->toHaveCount(count($response->json('headings')), "sheet: {$sheet}");
+    }
+});

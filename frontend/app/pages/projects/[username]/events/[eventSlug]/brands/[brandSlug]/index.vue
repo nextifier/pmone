@@ -796,7 +796,6 @@ const boothForm = reactive({
 });
 
 // Links
-const PREDEFINED_LINK_LABELS = ["Website", "Instagram", "Facebook", "X", "TikTok", "LinkedIn", "YouTube"];
 
 const brandLinks = reactive(
   seedPredefinedLinks(props.brandEvent?.brand?.links, PREDEFINED_LINK_LABELS)

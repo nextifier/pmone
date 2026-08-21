@@ -321,7 +321,9 @@
     "booth": {
       "sharedNote": "Dokumen operasional dan order form untuk booth {booth} diurus lewat {brand}.",
       "anotherBrand": "brand lain",
-      "label": "Booth"
+      "label": "Booth",
+      "shared": "Booth bersama",
+      "sharedWith": "Bersama {brands}"
     },
     "profile": {
       "title": "Lengkapi Profil Kamu",
@@ -464,10 +466,14 @@
       "order": "Order"
     },
     "eventCard": {
-      "booth": "Booth",
       "promotion": "Promosi",
       "order": "Order",
-      "passed": "lewat"
+      "closes": "{label} ditutup {date}",
+      "closed": "{label} sudah ditutup {date}",
+      "closesToday": "{label} ditutup hari ini",
+      "closesTomorrow": "{label} ditutup besok",
+      "closesInDays": "{label} ditutup {count} hari lagi",
+      "viewPoster": "Lihat poster event"
     },
     "daysLeft": "sisa {days} hari"
   },

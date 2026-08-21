@@ -87,7 +87,7 @@ const props = defineProps({
   be: { type: Object, required: true },
 });
 
-const dateLocale = computed(() => (locale.value === "zh" ? "zh-CN" : "en-US"));
+const dateLocale = computed(() => exhibitorDateLocale(locale.value));
 
 function formatDateTime(dateStr) {
   if (!dateStr) return "";

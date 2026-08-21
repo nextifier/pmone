@@ -160,7 +160,7 @@
                     <SelectValue placeholder="Select label" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="label in PREDEFINED_LABELS" :key="label" :value="label">
+                    <SelectItem v-for="label in PREDEFINED_LINK_LABELS" :key="label" :value="label">
                       {{ label }}
                     </SelectItem>
                     <SelectItem value="Custom">Custom</SelectItem>
@@ -319,15 +319,6 @@ import { toast } from "vue-sonner";
 const { metaSymbol } = useShortcuts();
 
 // Constants
-const PREDEFINED_LABELS = [
-  "Website",
-  "Instagram",
-  "Facebook",
-  "X",
-  "TikTok",
-  "LinkedIn",
-  "YouTube",
-];
 const FILE_STATUS = {
   PROCESSING: 3,
 };
@@ -347,7 +338,7 @@ function createEmptyForm() {
     status: "active",
     visibility: "public",
     roles: [],
-    links: seedPredefinedLinks([], PREDEFINED_LABELS),
+    links: seedPredefinedLinks([], PREDEFINED_LINK_LABELS),
     project_ids: [],
   };
 }
@@ -515,7 +506,7 @@ async function populateForm(data) {
       })
     : [];
 
-  form.links.splice(0, form.links.length, ...seedPredefinedLinks(savedLinks, PREDEFINED_LABELS));
+  form.links.splice(0, form.links.length, ...seedPredefinedLinks(savedLinks, PREDEFINED_LINK_LABELS));
 
   // Handle projects
   form.project_ids = data.projects?.map((p) => p.id) || [];

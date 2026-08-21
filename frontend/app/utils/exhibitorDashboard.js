@@ -3,6 +3,16 @@
 // (section rendering). Keeping it here prevents the single/multi-event render
 // paths from drifting apart. Auto-imported.
 
+/**
+ * Date locale for the exhibitor dashboard. It follows the languages this surface
+ * is actually translated into (en, id, zh); `ja` and `ko` have no `ed.*` block
+ * yet, so their copy falls back to English and their dates should too rather
+ * than mixing a Japanese date into an English sentence.
+ */
+export function exhibitorDateLocale(locale) {
+  return { id: "id-ID", zh: "zh-CN" }[locale] || "en-US";
+}
+
 // Booth fascia field only applies to shell-scheme booth types.
 export function exhibitorShowFascia(be) {
   return be.booth_type === "standard_shell_scheme" || be.booth_type === "enhanced_shell_scheme";

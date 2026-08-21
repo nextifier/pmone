@@ -15,6 +15,7 @@ use App\Models\EventDocumentSubmission;
 use App\Models\Order;
 use App\Models\Project;
 use App\Models\PromotionPost;
+use App\Support\LinkLabels;
 use App\Support\Sheets\SheetFormatting;
 use App\Support\VisitStats;
 use Illuminate\Http\JsonResponse;
@@ -34,8 +35,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Each sheet comes in two flavours: a global feed covering every event, and an
  * `/events/{event}/...` feed scoped to a single event. The scoped feeds exist
  * because the global ones grow in both rows and columns as events are added -
- * dynamic columns are derived from the data (one per brand link label, one per
- * brand custom field across every project).
+ * one column per brand custom field across every project, plus one per custom
+ * brand link label. The seven predefined link labels are fixed columns and do
+ * not move; see linkLabelColumns().
  */
 class SheetsController extends Controller
 {
@@ -82,7 +84,7 @@ class SheetsController extends Controller
             'ID', 'Order Number', 'Event ID', 'Event Title',
             'Brand Name', 'Company Name', 'Country',
             'Booth Type', 'Booth Number', 'Booth Size (sqm)', 'Booth Price',
-            'Fascia Name', 'Badge Name', 'Sales PIC', 'Order Period', 'Source',
+            'Fascia Name', 'Badge Name', 'Sales PIC', 'Participation Status', 'Order Period', 'Source',
             'Product Name', 'Product Category', 'Qty', 'Unit Price', 'Item Total',
             'Item Discount', 'Item Penalty', 'Item Net Total', 'Item Adjustment Note',
             'Item Notes', 'Item Internal Notes',
@@ -126,6 +128,7 @@ class SheetsController extends Controller
                 $brandEvent?->fascia_name ?? '-',
                 $brandEvent?->badge_name ?? '-',
                 $brandEvent?->sales?->name ?? '-',
+                Str::title(str_replace('_', ' ', $brandEvent?->status ?? '-')),
                 $order->order_period ? ucwords(str_replace('_', ' ', $order->order_period)) : '-',
                 Str::title($order->source ?? '-'),
             ];
@@ -328,16 +331,7 @@ class SheetsController extends Controller
             ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks'],
         );
 
-        $linkLabels = $brands
-            ->flatMap(fn (Brand $b) => $b->links->pluck('label'))
-            ->filter()
-            ->map(fn ($l) => trim($l))
-            ->countBy()
-            ->sortDesc()
-            ->keys()
-            ->values()
-            ->all();
-
+        $linkLabels = $this->linkLabelColumns($brands);
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
         $brandFieldDefs = $this->brandCustomFieldDefinitions($event);
@@ -393,15 +387,7 @@ class SheetsController extends Controller
                     : $user->name)
                 ->join(', ') ?: '-';
 
-            $linksByLabel = $brand->links->keyBy(fn ($link) => trim($link->label ?? ''));
-
-            $linkUrlSlots = [];
-            $linkClickSlots = [];
-            foreach ($linkLabels as $label) {
-                $link = $linksByLabel[$label] ?? null;
-                $linkUrlSlots[] = $link?->url ?? '';
-                $linkClickSlots[] = $link ? (int) $link->clicks_count : '';
-            }
+            ['urls' => $linkUrlSlots, 'clicks' => $linkClickSlots] = $this->linkSlots($brand, $linkLabels);
 
             // Lifetime, not the 90-day slice a count over `visits` would give: an
             // export that says a brand had 40 profile views when it had 4,000 is
@@ -546,19 +532,7 @@ class SheetsController extends Controller
             ['views' => 'lifetime_views', 'clicks' => 'lifetime_clicks'],
         );
 
-        $linkLabels = $brandEvents
-            ->pluck('brand')
-            ->filter()
-            ->unique('id')
-            ->flatMap(fn (Brand $b) => $b->links->pluck('label'))
-            ->filter()
-            ->map(fn ($l) => trim($l))
-            ->countBy()
-            ->sortDesc()
-            ->keys()
-            ->values()
-            ->all();
-
+        $linkLabels = $this->linkLabelColumns($brandEvents->pluck('brand')->filter()->unique('id'));
         $linkClickHeadings = array_map(fn ($l) => "{$l} Click", $linkLabels);
 
         // Dynamic custom-field columns, appended last. Brand fields are typed
@@ -636,17 +610,7 @@ class SheetsController extends Controller
                     ->join(', ') ?: '-')
                 : '-';
 
-            $linksByLabel = $brand
-                ? $brand->links->keyBy(fn ($link) => trim($link->label ?? ''))
-                : collect();
-
-            $linkUrlSlots = [];
-            $linkClickSlots = [];
-            foreach ($linkLabels as $label) {
-                $link = $linksByLabel[$label] ?? null;
-                $linkUrlSlots[] = $link?->url ?? '';
-                $linkClickSlots[] = $link ? (int) $link->clicks_count : '';
-            }
+            ['urls' => $linkUrlSlots, 'clicks' => $linkClickSlots] = $this->linkSlots($brand, $linkLabels);
 
             $totalLinkClicks = $brand ? (int) $brand->links->sum('clicks_count') : 0;
 
@@ -812,7 +776,7 @@ class SheetsController extends Controller
 
         $headings = [
             'Brand Event ID', 'Brand ID', 'Brand Name', 'Company Name',
-            'Event ID', 'Event Title', 'Booth Number', 'Booth Type',
+            'Event ID', 'Event Title', 'Booth Number', 'Booth Type', 'Participation Status',
             'Document ID', 'Document Title', 'Document Kind', 'Required', 'Blocks Next Step', 'Submission Deadline',
             'Status',
             'Agreed At', 'Agreed Version', 'Current Content Version',
@@ -862,6 +826,7 @@ class SheetsController extends Controller
                     $brandEvent->event?->title ?? '-',
                     $brandEvent->booth_number ?? '-',
                     $brandEvent->booth_type?->label() ?? '-',
+                    Str::title(str_replace('_', ' ', $brandEvent->status ?? '-')),
                     $doc->id,
                     $doc->title,
                     $doc->isEventRule() ? 'Event Rule' : 'Operational',
@@ -938,6 +903,64 @@ class SheetsController extends Controller
         ])->toArray();
 
         return response()->json($this->payload('Events', null, $headings, $rows));
+    }
+
+    /**
+     * The link columns a sheet exposes, URL block first; the click block mirrors
+     * it. The seven predefined labels are always present and always in the same
+     * place, so a brand adding or dropping a link never shifts the sheet
+     * sideways and formulas keep pointing at the column they were written for.
+     * Whatever the editor's "Custom" option produced lands after them, still
+     * ordered by how often it is used.
+     *
+     * @param  Collection<int, Brand>  $brands
+     * @return array<int, string>
+     */
+    private function linkLabelColumns(Collection $brands): array
+    {
+        $predefined = collect(LinkLabels::PREDEFINED)
+            ->mapWithKeys(fn (string $label) => [mb_strtolower($label) => true]);
+
+        $extra = $brands
+            ->flatMap(fn (Brand $brand) => $brand->links->pluck('label'))
+            ->filter()
+            ->map(fn ($label) => trim($label))
+            ->reject(fn (string $label) => $predefined->has(mb_strtolower($label)))
+            ->countBy()
+            ->sortDesc()
+            ->keys()
+            ->values()
+            ->all();
+
+        return [...LinkLabels::PREDEFINED, ...$extra];
+    }
+
+    /**
+     * One URL cell and one click cell per column in $labels. Matching is
+     * case-insensitive so a link saved as "instagram" still fills the
+     * "Instagram" column. Missing cells stay empty rather than '-', which is the
+     * convention link columns have always used - '-' would break SUM over the
+     * click block.
+     *
+     * @param  array<int, string>  $labels
+     * @return array{urls: array<int, string>, clicks: array<int, int|string>}
+     */
+    private function linkSlots(?Brand $brand, array $labels): array
+    {
+        $linksByLabel = $brand
+            ? $brand->links->keyBy(fn ($link) => mb_strtolower(trim($link->label ?? '')))
+            : collect();
+
+        $urls = [];
+        $clicks = [];
+
+        foreach ($labels as $label) {
+            $link = $linksByLabel[mb_strtolower($label)] ?? null;
+            $urls[] = $link?->url ?? '';
+            $clicks[] = $link ? (int) $link->clicks_count : '';
+        }
+
+        return ['urls' => $urls, 'clicks' => $clicks];
     }
 
     /**
@@ -1073,15 +1096,6 @@ class SheetsController extends Controller
     }
 
     /**
-     * What the "Promotion Post Image Link" cell points at.
-     *
-     * A single image links to the image itself - the original upload, not a
-     * resized conversion - so clicking it in the spreadsheet opens the picture
-     * with no round trip through this app and no rate limit in the way. Only a
-     * brand-event with several images needs the endpoint, because only then is
-     * there a zip to build. Empty gives '-', like every other blank cell here.
-     */
-    /**
      * Every caption on this booth's promotion posts, one per line. Newline
      * separated rather than comma separated because a caption is free text and
      * routinely holds commas of its own; Sheets wraps "\n" inside one cell.
@@ -1094,6 +1108,15 @@ class SheetsController extends Controller
             ->implode("\n") ?: '-';
     }
 
+    /**
+     * What the "Promotion Post Image Link" cell points at.
+     *
+     * A single image links to the image itself - the original upload, not a
+     * resized conversion - so clicking it in the spreadsheet opens the picture
+     * with no round trip through this app and no rate limit in the way. Only a
+     * brand-event with several images needs the endpoint, because only then is
+     * there a zip to build. Empty gives '-', like every other blank cell here.
+     */
     private function promotionImagesLink(BrandEvent $brandEvent): string
     {
         $images = $brandEvent->promotionPosts
