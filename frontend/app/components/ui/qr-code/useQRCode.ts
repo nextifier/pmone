@@ -20,6 +20,46 @@ function isInFinderPattern(row: number, col: number, size: number): boolean {
   );
 }
 
+/**
+ * Tilt and size of a `rounded` data module, keyed by which of its four
+ * orthogonal neighbours are dark: "UP LEFT RIGHT DOWN". A module with both
+ * horizontal or both vertical neighbours set sits inside a run and takes the
+ * gentle shared tilt, so runs still read as runs; isolated modules and run ends
+ * take the stronger angles. `scale` is a fraction of one module.
+ */
+const TILT_BY_NEIGHBOURS: Record<string, { angle: number; scale: number }> = {
+  "0000": { angle: -10.01, scale: 0.8632 },
+  "0001": { angle: -3.014, scale: 0.9513 },
+  "0010": { angle: -15.945, scale: 0.728 },
+  "0011": { angle: -7.764, scale: 0.8882 },
+  "0100": { angle: 7.125, scale: 0.8063 },
+  "0101": { angle: 15.751, scale: 0.8105 },
+  "0110": { angle: 2.602, scale: 0.8809 },
+  "0111": { angle: 2.602, scale: 0.8809 },
+  "1000": { angle: -6.339, scale: 0.9056 },
+  "1001": { angle: 2.602, scale: 0.8809 },
+  "1010": { angle: 8.499, scale: 0.8797 },
+  "1011": { angle: 2.602, scale: 0.8809 },
+  "1100": { angle: -11.576, scale: 0.8473 },
+  "1101": { angle: 2.602, scale: 0.8809 },
+  "1110": { angle: 2.602, scale: 0.8809 },
+  "1111": { angle: 2.602, scale: 0.8809 },
+};
+
+/** Dark *and* drawn: finder-pattern modules render as rings, not as squares. */
+function isDrawnModule(
+  qrData: QRCodeLib.QRCode,
+  row: number,
+  col: number,
+  moduleCount: number
+): boolean {
+  if (row < 0 || col < 0 || row >= moduleCount || col >= moduleCount) {
+    return false;
+  }
+  if (isInFinderPattern(row, col, moduleCount)) return false;
+  return Boolean(qrData.modules.get(row, col));
+}
+
 let qrcodeLib: typeof QRCodeLib | null = null;
 
 /**
@@ -66,7 +106,6 @@ export function buildQRSvgString(
   const totalModules = moduleCount + margin * 2;
   const moduleSize = size / totalModules;
   const offset = margin * moduleSize;
-  const circleRadius = moduleSize * (1 / 3);
 
   const finderPositions: [number, number][] = [
     [0, 0],
@@ -130,19 +169,25 @@ export function buildQRSvgString(
       );
     }
 
-    // Data modules (circles)
+    // Data modules: squares tilted by their neighbourhood (TILT_BY_NEIGHBOURS).
     for (let row = 0; row < moduleCount; row++) {
       for (let col = 0; col < moduleCount; col++) {
-        if (
-          qrData.modules.get(row, col) &&
-          !isInFinderPattern(row, col, moduleCount)
-        ) {
-          const cx = offset + (col + 0.5) * moduleSize;
-          const cy = offset + (row + 0.5) * moduleSize;
-          parts.push(
-            `<circle cx="${cx}" cy="${cy}" r="${circleRadius}" fill="${fgColor}"/>`
-          );
-        }
+        if (!isDrawnModule(qrData, row, col, moduleCount)) continue;
+
+        const key =
+          `${+isDrawnModule(qrData, row - 1, col, moduleCount)}` +
+          `${+isDrawnModule(qrData, row, col - 1, moduleCount)}` +
+          `${+isDrawnModule(qrData, row, col + 1, moduleCount)}` +
+          `${+isDrawnModule(qrData, row + 1, col, moduleCount)}`;
+        const { angle, scale } = TILT_BY_NEIGHBOURS[key]!;
+
+        const side = moduleSize * scale;
+        const cx = offset + (col + 0.5) * moduleSize;
+        const cy = offset + (row + 0.5) * moduleSize;
+
+        parts.push(
+          `<rect x="${cx - side / 2}" y="${cy - side / 2}" width="${side}" height="${side}" fill="${fgColor}" transform="rotate(${angle} ${cx} ${cy})"/>`
+        );
       }
     }
   }
