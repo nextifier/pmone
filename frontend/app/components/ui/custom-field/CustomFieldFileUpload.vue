@@ -89,7 +89,7 @@
           <Icon name="hugeicons:attachment-01" class="size-4" />
           <span>{{ addLabel }}</span>
         </Button>
-        <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">or drag and drop here</p>
+        <p class="text-muted-foreground text-sm tracking-tight">or drag and drop here</p>
       </div>
     </div>
 
@@ -97,13 +97,13 @@
     <button
       v-if="isReplacing && !isMultipleFile && !uploadedFiles.length && !uploadingFile"
       type="button"
-      class="text-muted-foreground hover:text-foreground text-xs tracking-tight sm:text-sm"
+      class="text-muted-foreground hover:text-foreground text-sm tracking-tight"
       @click="cancelReplace"
     >
       Cancel
     </button>
 
-    <p v-if="fileConstraintText" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+    <p v-if="fileConstraintText" class="text-muted-foreground text-sm tracking-tight">
       {{ fileConstraintText }}
     </p>
     <FieldError :errors="fileError ? [fileError] : []" />

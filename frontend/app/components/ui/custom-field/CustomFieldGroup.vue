@@ -11,6 +11,7 @@
         :model-value="modelValue[fieldKey(field)]"
         :error="errorFor(field)"
         :locale="locale"
+        :label-size="labelSize"
         :disabled="disabled"
         :preview="preview"
         :existing-files="existingFiles[fieldKey(field)] || []"
@@ -36,6 +37,10 @@ const props = defineProps({
   // e.g. "responses." or "project_custom_fields." — prefixes the error keys.
   errorPrefix: { type: String, default: "" },
   locale: { type: String, default: "en" },
+  // Forwarded, not consumed. "lg" on standalone public surfaces where a field
+  // label is a question the visitor reads; the group had been swallowing it, so
+  // every consumer was stuck on dashboard-sized labels.
+  labelSize: { type: String, default: "default" },
   disabled: { type: Boolean, default: false },
   preview: { type: Boolean, default: false },
   uploadHandler: { type: Function, default: null },

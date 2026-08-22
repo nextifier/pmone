@@ -13,11 +13,11 @@
     />
   </div>
 
-  <Field
-    v-else
-    :class="isLargeLabel ? 'gap-2.5' : 'gap-2'"
-    :data-invalid="!!error"
-  >
+  <!-- No gap class: `.cn-field` already supplies `gap-2` (8px) in every style
+       pack, so the old `isLargeLabel ? 'gap-2.5' : 'gap-2'` was half a restated
+       default and half a 10px exception that made public forms sit looser than
+       every other surface. -->
+  <Field v-else :data-invalid="!!error">
     <FieldLabel :for="fieldId" :required="isRequired" :class="labelClass">
       {{ normalized.label }}
     </FieldLabel>
@@ -353,15 +353,17 @@
         </div>
       </div>
 
-      <!-- Radio. Inline rather than one option per row: most radio fields carry
-           two or three short options, and stacking those wastes rows on the
-           narrowest screen. `flex-wrap` handles the exception - a long option
-           simply takes a line of its own. The class beats `cn-radio-group`'s own
-           `grid` because the style pack is imported into `@layer base` while
-           utilities sit above it. -->
+      <!-- Two options sit inline - a yes/no or male/female pair does not deserve
+           two rows on the narrowest screen. Three or more fall back to
+           `cn-radio-group`'s own grid, one per row, because `flex-wrap` packs by
+           content width: four options of uneven length wrap into a ragged 2x2
+           whose second column never lines up. Stacked also matches the
+           `checkbox_group` right beside it. The inline class wins over the
+           pack's `grid` because style packs are imported into `@layer base`
+           while utilities sit above them. -->
       <RadioGroup
         v-else-if="normalized.type === 'radio'"
-        class="flex flex-wrap gap-x-6 gap-y-2"
+        :class="normalized.options?.length === 2 ? 'flex flex-wrap gap-x-6 gap-y-2' : undefined"
         :model-value="modelValue"
         :disabled="disabled"
         @update:model-value="$emit('update:modelValue', $event)"
@@ -467,7 +469,7 @@
           :disabled="disabled"
           @update:model-value="$emit('update:modelValue', $event?.[0] ?? null)"
         />
-        <div class="text-muted-foreground flex justify-between text-xs tracking-tight sm:text-sm">
+        <div class="text-muted-foreground flex justify-between text-sm tracking-tight">
           <span>{{ sliderMin }}</span>
           <span class="text-foreground font-medium">{{ modelValue ?? sliderMin }}</span>
           <span>{{ sliderMax }}</span>
@@ -484,7 +486,7 @@
           :disabled="disabled"
           @update:model-value="handleSliderRange"
         />
-        <div class="text-muted-foreground flex justify-between text-xs tracking-tight sm:text-sm">
+        <div class="text-muted-foreground flex justify-between text-sm tracking-tight">
           <span>{{ sliderMin }}</span>
           <span class="text-foreground font-medium">
             {{ sliderRangeValue[0] }} - {{ sliderRangeValue[1] }}
@@ -538,7 +540,7 @@
         </div>
         <div
           v-if="normalized.settings?.min_label || normalized.settings?.max_label"
-          class="text-muted-foreground flex justify-between gap-2 text-xs tracking-tight sm:text-sm"
+          class="text-muted-foreground flex justify-between gap-2 text-sm tracking-tight"
         >
           <span class="text-left">{{ normalized.settings?.min_label }}</span>
           <span class="text-right">{{ normalized.settings?.max_label }}</span>
@@ -552,17 +554,17 @@
       v-if="normalized.help_text || selectionCounter"
       class="flex items-start justify-between gap-x-2"
     >
+      <!-- `text-sm` flat. The old `text-xs sm:text-sm` branch was still 12px on
+           a phone, which STYLE_GUIDE names as explicitly not a remedy. -->
       <p
         v-if="normalized.help_text"
-        class="text-muted-foreground tracking-tight"
-        :class="isLargeLabel ? 'text-sm' : 'text-xs sm:text-sm'"
+        class="text-muted-foreground text-sm tracking-tight"
       >
         {{ normalized.help_text }}
       </p>
       <span
         v-if="selectionCounter"
-        class="text-muted-foreground ml-auto shrink-0 tracking-tight tabular-nums"
-        :class="isLargeLabel ? 'text-sm' : 'text-xs sm:text-sm'"
+        class="text-muted-foreground ml-auto shrink-0 text-sm tracking-tight tabular-nums"
       >
         {{ selectionCounter }}
       </span>

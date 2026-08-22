@@ -1626,13 +1626,21 @@ img.pswp__img {
 /* Automatic required marker for labels that only carry the native `required`
    attribute on their control. `:not(:has([data-slot=label-required]))` stands
    down whenever `<Label required>` already drew one - otherwise a label that
-   sits directly above a required control gets two asterisks. */
+   sits directly above a required control gets two asterisks.
+
+   `-ms-1`, not `ml-0`. The label is `display:flex` with `gap-2`, so this
+   pseudo-element is its second flex item and sits 8px from the last word - and
+   `ml-0` cannot claw that back, because gap is not margin. -4px against that
+   8px nets the 4px that `<Label required>` gets from its own `ms-1`, and
+   `top-[0.15em]` is the same optical nudge, so the two mechanisms now render
+   identically. `.cn-label { gap-2 }` is the same in all nine style packs, so
+   the arithmetic does not drift with the theme. */
 label:not(:has([data-slot="label-required"])) {
   &:has(+ input:required)::after,
   &:has(+ select:required)::after,
   &:has(+ textarea:required)::after,
   &:has(+ .base-phone-input input:required)::after {
-    @apply text-destructive-foreground ml-0 content-['*'];
+    @apply text-destructive-foreground relative top-[0.15em] -ms-1 content-['*'];
   }
 }
 
