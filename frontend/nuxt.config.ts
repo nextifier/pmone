@@ -53,41 +53,36 @@ const brandIcons = brand.assetsReady
           sizes: "512x512",
           type: "image/png",
         },
-        // TEMPORARILY DISABLED (2026-08-22) - live experiment, revert after.
+        // Full-bleed variant for Android adaptive icons. Deliberately DARK
+        // (#09090b) with a white mark, and `background_color` below matches it.
         //
-        // Declaring a maskable icon is what makes Android treat this as an
-        // ADAPTIVE icon: it masks the artwork to the system squircle and draws
-        // an elevation shadow around that mask. On the PWA splash screen that
-        // shadow reads as a thin grey outline, because our artwork and
-        // `background_color` are both #ffffff, so the shadow is the only edge
-        // with any contrast. Measured off two device screenshots: pmone splash
-        // background 255 -> shadow 215; levenium (background_color #09090b)
-        // 9.7 -> 7.7. Same shadow, ~16-20% black, invisible only because
-        // levenium's icon and splash share a dark colour.
+        // Declaring a maskable icon is what makes Android treat the artwork as
+        // an ADAPTIVE icon: it masks it to the system squircle and draws an
+        // elevation shadow around that mask. When the icon and the splash
+        // background are both #ffffff, that shadow is the only edge with any
+        // contrast, so it reads as a stray grey outline. Measured off device
+        // screenshots: splash background 255 -> shadow 215 (obvious), against
+        // levenium's 9.7 -> 7.7 (invisible). Same ~16-20% black shadow both
+        // times; levenium only gets away with it because its icon and splash
+        // share one dark colour. Confirmed on a real device by shipping this
+        // entry commented out (4801b7cc) and watching the outline disappear.
         //
-        // This entry landed in 5233a09d (2026-08-03), which matches when the
-        // outline first appeared. Commenting it out to confirm the cause on a
-        // real device. If confirmed, the proper fix is a dark full-bleed
-        // maskable icon plus a matching `background_color` (levenium's
-        // approach), NOT leaving this off: without it Android letterboxes the
-        // icon or crops transparent corners into the mask.
+        // So the two must stay in sync: change this artwork's colour and you
+        // must change `background_color` with it, or the outline returns.
         //
-        // The file itself stays in public/brands/<id>/icons/ either way.
-        //
-        // Full-bleed variant (opaque corners) for Android adaptive icons.
-        // Currently BYTE-IDENTICAL to icon-512x512.png, not derived from it:
-        // the artwork is already an opaque rounded badge, so there is nothing
-        // to flatten. Measured on the 512 canvas, the furthest inked pixel sits
-        // at r = 134.7 px = 0.263 of the width, well inside the 0.40 safe-zone
-        // radius, so it needs no rescaling. (Measure inked PIXELS, not the
-        // bounding box corners — the mark is curved, so its bbox corner reads a
-        // misleading 0.354.)
-        // {
-        //   src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
-        //   sizes: "512x512",
-        //   type: "image/png",
-        //   purpose: "maskable" as const,
-        // },
+        // Must be square and fully opaque, NOT rounded - Android applies the
+        // mask itself, and a pre-rounded icon gets its corners cut twice. The
+        // furthest white pixel sits at r = 168.2 px = 0.329 of the width,
+        // inside the 0.40 safe-zone radius. (Measure inked PIXELS, not the
+        // bounding box corners - the mark is curved, so its bbox corner reads a
+        // misleading 0.441.) Without this entry Android letterboxes the icon or
+        // crops transparent corners into the mask.
+        {
+          src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable" as const,
+        },
       ],
     }
   : {};
@@ -545,8 +540,14 @@ export default defineNuxtConfig({
       short_name: brand.shortName,
       start_url: "/",
       display: "standalone",
-      theme_color: "#ffffff",
-      background_color: "#ffffff",
+      // Both match the maskable icon's #09090b on purpose: the splash icon and
+      // its background become one surface, so Android's adaptive-icon shadow
+      // has nothing to contrast against. See the maskable entry above before
+      // changing either of these. Note theme_color here is only the manifest
+      // default - while the app runs, useAppearance() owns the reactive
+      // <meta name="theme-color"> and swaps it with the colour mode.
+      theme_color: "#09090b",
+      background_color: "#09090b",
       description: brand.manifestDescription,
       ...brandIcons,
     },
