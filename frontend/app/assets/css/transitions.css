@@ -314,6 +314,38 @@
 }
 
 /* -----------------------------------------------------------------------------
+   Stacked line swap — dua teks berbagi satu sel grid, di-cross-fade lewat
+   `data-shown`. Bukan varian dari `t-tswap`: swap `mode="out-in"` di dalam
+   container yang SENDIRI sedang beranimasi (sticky cart bar) bisa macet dan
+   meninggalkan teks lama. Karena kedua baris selalu ter-mount, tinggi barisnya
+   juga konstan - itu yang menjaga tinggi bar sama di kedua mode.
+   Dipakai: tickets/TicketCartBar.vue
+   -------------------------------------------------------------------------- */
+.t-bar-line {
+  transition:
+    transform var(--text-swap-dur) var(--text-swap-ease),
+    filter var(--text-swap-dur) var(--text-swap-ease),
+    opacity var(--text-swap-dur) var(--text-swap-ease);
+  will-change: transform, filter, opacity;
+}
+.t-bar-line[data-shown="false"] {
+  transform: translateY(calc(var(--text-swap-translate-y) * -1));
+  filter: blur(var(--text-swap-blur));
+  opacity: 0;
+  pointer-events: none;
+}
+.t-bar-line[data-shown="true"] {
+  transform: translateY(0);
+  filter: blur(0);
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-bar-line {
+    transition: none !important;
+  }
+}
+
+/* -----------------------------------------------------------------------------
    Icon swap (09) — Vue <Transition name="t-iswap" mode="out-in">.
    Cross-fade dua icon di slot yang sama dengan blur + scale.
    Dipakai: table-data/TableBulkAction.vue

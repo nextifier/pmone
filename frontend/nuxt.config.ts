@@ -54,10 +54,14 @@ const brandIcons = brand.assetsReady
           type: "image/png",
         },
         // Full-bleed variant (opaque corners) for Android adaptive icons.
-        // Generated from icon-512x512.png; the mark's furthest point sits at
-        // r≈0.29 of the canvas, well inside the 0.40 safe-zone radius, so it
-        // needed no rescaling. Without this entry Android letterboxes the icon
-        // or crops the transparent corners into the mask.
+        // Currently BYTE-IDENTICAL to icon-512x512.png, not derived from it:
+        // the artwork is already an opaque rounded badge, so there is nothing
+        // to flatten. Measured on the 512 canvas, the furthest inked pixel sits
+        // at r = 134.7 px = 0.263 of the width, well inside the 0.40 safe-zone
+        // radius, so it needs no rescaling. (Measure inked PIXELS, not the
+        // bounding box corners — the mark is curved, so its bbox corner reads a
+        // misleading 0.354.) Without this entry Android letterboxes the icon or
+        // crops the transparent corners into the mask.
         {
           src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
           sizes: "512x512",
@@ -68,12 +72,12 @@ const brandIcons = brand.assetsReady
     }
   : {};
 
+// The only icon <link> that is neither theme-dependent nor part of the web
+// manifest. The favicon pair lives in useDynamicFavicon() (app.vue) because it
+// swaps with the browser's prefers-color-scheme; a static rel="icon" here would
+// compete with it for the same slot.
 const brandHeadLinks = brand.assetsReady
   ? [
-      {
-        rel: "icon",
-        href: `/brands/${brand.id}/favicon.ico`,
-      },
       {
         rel: "apple-touch-icon",
         sizes: "180x180",
@@ -125,6 +129,27 @@ export default defineNuxtConfig({
 
     // The old Email Delivery page was renamed to Emails.
     "/email-delivery": { redirect: { to: "/emails", statusCode: 302 } },
+
+    // Consumers that never parse the HTML - crawlers, RSS readers, bookmark
+    // services - request /favicon.ico directly. Nothing is served there, so the
+    // request falls through to Nitro's render handler, whose built-in fallback
+    // answers 200 image/x-icon with a 78-byte data-URI STRING as the body: a
+    // blank icon that never fails loudly. Point the path at the active brand
+    // instead. createRouteRulesHandler is registered on h3App ahead of every
+    // route handler, so this rule wins over that fallback.
+    //
+    // Do NOT "simplify" this by dropping a real file at public/favicon.ico.
+    // public/ is shared by every brand, so the file would be one brand's icon
+    // on a path all of them serve - and on Cloudflare Workers the asset router
+    // answers from public/ BEFORE the Worker runs, so the redirect would become
+    // dead code that still works in dev. The asymmetry is silent.
+    ...(brand.assetsReady
+      ? {
+          "/favicon.ico": {
+            redirect: { to: `/brands/${brand.id}/favicon.ico`, statusCode: 302 },
+          },
+        }
+      : {}),
 
     // Admin / auth pages (everything behind sanctum) are excluded from the
     // sitemap and not indexed by search engines. Public, share-worthy routes are

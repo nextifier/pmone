@@ -28,4 +28,8 @@ const route = useRoute();
 // <style>, and the reactive theme-color meta — cookie-backed, so the first paint
 // is already correct (no flash, no hydration mismatch).
 useAppearance();
+
+// Tab icon follows the BROWSER's color scheme (prefers-color-scheme), which is
+// independent of the app's own color mode above. Static icons: nuxt.config.
+useDynamicFavicon();
 </script>

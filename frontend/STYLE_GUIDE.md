@@ -24,8 +24,11 @@ Ada tiga kelompok, dan memilih yang salah akan langsung kelihatan.
 **Teks statis** (paragraf, deskripsi, judul, isi tabel, tooltip, kbd, shortcut) ukurannya tetap, atau membesar di layar besar.
 
 - Default body: `text-sm` atau `text-base`.
-- Hindari `text-xs`, `text-[11px]`, `text-[10px]` berdiri sendiri di layar besar. Kalau butuh kecil, pakai `text-xs sm:text-sm` supaya tetap nyaman dibaca di desktop.
-- Hindari `text-[9px]` kecuali untuk indikator badge yang memang sangat compact (step number, key indicator).
+- Lantai teks statis adalah `text-sm`, di semua lebar. `text-xs` (12px) tidak cukup untuk teks yang dibaca orang, termasuk helper text dan deskripsi section.
+- `text-xs sm:text-sm` bukan jalan keluar. Tangga itu memperbaiki desktop dan meninggalkan telepon tetap di 12px, padahal telepon justru tempat halaman ini paling banyak dibaca. Tangga baru sah kalau titik awalnya sudah `text-sm`, mis. `text-sm sm:text-base`.
+- `text-xs` hanya untuk kontrol dan indikator yang ukurannya memang dikunci: `.cn-button-size-xs` dan `<Badge>`. Bukan untuk teks.
+- Kalau teks jadi terpotong setelah dibesarkan, pendekkan teksnya, jangan kecilkan fontnya. Contoh: label bar bayar diganti dari "N tickets selected" jadi "Total", bukan diturunkan ke `text-xs` supaya muat.
+- Di bawah `text-xs` (`text-[11px]`, `text-[10px]`, `text-[9px]`) tidak boleh sama sekali untuk teks. Yang tersisa cuma indikator glyph di dalam badge (step number, key indicator) dan compact data tile - keduanya terdaftar di pengecualian §22, jangan menambah kasus baru di luar itu.
 
 **Kontrol interaktif** (button, select, tab, toggle, item menu, label) ukurannya **tetap**: `text-sm`, sama di telepon dan di desktop. Tangga `text-base sm:text-sm` pernah dipakai mengikuti coss.com/ui, lalu dibuang karena 16px terlihat terlalu besar di telepon, paling kentara di sel kalender yang lebarnya cuma 28px. Jangan menambahkan step mobile lagi, dan jangan pula mengembalikan `sm:text-base` ke rule `cn-*` mana pun. Yang tetap responsif cuma field ketik, alasannya di bawah.
 
@@ -76,7 +79,7 @@ Sisanya:
 - Card title biasa: `text-lg font-medium tracking-tighter`.
 - Judul section di dalam panel: `text-base font-medium tracking-tight`. Jangan `text-sm`, karena jadi sama besar dengan body di sekitarnya dan hierarkinya hilang.
 - Body teks panjang: `text-sm tracking-tight` atau `text-base tracking-tight`.
-- Helper text di bawah input: `text-muted-foreground text-xs`.
+- Helper text di bawah input: `text-muted-foreground text-sm`.
 - Label form: pakai component `<Label>`. Stylingnya sudah `text-sm leading-none font-medium tracking-tight` dari base layer.
 
 ### Font weight
@@ -220,7 +223,7 @@ Semua input harus pakai component dari `frontend/app/components/ui/`. Jangan pak
 <div class="space-y-2">
   <Label for="name">Field Label</Label>
   <Input id="name" v-model="form.name" required />
-  <p class="text-muted-foreground text-xs">Helper text opsional.</p>
+  <p class="text-muted-foreground text-sm">Helper text opsional.</p>
   <FieldError :errors="errors.name" />
 </div>
 ```
@@ -228,7 +231,7 @@ Semua input harus pakai component dari `frontend/app/components/ui/`. Jangan pak
 - Label wajib pakai `for` yang match dengan `id` input.
 - Required field: cukup pasang attribute `required`. Asterisk merah otomatis muncul via CSS selector `label:has(+ input:required)::after` di `main.css`. Jangan pernah menambah `<span class="text-destructive-foreground">*</span>` manual.
 - Error message: pakai `<FieldError :errors="errors.field" />` (`components/ui/field/`). Jangan render manual, dan jangan pakai `<p>` biasa - `FieldError` sudah membawa `role="alert"`.
-- Helper text pakai `text-muted-foreground text-xs`, posisi di bawah input sebelum error message.
+- Helper text pakai `text-muted-foreground text-sm`, posisi di bawah input sebelum error message.
 
 ### Form section
 
@@ -605,10 +608,10 @@ Aturannya:
 
 ## 22. Hal yang Wajib Dihindari
 
-- `text-xs` standalone di layar besar **pada teks statis**. Pakai `text-xs sm:text-sm`. Aturan ini tidak berlaku untuk kontrol interaktif: ukurannya sama di semua lebar (§1), jadi `text-xs` di `.cn-button-size-xs` memang benar.
+- `text-xs` **pada teks statis**, di lebar mana pun. Lantainya `text-sm` (§1), dan `text-xs sm:text-sm` tidak dihitung sebagai perbaikan karena hasilnya tetap 12px di telepon. Aturan ini tidak berlaku untuk kontrol interaktif: ukurannya dikunci sama di semua lebar (§1), jadi `text-xs` di `.cn-button-size-xs` dan di `<Badge>` memang benar. Kode lama yang masih 12px bukan temuan audit; naikkan saat file itu memang sedang disentuh.
 - `sm:text-*` apa pun di rule `cn-*`. Kontrol tidak lagi punya step ukuran mobile; satu-satunya yang masih responsif adalah field ketik, lewat `pointer-fine:`.
-- Ukuran di bawah `text-xs` pada breakpoint dasar. Kalau perlu kecil, kecilkan di breakpoint besar.
-- `text-xs` untuk konten primer (nilai, hasil, isi tabel, pesan error, blok kode).
+- Ukuran di bawah `text-xs` di mana pun. Satu-satunya pengecualian adalah compact data tile (lihat daftar pengecualian di bawah), dan itu pun hanya di belakang prefix breakpoint.
+- `text-xs` untuk konten primer: nilai, harga, hasil, isi tabel, pesan error, pesan validasi, tanggal atau sesi yang dipilih user, blok kode. Patokannya bukan panjang teksnya: kalau user harus membacanya untuk memutuskan atau memverifikasi sesuatu, itu konten primer.
 - Input / textarea di bawah 16px pada perangkat sentuh - memicu auto-zoom iOS. Pakai `text-base pointer-fine:text-sm`, bukan `sm:text-sm`.
 - Gradient text dan nested card.
 - `border-left: 3px solid` sebagai accent stripe.
@@ -641,7 +644,14 @@ Empat kasus di bawah ini melanggar daftar di atas dan tetap boleh, karena aturan
 ## 23. Checklist Sebelum Commit UI
 
 - Semua input pakai component shadcn-vue, bukan native.
-- Tidak ada `text-xs` standalone di larger screen, dan tidak ada ukuran di bawah `text-xs` di mobile.
+- Tidak ada teks statis di bawah `text-sm`. Jangan diperiksa dengan mata. Buka halamannya di viewport 390px, jalankan ini di console, hasilnya harus kosong:
+  ```js
+  document.querySelectorAll('main *').forEach((el) => {
+    if (el.children.length) return;
+    const fs = parseFloat(getComputedStyle(el).fontSize);
+    if (fs < 14) console.log(fs, el.textContent.trim().slice(0, 60));
+  });
+  ```
 - Semua input / textarea minimal 16px di mobile.
 - Semua teks pakai `tracking-tight` atau `tracking-tighter`.
 - Warna pakai CSS variable, bukan literal Tailwind color.

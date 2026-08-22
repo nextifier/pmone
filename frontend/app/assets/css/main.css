@@ -197,7 +197,7 @@ html.appearance-switching *::after {
     --background: var(--color-white);
     --foreground: var(--color-gray-950);
     --body: var(--color-gray-700);
-    --border: var(--color-gray-200);
+    --border: --alpha(var(--foreground) / 20%);
     --input: var(--color-gray-200);
     --ring: var(--color-black);
 
@@ -253,7 +253,7 @@ html.appearance-switching *::after {
     --background: var(--color-gray-950);
     --foreground: var(--color-gray-50);
     --body: var(--color-gray-300);
-    --border: var(--color-gray-800);
+    --border: --alpha(var(--foreground) / 16%);
     --input: var(--color-gray-800);
     --ring: var(--color-white);
 
@@ -810,15 +810,7 @@ html.appearance-switching *::after {
 
   /* Mirrors Typeset's own descendant selector exactly, so specificity ties
      at (0,1,0) and source order (this block comes later) decides. */
-  .typeset
-    *:not(
-      :where(
-        .not-typeset,
-        [data-not-typeset],
-        .not-typeset *,
-        [data-not-typeset] *
-      )
-    ) {
+  .typeset *:not(:where(.not-typeset, [data-not-typeset], .not-typeset *, [data-not-typeset] *)) {
     /* House heading scale. Typeset's own ladder (1.75em → 0.8125em) is much
        smaller than this app's, and its h6 is uppercase with 0.08em tracking —
        both banned by the style guide. */
@@ -883,12 +875,7 @@ html.appearance-switching *::after {
      --------------------------------------------------------------------- */
   .typeset:not(.ProseMirror)
     :where(table):not(
-      :where(
-        .not-typeset,
-        [data-not-typeset],
-        .not-typeset *,
-        [data-not-typeset] *
-      )
+      :where(.not-typeset, [data-not-typeset], .not-typeset *, [data-not-typeset] *)
     ) {
     display: block;
     width: max-content;
@@ -907,12 +894,7 @@ html.appearance-switching *::after {
      --------------------------------------------------------------------- */
   .typeset-cms
     :where(img):not(
-      :where(
-        .not-typeset,
-        [data-not-typeset],
-        .not-typeset *,
-        [data-not-typeset] *
-      )
+      :where(.not-typeset, [data-not-typeset], .not-typeset *, [data-not-typeset] *)
     ) {
     width: 100%;
   }

@@ -168,6 +168,15 @@ class CustomField extends Model implements Sortable
 
     public const TYPE_COUNTRY = 'country';
 
+    /**
+     * Dependent location selects. `province` narrows on the country field named
+     * by `settings.depends_on`, `city` narrows on the province. Both store the
+     * option's LABEL, matching TYPE_COUNTRY and AddressFields.
+     */
+    public const TYPE_PROVINCE = 'province';
+
+    public const TYPE_CITY = 'city';
+
     public const TYPE_MONTH = 'month';
 
     public const TYPE_MONTH_RANGE = 'month_range';

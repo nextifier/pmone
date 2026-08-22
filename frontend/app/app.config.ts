@@ -8,6 +8,12 @@ const app = {
   shortName: brand.shortName,
   url: isProduction ? brand.siteUrl : "http://localhost:3000",
   company: brand.company,
+  // Mirrors BrandMeta.assetsReady so SHARED runtime code can apply the same
+  // guard nuxt.config applies at build time (brandIcons / brandHeadLinks):
+  // while a brand has no real icons, nothing may reference public/brands/<id>/.
+  // Read by useDynamicFavicon(). Keep the name identical to the source field —
+  // one concept, one word, so the two guards cannot drift apart conceptually.
+  assetsReady: brand.assetsReady,
 };
 
 const settings = {

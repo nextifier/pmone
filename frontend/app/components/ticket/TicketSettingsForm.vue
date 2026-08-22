@@ -222,12 +222,34 @@
             </p>
           </div>
 
-          <div class="flex justify-end">
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <Button variant="outline" :disabled="savingTerms" @click="loadDefaultTerms">
+              <Icon name="hugeicons:file-import" class="size-4 shrink-0" />
+              Load default template
+            </Button>
             <Button :disabled="savingTerms" @click="saveTerms">
               <Spinner v-if="savingTerms" class="size-4" />
               Save terms
             </Button>
           </div>
+
+          <ResponsiveDialog v-model:open="templateConfirmOpen" dialog-max-width="26rem">
+            <div class="space-y-4 px-4 pt-5 pb-8 md:px-6 md:py-5">
+              <div class="space-y-1.5">
+                <h3 class="text-foreground text-lg font-semibold tracking-tighter">
+                  Replace these terms?
+                </h3>
+                <p class="text-muted-foreground text-sm tracking-tight">
+                  The {{ activeTermsLocaleLabel }} terms already have content. Loading the
+                  template replaces all of it. This is not saved until you press Save terms.
+                </p>
+              </div>
+              <div class="flex justify-end gap-2">
+                <Button variant="outline" @click="templateConfirmOpen = false">Cancel</Button>
+                <Button variant="destructive" @click="applyTemplate">Replace</Button>
+              </div>
+            </div>
+          </ResponsiveDialog>
         </div>
       </div>
 
@@ -322,6 +344,11 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
+import {
+  TICKET_TERMS_TEMPLATE_LOCALES,
+  ticketTermsTemplateFor,
+} from "@/lib/ticketTermsTemplate";
 import { computed, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
@@ -519,6 +546,38 @@ async function save() {
       save();
     }
   }
+}
+
+// No event ships with purchase terms, so every one of them starts from a blank
+// editor. The template is loaded on demand rather than seeded: they are the
+// organizer's terms, and someone has to read them before a buyer does.
+const templateConfirmOpen = ref(false);
+const activeTermsLocaleLabel = computed(
+  () => LOCALES.find((l) => l.value === activeTermsLocale.value)?.label ?? "current",
+);
+
+const templateHasTranslation = computed(() =>
+  TICKET_TERMS_TEMPLATE_LOCALES.includes(activeTermsLocale.value),
+);
+
+function applyTemplate() {
+  termsField.value = ticketTermsTemplateFor(activeTermsLocale.value);
+  templateConfirmOpen.value = false;
+  toast.success("Default template loaded", {
+    description: templateHasTranslation.value
+      ? "Review it, fill in the bracketed details, then Save terms."
+      : "No translation for this language yet, so the English template was loaded.",
+  });
+}
+
+/** Overwriting hand-written terms is not something to do on a single click. */
+function loadDefaultTerms() {
+  const current = (termsField.value || "").replace(/<[^>]*>/g, "").trim();
+  if (current) {
+    templateConfirmOpen.value = true;
+    return;
+  }
+  applyTemplate();
 }
 
 // Purchase terms persist on an explicit button press (rich-text editor has no

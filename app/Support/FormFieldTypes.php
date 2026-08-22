@@ -64,6 +64,8 @@ class FormFieldTypes
         CustomField::TYPE_TAGS => 'options',
         CustomField::TYPE_SWITCH => 'options',
         CustomField::TYPE_COUNTRY => 'options',
+        CustomField::TYPE_PROVINCE => 'options',
+        CustomField::TYPE_CITY => 'options',
         CustomField::TYPE_COLOR => 'options',
         CustomField::TYPE_FILE => 'text',
         CustomField::TYPE_RATING => 'numeric',
@@ -317,6 +319,15 @@ class FormFieldTypes
                 break;
 
             case CustomField::TYPE_COUNTRY:
+            case CustomField::TYPE_PROVINCE:
+                $base[] = 'string';
+                $base[] = 'max:100';
+                break;
+
+            // A city is only valid inside its province, which this signature
+            // cannot see - it gets one field's type and options, not the sibling
+            // answers. The parent-child check lives in CustomFieldValidation.
+            case CustomField::TYPE_CITY:
                 $base[] = 'string';
                 $base[] = 'max:100';
                 break;

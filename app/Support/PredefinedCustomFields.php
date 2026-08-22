@@ -40,12 +40,26 @@ class PredefinedCustomFields
         'settings' => null,
     ];
 
+    /**
+     * Province and city are dependent selects: `settings.depends_on` names the
+     * field whose answer narrows this one's options. Both sit behind the country
+     * field, and both fall back to a free-text input outside Indonesia, because
+     * the region dataset only covers Indonesia.
+     */
+    private const PROVINCE_FIELD = [
+        'type' => CustomField::TYPE_PROVINCE,
+        'label' => ['en' => 'Province', 'id' => 'Provinsi', 'ja' => '州・県', 'ko' => '주/도', 'zh' => '省'],
+        'options' => null,
+        'validation' => ['required' => false],
+        'settings' => ['depends_on' => 'country'],
+    ];
+
     private const CITY_FIELD = [
-        'type' => CustomField::TYPE_TEXT,
+        'type' => CustomField::TYPE_CITY,
         'label' => ['en' => 'City', 'id' => 'Kota', 'ja' => '都市', 'ko' => '도시', 'zh' => '城市'],
         'options' => null,
         'validation' => ['required' => false],
-        'settings' => null,
+        'settings' => ['depends_on' => 'province'],
     ];
 
     /**
@@ -55,13 +69,16 @@ class PredefinedCustomFields
     {
         return [
             CustomField::CONTEXT_TICKET_REGISTRATION => [
+                // Radio, not select: two options are quicker to answer with one
+                // tap than a dropdown that costs a tap to open and a tap to pick.
+                // TYPE_RADIO shares TYPE_SELECT's validation and formatting
+                // branches, so storage, export and analytics are unchanged.
                 'gender' => [
-                    'type' => CustomField::TYPE_SELECT,
+                    'type' => CustomField::TYPE_RADIO,
                     'label' => ['en' => 'Gender', 'id' => 'Jenis kelamin', 'ja' => '性別', 'ko' => '성별', 'zh' => '性别'],
                     'options' => [
                         ['value' => 'male', 'label' => ['en' => 'Male', 'id' => 'Laki-laki', 'ja' => '男性', 'ko' => '남성', 'zh' => '男']],
                         ['value' => 'female', 'label' => ['en' => 'Female', 'id' => 'Perempuan', 'ja' => '女性', 'ko' => '여성', 'zh' => '女']],
-                        ['value' => 'prefer_not_to_say', 'label' => ['en' => 'Prefer not to say', 'id' => 'Memilih tidak menjawab', 'ja' => '回答しない', 'ko' => '답변하지 않음', 'zh' => '不愿透露']],
                     ],
                     'validation' => ['required' => false],
                     'settings' => null,
@@ -74,6 +91,7 @@ class PredefinedCustomFields
                     'settings' => ['options_preset' => 'years'],
                 ],
                 'country' => self::COUNTRY_FIELD,
+                'province' => self::PROVINCE_FIELD,
                 'city' => self::CITY_FIELD,
                 'company' => [
                     'type' => CustomField::TYPE_TEXT,
@@ -115,6 +133,7 @@ class PredefinedCustomFields
             ],
             CustomField::CONTEXT_BUSINESS_MATCHING => [
                 'country' => self::COUNTRY_FIELD,
+                'province' => self::PROVINCE_FIELD,
                 'city' => self::CITY_FIELD,
                 'business_interests' => [
                     'type' => CustomField::TYPE_MULTI_SELECT,

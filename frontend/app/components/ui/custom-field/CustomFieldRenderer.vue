@@ -383,6 +383,29 @@
         <TagsInputInput :placeholder="normalized.placeholder || 'Type and press Enter'" />
       </TagsInput>
 
+      <!-- Province / City: narrowed by the parent named in settings.depends_on.
+           Outside Indonesia the dataset has nothing to offer, so the same field
+           renders as free text instead of an empty dropdown. -->
+      <LocationCombobox
+        v-else-if="isLocationDependent && useLocationSelect"
+        :model-value="modelValue"
+        :options="locationOptions"
+        :disabled="disabled || (normalized.type === 'city' && !parentValue)"
+        :placeholder="
+          normalized.placeholder ||
+          (normalized.type === 'province' ? 'Select province' : 'Select city')
+        "
+        @update:model-value="$emit('update:modelValue', $event)"
+      />
+      <Input
+        v-else-if="isLocationDependent"
+        :id="fieldId"
+        :model-value="modelValue"
+        :disabled="disabled"
+        :placeholder="normalized.placeholder || normalized.label"
+        @update:model-value="$emit('update:modelValue', $event)"
+      />
+
       <!-- Country -->
       <LocationCombobox
         v-else-if="normalized.type === 'country'"
@@ -545,7 +568,7 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent, ref, watch } from "vue";
+import { computed, defineAsyncComponent, ref, shallowRef, watch } from "vue";
 import { CalendarDate, Time } from "@internationalized/date";
 import { Check, X } from "@lucide/vue";
 import { useFilter } from "reka-ui";
@@ -622,6 +645,11 @@ const props = defineProps({
   // is a question the visitor reads rather than a dashboard control caption.
   labelSize: { type: String, default: "default" },
   countries: { type: Array, default: null },
+  // Sibling answers, keyed the same way CustomFieldGroup keys its model. A
+  // dependent field (province, city) needs the value of the field named in its
+  // `settings.depends_on`, which this component would otherwise never see: it
+  // renders one field and is handed only that field's value.
+  contextValues: { type: Object, default: () => ({}) },
   pinnedCountries: { type: Array, default: () => ["Indonesia"] },
   uploadHandler: { type: Function, default: null },
   revertHandler: { type: Function, default: null },
@@ -632,6 +660,65 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "uploading"]);
 
 const normalized = computed(() => normalizeField(props.field, props.locale));
+
+// --- Dependent location selects (province, city) -------------------------------
+// The datasets are Indonesia-only while the country field is global, so outside
+// Indonesia these fall back to a plain text input rather than an empty dropdown.
+// Loaded on demand: the region list is ~39 KB and most forms never use it.
+const regions = shallowRef(null);
+
+const isLocationDependent = computed(() =>
+  ["province", "city"].includes(normalized.value.type),
+);
+
+watch(
+  isLocationDependent,
+  async (needed) => {
+    if (!needed || regions.value) return;
+    regions.value = await import("./indonesiaRegions");
+  },
+  { immediate: true },
+);
+
+/** The answer this field depends on, resolved through `settings.depends_on`. */
+const parentValue = computed(() => {
+  const key = props.field?.settings?.depends_on;
+  return key ? (props.contextValues?.[key] ?? null) : null;
+});
+
+// province depends on country; city depends on province, which itself only has
+// options inside Indonesia. Walking up one more level keeps the city field from
+// offering a dropdown when the country is not Indonesia.
+const countryValue = computed(() => {
+  if (normalized.value.type === "province") return parentValue.value;
+  return props.contextValues?.country ?? null;
+});
+
+const locationOptions = computed(() => {
+  if (!regions.value || !isLocationDependent.value) return [];
+  if (!regions.value.isIndonesia(countryValue.value)) return [];
+  return normalized.value.type === "province"
+    ? regions.value.INDONESIA_PROVINCES
+    : regions.value.citiesForProvinceLabel(parentValue.value);
+});
+
+/** Indonesia picked, dataset loaded: show the narrowed select. Otherwise free text. */
+const useLocationSelect = computed(
+  () =>
+    isLocationDependent.value &&
+    !!regions.value &&
+    regions.value.isIndonesia(countryValue.value),
+);
+
+// A stale child is worse than an empty one: changing province must not leave the
+// previous province's city sitting in the answer.
+watch(parentValue, (next, prev) => {
+  if (prev === undefined || next === prev) return;
+  if (isLocationDependent.value && props.modelValue) {
+    emit("update:modelValue", null);
+  }
+});
+
 
 const fieldId = computed(() => `field-${normalized.value.key}`);
 

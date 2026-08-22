@@ -125,6 +125,20 @@ export const FIELD_TYPES = {
     group: "choice",
     hasPlaceholder: true,
   },
+  // Options come from the Indonesian region dataset, narrowed by the parent
+  // named in `settings.depends_on`, so there is nothing for staff to edit.
+  province: {
+    label: "Province",
+    icon: "hugeicons:maps-location-01",
+    group: "choice",
+    hasPlaceholder: true,
+  },
+  city: {
+    label: "City",
+    icon: "hugeicons:building-06",
+    group: "choice",
+    hasPlaceholder: true,
+  },
   date: {
     label: "Date",
     icon: "hugeicons:calendar-03",

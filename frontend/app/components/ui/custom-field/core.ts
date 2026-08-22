@@ -72,6 +72,9 @@ export const TYPE_META: Record<string, TypeMeta> = {
   switch: {},
   tags: { multiValue: true },
   country: {},
+  // Dependent location selects; `settings.depends_on` names the parent field.
+  province: {},
+  city: {},
   date: {},
   time: {},
   datetime: {},

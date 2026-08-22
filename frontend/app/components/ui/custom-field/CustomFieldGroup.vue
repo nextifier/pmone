@@ -14,6 +14,7 @@
         :disabled="disabled"
         :preview="preview"
         :existing-files="existingFiles[fieldKey(field)] || []"
+        :context-values="contextValues"
         :upload-handler="uploadHandler"
         :revert-handler="revertHandler"
         @update:model-value="update(field, $event)"
@@ -24,7 +25,7 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import CustomFieldRenderer from "./CustomFieldRenderer.vue";
 import { defaultValueFor, normalizeField } from "./core";
 
@@ -49,6 +50,25 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "uploading"]);
 
 const fieldKey = (field) => String(field[props.valueKey] ?? field.ulid ?? field.id ?? "");
+
+/**
+ * Answers re-keyed by `system_key`, for fields that depend on a sibling.
+ *
+ * The renderer is handed one field and one value, so a dependent select (city
+ * narrowing on province) has no way to see its parent. The group is the only
+ * component holding every answer, so the lookup is built here. Keyed by
+ * `system_key` rather than ulid because `settings.depends_on` names a stable
+ * library key, not a per-event id.
+ */
+const contextValues = computed(() => {
+  const out = {};
+  for (const field of props.fields) {
+    if (field?.system_key) {
+      out[field.system_key] = props.modelValue[fieldKey(field)] ?? null;
+    }
+  }
+  return out;
+});
 
 const update = (field, value) => {
   emit("update:modelValue", { ...props.modelValue, [fieldKey(field)]: value });
