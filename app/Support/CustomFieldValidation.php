@@ -33,6 +33,10 @@ class CustomFieldValidation
                 continue;
             }
 
+            if (self::isWithdrawn($field, $fields, $values, $keyBy)) {
+                continue;
+            }
+
             $fieldKey = (string) $field->{$keyBy};
             $value = $values[$fieldKey] ?? null;
 
@@ -65,6 +69,71 @@ class CustomFieldValidation
         }
 
         return $errors;
+    }
+
+    /**
+     * A dependent location field whose parent puts it out of scope.
+     *
+     * The province/city datasets cover Indonesia only, so the client withdraws
+     * these fields entirely when the country is anything else - the same thing
+     * `AddressFields.vue` does. A field the respondent was never shown cannot be
+     * required of them, so it is skipped here before `required` can fire rather
+     * than validated against an answer they had no way to give.
+     *
+     * @param  Collection<int, CustomField>  $fields
+     * @param  array<string, mixed>  $values
+     */
+    private static function isWithdrawn(
+        CustomField $field,
+        Collection $fields,
+        array $values,
+        string $keyBy,
+    ): bool {
+        if (! in_array($field->type, [CustomField::TYPE_PROVINCE, CustomField::TYPE_CITY], true)) {
+            return false;
+        }
+
+        // City hangs off province, which itself only exists inside Indonesia, so
+        // both types are judged on the country one or two links up the chain.
+        $countryValue = $field->type === CustomField::TYPE_PROVINCE
+            ? self::parentValueFor($field, $fields, $values, $keyBy)
+            : self::valueForSystemKey('country', $fields, $values, $keyBy);
+
+        return ! IndonesiaRegions::isIndonesia($countryValue);
+    }
+
+    /**
+     * @param  Collection<int, CustomField>  $fields
+     * @param  array<string, mixed>  $values
+     */
+    private static function parentValueFor(
+        CustomField $field,
+        Collection $fields,
+        array $values,
+        string $keyBy,
+    ): mixed {
+        $parentKey = $field->settings['depends_on'] ?? null;
+
+        return $parentKey
+            ? self::valueForSystemKey($parentKey, $fields, $values, $keyBy)
+            : null;
+    }
+
+    /**
+     * @param  Collection<int, CustomField>  $fields
+     * @param  array<string, mixed>  $values
+     */
+    private static function valueForSystemKey(
+        string $systemKey,
+        Collection $fields,
+        array $values,
+        string $keyBy,
+    ): mixed {
+        $target = $fields->firstWhere('system_key', $systemKey);
+
+        return $target
+            ? ($values[(string) $target->{$keyBy}] ?? null)
+            : null;
     }
 
     /**

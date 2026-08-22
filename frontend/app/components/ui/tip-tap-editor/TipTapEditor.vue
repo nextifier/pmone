@@ -680,7 +680,7 @@ const handleImageUpload = async (event) => {
 @reference "../../../assets/css/main.css";
 
 .editor-toolbar {
-  @apply border-border z-10 flex flex-wrap items-center gap-1 rounded-t-[inherit] border-b bg-transparent p-2;
+  @apply border-field z-10 flex flex-wrap items-center gap-1 rounded-t-[inherit] border-b bg-transparent p-2;
 }
 
 /* Solid two-layer background: page --background below plus the wrapper's

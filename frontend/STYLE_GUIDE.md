@@ -121,8 +121,25 @@ Jangan pakai:
 
 Border:
 
-- Default: `border` (otomatis ambil `border-border` via base layer).
-- Input border: `border-input`.
+- Default: `border` (otomatis ambil `border-border` via base layer). `--border`
+  adalah token PERMUKAAN: divider, tabel, card, separator, accordion, alert.
+- Border form control: **`border-field`**. Dipakai Input, Textarea, Select,
+  NativeSelect, InputGroup, Combobox chips, Command input, InputOTP slot, dan
+  dropdown Calendar. Nilainya alpha dari `--foreground` (20% light / 16% dark),
+  jadi tepi field tetap terbaca di atas permukaan apa pun dan ikut palet
+  appearance mana pun. `--field` sengaja TIDAK didaftarkan di `themes.ts`, itu
+  yang bikin customizer tidak bisa meratakannya kembali.
+- `border-input` BUKAN border field. Di pmone `--input` dipakai sebagai FILL:
+  track Slider, combobox chip, input filled di luma/rhea, dan `dark:bg-input/30`
+  di button/toggle outline. Jangan diubah jadi alpha, warnanya akan bergeser
+  tergantung elemennya ada di atas page atau di atas card. Yang masih pakai
+  `border-input` cuma chrome non-field: button outline, toggle outline,
+  combobox content.
+- Track Switch (`data-unchecked:`) pakai `bg-field`, bukan `bg-input`. Ini satu-
+  satunya fill yang sengaja ber-alpha: di dark dia memang bergeser ~6 level RGB
+  antara di atas page dan di atas card, dan itu diterima.
+- Checkbox dan RadioGroup pakai `border-muted-foreground/30`, bukan
+  `border-field`. Pada kontrol 16px alpha `--field` praktis tidak terlihat.
 
 Kalau menyalin kelas dari coss.com/ui, **jangan bawa `accent` apa adanya**. Di coss `--accent` itu abu tipis (`black/4%`), di pmone isinya `var(--color-primary)` alias hitam pekat. `bg-accent` coss padanannya `bg-muted` di sini. Tokennya juga tidak boleh diubah jadi netral: mira, sera, dan lyra memakai `bg-accent` + `text-accent-foreground` untuk item menu yang di-highlight, dan blok hitam itu memang identitas mereka. `bg-popover` dan `border-input` aman disalin apa adanya, nilainya sama persis dengan `bg-background` dan `border-border` di pmone.
 

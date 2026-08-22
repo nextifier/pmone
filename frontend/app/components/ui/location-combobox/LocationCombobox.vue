@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/combobox";
 import { Flag } from "@/components/ui/flag";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import { LucideCheck } from "@lucide/vue";
+import { LucideCheck, LucideCircleDashed } from "@lucide/vue";
 import { ComboboxRoot, ComboboxVirtualizer, useFilter } from "reka-ui";
 import { computed, ref, watch } from "vue";
 
@@ -21,6 +21,12 @@ interface Option {
 }
 
 interface LocationComboboxProps {
+  /**
+   * Forwarded to the native search input, so a sibling `<FieldLabel :for>` has
+   * something to point at. Without it the label was inert: clicking it did
+   * nothing and a screen reader announced the field unnamed.
+   */
+  id?: string;
   options: Option[];
   placeholder?: string;
   disabled?: boolean;
@@ -37,6 +43,7 @@ interface LocationComboboxProps {
 const modelValue = defineModel<string>("modelValue", { default: "" });
 
 const {
+  id,
   options,
   placeholder,
   disabled,
@@ -143,6 +150,7 @@ watch(modelValue, () => {
            still works; on a phone the list is picked by scrolling. The attribute
            reaches the native input through `ComboboxInput.vue`'s `$attrs`. -->
       <ComboboxInput
+        :id="id"
         v-model="searchTerm"
         inputmode="none"
         :display-value="() => modelValue || ''"
@@ -181,12 +189,22 @@ watch(modelValue, () => {
           >
             <!-- Fixed box the width of a Flag (24×16) so the flagless "None"
                  row still lines its label up with the country rows. An empty
-                 <Flag> would not do: it always paints its placeholder tint. -->
+                 <Flag> would not do: it always paints its placeholder tint.
+                 "None" gets a dashed circle rather than blank space: an empty
+                 slot beside a column of flags reads as a failed image. `size-4`
+                 is the Flag's own height, and centring it in the same 24px box
+                 puts it on the flags' axis. No colour class - it inherits the
+                 row's `text-muted-foreground`. -->
             <span v-if="showFlag" class="flex h-4 w-6 shrink-0 items-center justify-center">
               <Flag
                 v-if="isIso2(option.value)"
                 :country="option.value"
                 :country-name="option.label"
+              />
+              <LucideCircleDashed
+                v-else-if="option.value === '__none__'"
+                class="size-4"
+                aria-hidden="true"
               />
             </span>
             <span class="truncate">{{ option.label }}</span>

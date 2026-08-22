@@ -53,9 +53,8 @@ const EN = `
 <h3>9. Conduct at the event</h3>
 <p>The organizer may refuse entry to, or remove, anyone who breaches the event rules, endangers others, or disrupts the event, without a refund. Follow the instructions of event staff and security at all times.</p>
 
-<h3>10. Governing law and contact</h3>
+<h3>10. Governing law</h3>
 <p>These terms are governed by the laws of the Republic of Indonesia. Disputes are settled by discussion first, and failing that before the competent court.</p>
-<p>Questions about your ticket or these terms: [organizer email] / [organizer WhatsApp].</p>
 `.trim();
 
 const ID = `
@@ -95,9 +94,8 @@ const ID = `
 <h3>9. Ketertiban di lokasi acara</h3>
 <p>Penyelenggara dapat menolak atau mengeluarkan siapa pun yang melanggar aturan acara, membahayakan orang lain, atau mengganggu jalannya acara, tanpa pengembalian dana. Ikuti arahan panitia dan petugas keamanan setiap saat.</p>
 
-<h3>10. Hukum yang berlaku dan kontak</h3>
+<h3>10. Hukum yang berlaku</h3>
 <p>Ketentuan ini tunduk pada hukum Republik Indonesia. Sengketa diselesaikan melalui musyawarah terlebih dahulu, dan bila tidak tercapai, melalui pengadilan yang berwenang.</p>
-<p>Pertanyaan mengenai tiket atau ketentuan ini: [email penyelenggara] / [WhatsApp penyelenggara].</p>
 `.trim();
 
 export const TICKET_TERMS_TEMPLATE = { en: EN, id: ID };

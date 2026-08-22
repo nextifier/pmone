@@ -12,7 +12,11 @@
           <div class="min-w-0 flex-1 space-y-1">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <h3 class="text-base font-semibold tracking-tighter">Ticketing</h3>
-              <Badge v-if="form.tickets_enabled" variant="success" icon="hugeicons:checkmark-circle-02">
+              <Badge
+                v-if="form.tickets_enabled"
+                variant="success"
+                icon="hugeicons:checkmark-circle-02"
+              >
                 Active
               </Badge>
               <Badge v-else variant="muted">Disabled</Badge>
@@ -35,7 +39,11 @@
                 }}
               </p>
             </div>
-            <Switch :model-value="form.tickets_enabled" :disabled="toggling" @update:model-value="onToggleEnabled" />
+            <Switch
+              :model-value="form.tickets_enabled"
+              :disabled="toggling"
+              @update:model-value="onToggleEnabled"
+            />
           </div>
         </div>
       </div>
@@ -145,7 +153,9 @@
             </div>
             <div class="flex items-center justify-between gap-3 sm:col-span-2">
               <div class="space-y-1">
-                <Label for="ticket-default-print" class="cursor-pointer">Print on redeem (default)</Label>
+                <Label for="ticket-default-print" class="cursor-pointer"
+                  >Print on redeem (default)</Label
+                >
                 <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                   When on, new add-on tickets default to printing a physical pass on redemption.
                 </p>
@@ -177,9 +187,9 @@
               <p class="text-muted-foreground text-xs tracking-tight sm:text-sm">
                 Ticket holders can open their account in one tap, no password needed, to view and
                 manage their tickets, orders, and profile. The button appears on the e-ticket page
-                and in the ticket email (only when a ticket is linked to an account). Note: anyone the
-                e-ticket link is shared with can use it, so turn this off if you prefer holders sign
-                in manually.
+                and in the ticket email (only when a ticket is linked to an account). Note: anyone
+                the e-ticket link is shared with can use it, so turn this off if you prefer holders
+                sign in manually.
               </p>
             </div>
             <Switch id="ticket-login-button" v-model="form.login_button_enabled" />
@@ -240,8 +250,8 @@
                   Replace these terms?
                 </h3>
                 <p class="text-muted-foreground text-sm tracking-tight">
-                  The {{ activeTermsLocaleLabel }} terms already have content. Loading the
-                  template replaces all of it. This is not saved until you press Save terms.
+                  The {{ activeTermsLocaleLabel }} terms already have content. Loading the template
+                  replaces all of it. This is not saved until you press Save terms.
                 </p>
               </div>
               <div class="flex justify-end gap-2">
@@ -278,7 +288,10 @@
           </div>
 
           <template v-else>
-            <p v-if="!gatewayConfigured" class="text-muted-foreground text-xs tracking-tight sm:text-sm">
+            <p
+              v-if="!gatewayConfigured"
+              class="text-muted-foreground text-xs tracking-tight sm:text-sm"
+            >
               No active payment gateway yet, so the full list of supported channels is shown. Your
               selection is saved and applied once a gateway is connected.
             </p>
@@ -302,7 +315,7 @@
                   v-if="channel.logo_url"
                   :src="channel.logo_url"
                   :alt="channel.label"
-                  class="h-5 w-9 shrink-0 object-contain"
+                  class="h-5 shrink-0 rounded-md bg-white"
                 />
                 <span class="min-w-0 flex-1 truncate text-sm font-medium tracking-tight">
                   {{ channel.label }}
@@ -333,6 +346,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InputNumber } from "@/components/ui/input-number";
 import { Label } from "@/components/ui/label";
+import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
 import {
   Select,
   SelectContent,
@@ -344,11 +358,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TipTapEditor } from "@/components/ui/tip-tap-editor";
-import ResponsiveDialog from "@/components/ui/responsive-dialog/ResponsiveDialog.vue";
-import {
-  TICKET_TERMS_TEMPLATE_LOCALES,
-  ticketTermsTemplateFor,
-} from "@/lib/ticketTermsTemplate";
+import { TICKET_TERMS_TEMPLATE_LOCALES, ticketTermsTemplateFor } from "@/lib/ticketTermsTemplate";
 import { computed, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 
@@ -493,7 +503,10 @@ async function load() {
       default_stock: d.default_stock ?? null,
       default_print_on_redeem: !!d.default_print_on_redeem,
       login_button_enabled: d.login_button_enabled !== false,
-      terms: { ...EMPTY_TRANSLATABLE(), ...(d.terms && typeof d.terms === "object" ? d.terms : {}) },
+      terms: {
+        ...EMPTY_TRANSLATABLE(),
+        ...(d.terms && typeof d.terms === "object" ? d.terms : {}),
+      },
       allowed_payment_channels: Array.isArray(d.allowed_payment_channels)
         ? [...d.allowed_payment_channels]
         : [],
@@ -553,11 +566,11 @@ async function save() {
 // organizer's terms, and someone has to read them before a buyer does.
 const templateConfirmOpen = ref(false);
 const activeTermsLocaleLabel = computed(
-  () => LOCALES.find((l) => l.value === activeTermsLocale.value)?.label ?? "current",
+  () => LOCALES.find((l) => l.value === activeTermsLocale.value)?.label ?? "current"
 );
 
 const templateHasTranslation = computed(() =>
-  TICKET_TERMS_TEMPLATE_LOCALES.includes(activeTermsLocale.value),
+  TICKET_TERMS_TEMPLATE_LOCALES.includes(activeTermsLocale.value)
 );
 
 function applyTemplate() {
@@ -617,7 +630,11 @@ async function onToggleEnabled(next) {
 // Toggles persist on change; numeric/text fields persist on blur (above) to
 // avoid a request per keystroke.
 watch(
-  () => [form.value.allow_cross_day, form.value.default_print_on_redeem, form.value.login_button_enabled],
+  () => [
+    form.value.allow_cross_day,
+    form.value.default_print_on_redeem,
+    form.value.login_button_enabled,
+  ],
   () => save()
 );
 

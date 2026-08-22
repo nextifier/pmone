@@ -18,7 +18,7 @@
 
   /* MARK: Switch */
   .cn-switch {
-    @apply data-checked:bg-primary data-unchecked:bg-input data-checked:border-primary focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-full border-2 focus-visible:ring-2 aria-invalid:ring-2 data-unchecked:border-transparent data-[size=default]:h-5 data-[size=default]:w-11 data-[size=sm]:h-4 data-[size=sm]:w-7;
+    @apply data-checked:bg-primary data-unchecked:bg-field data-checked:border-primary focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-full border-2 focus-visible:ring-2 aria-invalid:ring-2 data-unchecked:border-transparent data-[size=default]:h-5 data-[size=default]:w-11 data-[size=sm]:h-4 data-[size=sm]:w-7;
   }
 
   .cn-switch-thumb {
@@ -302,7 +302,7 @@
   }
 
   .cn-input-otp-slot {
-    @apply size-10 bg-input/50 border-input data-[active=true]:border-ring data-[active=true]:ring-ring/30 data-[active=true]:aria-invalid:ring-destructive-foreground/20 dark:data-[active=true]:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground sm:size-9 border-y border-r text-base pointer-fine:text-sm transition-all outline-none first:rounded-l-3xl first:border-l last:rounded-r-3xl data-[active=true]:ring-2;
+    @apply size-10 bg-input/50 border-field data-[active=true]:border-ring data-[active=true]:ring-ring/30 data-[active=true]:aria-invalid:ring-destructive-foreground/20 dark:data-[active=true]:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground sm:size-9 border-y border-r text-base pointer-fine:text-sm transition-all outline-none first:rounded-l-3xl first:border-l last:rounded-r-3xl data-[active=true]:ring-2;
   }
 
   .cn-input-otp-separator {
@@ -323,7 +323,7 @@
   }
 
   .cn-field {
-    @apply data-[invalid=true]:text-destructive-foreground gap-3;
+    @apply data-[invalid=true]:text-destructive-foreground gap-1.5;
   }
 
   .cn-field-content {
@@ -1070,7 +1070,7 @@
   }
 
   .cn-calendar-dropdown-root {
-    @apply has-focus:border-ring border-input has-focus:ring-ring/30 border has-focus:ring-2;
+    @apply has-focus:border-ring border-field has-focus:ring-ring/30 border has-focus:ring-2;
   }
 
   .cn-calendar-caption-label {

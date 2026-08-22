@@ -145,3 +145,90 @@ it('enforces the selection bounds the editor can now set', function () {
         ->and($tooMany)->toHaveKey('responses.'.$field->ulid)
         ->and($justRight)->toBe([]);
 });
+
+/**
+ * The province/city datasets cover Indonesia only, so the renderer withdraws
+ * those fields entirely when the country is anything else. A field the buyer
+ * was never shown must not be required of them.
+ */
+function locationTrio(Event $event, bool $required = true): array
+{
+    $country = CustomField::factory()->ticketRegistration($event)->create([
+        'type' => CustomField::TYPE_COUNTRY,
+        'system_key' => 'country',
+        'validation' => [],
+    ]);
+
+    $province = CustomField::factory()->ticketRegistration($event)->create([
+        'type' => CustomField::TYPE_PROVINCE,
+        'system_key' => 'province',
+        'settings' => ['depends_on' => 'country'],
+        'validation' => ['required' => $required],
+    ]);
+
+    $city = CustomField::factory()->ticketRegistration($event)->create([
+        'type' => CustomField::TYPE_CITY,
+        'system_key' => 'city',
+        'settings' => ['depends_on' => 'province'],
+        'validation' => ['required' => $required],
+    ]);
+
+    return [$country, $province, $city];
+}
+
+it('does not require province or city when the country is outside Indonesia', function () {
+    $event = Event::factory()->create();
+    [$country, $province, $city] = locationTrio($event);
+
+    $errors = CustomFieldValidation::errorsFor(
+        collect([$country, $province, $city]),
+        [$country->ulid => 'Japan'],
+        'registration.responses',
+    );
+
+    expect($errors)->toBe([]);
+});
+
+it('does not require province or city when the country has not been answered', function () {
+    $event = Event::factory()->create();
+    [$country, $province, $city] = locationTrio($event);
+
+    $errors = CustomFieldValidation::errorsFor(
+        collect([$country, $province, $city]),
+        [],
+        'registration.responses',
+    );
+
+    expect($errors)->toBe([]);
+});
+
+it('still requires province and city once the country is Indonesia', function () {
+    $event = Event::factory()->create();
+    [$country, $province, $city] = locationTrio($event);
+
+    $errors = CustomFieldValidation::errorsFor(
+        collect([$country, $province, $city]),
+        [$country->ulid => 'Indonesia'],
+        'registration.responses',
+    );
+
+    expect($errors)->toHaveKey('registration.responses.'.$province->ulid)
+        ->and($errors)->toHaveKey('registration.responses.'.$city->ulid);
+});
+
+it('still rejects a city that does not belong to the chosen province', function () {
+    $event = Event::factory()->create();
+    [$country, $province, $city] = locationTrio($event, required: false);
+
+    $errors = CustomFieldValidation::errorsFor(
+        collect([$country, $province, $city]),
+        [
+            $country->ulid => 'Indonesia',
+            $province->ulid => 'Bali',
+            $city->ulid => 'Kabupaten Bogor',
+        ],
+        'registration.responses',
+    );
+
+    expect($errors)->toHaveKey('registration.responses.'.$city->ulid);
+});

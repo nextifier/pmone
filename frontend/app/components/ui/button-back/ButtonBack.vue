@@ -17,7 +17,7 @@
       v-ripple
     >
       <Icon name="lucide:arrow-left" class="size-4 shrink-0" />
-      <span v-if="showLabel && variant !== 'semiTransparent'">Back</span>
+      <span v-if="showLabel && variant !== 'semiTransparent'">{{ label }}</span>
       <KbdGroup
         v-if="showLabel && variant !== 'semiTransparent' && shortcut && shortcutEnabled"
       >
@@ -37,6 +37,13 @@ const props = defineProps({
   showLabel: {
     type: Boolean,
     default: true,
+  },
+  // Default keeps every existing call site rendering "Back". Public,
+  // multilingual surfaces pass a translated string instead of shipping an
+  // English word to a Japanese visitor.
+  label: {
+    type: String,
+    default: "Back",
   },
   forceDestination: {
     type: Boolean,

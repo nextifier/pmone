@@ -19,7 +19,7 @@
 
   /* MARK: Switch */
   .cn-switch {
-    @apply data-checked:bg-primary data-unchecked:bg-input data-checked:border-primary border-2 data-unchecked:border-transparent focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-2xl focus-visible:ring-2 aria-invalid:ring-2 data-[size=default]:h-5 data-[size=default]:w-8 data-[size=sm]:h-4 data-[size=sm]:w-6;
+    @apply data-checked:bg-primary data-unchecked:bg-field data-checked:border-primary border-2 data-unchecked:border-transparent focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-2xl focus-visible:ring-2 aria-invalid:ring-2 data-[size=default]:h-5 data-[size=default]:w-8 data-[size=sm]:h-4 data-[size=sm]:w-6;
   }
 
   .cn-switch-thumb {
@@ -303,7 +303,7 @@
   }
 
   .cn-input-otp-slot {
-    @apply size-9 bg-input/50 border-input data-[active=true]:border-ring data-[active=true]:ring-ring/30 data-[active=true]:aria-invalid:ring-destructive-foreground/20 dark:data-[active=true]:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground sm:size-8 border-y border-r text-base pointer-fine:text-sm transition-[color,box-shadow] duration-200 outline-none first:rounded-l-2xl first:border-l last:rounded-r-2xl data-[active=true]:ring-2;
+    @apply size-9 bg-input/50 border-field data-[active=true]:border-ring data-[active=true]:ring-ring/30 data-[active=true]:aria-invalid:ring-destructive-foreground/20 dark:data-[active=true]:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground sm:size-8 border-y border-r text-base pointer-fine:text-sm transition-[color,box-shadow] duration-200 outline-none first:rounded-l-2xl first:border-l last:rounded-r-2xl data-[active=true]:ring-2;
   }
 
   .cn-input-otp-separator {
@@ -324,7 +324,7 @@
   }
 
   .cn-field {
-    @apply data-[invalid=true]:text-destructive-foreground gap-3;
+    @apply data-[invalid=true]:text-destructive-foreground gap-1.5;
   }
 
   .cn-field-content {

@@ -27,6 +27,13 @@ import { computed, type HTMLAttributes } from "vue";
  */
 const props = withDefaults(
   defineProps<{
+    /**
+     * Forwarded to the trigger button so a sibling `<FieldLabel :for>` has
+     * something to point at. Popover renders no element of its own, and the
+     * button lives behind `as-child`, so an id on the component would otherwise
+     * never reach the DOM.
+     */
+    id?: string;
     class?: HTMLAttributes["class"];
     modelValue?: DateValue | null;
     placeholder?: DateValue;
@@ -91,6 +98,7 @@ const cellClass = cn(
   <Popover v-model:open="isOpen" :modal="false">
     <PopoverTrigger as-child>
       <button
+        :id="id"
         type="button"
         :disabled="disabled"
         :class="

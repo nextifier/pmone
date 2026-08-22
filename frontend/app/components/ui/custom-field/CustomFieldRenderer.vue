@@ -17,8 +17,13 @@
        pack, so the old `isLargeLabel ? 'gap-2.5' : 'gap-2'` was half a restated
        default and half a 10px exception that made public forms sit looser than
        every other surface. -->
-  <Field v-else :data-invalid="!!error">
-    <FieldLabel :for="fieldId" :required="isRequired" :class="labelClass">
+  <Field v-else-if="!isDependentHidden" :data-invalid="!!error">
+    <FieldLabel
+      :id="isOptionGroup ? labelId : undefined"
+      :for="isOptionGroup ? undefined : fieldId"
+      :required="isRequired"
+      :class="labelClass"
+    >
       {{ normalized.label }}
     </FieldLabel>
 
@@ -51,6 +56,7 @@
 
       <!-- Rich Text -->
       <TipTapEditor
+        :id="fieldId"
         v-else-if="normalized.type === 'rich_text'"
         :model-value="modelValue || ''"
         :placeholder="normalized.placeholder || 'Write your answer'"
@@ -128,6 +134,7 @@
 
       <!-- URL -->
       <InputLink
+        :id="fieldId"
         v-else-if="normalized.type === 'url'"
         :model-value="modelValue || ''"
         :disabled="disabled"
@@ -136,6 +143,7 @@
 
       <!-- Date -->
       <DatePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'date'"
         :model-value="parseLocalDateString(modelValue)"
         :disabled="disabled"
@@ -145,6 +153,7 @@
 
       <!-- Time -->
       <TimePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'time'"
         :model-value="parseTimeString(modelValue)"
         clearable
@@ -154,6 +163,7 @@
 
       <!-- Date & Time -->
       <DatePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'datetime'"
         with-time
         :model-value="parseDateTimeString(modelValue)"
@@ -164,6 +174,7 @@
 
       <!-- Date Range -->
       <DatePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'date_range'"
         mode="range"
         :model-value="dateRangeValue"
@@ -174,6 +185,7 @@
 
       <!-- Month -->
       <MonthPicker
+        :id="fieldId"
         v-else-if="normalized.type === 'month'"
         :model-value="parseMonthString(modelValue)"
         :disabled="disabled"
@@ -183,6 +195,7 @@
 
       <!-- Month Range -->
       <MonthRangePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'month_range'"
         :model-value="monthRangeValue"
         :disabled="disabled"
@@ -192,6 +205,7 @@
 
       <!-- Year -->
       <YearPicker
+        :id="fieldId"
         v-else-if="normalized.type === 'year'"
         :model-value="yearToDateValue(modelValue)"
         :min-value="yearToDateValue(normalized.validation?.min)"
@@ -203,6 +217,7 @@
 
       <!-- Year Range -->
       <YearRangePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'year_range'"
         :model-value="yearRangeValue"
         :min-value="yearToDateValue(normalized.validation?.min)"
@@ -214,6 +229,7 @@
 
       <!-- Time Range -->
       <TimeRangePicker
+        :id="fieldId"
         v-else-if="normalized.type === 'time_range'"
         :model-value="timeRangeValue"
         clearable
@@ -303,35 +319,49 @@
         </ComboboxList>
       </Combobox>
 
+      <!-- Every control row below is `<Field orientation="horizontal">`, which
+           is `flex-row items-center` + `gap-2` - exactly the hand-rolled div
+           these branches used to carry, except it is the component the library
+           documents for a control-beside-its-caption row. -->
+
       <!-- Checkbox (single) -->
-      <div v-else-if="normalized.type === 'checkbox'" class="flex items-center gap-x-2">
+      <Field v-else-if="normalized.type === 'checkbox'" orientation="horizontal">
         <Checkbox
           :id="fieldId"
           :model-value="!!modelValue"
           :disabled="disabled"
           @update:model-value="$emit('update:modelValue', !!$event)"
         />
-        <Label :for="fieldId" :class="['font-normal', labelClass]">
+        <FieldLabel :for="fieldId" :class="['font-normal', labelClass]">
           {{ normalized.placeholder || normalized.label }}
-        </Label>
-      </div>
+        </FieldLabel>
+      </Field>
 
       <!-- Switch -->
-      <div v-else-if="normalized.type === 'switch'" class="flex items-center gap-x-2">
+      <Field v-else-if="normalized.type === 'switch'" orientation="horizontal">
         <Switch
           :id="fieldId"
           :model-value="!!modelValue"
           :disabled="disabled"
           @update:model-value="$emit('update:modelValue', !!$event)"
         />
-        <Label :for="fieldId" :class="['font-normal', labelClass]">
+        <FieldLabel :for="fieldId" :class="['font-normal', labelClass]">
           {{ normalized.placeholder || normalized.label }}
-        </Label>
-      </div>
+        </FieldLabel>
+      </Field>
 
       <!-- Checkbox Group -->
-      <div v-else-if="normalized.type === 'checkbox_group'" class="space-y-2">
-        <div v-for="opt in normalized.options" :key="opt.value" class="flex items-center gap-x-2">
+      <div
+        v-else-if="normalized.type === 'checkbox_group'"
+        role="group"
+        :aria-labelledby="labelId"
+        class="space-y-2"
+      >
+        <Field
+          v-for="opt in normalized.options"
+          :key="opt.value"
+          orientation="horizontal"
+        >
           <Checkbox
             :id="`${fieldId}-${opt.value}`"
             :model-value="(modelValue || []).includes(opt.value)"
@@ -340,7 +370,7 @@
           />
           <!-- The label dims with the box: a full-contrast label next to a
                greyed checkbox reads as a rendering glitch, not as a rule. -->
-          <Label
+          <FieldLabel
             :for="`${fieldId}-${opt.value}`"
             :class="[
               'font-normal',
@@ -349,8 +379,8 @@
             ]"
           >
             {{ opt.label }}
-          </Label>
-        </div>
+          </FieldLabel>
+        </Field>
       </div>
 
       <!-- Two options sit inline - a yes/no or male/female pair does not deserve
@@ -363,21 +393,31 @@
            while utilities sit above them. -->
       <RadioGroup
         v-else-if="normalized.type === 'radio'"
-        :class="normalized.options?.length === 2 ? 'flex flex-wrap gap-x-6 gap-y-2' : undefined"
+        :class="isInlineOptions ? 'flex flex-wrap gap-x-6 gap-y-2' : undefined"
+        :aria-labelledby="labelId"
         :model-value="modelValue"
         :disabled="disabled"
         @update:model-value="$emit('update:modelValue', $event)"
       >
-        <div v-for="opt in normalized.options" :key="opt.value" class="flex items-center gap-x-2">
+        <!-- `w-auto` only when inline: `Field`'s base is `w-full`, which is
+             right for a stacked group and would put each of the two inline
+             options back on its own row. -->
+        <Field
+          v-for="opt in normalized.options"
+          :key="opt.value"
+          orientation="horizontal"
+          :class="isInlineOptions ? 'w-auto' : undefined"
+        >
           <RadioGroupItem :value="opt.value" :id="`${fieldId}-${opt.value}`" />
-          <Label :for="`${fieldId}-${opt.value}`" :class="['font-normal', labelClass]">
+          <FieldLabel :for="`${fieldId}-${opt.value}`" :class="['font-normal', labelClass]">
             {{ opt.label }}
-          </Label>
-        </div>
+          </FieldLabel>
+        </Field>
       </RadioGroup>
 
       <!-- Tags -->
       <TagsInput
+        :id="fieldId"
         v-else-if="normalized.type === 'tags'"
         :model-value="modelValue || []"
         :max="normalized.validation?.max_selections"
@@ -392,12 +432,15 @@
       </TagsInput>
 
       <!-- Province / City: narrowed by the parent named in settings.depends_on.
-           Outside Indonesia the dataset has nothing to offer, so the same field
-           renders as free text instead of an empty dropdown. -->
+           Only reached when the country is Indonesia - otherwise the field is
+           withdrawn above. City is present but disabled until a province is
+           picked, so the buyer can see what is coming. -->
       <LocationCombobox
-        v-else-if="isLocationDependent && useLocationSelect"
+        :id="fieldId"
+        v-else-if="isLocationDependent"
         :model-value="modelValue"
         :options="locationOptions"
+        :pinned="normalized.type === 'province' ? ['DKI Jakarta'] : []"
         :disabled="disabled || (normalized.type === 'city' && !parentValue)"
         :placeholder="
           normalized.placeholder ||
@@ -405,17 +448,10 @@
         "
         @update:model-value="$emit('update:modelValue', $event)"
       />
-      <Input
-        v-else-if="isLocationDependent"
-        :id="fieldId"
-        :model-value="modelValue"
-        :disabled="disabled"
-        :placeholder="normalized.placeholder || normalized.label"
-        @update:model-value="$emit('update:modelValue', $event)"
-      />
 
       <!-- Country -->
       <LocationCombobox
+        :id="fieldId"
         v-else-if="normalized.type === 'country'"
         :model-value="modelValue"
         :options="countryOptions"
@@ -439,6 +475,7 @@
 
       <!-- File -->
       <CustomFieldFileUpload
+        :id="fieldId"
         v-else-if="normalized.type === 'file'"
         :field="normalized"
         :model-value="modelValue"
@@ -452,6 +489,7 @@
 
       <!-- Rating -->
       <Rating
+        :id="fieldId"
         v-else-if="normalized.type === 'rating'"
         :model-value="Number(modelValue) || 0"
         :max="ratingMax"
@@ -462,6 +500,7 @@
       <!-- Slider -->
       <div v-else-if="normalized.type === 'slider'" class="space-y-2 pt-1">
         <Slider
+          :id="fieldId"
           :model-value="[Number(modelValue ?? sliderMin)]"
           :min="sliderMin"
           :max="sliderMax"
@@ -479,6 +518,7 @@
       <!-- Slider Range -->
       <div v-else-if="normalized.type === 'slider_range'" class="space-y-2 pt-1">
         <Slider
+          :id="fieldId"
           :model-value="sliderRangeValue"
           :min="sliderMin"
           :max="sliderMax"
@@ -502,6 +542,7 @@
         :class="disabled && 'pointer-events-none opacity-50'"
       >
         <SliderRuler
+          :id="fieldId"
           :label="normalized.placeholder || ''"
           :model-value="Number(modelValue ?? sliderMin)"
           :min="sliderMin"
@@ -516,6 +557,7 @@
       <div v-else-if="normalized.type === 'linear_scale'" class="space-y-2">
         <div
           role="radiogroup"
+          :aria-labelledby="labelId"
           class="grid grid-cols-[repeat(var(--scale-cols),minmax(0,1fr))] gap-1.5 sm:grid-cols-[repeat(var(--scale-cols-sm),minmax(0,1fr))] sm:gap-2"
           :style="scaleGridVars"
         >
@@ -670,8 +712,9 @@ const emit = defineEmits(["update:modelValue", "uploading"]);
 const normalized = computed(() => normalizeField(props.field, props.locale));
 
 // --- Dependent location selects (province, city) -------------------------------
-// The datasets are Indonesia-only while the country field is global, so outside
-// Indonesia these fall back to a plain text input rather than an empty dropdown.
+// The datasets are Indonesia-only while the country field is global. Outside
+// Indonesia the whole field is withdrawn rather than degraded to free text -
+// same as `AddressFields.vue`, the pattern contacts/hotels/brands already use.
 // Loaded on demand: the region list is ~39 KB and most forms never use it.
 const regions = shallowRef(null);
 
@@ -710,12 +753,19 @@ const locationOptions = computed(() => {
     : regions.value.citiesForProvinceLabel(parentValue.value);
 });
 
-/** Indonesia picked, dataset loaded: show the narrowed select. Otherwise free text. */
-const useLocationSelect = computed(
+/**
+ * The field only exists once the country it hangs off is Indonesia - before
+ * that there is nothing to choose from, and a dropdown offering nothing is
+ * worse than no dropdown. City stays visible but disabled until a province is
+ * picked, which is how `AddressFields.vue` behaves.
+ *
+ * A withdrawn field must not be required either; see
+ * `CustomFieldValidation::errorsFor()`, which skips the same cases server-side.
+ */
+const isDependentHidden = computed(
   () =>
     isLocationDependent.value &&
-    !!regions.value &&
-    regions.value.isIndonesia(countryValue.value),
+    (!regions.value || !regions.value.isIndonesia(countryValue.value)),
 );
 
 // A stale child is worse than an empty one: changing province must not leave the
@@ -731,6 +781,22 @@ watch(parentValue, (next, prev) => {
 const fieldId = computed(() => `field-${normalized.value.key}`);
 
 const isRequired = computed(() => !!normalized.value.validation?.required);
+
+/**
+ * A group of controls has no single element to point `for` at - `fieldId` is
+ * only ever on a lone input, and the options carry `${fieldId}-${value}`. So
+ * these types label their group through `aria-labelledby` instead, and the
+ * caption drops the `for` that used to dangle.
+ */
+const isOptionGroup = computed(() =>
+  ["radio", "checkbox_group", "linear_scale", "rating"].includes(normalized.value.type),
+);
+
+const labelId = computed(() => `${fieldId.value}-label`);
+
+// Two options share a row; three or more stack. `flex-wrap` packs by content
+// width, so more than two wrap into columns that never line up.
+const isInlineOptions = computed(() => normalized.value.options?.length === 2);
 
 /**
  * One step up from `.cn-label`, and `leading-snug` in place of its `leading-none`

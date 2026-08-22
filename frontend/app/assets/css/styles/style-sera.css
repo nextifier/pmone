@@ -205,7 +205,7 @@
   }
 
   .cn-calendar-dropdown-root {
-    @apply has-focus:border-ring border-input has-focus:ring-ring/30 rounded-none border has-focus:ring-2;
+    @apply has-focus:border-ring border-field has-focus:ring-ring/30 rounded-none border has-focus:ring-2;
   }
 
   .cn-calendar-caption-label {
@@ -293,7 +293,7 @@
   }
 
   .cn-combobox-chips {
-    @apply min-h-11 border-transparent border-b-input bg-transparent focus-within:border-b-ring has-aria-invalid:border-b-destructive-foreground dark:has-aria-invalid:border-b-destructive-foreground/50 flex sm:min-h-10 flex-wrap items-center gap-1.5 rounded-none border bg-clip-padding px-0 py-1.5 text-base pointer-fine:text-sm transition-[color,border-color] has-data-[slot=combobox-chip]:px-0;
+    @apply min-h-11 border-transparent border-b-field bg-transparent focus-within:border-b-ring has-aria-invalid:border-b-destructive-foreground dark:has-aria-invalid:border-b-destructive-foreground/50 flex sm:min-h-10 flex-wrap items-center gap-1.5 rounded-none border bg-clip-padding px-0 py-1.5 text-base pointer-fine:text-sm transition-[color,border-color] has-data-[slot=combobox-chip]:px-0;
   }
 
   .cn-combobox-chip {
@@ -318,7 +318,7 @@
   }
 
   .cn-command-input-group {
-    @apply bg-transparent border-transparent border-b-input px-3;
+    @apply bg-transparent border-transparent border-b-field px-3;
   }
 
   .cn-command-input-icon {
@@ -514,7 +514,7 @@
   }
 
   .cn-field {
-    @apply data-[invalid=true]:text-destructive-foreground gap-3;
+    @apply data-[invalid=true]:text-destructive-foreground gap-1.5;
   }
 
   .cn-field-content {
@@ -548,7 +548,7 @@
 
   /* MARK: Input */
   .cn-input {
-    @apply h-11 file:h-8 border-transparent border-b-input bg-transparent focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 sm:h-10 border px-0 py-1 text-base pointer-fine:text-sm transition-[color,border-color] sm:file:h-7 file:text-sm file:font-medium;
+    @apply h-11 file:h-8 border-transparent border-b-field bg-transparent focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 sm:h-10 border px-0 py-1 text-base pointer-fine:text-sm transition-[color,border-color] sm:file:h-7 file:text-sm file:font-medium;
   }
 
   /* MARK: Input OTP */
@@ -558,7 +558,7 @@
   }
 
   .cn-input-otp-slot {
-    @apply size-11 border-transparent border-b-input bg-transparent data-[active=true]:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 sm:size-10 border text-base pointer-fine:text-sm transition-[color,border-color] outline-none first:rounded-none last:rounded-none;
+    @apply size-11 border-transparent border-b-field bg-transparent data-[active=true]:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 sm:size-10 border text-base pointer-fine:text-sm transition-[color,border-color] outline-none first:rounded-none last:rounded-none;
   }
 
   .cn-input-otp-separator {
@@ -693,7 +693,7 @@
 
   /* MARK: Native Select */
   .cn-native-select {
-    @apply h-11 data-[size=sm]:h-10 border-transparent border-b-input bg-transparent placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 sm:h-10 w-full min-w-0 appearance-none rounded-none border py-2 pr-8 pl-0 text-base pointer-fine:text-sm transition-[color,border-color] select-none sm:data-[size=sm]:h-9;
+    @apply h-11 data-[size=sm]:h-10 border-transparent border-b-field bg-transparent placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 sm:h-10 w-full min-w-0 appearance-none rounded-none border py-2 pr-8 pl-0 text-base pointer-fine:text-sm transition-[color,border-color] select-none sm:data-[size=sm]:h-9;
   }
 
   .cn-native-select-icon {
@@ -781,7 +781,7 @@
 
   /* MARK: Select */
   .cn-select-trigger {
-    @apply [&_svg:not([class*=size-])]:size-4 data-[size=default]:h-11 data-[size=sm]:h-10 border-transparent border-b-input bg-transparent data-placeholder:text-muted-foreground focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 gap-1.5 rounded-none border py-2 px-0 text-base pointer-fine:text-sm transition-[color,border-color] sm:data-[size=default]:h-10 sm:data-[size=sm]:h-9 *:data-[slot=select-value]:flex *:data-[slot=select-value]:gap-1.5 sm:[&_svg:not([class*=size-])]:size-3.5;
+    @apply [&_svg:not([class*=size-])]:size-4 data-[size=default]:h-11 data-[size=sm]:h-10 border-transparent border-b-field bg-transparent data-placeholder:text-muted-foreground focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 gap-1.5 rounded-none border py-2 px-0 text-base pointer-fine:text-sm transition-[color,border-color] sm:data-[size=default]:h-10 sm:data-[size=sm]:h-9 *:data-[slot=select-value]:flex *:data-[slot=select-value]:gap-1.5 sm:[&_svg:not([class*=size-])]:size-3.5;
   }
 
   .cn-select-trigger-icon {
@@ -955,7 +955,7 @@
 
   /* MARK: Switch */
   .cn-switch {
-    @apply data-checked:bg-primary data-unchecked:bg-input data-checked:border-primary border data-unchecked:border-input/50 focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-none focus-visible:ring-2 aria-invalid:ring-2 data-[size=default]:h-4.5 data-[size=default]:w-8.25 data-[size=sm]:h-3.5 data-[size=sm]:w-6.25;
+    @apply data-checked:bg-primary data-unchecked:bg-field data-checked:border-primary border data-unchecked:border-input/50 focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:ring-destructive-foreground/20 dark:aria-invalid:ring-destructive-foreground/40 aria-invalid:border-destructive-foreground dark:aria-invalid:border-destructive-foreground/50 shrink-0 rounded-none focus-visible:ring-2 aria-invalid:ring-2 data-[size=default]:h-4.5 data-[size=default]:w-8.25 data-[size=sm]:h-3.5 data-[size=sm]:w-6.25;
   }
 
   .cn-switch-thumb {
@@ -988,7 +988,7 @@
 
   /* MARK: Textarea */
   .cn-textarea {
-    @apply border-transparent border-b-input bg-transparent focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 resize-none rounded-none border px-0 py-3 text-base pointer-fine:text-sm transition-[color,border-color];
+    @apply border-transparent border-b-field bg-transparent focus-visible:border-b-ring aria-invalid:border-b-destructive-foreground dark:aria-invalid:border-b-destructive-foreground/50 resize-none rounded-none border px-0 py-3 text-base pointer-fine:text-sm transition-[color,border-color];
   }
 
   /* MARK: Toggle */
@@ -1036,7 +1036,7 @@
 
   /* MARK: Input Group */
   .cn-input-group {
-    @apply h-11 border-transparent border-b-input bg-transparent has-[[data-slot=input-group-control]:focus-visible]:border-b-ring has-[[data-slot][aria-invalid=true]]:border-b-destructive-foreground dark:has-[[data-slot][aria-invalid=true]]:border-b-destructive-foreground/50 sm:h-10 rounded-none border transition-[color,border-color] in-data-[slot=combobox-content]:focus-within:border-inherit in-data-[slot=combobox-content]:focus-within:ring-0 has-data-[align=block-end]:rounded-none has-data-[align=block-start]:rounded-none has-[textarea]:rounded-none has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3 has-[>[data-align=block-start]]:[&>input]:pb-3;
+    @apply h-11 border-transparent border-b-field bg-transparent has-[[data-slot=input-group-control]:focus-visible]:border-b-ring has-[[data-slot][aria-invalid=true]]:border-b-destructive-foreground dark:has-[[data-slot][aria-invalid=true]]:border-b-destructive-foreground/50 sm:h-10 rounded-none border transition-[color,border-color] in-data-[slot=combobox-content]:focus-within:border-inherit in-data-[slot=combobox-content]:focus-within:ring-0 has-data-[align=block-end]:rounded-none has-data-[align=block-start]:rounded-none has-[textarea]:rounded-none has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3 has-[>[data-align=block-start]]:[&>input]:pb-3;
   }
 
   .cn-input-group-addon {

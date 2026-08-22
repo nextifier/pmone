@@ -1,9 +1,13 @@
 <template>
   <div class="space-y-6">
+    <!-- `empty:hidden`: a field can withdraw itself (a province whose country is
+         not Indonesia renders nothing), and without this the wrapper would stay
+         in the flow and `space-y-6` would leave a 24px hole where it used to be. -->
     <div
       v-for="(field, index) in fields"
       :key="fieldKey(field)"
       :data-field-error="errorFor(field) ? '' : null"
+      class="empty:hidden"
     >
       <CustomFieldRenderer
         :field="field"
