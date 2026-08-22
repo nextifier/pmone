@@ -71,12 +71,21 @@ const brandIcons = brand.assetsReady
         // must change `background_color` with it, or the outline returns.
         //
         // Must be square and fully opaque, NOT rounded - Android applies the
-        // mask itself, and a pre-rounded icon gets its corners cut twice. The
-        // furthest white pixel sits at r = 168.2 px = 0.329 of the width,
-        // inside the 0.40 safe-zone radius. (Measure inked PIXELS, not the
-        // bounding box corners - the mark is curved, so its bbox corner reads a
-        // misleading 0.441.) Without this entry Android letterboxes the icon or
-        // crops transparent corners into the mask.
+        // mask itself, and a pre-rounded icon gets its corners cut twice.
+        //
+        // SIZE THE MARK AT r = 0.262 of the width, not at the 0.40 safe-zone
+        // limit. 0.40 is the guarantee that nothing gets clipped, not a target:
+        // Android crops the 108dp canvas to a 72dp viewport and scales up, so a
+        // mark drawn near the limit reads as enormous and touches the edge.
+        // Both levenium's icon and this one before the dark rework measure
+        // 0.262, which is what looks right on device; a render straight from
+        // favicon-light.svg came out at 0.329 and was visibly too big. So this
+        // file is the previous maskable PNG with its colours mapped (white
+        // background -> #09090b, black mark -> white), which keeps that proven
+        // geometry exactly.
+        //
+        // Without this entry Android letterboxes the icon or crops transparent
+        // corners into the mask.
         {
           src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
           sizes: "512x512",
