@@ -53,6 +53,27 @@ const brandIcons = brand.assetsReady
           sizes: "512x512",
           type: "image/png",
         },
+        // TEMPORARILY DISABLED (2026-08-22) - live experiment, revert after.
+        //
+        // Declaring a maskable icon is what makes Android treat this as an
+        // ADAPTIVE icon: it masks the artwork to the system squircle and draws
+        // an elevation shadow around that mask. On the PWA splash screen that
+        // shadow reads as a thin grey outline, because our artwork and
+        // `background_color` are both #ffffff, so the shadow is the only edge
+        // with any contrast. Measured off two device screenshots: pmone splash
+        // background 255 -> shadow 215; levenium (background_color #09090b)
+        // 9.7 -> 7.7. Same shadow, ~16-20% black, invisible only because
+        // levenium's icon and splash share a dark colour.
+        //
+        // This entry landed in 5233a09d (2026-08-03), which matches when the
+        // outline first appeared. Commenting it out to confirm the cause on a
+        // real device. If confirmed, the proper fix is a dark full-bleed
+        // maskable icon plus a matching `background_color` (levenium's
+        // approach), NOT leaving this off: without it Android letterboxes the
+        // icon or crops transparent corners into the mask.
+        //
+        // The file itself stays in public/brands/<id>/icons/ either way.
+        //
         // Full-bleed variant (opaque corners) for Android adaptive icons.
         // Currently BYTE-IDENTICAL to icon-512x512.png, not derived from it:
         // the artwork is already an opaque rounded badge, so there is nothing
@@ -60,14 +81,13 @@ const brandIcons = brand.assetsReady
         // at r = 134.7 px = 0.263 of the width, well inside the 0.40 safe-zone
         // radius, so it needs no rescaling. (Measure inked PIXELS, not the
         // bounding box corners — the mark is curved, so its bbox corner reads a
-        // misleading 0.354.) Without this entry Android letterboxes the icon or
-        // crops the transparent corners into the mask.
-        {
-          src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
-          sizes: "512x512",
-          type: "image/png",
-          purpose: "maskable" as const,
-        },
+        // misleading 0.354.)
+        // {
+        //   src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
+        //   sizes: "512x512",
+        //   type: "image/png",
+        //   purpose: "maskable" as const,
+        // },
       ],
     }
   : {};
