@@ -53,45 +53,48 @@ const brandIcons = brand.assetsReady
           sizes: "512x512",
           type: "image/png",
         },
-        // Full-bleed variant for Android adaptive icons. Deliberately DARK
-        // (#09090b) with a white mark, and `background_color` below matches it.
+        // NO maskable entry, on purpose. Kept commented rather than deleted
+        // because the PNG is still in place and the reasoning is easy to lose.
         //
-        // Declaring a maskable icon is what makes Android treat the artwork as
-        // an ADAPTIVE icon: it masks it to the system squircle and draws an
-        // elevation shadow around that mask. When the icon and the splash
-        // background are both #ffffff, that shadow is the only edge with any
-        // contrast, so it reads as a stray grey outline. Measured off device
-        // screenshots: splash background 255 -> shadow 215 (obvious), against
-        // levenium's 9.7 -> 7.7 (invisible). Same ~16-20% black shadow both
-        // times; levenium only gets away with it because its icon and splash
-        // share one dark colour. Confirmed on a real device by shipping this
-        // entry commented out (4801b7cc) and watching the outline disappear.
+        // Declaring one is what makes Android treat the artwork as an ADAPTIVE
+        // icon: it masks it to the system squircle and draws an elevation
+        // shadow around that mask. Our icon and `background_color` are both
+        // #ffffff, so on the PWA splash screen that shadow is the only edge
+        // with any contrast and reads as a stray grey outline. Measured off
+        // device screenshots: splash background 255 -> shadow 215 (obvious),
+        // against levenium's 9.7 -> 7.7 (invisible). Same ~16-20% black shadow
+        // both times; levenium only escapes it because its icon and splash
+        // share one dark colour.
         //
-        // So the two must stay in sync: change this artwork's colour and you
-        // must change `background_color` with it, or the outline returns.
+        // Verified on a real device across three deploys: the outline appeared
+        // when this entry landed (5233a09d), went away when it shipped
+        // commented out (4801b7cc), and a dark icon plus a matching dark
+        // background_color cleared it too (adc30ff7) - but that turned the
+        // splash dark, which we did not want. So the white splash wins and this
+        // stays off.
         //
-        // Must be square and fully opaque, NOT rounded - Android applies the
-        // mask itself, and a pre-rounded icon gets its corners cut twice.
+        // The trade-off, accepted knowingly: without a maskable icon Android
+        // pads the launcher icon itself, so the mark reads smaller on the home
+        // screen than it otherwise would.
         //
-        // SIZE THE MARK AT r = 0.262 of the width, not at the 0.40 safe-zone
-        // limit. 0.40 is the guarantee that nothing gets clipped, not a target:
-        // Android crops the 108dp canvas to a 72dp viewport and scales up, so a
-        // mark drawn near the limit reads as enormous and touches the edge.
-        // Both levenium's icon and this one before the dark rework measure
-        // 0.262, which is what looks right on device; a render straight from
-        // favicon-light.svg came out at 0.329 and was visibly too big. So this
-        // file is the previous maskable PNG with its colours mapped (white
-        // background -> #09090b, black mark -> white), which keeps that proven
-        // geometry exactly.
+        // To turn it back on, the artwork and `background_color` must change
+        // TOGETHER to the same non-white colour, or the outline comes straight
+        // back. Two more things that each cost a round trip when we tried: the
+        // PNG must be square and fully opaque, NOT rounded, since Android
+        // applies its own mask and a pre-rounded icon gets its corners cut
+        // twice; and size the mark at r = 0.262 of the width, not at the 0.40
+        // safe-zone limit. 0.40 only guarantees nothing is clipped. Android
+        // crops the 108dp canvas to a 72dp viewport and scales up, so a mark
+        // drawn near that limit reads as enormous and touches the edge: a
+        // render straight from favicon-light.svg measured 0.329 and was
+        // visibly too big, while levenium's icon and ours both sit at 0.262.
         //
-        // Without this entry Android letterboxes the icon or crops transparent
-        // corners into the mask.
-        {
-          src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
-          sizes: "512x512",
-          type: "image/png",
-          purpose: "maskable" as const,
-        },
+        // {
+        //   src: `/brands/${brand.id}/icons/icon-512x512-maskable.png`,
+        //   sizes: "512x512",
+        //   type: "image/png",
+        //   purpose: "maskable" as const,
+        // },
       ],
     }
   : {};
@@ -549,14 +552,13 @@ export default defineNuxtConfig({
       short_name: brand.shortName,
       start_url: "/",
       display: "standalone",
-      // Both match the maskable icon's #09090b on purpose: the splash icon and
-      // its background become one surface, so Android's adaptive-icon shadow
-      // has nothing to contrast against. See the maskable entry above before
-      // changing either of these. Note theme_color here is only the manifest
-      // default - while the app runs, useAppearance() owns the reactive
-      // <meta name="theme-color"> and swaps it with the colour mode.
-      theme_color: "#09090b",
-      background_color: "#09090b",
+      // White splash, matching the white app icon. Going dark here is what the
+      // maskable entry above would require, and we deliberately chose not to.
+      // Note theme_color is only the manifest default - while the app runs,
+      // useAppearance() owns the reactive <meta name="theme-color"> and swaps
+      // it with the colour mode.
+      theme_color: "#ffffff",
+      background_color: "#ffffff",
       description: brand.manifestDescription,
       ...brandIcons,
     },
