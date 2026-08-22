@@ -131,8 +131,20 @@ watch(modelValue, () => {
     <ComboboxAnchor class="w-full">
       <!-- The shared Combobox field, so the border, focus ring, invalid and disabled
            states are the same here as in every other combobox. -->
+      <!-- `inputmode="none"` keeps the on-screen keyboard down when the list
+           opens, so the dropdown gets the whole viewport instead of half of it.
+           It has to be an attribute: reka-ui 2.10.1 exposes no way to opt out.
+           `ComboboxRoot.onOpenChange` calls `inputElement.focus()` unconditionally,
+           `ComboboxRoot`/`Content`/`List` carry zero focus props, the FocusScope
+           inside `ComboboxContentImpl` already prevents both auto-focus events,
+           and `ComboboxTrigger` is `tabindex="-1"` and routes through the same
+           handler. Don't go looking for a prop - there isn't one.
+           This only suppresses *virtual* keyboards, so desktop type-to-filter
+           still works; on a phone the list is picked by scrolling. The attribute
+           reaches the native input through `ComboboxInput.vue`'s `$attrs`. -->
       <ComboboxInput
         v-model="searchTerm"
+        inputmode="none"
         :display-value="() => modelValue || ''"
         :placeholder="placeholder || 'Select'"
         :disabled="disabled"

@@ -353,9 +353,15 @@
         </div>
       </div>
 
-      <!-- Radio -->
+      <!-- Radio. Inline rather than one option per row: most radio fields carry
+           two or three short options, and stacking those wastes rows on the
+           narrowest screen. `flex-wrap` handles the exception - a long option
+           simply takes a line of its own. The class beats `cn-radio-group`'s own
+           `grid` because the style pack is imported into `@layer base` while
+           utilities sit above it. -->
       <RadioGroup
         v-else-if="normalized.type === 'radio'"
+        class="flex flex-wrap gap-x-6 gap-y-2"
         :model-value="modelValue"
         :disabled="disabled"
         @update:model-value="$emit('update:modelValue', $event)"
